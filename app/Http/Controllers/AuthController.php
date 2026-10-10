@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -108,6 +110,76 @@ class AuthController extends Controller
      */
     public function discordCallback(Request $request): Response|RedirectResponse
     {
+        $clientId = config('services.discord.client_id');
+        $clientSecret = config('services.discord.client_secret');
+        $code = $request->query('code');
+
+        if ($clientId && $clientSecret && $code) {
+            try {
+                $response = Http::asForm()->timeout(10)->post('https://discord.com/api/oauth2/token', [
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
+                    'grant_type' => 'authorization_code',
+                    'code' => $code,
+                    'redirect_uri' => url('/auth/discord/callback'),
+                ]);
+
+                if ($response->successful()) {
+                    $tokenData = $response->json();
+                    $accessToken = $tokenData['access_token'] ?? null;
+
+                    if ($accessToken) {
+                        $userResponse = Http::withToken($accessToken)->timeout(10)->get('https://discord.com/api/users/@me');
+
+                        if ($userResponse->successful()) {
+                            $discordUser = $userResponse->json();
+                            $email = $discordUser['email'] ?? ($discordUser['username'].'@discord.tbskliniek.nl');
+                            $username = $discordUser['global_name'] ?? $discordUser['username'] ?? 'Discord Speler';
+
+                            $user = User::firstOrCreate(
+                                ['email' => $email],
+                                [
+                                    'name' => $username,
+                                    'password' => Hash::make(Str::random(32)),
+                                    'email_verified_at' => now(),
+                                ]
+                            );
+
+                            if (! $user->character) {
+                                Character::create([
+                                    'user_id' => $user->id,
+                                    'name' => Character::where('name', $username)->exists() ? ($username.'_'.rand(100, 999)) : $username,
+                                    'title' => 'Nieuwe Patiënt',
+                                    'avatar' => 'characters/avatar_male_1.jpg',
+                                    'bio' => 'Aangemeld via Discord bij de TBS Kliniek.',
+                                    'status_message' => 'Vers binnengebracht via Discord!',
+                                    'level' => 1,
+                                    'xp' => 0,
+                                    'total_xp' => 0,
+                                    'cash' => 500,
+                                    'bank' => 2500,
+                                    'energy' => 100,
+                                    'max_energy' => 100,
+                                    'health' => 100,
+                                    'max_health' => 100,
+                                    'respect' => 20,
+                                ]);
+                            }
+
+                            Auth::login($user);
+                            request()->session()->regenerate();
+
+                            return redirect()->route('dashboard')->with('success', 'Welkom! Je bent succesvol ingelogd via Discord.');
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Discord OAuth error: '.$e->getMessage());
+            }
+
+            return redirect()->route('login')->withErrors(['email' => 'Inloggen via Discord is mislukt. Probeer het opnieuw.']);
+        }
+
         return $this->discordLogin($request);
     }
 
@@ -173,6 +245,78 @@ class AuthController extends Controller
      */
     public function googleCallback(Request $request): Response|RedirectResponse
     {
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+        $code = $request->query('code');
+
+        if ($clientId && $clientSecret && $code) {
+            try {
+                $response = Http::asForm()->timeout(10)->post('https://oauth2.googleapis.com/token', [
+                    'client_id' => $clientId,
+                    'client_secret' => $clientSecret,
+                    'grant_type' => 'authorization_code',
+                    'code' => $code,
+                    'redirect_uri' => url('/auth/google/callback'),
+                ]);
+
+                if ($response->successful()) {
+                    $tokenData = $response->json();
+                    $accessToken = $tokenData['access_token'] ?? null;
+
+                    if ($accessToken) {
+                        $userResponse = Http::withToken($accessToken)->timeout(10)->get('https://www.googleapis.com/oauth2/v2/userinfo');
+
+                        if ($userResponse->successful()) {
+                            $googleUser = $userResponse->json();
+                            $email = $googleUser['email'] ?? null;
+                            $username = $googleUser['name'] ?? 'Google Speler';
+
+                            if ($email) {
+                                $user = User::firstOrCreate(
+                                    ['email' => $email],
+                                    [
+                                        'name' => $username,
+                                        'password' => Hash::make(Str::random(32)),
+                                        'email_verified_at' => now(),
+                                    ]
+                                );
+
+                                if (! $user->character) {
+                                    Character::create([
+                                        'user_id' => $user->id,
+                                        'name' => Character::where('name', $username)->exists() ? ($username.'_'.rand(100, 999)) : $username,
+                                        'title' => 'Nieuwe Patiënt',
+                                        'avatar' => 'characters/avatar_male_2.jpg',
+                                        'bio' => 'Aangemeld via Google bij de TBS Kliniek.',
+                                        'status_message' => 'Vers binnengebracht via Google!',
+                                        'level' => 1,
+                                        'xp' => 0,
+                                        'total_xp' => 0,
+                                        'cash' => 500,
+                                        'bank' => 2500,
+                                        'energy' => 100,
+                                        'max_energy' => 100,
+                                        'health' => 100,
+                                        'max_health' => 100,
+                                        'respect' => 20,
+                                    ]);
+                                }
+
+                                Auth::login($user);
+                                request()->session()->regenerate();
+
+                                return redirect()->route('dashboard')->with('success', 'Welkom! Je bent succesvol ingelogd via Google.');
+                            }
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Google OAuth error: '.$e->getMessage());
+            }
+
+            return redirect()->route('login')->withErrors(['email' => 'Inloggen via Google is mislukt. Probeer het opnieuw.']);
+        }
+
         return $this->googleLogin($request);
     }
 
