@@ -29,10 +29,10 @@ class DailyBattleAndXxlCasesTest extends TestCase
         $response = $this->get(route('battle.index'));
         $response->assertStatus(200);
         $response->assertSee('DE 24 UUR');
-        $response->assertSee('MEESTE SLAY');
+        $response->assertSee('MEESTE RESPECT');
         $response->assertSee('MEESTE HOSSELS');
         $response->assertSee('BETALINGEN');
-        $response->assertSee('BADDIES UITGEBROKEN');
+        $response->assertSee('PATIËNTEN UITGEBROKEN');
         $response->assertSee('DRUGS GEMAAKT');
         $response->assertSee('DRUGS VERKOCHT');
         $response->assertSee('MEESTE MOORDEN');

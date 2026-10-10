@@ -49,7 +49,7 @@ class PrisonBaddieTest extends TestCase
         $response->assertSessionHas('error');
 
         $errorMessage = session('error');
-        $this->assertStringContainsString('sec vast, baddie 💋', $errorMessage);
+        $this->assertStringContainsString('sec vast in isolatie', $errorMessage);
     }
 
     public function test_buyout_with_stars_frees_imprisoned_character(): void

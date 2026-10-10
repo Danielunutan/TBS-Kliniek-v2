@@ -198,23 +198,6 @@ class AuthController extends Controller
     }
 
     /**
-     * Quick demo login button for localhost evaluation.
-     */
-    public function demoLogin(): RedirectResponse
-    {
-        $demoUser = User::where('email', 'demo@tbskliniek.nl')->first();
-
-        if ($demoUser) {
-            Auth::login($demoUser);
-            request()->session()->regenerate();
-
-            return redirect()->route('dashboard')->with('success', 'Welkom terug in de kliniek, Kees! Tijd om de kassa te lichten.');
-        }
-
-        return redirect()->route('login')->with('error', 'Demo account niet gevonden.');
-    }
-
-    /**
      * Handle registration with onboarding avatar, gender, and terms.
      */
     public function register(Request $request): RedirectResponse
@@ -293,7 +276,7 @@ class AuthController extends Controller
 
         event(new Registered($user));
 
-        return redirect()->route('verification.notice')->with('success', 'Welkom in TBS Kliniek, '.$validated['username'].'! Bevestig je e-mailadres via Brevo Mail om te kunnen spelen.');
+        return redirect()->route('verification.notice')->with('success', 'Welkom in TBS Kliniek, '.$validated['username'].'! Bevestig je e-mailadres via de verzonden e-mail om te kunnen spelen.');
     }
 
     /**

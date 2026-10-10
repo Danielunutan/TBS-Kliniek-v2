@@ -48,14 +48,13 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function (): void {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-    Route::post('/demo-login', [AuthController::class, 'demoLogin'])->name('login.demo');
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
     Route::get('/auth/discord', [AuthController::class, 'discordLogin'])->name('login.discord');
     Route::get('/auth/discord/callback', [AuthController::class, 'discordCallback'])->name('login.discord.callback');
     Route::get('/auth/google', [AuthController::class, 'googleLogin'])->name('login.google');
     Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('login.google.callback');
 
-    // Wachtwoord Vergeten (Brevo Mail)
+    // Wachtwoord Vergeten (E-mail)
     Route::get('/wachtwoord-vergeten', [AuthController::class, 'showForgotPassword'])->name('password.request');
     Route::post('/wachtwoord-vergeten', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('/wachtwoord-reset/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
@@ -66,7 +65,7 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // E-mail Bevestiging (Brevo Mail)
+    // E-mail Bevestiging
     Route::get('/email/verify', [AuthController::class, 'verifyNotice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->name('verification.send');

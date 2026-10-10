@@ -139,7 +139,7 @@ class IsolationProtectionAndPackagePrisonTest extends TestCase
                 $response->assertRedirect(route('prison'));
                 $response->assertSessionHas('error');
                 $error = session('error');
-                $this->assertStringContainsString('sec vast, baddie 💋', $error);
+                $this->assertStringContainsString('sec vast in isolatie', $error);
                 break;
             }
         }

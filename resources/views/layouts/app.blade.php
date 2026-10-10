@@ -902,7 +902,8 @@
         });
     </script>
 
-    <!-- FLOATING KENNISBANK CHAT ASSISTANT WIDGET (TBS Kliniek Styling) -->
+    <!-- FLOATING KENNISBANK CHAT ASSISTANT WIDGET (TBS Kliniek Styling) - ALLEEN VOOR INGELOGDE SPELERS -->
+    @auth
     <div x-data="{
         isOpen: false,
         inputQuery: '',
@@ -935,7 +936,7 @@
             {
                 keywords: ['wachtwoord', 'vergeten', 'kwijt', 'reset'],
                 title: 'Wachtwoord Vergeten',
-                answer: 'Ben je je wachtwoord vergeten? Ga naar de wachtwoord vergeten pagina en vul je e-mailadres in. Je ontvangt direct een veilige reset-link via onze Brevo mailserver.',
+                answer: 'Ben je je wachtwoord vergeten? Ga naar de wachtwoord vergeten pagina en vul je e-mailadres in. Je ontvangt direct een veilige reset-link in je inbox.',
                 links: [{ text: 'Wachtwoord Resetten', url: '{{ route('password.request') }}' }]
             },
             {
@@ -1107,5 +1108,6 @@
             <span class="tracking-wide">Kliniek Helpbot</span>
         </button>
     </div>
+    @endauth
 </body>
 </html>

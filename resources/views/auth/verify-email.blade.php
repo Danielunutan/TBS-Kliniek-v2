@@ -27,7 +27,7 @@
             </div>
             <h1 class="text-xl font-extrabold text-white mt-4">Bevestig Je E-mailadres</h1>
             <p class="text-xs text-slate-400 leading-relaxed">
-                Om toegang te krijgen tot de kliniek en het spel is e-mailbevestiging verplicht. We hebben zojuist een link verzonden via onze Brevo mailserver naar:
+                Om toegang te krijgen tot de kliniek en het spel is e-mailbevestiging verplicht. We hebben zojuist een verificatielink verzonden naar:
             </p>
             <span class="inline-block bg-purple-900/40 text-purple-300 font-mono text-xs font-bold px-3 py-1 rounded-full border border-purple-500/30">
                 {{ auth()->user()->email }}

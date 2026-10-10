@@ -92,12 +92,12 @@ class FaqController extends Controller
                 ],
             ],
             'account' => [
-                'title' => 'Account, Beveiliging & Brevo Mail',
+                'title' => 'Account & Beveiliging',
                 'icon' => 'fa-shield-halved',
                 'questions' => [
                     [
                         'q' => 'Waarom moet ik mijn e-mailadres bevestigen?',
-                        'a' => 'E-mailverificatie is verplicht voor alle accounts om veilige communicatie, accountterugwinning en eerlijk spel te garanderen. Bevestigingsmails worden veilig verstuurd via onze Brevo SMTP server.',
+                        'a' => 'E-mailverificatie is verplicht voor alle accounts om veilige communicatie, accountterugwinning en eerlijk spel te garanderen. Bevestigingsmails worden direct veilig verzonden naar jouw e-mailadres.',
                     ],
                     [
                         'q' => 'Hoe werkt Wachtwoord Vergeten?',

@@ -29,7 +29,7 @@
             </a>
             <h1 class="text-xl font-extrabold text-white mt-4">Wachtwoord Vergeten?</h1>
             <p class="text-xs text-slate-400">
-                Geen paniek. Vul het e-mailadres van je account in en we sturen je via Brevo Mail direct een veilige link om je wachtwoord opnieuw in te stellen.
+                Geen paniek. Vul het e-mailadres van je account in en we sturen je direct een veilige link om je wachtwoord opnieuw in te stellen.
             </p>
         </div>
 

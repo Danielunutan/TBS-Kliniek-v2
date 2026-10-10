@@ -36,9 +36,12 @@ class GameFeatureTest extends TestCase
         $response->assertSee('Henkie', false);
     }
 
-    public function test_demo_login_authenticates_and_redirects_to_dashboard(): void
+    public function test_standard_login_authenticates_and_redirects_to_dashboard(): void
     {
-        $response = $this->post('/demo-login');
+        $response = $this->post('/login', [
+            'email' => 'demo@tbskliniek.nl',
+            'password' => 'wachtwoord123',
+        ]);
 
         $response->assertRedirect('/dashboard');
         $this->assertAuthenticated();
@@ -148,7 +151,7 @@ class GameFeatureTest extends TestCase
             'terms' => '1',
         ]);
 
-        $response->assertRedirect('/dashboard');
+        $response->assertRedirect('/email/verify');
         $this->assertAuthenticated();
 
         $this->assertDatabaseHas('characters', [

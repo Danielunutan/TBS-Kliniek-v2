@@ -139,7 +139,7 @@
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-envelope text-xs"></i>
                             </span>
-                            <input type="email" name="email" value="{{ old('email', 'demo@tbskliniek.nl') }}" required
+                            <input type="email" name="email" value="{{ old('email') }}" required
                                    placeholder="E-mailadres / Dossiernummer"
                                    class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
                         </div>
@@ -149,7 +149,7 @@
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-lock text-xs"></i>
                             </span>
-                            <input :type="showPass ? 'text' : 'password'" name="password" value="wachtwoord123" required
+                            <input :type="showPass ? 'text' : 'password'" name="password" required
                                    placeholder="Wachtwoord"
                                    class="w-full pl-9 pr-10 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
                             <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition">
@@ -172,20 +172,6 @@
                             <span>Inloggen op Dossier</span>
                         </button>
                     </form>
-
-                    <!-- QUICK 1-CLICK DEMO ACCESS -->
-                    <div class="pt-1">
-                        <form method="POST" action="{{ route('login.demo') }}">
-                            @csrf
-                            <button type="submit" class="w-full bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-bold py-2 px-3.5 rounded-xl text-xs flex items-center justify-between transition cursor-pointer">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-bolt text-amber-500"></i>
-                                    <span>Direct spelen als Henkie (Level 12)</span>
-                                </div>
-                                <span class="text-[10px] font-extrabold bg-amber-200/60 px-2 py-0.5 rounded-md text-amber-900">Demo</span>
-                            </button>
-                        </form>
-                    </div>
                 </div>
 
                 <!-- REGISTER TAB (SLEEK ONBOARDING: USERNAME, EMAIL, PASSWORD, AVATAR & TERMS) -->
