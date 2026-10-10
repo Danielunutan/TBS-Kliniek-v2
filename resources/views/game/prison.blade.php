@@ -1,88 +1,117 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-3xl mx-auto space-y-6">
-    <!-- Isolation Cell Card -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 p-6 text-white text-center border-b-2 border-red-700">
-            <div class="w-16 h-16 rounded-full bg-red-950/80 border-2 border-red-500 text-red-400 mx-auto flex items-center justify-center text-2xl mb-3 shadow-inner">
-                <i class="fa-solid fa-lock"></i>
+<div class="max-w-5xl mx-auto space-y-6">
+    <!-- TOP PRISON BANNER (Exact match to bottom-center-left mockup) -->
+    <div class="bg-[#1c0b38] rounded-2xl border border-purple-900 shadow-lg p-5 sm:p-6 text-white overflow-hidden relative">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative z-10">
+            <!-- Left: Inmate behind bars portrait -->
+            <div class="md:col-span-3 flex justify-center md:justify-start">
+                <div class="w-32 h-32 rounded-2xl overflow-hidden border-2 border-red-500/80 shadow-md relative shrink-0 bg-slate-900">
+                    <img src="{{ asset('assets/illustrations/prison_cell.jpg') }}" alt="Isoleercel" class="w-full h-full object-cover">
+                </div>
             </div>
-            <h1 class="text-2xl font-black uppercase tracking-wider text-white">
-                De Isoleercel (Paviljoen 0)
-            </h1>
-            <p class="text-xs text-slate-300 mt-1 max-w-lg mx-auto">
-                Geen frikandellen. Geen bezoek. Alleen een koude betonnen vloer en het gezoem van een tl-buis.
-            </p>
-        </div>
 
-        <div class="p-6 space-y-6">
-            @if($isImprisoned)
-            <!-- Incarcerated Status -->
-            <div class="bg-red-50 border-2 border-red-300 rounded-xl p-5 text-center space-y-3">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-200 text-red-900 font-black text-xs uppercase tracking-wider">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Actieve Straf
+            <!-- Middle: Sentence Status -->
+            <div class="md:col-span-6 space-y-2 text-center md:text-left">
+                <span class="inline-block px-2.5 py-0.5 rounded-full bg-red-900/80 text-red-200 text-[10px] font-black uppercase tracking-wider border border-red-700">
+                    <i class="fa-solid fa-lock mr-1"></i> Isoleercel &bull; Beveiligingsregime
                 </span>
-                <div>
-                    <p class="text-xs font-semibold text-slate-600">Reden van opsluiting:</p>
-                    <p class="text-sm font-bold text-slate-900 italic mt-0.5">"{{ $character->prison_reason }}"</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-slate-600">Resterende Straftijd:</p>
-                    <p class="text-3xl font-black text-red-700">{{ $remainingMinutes }} <span class="text-base font-bold text-slate-700">minuten</span></p>
-                    <p class="text-[11px] text-slate-500 mt-1">Automatische vrijlating zodra de timer afloopt.</p>
-                </div>
+                <h1 class="text-2xl font-black text-white tracking-tight">
+                    Je zit vast in Paviljoen 13
+                </h1>
+                <p class="text-xs text-purple-200">
+                    Resterende straf: <strong class="text-amber-400 text-sm">{{ $isImprisoned ? $remainingMinutes : '0' }} minuten</strong>
+                </p>
+                @if($character->prison_reason)
+                <p class="text-[11px] text-purple-300 italic">Reden: {{ $character->prison_reason }}</p>
+                @endif
             </div>
 
-            <!-- Escape Action -->
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 class="text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                            <i class="fa-solid fa-person-running text-amber-600"></i>
-                            <span>Ontsnappingspoging Wagen</span>
-                        </h2>
-                        <p class="text-xs text-slate-600 mt-1">
-                            Kruip via het ventilatierooster richting de wasruimte. Vereist <strong class="text-yellow-700">25 Energie</strong>. Slagingskans hangt af van je Intelligentie en Conditie.
-                        </p>
-                    </div>
-                    <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-1 rounded border border-amber-200 shrink-0">
-                        25 Energie
-                    </span>
-                </div>
-
-                <div class="bg-amber-50 p-3 rounded border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
-                    <i class="fa-solid fa-circle-exclamation text-amber-600 mt-0.5"></i>
-                    <div>
-                        <strong>Risico:</strong> Mislukt de ontsnapping? Dan deelt Bewaker Barry een strafverlenging van <strong>+5 minuten</strong> uit en verlies je 3 respect!
-                    </div>
-                </div>
-
+            <!-- Right: Action Buttons -->
+            <div class="md:col-span-3 flex flex-col gap-2.5 justify-center">
                 <form method="POST" action="{{ route('prison.escape') }}">
                     @csrf
-                    <button type="submit" @if($character->energy < 25) disabled @endif class="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-purple-950 font-black py-3 px-4 rounded-lg text-sm shadow transition flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-door-open"></i>
-                        <span>Ontsnappen Proberen (Waag de Grote Sprong)</span>
+                    <button type="submit" @if(! $isImprisoned || $character->energy < 25) disabled @endif class="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-2.5 px-4 rounded-xl text-xs shadow-md transition cursor-pointer">
+                        Ontsnappen
+                    </button>
+                </form>
+                <a href="{{ route('shop.index') }}" class="w-full text-center bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-2.5 px-4 rounded-xl text-xs shadow transition">
+                    Gevangeniswinkel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM SECTION: GEVANGENISMISSIES (Matches bottom of prison card in mockup) -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h2 class="text-sm font-black text-slate-900 uppercase tracking-wide">
+                Gevangenismissies
+            </h2>
+            <span class="text-xs font-bold text-slate-400">Verdien vrijheid en extra KC</span>
+        </div>
+
+        <div class="space-y-3">
+            <!-- Mission 1: Bouwstenen -->
+            <div class="p-3.5 bg-slate-50/90 rounded-xl border border-slate-100 flex items-center justify-between gap-4 text-xs">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-purple-100 text-purple-900 flex items-center justify-center text-sm font-black shrink-0">
+                        <i class="fa-solid fa-cubes"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-black text-slate-900 text-xs">Bouwstenen</h3>
+                        <p class="text-[11px] text-slate-500">Verdien 200 KC door stenen te bikken in de werkplaats.</p>
+                        <span class="text-[10px] font-bold text-purple-700 mt-0.5 block">+ 50 XP</span>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('missions.execute', 1) }}">
+                    @csrf
+                    <button type="submit" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs py-2 px-4 rounded-xl shadow-xs transition cursor-pointer">
+                        Start
                     </button>
                 </form>
             </div>
-            @else
-            <!-- Free Status -->
-            <div class="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-6 text-center space-y-3">
-                <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-check"></i>
+
+            <!-- Mission 2: Klusjesman -->
+            <div class="p-3.5 bg-slate-50/90 rounded-xl border border-slate-100 flex items-center justify-between gap-4 text-xs">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-purple-100 text-purple-900 flex items-center justify-center text-sm font-black shrink-0">
+                        <i class="fa-solid fa-wrench"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-black text-slate-900 text-xs">Klusjesman</h3>
+                        <p class="text-[11px] text-slate-500">Repareer 5 voorwerpen in de onderhoudskelder.</p>
+                        <span class="text-[10px] font-bold text-purple-700 mt-0.5 block">+ 75 XP</span>
+                    </div>
                 </div>
-                <h2 class="text-lg font-black text-emerald-900">Je bent op vrije voeten!</h2>
-                <p class="text-xs text-slate-600 max-w-md mx-auto">
-                    Je zit momenteel niet vast in de isoleercel. Hou je gedeisd of zorg dat de bewaking je niet te pakken krijgt bij je volgende diefstal.
-                </p>
-                <div class="pt-2">
-                    <a href="{{ route('dashboard') }}" class="inline-block bg-purple-900 hover:bg-purple-800 text-white font-bold text-xs px-5 py-2.5 rounded shadow">
-                        Terug naar Hoofdkwartier
-                    </a>
-                </div>
+                <form method="POST" action="{{ route('missions.execute', 2) }}">
+                    @csrf
+                    <button type="submit" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs py-2 px-4 rounded-xl shadow-xs transition cursor-pointer">
+                        Start
+                    </button>
+                </form>
             </div>
-            @endif
+
+            <!-- Mission 3: Dilemma -->
+            <div class="p-3.5 bg-slate-50/90 rounded-xl border border-slate-100 flex items-center justify-between gap-4 text-xs">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-purple-100 text-purple-900 flex items-center justify-center text-sm font-black shrink-0">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-black text-slate-900 text-xs">Dilemma</h3>
+                        <p class="text-[11px] text-slate-500">Kies het juiste antwoord tijdens de hoorzitting bij Dokter Debbie.</p>
+                        <span class="text-[10px] font-bold text-purple-700 mt-0.5 block">+ 100 XP</span>
+                    </div>
+                </div>
+                <form method="POST" action="{{ route('missions.execute', 3) }}">
+                    @csrf
+                    <button type="submit" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs py-2 px-4 rounded-xl shadow-xs transition cursor-pointer">
+                        Start
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

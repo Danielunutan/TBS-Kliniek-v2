@@ -1,181 +1,124 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto py-6" x-data="{ tab: 'login' }">
-    <!-- Hero Banner -->
-    <div class="bg-gradient-to-r from-[#241142] via-[#3a156b] to-[#241142] text-white rounded-xl shadow-lg p-6 sm:p-10 mb-8 border-2 border-purple-800 text-center relative overflow-hidden">
-        <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full border border-amber-500/40 text-xs font-bold uppercase tracking-wider mb-4">
-                <i class="fa-solid fa-hospital"></i> De Enige Echte Nederlandse TBS Browsergame
-            </div>
-            <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white uppercase drop-shadow">
-                TBS <span class="text-amber-400">Kliniek</span>
-            </h1>
-            <p class="mt-3 text-sm sm:text-lg text-purple-200 max-w-2xl mx-auto font-medium">
-                Respect verdien je. Frikandelbroodjes moet je bevechten. Overleef het strenge bewind van Directeur Gerda, train in de gym met Barry Biceps en bouw je eigen imperium op Paviljoen 7.
-            </p>
+<div class="max-w-6xl mx-auto py-4 sm:py-8" x-data="{ tab: 'login' }">
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+        <!-- Left Hero Column (Matches top-left image) -->
+        <div class="lg:col-span-7 bg-[#1c0b38] relative flex flex-col justify-between p-8 sm:p-12 text-white overflow-hidden">
+            <!-- Background Image with Overlay -->
+            <img src="{{ asset('assets/illustrations/login_hero.jpg') }}" alt="TBS Kliniek" class="absolute inset-0 w-full h-full object-cover object-center opacity-45 mix-blend-luminosity hover:opacity-55 transition-opacity duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#140628] via-[#1c0b38]/70 to-[#270e4e]/40"></div>
 
-            <!-- Quick Demo Login Button -->
-            <div class="mt-6">
-                <form method="POST" action="{{ route('login.demo') }}" class="inline-block">
-                    @csrf
-                    <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-purple-950 font-black text-sm sm:text-base px-6 py-3 rounded-lg shadow-md hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer border-2 border-amber-300">
-                        <i class="fa-solid fa-play text-purple-900"></i>
-                        <span>Direct Spelen als Demo-Personage (Kees Knakworst, Lvl 3)</span>
-                    </button>
-                </form>
-                <p class="text-xs text-purple-300 mt-2 font-medium">Direct toegang met 1 klik zonder registratie</p>
+            <!-- Top Branding -->
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-black uppercase tracking-wider mb-4 shadow-sm backdrop-blur-xs">
+                    <i class="fa-solid fa-crown text-amber-400"></i>
+                    <span>Klassieke Nederlandse Browsergame</span>
+                </div>
+                
+                <h1 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white drop-shadow-xl leading-none">
+                    TBS <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-200">KLINIEK</span>
+                </h1>
+                
+                <p class="mt-4 text-base sm:text-lg font-medium text-purple-200/90 leading-relaxed max-w-md drop-shadow">
+                    Respect verdien je. Frikandelbroodjes moet je bevechten.
+                </p>
+            </div>
+
+            <!-- Bottom Flavor Quote -->
+            <div class="relative z-10 pt-12">
+                <div class="bg-purple-950/80 border border-purple-800/80 rounded-2xl p-4 backdrop-blur-md max-w-md">
+                    <p class="text-xs text-purple-200 italic leading-relaxed">
+                        "In de kliniek draait alles om macht, aanzien en wie de sleutel heeft van de warmhoudkast."
+                    </p>
+                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest block mt-2">— Henkie de Frikandelkoning</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Login & Register Split Card -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        <!-- Forms Column -->
-        <div class="md:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <!-- Tabs -->
-            <div class="flex border-b border-slate-200 bg-slate-50 text-sm font-bold">
-                <button type="button" @click="tab = 'login'" :class="tab === 'login' ? 'bg-white text-purple-900 border-b-2 border-purple-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-3 px-4 text-center transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Inloggen</span>
+        <!-- Right Form Column (Matches right card in top-left mockup) -->
+        <div class="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-center bg-white">
+            <!-- Tab Switcher -->
+            <div class="flex border-b border-slate-200 mb-8">
+                <button type="button" @click="tab = 'login'" :class="tab === 'login' ? 'border-b-2 border-purple-700 text-purple-900 font-black' : 'text-slate-400 hover:text-slate-700 font-semibold'" class="flex-1 pb-3 text-center text-sm transition">
+                    Inloggen
                 </button>
-                <button type="button" @click="tab = 'register'" :class="tab === 'register' ? 'bg-white text-purple-900 border-b-2 border-purple-900' : 'text-slate-500 hover:text-slate-700'" class="flex-1 py-3 px-4 text-center transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Nieuw Dossier (Registreren)</span>
+                <button type="button" @click="tab = 'register'" :class="tab === 'register' ? 'border-b-2 border-purple-700 text-purple-900 font-black' : 'text-slate-400 hover:text-slate-700 font-semibold'" class="flex-1 pb-3 text-center text-sm transition">
+                    Registreren
                 </button>
             </div>
 
             <!-- Login Form -->
-            <div x-show="tab === 'login'" class="p-6">
+            <div x-show="tab === 'login'">
                 <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
                     @csrf
                     <div>
-                        <label for="email" class="block text-xs font-bold text-slate-700 uppercase mb-1">E-mailadres</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-envelope"></i>
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-user"></i>
                             </span>
-                            <input type="email" id="email" name="email" value="{{ old('email', 'demo@tbskliniek.nl') }}" required class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none">
+                            <input type="email" name="email" value="{{ old('email', 'demo@tbskliniek.nl') }}" required placeholder="Gebruikersnaam / E-mail" class="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition">
                         </div>
                     </div>
 
                     <div>
-                        <label for="password" class="block text-xs font-bold text-slate-700 uppercase mb-1">Wachtwoord</label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                 <i class="fa-solid fa-lock"></i>
                             </span>
-                            <input type="password" id="password" name="password" value="wachtwoord123" required class="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none">
+                            <input type="password" name="password" value="wachtwoord123" required placeholder="Wachtwoord" class="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition">
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between text-xs">
-                        <label class="flex items-center gap-2 text-slate-600 cursor-pointer">
-                            <input type="checkbox" name="remember" class="rounded text-purple-900 focus:ring-purple-600">
-                            <span>Sessie onthouden</span>
+                    <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
+                        <label class="flex items-center gap-2 cursor-pointer font-medium">
+                            <input type="checkbox" name="remember" checked class="rounded text-purple-700 focus:ring-purple-600">
+                            <span>Onthoud mij</span>
                         </label>
-                        <span class="text-slate-400">Standaard: wachtwoord123</span>
+                        <a href="#" class="text-purple-700 hover:underline font-semibold">Wachtwoord vergeten?</a>
                     </div>
 
-                    <button type="submit" class="w-full bg-[#3a156b] hover:bg-[#280c4f] text-white font-black py-2.5 px-4 rounded text-sm shadow transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-door-open"></i>
-                        <span>Binnentreden in de Kliniek</span>
+                    <button type="submit" class="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-3 px-4 rounded-xl text-sm shadow-md shadow-purple-900/20 transition-all cursor-pointer">
+                        Inloggen
                     </button>
                 </form>
+
+                <!-- Quick 1-Click Demo Login -->
+                <div class="mt-6 pt-6 border-t border-slate-100">
+                    <form method="POST" action="{{ route('login.demo') }}">
+                        @csrf
+                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-purple-950 font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-play"></i>
+                            <span>Direct Spelen als Henkie (Level 12)</span>
+                        </button>
+                    </form>
+                    <p class="text-center text-[11px] text-slate-400 mt-2 font-medium">1-klik toegang tot de speelbare localhost demo</p>
+                </div>
             </div>
 
             <!-- Register Form -->
-            <div x-show="tab === 'register'" x-cloak class="p-6">
-                <form method="POST" action="{{ route('register.post') }}" class="space-y-4">
+            <div x-show="tab === 'register'" x-cloak>
+                <form method="POST" action="{{ route('register.post') }}" class="space-y-3">
                     @csrf
                     <div>
-                        <label for="reg_name" class="block text-xs font-bold text-slate-700 uppercase mb-1">Volledige Naam</label>
-                        <input type="text" id="reg_name" name="name" value="{{ old('name') }}" placeholder="Bijv. Jan Janssen" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-purple-600 outline-none">
+                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Volledige Naam" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
                     </div>
-
                     <div>
-                        <label for="reg_char" class="block text-xs font-bold text-slate-700 uppercase mb-1">Personagenaam (Bijnaam in de Kliniek)</label>
-                        <input type="text" id="reg_char" name="character_name" value="{{ old('character_name') }}" placeholder="Bijv. Snelle Eddy" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-purple-600 outline-none">
+                        <input type="text" name="character_name" value="{{ old('character_name') }}" placeholder="Bijnaam in de Kliniek" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
                     </div>
-
                     <div>
-                        <label for="reg_email" class="block text-xs font-bold text-slate-700 uppercase mb-1">E-mailadres</label>
-                        <input type="email" id="reg_email" name="email" value="{{ old('email') }}" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-purple-600 outline-none">
+                        <input type="email" name="email" value="{{ old('email') }}" placeholder="E-mailadres" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
                     </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label for="reg_pass" class="block text-xs font-bold text-slate-700 uppercase mb-1">Wachtwoord</label>
-                            <input type="password" id="reg_pass" name="password" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-purple-600 outline-none">
-                        </div>
-                        <div>
-                            <label for="reg_confirm" class="block text-xs font-bold text-slate-700 uppercase mb-1">Bevestigen</label>
-                            <input type="password" id="reg_confirm" name="password_confirmation" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-purple-600 outline-none">
-                        </div>
+                    <div>
+                        <input type="password" name="password" placeholder="Wachtwoord" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
                     </div>
-
-                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-purple-950 font-black py-2.5 px-4 rounded text-sm shadow transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-file-pen"></i>
-                        <span>Dossier Aanmaken & Starten</span>
+                    <div>
+                        <input type="password" name="password_confirmation" placeholder="Wachtwoord Bevestigen" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
+                    </div>
+                    <button type="submit" class="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-3 px-4 rounded-xl text-xs shadow-md transition-all cursor-pointer mt-2">
+                        Dossier Aanmaken & Starten
                     </button>
                 </form>
-            </div>
-        </div>
-
-        <!-- Features Info Column -->
-        <div class="md:col-span-5 space-y-4">
-            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <h3 class="text-sm font-black text-purple-950 uppercase tracking-wide flex items-center gap-2 mb-3">
-                    <i class="fa-solid fa-circle-info text-amber-500"></i>
-                    <span>Wat staat je te wachten?</span>
-                </h3>
-                <ul class="space-y-3 text-xs text-slate-600">
-                    <li class="flex items-start gap-2.5">
-                        <span class="w-6 h-6 rounded bg-purple-100 text-purple-900 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                            <i class="fa-solid fa-dumbbell"></i>
-                        </span>
-                        <div>
-                            <strong class="text-slate-800">Trainen & Levelen:</strong> Werk aan je kracht, conditie, intelligentie en discipline om sterker te worden.
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <span class="w-6 h-6 rounded bg-purple-100 text-purple-900 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                            <i class="fa-solid fa-coins"></i>
-                        </span>
-                        <div>
-                            <strong class="text-slate-800">KliniekCash (KC):</strong> Verdien geld met missies, zet het veilig op de bank of zakrol je mede-patiënten.
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <span class="w-6 h-6 rounded bg-purple-100 text-purple-900 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                            <i class="fa-solid fa-users"></i>
-                        </span>
-                        <div>
-                            <strong class="text-slate-800">Sluit je aan bij Gangs:</strong> Vecht voor De Kantinebende, De Paarse Plofkippen of De IJzeren Halters.
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-2.5">
-                        <span class="w-6 h-6 rounded bg-purple-100 text-purple-900 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                            <i class="fa-solid fa-lock"></i>
-                        </span>
-                        <div>
-                            <strong class="text-slate-800">Isoleercel & Ontsnappen:</strong> Betrapt bij diefstal? Probeer te ontsnappen via de luchtschacht!
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Server Status Card -->
-            <div class="bg-purple-950 text-white p-4 rounded-xl border border-purple-800 text-xs">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="font-bold text-amber-300 uppercase tracking-wider text-[11px]">Kliniek Status</span>
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold text-[10px]">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live op Localhost
-                    </span>
-                </div>
-                <p class="text-purple-200 text-[11px] leading-relaxed">
-                    Alle game-mechanics draaien op Laravel 12 met SQLite & transactionele database-locks.
-                </p>
             </div>
         </div>
     </div>

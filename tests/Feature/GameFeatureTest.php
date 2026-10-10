@@ -27,8 +27,9 @@ class GameFeatureTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
-        $response->assertSee('TBS Kliniek', false);
-        $response->assertSee('Kees Knakworst', false);
+        $response->assertSee('TBS', false);
+        $response->assertSee('KLINIEK', false);
+        $response->assertSee('Henkie', false);
     }
 
     public function test_demo_login_authenticates_and_redirects_to_dashboard(): void
@@ -40,8 +41,8 @@ class GameFeatureTest extends TestCase
 
         $dashboardResponse = $this->get('/dashboard');
         $dashboardResponse->assertStatus(200);
-        $dashboardResponse->assertSee('KeesKnakworst');
-        $dashboardResponse->assertSee('Hoofdkwartier');
+        $dashboardResponse->assertSee('Henkie');
+        $dashboardResponse->assertSee('Dashboard');
     }
 
     public function test_level_service_calculates_and_processes_rollover_xp(): void
@@ -109,7 +110,7 @@ class GameFeatureTest extends TestCase
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $this->actingAs($user);
 
-        $response = $this->post('/speler/KeesKnakworst/gastenboek', [
+        $response = $this->post("/speler/{$user->character->name}/gastenboek", [
             'message' => 'Testbericht voor het dossier!',
         ]);
 

@@ -1,213 +1,290 @@
 <!DOCTYPE html>
-<html lang="nl" class="h-full bg-slate-100">
+<html lang="nl" class="h-full bg-[#f0f3f8]">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TBS Kliniek - Respect verdien je. Frikandelbroodjes moet je bevechten.</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-full flex flex-col bg-slate-100 text-slate-800 antialiased selection:bg-purple-900 selection:text-white">
-    <!-- Top Bar: Game Brand & Auth Header -->
-    <header class="bg-[#241142] text-white border-b-2 border-purple-900 shadow-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-14">
-                <!-- Brand Title -->
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 group">
-                        <span class="inline-flex items-center justify-center w-8 h-8 rounded bg-purple-700 text-amber-300 font-black shadow-inner">
-                            <i class="fa-solid fa-hospital text-sm"></i>
-                        </span>
-                        <div>
-                            <span class="text-lg font-black tracking-wider uppercase text-amber-400 group-hover:text-amber-300 transition-colors">TBS Kliniek</span>
-                            <span class="hidden sm:inline-block text-[10px] uppercase font-bold tracking-widest text-purple-300 ml-1.5 px-1.5 py-0.5 bg-purple-950/70 rounded border border-purple-800">Paviljoen 7</span>
-                        </div>
-                    </a>
-                </div>
+<body class="min-h-full flex flex-col lg:flex-row bg-[#f0f3f8] text-slate-800 antialiased selection:bg-purple-900 selection:text-white" x-data="{ mobileMenuOpen: false }">
 
-                @if(isset($character))
-                <!-- Character Quick Stats in Header -->
-                <div class="flex items-center gap-3 sm:gap-6 text-xs font-semibold">
-                    <!-- Cash -->
-                    <div class="flex items-center gap-1.5 bg-purple-950/80 px-2.5 py-1 rounded border border-purple-800/80">
-                        <i class="fa-solid fa-coins text-amber-400"></i>
-                        <span><strong class="text-amber-300">{{ number_format($character->cash, 0, ',', '.') }}</strong> <span class="text-purple-300">KC</span></span>
-                    </div>
-
-                    <!-- Bank -->
-                    <div class="hidden sm:flex items-center gap-1.5 bg-purple-950/80 px-2.5 py-1 rounded border border-purple-800/80">
-                        <i class="fa-solid fa-building-columns text-emerald-400"></i>
-                        <span><strong class="text-emerald-300">{{ number_format($character->bank, 0, ',', '.') }}</strong> <span class="text-purple-300">KC</span></span>
-                    </div>
-
-                    <!-- Energy -->
-                    <div class="flex items-center gap-1.5 bg-purple-950/80 px-2.5 py-1 rounded border border-purple-800/80">
-                        <i class="fa-solid fa-bolt text-yellow-400"></i>
-                        <span><strong>{{ $character->energy }}</strong><span class="text-purple-400">/{{ $character->max_energy }}</span></span>
-                    </div>
-
-                    <!-- User Actions -->
-                    <div class="flex items-center gap-2 border-l border-purple-800 pl-3">
-                        <a href="{{ route('profile.me') }}" class="text-purple-200 hover:text-white font-bold flex items-center gap-1.5 py-1 px-2 rounded hover:bg-purple-800/50 transition">
-                            <i class="fa-solid fa-user-circle"></i>
-                            <span class="hidden md:inline">{{ $character->name }}</span>
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit" title="Uitloggen" class="text-purple-300 hover:text-red-400 p-1.5 rounded hover:bg-purple-800/40 transition">
-                                <i class="fa-solid fa-right-from-bracket"></i>
-                            </button>
-                        </form>
+    @if(isset($character))
+    <!-- SIDEBAR NAVIGATION (Desktop & Tablet) -->
+    <aside class="hidden lg:flex lg:flex-col w-64 bg-[#1e0b38] border-r border-purple-950/60 shrink-0 min-h-screen text-slate-200 z-40 sticky top-0 h-screen overflow-y-auto no-scrollbar shadow-2xl">
+        <!-- Logo Header -->
+        <div class="p-5 flex items-center justify-between border-b border-purple-900/40">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-800 to-amber-500 p-0.5 shadow-md group-hover:scale-105 transition-transform">
+                    <div class="w-full h-full bg-[#1e0b38] rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-crown text-amber-400 text-lg"></i>
                     </div>
                 </div>
-                @endif
-            </div>
+                <div>
+                    <span class="block text-xl font-black tracking-tight text-white uppercase drop-shadow leading-none">
+                        TBS <span class="text-amber-400">KLINIEK</span>
+                    </span>
+                    <span class="text-[9px] font-bold uppercase tracking-widest text-purple-300/80">Paviljoen 7</span>
+                </div>
+            </a>
         </div>
 
+        <!-- Navigation Links -->
+        <nav class="flex-1 px-3 py-4 space-y-1 text-[13px] font-semibold">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-house"></i></span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{{ route('missions.index') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('missions.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-bullseye"></i></span>
+                <span>Missies</span>
+            </a>
+
+            <a href="{{ route('training.index') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('training.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-dumbbell"></i></span>
+                <span>Training</span>
+            </a>
+
+            <a href="{{ route('shop.index') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('shop.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-cart-shopping"></i></span>
+                <span>Winkel</span>
+            </a>
+
+            <a href="{{ route('theft.index') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('theft.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-mask"></i></span>
+                <span>Diefstal</span>
+            </a>
+
+            <a href="{{ route('bank.index') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('bank.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-building-columns"></i></span>
+                <span>De Bank</span>
+            </a>
+
+            <a href="{{ route('prison') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('prison') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-lock"></i></span>
+                <span>Gevangenis</span>
+            </a>
+
+            <a href="{{ route('gangs.index') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('gangs.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-users"></i></span>
+                <span>Gangs</span>
+            </a>
+
+            <a href="{{ route('profile.me') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('profile.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-user"></i></span>
+                <span>Profiel</span>
+            </a>
+
+            <a href="{{ route('profile.show', $character->name) }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all text-purple-200/80 hover:text-white hover:bg-purple-900/40">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-book-open"></i></span>
+                <span>Gastenboek</span>
+            </a>
+
+            <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl transition-all {{ request()->routeIs('leaderboard.*') ? 'bg-[#6d28d9] text-white font-bold shadow-lg shadow-purple-950/50' : 'text-purple-200/80 hover:text-white hover:bg-purple-900/40' }}">
+                <span class="w-5 text-center text-sm"><i class="fa-solid fa-trophy"></i></span>
+                <span>Ranglijsten</span>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer / Logout -->
+        <div class="p-4 border-t border-purple-900/40">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold text-purple-300 hover:text-rose-300 hover:bg-purple-900/40 transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Uitloggen</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- MOBILE TOP HEADER -->
+    <div class="lg:hidden bg-[#1e0b38] text-white px-4 py-3 flex items-center justify-between border-b border-purple-900/60 sticky top-0 z-50">
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
+            <i class="fa-solid fa-crown text-amber-400"></i>
+            <span class="font-black text-base uppercase tracking-tight text-white">TBS <span class="text-amber-400">KLINIEK</span></span>
+        </a>
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-bold bg-purple-900/80 px-2 py-1 rounded text-amber-300">
+                {{ number_format($character->cash, 0, ',', '.') }} KC
+            </span>
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-white p-1.5 focus:outline-none">
+                <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MOBILE ACCORDION MENU -->
+    <div x-show="mobileMenuOpen" x-cloak class="lg:hidden bg-[#1e0b38] text-white px-4 py-3 space-y-1 text-xs border-b border-purple-900 z-50">
+        <a href="{{ route('dashboard') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Dashboard</a>
+        <a href="{{ route('missions.index') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Missies</a>
+        <a href="{{ route('training.index') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Training</a>
+        <a href="{{ route('shop.index') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Winkel</a>
+        <a href="{{ route('theft.index') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Diefstal</a>
+        <a href="{{ route('bank.index') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">De Bank</a>
+        <a href="{{ route('prison') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Gevangenis</a>
+        <a href="{{ route('gangs.index') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Gangs</a>
+        <a href="{{ route('profile.me') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Profiel & Gastenboek</a>
+        <a href="{{ route('leaderboard.index') }}" class="block py-2 px-3 rounded font-bold hover:bg-purple-900">Ranglijsten</a>
+    </div>
+    @endif
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
-        <!-- Secondary Player Status Bar -->
-        <div class="bg-[#190a30] border-t border-purple-950/80 px-4 py-2 text-xs">
-            <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-4 flex-wrap">
-                    <!-- Level & XP Bar -->
-                    <div class="flex items-center gap-2">
-                        <span class="bg-amber-500 text-purple-950 font-black px-1.5 py-0.5 rounded text-[11px]">LVL {{ $character->level }}</span>
+        <!-- TOP MODERN WHITE HEADER BAR (Matches top-right of image) -->
+        <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30 shadow-xs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
+                <!-- Left: Player Profile summary -->
+                <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+                    <a href="{{ route('profile.me') }}" class="relative group">
+                        <img src="{{ asset('assets/characters/henkie.jpg') }}" alt="{{ $character->name }}" class="w-11 h-11 rounded-full object-cover border-2 border-purple-600 shadow-sm group-hover:scale-105 transition-transform">
+                        <span class="absolute -bottom-1 -right-1 bg-amber-500 text-purple-950 font-black text-[9px] px-1 rounded-full border border-white">
+                            {{ $character->level }}
+                        </span>
+                    </a>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('profile.me') }}" class="font-black text-slate-900 text-sm hover:text-purple-700 transition">
+                                {{ $character->name }}
+                            </a>
+                            <span class="text-[11px] font-bold text-slate-400">Level {{ $character->level }}</span>
+                        </div>
                         @php
                             $lvlService = app(\App\Services\LevelService::class);
                             $reqXp = $lvlService->getXpRequiredForNextLevel($character->level);
                             $pctXp = min(100, max(0, round(($character->xp / max(1, $reqXp)) * 100)));
                         @endphp
-                        <div class="w-28 sm:w-40 bg-purple-950 rounded-full h-3.5 border border-purple-800/60 overflow-hidden relative" title="XP: {{ $character->xp }} / {{ $reqXp }}">
-                            <div class="bg-gradient-to-r from-amber-500 to-yellow-300 h-full transition-all duration-300" style="width: {{ $pctXp }}%"></div>
-                            <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow">{{ $pctXp }}% XP</span>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <div class="w-24 sm:w-32 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+                                <div class="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full" style="width: {{ $pctXp }}%"></div>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-400">{{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP</span>
                         </div>
-                    </div>
-
-                    <!-- Health Bar -->
-                    <div class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-heart-pulse text-rose-500"></i>
-                        <span class="text-slate-300 font-medium">Gezondheid:</span>
-                        <div class="w-20 sm:w-28 bg-purple-950 rounded-full h-3 border border-purple-800/60 overflow-hidden">
-                            <div class="bg-rose-500 h-full" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
-                        </div>
-                        <span class="font-bold text-rose-300 text-[11px]">{{ $character->health }}/{{ $character->max_health }}</span>
-                    </div>
-
-                    <!-- Respect -->
-                    <div class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield text-indigo-400"></i>
-                        <span class="text-slate-300">Respect:</span>
-                        <span class="font-bold text-indigo-300">{{ $character->respect }}</span>
                     </div>
                 </div>
 
-                @if($character->isImprisoned())
-                <div class="flex items-center gap-2 bg-red-950/90 text-red-300 border border-red-700 px-3 py-1 rounded font-bold animate-pulse">
-                    <i class="fa-solid fa-lock"></i>
-                    <span>Isoleercel: nog {{ $character->remainingPrisonMinutes() }} min</span>
-                    <a href="{{ route('prison') }}" class="underline hover:text-white ml-1">Bekijk cellenblok</a>
+                <!-- Right: Stat badges (Cash, Bank, Energy, Health) -->
+                <div class="flex items-center gap-2 sm:gap-4 text-xs font-semibold overflow-x-auto py-1">
+                    <!-- KliniekCash -->
+                    <div class="flex items-center gap-2 bg-amber-50/80 border border-amber-200/80 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
+                        <span class="w-6 h-6 rounded-lg bg-amber-400 text-purple-950 flex items-center justify-center text-xs font-black shadow-xs">
+                            <i class="fa-solid fa-coins"></i>
+                        </span>
+                        <div>
+                            <span class="text-[9px] uppercase font-bold text-slate-400 block leading-none">KliniekCash</span>
+                            <span class="font-black text-slate-900 text-xs">{{ number_format($character->cash, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Banktegoed -->
+                    <div class="flex items-center gap-2 bg-indigo-50/80 border border-indigo-200/80 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </span>
+                        <div>
+                            <span class="text-[9px] uppercase font-bold text-slate-400 block leading-none">Banktegoed</span>
+                            <span class="font-black text-slate-900 text-xs">{{ number_format($character->bank, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Energie -->
+                    <div class="hidden md:flex items-center gap-2 bg-emerald-50/80 border border-emerald-200/80 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                            <i class="fa-solid fa-bolt"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 leading-none">Energie</span>
+                                <span class="font-black text-emerald-800 text-[11px]">{{ $character->energy }}/{{ $character->max_energy }}</span>
+                            </div>
+                            <div class="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
+                                <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gezondheid -->
+                    <div class="hidden md:flex items-center gap-2 bg-rose-50/80 border border-rose-200/80 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
+                        <span class="w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 leading-none">Gezondheid</span>
+                                <span class="font-black text-rose-800 text-[11px]">{{ $character->health }}/{{ $character->max_health }}</span>
+                            </div>
+                            <div class="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
+                                <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Icons on Far Right -->
+                    <div class="flex items-center gap-1 pl-2 border-l border-slate-200 text-slate-400">
+                        <a href="{{ route('profile.me') }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-purple-700 transition" title="Meldingen">
+                            <i class="fa-solid fa-bell"></i>
+                        </a>
+                        <a href="{{ route('profile.show', $character->name) }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-purple-700 transition" title="Gastenboek">
+                            <i class="fa-solid fa-envelope"></i>
+                        </a>
+                    </div>
                 </div>
-                @endif
             </div>
-        </div>
-        @endif
-    </header>
-
-    <!-- Main Navigation Bar -->
-    @if(isset($character))
-    <nav class="bg-white border-b border-slate-200 shadow-sm sticky top-14 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-start gap-1 overflow-x-auto py-2 text-xs font-bold text-slate-600 no-scrollbar">
-                <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('dashboard') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-house"></i>
-                    <span>Hoofdkwartier</span>
-                </a>
-                <a href="{{ route('missions.index') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('missions.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-bullseye"></i>
-                    <span>Missies</span>
-                </a>
-                <a href="{{ route('training.index') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('training.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-dumbbell"></i>
-                    <span>Gym & Training</span>
-                </a>
-                <a href="{{ route('theft.index') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('theft.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-mask"></i>
-                    <span>Diefstal & Misdaad</span>
-                </a>
-                <a href="{{ route('bank.index') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('bank.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-building-columns"></i>
-                    <span>De Bank</span>
-                </a>
-                <a href="{{ route('shop.index') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('shop.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-shop"></i>
-                    <span>Kantinewinkel</span>
-                </a>
-                <a href="{{ route('prison') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('prison') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-lock"></i>
-                    <span>Isoleercel</span>
-                </a>
-                <a href="{{ route('profile.me') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('profile.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-id-card"></i>
-                    <span>Dossier & Gastenboek</span>
-                </a>
-                <a href="{{ route('gangs.index') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('gangs.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-users"></i>
-                    <span>Gangs</span>
-                </a>
-                <a href="{{ route('leaderboard.index') }}" class="px-3 py-2 rounded flex items-center gap-1.5 transition-colors {{ request()->routeIs('leaderboard.*') ? 'bg-purple-900 text-white' : 'hover:bg-purple-50 hover:text-purple-900' }}">
-                    <i class="fa-solid fa-trophy"></i>
-                    <span>Ranglijst</span>
-                </a>
-            </div>
-        </div>
-    </nav>
-    @endif
-
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <!-- Flash messages -->
-        @if(session('success'))
-        <div class="mb-5 bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r shadow-sm flex items-start gap-3">
-            <i class="fa-solid fa-circle-check text-emerald-600 text-lg mt-0.5"></i>
-            <div>
-                <p class="text-sm font-bold text-emerald-900">Gelukt!</p>
-                <p class="text-xs text-emerald-800 mt-0.5">{{ session('success') }}</p>
-            </div>
-        </div>
+        </header>
         @endif
 
-        @if(session('error'))
-        <div class="mb-5 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r shadow-sm flex items-start gap-3">
-            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5"></i>
-            <div>
-                <p class="text-sm font-bold text-rose-900">Mislukt of geblokkeerd!</p>
-                <p class="text-xs text-rose-800 mt-0.5">{{ session('error') }}</p>
+        <!-- MAIN CONTENT CONTAINER -->
+        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+            <!-- Flash messages -->
+            @if(session('success'))
+            <div class="mb-5 bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-xl shadow-xs flex items-start gap-3">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-lg mt-0.5"></i>
+                <div>
+                    <p class="text-sm font-bold text-emerald-900">Gelukt!</p>
+                    <p class="text-xs text-emerald-800 mt-0.5">{{ session('success') }}</p>
+                </div>
             </div>
-        </div>
-        @endif
+            @endif
 
-        @if($errors->any())
-        <div class="mb-5 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r shadow-sm">
-            <div class="flex items-center gap-2 mb-1">
-                <i class="fa-solid fa-circle-xmark text-rose-600"></i>
-                <span class="text-sm font-bold text-rose-900">Controleer de invoer:</span>
+            @if(session('error'))
+            <div class="mb-5 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-xl shadow-xs flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5"></i>
+                <div>
+                    <p class="text-sm font-bold text-rose-900">Mislukt of tegengehouden!</p>
+                    <p class="text-xs text-rose-800 mt-0.5">{{ session('error') }}</p>
+                </div>
             </div>
-            <ul class="list-disc list-inside text-xs text-rose-800 space-y-0.5 pl-2">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
+            @endif
+
+            @yield('content')
+        </main>
+
+        @if(isset($character))
+        <!-- MOBILE BOTTOM DOCK NAV (Matches bottom-right mobile mockup) -->
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-50 flex items-center justify-around py-2 px-3 shadow-lg">
+            <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-700' : 'text-slate-400' }}">
+                <i class="fa-solid fa-house text-base"></i>
+                <span>Home</span>
+            </a>
+            <a href="{{ route('missions.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('missions.*') ? 'text-purple-700' : 'text-slate-400' }}">
+                <i class="fa-solid fa-bullseye text-base"></i>
+                <span>Missies</span>
+            </a>
+            <a href="{{ route('shop.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('shop.*') ? 'text-purple-700' : 'text-slate-400' }}">
+                <i class="fa-solid fa-cart-shopping text-base"></i>
+                <span>Winkel</span>
+            </a>
+            <a href="{{ route('gangs.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-700' : 'text-slate-400' }}">
+                <i class="fa-solid fa-users text-base"></i>
+                <span>Gangs</span>
+            </a>
+            <a href="{{ route('profile.me') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('profile.*') ? 'text-purple-700' : 'text-slate-400' }}">
+                <i class="fa-solid fa-user text-base"></i>
+                <span>Profiel</span>
+            </a>
+        </nav>
         @endif
-
-        @yield('content')
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
-        <div class="max-w-7xl mx-auto px-4">
-            <p class="font-bold text-slate-700">TBS Kliniek &copy; {{ date('Y') }} — Een Nederlandse Multiplayer Browsergame</p>
-            <p class="mt-1 text-[11px] text-slate-400">Respect verdien je. Frikandelbroodjes moet je bevechten. Volledig gebouwd met Laravel.</p>
-        </div>
-    </footer>
+    </div>
 </body>
 </html>

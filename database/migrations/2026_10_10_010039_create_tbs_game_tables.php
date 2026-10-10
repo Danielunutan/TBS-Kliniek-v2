@@ -163,6 +163,8 @@ return new class extends Migration
             $table->integer('defense_bonus')->default(0);
             $table->integer('stamina_bonus')->default(0);
             $table->integer('intelligence_bonus')->default(0);
+            $table->integer('charisma_bonus')->default(0);
+            $table->integer('discipline_bonus')->default(0);
             $table->string('icon')->default('fa-box');
             $table->boolean('is_buyable')->default(true);
             $table->timestamps();

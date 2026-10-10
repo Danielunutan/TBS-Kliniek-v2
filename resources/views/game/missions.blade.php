@@ -1,117 +1,80 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+<div class="space-y-6" x-data="{ tab: 'all' }">
+    <!-- Header with Tabs (Matches middle-center screen in mockup) -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-xl font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                <i class="fa-solid fa-bullseye text-purple-700"></i>
-                <span>Kliniek Missies & Opdrachten</span>
+            <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight">
+                Missies
             </h1>
-            <p class="text-xs text-slate-600 mt-1">
-                Voer opdrachten uit voor de bewoners en het personeel. Verdien KliniekCash, XP en verhoog je aanzien in de kliniek.
+            <p class="text-xs text-slate-500 mt-0.5">
+                Voltooi dagelijkse taken en verhaallijnen om respect en KliniekCash te verdienen.
             </p>
         </div>
 
-        <!-- Filter tabs -->
-        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-bold text-slate-600 flex-wrap">
-            <a href="{{ route('missions.index', ['category' => 'all']) }}" class="px-3 py-1.5 rounded transition {{ $selectedCategory === 'all' ? 'bg-purple-900 text-white shadow-sm' : 'hover:bg-slate-200' }}">Alles</a>
-            <a href="{{ route('missions.index', ['category' => 'beginners']) }}" class="px-3 py-1.5 rounded transition {{ $selectedCategory === 'beginners' ? 'bg-purple-900 text-white shadow-sm' : 'hover:bg-slate-200' }}">Beginners</a>
-            <a href="{{ route('missions.index', ['category' => 'story']) }}" class="px-3 py-1.5 rounded transition {{ $selectedCategory === 'story' ? 'bg-purple-900 text-white shadow-sm' : 'hover:bg-slate-200' }}">Verhaallijn</a>
-            <a href="{{ route('missions.index', ['category' => 'cash']) }}" class="px-3 py-1.5 rounded transition {{ $selectedCategory === 'cash' ? 'bg-purple-900 text-white shadow-sm' : 'hover:bg-slate-200' }}">Geld</a>
-            <a href="{{ route('missions.index', ['category' => 'theft']) }}" class="px-3 py-1.5 rounded transition {{ $selectedCategory === 'theft' ? 'bg-purple-900 text-white shadow-sm' : 'hover:bg-slate-200' }}">Diefstal</a>
+        <!-- Filter tabs matching mockup -->
+        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600 flex-wrap">
+            <button type="button" @click="tab = 'all'" :class="tab === 'all' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Alle missies</button>
+            <button type="button" @click="tab = 'daily'" :class="tab === 'daily' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Dagelijkse</button>
+            <button type="button" @click="tab = 'weekly'" :class="tab === 'weekly' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Wekelijkse</button>
+            <button type="button" @click="tab = 'cash'" :class="tab === 'cash' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Geld</button>
+            <button type="button" @click="tab = 'training'" :class="tab === 'training' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Training</button>
+            <button type="button" @click="tab = 'theft'" :class="tab === 'theft' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Diefstal</button>
         </div>
     </div>
 
-    <!-- Missions Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        @forelse($missions as $m)
+    <!-- Missions List (Matches layout in middle-center mockup) -->
+    <div class="space-y-3">
+        @foreach($missions as $m)
         @php
-            $completedCount = $characterProgress[$m->id] ?? 0;
-            $hasLevel = $character->level >= $m->required_level;
-            $hasEnergy = $character->energy >= $m->energy_cost;
+            $isUnlocked = $character->level >= $m->required_level;
         @endphp
-        <div class="bg-white rounded-xl border {{ $hasLevel ? 'border-slate-200' : 'border-slate-300 opacity-75 bg-slate-50' }} shadow-sm overflow-hidden flex flex-col justify-between">
-            <div class="p-5 space-y-3">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h2 class="text-base font-black text-slate-900">{{ $m->title }}</h2>
-                            @if($m->storyline)
-                            <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-[10px]">
-                                {{ $m->storyline }}
-                            </span>
-                            @endif
-                        </div>
-                        <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                            <span><i class="fa-solid fa-user-tie text-purple-600 mr-1"></i>{{ $m->giver_name }}</span>
-                            <span><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i>{{ $m->location_name }}</span>
-                        </div>
-                    </div>
-
-                    <div class="text-right shrink-0">
-                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-black {{ $hasLevel ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
-                            Min. Level {{ $m->required_level }}
-                        </span>
-                        @if($completedCount > 0)
-                        <div class="text-[10px] text-slate-400 font-semibold mt-1">
-                            <i class="fa-solid fa-check text-emerald-500"></i> {{ $completedCount }}x voltooid
-                        </div>
-                        @endif
-                    </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <!-- Left Info -->
+            <div class="flex items-center gap-4 min-w-0">
+                <!-- Portrait Icon / Avatar -->
+                <div class="w-14 h-14 rounded-2xl bg-purple-950 text-amber-300 flex items-center justify-center text-xl shrink-0 overflow-hidden shadow-xs border border-purple-800">
+                    <img src="{{ asset('assets/characters/henkie.jpg') }}" alt="Mission" class="w-full h-full object-cover">
                 </div>
 
-                <p class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded border border-slate-100">
-                    {{ $m->description }}
-                </p>
-
-                <!-- Requirements & Rewards Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-                    <div class="bg-yellow-50/70 p-2 rounded border border-yellow-200/80">
-                        <span class="text-[10px] text-yellow-800 uppercase font-bold block">Energie</span>
-                        <span class="font-black text-yellow-900"><i class="fa-solid fa-bolt text-yellow-600 mr-1"></i>{{ $m->energy_cost }}</span>
-                    </div>
-                    <div class="bg-amber-50/70 p-2 rounded border border-amber-200/80">
-                        <span class="text-[10px] text-amber-800 uppercase font-bold block">Beloning</span>
-                        <span class="font-black text-amber-900"><i class="fa-solid fa-coins text-amber-600 mr-1"></i>{{ $m->min_cash_reward }}-{{ $m->max_cash_reward }} KC</span>
-                    </div>
-                    <div class="bg-purple-50/70 p-2 rounded border border-purple-200/80">
-                        <span class="text-[10px] text-purple-800 uppercase font-bold block">Ervaring</span>
-                        <span class="font-black text-purple-900"><i class="fa-solid fa-star text-purple-600 mr-1"></i>+{{ $m->xp_reward }} XP</span>
-                    </div>
-                    <div class="bg-indigo-50/70 p-2 rounded border border-indigo-200/80">
-                        <span class="text-[10px] text-indigo-800 uppercase font-bold block">Slagingskans</span>
-                        <span class="font-black text-indigo-900"><i class="fa-solid fa-percent text-indigo-600 mr-1"></i>{{ $m->success_rate }}%</span>
+                <div class="min-w-0 space-y-1">
+                    <h2 class="font-black text-slate-900 text-sm tracking-tight truncate">{{ $m->title }}</h2>
+                    <p class="text-xs text-slate-500 leading-relaxed truncate">{{ $m->description }}</p>
+                    
+                    <div class="flex items-center gap-3 text-[11px] font-bold">
+                        <span class="text-amber-600 flex items-center gap-1">
+                            <i class="fa-solid fa-coins text-amber-500 text-[10px]"></i>
+                            <span>{{ number_format($m->min_cash_reward, 0, ',', '.') }} KC</span>
+                        </span>
+                        <span class="text-purple-600 flex items-center gap-1">
+                            <i class="fa-solid fa-star text-purple-500 text-[10px]"></i>
+                            <span>{{ $m->xp_reward }} XP</span>
+                        </span>
+                        <span class="text-slate-400">
+                            Min. Lvl {{ $m->required_level }}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <!-- Action Bar -->
-            <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                <span class="text-xs text-slate-500 font-medium">
-                    @if(! $hasLevel)
-                        <i class="fa-solid fa-lock text-slate-400 mr-1"></i> Level te laag
-                    @elseif(! $hasEnergy)
-                        <i class="fa-solid fa-battery-empty text-yellow-600 mr-1"></i> Te weinig energie
-                    @else
-                        <i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> Klaar voor actie
-                    @endif
-                </span>
-
+            <!-- Right Action / Lock (Matches orange 'Start' button or purple lock in mockup) -->
+            <div class="shrink-0 w-full sm:w-auto">
+                @if($isUnlocked)
                 <form method="POST" action="{{ route('missions.execute', $m) }}">
                     @csrf
-                    <button type="submit" @if(! $hasLevel || ! $hasEnergy || $character->isImprisoned()) disabled @endif class="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-purple-950 font-black px-5 py-2 rounded text-xs shadow transition flex items-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-play"></i> Missie Uitvoeren
+                    <button type="submit" @if($character->energy < $m->energy_cost || $character->isImprisoned()) disabled @endif class="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-2.5 px-6 rounded-xl text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        Start
                     </button>
                 </form>
+                @else
+                <div class="w-10 h-10 rounded-xl bg-purple-950 text-purple-300 flex items-center justify-center text-sm shadow-xs border border-purple-800 ml-auto">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                @endif
             </div>
         </div>
-        @empty
-        <div class="col-span-2 bg-white p-8 text-center rounded-xl border border-slate-200 text-slate-500 text-sm">
-            Geen missies gevonden in deze categorie.
-        </div>
-        @endforelse
+        @endforeach
     </div>
 </div>
 @endsection

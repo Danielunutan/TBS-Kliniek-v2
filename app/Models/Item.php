@@ -44,6 +44,8 @@ class Item extends Model
         'defense_bonus' => 'integer',
         'stamina_bonus' => 'integer',
         'intelligence_bonus' => 'integer',
+        'charisma_bonus' => 'integer',
+        'discipline_bonus' => 'integer',
         'is_buyable' => 'boolean',
     ];
 }
