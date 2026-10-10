@@ -36,8 +36,9 @@ class LeaderboardController extends Controller
             default => $query->orderByDesc('level')->orderByDesc('xp'),
         };
 
-        $topCharacters = $query->take(20)->get();
+        $leaderboard = $query->take(20)->get();
+        $topCharacters = $leaderboard;
 
-        return view('game.leaderboard', compact('character', 'topCharacters', 'type'));
+        return view('game.leaderboard', compact('character', 'leaderboard', 'topCharacters', 'type'));
     }
 }

@@ -1,0 +1,115 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+    
+    <!-- Left column: Hosselen -->
+    <div class="xl:col-span-8 space-y-6">
+        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+            
+            <!-- Purple TBS Kliniek Title Banner -->
+            <div class="relative overflow-hidden bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-900 p-6 sm:p-7 text-white border-b border-purple-800/40">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-xl text-purple-300 shadow-inner">
+                            <i class="fa-solid fa-comments-dollar"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-300 bg-purple-900/80 px-2 py-0.5 rounded-md border border-purple-700/50">TBS Kliniek Illegaal</span>
+                            </div>
+                            <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">Hosselen & Klussen</h1>
+                            <p class="text-xs text-purple-200/80 mt-0.5">Scharrel wat bij tussen de corridors van de kliniek voor directe zakcenten en respect.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @php
+                $hustleCooldown = $character->cooldownRemaining('hustle');
+            @endphp
+
+            @if($hustleCooldown > 0)
+                <div class="m-6 p-4 rounded-xl bg-amber-500/10 border border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-black text-amber-950">Hossel Cooldown Actief</h4>
+                            <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $hustleCooldown) }}</strong> voordat je opnieuw kunt klussen in de gangen.</p>
+                        </div>
+                    </div>
+                    <form action="{{ route('cooldown.skip') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="action" value="hustle">
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-star text-amber-200 text-[11px]"></i>
+                            <span>Cooldown Overslaan (1 ⭐)</span>
+                        </button>
+                    </form>
+                </div>
+            @endif
+
+            <div class="p-6">
+                <form action="{{ route('hustle.attempt') }}" method="POST">
+                    @csrf
+                    <div class="space-y-3 mb-6">
+                        @foreach($hustles as $h)
+                        <label class="flex items-center gap-4 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition group {{ $hustleCooldown > 0 ? 'opacity-60 cursor-not-allowed' : '' }}">
+                            <input type="radio" name="hustle_id" value="{{ $h['id'] }}" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300" {{ $loop->first ? 'checked' : '' }} {{ $hustleCooldown > 0 ? 'disabled' : '' }} required>
+                            <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <span class="font-bold text-xs text-slate-800 group-hover:text-slate-900 block">{{ $h['name'] }}</span>
+                                    <span class="text-[11px] text-slate-500">{{ $h['description'] }}</span>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">{{ $h['cost'] }} Energie</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">€{{ $h['cash_min'] }}-€{{ $h['cash_max'] }}</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-700">{{ $h['rate'] }}% kans</span>
+                                </div>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                        <span class="text-[11px] font-bold text-slate-400">⏱️ Elke hosselbeurt activeert een cooldown van 3 minuten.</span>
+                        <button type="submit" 
+                                {{ $hustleCooldown > 0 ? 'disabled' : '' }}
+                                class="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs px-8 py-3 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                            <span>Actie Uitvoeren</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Sidebar -->
+    <div class="xl:col-span-4 space-y-6">
+        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center gap-3">
+                <i class="fa-solid fa-chart-line text-indigo-600 text-sm"></i>
+                <h2 class="text-slate-900 font-bold text-sm">Jouw Hosselstatus</h2>
+            </div>
+            <div class="divide-y divide-slate-100 text-xs">
+                <div class="flex justify-between items-center p-4 hover:bg-slate-50 transition">
+                    <span class="font-semibold text-slate-500">Huidige Energie</span>
+                    <span class="font-extrabold text-emerald-700">{{ $character->energy }} / {{ $character->max_energy }}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 hover:bg-slate-50 transition">
+                    <span class="font-semibold text-slate-500">Contant op Zak</span>
+                    <span class="font-extrabold text-amber-600">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 hover:bg-slate-50 transition">
+                    <span class="font-semibold text-slate-500">Huidig Respect</span>
+                    <span class="font-extrabold text-indigo-700">{{ number_format($character->respect, 0, ',', '.') }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+@endsection

@@ -1,119 +1,642 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6" x-data="{ category: 'all' }">
-    <!-- Header with Tabs (Matches bottom-left screen in mockup) -->
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight">
-                Winkel
-            </h1>
-            <p class="text-xs text-slate-500 mt-0.5">
-                Koop snacks, uitrusting en legendarische relikwieën in de kliniek.
-            </p>
+<div class="space-y-6" x-data="{ 
+    shopTab: '{{ session('shop_tab', request('tab', 'pakketten')) }}',
+    bundleFilter: 'all',
+    selectedBundleId: 'big_bucks',
+    bundleQty: 1,
+    recipientId: '',
+    bundles: {{ json_encode($bundles) }},
+    init() {
+        if (!'{{ session('shop_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_shop_tab')) {
+            this.shopTab = sessionStorage.getItem('tbs_shop_tab');
+        }
+    },
+    setShopTab(tab) {
+        this.shopTab = tab;
+        sessionStorage.setItem('tbs_shop_tab', tab);
+    }
+}">
+
+    <!-- Top Hero Banner -->
+    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-slate-950 border border-purple-900/40">
+        <!-- Background Banner Asset (TBS Paarse Style) -->
+        <div class="absolute inset-0 z-0 pointer-events-none">
+            <img src="{{ asset('assets/illustrations/banner_shop.jpg') }}" alt="Kantine & Shop" class="w-full h-full object-cover object-center opacity-45">
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
         </div>
 
-        <!-- Filter tabs matching mockup -->
-        <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600 flex-wrap">
-            <button type="button" @click="category = 'all'" :class="category === 'all' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Alle items</button>
-            <button type="button" @click="category = 'consumable'" :class="category === 'consumable' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Consumables</button>
-            <button type="button" @click="category = 'equipment'" :class="category === 'equipment' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Uitrusting</button>
-            <button type="button" @click="category = 'collectible'" :class="category === 'collectible' ? 'bg-purple-900 text-white shadow-xs' : 'hover:bg-slate-200'" class="px-3 py-1.5 rounded-lg transition">Verzamelobjecten</button>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20 mb-2">
+                    <i class="fa-solid fa-store"></i> De Kliniek Kiosk & Winkel
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kliniek Shop</h1>
+                <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                    Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren ⭐ of koop handige benodigdheden in de kantine met contant KliniekCash!
+                </p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <span class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-bold text-amber-300 flex items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-star text-amber-400"></i> {{ $character->stars ?? 0 }} Sterren
+                </span>
+                <span class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-bold text-purple-300 flex items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-mask text-purple-400"></i> {{ $character->masks ?? 0 }} Maskers
+                </span>
+            </div>
         </div>
     </div>
 
-    <!-- Items Grid (Matches exact 4-columns layout in mockup) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        @foreach($items as $item)
-        @php
-            $hasSpecialImg = match($item->slug) {
-                'frikandelbroodje' => asset('assets/items/frikandelbroodje.jpg'),
-                'gouden-frikandel' => asset('assets/items/gouden_frikandel.jpg'),
-                default => null,
-            };
-            $canBuy = $character->cash >= $item->price_kc;
-        @endphp
-        <div x-show="category === 'all' || category === '{{ $item->category }}'" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div>
-                <!-- Image or Icon Box -->
-                <div class="w-full h-32 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2 mb-3 relative overflow-hidden">
-                    @if($hasSpecialImg)
-                        <img src="{{ $hasSpecialImg }}" alt="{{ $item->name }}" class="h-full object-contain">
+    <!-- MAIN TWO COLUMN SHOP LAYOUT -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left Column: Shop Sidebar Navigation -->
+        <div class="lg:col-span-3 space-y-4">
+            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold text-slate-700">
+                <button type="button" @click="setShopTab('pakketten')" 
+                        :class="shopTab === 'pakketten' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-basket-shopping text-purple-600 w-4 text-center"></i>
+                        <span>Pakketten & Deals</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                </button>
+
+                <button type="button" @click="setShopTab('sterren')" 
+                        :class="shopTab === 'sterren' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-gem text-amber-500 w-4 text-center"></i>
+                        <span>Sterren Items</span>
+                    </span>
+                    <span class="text-[10px] text-amber-600 font-extrabold">{{ $character->stars ?? 0 }} ⭐</span>
+                </button>
+
+                <button type="button" @click="setShopTab('items')" 
+                        :class="shopTab === 'items' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-utensils text-emerald-600 w-4 text-center"></i>
+                        <span>Kantine Items</span>
+                    </span>
+                    <span class="text-[10px] text-slate-400">KC Contant</span>
+                </button>
+
+                <!-- Mijn Inventaris Tab -->
+                <button type="button" @click="setShopTab('inventaris')" 
+                        :class="shopTab === 'inventaris' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-box-archive text-purple-600 w-4 text-center"></i>
+                        <span>Mijn Inventaris</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-extrabold text-[10px]">
+                        {{ $inventory->sum('quantity') }} items
+                    </span>
+                </button>
+            </div>
+
+            <!-- Character Wallet Badge Card -->
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block border-b border-slate-100 pb-2">
+                    Jouw Bezittingen
+                </span>
+                <div class="space-y-2.5 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Sterren ⭐:</span>
+                        <span class="font-extrabold text-amber-600">{{ $character->stars ?? 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Koffers 🧳:</span>
+                        <span class="font-extrabold text-purple-700">{{ $character->unopened_bags ?? 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Maskers 🎭:</span>
+                        <span class="font-extrabold text-indigo-700">{{ $character->masks ?? 0 }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">Bank 🏦:</span>
+                        <span class="font-extrabold text-emerald-600">€{{ number_format($character->bank, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Content Area: Bundles & Showcase -->
+        <div class="lg:col-span-9 space-y-6">
+
+            <!-- TAB: PAKKETTEN & BUNDELS -->
+            <div x-show="shopTab === 'pakketten'" class="space-y-6">
+
+                <!-- Special Action Banner -->
+                <div class="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 border border-purple-200 rounded-xl p-4 text-center shadow-xs">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-100 border border-purple-200 px-3 py-0.5 rounded-full mb-1.5 inline-block">
+                        SPECIALE ACTIE
+                    </span>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-900 mt-1">
+                        Bij iedere aankoop vanaf 100 sterren ontvang je <strong class="text-purple-700">1 XXL koffer als bonus 🎁</strong>
+                    </p>
+                    <span class="text-xs text-slate-500 font-medium">Exclusief VIP en extra kluiscodes!</span>
+                </div>
+
+                <!-- Active Bundle Showcase Card -->
+                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5"
+                     x-data="{ currentBundle() { return bundles[selectedBundleId] || bundles['big_bucks']; } }">
+                    
+                    <div class="border-b border-slate-100 pb-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <h3 class="text-lg font-extrabold text-slate-900" x-text="currentBundle().name"></h3>
+                            <div class="text-sm font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full w-fit">
+                                Prijs: <span x-text="currentBundle().cost_stars"></span> Sterren ⭐
+                            </div>
+                        </div>
+
+                        <!-- Bundle Contents List with Icons -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-coins"></i>
+                                </div>
+                                <span>€<strong x-text="new Intl.NumberFormat('nl-NL').format(currentBundle().cash)"></strong> Wit Bankgeld</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-key"></i>
+                                </div>
+                                <span><strong x-text="currentBundle().codes"></strong> Kluiscodes</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-briefcase"></i>
+                                </div>
+                                <span><strong x-text="currentBundle().koffers"></strong> Koffers</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-mask"></i>
+                                </div>
+                                <span><strong x-text="currentBundle().masks"></strong> Maskers</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buy / Gift Form -->
+                    <form action="{{ route('shop.buy-bundle') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="bundle_id" :value="selectedBundleId">
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                Aantal keer kopen:
+                            </label>
+                            <input type="number" name="quantity" min="1" max="10" x-model="bundleQty" required 
+                                   class="w-full bg-white border border-slate-300 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 rounded-lg px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none">
+                        </div>
+
+                        <!-- Gifting Selector with Autocomplete Search Input -->
+                        <div x-data="{
+                            search: '',
+                            selectedId: '',
+                            selectedName: '',
+                            openDropdown: false,
+                            patients: [
+                                { id: '', name: 'Mijn eigen account ({{ $character->name }})', level: {{ $character->level }}, respect: {{ $character->respect }}, isSelf: true },
+                                @foreach($otherPatients as $p)
+                                { id: '{{ $p->id }}', name: '{{ addslashes($p->name) }}', level: {{ $p->level }}, respect: {{ $p->respect }}, isSelf: false },
+                                @endforeach
+                            ],
+                            get filtered() {
+                                if (!this.search.trim()) return this.patients.slice(0, 25);
+                                return this.patients.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 25);
+                            },
+                            select(patient) {
+                                this.selectedId = patient.id;
+                                this.selectedName = patient.name;
+                                this.search = patient.name;
+                                this.openDropdown = false;
+                                recipientId = patient.id;
+                            }
+                        }" class="relative">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                Wil je dit product cadeau geven? Selecteer of typ ontvanger:
+                            </label>
+                            <input type="hidden" name="recipient_id" :value="selectedId">
+                            <input type="hidden" name="recipient_name" :value="search">
+
+                            <div class="relative flex items-center">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-purple-600 text-xs z-10">
+                                    <i class="fa-solid fa-user-tag"></i>
+                                </div>
+                                <input type="text"
+                                       x-model="search"
+                                       @focus="openDropdown = true"
+                                       @input="openDropdown = true; selectedId = ''"
+                                       @click.outside="openDropdown = false"
+                                       autocomplete="off"
+                                       placeholder="Mijn eigen account ({{ $character->name }}) of typ naam..."
+                                       class="w-full bg-white border border-slate-300 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 rounded-lg py-2.5 text-xs font-bold text-slate-900 focus:outline-none transition tbs-search-input shadow-2xs"
+                                       style="padding-left: 2.75rem !important; padding-right: 2.25rem !important;">
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
+                                    <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
+                                </div>
+                            </div>
+
+                            <!-- Supplemental Dropdown List -->
+                            <div x-show="openDropdown" 
+                                 x-transition
+                                 class="absolute z-50 left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white rounded-xl shadow-lg border border-slate-200 divide-y divide-slate-100">
+                                <template x-for="p in filtered" :key="p.name">
+                                    <button type="button" 
+                                            @click="select(p)"
+                                            class="w-full text-left px-3.5 py-2.5 hover:bg-purple-50 flex items-center justify-between text-xs transition cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black"
+                                                  :class="p.isSelf ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'">
+                                                <i :class="p.isSelf ? 'fa-solid fa-user' : 'fa-solid fa-user-ninja'"></i>
+                                            </span>
+                                            <div>
+                                                <span class="font-extrabold text-slate-900 group-hover:text-purple-700 block" x-text="p.name"></span>
+                                                <span class="text-[10px] text-slate-400" x-text="'Level ' + p.level + ' • ' + p.respect + ' Respect'"></span>
+                                            </div>
+                                        </div>
+                                        <span x-show="selectedName === p.name" class="text-purple-600 text-xs">
+                                            <i class="fa-solid fa-check"></i>
+                                        </span>
+                                    </button>
+                                </template>
+                                <template x-if="filtered.length === 0">
+                                    <div class="p-3 text-xs text-slate-400 text-center">
+                                        Geen medepatiënt gevonden met '<span x-text="search"></span>'
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                                :disabled="({{ $character->stars ?? 0 }}) < (currentBundle().cost_stars * bundleQty)"
+                                class="w-full py-3 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-lock text-xs"></i>
+                            <span>Betalen (<span x-text="currentBundle().cost_stars * bundleQty"></span> Sterren ⭐)</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Category Selector -->
+                <div class="flex items-center justify-center gap-2 bg-slate-100 border border-slate-200 p-1.5 rounded-xl">
+                    <button type="button" @click="bundleFilter = 'all'" 
+                            :class="bundleFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer">
+                        Alle Deals
+                    </button>
+                    <button type="button" @click="bundleFilter = 'moord'" 
+                            :class="bundleFilter === 'moord' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-gun text-xs text-rose-500"></i> Moord
+                    </button>
+                    <button type="button" @click="bundleFilter = 'slay'" 
+                            :class="bundleFilter === 'slay' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-fire text-xs text-amber-500"></i> Slay
+                    </button>
+                    <button type="button" @click="bundleFilter = 'mystery'" 
+                            :class="bundleFilter === 'mystery' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xs text-purple-600"></i> Mystery
+                    </button>
+                </div>
+
+                <!-- Deals List Table -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs divide-y divide-slate-100">
+                    @foreach($bundles as $bKey => $b)
+                    <div x-show="bundleFilter === 'all' || bundleFilter === '{{ $b['category'] }}'"
+                         @click="selectedBundleId = '{{ $bKey }}'"
+                         :class="selectedBundleId === '{{ $bKey }}' ? 'bg-purple-50/70 border-l-4 border-purple-600' : 'hover:bg-slate-50'"
+                         class="p-4 flex items-center justify-between gap-4 transition cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg shrink-0">
+                                <i class="fa-solid fa-box-open"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-extrabold text-slate-900">{{ $b['name'] }}</h4>
+                                <span class="text-[11px] text-slate-500">{{ $b['codes'] }} codes &bull; {{ $b['koffers'] }} koffers &bull; {{ $b['masks'] }} maskers</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs font-extrabold text-amber-600">{{ number_format($b['cost_stars']) }} Sterren ⭐</span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                <!-- Bottom Disclaimer -->
+                <p class="text-xs text-slate-400 text-center leading-relaxed">
+                    Personen onder de 18 jaar dienen toestemming te hebben van hun ouders of voogd. De spelregels en voorwaarden zijn van toepassing op alle aankopen.
+                </p>
+            </div>
+
+            <!-- TAB: REGULIERE ITEMS (CASH / KC) -->
+            <div x-show="shopTab === 'items'" class="space-y-6">
+                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-utensils text-purple-600"></i>
+                            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Kantine & Uitrusting</h3>
+                        </div>
+                        <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-box-archive"></i>
+                            <span>Naar mijn inventaris ({{ $inventory->sum('quantity') }})</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($items as $item)
+                        @php
+                            $ownedCount = $inventory->firstWhere('item_id', $item->id)?->quantity ?? 0;
+                        @endphp
+                        <div class="bg-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
+                            <div class="space-y-2">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg shrink-0">
+                                        @if(str_contains(strtolower($item->name), 'frikandel'))
+                                            🌭
+                                        @elseif(str_contains(strtolower($item->name), 'energie') || str_contains(strtolower($item->name), 'drank'))
+                                            ⚡
+                                        @elseif(str_contains(strtolower($item->name), 'appel') || str_contains(strtolower($item->name), 'fruit'))
+                                            🍎
+                                        @elseif(str_contains(strtolower($item->name), 'koffie'))
+                                            ☕
+                                        @else
+                                            <i class="fa-solid {{ $item->icon ?: 'fa-utensils' }}"></i>
+                                        @endif
+                                    </div>
+                                    @if($ownedCount > 0)
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">
+                                        {{ $ownedCount }}x op voorraad
+                                    </span>
+                                    @endif
+                                </div>
+
+                                <div>
+                                    <h4 class="text-xs font-extrabold text-slate-900">{{ $item->name }}</h4>
+                                    <p class="text-[11px] text-slate-500 line-clamp-2 mt-0.5">{{ $item->description ?: 'Heerlijke snack uit de kliniekkantine.' }}</p>
+                                </div>
+
+                                <!-- Effect Pills -->
+                                <div class="flex flex-wrap gap-1.5 pt-1">
+                                    @if($item->energy_restore > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
+                                        +{{ $item->energy_restore }} Energie ⚡
+                                    </span>
+                                    @endif
+                                    @if($item->health_restore > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">
+                                        +{{ $item->health_restore }} HP ❤️
+                                    </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t border-slate-200/70 space-y-2">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-500 font-medium">Prijs:</span>
+                                    <span class="font-extrabold text-emerald-700 font-mono">€{{ number_format($item->price_kc, 0, ',', '.') }} KC</span>
+                                </div>
+                                <form action="{{ route('shop.buy', $item->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" 
+                                            :disabled="{{ $character->cash < $item->price_kc ? 'true' : 'false' }}"
+                                            class="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
+                                        <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                        <span>Kopen</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: MIJN INVENTARIS (NEW & BEAUTIFUL) -->
+            <div x-show="shopTab === 'inventaris'" class="space-y-6">
+                <!-- Status Bar with Live Energy & Health -->
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-box-archive text-purple-600"></i>
+                                <span>Mijn Rugzak & Inventaris</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Hier bewaar je al je gekochte kantinesnacks, maaltijden en benodigdheden.</p>
+                        </div>
+                        <button type="button" @click="setShopTab('items')" class="px-3.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 w-fit">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Snacks Kopen in Kantine</span>
+                        </button>
+                    </div>
+
+                    <!-- Energy and Health Progress -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs font-bold">
+                                <span class="text-slate-600 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i> Energie
+                                </span>
+                                <span class="text-slate-900 font-mono">{{ $character->energy }} / {{ $character->max_energy }}</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-amber-400 to-emerald-500 rounded-full transition-all duration-300" 
+                                     style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs font-bold">
+                                <span class="text-slate-600 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-heart-pulse text-rose-500"></i> Gezondheid (HP)
+                                </span>
+                                <span class="text-slate-900 font-mono">{{ $character->health }} / {{ $character->max_health }}</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full transition-all duration-300" 
+                                     style="width: {{ min(100, round(($character->health / max(1, $character->max_health)) * 100)) }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Grid or Empty State -->
+                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
+                    @if($inventory->isEmpty())
+                        <div class="text-center py-12 space-y-3">
+                            <div class="w-16 h-16 mx-auto rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl border border-purple-100 shadow-xs">
+                                <i class="fa-solid fa-box-open"></i>
+                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-800">Je inventaris is momenteel leeg</h4>
+                            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                                Je hebt nog geen items of snacks in je rugzak. Bezoek de kantine om lekkere frikandelbroodjes of drankjes te kopen!
+                            </p>
+                            <button type="button" @click="setShopTab('items')" class="mt-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer inline-flex items-center gap-2 shadow-xs">
+                                <i class="fa-solid fa-store"></i>
+                                <span>Kantine Bekijken</span>
+                            </button>
+                        </div>
                     @else
-                        <div class="w-16 h-16 rounded-2xl bg-purple-100 text-purple-900 flex items-center justify-center text-2xl shadow-xs">
-                            <i class="fa-solid {{ $item->icon }}"></i>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($inventory as $inv)
+                            <div class="bg-gradient-to-b from-white to-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs transition group">
+                                <div class="space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                                            @if(str_contains(strtolower($inv->item->name), 'frikandel'))
+                                                🌭
+                                            @elseif(str_contains(strtolower($inv->item->name), 'energie') || str_contains(strtolower($inv->item->name), 'drank'))
+                                                ⚡
+                                            @elseif(str_contains(strtolower($inv->item->name), 'appel') || str_contains(strtolower($inv->item->name), 'fruit'))
+                                                🍎
+                                            @elseif(str_contains(strtolower($inv->item->name), 'koffie'))
+                                                ☕
+                                            @else
+                                                <i class="fa-solid {{ $inv->item->icon ?: 'fa-utensils' }}"></i>
+                                            @endif
+                                        </div>
+                                        <span class="px-2.5 py-1 rounded-full bg-purple-600 text-white font-black text-xs font-mono shadow-xs">
+                                            {{ $inv->quantity }}x
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="text-sm font-black text-slate-900">{{ $inv->item->name }}</h4>
+                                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{{ $inv->item->description ?: 'Eet dit item om je energie of gezondheid te herstellen.' }}</p>
+                                    </div>
+
+                                    <!-- Effects Pills -->
+                                    <div class="flex flex-wrap gap-1.5 pt-1">
+                                        @if($inv->item->energy_restore > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-bolt text-emerald-600"></i> +{{ $inv->item->energy_restore }} Energie
+                                        </span>
+                                        @endif
+                                        @if($inv->item->health_restore > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-heart text-rose-600"></i> +{{ $inv->item->health_restore }} HP
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Action Button: Eten / Nuttigen -->
+                                <div class="pt-2 border-t border-slate-200">
+                                    <form action="{{ route('shop.consume', $inv->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" 
+                                                class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]">
+                                            <i class="fa-solid fa-utensils text-xs"></i>
+                                            <span>Eten / Nuttigen</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            @endforeach
                         </div>
                     @endif
                 </div>
-
-                <!-- Title & Stat Badge -->
-                <h3 class="font-black text-slate-900 text-sm tracking-tight text-center truncate">{{ $item->name }}</h3>
-                
-                <div class="text-center mt-1 text-[11px] font-bold text-slate-500">
-                    @if($item->energy_restore > 0)
-                        <span class="text-yellow-600">+{{ $item->energy_restore }} Energie</span>
-                    @elseif($item->strength_bonus > 0)
-                        <span class="text-purple-600">+{{ $item->strength_bonus }} Kracht</span>
-                    @elseif($item->stamina_bonus > 0)
-                        <span class="text-emerald-600">+{{ $item->stamina_bonus }} Conditie</span>
-                    @elseif($item->charisma_bonus > 0)
-                        <span class="text-pink-600">+{{ $item->charisma_bonus }} Charisma</span>
-                    @elseif($item->intelligence_bonus > 0)
-                        <span class="text-blue-600">+{{ $item->intelligence_bonus }} Intelligentie</span>
-                    @elseif($item->slug === 'gouden-frikandel')
-                        <span class="text-amber-500">+50 Respect</span>
-                    @else
-                        <span class="text-indigo-600">Speciaal Item</span>
-                    @endif
-                </div>
-
-                <!-- Price -->
-                <div class="text-center mt-1 text-xs font-black text-slate-800">
-                    <i class="fa-solid fa-coins text-amber-500 text-[10px] mr-0.5"></i> {{ number_format($item->price_kc, 0, ',', '.') }} KC
-                </div>
             </div>
 
-            <!-- Purple Buy Button -->
-            <div class="mt-4">
-                <form method="POST" action="{{ route('shop.buy', $item) }}">
-                    @csrf
-                    <button type="submit" @if(! $canBuy || $character->isImprisoned()) disabled @endif class="w-full bg-[#6d28d9] hover:bg-[#5b21b6] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-2 px-3 rounded-xl text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        Kopen
-                    </button>
-                </form>
-            </div>
-        </div>
-        @endforeach
-    </div>
-
-    <!-- Inventory / Buidel Section -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5">
-        <h2 class="text-sm font-black text-slate-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-box text-purple-700"></i>
-            <span>Mijn Buidel & Inventaris</span>
-        </h2>
-        @if($inventory->isEmpty())
-            <p class="text-xs text-slate-400 italic">Je hebt nog geen items gekocht.</p>
-        @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                @foreach($inventory as $inv)
-                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3 text-xs">
-                    <div>
-                        <h4 class="font-black text-slate-900">{{ $inv->item->name }}</h4>
-                        <span class="text-[11px] text-slate-500 font-semibold">{{ $inv->quantity }}x in bezit</span>
+            <!-- TAB: STERREN & DIAMANTEN -->
+            <div x-show="shopTab === 'sterren'" class="space-y-6">
+                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-gem text-amber-500"></i>
+                        <span>Sterren & Maskers Shop</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl">
+                                🎭
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-extrabold text-slate-900">1x Masker</h4>
+                                <p class="text-xs font-extrabold text-amber-600 mt-0.5">15 Sterren ⭐</p>
+                            </div>
+                            <form action="{{ route('shop.buy-star-item') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="item_type" value="mask_1">
+                                <button type="submit" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">Kopen</button>
+                            </form>
+                        </div>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl">
+                                🎭
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-extrabold text-slate-900">5x Maskers</h4>
+                                <p class="text-xs font-extrabold text-amber-600 mt-0.5">65 Sterren ⭐</p>
+                            </div>
+                            <form action="{{ route('shop.buy-star-item') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="item_type" value="mask_5">
+                                <button type="submit" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">Kopen</button>
+                            </form>
+                        </div>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+                                📦
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-extrabold text-slate-900">Exclusief Pakket</h4>
+                                <p class="text-xs font-extrabold text-amber-600 mt-0.5">150 Sterren ⭐</p>
+                            </div>
+                            <form action="{{ route('shop.buy-star-item') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="item_type" value="package_150">
+                                <button type="submit" class="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs transition cursor-pointer">Kopen</button>
+                            </form>
+                        </div>
                     </div>
-                    @if($inv->item->category === 'consumable')
-                    <form method="POST" action="{{ route('shop.consume', $inv) }}">
-                        @csrf
-                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 py-1.5 rounded-lg text-xs shadow-xs cursor-pointer">
-                            Nuttigen
-                        </button>
-                    </form>
-                    @endif
                 </div>
-                @endforeach
             </div>
-        @endif
+
+        </div>
+
     </div>
+
+    <!-- Bottom Podium Ranglijst -->
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3">
+            <i class="fa-solid fa-trophy text-amber-500"></i>
+            <span>RANGLIJST TOP PATIËNTEN</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3 pt-2">
+            @foreach($topRankings ?? [] as $index => $player)
+            <div class="flex flex-col items-center text-center group">
+                <div class="relative mb-2">
+                    <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" 
+                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200') }} group-hover:scale-105 transition-transform shadow-xs">
+                    
+                    <span class="absolute -top-1 -left-1 w-6 h-6 rounded-full {{ $index === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($index < 3 ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-white font-bold') }} text-xs flex items-center justify-center shadow">
+                        {{ $index + 1 }}
+                    </span>
+
+                    <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] flex items-center justify-center">
+                        <i class="fa-solid fa-check"></i>
+                    </span>
+                </div>
+
+                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 group-hover:text-purple-600 transition truncate w-full block">
+                    {{ $player->name }}
+                </a>
+                <span class="text-[10px] font-bold text-slate-400">
+                    {{ $player->respect >= 1000000 ? number_format($player->respect / 1000000, 2) . 'M' : ($player->respect >= 1000 ? number_format($player->respect / 1000, 1) . 'K' : $player->respect) }}
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+
 </div>
 @endsection

@@ -21,7 +21,7 @@ class MissionController extends Controller
     ) {}
 
     /**
-     * Show mission list.
+     * Show mission list with scenarios.
      */
     public function index(Request $request): View
     {
@@ -39,17 +39,19 @@ class MissionController extends Controller
 
         $missions = $query->get();
         $characterProgress = $character->missions()->pluck('completed_count', 'mission_id');
+        $scenarios = MissionService::SCENARIOS;
 
         return view('game.missions', compact(
             'character',
             'missions',
             'characterProgress',
-            'selectedCategory'
+            'selectedCategory',
+            'scenarios'
         ));
     }
 
     /**
-     * Execute a mission.
+     * Execute a mission with interactive scenario choice.
      */
     public function execute(Request $request, Mission $mission): RedirectResponse
     {
@@ -57,7 +59,9 @@ class MissionController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        $result = $this->missionService->execute($character, $mission);
+        $userChoice = $request->input('choice');
+
+        $result = $this->missionService->execute($character, $mission, $userChoice);
 
         if ($result['success']) {
             return back()->with('success', $result['message']);

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\CharacterItem;
+use App\Models\GameMessage;
 use App\Models\Item;
 use App\Models\User;
+use App\Models\VaultCode;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
@@ -14,13 +17,76 @@ use Illuminate\View\View;
 
 class ShopController extends Controller
 {
+    public const BUNDLES = [
+        'deluluknaller' => [
+            'id' => 'deluluknaller',
+            'name' => 'Deluluknaller MEGA DEAL 🤑',
+            'category' => 'mystery',
+            'cost_stars' => 75,
+            'codes' => 10,
+            'koffers' => 3,
+            'cash' => 150000,
+            'masks' => 10,
+        ],
+        'snel_schaamteloos' => [
+            'id' => 'snel_schaamteloos',
+            'name' => 'Snel & Schaamteloos',
+            'category' => 'slay',
+            'cost_stars' => 150,
+            'codes' => 15,
+            'koffers' => 6,
+            'cash' => 500000,
+            'masks' => 25,
+        ],
+        'big_bucks' => [
+            'id' => 'big_bucks',
+            'name' => 'Big Bucks Bundle',
+            'category' => 'slay',
+            'cost_stars' => 250,
+            'codes' => 25,
+            'koffers' => 10,
+            'cash' => 1500000,
+            'masks' => 40,
+        ],
+        'sprinkle_sprinkle' => [
+            'id' => 'sprinkle_sprinkle',
+            'name' => 'Sprinkle Sprinkle MEGA DEAL 🤑',
+            'category' => 'mystery',
+            'cost_stars' => 500,
+            'codes' => 50,
+            'koffers' => 25,
+            'cash' => 5000000,
+            'masks' => 100,
+        ],
+        'koffer_booster_xl' => [
+            'id' => 'koffer_booster_xl',
+            'name' => 'Koffer Booster XL',
+            'category' => 'moord',
+            'cost_stars' => 1000,
+            'codes' => 120,
+            'koffers' => 60,
+            'cash' => 15000000,
+            'masks' => 250,
+        ],
+        'rijk_roekeloos_xxl' => [
+            'id' => 'rijk_roekeloos_xxl',
+            'name' => 'Rijk & Roekeloos XXL MEGA DEAL 🤑',
+            'category' => 'slay',
+            'cost_stars' => 2500,
+            'codes' => 350,
+            'koffers' => 150,
+            'cash' => 50000000,
+            'masks' => 600,
+        ],
+    ];
+
     public function __construct(
         protected EconomyService $economyService,
         protected EnergyService $energyService,
     ) {}
 
     /**
-     * Show shop and inventory.
+     * Show shop, bundles and inventory (Matching Screenshot 3).
      */
     public function index(): View
     {
@@ -32,11 +98,22 @@ class ShopController extends Controller
         $items = Item::where('is_buyable', true)->get();
         $inventory = CharacterItem::where('character_id', $character->id)->with('item')->get();
 
-        return view('game.shop', compact('character', 'items', 'inventory'));
+        $bundles = self::BUNDLES;
+        $otherPatients = Character::where('id', '!=', $character->id)->orderBy('name')->take(250)->get();
+        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+
+        return view('game.shop', compact(
+            'character',
+            'items',
+            'inventory',
+            'bundles',
+            'otherPatients',
+            'topRankings'
+        ));
     }
 
     /**
-     * Buy an item.
+     * Buy an item with regular cash.
      */
     public function buy(Request $request, Item $item): RedirectResponse
     {
@@ -44,11 +121,14 @@ class ShopController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        if ($character->cash < $item->price_kc) {
-            return back()->with('error', "Niet genoeg contant geld! {$item->name} kost {$item->price_kc} KC.");
+        $quantity = max(1, (int) $request->input('quantity', 1));
+        $totalCost = $item->price_kc * $quantity;
+
+        if ($character->cash < $totalCost) {
+            return back()->with('error', "Niet genoeg contant geld! {$quantity}x {$item->name} kost {$totalCost} KC.");
         }
 
-        if (! $this->economyService->deductCash($character, $item->price_kc)) {
+        if (! $this->economyService->deductCash($character, $totalCost)) {
             return back()->with('error', 'Betaling mislukt.');
         }
 
@@ -56,26 +136,34 @@ class ShopController extends Controller
             'character_id' => $character->id,
             'item_id' => $item->id,
         ]);
-        $inv->quantity = ($inv->quantity ?? 0) + 1;
+        $inv->quantity = ($inv->quantity ?? 0) + $quantity;
         $inv->save();
 
-        return back()->with('success', "Je hebt {$item->name} gekocht voor {$item->price_kc} KC!");
+        return back()
+            ->with('shop_tab', 'items')
+            ->with('success', "Je hebt {$quantity}x {$item->name} gekocht voor {$totalCost} KC!");
     }
 
     /**
      * Consume an item from inventory.
      */
-    public function consume(Request $request, CharacterItem $inventoryItem): RedirectResponse
+    public function consume(Request $request, CharacterItem $characterItem): RedirectResponse
     {
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
 
-        if ($inventoryItem->character_id !== $character->id || $inventoryItem->quantity < 1) {
-            return back()->with('error', 'Voorwerp niet beschikbaar in je inventaris.');
+        if ($characterItem->character_id !== $character->id || $characterItem->quantity < 1) {
+            return back()->with('shop_tab', 'inventaris')->with('error', 'Voorwerp niet beschikbaar in je inventaris.');
         }
 
-        $item = $inventoryItem->item;
+        $item = $characterItem->item;
+        if (! $item) {
+            return back()->with('shop_tab', 'inventaris')->with('error', 'Item niet gevonden.');
+        }
+
+        $energyBefore = $character->energy;
+        $healthBefore = $character->health;
 
         if ($item->energy_restore > 0) {
             $character->energy = min($character->max_energy, $character->energy + $item->energy_restore);
@@ -87,13 +175,203 @@ class ShopController extends Controller
 
         $character->save();
 
-        $inventoryItem->quantity--;
-        if ($inventoryItem->quantity <= 0) {
-            $inventoryItem->delete();
+        $characterItem->quantity--;
+        if ($characterItem->quantity <= 0) {
+            $characterItem->delete();
         } else {
-            $inventoryItem->save();
+            $characterItem->save();
         }
 
-        return back()->with('success', "Je hebt {$item->name} genuttigd! (+{$item->energy_restore} energie, +{$item->health_restore} gezondheid)");
+        $energyGained = $character->energy - $energyBefore;
+        $healthGained = $character->health - $healthBefore;
+
+        $msg = "Je hebt {$item->name} genuttigd!";
+        if ($energyGained > 0 || $healthGained > 0) {
+            $msg .= " (+{$energyGained} Energie, +{$healthGained} Gezondheid)";
+        } else {
+            $msg .= ' (Energie & Gezondheid waren al maximaal)';
+        }
+
+        return back()
+            ->with('shop_tab', 'inventaris')
+            ->with('success', $msg);
+    }
+
+    /**
+     * Purchase exclusive items with Stars ⭐ (Maskers, Kluiscodes, Pakketjes).
+     */
+    public function buyStarItem(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $validated = $request->validate([
+            'item_type' => ['required', 'string', 'in:mask_1,mask_5,vault_code,package_150'],
+        ]);
+
+        $configs = [
+            'mask_1' => ['cost' => 15, 'name' => '1x Masker 🎭'],
+            'mask_5' => ['cost' => 65, 'name' => '5x Maskers 🎭'],
+            'vault_code' => ['cost' => 45, 'name' => 'Geheime MedicijnKluis Code 🔐'],
+            'package_150' => ['cost' => 150, 'name' => 'Exclusief Master Pakket 📦'],
+        ];
+
+        $cfg = $configs[$validated['item_type']];
+
+        if (($character->stars ?? 0) < $cfg['cost']) {
+            return back()->with('shop_tab', 'sterren')->with('error', "Je hebt minimaal {$cfg['cost']} Sterren ⭐ nodig voor {$cfg['name']}! (Je hebt er {$character->stars}).");
+        }
+
+        $character->stars -= $cfg['cost'];
+
+        if ($validated['item_type'] === 'mask_1') {
+            $character->masks = ($character->masks ?? 0) + 1;
+            $character->save();
+
+            return back()
+                ->with('shop_tab', 'sterren')
+                ->with('success', "Gekocht! 1x Masker 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
+        }
+
+        if ($validated['item_type'] === 'mask_5') {
+            $character->masks = ($character->masks ?? 0) + 5;
+            $character->save();
+
+            return back()
+                ->with('shop_tab', 'sterren')
+                ->with('success', "Gekocht! 5x Maskers 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
+        }
+
+        if ($validated['item_type'] === 'vault_code') {
+            $codeStr = 'SHOP-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
+            VaultCode::create([
+                'code' => $codeStr,
+                'reward_cash' => rand(3000, 7500),
+                'reward_stars' => rand(2, 4),
+                'reward_tokens' => 3,
+                'character_id' => $character->id,
+                'is_redeemed' => false,
+            ]);
+
+            GameMessage::create([
+                'recipient_id' => $character->id,
+                'sender_name' => 'Kliniek Shop Dealer',
+                'subject' => '🔐 Jouw Aangeschafte MedicijnKluis Code!',
+                'content' => "Beste {$character->name},\n\nHier is jouw aangeschafte kluiscode voucher:\n\n👉 **{$codeStr}**\n\nWissel hem direct in op de MedicijnKluis voor wit geld op je bank, extra sterren en maskers!",
+                'type' => 'reward',
+            ]);
+
+            $character->save();
+
+            return back()
+                ->with('shop_tab', 'sterren')
+                ->with('success', "Gekocht! Geheime kluiscode voucher {$codeStr} bezorgd in je postvak en toegevoegd aan je kluiscodes!");
+        }
+
+        if ($validated['item_type'] === 'package_150') {
+            $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
+            $character->save();
+
+            return back()
+                ->with('shop_tab', 'sterren')
+                ->with('success', "Gekocht! Exclusief Master Pakket 📦 toegevoegd aan je ongeopende koffers voor {$cfg['cost']} Sterren ⭐. Open hem direct bij Koffers!");
+        }
+
+        return back()->with('shop_tab', 'sterren');
+    }
+
+    /**
+     * Purchase high-value bundles with Stars ⭐ (Codes, Koffers, Cash, Masks) - Matching Screenshot 3.
+     */
+    public function buyBundle(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $validated = $request->validate([
+            'bundle_id' => ['required', 'string', 'in:deluluknaller,snel_schaamteloos,big_bucks,sprinkle_sprinkle,koffer_booster_xl,rijk_roekeloos_xxl'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:10'],
+            'recipient_id' => ['nullable'],
+            'recipient_name' => ['nullable', 'string'],
+        ]);
+
+        $recipientId = $validated['recipient_id'] ?? null;
+        if (empty($recipientId) && ! empty($validated['recipient_name'])) {
+            $nameClean = trim($validated['recipient_name']);
+            if (! str_contains(strtolower($nameClean), 'eigen account')) {
+                $foundChar = Character::where('name', $nameClean)->first();
+                if ($foundChar) {
+                    $recipientId = $foundChar->id;
+                }
+            }
+        }
+
+        $bundle = self::BUNDLES[$validated['bundle_id']];
+        $quantity = (int) $validated['quantity'];
+        $totalCost = $bundle['cost_stars'] * $quantity;
+
+        if (($character->stars ?? 0) < $totalCost) {
+            return back()->with('error', "Niet genoeg sterren! Deze bundel kost {$totalCost} Sterren ⭐ (Je hebt er {$character->stars}).");
+        }
+
+        $character->stars -= $totalCost;
+
+        // Determine target recipient (either self or gifted friend)
+        $isGift = ! empty($recipientId) && (int) $recipientId !== $character->id;
+        $target = $isGift ? Character::findOrFail($recipientId) : $character;
+
+        // Total contents calculated
+        $totalCash = $bundle['cash'] * $quantity;
+        $totalBags = $bundle['koffers'] * $quantity;
+        $totalMasks = $bundle['masks'] * $quantity;
+        $totalCodes = $bundle['codes'] * $quantity;
+
+        // Bonus: XXL koffer bonus for high value purchase (>= 100 stars)
+        $bonusBags = ($bundle['cost_stars'] >= 100) ? (1 * $quantity) : 0;
+        $totalBags += $bonusBags;
+
+        // Apply rewards to target
+        $target->bank += $totalCash;
+        $target->unopened_bags = ($target->unopened_bags ?? 0) + $totalBags;
+        $target->masks = ($target->masks ?? 0) + $totalMasks;
+
+        // Generate vault voucher codes for recipient
+        for ($i = 0; $i < min(25, $totalCodes); $i++) {
+            $codeStr = 'BDL-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 7));
+            VaultCode::create([
+                'code' => $codeStr,
+                'reward_cash' => rand(2500, 7500),
+                'reward_stars' => rand(1, 3),
+                'reward_tokens' => 2,
+                'character_id' => $target->id,
+                'is_redeemed' => false,
+            ]);
+        }
+
+        $target->save();
+        $character->save();
+
+        if ($isGift) {
+            GameMessage::create([
+                'recipient_id' => $target->id,
+                'sender_id' => $character->id,
+                'sender_name' => $character->name,
+                'subject' => "🎁 VERRASSING! Je hebt een {$bundle['name']} cadeau gekregen!",
+                'content' => "Beste {$target->name},\n\n{$character->name} heeft jou zojuist een exclusief cadeau gestuurd:\n\n📦 **{$bundle['name']} ({$quantity}x)**\n• +€".number_format($totalCash, 0, ',', '.')." wit bankgeld 🏦\n• +{$totalBags} Koffers 🧳\n• +{$totalMasks} Maskers 🎭\n• +{$totalCodes} Geheime Kluiscodes 🔐 (klaar om te verzilveren op de MedicijnKluis!)\n\nVeel succes in de TBS Kliniek!",
+                'type' => 'reward',
+            ]);
+
+            return back()
+                ->with('shop_tab', 'pakketten')
+                ->with('success', "🎁 Prachtig! Je hebt {$quantity}x {$bundle['name']} succesvol cadeau gedaan aan {$target->name} voor {$totalCost} Sterren ⭐!");
+        }
+
+        $bonusMsg = $bonusBags > 0 ? " inclusief +{$bonusBags} bonus XXL koffer(s)!" : '!';
+
+        return back()
+            ->with('shop_tab', 'pakketten')
+            ->with('success', "🎉 Gefeliciteerd! {$bundle['name']} ontvangen voor {$totalCost} Sterren ⭐{$bonusMsg} Inhoud: +€".number_format($totalCash, 0, ',', '.')." bankgeld, +{$totalBags} koffers, +{$totalMasks} maskers en +{$totalCodes} kluiscodes!");
     }
 }

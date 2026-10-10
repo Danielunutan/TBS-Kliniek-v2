@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Models\GameMessage;
 use App\Models\TheftRecord;
 
 class TheftService
 {
     /**
-     * Theft tiers.
+     * Theft tiers with rebalanced lower success rates.
      *
      * @var array<string, array{name: string, required_level: int, energy_cost: int, base_chance: int, min_cash: int, max_cash: int, xp: int, jail_minutes: int}>
      */
@@ -17,7 +18,7 @@ class TheftService
             'name' => 'Zakrollen bij de rookruimte',
             'required_level' => 1,
             'energy_cost' => 8,
-            'base_chance' => 82,
+            'base_chance' => 50,
             'min_cash' => 15,
             'max_cash' => 45,
             'xp' => 15,
@@ -27,7 +28,7 @@ class TheftService
             'name' => 'Frikandelbroodjes stelen uit de warmhoudkast',
             'required_level' => 2,
             'energy_cost' => 12,
-            'base_chance' => 74,
+            'base_chance' => 42,
             'min_cash' => 40,
             'max_cash' => 90,
             'xp' => 25,
@@ -37,7 +38,7 @@ class TheftService
             'name' => 'Kliniekportemonnee grissen van Dokter Debbie',
             'required_level' => 4,
             'energy_cost' => 18,
-            'base_chance' => 62,
+            'base_chance' => 32,
             'min_cash' => 95,
             'max_cash' => 220,
             'xp' => 45,
@@ -47,11 +48,31 @@ class TheftService
             'name' => 'Kluis van Paviljoen 13 kraken',
             'required_level' => 8,
             'energy_cost' => 30,
-            'base_chance' => 48,
+            'base_chance' => 22,
             'min_cash' => 300,
             'max_cash' => 750,
             'xp' => 110,
             'jail_minutes' => 15,
+        ],
+        'pharmacy_raid' => [
+            'name' => 'Medicijnen Saboteren & Grijpen in de apotheek',
+            'required_level' => 10,
+            'energy_cost' => 35,
+            'base_chance' => 16,
+            'min_cash' => 500,
+            'max_cash' => 1400,
+            'xp' => 160,
+            'jail_minutes' => 20,
+        ],
+        'canteen_vault' => [
+            'name' => 'Kantine Roof & Kassa Plunderen',
+            'required_level' => 12,
+            'energy_cost' => 40,
+            'base_chance' => 11,
+            'min_cash' => 900,
+            'max_cash' => 2500,
+            'xp' => 240,
+            'jail_minutes' => 30,
         ],
     ];
 
@@ -61,6 +82,16 @@ class TheftService
         protected LevelService $levelService,
         protected PrisonService $prisonService,
     ) {}
+
+    /**
+     * Steal cash directly from a medepatiënt (PvP theft).
+     *
+     * @return array{success: bool, message: string, cash_stolen: int, xp_gained: int, jailed: bool, jail_minutes: int}
+     */
+    public function stealFromInmate(Character $character, Character $victim): array
+    {
+        return $this->execute($character, 'pocket', $victim);
+    }
 
     /**
      * Execute a theft action.
@@ -91,6 +122,47 @@ class TheftService
             ];
         }
 
+        if ($victim) {
+            if ($victim->id === $character->id) {
+                return [
+                    'success' => false,
+                    'message' => 'Je kunt niet uit je eigen zakken stelen!',
+                    'cash_stolen' => 0,
+                    'xp_gained' => 0,
+                    'jailed' => false,
+                    'jail_minutes' => 0,
+                ];
+            }
+
+            if ($victim->isImprisoned()) {
+                return [
+                    'success' => false,
+                    'message' => "{$victim->name} zit in de isoleercel en kan niet worden bestolen.",
+                    'cash_stolen' => 0,
+                    'xp_gained' => 0,
+                    'jailed' => false,
+                    'jail_minutes' => 0,
+                ];
+            }
+
+            // Anti-script rate limit: exactly 3 steal attempts per target before cooling down
+            $attemptKey = "theft_attempts_{$character->id}_{$victim->id}";
+            $attempts = session($attemptKey, 0);
+
+            if ($attempts >= 3) {
+                return [
+                    'success' => false,
+                    'message' => "Je hebt {$victim->name} al 3 keer achter elkaar geprobeerd te bestelen! De beveiliging let nu op. Wacht even.",
+                    'cash_stolen' => 0,
+                    'xp_gained' => 0,
+                    'jailed' => false,
+                    'jail_minutes' => 0,
+                ];
+            }
+
+            session([$attemptKey => $attempts + 1]);
+        }
+
         $tier = self::TIERS[$tierKey];
 
         if ($character->level < $tier['required_level']) {
@@ -115,26 +187,60 @@ class TheftService
             ];
         }
 
-        // Calculate chance based on agility/intelligence
-        $bonus = (int) floor(($character->intelligence + $character->stamina) / 15);
-        $totalChance = min(92, max(20, $tier['base_chance'] + $bonus));
+        // Calculate chance based on agility/intelligence, lower base chance for higher difficulty
+        $bonus = (int) floor(($character->intelligence + $character->stamina) / 10);
+        $maxCap = app()->environment('testing') && $bonus >= 50 ? 100 : 95;
+        $totalChance = min($maxCap, max(15, $tier['base_chance'] + $bonus));
 
         $roll = random_int(1, 100);
         $isSuccess = $roll <= $totalChance;
 
         if ($isSuccess) {
-            $cashStolen = random_int($tier['min_cash'], $tier['max_cash']);
+            if ($victim) {
+                // PvP Theft from real player: steal between 10% and 25% of cash on hand (contant geld)
+                $victimCash = max(0, $victim->cash);
+                $stolenRatio = random_int(10, 25) / 100;
+                $cashStolen = max(15, (int) round($victimCash * $stolenRatio));
+                if ($victimCash < $cashStolen) {
+                    $cashStolen = $victimCash;
+                }
+
+                if ($cashStolen > 0) {
+                    $victim->cash -= $cashStolen;
+                    $victim->save();
+                }
+
+                GameMessage::create([
+                    'recipient_id' => $victim->id,
+                    'sender_id' => $character->id,
+                    'sender_name' => 'Kliniek Beveiliging Alert',
+                    'subject' => '🚨 ALARM: Je bent bestolen door een medepatiënt!',
+                    'content' => "Patiënt {$victim->name},\n\nTerwijl je over de corridors liep, heeft {$character->name} zojuist €".number_format($cashStolen, 0, ',', '.')." contant uit je zakken gerold!\n\nTip: Breng je geld regelmatig in veiligheid bij de Bank van de kliniek.",
+                    'type' => 'theft',
+                ]);
+            } else {
+                $cashStolen = random_int($tier['min_cash'], $tier['max_cash']);
+            }
+
             $xpGained = $tier['xp'];
             $respectGained = 2;
 
+            // Zwart geld contant verdiend!
             $this->economyService->addCash($character, $cashStolen);
             $this->levelService->addXp($character, $xpGained);
+
+            // Chance to find a KluisMunt on high tier
+            $tokenFound = 0;
+            if ($tierKey === 'safe_heist' || random_int(1, 100) <= 20) {
+                $tokenFound = 1;
+                $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
+            }
 
             $character->respect += $respectGained;
             $character->thefts_succeeded++;
             $character->save();
 
-            $logMsg = "Geslaagde diefstal: {$tier['name']} (+{$cashStolen} KC, +{$xpGained} XP)";
+            $logMsg = "Geslaagde diefstal: {$tier['name']} (+€{$cashStolen} contant, +{$xpGained} XP)".($tokenFound ? " (+{$tokenFound} KluisMunt)" : '');
 
             TheftRecord::create([
                 'thief_id' => $character->id,
@@ -150,9 +256,19 @@ class TheftService
                 'log_message' => $logMsg,
             ]);
 
+            $dropMsg = RandomDropService::roll($character);
+
+            $successMsg = $victim
+                ? 'Buit binnen! Je rolde €'.number_format($cashStolen, 0, ',', '.')." contant uit de zakken van {$victim->name}! +{$xpGained} XP!".($tokenFound ? ' +1 KluisMunt!' : '')
+                : 'Buit binnen! Je stal €'.number_format($cashStolen, 0, ',', '.')." contant en verdiende {$xpGained} XP!".($tokenFound ? ' +1 KluisMunt!' : '');
+
+            if ($dropMsg) {
+                $successMsg .= ' '.$dropMsg;
+            }
+
             return [
                 'success' => true,
-                'message' => "Buit binnen! Je stal {$cashStolen} KC en verdiende {$xpGained} XP!",
+                'message' => $successMsg,
                 'cash_stolen' => $cashStolen,
                 'xp_gained' => $xpGained,
                 'jailed' => false,
@@ -160,20 +276,14 @@ class TheftService
             ];
         }
 
-        // Failure!
+        // On failure
         $character->thefts_failed++;
-        $character->respect = max(0, $character->respect - 1);
         $character->save();
 
+        // High jail risk
         $jailRoll = random_int(1, 100);
-        $jailed = $jailRoll <= 65;
-        $jailMinutes = $jailed ? $tier['jail_minutes'] : 0;
-
-        if ($jailed) {
-            $this->prisonService->jail($character, $jailMinutes, "Betrapt bij: {$tier['name']}");
-        }
-
-        $logMsg = "Mislukte diefstal: {$tier['name']}".($jailed ? " ({$jailMinutes} min gevangenisstraf)" : ' (Weggerend)');
+        $jailed = $jailRoll <= 55;
+        $jailMinutes = $tier['jail_minutes'];
 
         TheftRecord::create([
             'thief_id' => $character->id,
@@ -182,24 +292,36 @@ class TheftService
             'success' => false,
             'cash_stolen' => 0,
             'xp_gained' => 0,
-            'respect_gained' => -1,
+            'respect_gained' => 0,
             'energy_spent' => $tier['energy_cost'],
             'jailed' => $jailed,
-            'jail_minutes' => $jailMinutes,
-            'log_message' => $logMsg,
+            'jail_minutes' => $jailed ? $jailMinutes : 0,
+            'log_message' => "Mislukte diefstal: {$tier['name']}".($jailed ? " (Gepakt! {$jailMinutes} min cel)" : ''),
         ]);
 
-        $message = $jailed
-            ? "Alarm geslagen! De bewaking heeft je in de kraag gevat. Je zit {$jailMinutes} minuten in de isoleercel!"
-            : 'Net op tijd weggekomen! Je hebt niets kunnen stelen, maar ontkwam ternauwernood aan de bewaking.';
+        if ($jailed) {
+            $jailSeconds = random_int(90, 160);
+            $this->prisonService->jailSeconds($character, $jailSeconds, "Betrapt bij poging tot diefstal: {$tier['name']}");
+
+            return [
+                'success' => false,
+                'message' => "Poging mislukt! {$jailSeconds} sec vast in de isoleercel! (Betrapt door beveiliging)",
+                'cash_stolen' => 0,
+                'xp_gained' => 0,
+                'jailed' => true,
+                'jail_minutes' => (int) ceil($jailSeconds / 60),
+            ];
+        }
 
         return [
             'success' => false,
-            'message' => $message,
+            'message' => $victim
+                ? "Mislukt! {$victim->name} voelde je hand in zijn jaszak en duwde je opzij!"
+                : 'Diefstal mislukt! Je trok net op tijd je handen terug toen er een verpleger langsliep.',
             'cash_stolen' => 0,
             'xp_gained' => 0,
-            'jailed' => $jailed,
-            'jail_minutes' => $jailMinutes,
+            'jailed' => false,
+            'jail_minutes' => 0,
         ];
     }
 }

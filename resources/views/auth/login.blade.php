@@ -1,126 +1,396 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto py-4 sm:py-8" x-data="{ tab: 'login' }">
-    <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
-        <!-- Left Hero Column (Matches top-left image) -->
-        <div class="lg:col-span-7 bg-[#1c0b38] relative flex flex-col justify-between p-8 sm:p-12 text-white overflow-hidden">
-            <!-- Background Image with Overlay -->
-            <img src="{{ asset('assets/illustrations/login_hero.jpg') }}" alt="TBS Kliniek" class="absolute inset-0 w-full h-full object-cover object-center opacity-45 mix-blend-luminosity hover:opacity-55 transition-opacity duration-700">
-            <div class="absolute inset-0 bg-gradient-to-t from-[#140628] via-[#1c0b38]/70 to-[#270e4e]/40"></div>
+<div class="max-w-5xl mx-auto space-y-6" x-data="{ 
+    tab: '{{ $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') ? 'register' : 'login' }}', 
+    regGender: '{{ old('gender', 'male') }}', 
+    regAvatar: '{{ old('avatar', 'assets/characters/avatar_male_1.jpg') }}' 
+}">
 
-            <!-- Top Branding -->
-            <div class="relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-black uppercase tracking-wider mb-4 shadow-sm backdrop-blur-xs">
-                    <i class="fa-solid fa-crown text-amber-400"></i>
-                    <span>Klassieke Nederlandse Browsergame</span>
+    <!-- MAIN LOGIN / REGISTER CARD (MATCHES WEBSITE DESIGN) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+        
+        <!-- LEFT HERO COLUMN (VIBRANT PURPLE TBS KLINIEK ARTWORK & MODERN GAMING BRANDING) -->
+        <div class="lg:col-span-6 bg-[#18042a] text-white relative p-7 sm:p-10 flex flex-col justify-between overflow-hidden shadow-inner min-h-[580px]">
+            <!-- Vibrant Purple Key Art Image (Crisp, High Quality, No Dark Smudge) -->
+            <img src="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}" alt="TBS Kliniek" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none">
+            
+            <!-- Cinematic Purple Gradient Overlays for High Legibility and Rich Atmosphere -->
+            <div class="absolute inset-0 bg-gradient-to-t from-[#120224] via-[#120224]/75 to-purple-950/20 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#120224]/50 via-transparent to-transparent pointer-events-none"></div>
+
+            <div class="relative z-10 space-y-5">
+                <!-- Branding Header -->
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-lg">
+                        TBS <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400">Kliniek</span>
+                    </h1>
+                    <p class="mt-2 text-xs sm:text-sm text-purple-100 font-medium leading-relaxed max-w-sm drop-shadow">
+                        Respect verdien je niet met goed gedrag. Frikandelbroodjes moet je bevechten.
+                    </p>
                 </div>
-                
-                <h1 class="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white drop-shadow-xl leading-none">
-                    TBS <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-200">KLINIEK</span>
-                </h1>
-                
-                <p class="mt-4 text-base sm:text-lg font-medium text-purple-200/90 leading-relaxed max-w-md drop-shadow">
-                    Respect verdien je. Frikandelbroodjes moet je bevechten.
-                </p>
+
+                <!-- Modern Glowing Purple Glass Feature Cards -->
+                <div class="space-y-2.5 pt-2">
+                    <div class="flex items-center gap-3 bg-purple-950/80 border border-purple-400/35 rounded-xl px-4 py-2.5 backdrop-blur-md hover:border-purple-300/60 hover:bg-purple-900/80 transition-all shadow-md">
+                        <div class="w-8 h-8 rounded-lg bg-amber-400/25 border border-amber-400/40 text-amber-300 flex items-center justify-center shrink-0 text-xs shadow-xs">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <div class="text-xs">
+                            <span class="font-extrabold text-white">Hosselen & Kraken:</span>
+                            <span class="text-purple-100 ml-1">Steel cash en buit in de kantine</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-purple-950/80 border border-purple-400/35 rounded-xl px-4 py-2.5 backdrop-blur-md hover:border-purple-300/60 hover:bg-purple-900/80 transition-all shadow-md">
+                        <div class="w-8 h-8 rounded-lg bg-teal-400/25 border border-teal-400/40 text-teal-300 flex items-center justify-center shrink-0 text-xs shadow-xs">
+                            <i class="fa-solid fa-capsules"></i>
+                        </div>
+                        <div class="text-xs">
+                            <span class="font-extrabold text-white">Dealen & Smokkel:</span>
+                            <span class="text-purple-100 ml-1">Zwarte markt met corrupte cipiers</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-purple-950/80 border border-purple-400/35 rounded-xl px-4 py-2.5 backdrop-blur-md hover:border-purple-300/60 hover:bg-purple-900/80 transition-all shadow-md">
+                        <div class="w-8 h-8 rounded-lg bg-rose-400/25 border border-rose-400/40 text-rose-300 flex items-center justify-center shrink-0 text-xs shadow-xs">
+                            <i class="fa-solid fa-hand-fist"></i>
+                        </div>
+                        <div class="text-xs">
+                            <span class="font-extrabold text-white">Luchtplaats PvP:</span>
+                            <span class="text-purple-100 ml-1">Vecht om respect en sticht je gang</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Bottom Flavor Quote -->
-            <div class="relative z-10 pt-12">
-                <div class="bg-purple-950/80 border border-purple-800/80 rounded-2xl p-4 backdrop-blur-md max-w-md">
-                    <p class="text-xs text-purple-200 italic leading-relaxed">
+            <div class="relative z-10 pt-4 mt-6 border-t border-purple-400/25 flex items-start gap-3">
+                <i class="fa-solid fa-quote-left text-amber-400/70 text-base shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="text-xs text-purple-100 italic leading-relaxed">
                         "In de kliniek draait alles om macht, aanzien en wie de sleutel heeft van de warmhoudkast."
                     </p>
-                    <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest block mt-2">— Henkie de Frikandelkoning</span>
+                    <span class="text-[11px] font-extrabold text-amber-300 uppercase tracking-wider block mt-1">&mdash; Henkie de Frikandelkoning</span>
                 </div>
             </div>
         </div>
 
-        <!-- Right Form Column (Matches right card in top-left mockup) -->
-        <div class="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-center bg-white">
-            <!-- Tab Switcher -->
-            <div class="flex border-b border-slate-200 mb-8">
-                <button type="button" @click="tab = 'login'" :class="tab === 'login' ? 'border-b-2 border-purple-700 text-purple-900 font-black' : 'text-slate-400 hover:text-slate-700 font-semibold'" class="flex-1 pb-3 text-center text-sm transition">
-                    Inloggen
-                </button>
-                <button type="button" @click="tab = 'register'" :class="tab === 'register' ? 'border-b-2 border-purple-700 text-purple-900 font-black' : 'text-slate-400 hover:text-slate-700 font-semibold'" class="flex-1 pb-3 text-center text-sm transition">
-                    Registreren
-                </button>
-            </div>
+        <!-- RIGHT FORM COLUMN (CLEAN WHITE TO MATCH THE WEBSITE) -->
+        <div class="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-center bg-white">
+            <div class="w-full max-w-md mx-auto space-y-5">
+                
+                <!-- Header -->
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Welkom bij de Kliniek</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Meld je aan voor je dossier of start direct.</p>
+                </div>
 
-            <!-- Login Form -->
-            <div x-show="tab === 'login'">
-                <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
-                    @csrf
-                    <div>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-user"></i>
-                            </span>
-                            <input type="email" name="email" value="{{ old('email', 'demo@tbskliniek.nl') }}" required placeholder="Gebruikersnaam / E-mail" class="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition">
-                        </div>
-                    </div>
+                <!-- SOCIAL AUTH BUTTONS (GOOGLE & DISCORD 1-KLIK) -->
+                <div class="space-y-2">
+                    <a href="{{ route('login.google') }}" data-turbo="false" data-turbo-prefetch="false" class="w-full flex items-center justify-center gap-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-extrabold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow-2xs transition active:scale-[0.99]">
+                        <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Doorgaan met Google</span>
+                        <span class="ml-auto bg-slate-100 text-[10px] font-bold text-slate-600 px-2 py-0.5 rounded-full uppercase tracking-wider">1-Klik</span>
+                    </a>
 
-                    <div>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-lock"></i>
-                            </span>
-                            <input type="password" name="password" value="wachtwoord123" required placeholder="Wachtwoord" class="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none transition">
-                        </div>
-                    </div>
+                    <a href="{{ route('login.discord') }}" data-turbo="false" data-turbo-prefetch="false" class="w-full flex items-center justify-center gap-2.5 bg-[#5865F2] hover:bg-[#4752c4] text-white font-extrabold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow-2xs transition active:scale-[0.99]">
+                        <i class="fa-brands fa-discord text-base"></i>
+                        <span>Doorgaan met Discord</span>
+                        <span class="ml-auto bg-white/20 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">1-Klik</span>
+                    </a>
+                </div>
 
-                    <div class="flex items-center justify-between text-xs text-slate-600 pt-1">
-                        <label class="flex items-center gap-2 cursor-pointer font-medium">
-                            <input type="checkbox" name="remember" checked class="rounded text-purple-700 focus:ring-purple-600">
-                            <span>Onthoud mij</span>
-                        </label>
-                        <a href="#" class="text-purple-700 hover:underline font-semibold">Wachtwoord vergeten?</a>
-                    </div>
+                <!-- CLEAN DIVIDER -->
+                <div class="relative flex items-center justify-center">
+                    <div class="border-t border-slate-200 w-full"></div>
+                    <span class="bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 shrink-0">
+                        of met e-mail
+                    </span>
+                    <div class="border-t border-slate-200 w-full"></div>
+                </div>
 
-                    <button type="submit" class="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-3 px-4 rounded-xl text-sm shadow-md shadow-purple-900/20 transition-all cursor-pointer">
+                <!-- MODERN PILL TAB SWITCHER (MATCHES SITE TABS) -->
+                <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+                    <button type="button" @click="tab = 'login'"
+                            :class="tab === 'login' ? 'bg-white text-slate-900 font-extrabold shadow-2xs' : 'text-slate-500 hover:text-slate-900 font-bold'"
+                            class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
                         Inloggen
                     </button>
-                </form>
+                    <button type="button" @click="tab = 'register'"
+                            :class="tab === 'register' ? 'bg-white text-slate-900 font-extrabold shadow-2xs' : 'text-slate-500 hover:text-slate-900 font-bold'"
+                            class="flex-1 py-2 text-xs rounded-lg transition text-center cursor-pointer">
+                        Registreren
+                    </button>
+                </div>
 
-                <!-- Quick 1-Click Demo Login -->
-                <div class="mt-6 pt-6 border-t border-slate-100">
-                    <form method="POST" action="{{ route('login.demo') }}">
+                <!-- LOGIN TAB (NO UGLY LABELS - MODERN CLEAN INPUTS) -->
+                <div x-show="tab === 'login'" class="space-y-4">
+                    <form method="POST" action="{{ route('login.post') }}" class="space-y-3">
                         @csrf
-                        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-purple-950 font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-play"></i>
-                            <span>Direct Spelen als Henkie (Level 12)</span>
+
+                        <!-- Email Input -->
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-envelope text-xs"></i>
+                            </span>
+                            <input type="email" name="email" value="{{ old('email', 'demo@tbskliniek.nl') }}" required
+                                   placeholder="E-mailadres / Dossiernummer"
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                        </div>
+
+                        <!-- Password Input with Eye Toggle -->
+                        <div class="relative" x-data="{ showPass: false }">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-lock text-xs"></i>
+                            </span>
+                            <input :type="showPass ? 'text' : 'password'" name="password" value="wachtwoord123" required
+                                   placeholder="Wachtwoord"
+                                   class="w-full pl-9 pr-10 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                            <button type="button" @click="showPass = !showPass" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                                <i class="fa-solid text-xs" :class="showPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </button>
+                        </div>
+
+                        <!-- Options -->
+                        <div class="flex items-center justify-between text-xs text-slate-500 pt-0.5">
+                            <label class="flex items-center gap-2 cursor-pointer font-medium hover:text-slate-700">
+                                <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                <span>Sessie onthouden</span>
+                            </label>
+                            <a href="{{ route('password.request') }}" class="text-purple-600 hover:text-purple-700 font-semibold transition">Wachtwoord kwijt?</a>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-[0.99] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-right-to-bracket text-xs"></i>
+                            <span>Inloggen op Dossier</span>
                         </button>
                     </form>
-                    <p class="text-center text-[11px] text-slate-400 mt-2 font-medium">1-klik toegang tot de speelbare localhost demo</p>
-                </div>
-            </div>
 
-            <!-- Register Form -->
-            <div x-show="tab === 'register'" x-cloak>
-                <form method="POST" action="{{ route('register.post') }}" class="space-y-3">
-                    @csrf
-                    <div>
-                        <input type="text" name="name" value="{{ old('name') }}" placeholder="Volledige Naam" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
+                    <!-- QUICK 1-CLICK DEMO ACCESS -->
+                    <div class="pt-1">
+                        <form method="POST" action="{{ route('login.demo') }}">
+                            @csrf
+                            <button type="submit" class="w-full bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-bold py-2 px-3.5 rounded-xl text-xs flex items-center justify-between transition cursor-pointer">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i>
+                                    <span>Direct spelen als Henkie (Level 12)</span>
+                                </div>
+                                <span class="text-[10px] font-extrabold bg-amber-200/60 px-2 py-0.5 rounded-md text-amber-900">Demo</span>
+                            </button>
+                        </form>
                     </div>
-                    <div>
-                        <input type="text" name="character_name" value="{{ old('character_name') }}" placeholder="Bijnaam in de Kliniek" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
+                </div>
+
+                <!-- REGISTER TAB (SLEEK ONBOARDING: USERNAME, EMAIL, PASSWORD, AVATAR & TERMS) -->
+                <div x-show="tab === 'register'" x-cloak class="space-y-4">
+                    
+                    @if($errors->any() && (old('username') || old('terms')))
+                    <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-1">
+                        <div class="font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
+                            <span>Inschrijving niet gelukt:</span>
+                        </div>
+                        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-rose-600">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                     </div>
-                    <div>
-                        <input type="email" name="email" value="{{ old('email') }}" placeholder="E-mailadres" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
-                    </div>
-                    <div>
-                        <input type="password" name="password" placeholder="Wachtwoord" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
-                    </div>
-                    <div>
-                        <input type="password" name="password_confirmation" placeholder="Wachtwoord Bevestigen" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-600">
-                    </div>
-                    <button type="submit" class="w-full bg-[#6d28d9] hover:bg-[#5b21b6] text-white font-black py-3 px-4 rounded-xl text-xs shadow-md transition-all cursor-pointer mt-2">
-                        Dossier Aanmaken & Starten
-                    </button>
-                </form>
+                    @endif
+
+                    <form method="POST" action="{{ route('register.post') }}" class="space-y-3.5">
+                        @csrf
+
+                        <!-- 1. ACCOUNT FIELDS -->
+                        <div class="space-y-2.5">
+                            <!-- Gebruikersnaam / Alias -->
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-user-ninja text-xs"></i>
+                                </span>
+                                <input type="text" name="username" value="{{ old('username') }}" placeholder="Gebruikersnaam / Kliniek Alias" required minlength="3" maxlength="25"
+                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                            </div>
+
+                            <!-- Email -->
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-envelope text-xs"></i>
+                                </span>
+                                <input type="email" name="email" value="{{ old('email') }}" placeholder="E-mailadres" required
+                                       class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                            </div>
+
+                            <!-- Wachtwoord & Bevestigen (Strak naast elkaar of compact onder elkaar) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" x-data="{ showRegPass: false }">
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-lock text-xs"></i>
+                                    </span>
+                                    <input :type="showRegPass ? 'text' : 'password'" name="password" placeholder="Wachtwoord (min. 6)" required
+                                           class="w-full pl-9 pr-8 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                                    <button type="button" @click="showRegPass = !showRegPass" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 transition">
+                                        <i class="fa-solid text-[11px]" :class="showRegPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                </div>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-shield-halved text-xs"></i>
+                                    </span>
+                                    <input :type="showRegPass ? 'text' : 'password'" name="password_confirmation" placeholder="Herhaal Wachtwoord" required
+                                           class="w-full pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition placeholder:text-slate-400">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. KARAKTER ONBOARDING (GESLACHT & AVATAR KIEZEN) -->
+                        <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-id-card text-indigo-600"></i>
+                                    <span>Patiëntenpas Onboarding</span>
+                                </span>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase">Stap 1 van 1</span>
+                            </div>
+
+                            <!-- Geslacht Keuze -->
+                            <div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" @click="regGender = 'male'; if(!regAvatar.includes('male')) regAvatar = 'assets/characters/avatar_male_1.jpg'"
+                                            :class="regGender === 'male' ? 'bg-white border-purple-600 text-purple-950 font-extrabold shadow-xs ring-1 ring-purple-600/20' : 'bg-slate-100/70 border-slate-200 text-slate-500 font-bold hover:bg-white'"
+                                            class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition cursor-pointer">
+                                        <i class="fa-solid fa-mars text-purple-600 text-sm"></i>
+                                        <span>Man</span>
+                                    </button>
+                                    <button type="button" @click="regGender = 'female'; if(!regAvatar.includes('female')) regAvatar = 'assets/characters/avatar_female_1.jpg'"
+                                            :class="regGender === 'female' ? 'bg-white border-purple-600 text-purple-950 font-extrabold shadow-xs ring-1 ring-purple-600/20' : 'bg-slate-100/70 border-slate-200 text-slate-500 font-bold hover:bg-white'"
+                                            class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs transition cursor-pointer">
+                                        <i class="fa-solid fa-venus text-purple-600 text-sm"></i>
+                                        <span>Vrouw</span>
+                                    </button>
+                                </div>
+                                <input type="hidden" name="gender" :value="regGender">
+                            </div>
+
+                            <!-- Avatar Gallery (6 Man, 6 Vrouw - Paarse Stijl - Zonder Namen) -->
+                            <div>
+                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Kies jouw profielfoto</span>
+                                
+                                <!-- Mannelijke Avatars (6) -->
+                                <div x-show="regGender === 'male'" class="grid grid-cols-6 gap-1.5 sm:gap-2">
+                                    @foreach([
+                                        'assets/characters/avatar_male_1.jpg',
+                                        'assets/characters/avatar_male_2.jpg',
+                                        'assets/characters/avatar_male_3.jpg',
+                                        'assets/characters/avatar_male_4.jpg',
+                                        'assets/characters/avatar_male_5.jpg',
+                                        'assets/characters/avatar_male_6.jpg',
+                                    ] as $avFile)
+                                    <button type="button" @click="regAvatar = '{{ $avFile }}'"
+                                            :class="regAvatar === '{{ $avFile }}' ? 'border-purple-600 ring-2 ring-purple-600/30 bg-purple-50/50 shadow-xs scale-105' : 'border-slate-200 bg-white hover:border-slate-300 opacity-80 hover:opacity-100'"
+                                            class="relative p-1 rounded-xl border flex items-center justify-center transition cursor-pointer group aspect-square">
+                                        <div class="w-full h-full rounded-lg overflow-hidden relative shadow-2xs">
+                                            <img src="{{ asset($avFile) }}" alt="Profielfoto" class="w-full h-full object-cover">
+                                            <div x-show="regAvatar === '{{ $avFile }}'" class="absolute inset-0 bg-purple-600/20 flex items-center justify-center">
+                                                <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[9px] sm:text-[10px] shadow-xs">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    @endforeach
+                                </div>
+
+                                <!-- Vrouwelijke Avatars (6) -->
+                                <div x-show="regGender === 'female'" class="grid grid-cols-6 gap-1.5 sm:gap-2">
+                                    @foreach([
+                                        'assets/characters/avatar_female_1.jpg',
+                                        'assets/characters/avatar_female_2.jpg',
+                                        'assets/characters/avatar_female_3.jpg',
+                                        'assets/characters/avatar_female_4.jpg',
+                                        'assets/characters/avatar_female_5.jpg',
+                                        'assets/characters/avatar_female_6.jpg',
+                                    ] as $avFile)
+                                    <button type="button" @click="regAvatar = '{{ $avFile }}'"
+                                            :class="regAvatar === '{{ $avFile }}' ? 'border-purple-600 ring-2 ring-purple-600/30 bg-purple-50/50 shadow-xs scale-105' : 'border-slate-200 bg-white hover:border-slate-300 opacity-80 hover:opacity-100'"
+                                            class="relative p-1 rounded-xl border flex items-center justify-center transition cursor-pointer group aspect-square">
+                                        <div class="w-full h-full rounded-lg overflow-hidden relative shadow-2xs">
+                                            <img src="{{ asset($avFile) }}" alt="Profielfoto" class="w-full h-full object-cover">
+                                            <div x-show="regAvatar === '{{ $avFile }}'" class="absolute inset-0 bg-purple-600/20 flex items-center justify-center">
+                                                <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[9px] sm:text-[10px] shadow-xs">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    @endforeach
+                                </div>
+                                <input type="hidden" name="avatar" :value="regAvatar">
+                            </div>
+                        </div>
+
+                        <!-- 3. ALGEMENE VOORWAARDEN CHECKBOX -->
+                        <div class="pt-0.5">
+                            <label class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 group select-none">
+                                <input type="checkbox" name="terms" value="1" required class="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                <span class="leading-snug group-hover:text-slate-900 transition text-[11px] sm:text-xs">
+                                    Ik ga akkoord met de <a href="#" class="text-indigo-600 font-extrabold hover:underline">algemene voorwaarden</a> en het kliniekreglement.
+                                </span>
+                            </label>
+                        </div>
+
+                        <!-- 4. SUBMIT BUTTON -->
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-[0.99] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-user-plus text-xs"></i>
+                            <span>Dossier Aanmaken & Starten</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3 SUBTLE CLEAN FEATURE CARDS (MATCHES DASHBOARD / SITE CLEANLINESS) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div>
+                <h3 class="text-xs font-extrabold text-slate-900">Hosselen & Kraken</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">Steel frikandelbroodjes en kraak kluisjes voor cash.</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base shrink-0">
+                <i class="fa-solid fa-hand-fist"></i>
+            </div>
+            <div>
+                <h3 class="text-xs font-extrabold text-slate-900">Luchtplaats PvP</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">Vecht tegen rivalen om respect en sticht je eigen bende.</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-base shrink-0">
+                <i class="fa-solid fa-dice"></i>
+            </div>
+            <div>
+                <h3 class="text-xs font-extrabold text-slate-900">Ondergronds Casino</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">Roulette, fruitautomaten en nummerspel met hoge jackpots.</p>
             </div>
         </div>
     </div>
+
 </div>
 @endsection

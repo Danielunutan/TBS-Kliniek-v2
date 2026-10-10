@@ -108,4 +108,51 @@ class EconomyService
             return true;
         });
     }
+
+    /**
+     * Add clean money (wit geld) directly into the character's bank account.
+     */
+    public function addBankReward(Character $character, int $amount): void
+    {
+        if ($amount < 0) {
+            throw new InvalidArgumentException('Amount must be positive');
+        }
+
+        DB::transaction(function () use ($character, $amount): void {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            $locked->bank += $amount;
+            $locked->save();
+
+            $character->bank = $locked->bank;
+        });
+    }
+
+    /**
+     * Add stars currency.
+     */
+    public function addStars(Character $character, int $stars): void
+    {
+        if ($stars < 0) {
+            throw new InvalidArgumentException('Stars must be positive');
+        }
+
+        $character->stars = ($character->stars ?? 0) + $stars;
+        $character->save();
+    }
+
+    /**
+     * Deduct stars currency.
+     */
+    public function deductStars(Character $character, int $stars): bool
+    {
+        if ($stars < 0 || ($character->stars ?? 0) < $stars) {
+            return false;
+        }
+
+        $character->stars -= $stars;
+        $character->save();
+
+        return true;
+    }
 }

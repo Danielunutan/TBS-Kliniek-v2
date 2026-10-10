@@ -3,28 +3,47 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Models\GameMessage;
 use App\Models\GameNotification;
 
 class PrisonService
 {
     /**
-     * Send a character to prison.
+     * Send a character to prison for minutes.
      */
     public function jail(Character $character, int $minutes, string $reason): void
     {
+        $this->jailSeconds($character, $minutes * 60, $reason);
+    }
+
+    /**
+     * Send a character to prison for a specific duration in seconds.
+     */
+    public function jailSeconds(Character $character, int $seconds, string $reason): void
+    {
         $character->update([
             'is_in_prison' => true,
-            'prison_until' => now()->addMinutes($minutes),
+            'prison_until' => now()->addSeconds($seconds),
             'prison_reason' => $reason,
             'prison_sentences' => $character->prison_sentences + 1,
         ]);
+
+        $timeLabel = $seconds >= 60 ? (round($seconds / 60, 1).' min ('.$seconds.' sec)') : ($seconds.' sec');
 
         GameNotification::create([
             'character_id' => $character->id,
             'type' => 'prison',
             'icon' => 'fa-lock',
             'title' => 'Gepakt door de beveiliging!',
-            'message' => "Je bent opgesloten in de isoleercel voor {$minutes} minuten. Reden: {$reason}.",
+            'message' => "Je bent opgesloten in de isoleercel voor {$timeLabel}. Reden: {$reason}.",
+        ]);
+
+        GameMessage::create([
+            'recipient_id' => $character->id,
+            'sender_name' => 'Hoofdbeveiliging & Cipiers',
+            'subject' => '🚨 Arrestatierapport: Isoleercel Straf',
+            'content' => "Patiënt {$character->name},\n\nJe bent zojuist overmeesterd door het beveiligingsteam en overgebracht naar de gesloten isoleercel voor {$timeLabel}.\n\nOfficiële reden:\n\"{$reason}\"\n\nJe kunt je op elk moment direct vrijkopen met 2 Sterren ⭐ of je straftijd uitzitten.",
+            'type' => 'jail',
         ]);
     }
 

@@ -3,9 +3,9 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-xl font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+            <h1 class="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
                 <i class="fa-solid fa-dumbbell text-purple-700"></i>
                 <span>De Sportzaal & Oefenruimte</span>
             </h1>
@@ -26,16 +26,16 @@
             $cashCost = (int) max(20, round(15 + ($val * 3.5)));
             $canAfford = $character->cash >= $cashCost && $character->energy >= 10;
         @endphp
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+        <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
             <div class="p-5 space-y-3">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-base font-black text-slate-900">{{ $info['name'] }}</h2>
+                        <h2 class="text-base font-bold text-slate-900">{{ $info['name'] }}</h2>
                         <span class="text-[11px] font-bold text-purple-800">
                             <i class="fa-solid fa-user-ninja mr-1"></i>Trainer: {{ $info['trainer'] }}
                         </span>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-purple-900 text-amber-300 font-black text-lg flex items-center justify-center shadow-inner">
+                    <div class="w-12 h-12 rounded-lg bg-purple-900 text-amber-300 font-bold text-lg flex items-center justify-center shadow-inner">
                         {{ $val }}
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                 <form method="POST" action="{{ route('training.train') }}">
                     @csrf
                     <input type="hidden" name="stat" value="{{ $key }}">
-                    <button type="submit" @if(! $canAfford || $character->isImprisoned()) disabled @endif class="w-full bg-[#3a156b] hover:bg-[#280c4f] disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-2 px-4 rounded text-xs shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button type="submit" @if(! $canAfford || $character->isImprisoned()) disabled @endif class="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-lg text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-dumbbell"></i>
                         <span>Trainen (+1)</span>
                     </button>
@@ -68,8 +68,8 @@
     </div>
 
     <!-- Recent Logs -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-        <h3 class="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-2 mb-3">
+    <div class="bg-white rounded-lg border border-slate-200 shadow-sm p-5">
+        <h3 class="text-xs font-bold uppercase text-slate-800 tracking-wider flex items-center gap-2 mb-3">
             <i class="fa-solid fa-clock-rotate-left text-purple-700"></i>
             <span>Recente Trainingssessies</span>
         </h3>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\Friend;
 use App\Models\GameNotification;
 use App\Models\GuestbookEntry;
 use App\Models\User;
@@ -44,12 +45,53 @@ class ProfileController extends Controller
 
         $guestbookEntries = $profileCharacter->guestbookEntries()->with('author')->paginate(10);
 
+        // Load accepted friends for this character
+        $friends = Friend::with(['friend.gang'])
+            ->where('character_id', $profileCharacter->id)
+            ->where('status', 'accepted')
+            ->get();
+        $friendsCount = $friends->count();
+        $bff = $friends->firstWhere('is_bff', true);
+
+        // Friendship status between the logged in character ($myCharacter) and viewed character ($profileCharacter)
+        $isOwnProfile = $myCharacter->id === $profileCharacter->id;
+        $friendStatus = 'none'; // 'none', 'accepted', 'pending_sent', 'pending_received'
+        $pendingRequestRecord = null;
+
+        if (! $isOwnProfile) {
+            $outgoing = Friend::where('character_id', $myCharacter->id)
+                ->where('friend_id', $profileCharacter->id)
+                ->first();
+            $incoming = Friend::where('character_id', $profileCharacter->id)
+                ->where('friend_id', $myCharacter->id)
+                ->first();
+
+            if (($outgoing && $outgoing->status === 'accepted') || ($incoming && $incoming->status === 'accepted')) {
+                $friendStatus = 'accepted';
+            } elseif ($outgoing && $outgoing->status === 'pending') {
+                $friendStatus = 'pending_sent';
+            } elseif ($incoming && $incoming->status === 'pending') {
+                $friendStatus = 'pending_received';
+                $pendingRequestRecord = $incoming;
+            }
+        }
+
+        // $character must be passed for layouts.app navigation bar and sidebar
+        $character = $myCharacter;
+
         return view('game.profile', compact(
+            'character',
             'myCharacter',
             'profileCharacter',
             'nextLevelXp',
             'xpPercentage',
-            'guestbookEntries'
+            'guestbookEntries',
+            'friends',
+            'friendsCount',
+            'bff',
+            'isOwnProfile',
+            'friendStatus',
+            'pendingRequestRecord'
         ));
     }
 
@@ -84,7 +126,9 @@ class ProfileController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Je bericht is geplaatst in het gastenboek!');
+        return back()
+            ->with('profile_tab', 'gastenboek')
+            ->with('success', 'Je bericht is geplaatst in het gastenboek!');
     }
 
     /**
@@ -107,5 +151,43 @@ class ProfileController extends Controller
         ]);
 
         return back()->with('success', 'Je bio en status zijn succesvol bijgewerkt.');
+    }
+
+    /**
+     * Update player avatar portrait.
+     */
+    public function updateAvatar(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'avatar' => ['required', 'string'],
+        ]);
+
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $allowedAvatars = [
+            'assets/characters/henkie.jpg',
+            'assets/characters/avatar_male_1.jpg',
+            'assets/characters/avatar_male_2.jpg',
+            'assets/characters/avatar_male_3.jpg',
+            'assets/characters/avatar_male_4.jpg',
+            'assets/characters/avatar_male_5.jpg',
+            'assets/characters/avatar_male_6.jpg',
+            'assets/characters/avatar_female_1.jpg',
+            'assets/characters/avatar_female_2.jpg',
+            'assets/characters/avatar_female_3.jpg',
+            'assets/characters/avatar_female_4.jpg',
+            'assets/characters/avatar_female_5.jpg',
+            'assets/characters/avatar_female_6.jpg',
+        ];
+
+        if (! in_array($validated['avatar'], $allowedAvatars, true)) {
+            return back()->with('error', 'Ongeldige profielfoto geselecteerd.');
+        }
+
+        $character->update(['avatar' => $validated['avatar']]);
+
+        return back()->with('success', 'Je profielfoto is succesvol aangepast!');
     }
 }

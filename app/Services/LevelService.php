@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Character;
+use App\Models\GameMessage;
 use App\Models\GameNotification;
 
 class LevelService
@@ -38,10 +39,12 @@ class LevelService
                 $character->level++;
                 $leveledUp = true;
 
-                // Level up rewards: max stats increase, cash bonus, full energy refill
+                // Level up rewards: max stats increase, cash bonus, vault tokens, full energy refill
                 $bonusCash = $character->level * 150;
+                $bonusTokens = max(1, (int) floor($character->level / 2));
                 $totalCashReward += $bonusCash;
                 $character->cash += $bonusCash;
+                $character->vault_tokens = ($character->vault_tokens ?? 0) + $bonusTokens;
                 $character->energy = $character->max_energy;
                 $character->health = $character->max_health;
                 $character->respect += 5;
@@ -58,7 +61,15 @@ class LevelService
                 'type' => 'level_up',
                 'icon' => 'fa-trophy',
                 'title' => "Gefeliciteerd! Level {$character->level} bereikt!",
-                'message' => "Je bent gestegen naar Level {$character->level}! Je energie en gezondheid zijn volledig hersteld en je hebt {$totalCashReward} KC bonus ontvangen.",
+                'message' => "Je bent gestegen naar Level {$character->level}! Je energie en gezondheid zijn volledig hersteld en je hebt {$totalCashReward} KC bonus + KluisMunten ontvangen.",
+            ]);
+
+            GameMessage::create([
+                'recipient_id' => $character->id,
+                'sender_name' => 'Directie TBS Kliniek',
+                'subject' => "Dossier Update: Level {$character->level} Bereikt!",
+                'content' => "Beste {$character->name},\n\nVolgens de behandelcommissie heb je een nieuwe mijlpaal bereikt en ben je gepromoveerd naar Level {$character->level}!\n\nJe hebt €".number_format($totalCashReward)." KC aan zakgeld ontvangen en extra KluisMunten voor het kraken van kliniekkluizen en koffers.\n\nGa zo door,\nDirecteur van TBS Kliniek",
+                'type' => 'level',
             ]);
         }
 

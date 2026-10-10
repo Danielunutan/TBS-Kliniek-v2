@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\EconomyService;
+use App\Services\LevelService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+
+class RouletteController extends Controller
+{
+    public function __construct(
+        protected EconomyService $economy,
+        protected LevelService $level,
+    ) {}
+
+    public function index(): View
+    {
+        $character = Auth::user()->character;
+
+        return view('game.roulette.index', compact('character'));
+    }
+
+    public function play(Request $request): RedirectResponse
+    {
+        $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je niet gokken!');
+        }
+
+        $validated = $request->validate([
+            'bet_type' => ['required', 'in:rood,zwart,groen,even,oneven,eerste_helft,tweede_helft'],
+            'bet' => ['required', 'integer', 'min:50', 'max:50000'],
+        ]);
+
+        $bet = (int) $validated['bet'];
+        if ($character->cash < $bet) {
+            return back()->with('error', "Je hebt onvoldoende contant geld. Inzet: {$bet} KC.");
+        }
+
+        $number = rand(0, 36);
+
+        $rood = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+        $isRood = in_array($number, $rood);
+        $isZwart = $number > 0 && ! $isRood;
+        $isGroen = $number === 0;
+        $isEven = $number > 0 && $number % 2 === 0;
+        $isOneven = $number > 0 && $number % 2 !== 0;
+        $isEersteHelft = $number >= 1 && $number <= 18;
+        $isTweedeHelft = $number >= 19 && $number <= 36;
+
+        $colorLabel = $isGroen ? '🟢 Groen (0)' : ($isRood ? '🔴 Rood' : '⚫ Zwart');
+
+        $betType = $validated['bet_type'];
+        $won = match ($betType) {
+            'rood' => $isRood,
+            'zwart' => $isZwart,
+            'groen' => $isGroen,
+            'even' => $isEven,
+            'oneven' => $isOneven,
+            'eerste_helft' => $isEersteHelft,
+            'tweede_helft' => $isTweedeHelft,
+            default => false,
+        };
+
+        $multipliers = [
+            'rood' => 2, 'zwart' => 2, 'groen' => 14,
+            'even' => 2, 'oneven' => 2,
+            'eerste_helft' => 2, 'tweede_helft' => 2,
+        ];
+
+        $multiplier = $multipliers[$betType] ?? 2;
+
+        if ($won) {
+            $payout = $bet * $multiplier;
+            $this->economy->addCash($character, $payout);
+            $this->level->addXp($character, 20);
+
+            return back()->with('success', "Gewonnen! Bal landde op {$number} ({$colorLabel}). Je wint {$payout} KC ({$multiplier}x)! +20 XP.");
+        }
+
+        $character->cash -= $bet;
+        $character->save();
+
+        return back()->with('error', "Verloren! Bal landde op {$number} ({$colorLabel}). Je verliest {$bet} KC.");
+    }
+}

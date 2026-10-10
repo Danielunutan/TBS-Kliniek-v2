@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\TheftRecord;
 use App\Models\User;
 use App\Services\EnergyService;
@@ -31,23 +32,39 @@ class TheftController extends Controller
         $tiers = TheftService::TIERS;
         $recentThefts = TheftRecord::where('thief_id', $character->id)->latest()->take(6)->get();
 
-        return view('game.theft', compact('character', 'tiers', 'recentThefts'));
+        // Other patients in the clinic with cash in their pockets
+        $victims = Character::where('id', '!=', $character->id)
+            ->where('is_in_prison', false)
+            ->orderByDesc('cash')
+            ->limit(8)
+            ->get();
+
+        return view('game.theft', compact('character', 'tiers', 'recentThefts', 'victims'));
     }
 
     /**
-     * Execute theft attempt.
+     * Execute theft attempt (either tier or directly on another inmate).
      */
     public function steal(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'tier' => ['required', 'string'],
+            'victim_id' => ['nullable', 'integer', 'exists:characters,id'],
         ]);
 
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
 
-        $result = $this->theftService->execute($character, $validated['tier']);
+        $victim = null;
+        if (! empty($validated['victim_id'])) {
+            $victim = Character::find($validated['victim_id']);
+            if ($victim && $victim->id === $character->id) {
+                return back()->with('error', 'Je kunt je eigen zakken niet leegrollen!');
+            }
+        }
+
+        $result = $this->theftService->execute($character, $validated['tier'], $victim);
 
         if ($result['success']) {
             return back()->with('success', $result['message']);

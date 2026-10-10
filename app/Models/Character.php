@@ -49,6 +49,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $gang_role
  * @property Carbon|null $protection_until
  * @property Carbon|null $last_active_at
+ * @property Carbon|null $last_gang_wage_at
  */
 class Character extends Model
 {
@@ -64,6 +65,7 @@ class Character extends Model
      */
     protected $casts = [
         'last_energy_refill_at' => 'datetime',
+        'last_gang_wage_at' => 'datetime',
         'prison_until' => 'datetime',
         'protection_until' => 'datetime',
         'last_active_at' => 'datetime',
@@ -77,14 +79,76 @@ class Character extends Model
         'max_energy' => 'integer',
         'health' => 'integer',
         'max_health' => 'integer',
-        'respect' => 'integer',
+        'vault_tokens' => 'integer',
+        'stars' => 'integer',
+        'unopened_bags' => 'integer',
+        'xxl_cases' => 'integer',
+        'daily_attacks_count' => 'integer',
+        'claimed_level_rewards' => 'array',
         'strength' => 'integer',
         'defense' => 'integer',
         'stamina' => 'integer',
         'intelligence' => 'integer',
         'charisma' => 'integer',
         'discipline' => 'integer',
+        'vip_points' => 'integer',
+        'is_vip' => 'boolean',
+        'vip_expires_at' => 'datetime',
+        'last_vip_reward_at' => 'datetime',
+        'username_changed_at' => 'datetime',
     ];
+
+    /**
+     * Check if character has active VIP status.
+     */
+    public function isVip(): bool
+    {
+        if (! $this->is_vip) {
+            return false;
+        }
+
+        if ($this->vip_expires_at && $this->vip_expires_at->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get number of attacks performed today (resets automatically at midnight).
+     */
+    public function getTodayAttacksCountAttribute(): int
+    {
+        if ($this->daily_attacks_date !== now()->format('Y-m-d')) {
+            return 0;
+        }
+
+        return $this->daily_attacks_count ?? 0;
+    }
+
+    /**
+     * Get remaining daily attacks out of 100 max.
+     */
+    public function getRemainingDailyAttacksAttribute(): int
+    {
+        return max(0, 100 - $this->today_attacks_count);
+    }
+
+    /**
+     * Get received messages.
+     */
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(GameMessage::class, 'recipient_id')->latest();
+    }
+
+    /**
+     * Get sent messages.
+     */
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(GameMessage::class, 'sender_id')->latest();
+    }
 
     /**
      * Get the user that owns the character.
@@ -118,6 +182,16 @@ class Character extends Model
         return $this->hasMany(GuestbookEntry::class, 'profile_character_id')->latest();
     }
 
+    public function friends(): HasMany
+    {
+        return $this->hasMany(Friend::class);
+    }
+
+    public function timelinePosts(): HasMany
+    {
+        return $this->hasMany(TimelinePost::class)->latest();
+    }
+
     /**
      * Get notifications.
      */
@@ -135,25 +209,57 @@ class Character extends Model
     }
 
     /**
+     * Get vault codes owned by this character.
+     */
+    public function vaultCodes(): HasMany
+    {
+        return $this->hasMany(VaultCode::class, 'character_id');
+    }
+
+    /**
+     * Get unredeemed vault codes owned by this character.
+     */
+    public function unredeemedVaultCodes(): HasMany
+    {
+        return $this->hasMany(VaultCode::class, 'character_id')->where('is_redeemed', false);
+    }
+
+    /**
      * Check if currently serving prison time.
      */
     public function isImprisoned(): bool
     {
-        if (! $this->is_in_prison) {
+        $until = $this->prison_until;
+        $hasTime = $until && now()->lt($until);
+
+        if (! $this->is_in_prison && ! $hasTime) {
             return false;
         }
 
-        if ($this->prison_until && now()->gte($this->prison_until)) {
-            $this->update([
-                'is_in_prison' => false,
-                'prison_until' => null,
-                'prison_reason' => null,
-            ]);
-
-            return false;
+        if ($hasTime) {
+            return true;
         }
 
-        return true;
+        $this->update([
+            'is_in_prison' => false,
+            'prison_until' => null,
+            'prison_reason' => null,
+        ]);
+
+        return false;
+    }
+
+    /**
+     * Get remaining prison time in seconds.
+     */
+    public function remainingPrisonSeconds(): int
+    {
+        $until = $this->prison_until;
+        if (! $until) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($until, false));
     }
 
     /**
@@ -161,12 +267,64 @@ class Character extends Model
      */
     public function remainingPrisonMinutes(): int
     {
-        if (! $this->is_in_prison || ! $this->prison_until) {
+        $secs = $this->remainingPrisonSeconds();
+
+        return (int) ceil($secs / 60);
+    }
+
+    /**
+     * Check if currently under voluntary isolation protection.
+     */
+    public function isProtected(): bool
+    {
+        return $this->protection_until && now()->lt($this->protection_until);
+    }
+
+    /**
+     * Get full avatar URL or default fallback.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if (empty($this->avatar)) {
+            return asset('assets/characters/avatar_male_1.jpg');
+        }
+
+        $path = ltrim($this->avatar, '/');
+        if (! str_starts_with($path, 'assets/')) {
+            $path = 'assets/'.$path;
+        }
+
+        return asset($path);
+    }
+
+    /**
+     * Cooldown records for this character.
+     */
+    public function cooldowns(): HasMany
+    {
+        return $this->hasMany(CharacterCooldown::class);
+    }
+
+    /**
+     * Get remaining cooldown seconds for an action (or 0 if not on cooldown).
+     */
+    public function cooldownRemaining(string $action): int
+    {
+        $cd = $this->cooldowns()->where('action', $action)->first();
+        if (! $cd || ! $cd->cooldown_until) {
             return 0;
         }
 
-        $diff = now()->diffInMinutes($this->prison_until, false);
+        $diff = now()->diffInSeconds($cd->cooldown_until, false);
 
-        return max(0, (int) ceil($diff));
+        return max(0, (int) $diff);
+    }
+
+    /**
+     * Check if character is currently on cooldown for an action.
+     */
+    public function isOnCooldown(string $action): bool
+    {
+        return $this->cooldownRemaining($action) > 0;
     }
 }
