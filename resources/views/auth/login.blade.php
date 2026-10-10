@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Spel van Nederland')
+
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6" x-data="{ 
     tab: '{{ $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') ? 'register' : 'login' }}', 

@@ -3,7 +3,67 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TBS Kliniek - Respect verdien je. Frikandelbroodjes moet je bevechten.</title>
+    <title>@yield('title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Browsergame van Nederland')</title>
+    
+    <!-- PRIMARY SEO META TAGS -->
+    <meta name="description" content="Speel gratis TBS Kliniek, hét ultieme Nederlandse misdaad en gevangenis RPG browsergame. Beter dan 112 Simulator of Baddie: vecht op de luchtplaats, kraak de medicijnkluis, bouw gangs op en heers over de kliniek!">
+    <meta name="keywords" content="TBS Kliniek, TBS game, misdaad browser game, 112 simulator alternatief, baddie game, online rpg nederland, gevangenis spel, bendeoorlogen, tekstbased rpg, boeven spel, maffia game, online simulator, gratis online spelen">
+    <meta name="author" content="TBS Kliniek">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    <!-- OPEN GRAPH / FACEBOOK / DISCORD -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="nl_NL">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:site_name" content="TBS Kliniek">
+    <meta property="og:title" content="TBS Kliniek - Respect verdien je. Frikandelbroodjes moet je bevechten.">
+    <meta property="og:description" content="Dé toonaangevende online misdaad- & gevangenissimulator. Vecht in de arena, claim je gang-uurloon en heers over de afdelingen!">
+    <meta property="og:image" content="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- TWITTER / X CARDS -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="TBS Kliniek - Het #1 Nederlandse Gevangenis & Misdaad RPG">
+    <meta name="twitter:description" content="Sluit je aan bij de beruchtste bende van de kliniek. Gratis online speelbaar!">
+    <meta name="twitter:image" content="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}">
+
+    <!-- STRUCTURED DATA (SCHEMA.ORG JSON-LD) -->
+    <script type="application/ld+json">
+    {!! json_encode([
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => 'WebSite',
+                '@id' => url('/') . '#website',
+                'url' => url('/'),
+                'name' => 'TBS Kliniek',
+                'description' => 'Het populairste Nederlandse misdaad browsergame en gevangenis RPG.',
+                'inLanguage' => 'nl-NL',
+            ],
+            [
+                '@type' => 'VideoGame',
+                '@id' => url('/') . '#game',
+                'name' => 'TBS Kliniek',
+                'url' => url('/'),
+                'genre' => ['RPG', 'Tekstbased RPG', 'Misdaad Game', 'Strategie', 'Gevangenis Simulator'],
+                'gamePlatform' => ['Web Browser', 'iOS', 'Android', 'PC'],
+                'applicationCategory' => 'GameApplication',
+                'operatingSystem' => 'Any web browser',
+                'description' => 'TBS Kliniek is een Nederlands online tekstbased RPG waarin je overleeft in een forensische instelling, bendes opricht, kluizen kraakt en vecht voor frikandelbroodjes en respect.',
+                'offers' => [
+                    '@type' => 'Offer',
+                    'price' => '0',
+                    'priceCurrency' => 'EUR',
+                    'availability' => 'https://schema.org/InStock',
+                ],
+            ],
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+    </script>
+
     <link rel="icon" type="image/png" href="{{ asset('assets/logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

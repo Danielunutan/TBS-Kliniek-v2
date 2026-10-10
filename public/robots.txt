@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /instellingen/
+
+Sitemap: https://tbskliniek.nl/sitemap.xml
