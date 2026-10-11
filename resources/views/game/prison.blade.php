@@ -28,7 +28,15 @@
 
     <!-- IF PLAYER IS IN JAIL: BUYOUT & ESCAPE PROMPT -->
     @if($isImprisoned)
-    <div x-data="{ sec: {{ $remainingSeconds }} }" 
+    <div x-data="{ 
+            sec: {{ $remainingSeconds }},
+            formatTime(s) {
+                if (s <= 0) return '00:00';
+                const m = Math.floor(s / 60);
+                const remainder = s % 60;
+                return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
+            }
+         }" 
          x-init="if (sec > 0) { const timer = setInterval(() => { sec--; if (sec <= 0) { clearInterval(timer); window.location.reload(); } }, 1000); }" 
          class="bg-rose-50 border border-rose-200 rounded-xl p-5 text-rose-950 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
@@ -38,7 +46,7 @@
             <div>
                 <h3 class="text-sm font-extrabold text-rose-950">Je zit vast in de Isoleercel</h3>
                 <p class="text-xs text-rose-800 font-medium mt-0.5">
-                    Resterende straftijd: <strong class="text-rose-900 font-mono text-xs" x-text="sec + ' sec vast'">{{ $remainingSeconds }} sec vast</strong> (ongeveer {{ $remainingMinutes }} min). Reden: <span class="text-rose-950 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
+                    Resterende straftijd: <strong class="text-rose-900 font-mono text-xs" x-text="formatTime(sec) + ' (' + sec + 's)'">{{ gmdate('i:s', $remainingSeconds) }} ({{ $remainingSeconds }}s)</strong>. Reden: <span class="text-rose-950 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
                 </p>
             </div>
         </div>
@@ -71,11 +79,58 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
         <!-- Left Column: Inmates Table Card -->
-        <div class="lg:col-span-8 bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+        <div class="lg:col-span-8 bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4"
+             x-data="{
+                inmates: [
+                    @foreach($jailList as $inmate)
+                    {
+                        id: {{ $inmate['id'] }},
+                        name: @js($inmate['name']),
+                        reason: @js($inmate['reason']),
+                        avatar: @js($inmate['avatar']),
+                        chance: {{ (int) $inmate['chance'] }},
+                        profileUrl: @js(route('profile.show', $inmate['name'])),
+                        breakoutUrl: @js(route('prison.breakout', $inmate['id'])),
+                        remainingSeconds: {{ (int) $inmate['remaining_seconds'] }}
+                    },
+                    @endforeach
+                ],
+                formatTime(sec) {
+                    if (sec <= 0) return '00:00';
+                    const m = Math.floor(sec / 60);
+                    const s = sec % 60;
+                    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                },
+                init() {
+                    if (this.inmates.length > 0) {
+                        const timer = setInterval(() => {
+                            let hasActive = false;
+                            this.inmates.forEach(inmate => {
+                                if (inmate.remainingSeconds > 0) {
+                                    inmate.remainingSeconds--;
+                                    if (inmate.remainingSeconds > 0) {
+                                        hasActive = true;
+                                    }
+                                }
+                            });
+                            if (!hasActive) {
+                                clearInterval(timer);
+                            }
+                        }, 1000);
+                    }
+                },
+                get activeInmates() {
+                    return this.inmates.filter(i => i.remainingSeconds > 0);
+                }
+             }">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900 uppercase tracking-wide">
                     <i class="fa-solid fa-lock text-purple-600"></i>
                     <span>Gevangenen in de Isoleercel</span>
+                    <span class="text-xs font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200" 
+                          x-text="activeInmates.length">
+                        {{ count($jailList) }}
+                    </span>
                 </div>
                 <span class="text-xs font-bold text-slate-400">
                     Kost 15 Energie per uitbraak
@@ -93,51 +148,48 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium">
-                        @forelse($jailList as $inmate)
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <!-- Inmate Avatar & Name/Reason -->
-                            <td class="py-3 px-3">
-                                <div class="flex items-center gap-3">
-                                    <img src="{{ $inmate['avatar'] }}" alt="{{ $inmate['name'] }}" 
-                                         class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-xs shrink-0">
-                                    <div>
-                                        <div class="font-extrabold text-slate-900 text-xs leading-tight">
-                                            <a href="{{ route('profile.show', $inmate['name']) }}" class="hover:text-purple-600 transition">
-                                                {{ $inmate['name'] }}
-                                            </a>
-                                        </div>
-                                        <div class="text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-xs">
-                                            {{ $inmate['reason'] }}
+                        <template x-for="inmate in activeInmates" :key="inmate.id">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <!-- Inmate Avatar & Name/Reason -->
+                                <td class="py-3 px-3">
+                                    <div class="flex items-center gap-3">
+                                        <img :src="inmate.avatar" :alt="inmate.name" 
+                                             class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-xs shrink-0">
+                                        <div>
+                                            <div class="font-extrabold text-slate-900 text-xs leading-tight">
+                                                <a :href="inmate.profileUrl" class="hover:text-purple-600 transition" x-text="inmate.name"></a>
+                                            </div>
+                                            <div class="text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-xs" x-text="inmate.reason"></div>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
+                                </td>
 
-                            <!-- Time Countdown -->
-                            <td class="py-3 px-3 text-center font-mono font-bold text-xs text-slate-700">
-                                {{ $inmate['time'] }}
-                            </td>
+                                <!-- Time Countdown -->
+                                <td class="py-3 px-3 text-center font-mono font-bold text-xs text-slate-700">
+                                    <span class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 font-bold" x-text="formatTime(inmate.remainingSeconds)"></span>
+                                </td>
 
-                            <!-- Chance -->
-                            <td class="py-3 px-3 text-center font-bold text-xs text-purple-700">
-                                {{ $inmate['chance'] }}%
-                            </td>
+                                <!-- Chance -->
+                                <td class="py-3 px-3 text-center font-bold text-xs text-purple-700">
+                                    <span x-text="inmate.chance + '%'"></span>
+                                </td>
 
-                            <!-- Action Button: Breek uit -->
-                            <td class="py-3 px-3 text-right">
-                                <form action="{{ route('prison.breakout', $inmate['id']) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" 
-                                            {{ $character->isImprisoned() || $character->energy < 15 ? 'disabled' : '' }}
-                                            class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
-                                        <i class="fa-solid fa-unlock text-[10px]"></i>
-                                        <span>Breek uit</span>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
+                                <!-- Action Button: Breek uit -->
+                                <td class="py-3 px-3 text-right">
+                                    <form :action="inmate.breakoutUrl" method="POST">
+                                        @csrf
+                                        <button type="submit" 
+                                                {{ $character->isImprisoned() || $character->energy < 15 ? 'disabled' : '' }}
+                                                class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-unlock text-[10px]"></i>
+                                            <span>Breek uit</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <tr x-show="activeInmates.length === 0">
                             <td colspan="4" class="py-10 text-center">
                                 <div class="flex flex-col items-center justify-center gap-2 text-slate-400">
                                     <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
@@ -148,7 +200,6 @@
                                 </div>
                             </td>
                         </tr>
-                        @endforelse
                     </tbody>
                 </table>
             </div>

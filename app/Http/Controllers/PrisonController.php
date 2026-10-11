@@ -35,7 +35,19 @@ class PrisonController extends Controller
         $remainingMinutes = $character->remainingPrisonMinutes();
         $remainingSeconds = $character->remainingPrisonSeconds();
 
-        // Real prisoners currently locked up
+        // Auto-release any characters whose prison time has expired
+        Character::where('is_in_prison', true)
+            ->where(function ($q) {
+                $q->whereNull('prison_until')
+                    ->orWhere('prison_until', '<=', now());
+            })
+            ->update([
+                'is_in_prison' => false,
+                'prison_until' => null,
+                'prison_reason' => null,
+            ]);
+
+        // Real prisoners currently locked up with active time
         $realPrisoners = Character::where('is_in_prison', true)
             ->whereNotNull('prison_until')
             ->where('prison_until', '>', now())
@@ -46,7 +58,17 @@ class PrisonController extends Controller
         $jailList = collect();
 
         foreach ($realPrisoners as $rp) {
-            $remSecs = max(0, $rp->prison_until->diffInSeconds(now()));
+            $remSecs = max(0, (int) now()->diffInSeconds($rp->prison_until, false));
+            if ($remSecs <= 0) {
+                $rp->update([
+                    'is_in_prison' => false,
+                    'prison_until' => null,
+                    'prison_reason' => null,
+                ]);
+
+                continue;
+            }
+
             $chance = min(25, max(5, 5 + (int) floor(($character->intelligence + $character->strength) / 30)));
             $jailList->push([
                 'id' => $rp->id,

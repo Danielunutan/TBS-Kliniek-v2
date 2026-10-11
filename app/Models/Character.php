@@ -259,7 +259,20 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($until, false));
+        $secs = (int) now()->diffInSeconds($until, false);
+        if ($secs <= 0) {
+            if ($this->is_in_prison) {
+                $this->update([
+                    'is_in_prison' => false,
+                    'prison_until' => null,
+                    'prison_reason' => null,
+                ]);
+            }
+
+            return 0;
+        }
+
+        return $secs;
     }
 
     /**

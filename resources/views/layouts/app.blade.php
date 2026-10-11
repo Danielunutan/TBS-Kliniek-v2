@@ -843,7 +843,15 @@
         <main class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-28 lg:pb-12">
             <!-- Active Prison / Isoleercel Alert Banner with Live Seconds Ticker & Star Buyout -->
             @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
-            <div x-data="{ sec: {{ $character->remainingPrisonSeconds() }} }" 
+            <div x-data="{ 
+                    sec: {{ $character->remainingPrisonSeconds() }},
+                    formatTime(s) {
+                        if (s <= 0) return '00:00';
+                        const m = Math.floor(s / 60);
+                        const remainder = s % 60;
+                        return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
+                    }
+                 }" 
                  x-init="if (sec > 0) { const timer = setInterval(() => { sec--; if (sec <= 0) { clearInterval(timer); window.location.reload(); } }, 1000); }" 
                  class="mb-6 bg-white border border-rose-200/90 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 w-full sm:w-auto">
@@ -856,12 +864,12 @@
                                 <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
                                 Vast in de isoleercel
                             </span>
-                            <span class="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-mono font-extrabold" x-text="sec + 's'">
-                                {{ $character->remainingPrisonSeconds() }}s
+                            <span class="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-mono font-extrabold" x-text="formatTime(sec)">
+                                {{ gmdate('i:s', $character->remainingPrisonSeconds()) }}
                             </span>
                         </div>
                         <p class="text-xs text-slate-600 mt-1 font-medium">
-                            Resterende straftijd: <strong class="text-slate-900 font-mono" x-text="sec + ' sec vast'">{{ $character->remainingPrisonSeconds() }} sec vast</strong>.
+                            Resterende straftijd: <strong class="text-slate-900 font-mono" x-text="formatTime(sec) + ' (' + sec + 's)'">{{ gmdate('i:s', $character->remainingPrisonSeconds()) }} ({{ $character->remainingPrisonSeconds() }}s)</strong>.
                             Reden: <span class="text-rose-700 font-semibold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
                         </p>
                     </div>
