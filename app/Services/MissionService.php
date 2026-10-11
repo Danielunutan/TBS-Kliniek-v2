@@ -103,6 +103,16 @@ class MissionService
             ];
         }
 
+        if ($character->hasCompletedMission($mission)) {
+            return [
+                'success' => false,
+                'message' => 'Je hebt deze missie al voltooid! Elke missie kan maar 1 keer worden uitgevoerd.',
+                'cash_earned' => 0,
+                'xp_earned' => 0,
+                'respect_earned' => 0,
+            ];
+        }
+
         if ($character->level < $mission->required_level) {
             return [
                 'success' => false,
@@ -177,12 +187,15 @@ class MissionService
             // CRITICAL RULE: Mission rewards are strictly clean money deposited directly to the BANK!
             $this->economyService->addBankReward($character, $cashEarned);
             $this->levelService->addXp($character, $xpEarned);
-            $character->respect += $respectEarned;
-            $character->missions_completed++;
-            $character->save();
+            $character->addRespect($respectEarned);
 
-            $progression->completed_count = ($progression->completed_count ?? 0) + 1;
+            $progression->completed_count = 1;
             $progression->save();
+
+            $character->missions_completed = CharacterMission::where('character_id', $character->id)
+                ->where('completed_count', '>', 0)
+                ->count();
+            $character->save();
 
             $msg = $mission->success_message ?: 'Missie succesvol afgerond! Je tactische beslissing was vlekkeloos.';
             $fullMsg = "🎯 {$msg} Beloning: ".number_format($cashEarned, 0, ',', '.')." KC wit geld direct gestort op je bankrekening 🏦, +{$xpEarned} XP en +{$respectEarned} Respect!";

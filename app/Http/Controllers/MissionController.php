@@ -40,13 +40,17 @@ class MissionController extends Controller
         $missions = $query->get();
         $characterProgress = $character->missions()->pluck('completed_count', 'mission_id');
         $scenarios = MissionService::SCENARIOS;
+        $totalMissionsCount = Mission::count();
+        $completedMissionsCount = $character->missions()->where('completed_count', '>', 0)->count();
 
         return view('game.missions', compact(
             'character',
             'missions',
             'characterProgress',
             'selectedCategory',
-            'scenarios'
+            'scenarios',
+            'totalMissionsCount',
+            'completedMissionsCount'
         ));
     }
 
@@ -58,6 +62,10 @@ class MissionController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->hasCompletedMission($mission)) {
+            return back()->with('error', 'Deze missie is al succesvol voltooid en kan niet opnieuw worden uitgevoerd.');
+        }
 
         $userChoice = $request->input('choice');
 

@@ -204,6 +204,19 @@ class Character extends Model
     }
 
     /**
+     * Check if character has already completed a given mission.
+     */
+    public function hasCompletedMission(Mission|int $mission): bool
+    {
+        $missionId = $mission instanceof Mission ? $mission->id : $mission;
+
+        return $this->missions()
+            ->where('mission_id', $missionId)
+            ->where('completed_count', '>', 0)
+            ->exists();
+    }
+
+    /**
      * Get guestbook entries for this character.
      */
     public function guestbookEntries(): HasMany
