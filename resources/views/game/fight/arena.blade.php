@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6"
      x-data="{
-         countdown: 5,
+         countdown: 2,
          resolved: false,
          won: {{ $arenaBattle['won'] ? 'true' : 'false' }},
          init() {
@@ -41,21 +41,21 @@
 
         <div class="relative z-10 space-y-8">
             
-            <!-- SUSPENSE COUNTDOWN HEADER (Active for first 5 seconds) -->
+            <!-- SUSPENSE COUNTDOWN HEADER (Active for first 2 seconds) -->
             <div x-show="!resolved" class="text-center space-y-3">
-                <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-extrabold px-4 py-1.5 rounded-full border border-purple-400/30 uppercase tracking-widest animate-pulse">
-                    <i class="fa-solid fa-hand-fist"></i> Gevecht Bezig op de Luchtplaats
+                <div class="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 text-xs font-extrabold px-4 py-1.5 rounded-full border border-emerald-400/30 uppercase tracking-widest animate-pulse">
+                    <i class="fa-solid fa-sack-dollar text-emerald-400"></i> Luchtplaats Beroving in Uitvoering
                 </div>
                 <h2 class="text-2xl sm:text-4xl font-black tracking-tight text-white">
-                    KRACHTMETING IN UITVOERING...
+                    PATIËNT OVERMEESTEREN...
                 </h2>
                 <p class="text-slate-400 text-xs sm:text-sm">
-                    De zaalwachten kijken de andere kant op terwijl de klappen vallen!
+                    Je doorzoekt vliegensvlug de zakken van {{ $defender->name }} naar contante KliniekCash!
                 </p>
 
-                <!-- 5-Second Circular/Pill Countdown Badge -->
+                <!-- 2-Second Circular/Pill Countdown Badge -->
                 <div class="pt-2 flex flex-col items-center justify-center gap-2">
-                    <div class="w-16 h-16 rounded-full bg-purple-900/60 border-2 border-purple-400 flex items-center justify-center font-mono font-black text-2xl text-purple-200 shadow-lg shadow-purple-900/50 animate-bounce">
+                    <div class="w-14 h-14 rounded-full bg-emerald-900/60 border-2 border-emerald-400 flex items-center justify-center font-mono font-black text-2xl text-emerald-200 shadow-lg shadow-emerald-900/50 animate-bounce">
                         <span x-text="countdown"></span>s
                     </div>
                     <button @click="skip()" class="text-xs text-slate-400 hover:text-white underline cursor-pointer mt-1">
@@ -64,18 +64,26 @@
                 </div>
             </div>
 
-            <!-- RESULT BANNER (Appears after 5 seconds) -->
+            <!-- RESULT BANNER (Appears after countdown) -->
             <div x-show="resolved" x-cloak class="text-center space-y-3 transition-all duration-500 transform">
                 <template x-if="won">
                     <div class="space-y-2">
                         <div class="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 text-xs font-black px-5 py-2 rounded-full border border-emerald-400/40 uppercase tracking-widest">
-                            <i class="fa-solid fa-trophy text-amber-400"></i> OVERWINNING OP DE LUCHTPLAATS!
+                            <i class="fa-solid fa-sack-dollar text-amber-400"></i> BEROVING GESLAAGD!
                         </div>
                         <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-emerald-400">
-                            JE HEBT GEWONNEN!
+                            @if(($arenaBattle['stolen_cash'] ?? 0) > 0)
+                                GELD GESTEELD!
+                            @else
+                                OVERMEESTERD!
+                            @endif
                         </h2>
                         <p class="text-slate-300 text-xs sm:text-sm max-w-md mx-auto">
-                            Je hebt <strong class="text-white">{{ $defender->name }}</strong> met succes neergehaald en zijn respect afgedwongen.
+                            @if(($arenaBattle['stolen_cash'] ?? 0) > 0)
+                                Je hebt <strong class="text-emerald-400 font-mono">€{{ number_format($arenaBattle['stolen_cash'], 0, ',', '.') }}</strong> contant uit de zakken van <strong class="text-white">{{ $defender->name }}</strong> geroofd!
+                            @else
+                                Je hebt <strong class="text-white">{{ $defender->name }}</strong> overmeesterd, maar die had helaas geen contanten op zak!
+                            @endif
                         </p>
                     </div>
                 </template>
@@ -83,13 +91,13 @@
                 <template x-if="!won">
                     <div class="space-y-2">
                         <div class="inline-flex items-center gap-2 bg-rose-500/20 text-rose-300 text-xs font-black px-5 py-2 rounded-full border border-rose-400/40 uppercase tracking-widest">
-                            <i class="fa-solid fa-skull"></i> AANVAL AFGESLAGEN!
+                            <i class="fa-solid fa-shield-halved text-rose-400"></i> BEROVING AFGESLAGEN!
                         </div>
                         <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-rose-400">
-                            JE BENT VERSLAGEN!
+                            JE BENT VERJAAGD!
                         </h2>
                         <p class="text-slate-300 text-xs sm:text-sm max-w-md mx-auto">
-                            <strong class="text-white">{{ $defender->name }}</strong> was te sterk en sloeg hard van zich af!
+                            <strong class="text-white">{{ $defender->name }}</strong> was alert en sloeg hard van zich af voor je geld kon pakken!
                         </p>
                     </div>
                 </template>
@@ -217,7 +225,7 @@
                         <button type="submit" 
                                 {{ $attacker->energy < 20 || $arenaBattle['left_today'] <= 0 ? 'disabled' : '' }}
                                 class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition text-center shadow-lg shadow-emerald-900/40">
-                            <i class="fa-solid fa-hand-fist mr-1.5"></i> Nog een keer aanvallen (20 energie)
+                            <i class="fa-solid fa-sack-dollar mr-1.5"></i> Opnieuw geld stelen (20 energie)
                         </button>
                     </form>
                 </div>

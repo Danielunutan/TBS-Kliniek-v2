@@ -14,11 +14,11 @@
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20 mb-2">
-                    <i class="fa-solid fa-hand-fist"></i> De Luchtplaats & Slaylist
+                    <i class="fa-solid fa-sack-dollar text-emerald-400"></i> De Luchtplaats • Geld Stelen & Beroven
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Vechten & Aanvallen</h1>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Geld Stelen op de Luchtplaats</h1>
                 <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Daag andere TBS-patiënten uit op de luchtplaats. Steel een deel van hun contante KliniekCash en verdien respect en rank-XP om de hiërarchie te domineren!
+                    Beroof andere patiënten van hun contante KliniekCash door ze te overmeesteren op de luchtplaats. Jat 10% tot 25% van hun contanten, verdien respect en rank-XP om de hiërarchie te domineren!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -56,7 +56,7 @@
                     <!-- Search Input -->
                     <div class="relative">
                         <input type="text" x-model="searchQuery" placeholder="Zoeken..." 
-                               class="w-full bg-white border border-slate-300 focus:border-purple-600 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600">
+                                class="w-full bg-white border border-slate-300 focus:border-purple-600 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600">
                         <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 text-xs"></i>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
             <!-- Dagelijkse Aanvallen Limiet & Cooldown Info -->
             <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
                 <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Dagelijkse Aanvallen</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Dagelijkse Aanvallen & Berovingen</span>
                     <span class="text-xs font-extrabold text-slate-900 font-mono">{{ $attacksToday }} / 100</span>
                 </div>
                 <!-- Progress bar -->
@@ -106,18 +106,36 @@
         <!-- Right Column: Luchtplaats Patiënten Table Card -->
         <div class="lg:col-span-9 bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4"
              x-data="{ 
-                 globalCd: {{ $cooldownSeconds }},
-                 turnstileToken: ''
+                 globalCd: {{ $cooldownSeconds }}
              }"
              x-init="
                 if (globalCd > 0) { const t = setInterval(() => { globalCd--; if(globalCd <= 0) clearInterval(t); }, 1000); }
-                window.onTurnstileSuccess = (token) => { turnstileToken = token; };
              ">
+
+            <script>
+                window.tbsTurnstileToken = '';
+                function onTurnstileSuccess(token) {
+                    window.tbsTurnstileToken = token;
+                    document.querySelectorAll('input.turnstile-token-input').forEach(function(el) {
+                        el.value = token;
+                    });
+                    const banner = document.getElementById('turnstile-container-banner');
+                    if (banner) {
+                        banner.classList.remove('bg-purple-50', 'border-purple-300');
+                        banner.classList.add('bg-emerald-50', 'border-emerald-300');
+                    }
+                    const statusText = document.getElementById('turnstile-status-text');
+                    if (statusText) {
+                        statusText.innerHTML = '<span class="text-xs font-bold text-emerald-700 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600"></i> Beveiliging gecontroleerd! Klik nu direct op \'Steel Geld\'.</span>';
+                    }
+                }
+                window.onTurnstileSuccess = onTurnstileSuccess;
+            </script>
 
             <!-- CLOUDFLARE TURNSTILE SECURITY BANNER IF REQUIRED -->
             @if($isCaptchaRequired)
             <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-            <div class="bg-purple-50 border-2 border-purple-300 rounded-xl p-4 shadow-xs space-y-3">
+            <div id="turnstile-container-banner" class="bg-purple-50 border-2 border-purple-300 rounded-xl p-4 shadow-xs space-y-3 transition-colors">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-shield-halved"></i>
@@ -126,8 +144,8 @@
                         <h4 class="text-xs font-extrabold uppercase tracking-wider text-purple-900">
                             🚨 Cloudflare Turnstile Zaalwacht Controle
                         </h4>
-                        <p class="text-xs text-purple-700 font-medium">
-                            Bevestig via de Turnstile verificatie dat je een echte speler bent om verder te kunnen vechten op de luchtplaats.
+                        <p id="turnstile-status-text" class="text-xs text-purple-700 font-medium">
+                            Bevestig via de Turnstile verificatie dat je een echte speler bent om contanten te kunnen stelen op de luchtplaats.
                         </p>
                     </div>
                 </div>
@@ -140,11 +158,11 @@
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
                 <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900 uppercase tracking-wide">
-                    <i class="fa-solid fa-users text-purple-600"></i>
-                    <span>Patiënten op de Luchtplaats</span>
+                    <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
+                    <span>Patiënten op de Luchtplaats (Contanten Beroven)</span>
                 </div>
                 <div class="text-xs font-bold text-slate-400">
-                    <span class="text-purple-700 font-extrabold">3s cooldown</span> tussen aanvallen | Max 100 per dag
+                    <span class="text-purple-700 font-extrabold">3s cooldown</span> tussen berovingen | Max 100 per dag
                 </div>
             </div>
 
@@ -153,10 +171,10 @@
                     <thead>
                         <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
                             <th class="py-3 px-2 w-10 text-center">#</th>
-                            <th class="py-3 px-3">PATIËNT</th>
+                            <th class="py-3 px-3">PATIËNT & CONTANTEN</th>
                             <th class="py-3 px-3">GANG</th>
                             <th class="py-3 px-3 text-right">RESPECT</th>
-                            <th class="py-3 px-3 text-right">ACTIE</th>
+                            <th class="py-3 px-3 text-right">STEEL GELD</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium">
@@ -184,8 +202,10 @@
                                             </a>
                                             <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
                                         </div>
-                                        <div class="text-[11px] font-bold text-emerald-700">
-                                            €{{ $opp->cash >= 1000000 ? number_format($opp->cash / 1000000, 1) . ' miljoen' : number_format($opp->cash, 0, ',', '.') }}
+                                        <div class="text-[11px] font-extrabold text-emerald-600 flex items-center gap-1">
+                                            <i class="fa-solid fa-money-bill-wave text-[10px]"></i>
+                                            <span>€{{ $opp->cash >= 1000000 ? number_format($opp->cash / 1000000, 1) . 'M' : number_format($opp->cash, 0, ',', '.') }}</span>
+                                            <span class="text-[9px] text-slate-400 font-normal">op zak</span>
                                         </div>
                                     </div>
                                 </div>
@@ -207,24 +227,30 @@
                                 {{ $opp->respect >= 1000000 ? number_format($opp->respect / 1000000, 2) . 'M' : ($opp->respect >= 1000 ? number_format($opp->respect / 1000, 1) . 'K' : $opp->respect) }}
                             </td>
 
-                            <!-- Action: Attack Button -->
+                            <!-- Action: Steel Geld Button -->
                             <td class="py-3.5 px-3 text-right">
                                 <form action="{{ route('fight.attack') }}" method="POST" class="inline-block"
-                                      @submit="if(globalCd > 0) { $event.preventDefault(); return false; }">
+                                      @submit="
+                                        if(globalCd > 0) { $event.preventDefault(); return false; }
+                                        const token = window.tbsTurnstileToken 
+                                            || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
+                                            || (window.turnstile ? window.turnstile.getResponse() : '');
+                                        if (token) {
+                                            $el.querySelector('input.turnstile-token-input').value = token;
+                                        }
+                                      ">
                                     @csrf
                                     <input type="hidden" name="opponent_id" value="{{ $opp->id }}">
-                                    @if($isCaptchaRequired)
-                                    <input type="hidden" name="cf-turnstile-response" :value="turnstileToken">
-                                    @endif
+                                    <input type="hidden" name="cf-turnstile-response" class="turnstile-token-input" value="">
 
                                     <button type="submit"
                                             :disabled="globalCd > 0 || {{ $attacksRemaining <= 0 || $character->energy < 20 ? 'true' : 'false' }}"
-                                            title="Aanvallen (20 energie)"
-                                            class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                                            title="Steel geld van {{ $opp->name }} (20 energie)"
+                                            class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
                                         <template x-if="globalCd <= 0">
-                                            <span class="inline-flex items-center gap-1">
-                                                <i class="fa-solid fa-hand-fist text-xs"></i>
-                                                <span class="hidden sm:inline">Aanvallen</span>
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <i class="fa-solid fa-sack-dollar text-xs"></i>
+                                                <span class="hidden sm:inline">Steel Geld</span>
                                             </span>
                                         </template>
                                         <template x-if="globalCd > 0">

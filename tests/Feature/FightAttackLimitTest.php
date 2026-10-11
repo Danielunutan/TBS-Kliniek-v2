@@ -151,4 +151,47 @@ class FightAttackLimitTest extends TestCase
         $successResponse->assertRedirect(route('fight.arena', $defender));
         $successResponse->assertSessionHas('arena_battle');
     }
+
+    public function test_attack_steals_percentage_of_victim_cash(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $attacker = $user->character;
+        $attacker->update([
+            'energy' => 100,
+            'health' => 100,
+            'strength' => 500, // Guarantee win
+            'defense' => 500,
+            'cash' => 100,
+            'is_in_prison' => false,
+            'daily_attacks_count' => 0,
+            'daily_attacks_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+
+        $defender = Character::where('id', '!=', $attacker->id)->first();
+        $defender->update([
+            'is_in_prison' => false,
+            'protection_until' => null,
+            'strength' => 1,
+            'defense' => 1,
+            'cash' => 1000,
+        ]);
+
+        $this->actingAs($user);
+        app(CooldownService::class)->clearCooldown($attacker, 'fight_attack');
+
+        $response = $this->post(route('fight.attack'), [
+            'opponent_id' => $defender->id,
+        ]);
+
+        $response->assertRedirect(route('fight.arena', $defender));
+        $arenaBattle = session('arena_battle');
+        $this->assertTrue($arenaBattle['won']);
+        $this->assertGreaterThanOrEqual(100, $arenaBattle['stolen_cash']); // between 10% and 25% of 1000 = 100..250
+        $this->assertLessThanOrEqual(250, $arenaBattle['stolen_cash']);
+
+        $defender->refresh();
+        $attacker->refresh();
+        $this->assertEquals(1000 - $arenaBattle['stolen_cash'], $defender->cash);
+        $this->assertEquals(100 + $arenaBattle['stolen_cash'], $attacker->cash);
+    }
 }
