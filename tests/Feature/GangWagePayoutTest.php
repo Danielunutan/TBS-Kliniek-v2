@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Services\GangWageService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class GangWagePayoutTest extends TestCase
@@ -124,5 +126,58 @@ class GangWagePayoutTest extends TestCase
 
         $character->refresh();
         $this->assertEquals(2400, $character->bank); // 2000 + 2 * 200
+    }
+
+    public function test_officer_can_upload_gang_avatar_and_banner(): void
+    {
+        Storage::fake('public');
+
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $character = $user->character;
+
+        $gang = Gang::create([
+            'name' => 'Visual Squad',
+            'tag' => 'VS',
+            'specialty' => 'Kantine Controle',
+            'treasury' => 5000,
+            'leader_character_id' => $character->id,
+        ]);
+
+        $character->gang_id = $gang->id;
+        $character->gang_role = 'leader';
+        $character->save();
+
+        $this->actingAs($user);
+
+        // Upload avatar
+        $fakeAvatar = UploadedFile::fake()->image('emblem.png', 200, 200);
+        $resAvatar = $this->post(route('gangs.settings'), [
+            'action_type' => 'avatar',
+            'avatar' => $fakeAvatar,
+        ]);
+        $resAvatar->assertSessionHas('success');
+
+        $gang->refresh();
+        $this->assertNotNull($gang->avatar);
+        $this->assertStringContainsString('gangs/avatars', $gang->avatar);
+
+        // Upload banner
+        $fakeBanner = UploadedFile::fake()->image('banner.jpg', 800, 300);
+        $resBanner = $this->post(route('gangs.settings'), [
+            'action_type' => 'banner',
+            'banner' => $fakeBanner,
+        ]);
+        $resBanner->assertSessionHas('success');
+
+        $gang->refresh();
+        $this->assertNotNull($gang->banner);
+        $this->assertStringContainsString('gangs/banners', $gang->banner);
+
+        // Verify page loads with banner and avatar rendered
+        $resPage = $this->get(route('gangs.index'));
+        $resPage->assertStatus(200);
+        $resPage->assertSee($gang->avatar_url);
+        $resPage->assertSee($gang->banner_url);
+        $resPage->assertSee('Visual Squad');
     }
 }

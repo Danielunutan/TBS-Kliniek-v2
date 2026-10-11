@@ -214,27 +214,32 @@
             <div x-show="activeGangTab === 'mijn_gang'" class="space-y-6">
                 <!-- Gang Profile Top Banner -->
                 <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white">
-                    <div class="h-40 sm:h-48 w-full overflow-hidden relative bg-purple-50">
-                        <img src="{{ asset('assets/characters/avatar_female_2.jpg') }}" alt="Gang Header" class="w-full h-full object-cover opacity-85">
-                        <button type="button" class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-white/90 hover:bg-white text-rose-600 text-xs font-bold border border-rose-200 shadow-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Rapporteer
+                    <div class="h-40 sm:h-48 w-full overflow-hidden relative bg-purple-950">
+                        <img src="{{ $myGang->banner_url }}" alt="Gang Header" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
+                        <button type="button" class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/50 hover:bg-black/70 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Rapporteer
                         </button>
                     </div>
 
                     <!-- Gang Emblem and Tag Badge -->
                     <div class="px-6 pb-6 pt-3 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                         <div class="flex items-center gap-4 -mt-12 sm:-mt-14">
-                            <div class="w-20 h-20 rounded-2xl bg-purple-600 border-4 border-white p-2 shadow-lg flex items-center justify-center text-3xl text-white shrink-0">
-                                <i class="fa-solid {{ $myGang->emblem ?? 'fa-crown' }}"></i>
+                            <div class="w-20 h-20 rounded-2xl bg-purple-600 border-4 border-white shadow-lg flex items-center justify-center text-3xl text-white shrink-0 overflow-hidden">
+                                @if($myGang->avatar)
+                                    <img src="{{ $myGang->avatar_url }}" alt="{{ $myGang->name }}" class="w-full h-full object-cover">
+                                @else
+                                    <i class="fa-solid {{ $myGang->emblem ?? 'fa-crown' }}"></i>
+                                @endif
                             </div>
-                            <div class="pt-10 sm:pt-0">
-                                <h2 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <div class="pt-8 sm:pt-0">
+                                <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2 drop-shadow-md">
                                     <span>{{ $myGang->name }}</span>
-                                    <span class="text-purple-600 text-xs font-mono font-bold">[{{ $myGang->tag }}]</span>
-                                    <i class="fa-solid fa-circle-check text-purple-600 text-sm"></i>
+                                    <span class="text-purple-200 text-xs font-mono font-bold bg-purple-950/80 px-2 py-0.5 rounded border border-purple-400/40">[{{ $myGang->tag }}]</span>
+                                    <i class="fa-solid fa-circle-check text-purple-400 text-sm"></i>
                                 </h2>
-                                <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-0.5">
-                                    <i class="fa-solid fa-users text-xs text-purple-600"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
+                                <span class="text-xs font-bold text-slate-100 flex items-center gap-1.5 mt-0.5 drop-shadow">
+                                    <i class="fa-solid fa-users text-xs text-purple-300"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
                                 </span>
                             </div>
                         </div>
@@ -1403,6 +1408,12 @@
                             </h3>
                             <span class="text-[11px] text-slate-400 font-medium">Bovenzijde bende profiel</span>
                         </div>
+
+                        @if($myGang->banner)
+                        <div class="h-28 w-full rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
+                            <img src="{{ $myGang->banner_url }}" alt="Huidige Banner" class="w-full h-full object-cover">
+                        </div>
+                        @endif
 
                         <form action="{{ route('gangs.settings') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                             @csrf

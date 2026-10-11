@@ -95,7 +95,7 @@ class GangWageService
      *
      * @return array{hours: int, amount: int, hourly_wage: int, gang_name: string}|null
      */
-    public function payoutPendingWages(Character $character): ?array
+    public function payoutPendingWages(Character $character, bool $sendNotificationMessage = false): ?array
     {
         if (! $character->gang_id) {
             return null;
@@ -127,13 +127,12 @@ class GangWageService
         }
 
         $hours = (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS);
-        $leftoverSeconds = $secondsElapsed % self::WAGE_INTERVAL_SECONDS;
 
         $hourlyWage = $this->calculateHourlyWage($gang);
         $totalPayout = $hours * $hourlyWage;
 
         if ($totalPayout <= 0) {
-            $character->last_gang_wage_at = $now->copy()->subSeconds($leftoverSeconds);
+            $character->last_gang_wage_at = $now;
             $character->save();
 
             return null;
@@ -141,18 +140,20 @@ class GangWageService
 
         // Clean white bank deposit directly to character bank account!
         $character->bank += $totalPayout;
-        $character->last_gang_wage_at = $now->copy()->subSeconds($leftoverSeconds);
+        // Reset last wage payout timestamp directly to now so timer cleanly begins for the next hour
+        $character->last_gang_wage_at = $now;
         $character->save();
 
-        // Optional notification message for the player
-        GameMessage::create([
-            'recipient_id' => $character->id,
-            'sender_id' => $character->id,
-            'sender_name' => 'Bende Salaris Administratie',
-            'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
-            'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' wit salaris ontvangen op je bankrekening (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
-            'type' => 'gang',
-        ]);
+        if ($sendNotificationMessage) {
+            GameMessage::create([
+                'recipient_id' => $character->id,
+                'sender_id' => $character->id,
+                'sender_name' => 'Bende Salaris Administratie',
+                'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
+                'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' wit salaris ontvangen op je bankrekening (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
+                'type' => 'gang',
+            ]);
+        }
 
         return [
             'hours' => $hours,
@@ -171,7 +172,7 @@ class GangWageService
         $totalPaidOut = 0;
 
         foreach ($characters as $character) {
-            $payout = $this->payoutPendingWages($character);
+            $payout = $this->payoutPendingWages($character, true);
             if ($payout) {
                 $totalPaidOut += $payout['amount'];
             }
