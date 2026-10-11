@@ -20,12 +20,12 @@ class VaultController extends Controller
      * Milestone level rewards config.
      */
     public const LEVEL_REWARDS = [
-        2 => ['tokens' => 2, 'cash' => 500, 'stars' => 1, 'name' => 'Kliniek Verkenner', 'desc' => '2 KluisMunten + 500 KC (Bank) + 1 Ster'],
-        3 => ['tokens' => 3, 'cash' => 1000, 'stars' => 1, 'name' => 'Kantine Handelaar', 'desc' => '3 KluisMunten + 1.000 KC (Bank) + 1 Ster'],
-        5 => ['tokens' => 5, 'cash' => 2500, 'stars' => 2, 'name' => 'Kluizenkraker', 'desc' => '5 KluisMunten + 2.500 KC (Bank) + 2 Sterren'],
-        7 => ['tokens' => 8, 'cash' => 5000, 'stars' => 3, 'name' => 'Gerespecteerd Inmate', 'desc' => '8 KluisMunten + 5.000 KC (Bank) + 3 Sterren'],
-        10 => ['tokens' => 15, 'cash' => 12500, 'stars' => 5, 'name' => 'Kliniek Veteraan', 'desc' => '15 KluisMunten + 12.500 KC (Bank) + 5 Sterren'],
-        15 => ['tokens' => 25, 'cash' => 25000, 'stars' => 10, 'name' => 'Het Meesterbrein', 'desc' => '25 KluisMunten + 25.000 KC (Bank) + 10 Sterren'],
+        2 => ['tokens' => 2, 'cash' => 500, 'stars' => 1, 'name' => 'Kliniek Verkenner', 'desc' => '2 KluisMunten + €500 (Bank) + 1 Ster'],
+        3 => ['tokens' => 3, 'cash' => 1000, 'stars' => 1, 'name' => 'Kantine Handelaar', 'desc' => '3 KluisMunten + €1.000 (Bank) + 1 Ster'],
+        5 => ['tokens' => 5, 'cash' => 2500, 'stars' => 2, 'name' => 'Kluizenkraker', 'desc' => '5 KluisMunten + €2.500 (Bank) + 2 Sterren'],
+        7 => ['tokens' => 8, 'cash' => 5000, 'stars' => 3, 'name' => 'Gerespecteerd Inmate', 'desc' => '8 KluisMunten + €5.000 (Bank) + 3 Sterren'],
+        10 => ['tokens' => 15, 'cash' => 12500, 'stars' => 5, 'name' => 'Kliniek Veteraan', 'desc' => '15 KluisMunten + €12.500 (Bank) + 5 Sterren'],
+        15 => ['tokens' => 25, 'cash' => 25000, 'stars' => 10, 'name' => 'Het Meesterbrein', 'desc' => '25 KluisMunten + €25.000 (Bank) + 10 Sterren'],
     ];
 
     public function __construct(
@@ -61,7 +61,7 @@ class VaultController extends Controller
                     'recipient_id' => $character->id,
                     'sender_name' => 'Directie Kluisbeheer',
                     'subject' => "🔐 Jouw Geheime Kluiscode voor Level {$lvl}!",
-                    'content' => "Beste {$character->name},\n\nGefeliciteerd met het bereiken van Level {$lvl}! Beloningen hoef je in de TBS Kliniek niet meer handmatig op te halen; ze worden nu automatisch naar je postvak gestuurd.\n\nHier is jouw exclusieve kluiscode voucher:\n\n👉 **{$uniqueCode}**\n\nInhoud bij inwisselen:\n• ".number_format($rew['cash'], 0, ',', '.')." KC wit geld (direct op je bankrekening)\n• {$rew['stars']}x Exclusieve Sterren ⭐\n• {$rew['tokens']}x KluisMunten 🔑\n\nVoer deze code in bij 'Kluiscode Inwisselen' of bied hem te koop aan op de Marktplaats!",
+                    'content' => "Beste {$character->name},\n\nGefeliciteerd met het bereiken van Level {$lvl}! Beloningen hoef je in de TBS Kliniek niet meer handmatig op te halen; ze worden nu automatisch naar je postvak gestuurd.\n\nHier is jouw exclusieve kluiscode voucher:\n\n👉 **{$uniqueCode}**\n\nInhoud bij inwisselen:\n• €".number_format($rew['cash'], 0, ',', '.')." wit geld (direct op je bankrekening)\n• {$rew['stars']}x Exclusieve Sterren ⭐\n• {$rew['tokens']}x KluisMunten 🔑\n\nVoer deze code in bij 'Kluiscode Inwisselen' of bied hem te koop aan op de Marktplaats!",
                     'type' => 'reward',
                 ]);
 
@@ -148,7 +148,7 @@ class VaultController extends Controller
                 'vault_jammer',
             ]);
 
-            return back()->with('success', "KLIK! De kluisdeur zwaait open! Code {$target} was exact juist. Buit: ".number_format($reward, 0, ',', '.')." KC contant + {$tokenReward} KluisMunten 🔑 +175 XP!");
+            return back()->with('success', "KLIK! De kluisdeur zwaait open! Code {$target} was exact juist. Buit: €".number_format($reward, 0, ',', '.')." contant + {$tokenReward} KluisMunten 🔑 +175 XP!");
         }
 
         $hint = $guess < $target ? 'Te laag! Raad hoger.' : 'Te hoog! Raad lager.';

@@ -23,12 +23,15 @@
         this.insertTag(`[link=${url}]${label}[/link]`, '');
     },
     insertImage() {
-        const url = prompt('Voer de URL van de afbeelding in (bijv. https://i.imgur.com/... of /assets/...):');
+        const url = prompt('Voer de URL van de afbeelding in (bijv. https://i.imgur.com/... of /assets/logo.png):');
         if (!url) return;
         this.insertTag(`[img]${url}[/img]`, '');
     },
     insertEmoji(emoji) {
         this.insertTag(emoji, '');
+    },
+    insertColor(color) {
+        this.insertTag(`[color=${color}]`, '[/color]');
     },
     get renderedPreview() {
         if (!this.content) return '<p class=\"text-slate-400 italic text-xs\">Typ content in de bewerker om hier een live voorbeeld te zien...</p>';
@@ -38,12 +41,16 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
             
-        // Images
-        t = t.replace(/\[img\](https?:\/\/[^\s<\"\']+)\[\/img\]/gi, '<div class=\"my-3\"><img src=\"$1\" class=\"rounded-xl max-w-full max-h-72 object-contain border border-slate-200 shadow-xs\" alt=\"Afbeelding\" /></div>');
+        // Images (support absolute and root-relative)
+        t = t.replace(/\[img\]((?:https?:\/\/|\/)[^\s<\"\']+)\[\/img\]/gi, '<div class=\"my-3\"><img src=\"$1\" class=\"rounded-xl max-w-full max-h-72 object-contain border border-slate-200 shadow-xs\" alt=\"Afbeelding\" /></div>');
         
         // Links
-        t = t.replace(/\[link=(https?:\/\/[^\s<\"\']+)\](.*?)\[\/link\]/gi, '<a href=\"$1\" target=\"_blank\" class=\"text-purple-600 underline font-extrabold hover:text-purple-800\">$2 ↗</a>');
+        t = t.replace(/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<\"\']+)\](.*?)\[\/(?:link|url)\]/gi, '<a href=\"$1\" target=\"_blank\" class=\"text-purple-600 underline font-extrabold hover:text-purple-800\">$2 ↗</a>');
         
+        // Colors & alignment
+        t = t.replace(/\[color=([a-z0-9#]+)\](.*?)\[\/color\]/gi, '<span style=\"color:$1\" class=\"font-bold\">$2</span>');
+        t = t.replace(/\[center\](.*?)\[\/center\]/gi, '<div class=\"text-center my-2\">$1</div>');
+
         // Headers
         t = t.replace(/\[h2\](.*?)\[\/h2\]/gi, '<h2 class=\"text-lg font-black text-slate-900 mt-4 mb-2\">$1</h2>');
         t = t.replace(/\[h3\](.*?)\[\/h3\]/gi, '<h3 class=\"text-base font-black text-slate-900 mt-3 mb-1.5\">$1</h3>');
@@ -53,7 +60,9 @@
         t = t.replace(/\*\*(.*?)\*\*/g, '<strong class=\"font-black text-slate-900\">$1</strong>');
         t = t.replace(/\[i\](.*?)\[\/i\]/gi, '<em class=\"italic text-slate-700\">$1</em>');
         t = t.replace(/\[u\](.*?)\[\/u\]/gi, '<span class=\"underline\">$1</span>');
+        t = t.replace(/\[s\](.*?)\[\/s\]/gi, '<del class=\"line-through text-slate-400\">$1</del>');
         t = t.replace(/\[quote\](.*?)\[\/quote\]/gi, '<blockquote class=\"border-l-4 border-purple-500 bg-purple-50 p-3 my-2 text-xs font-semibold text-purple-900 italic rounded-r-lg\">$1</blockquote>');
+        t = t.replace(/---/g, '<hr class=\"my-3 border-slate-200\" />');
         t = t.replace(/^- (.*?)$/gm, '<li class=\"ml-4 list-disc text-slate-700 font-medium\">$1</li>');
         
         return t.replace(/\n/g, '<br />');
@@ -75,7 +84,7 @@
             </button>
         </div>
         <span class="text-[11px] font-bold text-slate-400">
-            Rich Format Toolbar
+            TBS Rich Editor
         </span>
     </div>
 
@@ -91,6 +100,9 @@
         <button type="button" @click="insertTag('[u]', '[/u]')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-purple-50 hover:text-purple-700 text-xs font-black transition flex items-center justify-center cursor-pointer shadow-2xs" title="Onderstreept">
             <i class="fa-solid fa-underline"></i>
         </button>
+        <button type="button" @click="insertTag('[s]', '[/s]')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-purple-50 hover:text-purple-700 text-xs font-black transition flex items-center justify-center cursor-pointer shadow-2xs" title="Doorgehaald">
+            <i class="fa-solid fa-strikethrough"></i>
+        </button>
 
         <div class="h-5 w-px bg-slate-300 mx-1"></div>
 
@@ -101,6 +113,20 @@
         <button type="button" @click="insertTag('[h3]', '[/h3]')" class="px-2 h-8 rounded-lg bg-white border border-slate-200 hover:bg-purple-50 hover:text-purple-700 text-xs font-black transition flex items-center justify-center cursor-pointer shadow-2xs" title="Tussenkop (H3)">
             H3
         </button>
+        <button type="button" @click="insertTag('[center]', '[/center]')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-purple-50 hover:text-purple-700 text-xs font-black transition flex items-center justify-center cursor-pointer shadow-2xs" title="Centreren">
+            <i class="fa-solid fa-align-center"></i>
+        </button>
+
+        <div class="h-5 w-px bg-slate-300 mx-1"></div>
+
+        <!-- Colors -->
+        <div class="flex items-center gap-1">
+            <button type="button" @click="insertColor('purple')" class="w-5 h-5 rounded-full bg-purple-600 hover:scale-110 transition shadow-2xs cursor-pointer" title="Kleur: Paars"></button>
+            <button type="button" @click="insertColor('red')" class="w-5 h-5 rounded-full bg-rose-600 hover:scale-110 transition shadow-2xs cursor-pointer" title="Kleur: Rood"></button>
+            <button type="button" @click="insertColor('emerald')" class="w-5 h-5 rounded-full bg-emerald-600 hover:scale-110 transition shadow-2xs cursor-pointer" title="Kleur: Groen"></button>
+            <button type="button" @click="insertColor('amber')" class="w-5 h-5 rounded-full bg-amber-500 hover:scale-110 transition shadow-2xs cursor-pointer" title="Kleur: Goud/Oranje"></button>
+            <button type="button" @click="insertColor('blue')" class="w-5 h-5 rounded-full bg-blue-600 hover:scale-110 transition shadow-2xs cursor-pointer" title="Kleur: Blauw"></button>
+        </div>
 
         <div class="h-5 w-px bg-slate-300 mx-1"></div>
 
@@ -123,12 +149,15 @@
         <button type="button" @click="insertTag('- ')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-purple-50 hover:text-purple-700 text-xs font-black transition flex items-center justify-center cursor-pointer shadow-2xs" title="Opsomming">
             <i class="fa-solid fa-list-ul"></i>
         </button>
+        <button type="button" @click="insertTag('\n---\n')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-purple-50 hover:text-purple-700 text-xs font-black transition flex items-center justify-center cursor-pointer shadow-2xs" title="Scheidingslijn">
+            <i class="fa-solid fa-minus"></i>
+        </button>
 
         <div class="h-5 w-px bg-slate-300 mx-1"></div>
 
         <!-- Quick Emojis -->
         <div class="flex items-center gap-1">
-            <template x-for="emo in ['💖', '💗', '👻', '🔥', '📢', '⚠️', '👑', '💉', '⚡']">
+            <template x-for="emo in ['💖', '🔥', '📢', '⚠️', '👑', '💉', '⚡', '🎉', '🚨']">
                 <button type="button" @click="insertEmoji(emo)" class="w-8 h-8 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-sm transition flex items-center justify-center cursor-pointer shadow-2xs" x-text="emo"></button>
             </template>
         </div>

@@ -25,7 +25,7 @@
             <div>
                 <span class="text-xs font-black uppercase tracking-wider text-purple-700">Vast Tarief per uur</span>
                 <p class="text-xs text-slate-500 font-medium">
-                    Bescherming kost <span class="font-extrabold text-slate-900">€50.000 KC</span> óf <span class="font-extrabold text-amber-600">25 Sterren</span> per uur.
+                    Bescherming kost <span class="font-extrabold text-slate-900">€50.000</span> óf <span class="font-extrabold text-amber-600">25 Sterren</span> per uur.
                 </p>
             </div>
         </div>
@@ -156,7 +156,7 @@
             <span>Of kies zelf het aantal uren isolatie</span>
         </div>
         <p class="text-xs text-slate-500">
-            Kies precies hoeveel uur je achter slot en grendel wilt blijven (1 tot 24 uur). Het tarief is €50.000 KC of 25 Sterren per uur.
+            Kies precies hoeveel uur je achter slot en grendel wilt blijven (1 tot 24 uur). Het tarief is €50.000 of 25 Sterren per uur.
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -171,7 +171,7 @@
                 <div class="text-xs space-y-0.5">
                     <div class="font-extrabold text-slate-900 flex items-center gap-1.5">
                         <i class="fa-solid fa-coins text-emerald-600"></i>
-                        <span><span x-text="(hours * 50000).toLocaleString('nl-NL')"></span> KC</span>
+                        <span>€<span x-text="(hours * 50000).toLocaleString('nl-NL')"></span></span>
                     </div>
                     <div class="font-extrabold text-amber-600 flex items-center gap-1.5">
                         <i class="fa-solid fa-star text-amber-500"></i>

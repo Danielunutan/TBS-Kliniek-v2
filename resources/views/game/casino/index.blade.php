@@ -11,7 +11,7 @@
             </div>
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Casino & Kansspelen</h1>
             <p class="text-xs text-slate-500 mt-1">
-                Welkom in de ketelruimte. Geen echt geld, alleen KliniekCash. Daag het huis of medespelers uit!
+                Welkom in de ketelruimte. Speel om contante Euro's (€). Daag het huis of medespelers uit!
             </p>
         </div>
         <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg border border-rose-100">
@@ -20,29 +20,71 @@
     </div>
 
     <!-- Quick Coinflip Game -->
-    <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 text-center max-w-xl mx-auto">
-        <div class="inline-block p-4 bg-amber-50 rounded-2xl mb-3 text-amber-500 text-5xl border border-amber-100">
+    <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 text-center max-w-xl mx-auto" x-data="{
+        bet: 10,
+        flipping: false,
+        resultMsg: '',
+        isWin: false,
+        cash: {{ $character->cash }},
+        async playCoinflip() {
+            if (this.flipping || this.cash < this.bet) return;
+            this.flipping = true;
+            this.resultMsg = '';
+            
+            try {
+                const res = await fetch('{{ route('casino.play') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ game: 'coinflip', bet: this.bet })
+                });
+                const data = await res.json();
+                
+                setTimeout(() => {
+                    this.flipping = false;
+                    this.resultMsg = data.message;
+                    this.isWin = data.win;
+                    if (data.cash !== undefined) this.cash = data.cash;
+                }, 1000);
+            } catch (e) {
+                this.flipping = false;
+                this.resultMsg = 'Er is een fout opgetreden bij het opgooien.';
+                this.isWin = false;
+            }
+        }
+    }">
+        <div class="inline-block p-4 bg-amber-50 rounded-2xl mb-3 text-amber-500 text-5xl border border-amber-100 transition-transform duration-700" :class="flipping ? 'animate-spin' : ''">
             <i class="fa-solid fa-coins"></i>
         </div>
         <h2 class="text-lg font-bold text-slate-900 mb-1">Kop of Munt tegen Mo</h2>
-        <p class="text-xs text-slate-500 mb-5">Zet in en laat de munt draaien. Verdubbel je inzet of verlies alles!</p>
+        <p class="text-xs text-slate-500 mb-4">Zet in en laat de munt draaien. Verdubbel je inzet of verlies alles!</p>
 
-        <form action="{{ route('casino.play') }}" method="POST" class="max-w-xs mx-auto space-y-3">
+        <!-- Live result banner -->
+        <div x-show="resultMsg" x-transition class="mb-4 p-3 rounded-xl text-xs font-bold" :class="isWin ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'" x-text="resultMsg"></div>
+
+        <form @submit.prevent="playCoinflip()" class="max-w-xs mx-auto space-y-3">
             @csrf
             <input type="hidden" name="game" value="coinflip">
             <div>
-                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1 text-left">Inzet (KliniekCash)</label>
+                <div class="flex justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    <span>Inzet (Euro)</span>
+                    <span>Beschikbaar: €<span x-text="cash.toLocaleString('nl-NL')"></span></span>
+                </div>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fa-solid fa-coins text-amber-500 text-xs"></i>
+                        <span class="text-slate-400 font-extrabold text-xs">€</span>
                     </div>
-                    <input type="number" name="bet" min="10" max="{{ max(10, $character->cash) }}" value="10" 
+                    <input type="number" name="bet" min="10" x-model.number="bet" :max="Math.max(10, cash)" 
                            class="block w-full pl-8 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-xs font-bold bg-slate-50 text-slate-900" 
                            placeholder="Inzet...">
                 </div>
             </div>
-            <button type="submit" @if($character->cash < 10) disabled @endif class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-play text-[10px]"></i> Speel (50% Win Kans)
+            <button type="submit" :disabled="cash < 10 || flipping" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-play text-[10px]" :class="flipping ? 'animate-spin' : ''"></i>
+                <span x-text="flipping ? 'Munt draait...' : 'Gooi Munt Op (50% Win Kans)'"></span>
             </button>
         </form>
     </div>

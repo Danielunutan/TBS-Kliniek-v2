@@ -38,7 +38,7 @@ class NumberGameController extends Controller
 
         $bet = (int) $validated['bet'];
         if ($character->cash < $bet) {
-            return back()->with('error', "Je hebt onvoldoende contant geld. Inzet: {$bet} KC.");
+            return back()->with('error', 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
 
         $drawn = rand(1, 20);
@@ -52,7 +52,7 @@ class NumberGameController extends Controller
             $character->respect += 5;
             $character->save();
 
-            return back()->with('success', "🎯 JACKPOT! Getrokken nummer: {$drawn}! Je raadde het precies! Je wint {$payout} KC (15x)! +50 XP, +5 Respect!");
+            return back()->with('success', "🎯 JACKPOT! Getrokken nummer: {$drawn}! Je raadde het precies! Je wint €".number_format($payout, 0, ',', '.').' (15x)! +50 XP, +5 Respect!');
         }
 
         if (abs($guess - $drawn) <= 2) {
@@ -61,12 +61,12 @@ class NumberGameController extends Controller
             $this->economy->addCash($character, $payout);
             $this->level->addXp($character, 20);
 
-            return back()->with('success', "Bijna raak! Getrokken: {$drawn} (jij: {$guess}). Je wint {$payout} KC (2x bonus voor bijna!) +20 XP.");
+            return back()->with('success', "Bijna raak! Getrokken: {$drawn} (jij: {$guess}). Je wint €".number_format($payout, 0, ',', '.').' (2x bonus voor bijna!) +20 XP.');
         }
 
         $character->cash -= $bet;
         $character->save();
 
-        return back()->with('error', "Mis! Getrokken nummer: {$drawn}. Jij koos: {$guess}. Je verliest {$bet} KC.");
+        return back()->with('error', "Mis! Getrokken nummer: {$drawn}. Jij koos: {$guess}. Je verliest €".number_format($bet, 0, ',', '.').'.');
     }
 }

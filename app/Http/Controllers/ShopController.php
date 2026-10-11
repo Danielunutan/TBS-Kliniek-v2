@@ -125,7 +125,9 @@ class ShopController extends Controller
         $totalCost = $item->price_kc * $quantity;
 
         if ($character->cash < $totalCost) {
-            return back()->with('error', "Niet genoeg contant geld! {$quantity}x {$item->name} kost {$totalCost} KC.");
+            $formatted = number_format($totalCost, 0, ',', '.');
+
+            return back()->with('error', "Niet genoeg contant geld! {$quantity}x {$item->name} kost €{$formatted}.");
         }
 
         if (! $this->economyService->deductCash($character, $totalCost)) {
@@ -139,9 +141,11 @@ class ShopController extends Controller
         $inv->quantity = ($inv->quantity ?? 0) + $quantity;
         $inv->save();
 
+        $formatted = number_format($totalCost, 0, ',', '.');
+
         return back()
             ->with('shop_tab', 'items')
-            ->with('success', "Je hebt {$quantity}x {$item->name} gekocht voor {$totalCost} KC!");
+            ->with('success', "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}!");
     }
 
     /**

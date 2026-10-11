@@ -52,13 +52,13 @@
             <!-- Inzet -->
             <div>
                 <div class="flex justify-between items-center mb-2">
-                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Inzet (KC)</label>
-                    <span class="text-xs font-bold text-slate-400">Beschikbaar: <span class="text-slate-700 font-extrabold">{{ number_format($character->cash, 0, ',', '.') }} KC</span></span>
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Inzet (Euro)</label>
+                    <span class="text-xs font-bold text-slate-400">Beschikbaar: <span class="text-slate-700 font-extrabold">€{{ number_format($character->cash, 0, ',', '.') }}</span></span>
                 </div>
                 <div class="relative">
                     <input type="number" name="bet" min="50" max="50000" value="100" required
                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-indigo-500">
-                    <div class="absolute right-3 top-3 text-xs font-bold text-slate-400">KC</div>
+                    <div class="absolute right-3 top-3 text-xs font-bold text-slate-400">€</div>
                 </div>
                 <div class="flex gap-2 mt-2">
                     <button type="button" onclick="document.querySelector('input[name=bet]').value = 100" class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700">100</button>

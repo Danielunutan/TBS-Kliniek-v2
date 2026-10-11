@@ -91,8 +91,8 @@
                         <i class="fa-solid fa-coins"></i>
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">KliniekCash</p>
-                        <p class="text-lg font-bold text-slate-900 leading-none">{{ number_format($character->cash, 0, ',', '.') }}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Contant Geld</p>
+                        <p class="text-lg font-bold text-slate-900 leading-none">€ {{ number_format($character->cash, 0, ',', '.') }}</p>
                     </div>
                 </div>
                 <div class="p-4 flex items-center gap-3">
@@ -101,7 +101,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Banktegoed</p>
-                        <p class="text-lg font-bold text-slate-900 leading-none">{{ number_format($character->bank, 0, ',', '.') }}</p>
+                        <p class="text-lg font-bold text-slate-900 leading-none">€ {{ number_format($character->bank, 0, ',', '.') }}</p>
                     </div>
                 </div>
                 @if($allowanceDetails['eligible'] ?? false)
@@ -225,7 +225,7 @@
                         </div>
                         <div class="flex-1">
                             <p class="text-sm font-bold text-slate-700">Je hebt de missie 'Koffie en Kaas' voltooid!</p>
-                            <p class="text-xs font-bold text-emerald-600 mt-1">+ 450 KC &nbsp; + 120 XP</p>
+                            <p class="text-xs font-bold text-emerald-600 mt-1">+ €450 &nbsp; + 120 XP</p>
                         </div>
                         <div class="text-xs text-slate-400 font-semibold whitespace-nowrap">2 uur geleden</div>
                     </div>
@@ -249,47 +249,47 @@
     <div class="xl:col-span-4 space-y-6">
 
         <!-- Laatste Nieuws Widget (TBS Kliniek Nieuws) -->
-        <div class="rounded-2xl border border-purple-900/40 shadow-sm overflow-hidden bg-gradient-to-b from-[#1a0b2e] to-[#0f051d] text-white">
-            <div class="px-5 py-3.5 border-b border-purple-900/50 flex items-center justify-between">
-                <div class="flex items-center gap-2 text-xs font-black tracking-wide text-white">
-                    <span class="w-5 h-5 rounded-full bg-purple-600/40 flex items-center justify-center text-[10px] text-purple-200 border border-purple-500/30">
-                        <i class="fa-solid fa-info"></i>
+        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900">
+                    <span class="w-5 h-5 rounded-md bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] border border-purple-200">
+                        <i class="fa-solid fa-newspaper"></i>
                     </span>
                     <span>Laatste nieuws</span>
                 </div>
-                <span class="text-[10px] font-bold text-purple-300/80 bg-purple-900/50 px-2 py-0.5 rounded-full border border-purple-800/40">
+                <span class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
                     Live Updates
                 </span>
             </div>
 
-            <div class="divide-y divide-purple-900/30">
+            <div class="divide-y divide-slate-100">
                 @forelse($latestNews as $newsItem)
-                <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-white/5 transition block group">
+                <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-slate-50/80 transition block group">
                     <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <span class="text-sm shrink-0">{{ $newsItem->emoji }}</span>
-                            <span class="text-xs font-extrabold text-white group-hover:text-purple-300 transition truncate">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="text-sm shrink-0 group-hover:scale-110 transition-transform">{{ $newsItem->emoji }}</span>
+                            <span class="text-xs font-bold text-slate-800 group-hover:text-purple-700 transition truncate">
                                 {{ $newsItem->title }}
                             </span>
                         </div>
                         @if($newsItem->is_pinned)
-                            <span class="text-[9px] font-black uppercase text-amber-400 bg-amber-500/20 px-1.5 py-0.2 rounded border border-amber-500/30 shrink-0">Pin</span>
+                            <span class="text-[9px] font-black uppercase text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md border border-amber-300 shrink-0">Pin</span>
                         @endif
                     </div>
-                    <div class="text-[10px] font-semibold text-purple-300/60 mt-1 pl-6">
+                    <div class="text-[10px] font-semibold text-slate-400 mt-1 pl-6">
                         {{ $newsItem->created_at->diffForHumans() }}
                     </div>
                 </a>
                 @empty
-                <div class="p-5 text-center text-xs text-purple-300/60 font-medium">
+                <div class="p-5 text-center text-xs text-slate-400 font-medium">
                     Nog geen nieuwsberichten geplaatst.
                 </div>
                 @endforelse
             </div>
 
-            <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-black/30 hover:bg-black/50 text-purple-200 hover:text-white font-extrabold text-xs transition border-t border-purple-900/40 flex items-center justify-center gap-1.5">
+            <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-slate-50/70 hover:bg-slate-100 text-purple-700 hover:text-purple-900 font-extrabold text-xs transition border-t border-slate-100 flex items-center justify-center gap-1.5">
                 <span>Meer nieuws</span>
-                <i class="fa-solid fa-angles-right text-[10px] text-purple-400"></i>
+                <i class="fa-solid fa-angles-right text-[10px] text-purple-500"></i>
             </a>
         </div>
         

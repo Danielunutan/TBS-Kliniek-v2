@@ -79,7 +79,7 @@ class TrainingService
         if ($character->cash < $cashCost) {
             return [
                 'success' => false,
-                'message' => "Je hebt {$cashCost} KC nodig om {$stat} te trainen, maar je hebt slechts {$character->cash} KC contant.",
+                'message' => "Je hebt €{$cashCost} nodig om {$stat} te trainen, maar je hebt slechts €{$character->cash} contant.",
                 'stat_gain' => 0,
                 'new_value' => $currentValue,
             ];

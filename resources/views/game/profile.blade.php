@@ -410,6 +410,7 @@
             <div class="py-4 flex items-start gap-4">
                 <img src="{{ $entry->author->avatar_url }}" alt="{{ $entry->author->name }}" class="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200">
                 <div class="flex-1">
+                    <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1.5">
                             <a href="{{ route('profile.show', $entry->author->name) }}" class="text-xs font-bold text-slate-900 hover:text-indigo-600 transition">
                                 {{ $entry->author->name }}

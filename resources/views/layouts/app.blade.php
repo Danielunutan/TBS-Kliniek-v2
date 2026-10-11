@@ -90,8 +90,10 @@
     @php
         $character = $character ?? (Auth::check() ? Auth::user()->character : null);
         $activeCategory = '';
-        if (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'gangs.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'gangs*', 'bendes*')) {
+        if (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'gangs.*', 'news.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'gangs*', 'bendes*', 'nieuws*')) {
             $activeCategory = 'algemeen';
+        } elseif (request()->routeIs('missions.*', 'training.*') || request()->is('missies*', 'training*')) {
+            $activeCategory = 'voortgang';
         } elseif (request()->routeIs('hustle.*', 'smuggle.*', 'extort.*', 'lockers.*') || request()->is('hosselen*', 'smokkelen*', 'afpersen*', 'kluisjes*')) {
             $activeCategory = 'misdaad';
         } elseif (request()->routeIs('vault.*', 'packages.*', 'pickpocket.*') || request()->is('kluis-kraak*', 'pakketjes*', 'zakkenrollen*', 'vault*')) {
@@ -100,10 +102,8 @@
             $activeCategory = 'geweld';
         } elseif (request()->routeIs('bank.*', 'travel.*', 'casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*', 'shop.*', 'marketplace.*') || request()->is('bank*', 'verplaatsen*', 'reizen*', 'casino*', 'gokhal*', 'winkel*', 'shop*', 'marktplaats*')) {
             $activeCategory = 'economie';
-        } elseif (request()->routeIs('missions.*', 'training.*', 'profile.*') || request()->is('missies*', 'training*', 'profiel*', 'speler*')) {
-            $activeCategory = 'voortgang';
-        } elseif (request()->routeIs('faq.*', 'help.*') || request()->is('faq*', 'kennisbank*', 'help*')) {
-            $activeCategory = 'helptool';
+        } elseif (request()->routeIs('profile.*', 'vip.*', 'settings.*', 'admin.*', 'faq.*', 'help.*') || request()->is('profiel*', 'speler*', 'vip*', 'instellingen*', 'admin*', 'faq*', 'kennisbank*', 'help*')) {
+            $activeCategory = 'account';
         }
     @endphp
 
@@ -214,7 +214,29 @@
                 </div>
             </div>
 
-            <!-- 2. ILLEGALE ACTIES -->
+            <!-- 2. VOORTGANG (Apart Kopje) -->
+            <div class="space-y-1">
+                <button @click="toggleCategory('voortgang')" 
+                        type="button" 
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-indigo-500"></i> Voortgang
+                    </span>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="openCategory === 'voortgang'" x-collapse class="space-y-0.5 pl-1">
+                    <a href="{{ route('missions.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <i class="fa-solid fa-list-check w-4 text-center text-indigo-500"></i>
+                        <span>Missies & Opdrachten</span>
+                    </a>
+                    <a href="{{ route('training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('training.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <i class="fa-solid fa-dumbbell w-4 text-center text-purple-500"></i>
+                        <span>Krachttraining</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. ILLEGALE ACTIES -->
             <div class="space-y-1">
                 <button @click="toggleCategory('misdaad')" 
                         type="button" 
@@ -342,84 +364,52 @@
                 </div>
             </div>
 
-            <!-- 5. VOORTGANG & STATUS -->
-            <div class="space-y-1">
-                <button @click="toggleCategory('voortgang')" 
-                        type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 transition">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-slate-400"></i> Voortgang & Profiel
-                    </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''"></i>
-                </button>
-                <div x-show="openCategory === 'voortgang'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('missions.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-list-check w-4 text-center text-indigo-500"></i>
-                        <span>Missies & Opdrachten</span>
-                    </a>
-                    <a href="{{ route('training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('training.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-dumbbell w-4 text-center text-purple-500"></i>
-                        <span>Krachttraining</span>
-                    </a>
-                    <a href="{{ route('profile.me') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-id-badge w-4 text-center text-blue-500"></i>
-                        <span>Mijn Profiel</span>
-                    </a>
-                    <a href="{{ route('vip.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('vip.*') ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200' : 'text-amber-700 hover:text-amber-900 hover:bg-amber-50/60' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-crown w-4 text-center text-amber-500"></i>
-                            <span class="font-extrabold">VIP Shop & Punten</span>
-                        </div>
-                        <span class="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded-sm shadow-2xs">€7,50</span>
-                    </a>
-                    <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-gear w-4 text-center text-slate-500"></i>
-                        <span>Account Instellingen</span>
-                    </a>
-                    @if(Auth::check() && Auth::user()->isStaff())
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('admin.*') ? 'bg-purple-100 text-purple-900 font-bold border border-purple-300' : 'text-purple-700 hover:text-purple-950 hover:bg-purple-50' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600"></i>
-                            <span class="font-black">Medewerkers Admin</span>
-                        </div>
-                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
-                    </a>
+            <!-- HELPTOOL, PROFIEL & ACCOUNT (Direct boven Veilig Uitloggen) -->
+            <div class="space-y-0.5 pt-3 mt-2 border-t border-slate-100">
+                <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <i class="fa-solid fa-headset w-4 text-center text-indigo-500"></i>
+                    <span>Helptool & FAQ</span>
+                </a>
+                <a href="{{ route('help.tickets.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-ticket w-4 text-center text-purple-500"></i>
+                        <span>Support Tickets</span>
+                    </div>
+                    @php
+                        $userOpenTicketsDesk = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
+                    @endphp
+                    @if($userOpenTicketsDesk > 0)
+                    <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Reactie!</span>
                     @endif
-                </div>
-            </div>
-
-            <!-- 6. HELPTOOL -->
-            <div class="space-y-1">
-                <button @click="toggleCategory('helptool')" 
-                        type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-headset text-indigo-500"></i> Helptool
-                    </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'helptool' ? 'rotate-180' : ''"></i>
-                </button>
-                <div x-show="openCategory === 'helptool'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-circle-question w-4 text-center text-sky-500"></i>
-                        <span>FAQ & Kennisbank</span>
-                    </a>
-                    <a href="{{ route('help.tickets.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-ticket w-4 text-center text-purple-500"></i>
-                            <span>Support Tickets</span>
-                        </div>
-                        @php
-                            $userOpenTicketsDesk = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
-                        @endphp
-                        @if($userOpenTicketsDesk > 0)
-                        <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Reactie!</span>
-                        @endif
-                    </a>
-                    <a href="{{ route('help.tickets.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-plus w-4 text-center text-emerald-500"></i>
-                        <span>Nieuw Ticket Aanmaken</span>
-                    </a>
-                </div>
+                </a>
+                <a href="{{ route('help.tickets.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <i class="fa-solid fa-plus w-4 text-center text-emerald-500"></i>
+                    <span>Nieuw Ticket Aanmaken</span>
+                </a>
+                <a href="{{ route('profile.me') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <i class="fa-solid fa-id-badge w-4 text-center text-blue-500"></i>
+                    <span>Mijn Profiel</span>
+                </a>
+                <a href="{{ route('vip.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('vip.*') ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200' : 'text-amber-700 hover:text-amber-900 hover:bg-amber-50/60' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-crown w-4 text-center text-amber-500"></i>
+                        <span class="font-extrabold">VIP Shop & Punten</span>
+                    </div>
+                    <span class="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded-sm shadow-2xs">€7,50</span>
+                </a>
+                <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <i class="fa-solid fa-gear w-4 text-center text-slate-500"></i>
+                    <span>Account Instellingen</span>
+                </a>
+                @if(Auth::check() && Auth::user()->isStaff())
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('admin.*') ? 'bg-purple-100 text-purple-900 font-bold border border-purple-300' : 'text-purple-700 hover:text-purple-950 hover:bg-purple-50' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600"></i>
+                        <span class="font-black">Medewerkers Admin</span>
+                    </div>
+                    <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
+                </a>
+                @endif
             </div>
 
         </nav>
@@ -511,13 +501,13 @@
         </div>
 
         <!-- Respect & Daily Respect Mobile Badge -->
-        <div class="flex items-center gap-1.5 bg-slate-900 text-white border border-purple-500/50 px-2.5 py-1 rounded-lg shrink-0 shadow-2xs" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
+        <div class="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 shadow-2xs" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
             <span class="w-4 h-4 rounded bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-[9px] shadow-2xs">
                 <i class="fa-solid fa-fire-flame-curved text-[9px]"></i>
             </span>
             <div class="flex flex-col text-[10px] leading-tight">
-                <span class="font-bold text-white">Respect: <span class="text-fuchsia-300">{{ $character->formatted_respect }}</span></span>
-                <span class="text-[9px] text-purple-200">Vandaag: <strong class="text-white">{{ $character->formatted_today_respect }}</strong></span>
+                <span class="font-bold text-slate-800">Respect: <span class="text-purple-700 font-black">{{ $character->formatted_respect }}</span></span>
+                <span class="text-[9px] text-slate-400">Vandaag: <strong class="text-purple-600">{{ $character->formatted_today_respect }}</strong></span>
             </div>
         </div>
 
@@ -600,7 +590,18 @@
                     </a>
                 </div>
 
-                <!-- 2. Illegale Acties -->
+                <!-- 2. Voortgang -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 block px-2">Voortgang</span>
+                    <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-list-check w-4 text-indigo-500"></i> Missies & Opdrachten
+                    </a>
+                    <a href="{{ route('training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-dumbbell w-4 text-purple-500"></i> Krachttraining
+                    </a>
+                </div>
+
+                <!-- 3. Illegale Acties -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Illegale Acties</span>
                     <a href="{{ route('hustle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
@@ -617,7 +618,7 @@
                     </a>
                 </div>
 
-                <!-- 3. Bonus & Kluizen -->
+                <!-- 4. Bonus & Kluizen -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 block px-2">Bonus & Kluizen</span>
                     <a href="{{ route('vault.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
@@ -631,7 +632,7 @@
                     </a>
                 </div>
 
-                <!-- 4. Geweld & Strijd -->
+                <!-- 5. Geweld & Strijd -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Geweld & Strijd</span>
                     <a href="{{ route('fight.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
@@ -654,7 +655,7 @@
                     </a>
                 </div>
 
-                <!-- 5. Economie & Gokken -->
+                <!-- 6. Economie & Gokken -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Economie & Gokken</span>
                     <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
@@ -674,34 +675,10 @@
                     </a>
                 </div>
 
-                <!-- 6. Voortgang & Status -->
-                <div class="space-y-1">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Voortgang & Status</span>
-                    <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-list-check w-4 text-indigo-500"></i> Missies & Opdrachten
-                    </a>
-                    <a href="{{ route('training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-dumbbell w-4 text-purple-500"></i> Krachttraining
-                    </a>
-                    <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-id-badge w-4 text-blue-500"></i> Mijn Profiel
-                    </a>
-                    <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-gear w-4 text-slate-500"></i> Account Instellingen
-                    </a>
-                    @if(Auth::check() && Auth::user()->isStaff())
-                    <a href="{{ route('admin.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg bg-purple-50 text-purple-900 font-bold border border-purple-200">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-shield-halved w-4 text-purple-600"></i> Medewerkers Admin</span>
-                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
-                    </a>
-                    @endif
-                </div>
-
-                <!-- 7. Helptool -->
-                <div class="space-y-1">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 block px-2">Helptool</span>
+                <!-- Helptool, Profiel & Account (Direct boven Veilig Uitloggen) -->
+                <div class="space-y-1 pt-2 border-t border-slate-100">
                     <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-circle-question w-4 text-sky-500"></i> FAQ & Kennisbank
+                        <i class="fa-solid fa-headset w-4 text-indigo-500"></i> Helptool & FAQ
                     </a>
                     <a href="{{ route('help.tickets.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <span class="flex items-center gap-2.5"><i class="fa-solid fa-ticket w-4 text-purple-500"></i> Support Tickets</span>
@@ -715,6 +692,22 @@
                     <a href="{{ route('help.tickets.create') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <i class="fa-solid fa-plus w-4 text-emerald-500"></i> Nieuw Ticket Aanmaken
                     </a>
+                    <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-id-badge w-4 text-blue-500"></i> Mijn Profiel
+                    </a>
+                    <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-crown w-4 text-amber-500"></i> VIP Shop & Punten</span>
+                        <span class="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded-sm shadow-2xs">€7,50</span>
+                    </a>
+                    <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-gear w-4 text-slate-500"></i> Account Instellingen
+                    </a>
+                    @if(Auth::check() && Auth::user()->isStaff())
+                    <a href="{{ route('admin.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg bg-purple-50 text-purple-900 font-bold border border-purple-200">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-shield-halved w-4 text-purple-600"></i> Medewerkers Admin</span>
+                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
+                    </a>
+                    @endif
                 </div>
 
                 <div class="pt-2 border-t border-slate-100">
@@ -797,17 +790,17 @@
                     </div>
 
                     <!-- Respect & Daily Respect Badge -->
-                    <div class="flex items-center gap-2.5 bg-gradient-to-r from-purple-950 via-slate-900 to-purple-950 border border-purple-500/50 text-white px-3 py-1.5 rounded-xl shadow-xs shrink-0 select-none" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
-                        <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-xs font-black shadow-inner shadow-purple-300/40">
-                            <i class="fa-solid fa-fire-flame-curved text-xs animate-pulse"></i>
+                    <div class="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0 select-none hover:border-purple-200 transition" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
+                        <span class="w-6 h-6 rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                            <i class="fa-solid fa-fire-flame-curved text-[11px]"></i>
                         </span>
-                        <div class="flex flex-col justify-center leading-tight">
-                            <span class="text-xs font-black tracking-tight text-white flex items-center gap-1">
-                                <span>Respect:</span>
-                                <span class="text-fuchsia-300 font-extrabold">{{ $character->formatted_respect }}</span>
-                            </span>
-                            <span class="text-[10px] font-semibold text-purple-200/90">
-                                Vandaag: <strong class="text-white font-bold">{{ $character->formatted_today_respect }}</strong>
+                        <div>
+                            <div class="flex items-center gap-1 leading-none">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 block">Respect</span>
+                                <span class="font-extrabold text-purple-700 text-xs">{{ $character->formatted_respect }}</span>
+                            </div>
+                            <span class="text-[9px] font-semibold text-slate-400 block leading-none mt-0.5">
+                                Vandaag: <strong class="text-purple-600 font-bold">{{ $character->formatted_today_respect }}</strong>
                             </span>
                         </div>
                     </div>

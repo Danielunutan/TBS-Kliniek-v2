@@ -55,7 +55,7 @@ class InformantController extends Controller
         $info = $config[$validated['informant_id']];
 
         if ($character->cash < $info['cost']) {
-            return back()->with('error', "Je hebt {$info['cost']} KC nodig om de {$info['label']} in te huren.");
+            return back()->with('error', 'Je hebt €'.number_format($info['cost'], 0, ',', '.')." nodig om de {$info['label']} in te huren.");
         }
 
         if (! $this->energy->consume($character, $info['energy'])) {
@@ -75,10 +75,10 @@ class InformantController extends Controller
             $character->respect += 1;
             $character->save();
 
-            return back()->with('success', "Je {$info['label']} levert goudwaardige intel op! Je int {$reward} KC aan buit en winst. +{$info['xp']} XP, +1 Intelligentie.");
+            return back()->with('success', "Je {$info['label']} levert goudwaardige intel op! Je int €".number_format($reward, 0, ',', '.')." aan buit en winst. +{$info['xp']} XP, +1 Intelligentie.");
         }
 
         // Informant was caught or turned double agent
-        return back()->with('error', "Je {$info['label']} is betrapt en gevlucht. Je verloor je investering van {$info['cost']} KC.");
+        return back()->with('error', "Je {$info['label']} is betrapt en gevlucht. Je verloor je investering van €".number_format($info['cost'], 0, ',', '.').'.');
     }
 }

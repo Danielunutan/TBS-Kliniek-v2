@@ -77,7 +77,7 @@
             </div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Contant Geld</span>
-                <span class="text-sm font-black text-emerald-700">{{ number_format($character->cash, 0, ',', '.') }} KC</span>
+                <span class="text-sm font-black text-emerald-700">€{{ number_format($character->cash, 0, ',', '.') }}</span>
             </div>
         </div>
     </div>
@@ -180,7 +180,7 @@
                                     @if($item->currency === 'stars')
                                         {{ $item->price }} Sterren
                                     @else
-                                        {{ number_format($item->price, 0, ',', '.') }} KC
+                                        €{{ number_format($item->price, 0, ',', '.') }}
                                     @endif
                                 </span>
                             </td>
@@ -284,7 +284,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
                             <input type="radio" name="currency" value="cash" checked class="text-purple-600 focus:ring-purple-500">
-                            <span class="text-xs font-bold text-slate-800">Contant Geld (KC)</span>
+                            <span class="text-xs font-bold text-slate-800">Contant Geld (€)</span>
                         </label>
                         <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
                             <input type="radio" name="currency" value="stars" class="text-purple-600 focus:ring-purple-500">

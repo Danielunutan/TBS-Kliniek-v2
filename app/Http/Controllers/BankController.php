@@ -48,7 +48,9 @@ class BankController extends Controller
         $character = $user->character;
 
         if ($this->economyService->deposit($character, $validated['amount'])) {
-            return back()->with('success', "Je hebt {$validated['amount']} KC veilig op je bankrekening gestort!");
+            $formatted = number_format($validated['amount'], 0, ',', '.');
+
+            return back()->with('success', "Je hebt €{$formatted} veilig op je bankrekening gestort!");
         }
 
         return back()->with('error', 'Niet genoeg contant geld om dit bedrag te storten.');
@@ -68,7 +70,9 @@ class BankController extends Controller
         $character = $user->character;
 
         if ($this->economyService->withdraw($character, $validated['amount'])) {
-            return back()->with('success', "Je hebt {$validated['amount']} KC contant opgenomen. Pas op voor zakkenrollers!");
+            $formatted = number_format($validated['amount'], 0, ',', '.');
+
+            return back()->with('success', "Je hebt €{$formatted} contant opgenomen. Pas op voor zakkenrollers!");
         }
 
         return back()->with('error', 'Niet genoeg banktegoed om dit bedrag op te nemen.');

@@ -34,25 +34,59 @@ class CasinoController extends Controller
         $bet = $validated['bet'];
 
         if ($character->cash < $bet) {
-            return back()->with('error', 'Je hebt niet genoeg KliniekCash om in te zetten!');
+            $msg = 'Je hebt niet genoeg contant geld (€) om in te zetten!';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
         }
 
         if ($character->is_jailed) {
-            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet gokken!');
+            $msg = 'Vanuit de isoleercel kun je niet gokken!';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 403)
+                : redirect()->route('prison')->with('error', $msg);
         }
 
-        $this->economy->subtractCash($character, $bet, 'Inzet casino');
+        $this->economy->deductCash($character, $bet);
 
         // Simple Coin Flip (50/50)
         $win = rand(0, 1) === 1;
 
         if ($win) {
             $winnings = $bet * 2;
-            $this->economy->addCash($character, $winnings, 'Winst casino');
+            $this->economy->addCash($character, $winnings);
+            $character->refresh();
 
-            return back()->with('success', "Gefeliciteerd! Je won het potje en pakte {$winnings} KC!");
+            $msg = 'Gefeliciteerd! De munt landde goed en je won €'.number_format($winnings, 0, ',', '.').'!';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'win' => true,
+                    'message' => $msg,
+                    'winnings' => $winnings,
+                    'cash' => $character->cash,
+                ]);
+            }
+
+            return back()->with('success', $msg);
         } else {
-            return back()->with('error', 'Helaas, je hebt verloren. Mo pakt je inzet.');
+            $character->refresh();
+            $msg = 'Helaas, de munt viel verkeerd. Mo pakt je inzet van €'.number_format($bet, 0, ',', '.').'.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'win' => false,
+                    'message' => $msg,
+                    'winnings' => 0,
+                    'cash' => $character->cash,
+                ]);
+            }
+
+            return back()->with('error', $msg);
         }
     }
 }

@@ -40,7 +40,7 @@ class HighLowController extends Controller
 
         $bet = (int) $validated['bet'];
         if ($character->cash < $bet) {
-            return back()->with('error', "Je hebt onvoldoende contant geld. Inzet: {$bet} KC.");
+            return back()->with('error', 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
 
         $currentCard = (int) session('highlow_card', rand(1, 13));
@@ -63,12 +63,12 @@ class HighLowController extends Controller
             $this->economy->addCash($character, $bet);
             $this->level->addXp($character, 15);
 
-            return back()->with('success', "Gewonnen! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]}. +{$bet} KC! +15 XP.");
+            return back()->with('success', "Gewonnen! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]}. +€".number_format($bet, 0, ',', '.').'! +15 XP.');
         }
 
         $character->cash -= $bet;
         $character->save();
 
-        return back()->with('error', "Verloren! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]}. -{$bet} KC.");
+        return back()->with('error', "Verloren! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]}. -€".number_format($bet, 0, ',', '.').'.');
     }
 }

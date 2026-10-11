@@ -10,11 +10,13 @@ class LevelService
 {
     /**
      * Calculate XP required to reach the next level.
-     * Formula: ceil(100 * level ^ 1.65)
+     * Formula: ceil(350 * level ^ 1.75)
+     * Provides a solid, balanced progression curve where early levels require multiple completed activities
+     * and mid/late levels require dedicated effort without rapid consecutive level leaps.
      */
     public function getXpRequiredForNextLevel(int $currentLevel): int
     {
-        return (int) ceil(100 * ($currentLevel ** 1.65));
+        return (int) ceil(350 * ($currentLevel ** 1.75));
     }
 
     /**
@@ -61,14 +63,14 @@ class LevelService
                 'type' => 'level_up',
                 'icon' => 'fa-trophy',
                 'title' => "Gefeliciteerd! Level {$character->level} bereikt!",
-                'message' => "Je bent gestegen naar Level {$character->level}! Je energie en gezondheid zijn volledig hersteld en je hebt {$totalCashReward} KC bonus + KluisMunten ontvangen.",
+                'message' => "Je bent gestegen naar Level {$character->level}! Je energie en gezondheid zijn volledig hersteld en je hebt €".number_format($totalCashReward, 0, ',', '.').' bonus + KluisMunten ontvangen.',
             ]);
 
             GameMessage::create([
                 'recipient_id' => $character->id,
                 'sender_name' => 'Directie TBS Kliniek',
                 'subject' => "Dossier Update: Level {$character->level} Bereikt!",
-                'content' => "Beste {$character->name},\n\nVolgens de behandelcommissie heb je een nieuwe mijlpaal bereikt en ben je gepromoveerd naar Level {$character->level}!\n\nJe hebt €".number_format($totalCashReward)." KC aan zakgeld ontvangen en extra KluisMunten voor het kraken van kliniekkluizen en koffers.\n\nGa zo door,\nDirecteur van TBS Kliniek",
+                'content' => "Beste {$character->name},\n\nVolgens de behandelcommissie heb je een nieuwe mijlpaal bereikt en ben je gepromoveerd naar Level {$character->level}!\n\nJe hebt €".number_format($totalCashReward, 0, ',', '.')." aan zakgeld ontvangen en extra KluisMunten voor het kraken van kliniekkluizen en koffers.\n\nGa zo door,\nDirecteur van TBS Kliniek",
                 'type' => 'level',
             ]);
         }

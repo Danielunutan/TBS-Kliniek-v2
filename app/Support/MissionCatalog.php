@@ -18,7 +18,7 @@ class MissionCatalog
                 'story_step' => 1,
                 'title' => 'Koffie en Kaas',
                 'slug' => 'koffie-en-kaas',
-                'description' => 'Verdien KC in de kantine door warme snacks te distribueren.',
+                'description' => 'Verdien Euro\'s in de kantine door warme snacks te distribueren.',
                 'giver_name' => 'Henkie de Frikandelkoning',
                 'location_name' => 'De Kantine',
                 'required_level' => 1,

@@ -22,7 +22,7 @@
         <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
             <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
         </div>
-        <span class="text-xs font-bold text-slate-500">Cash: <span class="text-slate-800 font-extrabold">{{ number_format($character->cash, 0, ',', '.') }} KC</span></span>
+        <span class="text-xs font-bold text-slate-500">Cash: <span class="text-slate-800 font-extrabold">€{{ number_format($character->cash, 0, ',', '.') }}</span></span>
     </div>
 
     <!-- Informants Cards -->
@@ -43,11 +43,11 @@
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 text-xs">
                         <span class="text-slate-400 font-semibold w-16">Kosten:</span>
-                        <span class="font-bold text-slate-700">{{ number_format($inf['cost'], 0, ',', '.') }} KC</span>
+                        <span class="font-bold text-slate-700">€{{ number_format($inf['cost'], 0, ',', '.') }}</span>
                     </div>
                     <div class="flex items-center gap-2 text-xs">
                         <span class="text-slate-400 font-semibold w-16">Buit:</span>
-                        <span class="font-extrabold text-emerald-700">{{ number_format($inf['reward_min'], 0, ',', '.') }}–{{ number_format($inf['reward_max'], 0, ',', '.') }} KC</span>
+                        <span class="font-extrabold text-emerald-700">€{{ number_format($inf['reward_min'], 0, ',', '.') }}–€{{ number_format($inf['reward_max'], 0, ',', '.') }}</span>
                     </div>
                     <div class="flex items-center gap-2 text-xs">
                         <span class="text-slate-400 font-semibold w-16">Energie:</span>

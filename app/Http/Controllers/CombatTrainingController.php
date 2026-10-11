@@ -55,7 +55,7 @@ class CombatTrainingController extends Controller
         $session = $config[$validated['session_id']];
 
         if ($character->cash < $session['cost']) {
-            return back()->with('error', "Je hebt {$session['cost']} KC nodig voor deze training. Je hebt onvoldoende contant geld.");
+            return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
         }
 
         if (! $this->energy->consume($character, $session['energy'])) {
@@ -68,6 +68,6 @@ class CombatTrainingController extends Controller
 
         $this->level->addXp($character, $session['xp']);
 
-        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$session['gain']}! -{$session['cost']} KC, +{$session['xp']} XP.");
+        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$session['gain']}! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
     }
 }

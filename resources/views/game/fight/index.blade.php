@@ -12,7 +12,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Geld Stelen op de Luchtplaats</h1>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Beroof andere patiënten van hun contante KliniekCash door ze te overmeesteren op de luchtplaats. Jat 10% tot 25% van hun contanten, verdien respect en rank-XP om de hiërarchie te domineren!
+                    Beroof andere patiënten van hun contante euro's door ze te overmeesteren op de luchtplaats. Jat hun contanten, verdien respect en rank-XP om de hiërarchie te domineren!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">

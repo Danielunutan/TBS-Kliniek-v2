@@ -101,7 +101,7 @@ class FightController extends Controller
             return back()->with('error', "⏳ Even ademhalen! Wacht nog {$remaining}s voor je volgende beroving.");
         }
 
-        // 2. 100 total attacks/thefts per day limit
+        // 2. Daily attacks/thefts limit: 100 normal, 1000 for VIP
         $today = now()->format('Y-m-d');
         if ($attacker->daily_attacks_date !== $today) {
             $attacker->daily_attacks_count = 0;
@@ -109,8 +109,9 @@ class FightController extends Controller
             $attacker->save();
         }
 
-        if ($attacker->daily_attacks_count >= 100) {
-            return back()->with('error', '⛔ Je hebt je dagelijkse limiet van 100 aanvallen bereikt! Morgen kun je weer geld stelen.');
+        $dailyLimit = $attacker->isVip() ? 1000 : 100;
+        if ($attacker->daily_attacks_count >= $dailyLimit) {
+            return back()->with('error', "⛔ Je hebt je dagelijkse limiet van {$dailyLimit} aanvallen bereikt! Morgen kun je weer geld stelen.");
         }
 
         // 3. Cloudflare Turnstile Captcha check if required
@@ -123,6 +124,7 @@ class FightController extends Controller
 
             // Captcha passed
             session()->forget('fight_captcha_required');
+            session(['fight_consecutive_attacks' => 0]);
         }
 
         if ($attacker->health < 15) {
@@ -168,6 +170,15 @@ class FightController extends Controller
         $attacker->save();
 
         cache()->put($targetKey, $targetAttacks + 1, now()->endOfDay());
+
+        // Anti-bot trigger: require Cloudflare Turnstile verification after every 3 attacks
+        $consecutive = (int) session('fight_consecutive_attacks', 0) + 1;
+        if ($consecutive >= 3) {
+            session(['fight_captcha_required' => true]);
+            session(['fight_consecutive_attacks' => 0]);
+        } else {
+            session(['fight_consecutive_attacks' => $consecutive]);
+        }
 
         // Combat calculation using strength & defense to determine if theft succeeds
         $attackerPower = $attacker->strength + rand(5, 15);
@@ -227,7 +238,7 @@ class FightController extends Controller
                 'damage' => 0,
                 'xp' => 25,
                 'respect' => 2,
-                'left_today' => 100 - $attacker->daily_attacks_count,
+                'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
             ]);
 
             return redirect()->route('fight.arena', $defender);
@@ -260,7 +271,7 @@ class FightController extends Controller
                 'damage' => $damage,
                 'xp' => 0,
                 'respect' => 0,
-                'left_today' => 100 - $attacker->daily_attacks_count,
+                'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
             ]);
 
             return redirect()->route('fight.arena', $defender);

@@ -28,7 +28,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Kliniek Shop</h1>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren of koop handige benodigdheden in de kantine met contant KliniekCash!
+                    Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren of koop handige benodigdheden in de kantine met contante Euro's!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -75,7 +75,7 @@
                         <i class="fa-solid fa-utensils text-emerald-600 w-4 text-center"></i>
                         <span>Kantine Items</span>
                     </span>
-                    <span class="text-[10px] text-slate-400">KC Contant</span>
+                    <span class="text-[10px] text-slate-400">Euro (€)</span>
                 </button>
 
                 <!-- Mijn Inventaris Tab -->
@@ -332,7 +332,7 @@
                 </p>
             </div>
 
-            <!-- TAB: REGULIERE ITEMS (CASH / KC) -->
+            <!-- TAB: REGULIERE ITEMS (CONTANT GELD / EURO) -->
             <div x-show="shopTab === 'items'" class="space-y-6">
                 <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -440,7 +440,7 @@
                             <div class="pt-2 border-t border-slate-200/70 space-y-2">
                                 <div class="flex items-center justify-between text-xs">
                                     <span class="text-slate-500 font-medium">Prijs:</span>
-                                    <span class="font-extrabold text-emerald-700 font-mono">€{{ number_format($item->price_kc, 0, ',', '.') }} KC</span>
+                                    <span class="font-extrabold text-emerald-700 font-mono">€{{ number_format($item->price_kc, 0, ',', '.') }}</span>
                                 </div>
                                 <form action="{{ route('shop.buy', $item->id) }}" method="POST">
                                     @csrf

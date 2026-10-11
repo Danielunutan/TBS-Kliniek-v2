@@ -110,6 +110,14 @@ class EconomyService
     }
 
     /**
+     * Alias for deductCash to ensure compatibility.
+     */
+    public function subtractCash(Character $character, int $amount, ?string $reason = null): bool
+    {
+        return $this->deductCash($character, $amount);
+    }
+
+    /**
      * Add clean money (wit geld) directly into the character's bank account.
      */
     public function addBankReward(Character $character, int $amount): void

@@ -103,7 +103,7 @@ class MarketplaceController extends Controller
                 return back()->with('error', 'Je hebt niet genoeg contant geld om aan te bieden.');
             }
             $character->cash -= $amount;
-            $title = number_format($amount, 0, ',', '.').' KC Contant Geld';
+            $title = '€'.number_format($amount, 0, ',', '.').' Contant Geld';
         } elseif ($itemType === 'vault_codes') {
             $vaultCode = VaultCode::where('id', $request->input('vault_code_id'))
                 ->where('character_id', $character->id)
@@ -164,7 +164,7 @@ class MarketplaceController extends Controller
         // Payment check & execution
         if ($listing->currency === 'cash') {
             if ($buyer->cash < $listing->price) {
-                return back()->with('error', 'Je hebt minimaal '.number_format($listing->price, 0, ',', '.').' KC contant nodig voor deze aankoop.');
+                return back()->with('error', 'Je hebt minimaal €'.number_format($listing->price, 0, ',', '.').' contant nodig voor deze aankoop.');
             }
             $buyer->cash -= $listing->price;
 
@@ -219,7 +219,7 @@ class MarketplaceController extends Controller
         $listing->save();
 
         if ($seller) {
-            $currName = $listing->currency === 'stars' ? "{$listing->price} Sterren ⭐" : number_format($listing->price, 0, ',', '.').' KC (wit op de bank)';
+            $currName = $listing->currency === 'stars' ? "{$listing->price} Sterren ⭐" : '€'.number_format($listing->price, 0, ',', '.').' (wit op de bank)';
             GameMessage::create([
                 'recipient_id' => $seller->id,
                 'sender_id' => $buyer->id,

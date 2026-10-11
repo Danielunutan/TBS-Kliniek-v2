@@ -16,12 +16,12 @@ class MissionService
             'npc_name' => 'Henkie de Frikandelkoning',
             'npc_avatar' => 'assets/characters/avatar_male_1.jpg',
             'npc_role' => 'Kantine Baas Paviljoen 3',
-            'dilemma' => 'Hé maat, luister goed. In de warmhoudkast liggen 3 frikandelbroodjes van 150 KC per stuk. Bewaker Peter wil 100 KC smeergeld om de deur niet op slot te draaien. Wat is het exacte totaalbedrag dat we nodig hebben?',
+            'dilemma' => 'Hé maat, luister goed. In de warmhoudkast liggen 3 frikandelbroodjes van €150 per stuk. Bewaker Peter wil €100 smeergeld om de deur niet op slot te draaien. Wat is het exacte totaalbedrag dat we nodig hebben?',
             'correct_choice' => 'B',
             'choices' => [
-                'A' => '450 KC (alleen de broodjes)',
-                'B' => '550 KC (3x 150 KC + 100 KC smeergeld)',
-                'C' => '650 KC (inclusief extra fooi)',
+                'A' => '€450 (alleen de broodjes)',
+                'B' => '€550 (3x €150 + €100 smeergeld)',
+                'C' => '€650 (inclusief extra fooi)',
             ],
             'feedback_wrong' => 'Henkie schudt zijn hoofd: "Je rekenwerk klopt voor geen meter! Peter weigerde en smeet de warmhoudkast dicht."',
         ],
@@ -198,7 +198,7 @@ class MissionService
             $character->save();
 
             $msg = $mission->success_message ?: 'Missie succesvol afgerond! Je tactische beslissing was vlekkeloos.';
-            $fullMsg = "🎯 {$msg} Beloning: ".number_format($cashEarned, 0, ',', '.')." KC wit geld direct gestort op je bankrekening 🏦, +{$xpEarned} XP en +{$respectEarned} Respect!";
+            $fullMsg = "🎯 {$msg} Beloning: €".number_format($cashEarned, 0, ',', '.')." wit geld direct gestort op je bankrekening 🏦, +{$xpEarned} XP en +{$respectEarned} Respect!";
 
             return [
                 'success' => true,

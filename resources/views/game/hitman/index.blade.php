@@ -22,7 +22,7 @@
         <div class="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
             <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
         </div>
-        <span class="text-xs font-bold text-slate-500">Cash: <span class="text-slate-800 font-extrabold">{{ number_format($character->cash, 0, ',', '.') }} KC</span></span>
+        <span class="text-xs font-bold text-slate-500">Cash: <span class="text-slate-800 font-extrabold">€{{ number_format($character->cash, 0, ',', '.') }}</span></span>
     </div>
 
     <!-- Contract Order Form -->
@@ -135,7 +135,7 @@
                         <div class="mt-4 pt-3 border-t border-slate-100 text-xs space-y-1">
                             <div class="flex justify-between">
                                 <span class="text-slate-400 font-semibold">Prijs:</span>
-                                <span class="font-extrabold text-slate-800">{{ number_format($contract['cost'], 0, ',', '.') }} KC</span>
+                                <span class="font-extrabold text-slate-800">€{{ number_format($contract['cost'], 0, ',', '.') }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-slate-400 font-semibold">Energie:</span>

@@ -77,7 +77,7 @@ class HitmanController extends Controller
         }
 
         if ($character->cash < $contract['cost']) {
-            return back()->with('error', "Dit contract kost {$contract['cost']} KC. Je hebt onvoldoende contant geld.");
+            return back()->with('error', 'Dit contract kost €'.number_format($contract['cost'], 0, ',', '.').'. Je hebt onvoldoende contant geld.');
         }
 
         if (! $this->energy->consume($character, $contract['energy'])) {

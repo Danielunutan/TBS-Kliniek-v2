@@ -38,7 +38,7 @@ class RpsController extends Controller
 
         $bet = (int) $validated['bet'];
         if ($character->cash < $bet) {
-            return back()->with('error', "Je hebt onvoldoende contant geld. Je inzet: {$bet} KC.");
+            return back()->with('error', 'Je hebt onvoldoende contant geld. Je inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
 
         $options = ['steen', 'papier', 'schaar'];
@@ -56,12 +56,12 @@ class RpsController extends Controller
             $this->economy->addCash($character, $bet);
             $this->level->addXp($character, 15);
 
-            return back()->with('success', "Gewonnen! Jij: {$labels[$playerChoice]} vs Huis: {$labels[$houseChoice]}. Je wint {$bet} KC! +15 XP.");
+            return back()->with('success', "Gewonnen! Jij: {$labels[$playerChoice]} vs Huis: {$labels[$houseChoice]}. Je wint €".number_format($bet, 0, ',', '.').'! +15 XP.');
         }
 
         $character->cash -= $bet;
         $character->save();
 
-        return back()->with('error', "Verloren! Jij: {$labels[$playerChoice]} vs Huis: {$labels[$houseChoice]}. Je verliest {$bet} KC.");
+        return back()->with('error', "Verloren! Jij: {$labels[$playerChoice]} vs Huis: {$labels[$houseChoice]}. Je verliest €".number_format($bet, 0, ',', '.').'.');
     }
 }

@@ -44,7 +44,7 @@
                     PATIËNT OVERMEESTEREN...
                 </h2>
                 <p class="text-slate-500 text-xs sm:text-sm">
-                    Je doorzoekt vliegensvlug de zakken van {{ $defender->name }} naar contante KliniekCash!
+                    Je doorzoekt vliegensvlug de zakken van {{ $defender->name }} naar contant geld!
                 </p>
 
                 <!-- 2-Second Circular/Pill Countdown Badge -->

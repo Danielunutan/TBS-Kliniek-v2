@@ -21,7 +21,7 @@
                 <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Contant op Zak (Onveilig)</span>
                 <i class="fa-solid fa-coins text-amber-500 text-xl"></i>
             </div>
-            <p class="text-3xl font-bold text-slate-900">{{ number_format($character->cash, 0, ',', '.') }} <span class="text-lg text-amber-600">KC</span></p>
+            <p class="text-3xl font-bold text-slate-900 font-mono">€{{ number_format($character->cash, 0, ',', '.') }}</p>
             <p class="text-[11px] text-rose-600 mt-2 font-medium">
                 <i class="fa-solid fa-triangle-exclamation mr-1"></i> Kan ieder moment worden gestolen door zakkenrollers.
             </p>
@@ -33,7 +33,7 @@
                 <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Veilig Banktegoed (Beschermd)</span>
                 <i class="fa-solid fa-vault text-emerald-500 text-xl"></i>
             </div>
-            <p class="text-3xl font-bold text-slate-900">{{ number_format($character->bank, 0, ',', '.') }} <span class="text-lg text-emerald-600">KC</span></p>
+            <p class="text-3xl font-bold text-slate-900 font-mono">€{{ number_format($character->bank, 0, ',', '.') }}</p>
             <p class="text-[11px] text-emerald-700 mt-2 font-medium">
                 <i class="fa-solid fa-shield-check mr-1"></i> 100% gegarandeerd veilig tegen diefstallen.
             </p>

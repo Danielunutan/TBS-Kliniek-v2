@@ -14,7 +14,7 @@
             </p>
         </div>
         <div class="bg-purple-50 text-purple-700 px-4 py-2 rounded-xl text-xs font-bold border border-purple-200 shadow-xs">
-            <span>Contant Geld: <strong class="text-slate-900">{{ number_format($character->cash, 0, ',', '.') }} KC</strong></span>
+            <span>Contant Geld: <strong class="text-slate-900">€{{ number_format($character->cash, 0, ',', '.') }}</strong></span>
         </div>
     </div>
 
@@ -47,7 +47,7 @@
                 <!-- Costs -->
                 <div class="flex items-center justify-between text-xs font-semibold pt-1">
                     <span class="text-yellow-700"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i>10 Energie</span>
-                    <span class="text-amber-700"><i class="fa-solid fa-coins text-amber-500 mr-1"></i>{{ $cashCost }} KC</span>
+                    <span class="text-amber-700 font-mono"><i class="fa-solid fa-coins text-amber-500 mr-1"></i>€{{ $cashCost }}</span>
                     <span class="text-purple-700 font-bold">+1 {{ $info['name'] }}</span>
                 </div>
             </div>

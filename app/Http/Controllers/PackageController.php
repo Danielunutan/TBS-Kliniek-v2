@@ -115,7 +115,7 @@ class PackageController extends Controller
             $tokenTxt = $tokensFound > 0 ? " +{$tokensFound} KluisMunten 🔑 gevonden!" : '';
             $bagTxt = $bagDropped ? ' 🧳 BONUS: Je hebt ook een ongeopende Smokkeltas buitgemaakt!' : '';
 
-            return back()->with('success', 'Buit binnen! Je vind contant '.number_format($cash, 0, ',', '.')." KC! +{$pkg['xp']} XP{$tokenTxt}{$bagTxt}");
+            return back()->with('success', 'Buit binnen! Je vind contant €'.number_format($cash, 0, ',', '.')."! +{$pkg['xp']} XP{$tokenTxt}{$bagTxt}");
         }
 
         $character->save();
@@ -187,7 +187,7 @@ class PackageController extends Controller
         $character->respect += 2;
         $character->save();
 
-        $logParts = [number_format($bankReward, 0, ',', '.').' KC cash'];
+        $logParts = ['€'.number_format($bankReward, 0, ',', '.').' contant'];
         if ($starsFound > 0) {
             $logParts[] = "{$starsFound} sterren";
         }
