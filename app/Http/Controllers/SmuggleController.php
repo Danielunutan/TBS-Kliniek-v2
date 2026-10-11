@@ -264,6 +264,8 @@ class SmuggleController extends Controller
             'rarity' => 'common',
             'icon' => 'fa-smoking',
             'price_kc' => 25,
+            'energy_restore' => 20,
+            'health_restore' => 10,
             'is_buyable' => false,
         ]);
 
@@ -274,6 +276,8 @@ class SmuggleController extends Controller
             'rarity' => 'uncommon',
             'icon' => 'fa-pills',
             'price_kc' => 80,
+            'energy_restore' => 35,
+            'health_restore' => 15,
             'is_buyable' => false,
         ]);
 
@@ -284,6 +288,8 @@ class SmuggleController extends Controller
             'rarity' => 'rare',
             'icon' => 'fa-mobile-screen',
             'price_kc' => 500,
+            'energy_restore' => 50,
+            'health_restore' => 25,
             'is_buyable' => false,
         ]);
     }

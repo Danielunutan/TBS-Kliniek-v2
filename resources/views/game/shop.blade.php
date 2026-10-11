@@ -622,6 +622,15 @@
                                                 @elseif(str_contains(strtolower($inv->item->name), 'drank') || str_contains(strtolower($inv->item->name), 'koffie') || str_contains(strtolower($inv->item->name), 'shake'))
                                                     <i class="fa-solid fa-mug-hot text-xs"></i>
                                                     <span>Opdrinken</span>
+                                                @elseif(str_contains(strtolower($inv->item->name), 'sigaret'))
+                                                    <i class="fa-solid fa-smoking text-xs"></i>
+                                                    <span>Oproken</span>
+                                                @elseif(str_contains(strtolower($inv->item->name), 'ritalin') || str_contains(strtolower($inv->item->name), 'oxazepam'))
+                                                    <i class="fa-solid fa-pills text-xs"></i>
+                                                    <span>Innemen</span>
+                                                @elseif(str_contains(strtolower($inv->item->name), 'telefoon'))
+                                                    <i class="fa-solid fa-mobile-screen text-xs"></i>
+                                                    <span>Bellen / Gebruiken</span>
                                                 @else
                                                     <i class="fa-solid fa-hand-holding-medical text-xs"></i>
                                                     <span>Gebruiken</span>

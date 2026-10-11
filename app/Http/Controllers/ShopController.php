@@ -152,6 +152,7 @@ class ShopController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+        $this->energyService->refresh($character);
 
         if ($characterItem->character_id !== $character->id || $characterItem->quantity < 1) {
             return back()->with('shop_tab', 'inventaris')->with('error', 'Voorwerp niet beschikbaar in je inventaris.');
@@ -166,23 +167,60 @@ class ShopController extends Controller
             return back()->with('shop_tab', 'inventaris')->with('info', "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!");
         }
 
+        // Voorkom verspilling van herstel-items als zowel energie als gezondheid al 100% vol zijn
+        $isPureRecovery = ! in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus', 'bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje'], true);
+        if ($isPureRecovery) {
+            $hasEnergyBenefit = ($item->energy_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'sigaretten', 'ritalin', 'telefoon'], true))
+                && $character->energy < $character->max_energy;
+            $hasHealthBenefit = ($item->health_restore > 0 || in_array($item->slug, ['ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true))
+                && $character->health < $character->max_health;
+            $isRecoveryItem = ($item->energy_restore > 0 || $item->health_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true));
+
+            if ($isRecoveryItem && ! $hasEnergyBenefit && ! $hasHealthBenefit) {
+                return back()
+                    ->with('shop_tab', 'inventaris')
+                    ->with('info', "Zowel je Energie ({$character->energy}/{$character->max_energy}) als Gezondheid ({$character->health}/{$character->max_health}) zijn al maximaal! Bewaar {$item->name} voor wanneer je het nodig hebt.");
+            }
+        }
+
         $energyBefore = $character->energy;
         $healthBefore = $character->health;
         $customFeedback = [];
 
-        // 1. Volledig herstel items
-        if ($item->slug === 'adrenaline-injectie') {
-            $character->energy = $character->max_energy;
-            $customFeedback[] = "100% Volledige Energie hersteld ({$character->max_energy}/{$character->max_energy})! ⚡";
-        } elseif ($item->energy_restore > 0) {
-            $character->energy = min($character->max_energy, $character->energy + $item->energy_restore);
-        }
+        // 1. Contraband / Smokkelwaren herstel
+        if ($item->slug === 'sigaretten') {
+            $restoreEnergy = $item->energy_restore > 0 ? $item->energy_restore : 20;
+            $restoreHealth = $item->health_restore > 0 ? $item->health_restore : 10;
+            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
+            $character->health = min($character->max_health, $character->health + $restoreHealth);
+            $customFeedback[] = 'Lekker een peuk gerookt op de binnenplaats! 🚬';
+        } elseif ($item->slug === 'ritalin') {
+            $restoreEnergy = $item->energy_restore > 0 ? $item->energy_restore : 35;
+            $restoreHealth = $item->health_restore > 0 ? $item->health_restore : 15;
+            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
+            $character->health = min($character->max_health, $character->health + $restoreHealth);
+            $customFeedback[] = 'Scherpe focus en alertheid gekregen van de Ritalin! 💊';
+        } elseif ($item->slug === 'telefoon') {
+            $restoreEnergy = $item->energy_restore > 0 ? $item->energy_restore : 50;
+            $restoreHealth = $item->health_restore > 0 ? $item->health_restore : 25;
+            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
+            $character->health = min($character->max_health, $character->health + $restoreHealth);
+            $customFeedback[] = 'Kort contact gehad met de buitenwereld voor morele steun! 📱';
+        } else {
+            // Reguliere herstel items
+            if ($item->slug === 'adrenaline-injectie') {
+                $character->energy = $character->max_energy;
+                $customFeedback[] = "100% Volledige Energie hersteld ({$character->max_energy}/{$character->max_energy})! ⚡";
+            } elseif ($item->energy_restore > 0) {
+                $character->energy = min($character->max_energy, $character->energy + $item->energy_restore);
+            }
 
-        if ($item->slug === 'ehbo-noodverbanddoos') {
-            $character->health = $character->max_health;
-            $customFeedback[] = "100% Volledige Gezondheid hersteld ({$character->max_health}/{$character->max_health} HP)! ❤️";
-        } elseif ($item->health_restore > 0) {
-            $character->health = min($character->max_health, $character->health + $item->health_restore);
+            if ($item->slug === 'ehbo-noodverbanddoos') {
+                $character->health = $character->max_health;
+                $customFeedback[] = "100% Volledige Gezondheid hersteld ({$character->max_health}/{$character->max_health} HP)! ❤️";
+            } elseif ($item->health_restore > 0) {
+                $character->health = min($character->max_health, $character->health + $item->health_restore);
+            }
         }
 
         // 2. Permanente stat boosts
@@ -238,19 +276,27 @@ class ShopController extends Controller
         $healthGained = $character->health - $healthBefore;
 
         $msg = "Je hebt {$item->name} gebruikt!";
+        $details = [];
         if (! empty($customFeedback)) {
-            $msg .= ' '.implode(' ', $customFeedback);
-        } elseif ($energyGained > 0 || $healthGained > 0) {
-            $parts = [];
-            if ($energyGained > 0) {
-                $parts[] = "+{$energyGained} Energie ⚡";
+            $details[] = implode(' ', $customFeedback);
+        }
+        $statGains = [];
+        if ($energyGained > 0) {
+            $statGains[] = "+{$energyGained} Energie ⚡";
+        }
+        if ($healthGained > 0) {
+            $statGains[] = "+{$healthGained} HP ❤️";
+        }
+        if (! empty($statGains)) {
+            $details[] = '('.implode(', ', $statGains).')';
+        }
+
+        if (! empty($details)) {
+            $msg .= ' '.implode(' ', $details);
+        } elseif ($energyGained === 0 && $healthGained === 0 && empty($customFeedback)) {
+            if ($character->energy >= $character->max_energy && $character->health >= $character->max_health) {
+                $msg .= ' (Energie en Gezondheid waren al maximaal)';
             }
-            if ($healthGained > 0) {
-                $parts[] = "+{$healthGained} HP ❤️";
-            }
-            $msg .= ' ('.implode(', ', $parts).')';
-        } else {
-            $msg .= ' (Energie en Gezondheid waren al maximaal)';
         }
 
         return back()
