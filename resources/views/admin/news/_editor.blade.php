@@ -1,73 +1,4 @@
-<div x-data="{
-    tab: 'editor',
-    content: @json(old('content', $content ?? '')),
-    insertTag(openTag, closeTag = '') {
-        const textarea = this.$refs.editorTextarea;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const text = this.content;
-        const selected = text.substring(start, end) || 'tekst';
-        
-        const replacement = openTag + selected + closeTag;
-        this.content = text.substring(0, start) + replacement + text.substring(end);
-        
-        this.$nextTick(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + openTag.length, start + openTag.length + selected.length);
-        });
-    },
-    insertLink() {
-        const url = prompt('Voer de website / pagina URL in (bijv. https://discord.gg/tbs of /profiel):');
-        if (!url) return;
-        const label = prompt('Optionele linktekst (of laat leeg):') || url;
-        this.insertTag(`[link=${url}]${label}[/link]`, '');
-    },
-    insertImage() {
-        const url = prompt('Voer de URL van de afbeelding in (bijv. https://i.imgur.com/... of /assets/logo.png):');
-        if (!url) return;
-        this.insertTag(`[img]${url}[/img]`, '');
-    },
-    insertEmoji(emoji) {
-        this.insertTag(emoji, '');
-    },
-    insertColor(color) {
-        this.insertTag(`[color=${color}]`, '[/color]');
-    },
-    get renderedPreview() {
-        if (!this.content) return '<p class=\"text-slate-400 italic text-xs\">Typ content in de bewerker om hier een live voorbeeld te zien...</p>';
-        
-        let t = this.content
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-            
-        // Images (support absolute and root-relative)
-        t = t.replace(/\[img\]((?:https?:\/\/|\/)[^\s<\"\']+)\[\/img\]/gi, '<div class=\"my-3\"><img src=\"$1\" class=\"rounded-xl max-w-full max-h-72 object-contain border border-slate-200 shadow-xs\" alt=\"Afbeelding\" /></div>');
-        
-        // Links
-        t = t.replace(/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<\"\']+)\](.*?)\[\/(?:link|url)\]/gi, '<a href=\"$1\" target=\"_blank\" class=\"text-purple-600 underline font-extrabold hover:text-purple-800\">$2 ↗</a>');
-        
-        // Colors & alignment
-        t = t.replace(/\[color=([a-z0-9#]+)\](.*?)\[\/color\]/gi, '<span style=\"color:$1\" class=\"font-bold\">$2</span>');
-        t = t.replace(/\[center\](.*?)\[\/center\]/gi, '<div class=\"text-center my-2\">$1</div>');
-
-        // Headers
-        t = t.replace(/\[h2\](.*?)\[\/h2\]/gi, '<h2 class=\"text-lg font-black text-slate-900 mt-4 mb-2\">$1</h2>');
-        t = t.replace(/\[h3\](.*?)\[\/h3\]/gi, '<h3 class=\"text-base font-black text-slate-900 mt-3 mb-1.5\">$1</h3>');
-        
-        // Formatting
-        t = t.replace(/\[b\](.*?)\[\/b\]/gi, '<strong class=\"font-black text-slate-900\">$1</strong>');
-        t = t.replace(/\*\*(.*?)\*\*/g, '<strong class=\"font-black text-slate-900\">$1</strong>');
-        t = t.replace(/\[i\](.*?)\[\/i\]/gi, '<em class=\"italic text-slate-700\">$1</em>');
-        t = t.replace(/\[u\](.*?)\[\/u\]/gi, '<span class=\"underline\">$1</span>');
-        t = t.replace(/\[s\](.*?)\[\/s\]/gi, '<del class=\"line-through text-slate-400\">$1</del>');
-        t = t.replace(/\[quote\](.*?)\[\/quote\]/gi, '<blockquote class=\"border-l-4 border-purple-500 bg-purple-50 p-3 my-2 text-xs font-semibold text-purple-900 italic rounded-r-lg\">$1</blockquote>');
-        t = t.replace(/---/g, '<hr class=\"my-3 border-slate-200\" />');
-        t = t.replace(/^- (.*?)$/gm, '<li class=\"ml-4 list-disc text-slate-700 font-medium\">$1</li>');
-        
-        return t.replace(/\n/g, '<br />');
-    }
-}" class="space-y-3">
+<div x-data="tbsNewsEditor(@js(old('content', $content ?? '')))" class="space-y-3">
 
     <!-- Editor Toolbar Tabs -->
     <div class="flex items-center justify-between border-b border-slate-200 pb-2">
@@ -188,3 +119,78 @@
     </div>
 
 </div>
+
+<script>
+function tbsNewsEditor(initialContent) {
+    return {
+        tab: 'editor',
+        content: initialContent || '',
+        insertTag(openTag, closeTag = '') {
+            const textarea = this.$refs.editorTextarea;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = this.content;
+            const selected = text.substring(start, end) || 'tekst';
+            
+            const replacement = openTag + selected + closeTag;
+            this.content = text.substring(0, start) + replacement + text.substring(end);
+            
+            this.$nextTick(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start + openTag.length, start + openTag.length + selected.length);
+            });
+        },
+        insertLink() {
+            const url = prompt('Voer de website / pagina URL in (bijv. https://discord.gg/tbs of /profiel):');
+            if (!url) return;
+            const label = prompt('Optionele linktekst (of laat leeg):') || url;
+            this.insertTag(`[link=${url}]${label}[/link]`, '');
+        },
+        insertImage() {
+            const url = prompt('Voer de URL van de afbeelding in (bijv. https://i.imgur.com/... of /assets/logo.png):');
+            if (!url) return;
+            this.insertTag(`[img]${url}[/img]`, '');
+        },
+        insertEmoji(emoji) {
+            this.insertTag(emoji, '');
+        },
+        insertColor(color) {
+            this.insertTag(`[color=${color}]`, '[/color]');
+        },
+        get renderedPreview() {
+            if (!this.content) return '<p class="text-slate-400 italic text-xs">Typ content in de bewerker om hier een live voorbeeld te zien...</p>';
+            
+            let t = this.content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+                
+            // Images (support absolute and root-relative)
+            t = t.replace(/\[img\]((?:https?:\/\/|\/)[^\s<"']+)\[\/img\]/gi, '<div class="my-3"><img src="$1" class="rounded-xl max-w-full max-h-72 object-contain border border-slate-200 shadow-xs" alt="Afbeelding" /></div>');
+            
+            // Links
+            t = t.replace(/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<"']+)\](.*?)\[\/(?:link|url)\]/gi, '<a href="$1" target="_blank" class="text-purple-600 underline font-extrabold hover:text-purple-800">$2 ↗</a>');
+            
+            // Colors & alignment
+            t = t.replace(/\[color=([a-z0-9#]+)\](.*?)\[\/color\]/gi, '<span style="color:$1" class="font-bold">$2</span>');
+            t = t.replace(/\[center\](.*?)\[\/center\]/gi, '<div class="text-center my-2">$1</div>');
+
+            // Headers
+            t = t.replace(/\[h2\](.*?)\[\/h2\]/gi, '<h2 class="text-lg font-black text-slate-900 mt-4 mb-2">$1</h2>');
+            t = t.replace(/\[h3\](.*?)\[\/h3\]/gi, '<h3 class="text-base font-black text-slate-900 mt-3 mb-1.5">$1</h3>');
+            
+            // Formatting
+            t = t.replace(/\[b\](.*?)\[\/b\]/gi, '<strong class="font-black text-slate-900">$1</strong>');
+            t = t.replace(/\*\*(.*?)\*\*/g, '<strong class="font-black text-slate-900">$1</strong>');
+            t = t.replace(/\[i\](.*?)\[\/i\]/gi, '<em class="italic text-slate-700">$1</em>');
+            t = t.replace(/\[u\](.*?)\[\/u\]/gi, '<span class="underline">$1</span>');
+            t = t.replace(/\[s\](.*?)\[\/s\]/gi, '<del class="line-through text-slate-400">$1</del>');
+            t = t.replace(/\[quote\](.*?)\[\/quote\]/gi, '<blockquote class="border-l-4 border-purple-500 bg-purple-50 p-3 my-2 text-xs font-semibold text-purple-900 italic rounded-r-lg">$1</blockquote>');
+            t = t.replace(/---/g, '<hr class="my-3 border-slate-200" />');
+            t = t.replace(/^- (.*?)$/gm, '<li class="ml-4 list-disc text-slate-700 font-medium">$1</li>');
+            
+            return t.replace(/\n/g, '<br />');
+        }
+    };
+}
+</script>
