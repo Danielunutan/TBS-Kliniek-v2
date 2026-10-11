@@ -1068,7 +1068,7 @@
         }
     }" class="fixed bottom-5 right-5 z-50">
 
-        <!-- CHAT WINDOW POPUP -->
+        <!-- CHAT WINDOW POPUP (Website Style: Clean Light Card with Royal Purple Accents) -->
         <div x-show="isOpen" x-cloak
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-6 scale-95"
@@ -1076,49 +1076,49 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
              x-transition:leave-end="opacity-0 translate-y-6 scale-95"
-             class="fixed bottom-20 right-5 w-[90vw] sm:w-96 max-h-[520px] bg-slate-950 border border-purple-500/40 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-white">
+             class="fixed bottom-20 right-5 w-[90vw] sm:w-96 max-h-[520px] bg-white border border-slate-200/90 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 z-50">
             
             <!-- Header -->
-            <div class="bg-linear-to-r from-purple-950 via-slate-900 to-purple-950 p-4 border-b border-purple-500/30 flex items-center justify-between">
+            <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 p-3.5 border-b border-purple-500/30 flex items-center justify-between text-white shadow-xs">
                 <div class="flex items-center gap-3">
                     <div class="relative">
-                        <div class="w-9 h-9 rounded-xl bg-purple-600 border border-purple-400 flex items-center justify-center text-sm shadow-md">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 border border-white/30 backdrop-blur-xs flex items-center justify-center text-sm shadow-xs">
                             <i class="fa-solid fa-robot text-white"></i>
                         </div>
-                        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-slate-950"></span>
+                        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-purple-700"></span>
                     </div>
                     <div>
                         <h4 class="text-xs font-black tracking-tight text-white flex items-center gap-1.5">
                             <span>TBS Zaalwacht AI</span>
-                            <span class="bg-purple-500/20 text-purple-300 text-[9px] font-extrabold px-1.5 py-0.2 rounded border border-purple-400/30">HELP</span>
+                            <span class="bg-white/20 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded border border-white/25">HELP</span>
                         </h4>
-                        <p class="text-[10px] text-purple-200">Kennisbank & Vraagbaak</p>
+                        <p class="text-[10px] text-purple-100">Kennisbank & Vraagbaak</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('faq') }}" title="Volledige FAQ Pagina" class="text-slate-400 hover:text-white text-xs transition">
+                    <a href="{{ route('faq') }}" title="Volledige FAQ Pagina" class="text-white/80 hover:text-white text-xs transition p-1">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </a>
-                    <button @click="isOpen = false" class="text-slate-400 hover:text-white text-base transition cursor-pointer">
+                    <button @click="isOpen = false" class="text-white/80 hover:text-white text-base transition cursor-pointer p-1">
                         &times;
                     </button>
                 </div>
             </div>
 
             <!-- Messages Thread -->
-            <div x-ref="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3 max-h-80 text-xs">
+            <div x-ref="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3 max-h-80 text-xs bg-slate-50/70">
                 <template x-for="(msg, i) in messages" :key="i">
                     <div :class="msg.from === 'bot' ? 'flex flex-col items-start' : 'flex flex-col items-end'">
-                        <div :class="msg.from === 'bot' ? 'bg-purple-950/60 border border-purple-800/50 text-slate-200' : 'bg-purple-600 text-white'"
-                             class="rounded-2xl p-3 max-w-[85%] space-y-2 shadow-xs">
+                        <div :class="msg.from === 'bot' ? 'bg-white border border-slate-200 text-slate-800' : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium'"
+                             class="rounded-2xl p-3 max-w-[85%] space-y-2 shadow-2xs">
                             <p class="whitespace-pre-line leading-relaxed" x-text="msg.text"></p>
                             
                             <!-- Links if available -->
                             <template x-if="msg.links && msg.links.length > 0">
-                                <div class="pt-1 flex flex-wrap gap-1.5 border-t border-purple-700/30">
+                                <div class="pt-1.5 flex flex-wrap gap-1.5 border-t border-slate-100">
                                     <template x-for="lnk in msg.links">
-                                        <a :href="lnk.url" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-500/30 hover:bg-purple-500/50 text-purple-200 hover:text-white text-[10px] font-extrabold border border-purple-400/30 transition">
+                                        <a :href="lnk.url" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-800 text-[10px] font-extrabold border border-purple-200 transition">
                                             <span x-text="lnk.text"></span> &raquo;
                                         </a>
                                     </template>
@@ -1130,18 +1130,18 @@
 
                 <!-- Quick Suggested Topic Pills -->
                 <div class="pt-2">
-                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">Snel Onderwerp Kiezen:</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">Snel Onderwerp Kiezen:</span>
                     <div class="flex flex-wrap gap-1.5">
-                        <button type="button" @click="sendQuery('Hoe word ik VIP?')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-purple-600 hover:text-white border border-white/10 text-slate-300 text-[10px] font-bold transition cursor-pointer">
+                        <button type="button" @click="sendQuery('Hoe word ik VIP?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
                             👑 VIP Lidmaatschap
                         </button>
-                        <button type="button" @click="sendQuery('Hoeveel aanvallen mag ik doen?')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-purple-600 hover:text-white border border-white/10 text-slate-300 text-[10px] font-bold transition cursor-pointer">
+                        <button type="button" @click="sendQuery('Hoeveel aanvallen mag ik doen?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
                             ⚔️ 100 Aanvallen Limiet
                         </button>
-                        <button type="button" @click="sendQuery('Hoe kraak ik de kluis?')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-purple-600 hover:text-white border border-white/10 text-slate-300 text-[10px] font-bold transition cursor-pointer">
+                        <button type="button" @click="sendQuery('Hoe kraak ik de kluis?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
                             🔑 Kluis Kraak
                         </button>
-                        <button type="button" @click="sendQuery('Wachtwoord vergeten')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-purple-600 hover:text-white border border-white/10 text-slate-300 text-[10px] font-bold transition cursor-pointer">
+                        <button type="button" @click="sendQuery('Wachtwoord vergeten')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
                             🔒 Wachtwoord Vergeten
                         </button>
                     </div>
@@ -1149,10 +1149,10 @@
             </div>
 
             <!-- Input Bar -->
-            <form @submit.prevent="sendQuery()" class="p-3 bg-slate-900 border-t border-purple-900/50 flex items-center gap-2">
+            <form @submit.prevent="sendQuery()" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
                 <input type="text" x-model="inputQuery" placeholder="Stel een vraag aan de kennisbank..." 
-                       class="flex-1 bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                <button type="submit" class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-md">
+                       class="flex-1 bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
+                <button type="submit" class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-sm">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </form>

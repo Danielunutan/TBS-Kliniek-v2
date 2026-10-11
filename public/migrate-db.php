@@ -3,7 +3,6 @@
  * TBS Kliniek - One-Click Database & Production Setup Script for Plesk
  * Beveiligd met geheime sleutel: ?key=tbs2026
  */
-
 $secretKey = 'tbs2026';
 $providedKey = $_GET['key'] ?? $_POST['key'] ?? '';
 
@@ -36,10 +35,11 @@ if ($providedKey !== $secretKey) {
 }
 
 // Bootstrap Laravel
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Kernel::class);
 
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
@@ -51,8 +51,8 @@ $dbError = null;
 // Test DB Connection
 try {
     DB::connection()->getPdo();
-    $dbStatus = 'OK (' . DB::connection()->getDatabaseName() . ' op ' . config('database.connections.' . config('database.default') . '.host') . ')';
-} catch (\Throwable $e) {
+    $dbStatus = 'OK ('.DB::connection()->getDatabaseName().' op '.config('database.connections.'.config('database.default').'.host').')';
+} catch (Throwable $e) {
     $dbError = $e->getMessage();
 }
 
@@ -89,12 +89,12 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
     try {
         if ($action === 'run_all' || $action === 'run_migrate') {
             Artisan::call('migrate --force');
-            $outputLog .= "=== PHP ARTISAN MIGRATE ===\n" . Artisan::output() . "\n\n";
+            $outputLog .= "=== PHP ARTISAN MIGRATE ===\n".Artisan::output()."\n\n";
         }
 
         if ($action === 'run_all' || $action === 'run_seed') {
             Artisan::call('db:seed --force');
-            $outputLog .= "=== PHP ARTISAN DB:SEED ===\n" . Artisan::output() . "\n\n";
+            $outputLog .= "=== PHP ARTISAN DB:SEED ===\n".Artisan::output()."\n\n";
         }
 
         // Cache setup
@@ -103,8 +103,8 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
         @Artisan::call('cache:clear');
         @Artisan::call('view:clear');
         $outputLog .= "=== SYSTEEM OPTIMALISATIE ===\nStorage linked & cache ververst!\n";
-    } catch (\Throwable $e) {
-        $outputLog .= "\nFOUT TIJDENS UITVOERING:\n" . $e->getMessage() . "\n" . $e->getTraceAsString();
+    } catch (Throwable $e) {
+        $outputLog .= "\nFOUT TIJDENS UITVOERING:\n".$e->getMessage()."\n".$e->getTraceAsString();
     }
 }
 ?>
@@ -148,10 +148,10 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
 
         <div class="card">
             <h3 style="margin-top:0; margin-bottom: 0.75rem;">Database Verbindingsstatus:</h3>
-            <?php if ($dbStatus): ?>
+            <?php if ($dbStatus) { ?>
                 <span class="badge badge-success">✓ Verbonden</span>
                 <p style="margin: 0.5rem 0 0; color: #94a3b8; font-size: 0.9rem;">Database: <strong><?= htmlspecialchars($dbStatus) ?></strong></p>
-            <?php else: ?>
+            <?php } else { ?>
                 <span class="badge badge-danger">✗ Geen verbinding</span>
                 <p style="margin: 0.5rem 0 0; color: #fb7185; font-size: 0.9rem;">Foutmelding: <code><?= htmlspecialchars($dbError) ?></code></p>
                 <div style="margin-top: 1rem; background: #1e1b4b; border: 1px solid #3730a3; padding: 1rem; border-radius: 0.5rem; font-size: 0.85rem; color: #c7d2fe;">
@@ -161,10 +161,10 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
                     3. Vul je <code>DB_DATABASE</code>, <code>DB_USERNAME</code> en <code>DB_PASSWORD</code> in.<br>
                     4. Ververs daarna deze pagina!
                 </div>
-            <?php endif; ?>
+            <?php } ?>
         </div>
 
-        <?php if ($outputLog): ?>
+        <?php if ($outputLog) { ?>
             <div class="card">
                 <h3 style="margin-top:0; color: #34d399;">Resultaat van uitvoering:</h3>
                 <pre><?= htmlspecialchars($outputLog) ?></pre>
@@ -177,9 +177,9 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
                     </form>
                 </div>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
-        <?php if ($dbStatus && !str_contains($outputLog, 'PHP ARTISAN MIGRATE')): ?>
+        <?php if ($dbStatus && ! str_contains($outputLog, 'PHP ARTISAN MIGRATE')) { ?>
             <div class="card">
                 <h3 style="margin-top:0;">Actie uitvoeren:</h3>
                 <p style="color: #94a3b8; font-size: 0.9rem;">Klik op de onderstaande knop om alle tabellen aan te maken (migraties) en de initiële content (frikandellen, gangs, missies, items) in te laden.</p>
@@ -191,7 +191,7 @@ if ($action === 'run_all' || $action === 'run_migrate' || $action === 'run_seed'
                     </button>
                 </form>
             </div>
-        <?php endif; ?>
+        <?php } ?>
 
         <div style="font-size: 0.8rem; color: #64748b; text-align: center; margin-top: 2rem;">
             TBS Kliniek Game Engine &bull; Productie Setup Wizard
