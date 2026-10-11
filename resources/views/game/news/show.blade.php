@@ -25,14 +25,14 @@
     <article class="bg-white rounded-2xl shadow-xs border border-slate-200/90 overflow-hidden">
         
         <!-- Header Ribbon -->
-        <div class="bg-gradient-to-r from-purple-900 to-indigo-950 text-white p-4 sm:p-5 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-purple-200">
-                <i class="fa-solid fa-bullhorn text-pink-400"></i>
+        <div class="bg-purple-50/80 border-b border-purple-100 p-4 sm:p-5 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-purple-700">
+                <i class="fa-solid fa-bullhorn text-purple-500"></i>
                 <span>Nieuws & Updates</span>
             </div>
             @if($article->is_pinned)
-                <span class="bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
-                    <i class="fa-solid fa-thumbtack text-[9px]"></i> Vastgepind
+                <span class="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                    <i class="fa-solid fa-thumbtack text-[9px] text-amber-600"></i> Vastgepind
                 </span>
             @endif
         </div>
@@ -122,12 +122,12 @@
 
         <!-- Topic status banner: Closed vs Open -->
         @if(! $article->comments_enabled)
-        <div class="p-6 rounded-2xl bg-gradient-to-r from-purple-950/40 via-purple-900/30 to-purple-950/40 border border-purple-800/40 text-center shadow-xs">
-            <div class="inline-flex items-center gap-2 text-rose-500 font-extrabold text-xs sm:text-sm">
+        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center shadow-xs">
+            <div class="inline-flex items-center gap-2 text-rose-600 font-extrabold text-xs sm:text-sm">
                 <i class="fa-solid fa-lock text-rose-500"></i>
                 <span>Je kunt niet reageren op een gesloten topic</span>
             </div>
-            <p class="text-[11px] text-slate-400 mt-1 font-medium">
+            <p class="text-[11px] text-slate-500 mt-1 font-medium">
                 De reacties voor dit artikel zijn gesloten door de moderators of leiding.
             </p>
         </div>
