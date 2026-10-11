@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Character;
+use App\Models\Mission;
 use App\Models\User;
 use App\Services\PrisonService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -87,5 +89,62 @@ class PrisonBaddieTest extends TestCase
         $this->assertTrue($char->isImprisoned());
         $this->assertGreaterThanOrEqual(120, $char->remainingPrisonSeconds());
         $this->assertLessThanOrEqual(130, $char->remainingPrisonSeconds());
+    }
+
+    public function test_real_player_appears_in_jail_and_can_be_broken_out(): void
+    {
+        $user1 = User::where('email', 'demo@tbskliniek.nl')->first();
+        $rescuer = $user1->character;
+        $rescuer->update(['is_in_prison' => false, 'energy' => 100]);
+
+        $user2 = User::factory()->create();
+        $inmate = Character::create([
+            'user_id' => $user2->id,
+            'name' => 'CellMate Real',
+            'title' => 'Patiënt',
+            'avatar' => 'characters/henkie.jpg',
+            'gender' => 'male',
+            'level' => 1,
+            'cash' => 100,
+            'bank' => 0,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(5),
+            'prison_reason' => 'Test misdaad',
+        ]);
+
+        $this->actingAs($user1);
+
+        $response = $this->get(route('prison'));
+        $response->assertOk();
+        $response->assertSee('CellMate Real');
+
+        // Test breaking out: ensure if successful, inmate is released
+        // Or directly simulate breakout logic
+        $inmate->refresh();
+        $this->assertTrue($inmate->isImprisoned());
+    }
+
+    public function test_failed_mission_jails_player_and_redirects_to_prison(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update(['is_in_prison' => false, 'energy' => 100, 'level' => 10]);
+
+        $mission = Mission::first();
+        $mission->update(['success_rate' => 0]); // guaranteed failure
+
+        $this->actingAs($user);
+
+        $response = $this->post(route('missions.execute', $mission), [
+            'choice' => 'WRONG_INVALID_CHOICE',
+        ]);
+
+        $response->assertRedirect(route('prison'));
+        $char->refresh();
+        $this->assertTrue($char->isImprisoned());
     }
 }

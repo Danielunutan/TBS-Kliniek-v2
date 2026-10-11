@@ -40,106 +40,45 @@ class PrisonController extends Controller
             ->whereNotNull('prison_until')
             ->where('prison_until', '>', now())
             ->where('id', '!=', $character->id)
+            ->orderBy('prison_until')
             ->get();
 
-        // Predefined diverse simulated inmates so table is always full and entertaining
-        $simulatedPresets = [
-            [
-                'id' => 'sim_1',
-                'name' => 'Kliniek Patiënt met schulden',
-                'reason' => 'Schulden en diefstal in kliniek',
-                'time' => '02:05',
-                'chance' => 5,
-                'avatar' => asset('assets/characters/avatar_female_1.jpg'),
-                'is_simulated' => true,
-            ],
-            [
-                'id' => 'sim_2',
-                'name' => 'Roxy Deluxe',
-                'reason' => 'Coke gesmokkeld in Chanel tas',
-                'time' => '02:29',
-                'chance' => 5,
-                'avatar' => asset('assets/characters/avatar_female_2.jpg'),
-                'is_simulated' => true,
-            ],
-            [
-                'id' => 'sim_3',
-                'name' => 'Amber Savage',
-                'reason' => 'Betrapt bij kantoorkluis kraak',
-                'time' => '03:58',
-                'chance' => 5,
-                'avatar' => asset('assets/characters/avatar_female_3.jpg'),
-                'is_simulated' => true,
-            ],
-            [
-                'id' => 'sim_4',
-                'name' => 'Chantal Poison',
-                'reason' => 'Ruzie en vechtpartij in kantine',
-                'time' => '04:25',
-                'chance' => 5,
-                'avatar' => asset('assets/characters/avatar_female_4.jpg'),
-                'is_simulated' => true,
-            ],
-            [
-                'id' => 'sim_5',
-                'name' => 'Bella Cashflow',
-                'reason' => 'Valse MedicijnKluis codes verspreid',
-                'time' => '05:12',
-                'chance' => 8,
-                'avatar' => asset('assets/characters/avatar_female_5.jpg'),
-                'is_simulated' => true,
-            ],
-        ];
-
-        // Combine real and simulated inmates
         $jailList = collect();
 
         foreach ($realPrisoners as $rp) {
             $remSecs = max(0, $rp->prison_until->diffInSeconds(now()));
+            $chance = min(25, max(5, 5 + (int) floor(($character->intelligence + $character->strength) / 30)));
             $jailList->push([
                 'id' => $rp->id,
                 'name' => $rp->name,
-                'reason' => $rp->prison_reason ?? 'Wangedrag in de kliniek',
+                'reason' => $rp->prison_reason ?: 'Wangedrag in de kliniek',
                 'time' => gmdate('i:s', $remSecs),
-                'chance' => 5,
+                'remaining_seconds' => $remSecs,
+                'chance' => $chance,
                 'avatar' => $rp->avatar_url,
-                'is_simulated' => false,
                 'model' => $rp,
             ]);
         }
 
-        foreach ($simulatedPresets as $sim) {
-            $jailList->push($sim);
-        }
-
         // Breakout Stats for character
+        $attempts = $character->breakout_attempts ?? 0;
+        $escapes = $character->prison_escapes ?? 0;
+        $successRate = $attempts > 0 ? round(($escapes / $attempts) * 100, 1).'%' : '0%';
+
         $stats = [
-            'escapes_today' => $character->prison_escapes ?? 0,
-            'attempts_today' => $character->breakout_attempts ?? 0,
-            'breakout_xp' => '0.1%',
+            'escapes_today' => $escapes,
+            'attempts_today' => $attempts,
+            'breakout_xp' => $successRate,
             'slay' => number_format((float) ($character->breakout_slay ?? 0), 1),
             'best_day_date' => now()->format('d-m-Y'),
-            'best_day_count' => max(2, $character->prison_escapes ?? 0),
+            'best_day_count' => $escapes,
         ];
 
-        // Top uitbrekers van de dag leaderboard
-        $topBreakers = Character::orderByDesc('prison_escapes')
+        // Top real breakers leaderboard
+        $topBreakers = Character::where('prison_escapes', '>', 0)
+            ->orderByDesc('prison_escapes')
             ->take(5)
             ->get();
-
-        if ($topBreakers->isEmpty() || $topBreakers->first()->prison_escapes === 0) {
-            $mockBreakers = [
-                ['name' => 'Zaphira', 'escapes' => 301, 'avatar' => asset('assets/characters/avatar_female_2.jpg')],
-                ['name' => 'PoisonIvy', 'escapes' => 296, 'avatar' => asset('assets/characters/avatar_female_3.jpg')],
-                ['name' => 'NightShade', 'escapes' => 116, 'avatar' => asset('assets/characters/avatar_female_4.jpg')],
-            ];
-        } else {
-            $mockBreakers = $topBreakers->map(fn ($p) => [
-                'name' => $p->name,
-                'escapes' => max(1, $p->prison_escapes),
-                'avatar' => $p->avatar_url,
-            ])->toArray();
-        }
 
         // Top 10 for bottom podium ranglijst
         $topRankings = Character::orderByDesc('respect')->take(10)->get();
@@ -151,7 +90,7 @@ class PrisonController extends Controller
             'remainingSeconds',
             'jailList',
             'stats',
-            'mockBreakers',
+            'topBreakers',
             'topRankings'
         ));
     }
@@ -206,7 +145,7 @@ class PrisonController extends Controller
     }
 
     /**
-     * Attempt to break out another inmate (real or simulated).
+     * Attempt to break out another inmate (real players).
      */
     public function breakout(Request $request, string $id): RedirectResponse
     {
@@ -226,8 +165,22 @@ class PrisonController extends Controller
         $character->breakout_attempts = ($character->breakout_attempts ?? 0) + 1;
         $character->save();
 
+        $targetInmate = is_numeric($id) ? Character::find($id) : null;
+        $targetName = $targetInmate ? $targetInmate->name : 'deze patiënt';
+
+        if (is_numeric($id) && (! $targetInmate || ! $targetInmate->isImprisoned())) {
+            return back()->with('info', 'Deze patiënt is inmiddels al vrij of niet meer in de isoleercel!');
+        }
+
+        if ($targetInmate && $targetInmate->id === $character->id) {
+            return back()->with('error', 'Je kunt jezelf niet op deze manier uitbreken, gebruik de ontsnappingsknop!');
+        }
+
+        // Breakout chance based on stats
+        $chanceBonus = (int) floor(($character->intelligence + $character->strength) / 30);
+        $successRate = min(25, max(8, 8 + $chanceBonus));
+
         $roll = rand(1, 100);
-        $successRate = 8; // ~8% suspenseful chance matching 5% display
 
         if ($roll <= $successRate) {
             $character->prison_escapes = ($character->prison_escapes ?? 0) + 1;
@@ -236,34 +189,38 @@ class PrisonController extends Controller
             $this->levelService->addXp($character, 140);
             $character->save();
 
-            // If real inmate, release them
-            if (is_numeric($id)) {
-                $realPrisoner = Character::find($id);
-                if ($realPrisoner && $realPrisoner->isImprisoned()) {
-                    $realPrisoner->is_in_prison = false;
-                    $realPrisoner->prison_until = null;
-                    $realPrisoner->prison_reason = null;
-                    $realPrisoner->save();
+            // Release real inmate
+            if ($targetInmate && $targetInmate->isImprisoned()) {
+                $targetInmate->is_in_prison = false;
+                $targetInmate->prison_until = null;
+                $targetInmate->prison_reason = null;
+                $targetInmate->save();
 
-                    GameMessage::create([
-                        'recipient_id' => $realPrisoner->id,
-                        'sender_id' => $character->id,
-                        'sender_name' => $character->name,
-                        'subject' => '🔓 VRIJ! Je bent bevrijd uit de gevangenis!',
-                        'content' => "Patiënt {$realPrisoner->name},\n\n{$character->name} heeft zojuist met gevaar voor eigen leven de isoleerceldeur geforceerd en jou bevrijd!",
-                        'type' => 'gang',
-                    ]);
-                }
+                GameNotification::create([
+                    'character_id' => $targetInmate->id,
+                    'type' => 'prison',
+                    'icon' => 'fa-door-open',
+                    'title' => 'Uitgebroken door een medepatiënt!',
+                    'message' => "{$character->name} heeft je zojuist bevrijd uit de isoleercel!",
+                ]);
+
+                GameMessage::create([
+                    'recipient_id' => $targetInmate->id,
+                    'sender_id' => $character->id,
+                    'sender_name' => $character->name,
+                    'subject' => '🔓 VRIJ! Je bent bevrijd uit de gevangenis!',
+                    'content' => "Patiënt {$targetInmate->name},\n\n{$character->name} heeft zojuist met gevaar voor eigen leven de isoleerceldeur geforceerd en jou bevrijd!",
+                    'type' => 'jail',
+                ]);
             }
 
-            return back()->with('success', '🎉 RAAK! De celdeur zwaait open! Patiënt succesvol uitgebroken! +0.1 Respect 🔥 en +140 XP verdiend!');
+            return back()->with('success', "🎉 RAAK! De celdeur zwaait open! {$targetName} succesvol uitgebroken! +2 Respect 🔥 en +140 XP verdiend!");
         }
 
-        // On failure: caught in the act!
-        // Lock player in prison for e.g. 120-135 seconds (dynamic around 126 sec)
-        $jailSeconds = random_int(120, 135);
-        $this->prisonService->jailSeconds($character, $jailSeconds, 'Betrapt bij uitbraakpoging van een patiënt in de isoleercel.');
+        // FOUTE UITBRAAK: Kom zelf direct in de isoleercel!
+        $jailSeconds = random_int(120, 180);
+        $this->prisonService->jailSeconds($character, $jailSeconds, "Betrapt bij uitbraakpoging van {$targetName} in de isoleercel.");
 
-        return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie!");
+        return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Betrapt door beveiliging)");
     }
 }

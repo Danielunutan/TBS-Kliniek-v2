@@ -67,6 +67,10 @@ class MissionController extends Controller
             return back()->with('success', $result['message']);
         }
 
+        if (! empty($result['jailed']) || $character->fresh()->isImprisoned()) {
+            return redirect()->route('prison')->with('error', $result['message']);
+        }
+
         return back()->with('error', $result['message']);
     }
 }

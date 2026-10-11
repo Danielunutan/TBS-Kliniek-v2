@@ -276,14 +276,16 @@ class TheftService
             ];
         }
 
-        // On failure
+        // On failure: ALWAYS send to prison!
         $character->thefts_failed++;
         $character->save();
 
-        // High jail risk
-        $jailRoll = random_int(1, 100);
-        $jailed = $jailRoll <= 55;
-        $jailMinutes = $tier['jail_minutes'];
+        $jailSeconds = random_int(90, 160);
+        $reason = $victim
+            ? "Betrapt bij poging tot zakkenrollen van {$victim->name}"
+            : "Betrapt bij poging tot diefstal: {$tier['name']}";
+
+        $this->prisonService->jailSeconds($character, $jailSeconds, $reason);
 
         TheftRecord::create([
             'thief_id' => $character->id,
@@ -294,34 +296,18 @@ class TheftService
             'xp_gained' => 0,
             'respect_gained' => 0,
             'energy_spent' => $tier['energy_cost'],
-            'jailed' => $jailed,
-            'jail_minutes' => $jailed ? $jailMinutes : 0,
-            'log_message' => "Mislukte diefstal: {$tier['name']}".($jailed ? " (Gepakt! {$jailMinutes} min cel)" : ''),
+            'jailed' => true,
+            'jail_minutes' => (int) ceil($jailSeconds / 60),
+            'log_message' => "Mislukte diefstal: {$tier['name']} (Gepakt door zaalwacht! {$jailSeconds}s cel)",
         ]);
-
-        if ($jailed) {
-            $jailSeconds = random_int(90, 160);
-            $this->prisonService->jailSeconds($character, $jailSeconds, "Betrapt bij poging tot diefstal: {$tier['name']}");
-
-            return [
-                'success' => false,
-                'message' => "Poging mislukt! {$jailSeconds} sec vast in de isoleercel! (Betrapt door beveiliging)",
-                'cash_stolen' => 0,
-                'xp_gained' => 0,
-                'jailed' => true,
-                'jail_minutes' => (int) ceil($jailSeconds / 60),
-            ];
-        }
 
         return [
             'success' => false,
-            'message' => $victim
-                ? "Mislukt! {$victim->name} voelde je hand in zijn jaszak en duwde je opzij!"
-                : 'Diefstal mislukt! Je trok net op tijd je handen terug toen er een verpleger langsliep.',
+            'message' => "🚨 Poging mislukt! {$jailSeconds} sec vast in de isoleercel! (Betrapt door beveiliging)",
             'cash_stolen' => 0,
             'xp_gained' => 0,
-            'jailed' => false,
-            'jail_minutes' => 0,
+            'jailed' => true,
+            'jail_minutes' => (int) ceil($jailSeconds / 60),
         ];
     }
 }

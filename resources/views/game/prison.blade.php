@@ -99,7 +99,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium">
-                        @foreach($jailList as $inmate)
+                        @forelse($jailList as $inmate)
                         <tr class="hover:bg-slate-50 transition-colors">
                             <!-- Inmate Avatar & Name/Reason -->
                             <td class="py-3 px-3">
@@ -108,7 +108,9 @@
                                          class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-xs shrink-0">
                                     <div>
                                         <div class="font-extrabold text-slate-900 text-xs leading-tight">
-                                            {{ $inmate['name'] }}
+                                            <a href="{{ route('profile.show', $inmate['name']) }}" class="hover:text-purple-600 transition">
+                                                {{ $inmate['name'] }}
+                                            </a>
                                         </div>
                                         <div class="text-[11px] text-slate-400 truncate max-w-[200px] sm:max-w-xs">
                                             {{ $inmate['reason'] }}
@@ -140,7 +142,19 @@
                                 </form>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="4" class="py-10 text-center">
+                                <div class="flex flex-col items-center justify-center gap-2 text-slate-400">
+                                    <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
+                                        <i class="fa-solid fa-lock-open"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700 text-xs">De isoleercel is momenteel leeg!</span>
+                                    <span class="text-[11px] text-slate-400 max-w-sm">Er zitten op dit moment geen medepatiënten vast. Zodra een speler betrapt wordt bij een diefstal of mislukte uitbraak, verschijnt die hier!</span>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -214,17 +228,25 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @foreach($mockBreakers as $b)
+                        @forelse($topBreakers as $b)
                         <tr class="hover:bg-slate-50 transition-colors">
                             <td class="py-2.5 flex items-center gap-2.5">
-                                <img src="{{ $b['avatar'] }}" alt="{{ $b['name'] }}" class="w-7 h-7 rounded-full object-cover border border-slate-200">
-                                <span class="font-bold text-slate-800">{{ $b['name'] }}</span>
+                                <img src="{{ $b->avatar_url }}" alt="{{ $b->name }}" class="w-7 h-7 rounded-full object-cover border border-slate-200 shadow-2xs">
+                                <a href="{{ route('profile.show', $b->name) }}" class="font-bold text-slate-800 hover:text-purple-600 transition truncate max-w-[140px]">
+                                    {{ $b->name }}
+                                </a>
                             </td>
                             <td class="py-2.5 text-right font-mono font-bold text-purple-700">
-                                {{ $b['escapes'] }}
+                                {{ $b->prison_escapes }}
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="2" class="py-4 text-center text-slate-400 text-xs italic">
+                                Nog geen uitbraken geregistreerd.
+                            </td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

@@ -131,10 +131,13 @@ class MissionService
             if (strtoupper($userChoice) !== $scenario['correct_choice']) {
                 // Incorrect choice penalty
                 $this->energyService->consume($character, min(4, $mission->energy_cost));
+                $jailSeconds = random_int(60, 150);
+                $this->prisonService->jailSeconds($character, $jailSeconds, "Betrapt bij tactische missie: {$mission->title}");
 
                 return [
                     'success' => false,
-                    'message' => $scenario['feedback_wrong'],
+                    'message' => $scenario['feedback_wrong']." Bewakers hebben je overmeesterd! {$jailSeconds} sec vast in de isoleercel!",
+                    'jailed' => true,
                     'cash_earned' => 0,
                     'xp_earned' => 0,
                     'respect_earned' => 0,
@@ -195,21 +198,16 @@ class MissionService
 
         $progression->save();
 
-        // On failure: chance to get jailed for risky missions
-        $failMsg = $mission->fail_message ?: 'Missie mislukt! Ondanks je juiste antwoord liep de afhandeling door onvoorziene patrouilles in het honderd.';
-
-        if ($mission->category === 'theft' || $mission->category === 'high_risk') {
-            $jailRoll = random_int(1, 100);
-            if ($jailRoll <= 40) {
-                $jailMinutes = random_int(3, 8);
-                $this->prisonService->jail($character, $jailMinutes, "Mislukte missie: {$mission->title}");
-                $failMsg .= " Bewakers grepen je in de kraag! {$jailMinutes} minuten celstraf!";
-            }
-        }
+        // On failure: player is sent to prison (foute criminele opdracht)
+        $failMsg = $mission->fail_message ?: 'Missie mislukt! Ondanks je poging liep de afhandeling door onvoorziene patrouilles in het honderd.';
+        $jailSeconds = random_int(60, 180);
+        $this->prisonService->jailSeconds($character, $jailSeconds, "Mislukte criminele missie: {$mission->title}");
+        $failMsg .= " Bewakers grepen je in de kraag! {$jailSeconds} sec vast in de isoleercel!";
 
         return [
             'success' => false,
             'message' => $failMsg,
+            'jailed' => true,
             'cash_earned' => 0,
             'xp_earned' => 0,
             'respect_earned' => 0,
