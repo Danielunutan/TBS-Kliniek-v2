@@ -19,9 +19,10 @@ class TheftService
             'required_level' => 1,
             'energy_cost' => 8,
             'base_chance' => 50,
-            'min_cash' => 15,
-            'max_cash' => 45,
-            'xp' => 15,
+            'min_cash' => 180,
+            'max_cash' => 450,
+            'xp' => 25,
+            'respect' => 2,
             'jail_minutes' => 3,
         ],
         'snack_tray' => [
@@ -29,9 +30,10 @@ class TheftService
             'required_level' => 2,
             'energy_cost' => 12,
             'base_chance' => 42,
-            'min_cash' => 40,
-            'max_cash' => 90,
-            'xp' => 25,
+            'min_cash' => 450,
+            'max_cash' => 1100,
+            'xp' => 45,
+            'respect' => 3,
             'jail_minutes' => 5,
         ],
         'doctor_desk' => [
@@ -39,9 +41,10 @@ class TheftService
             'required_level' => 4,
             'energy_cost' => 18,
             'base_chance' => 32,
-            'min_cash' => 95,
-            'max_cash' => 220,
-            'xp' => 45,
+            'min_cash' => 1200,
+            'max_cash' => 2800,
+            'xp' => 85,
+            'respect' => 5,
             'jail_minutes' => 8,
         ],
         'safe_heist' => [
@@ -49,9 +52,10 @@ class TheftService
             'required_level' => 8,
             'energy_cost' => 30,
             'base_chance' => 22,
-            'min_cash' => 300,
-            'max_cash' => 750,
-            'xp' => 110,
+            'min_cash' => 3800,
+            'max_cash' => 9500,
+            'xp' => 180,
+            'respect' => 9,
             'jail_minutes' => 15,
         ],
         'pharmacy_raid' => [
@@ -59,9 +63,10 @@ class TheftService
             'required_level' => 10,
             'energy_cost' => 35,
             'base_chance' => 16,
-            'min_cash' => 500,
-            'max_cash' => 1400,
-            'xp' => 160,
+            'min_cash' => 7500,
+            'max_cash' => 18000,
+            'xp' => 260,
+            'respect' => 14,
             'jail_minutes' => 20,
         ],
         'canteen_vault' => [
@@ -69,9 +74,10 @@ class TheftService
             'required_level' => 12,
             'energy_cost' => 40,
             'base_chance' => 11,
-            'min_cash' => 900,
-            'max_cash' => 2500,
-            'xp' => 240,
+            'min_cash' => 15000,
+            'max_cash' => 38000,
+            'xp' => 380,
+            'respect' => 22,
             'jail_minutes' => 30,
         ],
     ];
@@ -223,7 +229,7 @@ class TheftService
             }
 
             $xpGained = $tier['xp'];
-            $respectGained = 2;
+            $respectGained = $tier['respect'] ?? 2;
 
             // Zwart geld contant verdiend!
             $this->economyService->addCash($character, $cashStolen);
@@ -236,7 +242,7 @@ class TheftService
                 $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
             }
 
-            $character->respect += $respectGained;
+            $character->addRespect($respectGained);
             $character->thefts_succeeded++;
             $character->save();
 

@@ -510,9 +510,15 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 text-purple-700 shadow-2xs">
-            <span class="w-4 h-4 rounded bg-purple-600 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-award"></i></span>
-            <span>{{ number_format($character->respect, 0, ',', '.') }}</span>
+        <!-- Respect & Daily Respect Mobile Badge -->
+        <div class="flex items-center gap-1.5 bg-slate-900 text-white border border-purple-500/50 px-2.5 py-1 rounded-lg shrink-0 shadow-2xs" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
+            <span class="w-4 h-4 rounded bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-[9px] shadow-2xs">
+                <i class="fa-solid fa-fire-flame-curved text-[9px]"></i>
+            </span>
+            <div class="flex flex-col text-[10px] leading-tight">
+                <span class="font-bold text-white">Respect: <span class="text-fuchsia-300">{{ $character->formatted_respect }}</span></span>
+                <span class="text-[9px] text-purple-200">Vandaag: <strong class="text-white">{{ $character->formatted_today_respect }}</strong></span>
+            </div>
         </div>
 
         <a href="{{ route('vip.index') }}" class="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg shrink-0 text-amber-800 shadow-2xs">
@@ -790,14 +796,19 @@
                         </div>
                     </div>
 
-                    <!-- Respect -->
-                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
-                        <span class="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-award"></i>
+                    <!-- Respect & Daily Respect Badge -->
+                    <div class="flex items-center gap-2.5 bg-gradient-to-r from-purple-950 via-slate-900 to-purple-950 border border-purple-500/50 text-white px-3 py-1.5 rounded-xl shadow-xs shrink-0 select-none" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
+                        <span class="w-7 h-7 rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-xs font-black shadow-inner shadow-purple-300/40">
+                            <i class="fa-solid fa-fire-flame-curved text-xs animate-pulse"></i>
                         </span>
-                        <div>
-                            <span class="text-[9px] uppercase font-bold text-slate-400 block leading-none">Respect</span>
-                            <span class="font-extrabold text-purple-700 text-xs">{{ number_format($character->respect, 0, ',', '.') }}</span>
+                        <div class="flex flex-col justify-center leading-tight">
+                            <span class="text-xs font-black tracking-tight text-white flex items-center gap-1">
+                                <span>Respect:</span>
+                                <span class="text-fuchsia-300 font-extrabold">{{ $character->formatted_respect }}</span>
+                            </span>
+                            <span class="text-[10px] font-semibold text-purple-200/90">
+                                Vandaag: <strong class="text-white font-bold">{{ $character->formatted_today_respect }}</strong>
+                            </span>
                         </div>
                     </div>
 

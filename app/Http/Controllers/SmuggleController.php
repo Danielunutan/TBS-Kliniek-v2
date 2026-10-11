@@ -87,9 +87,9 @@ class SmuggleController extends Controller
         }
 
         $configs = [
-            'sigaretten' => ['cost' => 5, 'quantity' => 5, 'xp' => 25, 'name' => '5x Sigaretten'],
-            'ritalin' => ['cost' => 10, 'quantity' => 3, 'xp' => 50, 'name' => '3x Ritalin Strips'],
-            'telefoon' => ['cost' => 20, 'quantity' => 1, 'xp' => 120, 'name' => '1x Gesmokkelde Telefoon'],
+            'sigaretten' => ['cost' => 5, 'quantity' => 10, 'xp' => 35, 'name' => '10x Sigaretten'],
+            'ritalin' => ['cost' => 10, 'quantity' => 5, 'xp' => 65, 'name' => '5x Ritalin Strips'],
+            'telefoon' => ['cost' => 20, 'quantity' => 1, 'xp' => 150, 'name' => '1x Gesmokkelde Telefoon'],
         ];
 
         $cfg = $configs[$validated['type']];
@@ -152,7 +152,8 @@ class SmuggleController extends Controller
 
         $charItem->decrement('quantity', $order['amount']);
         $this->economy->addCash($character, $order['reward_cash']);
-        $character->increment('respect', $order['reward_respect']);
+        $character->addRespect($order['reward_respect']);
+        $character->save();
 
         // 5% Rank XP reward for completing the sale
         $xpGain = max(45, (int) round(($character->level * 80) * 0.05 + $order['reward_cash'] * 0.2));
@@ -235,9 +236,9 @@ class SmuggleController extends Controller
         $randomBuyer = $buyerNames[array_rand($buyerNames)];
 
         $itemsPool = [
-            ['slug' => 'sigaretten', 'name' => 'Sigaretten', 'amount' => rand(4, 8), 'rate' => 25, 'respect' => rand(1, 3)],
-            ['slug' => 'ritalin', 'name' => 'Ritalin Strips', 'amount' => rand(2, 5), 'rate' => 80, 'respect' => rand(2, 4)],
-            ['slug' => 'telefoon', 'name' => 'Gesmokkelde Telefoon', 'amount' => 1, 'rate' => 550, 'respect' => rand(5, 8)],
+            ['slug' => 'sigaretten', 'name' => 'Sigaretten', 'amount' => rand(4, 8), 'rate' => 350, 'respect' => rand(2, 5)],
+            ['slug' => 'ritalin', 'name' => 'Ritalin Strips', 'amount' => rand(2, 5), 'rate' => 1200, 'respect' => rand(4, 8)],
+            ['slug' => 'telefoon', 'name' => 'Gesmokkelde Telefoon', 'amount' => 1, 'rate' => 8500, 'respect' => rand(10, 18)],
         ];
 
         $itemConfig = $itemsPool[array_rand($itemsPool)];

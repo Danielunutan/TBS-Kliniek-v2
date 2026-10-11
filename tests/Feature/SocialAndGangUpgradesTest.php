@@ -153,7 +153,7 @@ class SocialAndGangUpgradesTest extends TestCase
 
         $this->actingAs($user);
 
-        // 1. Buy Bling Bling Shop (costs €1.250.000 from gang treasury)
+        // 1. Buy Bling Bling Shop (costs €50.000 from gang treasury)
         $shopRes = $this->post(route('gangs.shop-buy'), [
             'item_type' => 'bling_shops',
             'quantity' => 1,
@@ -161,7 +161,7 @@ class SocialAndGangUpgradesTest extends TestCase
         $shopRes->assertSessionHas('success');
         $gang->refresh();
         $this->assertEquals(1, $gang->bling_shops);
-        $this->assertEquals(750000, $gang->treasury);
+        $this->assertEquals(1950000, $gang->treasury);
 
         // 2. Buy Protection (costs €15.000 from gang treasury)
         $protRes = $this->post(route('gangs.shop-buy'), [

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\DailyBattleService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Carbon|null $protection_until
  * @property Carbon|null $last_active_at
  * @property Carbon|null $last_gang_wage_at
+ * @property float $today_respect
+ * @property string|null $today_respect_date
+ * @property-read float $today_respect_score
+ * @property-read string $formatted_respect
+ * @property-read string $formatted_today_respect
  */
 class Character extends Model
 {
@@ -97,7 +103,29 @@ class Character extends Model
         'vip_expires_at' => 'datetime',
         'last_vip_reward_at' => 'datetime',
         'username_changed_at' => 'datetime',
+        'today_respect' => 'decimal:2',
+        'today_respect_date' => 'string',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Character $character) {
+            if ($character->isDirty('respect') && ! $character->isDirty('today_respect')) {
+                $oldRespect = (float) ($character->getOriginal('respect') ?? 0);
+                $newRespect = (float) ($character->respect ?? 0);
+                $diff = $newRespect - $oldRespect;
+                if ($diff > 0) {
+                    $today = now()->format('Y-m-d');
+                    $currentDate = $character->today_respect_date ? Carbon::parse($character->today_respect_date)->format('Y-m-d') : null;
+                    if ($currentDate !== $today) {
+                        $character->today_respect = 0.00;
+                        $character->today_respect_date = $today;
+                    }
+                    $character->today_respect = round(((float) ($character->today_respect ?? 0)) + $diff, 2);
+                }
+            }
+        });
+    }
 
     /**
      * Check if character has active VIP status.
@@ -405,5 +433,73 @@ class Character extends Model
     public function isModerator(): bool
     {
         return $this->user?->isModerator() ?? false;
+    }
+
+    /**
+     * Add respect to character and track daily respect earned.
+     */
+    public function addRespect(float|int $amount): void
+    {
+        if ($amount <= 0) {
+            return;
+        }
+
+        $today = now()->format('Y-m-d');
+        $currentDate = $this->today_respect_date ? Carbon::parse($this->today_respect_date)->format('Y-m-d') : null;
+
+        if ($currentDate !== $today) {
+            $this->today_respect = 0.00;
+            $this->today_respect_date = $today;
+        }
+
+        $this->respect = max(0, (int) round(($this->respect ?? 0) + $amount));
+        $this->today_respect = round(((float) ($this->today_respect ?? 0)) + $amount, 2);
+
+        try {
+            if (class_exists(DailyBattleService::class)) {
+                app(DailyBattleService::class)->record($this, 'respect', (int) round($amount));
+            }
+        } catch (\Throwable) {
+            // Ignore in environments where service/battle is unavailable
+        }
+    }
+
+    /**
+     * Get today's respect score (reset if new day).
+     */
+    public function getTodayRespectScoreAttribute(): float
+    {
+        $today = now()->format('Y-m-d');
+        $currentDate = $this->today_respect_date ? Carbon::parse($this->today_respect_date)->format('Y-m-d') : null;
+
+        if ($currentDate !== $today) {
+            return 0.00;
+        }
+
+        return (float) ($this->today_respect ?? 0.00);
+    }
+
+    /**
+     * Formatted respect (e.g. 6.73K or 1.25M or 450).
+     */
+    public function getFormattedRespectAttribute(): string
+    {
+        $val = (float) ($this->respect ?? 0);
+        if ($val >= 1000000) {
+            return number_format($val / 1000000, 2, '.', '').'M';
+        }
+        if ($val >= 1000) {
+            return number_format($val / 1000, 2, '.', '').'K';
+        }
+
+        return (string) number_format($val, 0, ',', '.');
+    }
+
+    /**
+     * Formatted today's respect (e.g. 68.30).
+     */
+    public function getFormattedTodayRespectAttribute(): string
+    {
+        return number_format($this->today_respect_score, 2, '.', '');
     }
 }

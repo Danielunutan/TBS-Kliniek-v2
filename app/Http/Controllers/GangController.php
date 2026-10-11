@@ -852,7 +852,7 @@ class GangController extends Controller
 
         switch ($itemType) {
             case 'bling_shops':
-                $unitPrice = 1250000;
+                $unitPrice = 50000;
                 $totalCost = $unitPrice * $qty;
                 // Pay from Gang treasury if officer (leader, co-leader, kantine smokkelaar, kasbeheerder) and sufficient, otherwise player cash
                 if ($gang->isOfficer($character) && $gang->treasury >= $totalCost) {
