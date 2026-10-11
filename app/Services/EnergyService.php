@@ -11,11 +11,19 @@ class EnergyService
      */
     public const REGEN_SECONDS = 300;
 
+    public function __construct(
+        protected ?AllowanceService $allowanceService = null,
+    ) {
+        $this->allowanceService = $allowanceService ?? app(AllowanceService::class);
+    }
+
     /**
-     * Refresh character's energy and health based on elapsed server timestamp.
+     * Refresh character's energy and health based on elapsed server timestamp, and pay pending allowances.
      */
     public function refresh(Character $character): Character
     {
+        $this->allowanceService->payoutPendingAllowance($character);
+
         $now = now();
         $lastRefill = $character->last_energy_refill_at ?? $character->created_at ?? $now;
 

@@ -203,6 +203,15 @@
                     </button>
                 </div>
             </div>
+
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-xs space-y-2">
+                <span class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> TBS Patiënten Uitkering
+                </span>
+                <p class="text-xs text-emerald-800 leading-relaxed font-medium">
+                    Zolang je geen bende hebt, ontvang je automatisch elk kwartier (15 min) <strong class="font-bold">€1.000</strong> direct op je <a href="{{ route('bank.index') }}" class="underline font-bold">bank</a>!
+                </p>
+            </div>
             @endif
         </div>
 
@@ -441,7 +450,7 @@
 
                 $currentMembersLimit = $myGang ? ($myGang->max_members ?? 10) : 10;
                 $remainingCapacity = max(0, 35 - $currentMembersLimit);
-                $possibleMaxMembers = min($remainingCapacity, (int) floor($spendableStars / 500));
+                $possibleMaxMembers = min($remainingCapacity, (int) floor($spendableStars / 25));
             @endphp
             <div x-show="activeGangTab === 'winkel'" class="space-y-6">
                 <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
@@ -576,7 +585,7 @@
                                     <span>Meer leden capaciteit</span>
                                 </h3>
                                 <p class="text-xs text-slate-500 mt-0.5">
-                                    Prijs per stuk: <strong class="text-amber-600 inline-flex items-center gap-1"><i class="fa-solid fa-star text-amber-500"></i> 500 Sterren</strong>
+                                    Prijs per stuk: <strong class="text-amber-600 inline-flex items-center gap-1"><i class="fa-solid fa-star text-amber-500"></i> 25 Sterren</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
                                     Mogelijk: <strong class="text-purple-700 font-extrabold">{{ number_format($possibleMaxMembers, 0, ',', '.') }}x</strong>
                                 </p>

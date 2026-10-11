@@ -172,7 +172,7 @@ class SocialAndGangUpgradesTest extends TestCase
         $gang->refresh();
         $this->assertEquals(11000, $gang->protection_points); // 1000 + (2 * 5000)
 
-        // 3. Buy member slots (costs 500 stars per slot)
+        // 3. Buy member slots (costs 25 stars per slot)
         $slotRes = $this->post(route('gangs.shop-buy'), [
             'item_type' => 'max_members',
             'quantity' => 2,
@@ -181,7 +181,7 @@ class SocialAndGangUpgradesTest extends TestCase
         $gang->refresh();
         $character->refresh();
         $this->assertEquals(12, $gang->max_members);
-        $this->assertEquals(500, $character->stars); // 1500 - 1000
+        $this->assertEquals(1450, $character->stars); // 1500 - 50
 
         // 4. Donate stars to gang
         $starRes = $this->post(route('gangs.donate-stars'), [
@@ -191,6 +191,6 @@ class SocialAndGangUpgradesTest extends TestCase
         $gang->refresh();
         $character->refresh();
         $this->assertEquals(250, $gang->gang_stars);
-        $this->assertEquals(250, $character->stars);
+        $this->assertEquals(1200, $character->stars); // 1450 - 250
     }
 }

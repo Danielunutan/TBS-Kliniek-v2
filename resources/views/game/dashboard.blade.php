@@ -104,9 +104,77 @@
                         <p class="text-lg font-bold text-slate-900 leading-none">{{ number_format($character->bank, 0, ',', '.') }}</p>
                     </div>
                 </div>
-                <!-- You can add a third stat here or leave it empty/span -->
+                @if($allowanceDetails['eligible'] ?? false)
+                    <div class="p-4 flex items-center justify-between gap-3 col-span-2 sm:col-span-1">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-inner">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">TBS Uitkering</p>
+                                <p class="text-lg font-bold text-emerald-600 leading-none">€1.000 <span class="text-xs font-semibold text-slate-400">/ 15m</span></p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Actief</span>
+                    </div>
+                @else
+                    <div class="p-4 flex items-center justify-between gap-3 col-span-2 sm:col-span-1">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shadow-inner">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Bende Lid</p>
+                                <p class="text-base font-bold text-purple-700 leading-none truncate max-w-[120px]">{{ $character->gang?->name ?? 'Gang' }}</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">Bende Loon</span>
+                    </div>
+                @endif
             </div>
         </div>
+
+        <!-- TBS Uitkering Banner for inmates without a gang -->
+        @if($allowanceDetails['eligible'] ?? false)
+            <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <i class="fa-solid fa-hand-holding-dollar text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-extrabold text-slate-900">TBS Patiënten Uitkering</h3>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Iedereen zonder bende</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-0.5">
+                            Omdat je niet in een bende zit, ontvang je automatisch <strong class="text-emerald-700 font-extrabold">€1.000 per kwartier (15 min)</strong> direct op je <a href="{{ route('bank.index') }}" class="underline font-bold hover:text-emerald-800">bankrekening</a>!
+                        </p>
+                    </div>
+                </div>
+                <div class="shrink-0 flex items-center gap-2 bg-white px-3.5 py-2 rounded-lg border border-emerald-200 shadow-xs self-end sm:self-center"
+                     x-data="{ 
+                         secondsLeft: {{ $allowanceDetails['seconds_until_next'] ?? 900 }},
+                         init() {
+                             setInterval(() => {
+                                 if (this.secondsLeft > 0) {
+                                     this.secondsLeft--;
+                                 } else {
+                                     this.secondsLeft = 900;
+                                 }
+                             }, 1000);
+                         },
+                         formatTime() {
+                             const m = Math.floor(this.secondsLeft / 60);
+                             const s = this.secondsLeft % 60;
+                             return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+                         }
+                     }">
+                    <i class="fa-solid fa-hourglass-half text-emerald-600 text-xs"></i>
+                    <span class="text-xs text-slate-500 font-medium">Volgende storting:</span>
+                    <span class="text-xs font-extrabold text-emerald-700 font-mono" x-text="formatTime()">{{ $allowanceDetails['next_human'] ?? '15m 00s' }}</span>
+                </div>
+            </div>
+        @endif
 
         <!-- Character Attributes -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

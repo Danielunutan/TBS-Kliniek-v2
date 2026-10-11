@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Mission;
 use App\Models\User;
+use App\Services\AllowanceService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,7 @@ class DashboardController extends Controller
     public function __construct(
         protected EnergyService $energyService,
         protected LevelService $levelService,
+        protected AllowanceService $allowanceService,
     ) {}
 
     /**
@@ -33,6 +35,8 @@ class DashboardController extends Controller
         // Refresh energy/health timestamps
         $this->energyService->refresh($character);
 
+        $allowanceDetails = $this->allowanceService->getAllowanceDetails($character);
+
         $nextLevelXp = $this->levelService->getXpRequiredForNextLevel($character->level);
         $xpPercentage = min(100, max(0, (int) round(($character->xp / max(1, $nextLevelXp)) * 100)));
 
@@ -46,7 +50,8 @@ class DashboardController extends Controller
             'xpPercentage',
             'quickMissions',
             'notifications',
-            'recentGuestbook'
+            'recentGuestbook',
+            'allowanceDetails'
         ));
     }
 }

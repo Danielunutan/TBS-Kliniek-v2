@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('gang:pay-wages')->hourly();
+Schedule::command('patients:pay-allowances')->everyFifteenMinutes();

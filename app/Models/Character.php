@@ -66,6 +66,7 @@ class Character extends Model
     protected $casts = [
         'last_energy_refill_at' => 'datetime',
         'last_gang_wage_at' => 'datetime',
+        'last_allowance_at' => 'datetime',
         'prison_until' => 'datetime',
         'protection_until' => 'datetime',
         'last_active_at' => 'datetime',

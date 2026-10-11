@@ -40,6 +40,59 @@
         </div>
     </div>
 
+    <!-- TBS Patiënten Uitkering Overview -->
+    <div class="bg-white p-5 rounded-lg border {{ ($allowanceDetails['eligible'] ?? false) ? 'border-emerald-300 bg-gradient-to-r from-emerald-50/60 to-white' : 'border-slate-200' }} shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+                <div class="w-12 h-12 rounded-xl {{ ($allowanceDetails['eligible'] ?? false) ? 'bg-emerald-600' : 'bg-slate-200' }} text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <i class="fa-solid fa-hand-holding-dollar text-xl {{ ($allowanceDetails['eligible'] ?? false) ? 'text-white' : 'text-slate-400' }}"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">TBS Patiënten Uitkering</h2>
+                        @if($allowanceDetails['eligible'] ?? false)
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 uppercase">Actief</span>
+                        @else
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 uppercase">Lid van Bende (Bende Loon)</span>
+                        @endif
+                    </div>
+                    <p class="text-xs text-slate-600 mt-1 max-w-2xl">
+                        @if($allowanceDetails['eligible'] ?? false)
+                            Iedere patiënt in de kliniek die <strong>geen lid is van een bende</strong> ontvangt automatisch een basisinkomen van <strong class="text-emerald-700 font-extrabold">€1.000 per kwartier (15 minuten)</strong> direct op deze beveiligde bankrekening!
+                        @else
+                            Omdat je lid bent van bende <strong>{{ $character->gang?->name ?? 'Gang' }}</strong>, ontvang je geen basisuitkering meer, maar verdien je automatisch een uurloon via de smokkelkiosken van jouw bende.
+                        @endif
+                    </p>
+                </div>
+            </div>
+
+            @if($allowanceDetails['eligible'] ?? false)
+                <div class="shrink-0 flex sm:flex-col items-center sm:items-end justify-between bg-emerald-100/60 sm:bg-transparent p-3 sm:p-0 rounded-lg"
+                     x-data="{ 
+                         secondsLeft: {{ $allowanceDetails['seconds_until_next'] ?? 900 }},
+                         init() {
+                             setInterval(() => {
+                                 if (this.secondsLeft > 0) {
+                                     this.secondsLeft--;
+                                 } else {
+                                     this.secondsLeft = 900;
+                                 }
+                             }, 1000);
+                         },
+                         formatTime() {
+                             const m = Math.floor(this.secondsLeft / 60);
+                             const s = this.secondsLeft % 60;
+                             return `${m}m ${s < 10 ? '0' : ''}${s}s`;
+                         }
+                     }">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Volgende uitbetaling</span>
+                    <span class="text-base font-extrabold text-emerald-700 font-mono" x-text="formatTime()">{{ $allowanceDetails['next_human'] ?? '15m 00s' }}</span>
+                    <span class="text-[11px] font-semibold text-emerald-600">+€1.000 op bank</span>
+                </div>
+            @endif
+        </div>
+    </div>
+
     <!-- Deposit and Withdraw Forms -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <!-- Deposit Form -->

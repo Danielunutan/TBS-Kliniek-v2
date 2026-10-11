@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AllowanceService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
@@ -15,6 +16,7 @@ class BankController extends Controller
     public function __construct(
         protected EconomyService $economyService,
         protected EnergyService $energyService,
+        protected AllowanceService $allowanceService,
     ) {}
 
     /**
@@ -27,7 +29,9 @@ class BankController extends Controller
         $character = $user->character;
         $this->energyService->refresh($character);
 
-        return view('game.bank', compact('character'));
+        $allowanceDetails = $this->allowanceService->getAllowanceDetails($character);
+
+        return view('game.bank', compact('character', 'allowanceDetails'));
     }
 
     /**

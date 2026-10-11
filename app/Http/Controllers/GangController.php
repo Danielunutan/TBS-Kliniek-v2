@@ -910,7 +910,7 @@ class GangController extends Controller
                     ->with('success', "Succesvol {$qty}x Power aangeschaft (+".number_format($qty * 2500, 0, ',', '.').' aanvalspunten)!');
 
             case 'max_members':
-                $starPrice = 500;
+                $starPrice = 25;
                 $totalStars = $starPrice * $qty;
                 $currentMax = $gang->max_members ?? 10;
                 $newMax = $currentMax + $qty;
