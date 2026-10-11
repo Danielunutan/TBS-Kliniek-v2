@@ -95,17 +95,17 @@
                 <div class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-slate-50 transition">
                     <i class="fa-solid fa-brain text-purple-500 text-xl mb-2"></i>
                     <span class="text-xs font-bold text-slate-500">Intelligentie</span>
-                    <span class="text-lg font-bold text-slate-900">25</span>
+                    <span class="text-lg font-bold text-slate-900">{{ $character->intelligence ?? 25 }}</span>
                 </div>
                 <div class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-slate-50 transition">
                     <i class="fa-solid fa-face-smile-wink text-amber-500 text-xl mb-2"></i>
                     <span class="text-xs font-bold text-slate-500">Charisma</span>
-                    <span class="text-lg font-bold text-slate-900">20</span>
+                    <span class="text-lg font-bold text-slate-900">{{ $character->charisma ?? 20 }}</span>
                 </div>
                 <div class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-slate-50 transition">
                     <i class="fa-solid fa-scale-balanced text-sky-500 text-xl mb-2"></i>
                     <span class="text-xs font-bold text-slate-500">Discipline</span>
-                    <span class="text-lg font-bold text-slate-900">18</span>
+                    <span class="text-lg font-bold text-slate-900">{{ $character->discipline ?? 18 }}</span>
                 </div>
             </div>
         </div>

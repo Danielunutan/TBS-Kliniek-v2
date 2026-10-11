@@ -399,58 +399,275 @@
     </aside>
 
     <!-- MOBILE TOP HEADER BAR -->
-    <div class="lg:hidden bg-white text-slate-800 px-4 py-3 flex items-center justify-between border-b border-slate-200 sticky top-0 z-50 shadow-xs">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
-            <div class="w-9 h-9 shrink-0 drop-shadow-xs flex items-center justify-center">
+    <div class="lg:hidden bg-white text-slate-800 px-3.5 py-2.5 flex items-center justify-between border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
+            <div class="w-8 h-8 shrink-0 drop-shadow-xs flex items-center justify-center">
                 <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
             </div>
-            <span class="text-sm font-black tracking-tight text-slate-900">TBS <span class="text-purple-600">KLINIEK</span></span>
+            <div class="flex flex-col">
+                <span class="text-xs font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
+                <span class="text-[9px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+                </span>
+            </div>
         </a>
-        <div class="flex items-center gap-2.5">
-            <span class="text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md">
-                €{{ number_format($character->cash, 0, ',', '.') }}
-            </span>
-            <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-slate-600 p-1.5 focus:outline-none rounded-lg hover:bg-slate-100 cursor-pointer">
-                <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+        <div class="flex items-center gap-2">
+            @php
+                $unreadMsgCount = \App\Models\GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count();
+            @endphp
+            <a href="{{ route('messages.index') }}" class="relative p-2 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-slate-100 transition" title="Berichten">
+                <i class="fa-solid fa-envelope text-sm"></i>
+                @if($unreadMsgCount > 0)
+                    <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
+                @endif
+            </a>
+
+            <a href="{{ route('profile.me') }}" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-xl transition">
+                <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-6 h-6 rounded-full object-cover">
+                <span class="text-[10px] font-extrabold text-slate-700 max-w-[70px] truncate">{{ $character->name }}</span>
+            </a>
+
+            <button @click="mobileMenuOpen = true" class="text-slate-700 p-2 focus:outline-none rounded-xl hover:bg-slate-100 cursor-pointer active:scale-95 transition" aria-label="Open menu">
+                <i class="fa-solid fa-bars text-base"></i>
             </button>
         </div>
     </div>
 
-    <!-- MOBILE ACCORDION MENU -->
-    <div x-show="mobileMenuOpen" x-cloak class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-1 text-xs z-50 shadow-md">
-        <div class="font-extrabold text-[10px] uppercase text-slate-400 pt-1 pb-0.5">Snelkoppelingen</div>
-        <a href="{{ route('dashboard') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">Dashboard</a>
-        <a href="{{ route('vip.index') }}" class="block py-2 px-3 rounded-lg font-bold text-amber-700 hover:bg-amber-50">👑 VIP Shop & Punten</a>
-        <a href="{{ route('battle.index') }}" class="block py-2 px-3 rounded-lg font-bold text-pink-700 hover:bg-pink-50">🏆 24 Uur Battle</a>
-        <a href="{{ route('hustle.index') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">Hosselen</a>
-        <a href="{{ route('smuggle.index') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">Dealen & Smokkel</a>
-        <a href="{{ route('fight.index') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">Luchtplaats (PvP)</a>
-        <a href="{{ route('bank.index') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">De Bank</a>
-        <a href="{{ route('casino.index') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">Casino & Gokhal</a>
-        <a href="{{ route('gangs.index') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">Bendes</a>
-        <a href="{{ route('profile.me') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">Mijn Profiel</a>
-        <a href="{{ route('faq.index') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">❓ Kennisbank & FAQ</a>
-        <a href="{{ route('settings.account') }}" class="block py-2 px-3 rounded-lg font-bold text-slate-700 hover:bg-slate-50">⚙️ Account Instellingen</a>
-        @if(Auth::check() && Auth::user()->isStaff())
-            <a href="{{ route('admin.dashboard') }}" class="block py-2 px-3 rounded-lg font-bold text-purple-700 hover:bg-purple-50">🛡️ Medewerkers Admin</a>
-        @endif
-        <form method="POST" action="{{ route('logout') }}" class="pt-2 border-t border-slate-100"
-              data-confirm="Weet je zeker dat je wilt uitloggen uit de TBS Kliniek?"
-              data-confirm-title="Veilig Uitloggen"
-              data-confirm-btn="Ja, Uitloggen"
-              data-confirm-type="logout"
-              data-confirm-icon="fa-right-from-bracket">
-            @csrf
-            <button type="submit" class="w-full text-left py-2 px-3 rounded-lg font-bold text-rose-600 hover:bg-rose-50 cursor-pointer">Uitloggen</button>
-        </form>
+    <!-- MOBILE QUICK STATS STRIP -->
+    <div class="lg:hidden bg-slate-50 border-b border-slate-200/90 px-3 py-1.5 flex items-center gap-2 overflow-x-auto text-[11px] font-bold scrollbar-none sticky top-[49px] z-30 shadow-2xs">
+        <a href="{{ route('bank.index') }}" class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 text-slate-700 shadow-2xs">
+            <span class="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center text-[9px] font-black"><i class="fa-solid fa-euro-sign"></i></span>
+            <span>€{{ number_format($character->cash, 0, ',', '.') }}</span>
+        </a>
+
+        <a href="{{ route('bank.index') }}" class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 text-slate-700 shadow-2xs">
+            <span class="w-4 h-4 rounded bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold"><i class="fa-solid fa-building-columns"></i></span>
+            <span>€{{ number_format($character->bank, 0, ',', '.') }}</span>
+        </a>
+
+        <div class="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 shadow-2xs">
+            <span class="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-bolt"></i></span>
+            <span class="text-emerald-700">{{ $character->energy }}/{{ $character->max_energy }}</span>
+            <div class="w-10 bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 shadow-2xs">
+            <span class="w-4 h-4 rounded bg-rose-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-heart-pulse"></i></span>
+            <span class="text-rose-700">{{ $character->health }}/{{ $character->max_health }}</span>
+            <div class="w-10 bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 text-purple-700 shadow-2xs">
+            <span class="w-4 h-4 rounded bg-purple-600 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-award"></i></span>
+            <span>{{ number_format($character->respect, 0, ',', '.') }}</span>
+        </div>
+
+        <a href="{{ route('vip.index') }}" class="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg shrink-0 text-amber-800 shadow-2xs">
+            <span class="w-4 h-4 rounded bg-amber-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-star"></i></span>
+            <span>{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
+        </a>
+    </div>
+
+    <!-- MOBILE FULL SLIDE-OVER NAVIGATION DRAWER -->
+    <div x-show="mobileMenuOpen" x-cloak class="lg:hidden fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="mobileMenuOpen = false" 
+             class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"></div>
+
+        <div x-show="mobileMenuOpen"
+             x-transition:enter="transition ease-in-out duration-300 transform"
+             x-transition:enter-start="translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in-out duration-300 transform"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="translate-x-full"
+             class="relative w-[85vw] max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800">
+            
+            <div class="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-400">
+                    <div>
+                        <div class="font-extrabold text-sm leading-tight">{{ $character->name }}</div>
+                        <div class="text-[11px] text-purple-300 font-medium">Level {{ $character->level }} &bull; {{ $character->title ?? 'Patiënt' }}</div>
+                    </div>
+                </div>
+                <button @click="mobileMenuOpen = false" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-semibold">
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2 p-2.5 rounded-xl bg-purple-50 text-purple-700 font-bold border border-purple-100">
+                        <i class="fa-solid fa-house text-purple-600"></i> Dashboard
+                    </a>
+                    <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                        <i class="fa-solid fa-crown text-amber-500"></i> VIP Shop
+                    </a>
+                </div>
+
+                <!-- 1. Algemeen & Post -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Algemeen & Post</span>
+                    <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition {{ request()->routeIs('messages.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-envelope w-4 text-blue-500"></i> Berichten & Post</span>
+                        @if($unreadMsgCount > 0)<span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadMsgCount }}</span>@endif
+                    </a>
+                    <a href="{{ route('timeline.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-bullhorn w-4 text-sky-500"></i> Tijdlijn (Feed)
+                    </a>
+                    <a href="{{ route('friends.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-user-group w-4 text-pink-500"></i> Vrienden & BFF
+                    </a>
+                    <a href="{{ route('leaderboard.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-trophy w-4 text-amber-500"></i> Ranglijsten
+                    </a>
+                    <a href="{{ route('battle.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-bolt w-4 text-purple-600"></i> 24 Uur Battle</span>
+                        <span class="bg-purple-100 text-purple-700 text-[9px] font-black uppercase px-1.5 py-0.5 rounded">Live</span>
+                    </a>
+                    <a href="{{ route('prison') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-dungeon w-4 text-rose-500"></i> Isoleercel
+                    </a>
+                    <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-users w-4 text-purple-500"></i> Bendes & Gangs
+                    </a>
+                </div>
+
+                <!-- 2. Illegale Acties -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Illegale Acties</span>
+                    <a href="{{ route('hustle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-hand-holding-dollar w-4 text-emerald-500"></i> Hosselen
+                    </a>
+                    <a href="{{ route('smuggle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-capsules w-4 text-teal-500"></i> Dealen & Smokkel
+                    </a>
+                    <a href="{{ route('extort.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-person-military-pointing w-4 text-orange-500"></i> Afpersen
+                    </a>
+                    <a href="{{ route('lockers.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-id-card w-4 text-blue-500"></i> Kluisjes Kraken
+                    </a>
+                </div>
+
+                <!-- 3. Bonus & Kluizen -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 block px-2">Bonus & Kluizen</span>
+                    <a href="{{ route('vault.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-vault w-4 text-purple-500"></i> MedicijnKluis (Kraak)
+                    </a>
+                    <a href="{{ route('packages.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-box-open w-4 text-amber-500"></i> Koffers & Pakketjes
+                    </a>
+                    <a href="{{ route('pickpocket.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-mask w-4 text-indigo-500"></i> Zakkenrollen
+                    </a>
+                </div>
+
+                <!-- 4. Geweld & Strijd -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Geweld & Strijd</span>
+                    <a href="{{ route('fight.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-skull w-4 text-rose-500"></i> Slaylist (Luchtplaats)
+                    </a>
+                    <a href="{{ route('theft.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-briefcase w-4 text-slate-600"></i> Klusjes & Diefstal
+                    </a>
+                    <a href="{{ route('combat_training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-bullseye w-4 text-indigo-500"></i> Vechtoefening
+                    </a>
+                    <a href="{{ route('hitman.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-crosshairs w-4 text-rose-600"></i> Liquidatie
+                    </a>
+                    <a href="{{ route('informants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-user-secret w-4 text-slate-700"></i> Informanten
+                    </a>
+                    <a href="{{ route('isolation.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-ghost w-4 text-purple-500"></i> Vrijwillige Isolatie
+                    </a>
+                </div>
+
+                <!-- 5. Economie & Gokken -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Economie & Gokken</span>
+                    <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-building-columns w-4 text-emerald-500"></i> De Bank
+                    </a>
+                    <a href="{{ route('travel.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-signs-post w-4 text-teal-500"></i> Verplaatsen
+                    </a>
+                    <a href="{{ route('casino.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-dice w-4 text-rose-500"></i> Casino & Gokhal
+                    </a>
+                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-cart-shopping w-4 text-amber-500"></i> Kliniek Winkel
+                    </a>
+                    <a href="{{ route('marketplace.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-shop w-4 text-purple-600"></i> Marktplaats
+                    </a>
+                </div>
+
+                <!-- 6. Voortgang & Status -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Voortgang & Status</span>
+                    <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-list-check w-4 text-indigo-500"></i> Missies & Opdrachten
+                    </a>
+                    <a href="{{ route('training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-dumbbell w-4 text-purple-500"></i> Krachttraining
+                    </a>
+                    <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-id-badge w-4 text-blue-500"></i> Mijn Profiel
+                    </a>
+                    <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-circle-question w-4 text-sky-500"></i> Kennisbank & FAQ
+                    </a>
+                    <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-gear w-4 text-slate-500"></i> Account Instellingen
+                    </a>
+                    @if(Auth::check() && Auth::user()->isStaff())
+                    <a href="{{ route('admin.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg bg-purple-50 text-purple-900 font-bold border border-purple-200">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-shield-halved w-4 text-purple-600"></i> Medewerkers Admin</span>
+                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
+                    </a>
+                    @endif
+                </div>
+
+                <div class="pt-2 border-t border-slate-100">
+                    <form method="POST" action="{{ route('logout') }}"
+                          data-confirm="Weet je zeker dat je wilt uitloggen uit de TBS Kliniek?"
+                          data-confirm-title="Veilig Uitloggen"
+                          data-confirm-btn="Ja, Uitloggen"
+                          data-confirm-type="logout"
+                          data-confirm-icon="fa-right-from-bracket">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Veilig Uitloggen</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
     @endif
 
     <!-- MAIN APP WRAPPER -->
     <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
-        <!-- TOP MODERN WHITE HEADER BAR -->
-        <header class="bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
+        <!-- TOP MODERN WHITE HEADER BAR (DESKTOP) -->
+        <header class="hidden lg:block bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
             <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 h-18 flex items-center justify-between gap-4 sm:gap-6">
                 
                 <!-- Left: Player Profile summary -->
@@ -610,8 +827,8 @@
         </header>
         @endif
 
-        <!-- MAIN CONTENT CONTAINER (pt-8 zorgt ervoor dat pagina content NOOIT meer tegen de bovenbalk plakt) -->
-        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-20">
+        <!-- MAIN CONTENT CONTAINER (pt-4 sm:pt-8, pb-28 zodat mobiele bottom dock niets overlapt) -->
+        <main class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-28 lg:pb-12">
             <!-- Active Prison / Isoleercel Alert Banner with Live Seconds Ticker & Star Buyout -->
             @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
             <div x-data="{ sec: {{ $character->remainingPrisonSeconds() }} }" 
@@ -1056,7 +1273,7 @@
                 });
             }, 300);
         }
-    }" class="fixed bottom-5 right-5 z-50">
+    }" class="hidden md:block fixed bottom-5 right-5 z-50">
 
         <!-- CHAT WINDOW POPUP (Website Style: Clean Light Card with Royal Purple Accents) -->
         <div x-show="isOpen" x-cloak
@@ -1159,5 +1376,40 @@
         </button>
     </div>
     @endauth
+
+    @if(isset($character) && $character)
+    <!-- MOBILE BOTTOM NAVIGATION DOCK (Native App Feel) -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around select-none">
+        <!-- 1. Dashboard -->
+        <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
+            <i class="fa-solid fa-house text-base"></i>
+            <span class="text-[10px] mt-0.5">Home</span>
+        </a>
+
+        <!-- 2. Missies -->
+        <a href="{{ route('missions.index') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('missions.*') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
+            <i class="fa-solid fa-list-check text-base"></i>
+            <span class="text-[10px] mt-0.5">Missies</span>
+        </a>
+
+        <!-- 3. Luchtplaats / Vechten -->
+        <a href="{{ route('fight.index') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('fight.*') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
+            <i class="fa-solid fa-hand-fist text-base"></i>
+            <span class="text-[10px] mt-0.5">Vechten</span>
+        </a>
+
+        <!-- 4. Bank -->
+        <a href="{{ route('bank.index') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('bank.*') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
+            <i class="fa-solid fa-building-columns text-base"></i>
+            <span class="text-[10px] mt-0.5">Bank</span>
+        </a>
+
+        <!-- 5. Menu -->
+        <button type="button" @click="mobileMenuOpen = true" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-800 font-semibold transition cursor-pointer">
+            <i class="fa-solid fa-bars text-base"></i>
+            <span class="text-[10px] mt-0.5">Menu</span>
+        </button>
+    </nav>
+    @endif
 </body>
 </html>
