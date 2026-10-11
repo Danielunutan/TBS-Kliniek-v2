@@ -64,7 +64,9 @@
     ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
 
-    <link rel="icon" type="image/png" href="{{ asset('assets/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo.png') }}?v=3">
+    <link rel="shortcut icon" href="{{ asset('assets/logo.png') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ asset('assets/logo.png') }}?v=3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -121,7 +123,7 @@
         <div class="px-5 py-4 flex items-center border-b border-slate-100 bg-white sticky top-0 z-10">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group" title="TBS Kliniek Dashboard">
                 <div class="w-11 h-11 shrink-0 drop-shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
-                    <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
+                    <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
                 </div>
                 <div class="flex flex-col">
                     <div class="flex items-center gap-1.5">
@@ -400,7 +402,7 @@
     <div class="lg:hidden bg-white text-slate-800 px-4 py-3 flex items-center justify-between border-b border-slate-200 sticky top-0 z-50 shadow-xs">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
             <div class="w-9 h-9 shrink-0 drop-shadow-xs flex items-center justify-center">
-                <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
+                <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
             </div>
             <span class="text-sm font-black tracking-tight text-slate-900">TBS <span class="text-purple-600">KLINIEK</span></span>
         </a>
@@ -589,7 +591,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
                 <a href="{{ route('login') }}" data-turbo="false" data-turbo-prefetch="false" class="flex items-center gap-3 group">
                     <div class="w-11 h-11 shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
-                        <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek" class="w-full h-full object-contain drop-shadow-md">
+                        <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek" class="w-full h-full object-contain drop-shadow-md">
                     </div>
                     <div>
                         <span class="block text-base font-extrabold tracking-tight text-slate-900 uppercase leading-none">
@@ -671,7 +673,7 @@
         <footer class="mt-auto border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
             <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5">
-                    <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek" class="w-7 h-7 object-contain drop-shadow-xs">
+                    <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek" class="w-8 h-8 object-contain drop-shadow-xs">
                     <span class="font-extrabold text-slate-800 text-sm">TBS <span class="text-purple-600">Kliniek</span></span>
                 </div>
                 <div>
@@ -1070,8 +1072,8 @@
             <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 p-3.5 border-b border-purple-500/30 flex items-center justify-between text-white shadow-xs">
                 <div class="flex items-center gap-3">
                     <div class="relative">
-                        <div class="w-9 h-9 rounded-xl bg-white/20 border border-white/30 backdrop-blur-xs flex items-center justify-center text-sm shadow-xs">
-                            <i class="fa-solid fa-robot text-white"></i>
+                        <div class="w-9 h-9 rounded-xl bg-white/20 border border-white/30 backdrop-blur-xs flex items-center justify-center p-1 shadow-xs overflow-hidden">
+                            <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Logo" class="w-full h-full object-contain">
                         </div>
                         <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-purple-700"></span>
                     </div>
@@ -1148,9 +1150,9 @@
 
         <!-- FLOATING LAUNCHER BUTTON -->
         <button type="button" @click="isOpen = !isOpen"
-                class="px-4 py-3 rounded-2xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-purple-900/40 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-105 active:scale-95 border border-purple-400/30">
-            <div class="relative">
-                <i class="fa-solid fa-comments text-base"></i>
+                class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-purple-900/40 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-105 active:scale-95 border border-purple-400/30">
+            <div class="relative w-6 h-6 shrink-0 flex items-center justify-center">
+                <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Helpbot" class="w-full h-full object-contain">
                 <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
             </div>
             <span class="tracking-wide">Kliniek Helpbot</span>

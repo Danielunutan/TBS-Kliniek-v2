@@ -19,7 +19,7 @@
 
         <div class="text-center space-y-2">
             <div class="inline-flex items-center gap-3">
-                <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Logo" class="w-14 h-14 object-contain drop-shadow">
+                <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-14 h-14 object-contain drop-shadow">
                 <div class="text-left">
                     <span class="block text-xl font-black tracking-tight text-white">TBS KLINIEK</span>
                     <span class="block text-[10px] font-extrabold uppercase tracking-widest text-purple-400">PATIËNTEN VERIFICATIE</span>

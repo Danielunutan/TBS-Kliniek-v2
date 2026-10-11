@@ -25,7 +25,7 @@
                 <!-- Branding Header with Official New Logo Emblem -->
                 <div class="flex items-center gap-4">
                     <div class="w-18 h-18 sm:w-22 sm:h-22 shrink-0 drop-shadow-2xl">
-                        <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
+                        <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
                     </div>
                     <div>
                         <h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-lg">
@@ -88,7 +88,10 @@
             <div class="w-full max-w-md mx-auto space-y-5">
                 
                 <!-- Header -->
-                <div>
+                <div class="text-center sm:text-left">
+                    <div class="lg:hidden flex justify-center mb-3">
+                        <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-14 h-14 object-contain drop-shadow-md">
+                    </div>
                     <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Welkom bij de Kliniek</h2>
                     <p class="text-xs text-slate-500 mt-0.5">Meld je aan voor je dossier of start direct.</p>
                 </div>
