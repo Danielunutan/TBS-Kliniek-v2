@@ -5,9 +5,7 @@ namespace Database\Seeders;
 use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\CharacterMission;
-use App\Models\GameNotification;
 use App\Models\Gang;
-use App\Models\GuestbookEntry;
 use App\Models\Item;
 use App\Models\Mission;
 use App\Models\User;
@@ -17,188 +15,13 @@ use Illuminate\Support\Facades\Hash;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database matching the official UI design.
+     * Seed the application's database.
+     * In production, only game definitions (missions and shop items) are seeded.
+     * In testing, fixtures are seeded to support the test suite.
      */
     public function run(): void
     {
-        // 1. Create Gangs
-        $gangKantine = Gang::create([
-            'name' => 'De Kantinebende',
-            'tag' => 'KB',
-            'description' => 'Wie de frituur beheerst, beheerst de kliniek. Geld, handel en de lekkerste snacks.',
-            'specialty' => 'Geld | Handel | Invloed',
-            'emblem' => 'fa-burger',
-            'treasury' => 8450,
-        ]);
-
-        $gangPlofkippen = Gang::create([
-            'name' => 'De Paarse Plofkippen',
-            'tag' => 'PP',
-            'description' => 'Geleid door Yordi de Regelaar. Altijd op zoek naar de beste deals en groepsmissies.',
-            'specialty' => 'Groepsmissies & Invloed',
-            'emblem' => 'fa-feather',
-            'treasury' => 5200,
-        ]);
-
-        $gangHalters = Gang::create([
-            'name' => 'De IJzeren Halters',
-            'tag' => 'IJH',
-            'description' => 'Geleid door Barry Biceps. Niemand durft voor te kruipen als de Halters trainen.',
-            'specialty' => 'Kracht & Gevechten',
-            'emblem' => 'fa-dumbbell',
-            'treasury' => 6100,
-        ]);
-
-        $gangGerda = Gang::create([
-            'name' => 'De Administratieve Nachtmerrie',
-            'tag' => 'DAN',
-            'description' => 'Directeur Gerda regeert met formulieren, stempels en onverbiddelijke bezuinigingen.',
-            'specialty' => 'Intelligentie & Strategie',
-            'emblem' => 'fa-file-signature',
-            'treasury' => 24000,
-        ]);
-
-        $gangWasmachine = Gang::create([
-            'name' => 'De Wasmachine Warriors',
-            'tag' => 'WW',
-            'description' => 'Ome Willem weet precies welke spullen en geheimen verdwijnen in trommel 4.',
-            'specialty' => 'Verzamelen & Geheimen',
-            'emblem' => 'fa-soap',
-            'treasury' => 3800,
-        ]);
-
-        // 2. Primary Demo User: Henkie (Matches the exact mockup!)
-        $henkieUser = User::create([
-            'name' => 'Henkie de Frikandelkoning',
-            'email' => 'demo@tbskliniek.nl',
-            'password' => Hash::make('wachtwoord123'),
-        ]);
-
-        $henkieChar = Character::create([
-            'user_id' => $henkieUser->id,
-            'name' => 'Henkie',
-            'title' => 'Kantinelegende',
-            'avatar' => 'characters/henkie.jpg',
-            'bio' => 'Henkie de Frikandelkoning. Altijd in voor een goed broodje en een stevige deal. De kantine van de kliniek is mijn speeltuin.',
-            'status_message' => 'Frikandelbroodjes zijn geen snack, het is een levensstijl.',
-            'level' => 12,
-            'xp' => 320,
-            'total_xp' => 4800,
-            'cash' => 2450,
-            'bank' => 15230,
-            'energy' => 85,
-            'max_energy' => 100,
-            'health' => 95,
-            'max_health' => 100,
-            'respect' => 1250,
-            'strength' => 35,
-            'defense' => 28,
-            'stamina' => 32,
-            'intelligence' => 25,
-            'charisma' => 20,
-            'discipline' => 18,
-            'missions_completed' => 34,
-            'thefts_succeeded' => 12,
-            'thefts_failed' => 3,
-            'fights_won' => 15,
-            'fights_lost' => 7,
-            'prison_sentences' => 2,
-            'prison_escapes' => 1,
-            'gang_id' => $gangKantine->id,
-            'gang_role' => 'leader',
-        ]);
-        $gangKantine->update(['leader_character_id' => $henkieChar->id]);
-
-        // Secondary / Fellow Inmates from mockup
-        $rianneUser = User::create(['name' => 'BakkerieRianne', 'email' => 'rianne@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $rianneChar = Character::create([
-            'user_id' => $rianneUser->id,
-            'name' => 'BakkerieRianne',
-            'title' => 'Broodjesspecialist',
-            'avatar' => 'characters/avatar-default.png',
-            'bio' => 'Houdt van vers bladerdeeg en scherpe dealtjes.',
-            'level' => 10,
-            'xp' => 120,
-            'total_xp' => 3200,
-            'cash' => 850,
-            'bank' => 4500,
-            'respect' => 340,
-            'strength' => 22,
-            'defense' => 20,
-            'stamina' => 24,
-            'intelligence' => 28,
-            'charisma' => 25,
-            'discipline' => 22,
-            'gang_id' => $gangKantine->id,
-        ]);
-
-        $queenUser = User::create(['name' => 'FrikandelQueen', 'email' => 'queen@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $queenChar = Character::create([
-            'user_id' => $queenUser->id,
-            'name' => 'FrikandelQueen',
-            'title' => 'Snackkoningin',
-            'avatar' => 'characters/avatar-default.png',
-            'bio' => 'Altijd vooraan bij de warmhoudkast.',
-            'level' => 9,
-            'xp' => 210,
-            'total_xp' => 2800,
-            'cash' => 620,
-            'bank' => 3800,
-            'respect' => 290,
-            'strength' => 18,
-            'defense' => 19,
-            'stamina' => 22,
-            'intelligence' => 24,
-            'charisma' => 30,
-            'discipline' => 18,
-            'gang_id' => $gangKantine->id,
-        ]);
-
-        $moederUser = User::create(['name' => 'MoederJellief', 'email' => 'jellief@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $moederChar = Character::create([
-            'user_id' => $moederUser->id,
-            'name' => 'MoederJellief',
-            'title' => 'Luchtplaats Veteraan',
-            'avatar' => 'characters/avatar-default.png',
-            'bio' => 'Gerda kan de pot op, niemand pakt mijn sigaretten af.',
-            'level' => 14,
-            'xp' => 540,
-            'total_xp' => 6400,
-            'cash' => 1400,
-            'bank' => 8900,
-            'respect' => 780,
-            'strength' => 30,
-            'defense' => 32,
-            'stamina' => 35,
-            'intelligence' => 22,
-            'charisma' => 28,
-            'discipline' => 25,
-            'gang_id' => $gangPlofkippen->id,
-        ]);
-
-        $kevinUser = User::create(['name' => 'KoffieKevin', 'email' => 'kevin@tbskliniek.nl', 'password' => Hash::make('secret')]);
-        $kevinChar = Character::create([
-            'user_id' => $kevinUser->id,
-            'name' => 'KoffieKevin',
-            'title' => 'Automaatmeester',
-            'avatar' => 'characters/avatar-default.png',
-            'bio' => 'Kent alle kliniekroddels bij de koffiehoek.',
-            'level' => 8,
-            'xp' => 180,
-            'total_xp' => 2200,
-            'cash' => 480,
-            'bank' => 2400,
-            'respect' => 210,
-            'strength' => 15,
-            'defense' => 16,
-            'stamina' => 20,
-            'intelligence' => 29,
-            'charisma' => 22,
-            'discipline' => 20,
-            'gang_id' => $gangWasmachine->id,
-        ]);
-
-        // 3. Missions (Matching exact titles and rewards in mockup)
+        // 1. Base Missions
         $missions = [
             [
                 'category' => 'all',
@@ -444,39 +267,39 @@ class DatabaseSeeder extends Seeder
                 'max_cash_reward' => 2400,
                 'xp_reward' => 500,
                 'respect_reward' => 25,
-                'success_message' => 'De frituurmand is in jouw handen! Henkie buigt voor je. + 2.200 KC + 500 XP',
+                'success_message' => 'De frituurmand is in jouw handen! + 2.200 KC + 500 XP',
                 'sort_order' => 13,
             ],
             [
-                'category' => 'uitbraak',
-                'storyline' => 'De Meesterplan',
+                'category' => 'medicatie',
+                'storyline' => 'Grote Kraak',
                 'story_step' => 1,
-                'title' => 'Sleutelbos Hoofdbewaker Imprint',
-                'slug' => 'sleutelbos-imprint',
-                'description' => 'Druk de hoofdsleutel van bewaker Van Loon in een stuk zachte hotelzeep.',
-                'giver_name' => 'Sleutelman Sjaak',
-                'location_name' => 'Controlepost Noord',
+                'title' => 'De Centrale Medicijnkluis',
+                'slug' => 'centrale-medicijnkluis',
+                'description' => 'Breek in bij de zwaar beveiligde apotheekkluis op de begane grond.',
+                'giver_name' => 'Dokter De Vries',
+                'location_name' => 'Centrale Apotheek',
                 'required_level' => 22,
-                'energy_cost' => 28,
+                'energy_cost' => 30,
                 'success_rate' => 50,
-                'min_cash_reward' => 2500,
-                'max_cash_reward' => 3000,
+                'min_cash_reward' => 2800,
+                'max_cash_reward' => 3500,
                 'xp_reward' => 650,
                 'respect_reward' => 30,
-                'success_message' => 'Perfecte afdruk gemaakt! De kopie is in de maak. + 2.800 KC + 650 XP',
+                'success_message' => 'Kluis leeggehaald! De hele afdeling praat erover. + 3.100 KC + 650 XP',
                 'sort_order' => 14,
             ],
             [
-                'category' => 'uitbraak',
-                'storyline' => 'De Grote Vrijheid',
-                'story_step' => 2,
-                'title' => 'De Uitbraaktunnel Graven',
-                'slug' => 'uitbraaktunnel-graven',
-                'description' => 'Graaf onder de buitenmuur door met kantinelepels tijdens het recreatie-uur.',
-                'giver_name' => 'Onbekende Infiltrant',
-                'location_name' => 'De Binnentuin',
-                'required_level' => 25,
-                'energy_cost' => 30,
+                'category' => 'smokkel',
+                'storyline' => 'De Grote Uitbraak',
+                'story_step' => 1,
+                'title' => 'Ontsnappingstunnel Graven',
+                'slug' => 'ontsnappingstunnel-graven',
+                'description' => 'Graaf ‘s nachts met een eetlepel onder de vloer van de recreatiezaal.',
+                'giver_name' => 'De Meestergraver',
+                'location_name' => 'Kelder Recreatiezaal',
+                'required_level' => 28,
+                'energy_cost' => 35,
                 'success_rate' => 45,
                 'min_cash_reward' => 4000,
                 'max_cash_reward' => 5000,
@@ -488,18 +311,10 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($missions as $m) {
-            $created = Mission::create($m);
-            if ($created->id <= 2) {
-                CharacterMission::create([
-                    'character_id' => $henkieChar->id,
-                    'mission_id' => $created->id,
-                    'completed_count' => 1,
-                    'last_attempted_at' => now()->subHours(2),
-                ]);
-            }
+            Mission::firstOrCreate(['slug' => $m['slug']], $m);
         }
 
-        // 4. Shop Items (Matching exact mockup winkel card)
+        // 2. Base Shop Items
         $items = [
             [
                 'name' => 'Frikandelbroodje',
@@ -518,15 +333,35 @@ class DatabaseSeeder extends Seeder
                 'category' => 'equipment',
                 'rarity' => 'common',
                 'price_kc' => 250,
-                'strength_bonus' => 5,
-                'icon' => 'fa-mitten',
+                'strength_bonus' => 3,
+                'icon' => 'fa-hand-back-fist',
             ],
             [
-                'name' => 'Sporttas',
-                'slug' => 'sporttas',
-                'description' => 'Ruime tas voor al je smokkelwaar en kleren.',
+                'name' => 'Schone Sneakers',
+                'slug' => 'schone-sneakers',
+                'description' => 'Witte sneakers om snel weg te sprinten van de bewaking.',
                 'category' => 'equipment',
                 'rarity' => 'uncommon',
+                'price_kc' => 350,
+                'defense_bonus' => 4,
+                'icon' => 'fa-shoe-prints',
+            ],
+            [
+                'name' => 'Energy Drink XXL',
+                'slug' => 'energy-drink-xxl',
+                'description' => 'Maxi blik taurine. Herstelt 50 energie direct.',
+                'category' => 'consumable',
+                'rarity' => 'uncommon',
+                'price_kc' => 200,
+                'energy_restore' => 50,
+                'icon' => 'fa-bolt',
+            ],
+            [
+                'name' => 'Smokkeltas met Dubbele Bodem',
+                'slug' => 'smokkeltas-dubbele-bodem',
+                'description' => 'Handig voor wie extra spullen ongezien wil bewaren.',
+                'category' => 'equipment',
+                'rarity' => 'rare',
                 'price_kc' => 400,
                 'stamina_bonus' => 10,
                 'icon' => 'fa-bag-shopping',
@@ -584,64 +419,206 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($items as $itemData) {
-            $item = Item::create($itemData);
-            if ($item->slug === 'frikandelbroodje') {
-                CharacterItem::create([
-                    'character_id' => $henkieChar->id,
-                    'item_id' => $item->id,
-                    'quantity' => 2,
-                ]);
-            }
+            Item::firstOrCreate(['slug' => $itemData['slug']], $itemData);
         }
 
-        // 5. Guestbook Entries (Matching mockup exactly!)
-        GuestbookEntry::create([
-            'profile_character_id' => $henkieChar->id,
-            'author_character_id' => $rianneChar->id,
-            'message' => 'Gefeliciteerd met level 25. Nu nog leren hoe je van Henkie wint.',
-            'created_at' => now()->subHours(8),
+        // 3. Testing-only Fixtures
+        if (app()->environment('testing')) {
+            $this->seedTestFixtures();
+        }
+    }
+
+    /**
+     * Fixtures only populated during automated tests (in-memory SQLite).
+     */
+    private function seedTestFixtures(): void
+    {
+        $gangKantine = Gang::create([
+            'name' => 'De Kantinebende',
+            'tag' => 'KB',
+            'description' => 'Wie de frituur beheerst, beheerst de kliniek.',
+            'specialty' => 'Geld | Handel | Invloed',
+            'emblem' => 'fa-burger',
+            'treasury' => 8450,
         ]);
 
-        GuestbookEntry::create([
-            'profile_character_id' => $henkieChar->id,
-            'author_character_id' => $queenChar->id,
-            'message' => 'Je hebt mijn geld gejat. Ik zie je straks in de kantine.',
-            'created_at' => now()->subHours(5),
+        $gangPlofkippen = Gang::create([
+            'name' => 'De Paarse Plofkippen',
+            'tag' => 'PP',
+            'description' => 'Geleid door Yordi de Regelaar.',
+            'specialty' => 'Groepsmissies & Invloed',
+            'emblem' => 'fa-feather',
+            'treasury' => 5200,
         ]);
 
-        GuestbookEntry::create([
-            'profile_character_id' => $henkieChar->id,
-            'author_character_id' => $moederChar->id,
-            'message' => 'Respect voor die ontsnapping. Gerda heeft drie formulieren ingevuld uit woede.',
-            'created_at' => now()->subHours(2),
+        $gangHalters = Gang::create([
+            'name' => 'De IJzeren Halters',
+            'tag' => 'IJH',
+            'description' => 'Geleid door Barry Biceps.',
+            'specialty' => 'Kracht & Gevechten',
+            'emblem' => 'fa-dumbbell',
+            'treasury' => 6100,
         ]);
 
-        GuestbookEntry::create([
-            'profile_character_id' => $henkieChar->id,
-            'author_character_id' => $kevinChar->id,
-            'message' => 'Leuke bio. Heeft Gerda die voor je geschreven?',
-            'created_at' => now()->subMinutes(45),
+        $gangGerda = Gang::create([
+            'name' => 'De Administratieve Nachtmerrie',
+            'tag' => 'DAN',
+            'description' => 'Directeur Gerda.',
+            'specialty' => 'Intelligentie & Strategie',
+            'emblem' => 'fa-file-signature',
+            'treasury' => 24000,
         ]);
 
-        // 6. Notifications / Activities
-        GameNotification::create([
-            'character_id' => $henkieChar->id,
-            'type' => 'mission',
-            'icon' => 'fa-check',
-            'title' => "Je hebt de missie 'Koffie en Kaas' voltooid!",
-            'message' => '+ 450 KC  + 120 XP',
-            'is_read' => true,
-            'created_at' => now()->subHours(2),
+        $gangWasmachine = Gang::create([
+            'name' => 'De Wasmachine Warriors',
+            'tag' => 'WW',
+            'description' => 'Ome Willem.',
+            'specialty' => 'Verzamelen & Geheimen',
+            'emblem' => 'fa-soap',
+            'treasury' => 3800,
         ]);
 
-        GameNotification::create([
-            'character_id' => $henkieChar->id,
-            'type' => 'training',
-            'icon' => 'fa-bolt',
-            'title' => 'Je hebt 1 energie opgebruikt bij Training.',
-            'message' => '+ 75 XP',
-            'is_read' => false,
-            'created_at' => now()->subHours(3),
+        $henkieUser = User::create([
+            'name' => 'Henkie de Frikandelkoning',
+            'email' => 'demo@tbskliniek.nl',
+            'password' => Hash::make('wachtwoord123'),
         ]);
+
+        $henkieChar = Character::create([
+            'user_id' => $henkieUser->id,
+            'name' => 'Henkie',
+            'title' => 'Kantinelegende',
+            'avatar' => 'characters/henkie.jpg',
+            'bio' => 'Henkie de Frikandelkoning.',
+            'status_message' => 'Frikandelbroodjes zijn geen snack, het is een levensstijl.',
+            'level' => 12,
+            'xp' => 320,
+            'total_xp' => 4800,
+            'cash' => 2450,
+            'bank' => 15230,
+            'energy' => 85,
+            'max_energy' => 100,
+            'health' => 95,
+            'max_health' => 100,
+            'respect' => 1250,
+            'strength' => 35,
+            'defense' => 28,
+            'stamina' => 32,
+            'intelligence' => 25,
+            'charisma' => 20,
+            'discipline' => 18,
+            'missions_completed' => 34,
+            'gang_id' => $gangKantine->id,
+        ]);
+
+        $rianneUser = User::create(['name' => 'BakkerieRianne', 'email' => 'rianne@tbskliniek.nl', 'password' => Hash::make('secret')]);
+        $rianneChar = Character::create([
+            'user_id' => $rianneUser->id,
+            'name' => 'BakkerieRianne',
+            'title' => 'Broodjeskoningin',
+            'avatar' => 'characters/rianne.jpg',
+            'bio' => 'Smokkelt stiekem extra saucijzenbroodjes naar binnen.',
+            'level' => 10,
+            'xp' => 240,
+            'total_xp' => 3200,
+            'cash' => 850,
+            'bank' => 4500,
+            'respect' => 410,
+            'strength' => 22,
+            'defense' => 18,
+            'stamina' => 25,
+            'intelligence' => 30,
+            'charisma' => 35,
+            'discipline' => 20,
+            'gang_id' => $gangKantine->id,
+        ]);
+
+        $queenUser = User::create(['name' => 'FrikandelQueen', 'email' => 'queen@tbskliniek.nl', 'password' => Hash::make('secret')]);
+        $queenChar = Character::create([
+            'user_id' => $queenUser->id,
+            'name' => 'FrikandelQueen',
+            'title' => 'Snackbaas',
+            'avatar' => 'characters/frikandelqueen.jpg',
+            'bio' => 'Niemand raakt de frituurpan aan.',
+            'level' => 9,
+            'xp' => 120,
+            'total_xp' => 2700,
+            'cash' => 620,
+            'bank' => 3800,
+            'respect' => 380,
+            'strength' => 26,
+            'defense' => 20,
+            'stamina' => 22,
+            'intelligence' => 24,
+            'charisma' => 30,
+            'discipline' => 18,
+            'gang_id' => $gangKantine->id,
+        ]);
+
+        $moederUser = User::create(['name' => 'MoederJellief', 'email' => 'jellief@tbskliniek.nl', 'password' => Hash::make('secret')]);
+        $moederChar = Character::create([
+            'user_id' => $moederUser->id,
+            'name' => 'MoederJellief',
+            'title' => 'Luchtplaats Veteraan',
+            'avatar' => 'characters/avatar-default.png',
+            'bio' => 'Gerda kan de pot op.',
+            'level' => 14,
+            'xp' => 540,
+            'total_xp' => 6400,
+            'cash' => 1400,
+            'bank' => 8900,
+            'respect' => 780,
+            'strength' => 30,
+            'defense' => 32,
+            'stamina' => 35,
+            'intelligence' => 22,
+            'charisma' => 28,
+            'discipline' => 25,
+            'gang_id' => $gangPlofkippen->id,
+        ]);
+
+        $kevinUser = User::create(['name' => 'KoffieKevin', 'email' => 'kevin@tbskliniek.nl', 'password' => Hash::make('secret')]);
+        $kevinChar = Character::create([
+            'user_id' => $kevinUser->id,
+            'name' => 'KoffieKevin',
+            'title' => 'Automaatmeester',
+            'avatar' => 'characters/avatar-default.png',
+            'bio' => 'Kent alle kliniekroddels bij de koffiehoek.',
+            'level' => 8,
+            'xp' => 180,
+            'total_xp' => 2200,
+            'cash' => 480,
+            'bank' => 2400,
+            'respect' => 210,
+            'strength' => 15,
+            'defense' => 16,
+            'stamina' => 20,
+            'intelligence' => 29,
+            'charisma' => 22,
+            'discipline' => 20,
+            'gang_id' => $gangWasmachine->id,
+        ]);
+
+        // Attach item and initial mission records for Henkie fixture
+        $frikandel = Item::where('slug', 'frikandelbroodje')->first();
+        if ($frikandel) {
+            CharacterItem::firstOrCreate([
+                'character_id' => $henkieChar->id,
+                'item_id' => $frikandel->id,
+            ], [
+                'quantity' => 2,
+            ]);
+        }
+
+        $mission1 = Mission::first();
+        if ($mission1) {
+            CharacterMission::firstOrCreate([
+                'character_id' => $henkieChar->id,
+                'mission_id' => $mission1->id,
+            ], [
+                'completed_count' => 1,
+                'last_attempted_at' => now()->subHours(2),
+            ]);
+        }
     }
 }
