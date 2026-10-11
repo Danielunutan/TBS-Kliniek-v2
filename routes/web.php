@@ -51,8 +51,6 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
     Route::get('/auth/discord', [AuthController::class, 'discordLogin'])->name('login.discord');
     Route::get('/auth/discord/callback', [AuthController::class, 'discordCallback'])->name('login.discord.callback');
-    Route::get('/auth/google', [AuthController::class, 'googleLogin'])->name('login.google');
-    Route::get('/auth/google/callback', [AuthController::class, 'googleCallback'])->name('login.google.callback');
 
     // Wachtwoord Vergeten (E-mail)
     Route::get('/wachtwoord-vergeten', [AuthController::class, 'showForgotPassword'])->name('password.request');
