@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminNewsController;
 use App\Http\Controllers\AdminTicketController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MissionController;
 use App\Http\Controllers\MurderStatsController;
+use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NumberGameController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PickpocketController;
@@ -286,6 +288,12 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/instellingen/2fa', [AccountSettingsController::class, 'toggleTwoFactor'])->name('settings.2fa.toggle');
     Route::post('/instellingen/sessies/uitloggen', [AccountSettingsController::class, 'logoutOtherDevices'])->name('settings.sessions.logout-others');
 
+    // Kliniek Nieuws & Mededelingen
+    Route::get('/nieuws', [NewsController::class, 'index'])->name('news.index');
+    Route::get('/nieuws/{slug}', [NewsController::class, 'show'])->name('news.show');
+    Route::post('/nieuws/{article}/reactie', [NewsController::class, 'comment'])->name('news.comment');
+    Route::delete('/nieuws/reactie/{comment}', [NewsController::class, 'destroyComment'])->name('news.comment.destroy');
+
     // Staff Medewerkers Admin Panel
     Route::middleware(EnsureUserIsStaff::class)->prefix('admin')->name('admin.')->group(function (): void {
         Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -302,5 +310,14 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
         Route::post('/tickets/{ticket}/reactie', [AdminTicketController::class, 'reply'])->name('tickets.reply');
         Route::post('/tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->name('tickets.status');
+
+        // Nieuws Beheer
+        Route::get('/nieuws', [AdminNewsController::class, 'index'])->name('news.index');
+        Route::get('/nieuws/nieuw', [AdminNewsController::class, 'create'])->name('news.create');
+        Route::post('/nieuws', [AdminNewsController::class, 'store'])->name('news.store');
+        Route::get('/nieuws/{article}/bewerken', [AdminNewsController::class, 'edit'])->name('news.edit');
+        Route::put('/nieuws/{article}', [AdminNewsController::class, 'update'])->name('news.update');
+        Route::post('/nieuws/{article}/toggle-reacties', [AdminNewsController::class, 'toggleComments'])->name('news.toggle-comments');
+        Route::delete('/nieuws/{article}', [AdminNewsController::class, 'destroy'])->name('news.destroy');
     });
 });

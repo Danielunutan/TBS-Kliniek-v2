@@ -52,6 +52,10 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.vault') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-vault"></i> Kluis & Codes
             </a>
+            <a href="{{ route('admin.news.index') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.news.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-solid fa-newspaper"></i> Nieuws Artikelen
+            </a>
             <a href="{{ route('admin.tickets.index') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.tickets.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-headset"></i> Support Tickets

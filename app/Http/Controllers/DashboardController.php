@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mission;
+use App\Models\NewsArticle;
 use App\Models\User;
 use App\Services\AllowanceService;
 use App\Services\EnergyService;
@@ -44,6 +45,12 @@ class DashboardController extends Controller
         $notifications = $character->notifications()->take(5)->get();
         $recentGuestbook = $character->guestbookEntries()->with('author')->take(3)->get();
 
+        $latestNews = NewsArticle::where('is_published', true)
+            ->orderByDesc('is_pinned')
+            ->latest()
+            ->take(4)
+            ->get();
+
         return view('game.dashboard', compact(
             'character',
             'nextLevelXp',
@@ -51,7 +58,8 @@ class DashboardController extends Controller
             'quickMissions',
             'notifications',
             'recentGuestbook',
-            'allowanceDetails'
+            'allowanceDetails',
+            'latestNews'
         ));
     }
 }

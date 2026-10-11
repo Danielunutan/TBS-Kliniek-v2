@@ -8,6 +8,7 @@ use App\Models\CharacterMission;
 use App\Models\Gang;
 use App\Models\Item;
 use App\Models\Mission;
+use App\Models\NewsArticle;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -612,7 +613,48 @@ class DatabaseSeeder extends Seeder
             Item::firstOrCreate(['slug' => $itemData['slug']], $itemData);
         }
 
-        // 3. Testing-only Fixtures
+        // 3. Base News Articles (matching screenshots)
+        $defaultArticles = [
+            [
+                'title' => 'Hyves',
+                'slug' => 'hyves',
+                'emoji' => '💖',
+                'is_pinned' => true,
+                'comments_enabled' => false,
+                'is_published' => true,
+                'content' => "Hey girls! Baddie zit nu op Hyves!\n\nJoin onze Hyve voor winacties die op Facebook niet mogen... Meta controleert ons harder dan een baddie die z'n Snapscore niet vertrouwt. 🙈\n\nDownload de Hyves app, zoek naar de Baddie Hyve en join us.\n\nXOXO,\nBaddie",
+                'created_at' => now()->subDays(12),
+                'published_at' => now()->subDays(12),
+            ],
+            [
+                'title' => 'iOS App Update',
+                'slug' => 'ios-app-update',
+                'emoji' => '💗',
+                'is_pinned' => false,
+                'comments_enabled' => true,
+                'is_published' => true,
+                'content' => "[h2]Grote Mobiele & iOS Update[/h2]\n\nDe webapp is geoptimaliseerd voor alle mobiele browsers en iOS Safari. Met snellere laadtijden en een handig app-icoon op je startscherm mis je geen enkele bendeaanval of uitkering meer!\n\n[quote]Tip: Voeg de website toe aan je beginscherm via 'Deel' -> 'Zet op beginscherm' op je telefoon.[/quote]\n\nLaat ons hieronder weten hoe de game draait op jouw mobiel!",
+                'created_at' => now()->subMonths(2),
+                'published_at' => now()->subMonths(2),
+            ],
+            [
+                'title' => 'Ghost Mode update',
+                'slug' => 'ghost-mode-update',
+                'emoji' => '👻',
+                'is_pinned' => false,
+                'comments_enabled' => true,
+                'is_published' => true,
+                'content' => "[h2]Nachtelijke Sluiptochten in de TBS Kliniek[/h2]\n\nMet de nieuwste [b]Ghost Mode[/b] update kunnen bendes en sluwe patiënten ongemerkt opereren tijdens de avondklok.\n\n- Verborgen verplaatsing over de binnenplaats\n- Minder kans om direct gesnapt te worden bij diefstallen\n- Nieuwe smokkelroutes in Paviljoen 13\n\nVeel succes met jullie operaties in de schaduw!",
+                'created_at' => now()->subMonths(2)->subWeeks(1),
+                'published_at' => now()->subMonths(2)->subWeeks(1),
+            ],
+        ];
+
+        foreach ($defaultArticles as $dArt) {
+            NewsArticle::firstOrCreate(['slug' => $dArt['slug']], $dArt);
+        }
+
+        // 4. Testing-only Fixtures
         if (app()->environment('testing')) {
             $this->seedTestFixtures();
         }

@@ -178,6 +178,10 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'algemeen'" x-collapse class="space-y-0.5 pl-1">
+                    <a href="{{ route('news.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <i class="fa-solid fa-newspaper w-4 text-center text-purple-600"></i>
+                        <span>Kliniek Nieuws</span>
+                    </a>
                     <a href="{{ route('timeline.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('timeline.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         <i class="fa-solid fa-bullhorn w-4 text-center text-sky-500"></i>
                         <span>Tijdlijn (Feed)</span>

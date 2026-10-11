@@ -247,6 +247,51 @@
 
     <!-- Right Sidebar -->
     <div class="xl:col-span-4 space-y-6">
+
+        <!-- Laatste Nieuws Widget (TBS Kliniek Nieuws) -->
+        <div class="rounded-2xl border border-purple-900/40 shadow-sm overflow-hidden bg-gradient-to-b from-[#1a0b2e] to-[#0f051d] text-white">
+            <div class="px-5 py-3.5 border-b border-purple-900/50 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-xs font-black tracking-wide text-white">
+                    <span class="w-5 h-5 rounded-full bg-purple-600/40 flex items-center justify-center text-[10px] text-purple-200 border border-purple-500/30">
+                        <i class="fa-solid fa-info"></i>
+                    </span>
+                    <span>Laatste nieuws</span>
+                </div>
+                <span class="text-[10px] font-bold text-purple-300/80 bg-purple-900/50 px-2 py-0.5 rounded-full border border-purple-800/40">
+                    Live Updates
+                </span>
+            </div>
+
+            <div class="divide-y divide-purple-900/30">
+                @forelse($latestNews as $newsItem)
+                <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-white/5 transition block group">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-sm shrink-0">{{ $newsItem->emoji }}</span>
+                            <span class="text-xs font-extrabold text-white group-hover:text-purple-300 transition truncate">
+                                {{ $newsItem->title }}
+                            </span>
+                        </div>
+                        @if($newsItem->is_pinned)
+                            <span class="text-[9px] font-black uppercase text-amber-400 bg-amber-500/20 px-1.5 py-0.2 rounded border border-amber-500/30 shrink-0">Pin</span>
+                        @endif
+                    </div>
+                    <div class="text-[10px] font-semibold text-purple-300/60 mt-1 pl-6">
+                        {{ $newsItem->created_at->diffForHumans() }}
+                    </div>
+                </a>
+                @empty
+                <div class="p-5 text-center text-xs text-purple-300/60 font-medium">
+                    Nog geen nieuwsberichten geplaatst.
+                </div>
+                @endforelse
+            </div>
+
+            <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-black/30 hover:bg-black/50 text-purple-200 hover:text-white font-extrabold text-xs transition border-t border-purple-900/40 flex items-center justify-center gap-1.5">
+                <span>Meer nieuws</span>
+                <i class="fa-solid fa-angles-right text-[10px] text-purple-400"></i>
+            </a>
+        </div>
         
         <!-- Gang Card -->
         <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden relative group">
