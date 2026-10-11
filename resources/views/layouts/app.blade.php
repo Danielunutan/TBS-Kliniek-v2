@@ -86,8 +86,10 @@
 
     @php
         $character = $character ?? (Auth::check() ? Auth::user()->character : null);
-        $activeCategory = 'algemeen';
-        if (request()->routeIs('hustle.*', 'smuggle.*', 'extort.*', 'lockers.*') || request()->is('hosselen*', 'smokkelen*', 'afpersen*', 'kluisjes*')) {
+        $activeCategory = '';
+        if (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'gangs.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'gangs*', 'bendes*')) {
+            $activeCategory = 'algemeen';
+        } elseif (request()->routeIs('hustle.*', 'smuggle.*', 'extort.*', 'lockers.*') || request()->is('hosselen*', 'smokkelen*', 'afpersen*', 'kluisjes*')) {
             $activeCategory = 'misdaad';
         } elseif (request()->routeIs('vault.*', 'packages.*', 'pickpocket.*') || request()->is('kluis-kraak*', 'pakketjes*', 'zakkenrollen*', 'vault*')) {
             $activeCategory = 'bonus';
@@ -109,11 +111,9 @@
                openCategory: localStorage.getItem('tbs_sidebar_category') || '{{ $activeCategory }}',
                init() {
                    const serverCat = '{{ $activeCategory }}';
-                   if (serverCat && serverCat !== 'algemeen') {
+                   if (serverCat) {
                        this.openCategory = serverCat;
                        localStorage.setItem('tbs_sidebar_category', serverCat);
-                   } else if (!localStorage.getItem('tbs_sidebar_category')) {
-                       this.openCategory = serverCat;
                    }
                },
                toggleCategory(cat) {
@@ -144,33 +144,37 @@
         <!-- Navigation Sections with Collapsible Categories -->
         <nav class="flex-1 px-3 py-4 space-y-2 text-xs font-semibold">
 
-            <!-- 1. ALGEMEEN & POST -->
+            <!-- Vaste Hoofdnavigatie Boven Dropdowns (Dashboard & Berichten & Post) -->
+            <div class="space-y-1 pb-2 mb-1 border-b border-slate-100">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 shadow-xs' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <i class="fa-solid fa-gauge w-4 text-center text-indigo-500"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ route('messages.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('messages.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 shadow-xs' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-envelope w-4 text-center text-blue-500"></i>
+                        <span>Berichten & Post</span>
+                    </div>
+                    @php
+                        $unreadMsgCount = \App\Models\GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count();
+                    @endphp
+                    @if($unreadMsgCount > 0)
+                        <span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadMsgCount }}</span>
+                    @endif
+                </a>
+            </div>
+
+            <!-- 1. ALGEMEEN (Dropdown / Accordion) -->
             <div class="space-y-1">
                 <button @click="toggleCategory('algemeen')" 
                         type="button" 
                         class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 transition">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-slate-400"></i> Algemeen & Post
+                        <i class="fa-solid fa-shield-halved text-slate-400"></i> Algemeen
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'algemeen'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-gauge w-4 text-center text-indigo-500"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('messages.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('messages.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-envelope w-4 text-center text-blue-500"></i>
-                            <span>Berichten & Post</span>
-                        </div>
-                        @php
-                            $unreadMsgCount = \App\Models\GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count();
-                        @endphp
-                        @if($unreadMsgCount > 0)
-                            <span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadMsgCount }}</span>
-                        @endif
-                    </a>
                     <a href="{{ route('timeline.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('timeline.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         <i class="fa-solid fa-bullhorn w-4 text-center text-sky-500"></i>
                         <span>Tijdlijn (Feed)</span>
@@ -546,21 +550,22 @@
 
             <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-semibold">
                 <div class="grid grid-cols-2 gap-2">
-                    <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2 p-2.5 rounded-xl bg-purple-50 text-purple-700 font-bold border border-purple-100">
-                        <i class="fa-solid fa-house text-purple-600"></i> Dashboard
+                    <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2 p-2.5 rounded-xl {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-black' : 'bg-slate-50 text-slate-700 border-slate-200 font-bold' }} border">
+                        <i class="fa-solid fa-gauge text-indigo-600"></i> Dashboard
                     </a>
-                    <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50 text-amber-800 font-bold border border-amber-200">
-                        <i class="fa-solid fa-crown text-amber-500"></i> VIP Shop
-                    </a>
-                </div>
-
-                <!-- 1. Algemeen & Post -->
-                <div class="space-y-1">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Algemeen & Post</span>
-                    <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition {{ request()->routeIs('messages.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700' }}">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-envelope w-4 text-blue-500"></i> Berichten & Post</span>
+                    <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl {{ request()->routeIs('messages.*') ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-black' : 'bg-slate-50 text-slate-700 border-slate-200 font-bold' }} border">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-envelope text-blue-500"></i> Post</span>
                         @if($unreadMsgCount > 0)<span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadMsgCount }}</span>@endif
                     </a>
+                </div>
+                <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> VIP Shop</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-full">Exclusief</span>
+                </a>
+
+                <!-- 1. Algemeen -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Algemeen</span>
                     <a href="{{ route('timeline.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <i class="fa-solid fa-bullhorn w-4 text-sky-500"></i> Tijdlijn (Feed)
                     </a>
