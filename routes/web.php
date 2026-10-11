@@ -243,6 +243,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/profiel', [ProfileController::class, 'show'])->name('profile.me');
     Route::get('/speler/{name}', [ProfileController::class, 'show'])->name('profile.show');
     Route::post('/speler/{name}/gastenboek', [ProfileController::class, 'postGuestbook'])->name('guestbook.post');
+    Route::delete('/speler/gastenboek/{entry}', [ProfileController::class, 'destroyGuestbook'])->name('guestbook.destroy');
     Route::post('/profiel/bijwerken', [ProfileController::class, 'updateBio'])->name('profile.update');
     Route::post('/profiel/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
 

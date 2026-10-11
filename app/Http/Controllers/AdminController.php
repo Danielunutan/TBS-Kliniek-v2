@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\VaultCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -62,6 +63,11 @@ class AdminController extends Controller
                 $query->where('is_vip', true);
             } elseif ($request->input('filter') === 'prison') {
                 $query->where('is_in_prison', true);
+            } elseif ($request->input('filter') === 'staff') {
+                $query->whereHas('user', function ($uq) {
+                    $uq->whereIn('role', ['owner', 'admin', 'moderator'])
+                        ->orWhere('is_staff', true);
+                });
             }
         }
 
@@ -71,7 +77,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Update player profile, VIP status, currency, or jail state.
+     * Update player profile, VIP status, currency, role, or jail state.
      */
     public function updatePlayer(Request $request, Character $character): RedirectResponse
     {
@@ -86,7 +92,30 @@ class AdminController extends Controller
             'release_prison' => 'nullable|boolean',
             'health' => 'required|integer|between:0,100',
             'energy' => 'required|integer|between:0,1000',
+            'role' => 'nullable|string|in:user,moderator,admin,owner',
         ]);
+
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+
+        // Update user platform role if provided
+        if ($request->filled('role') && $character->user) {
+            $newRole = $validated['role'];
+            $targetUser = $character->user;
+
+            // Only owner can assign owner role or change an existing owner's role
+            if ($newRole === 'owner' && ! $currentUser->isOwner()) {
+                return back()->with('error', 'Alleen de eigenaar kan de Eigenaar-rol toekennen.');
+            }
+
+            if ($targetUser->isOwner() && ! $currentUser->isOwner()) {
+                return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Eigenaar te wijzigen.');
+            }
+
+            $targetUser->role = $newRole;
+            $targetUser->is_staff = in_array($newRole, ['owner', 'admin', 'moderator'], true);
+            $targetUser->save();
+        }
 
         $character->cash = $validated['cash'];
         $character->bank = $validated['bank'];

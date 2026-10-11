@@ -43,7 +43,7 @@ class ProfileController extends Controller
         $nextLevelXp = $this->levelService->getXpRequiredForNextLevel($profileCharacter->level);
         $xpPercentage = min(100, max(0, (int) round(($profileCharacter->xp / max(1, $nextLevelXp)) * 100)));
 
-        $guestbookEntries = $profileCharacter->guestbookEntries()->with('author')->paginate(10);
+        $guestbookEntries = $profileCharacter->guestbookEntries()->with('author.user')->paginate(10);
 
         // Load accepted friends for this character
         $friends = Friend::with(['friend.gang'])
@@ -129,6 +129,30 @@ class ProfileController extends Controller
         return back()
             ->with('profile_tab', 'gastenboek')
             ->with('success', 'Je bericht is geplaatst in het gastenboek!');
+    }
+
+    /**
+     * Delete a guestbook entry (author, profile owner, or moderator).
+     */
+    public function destroyGuestbook(GuestbookEntry $entry): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $canDelete = ($entry->author_character_id === $character->id)
+            || ($entry->profile_character_id === $character->id)
+            || $user->canModerate();
+
+        if (! $canDelete) {
+            return back()->with('error', 'Je hebt geen toestemming om dit gastenboekbericht te verwijderen.');
+        }
+
+        $entry->delete();
+
+        return back()
+            ->with('profile_tab', 'gastenboek')
+            ->with('success', 'Gastenboekbericht succesvol verwijderd.');
     }
 
     /**

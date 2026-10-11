@@ -410,11 +410,35 @@
             <div class="py-4 flex items-start gap-4">
                 <img src="{{ $entry->author->avatar_url }}" alt="{{ $entry->author->name }}" class="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200">
                 <div class="flex-1">
-                    <div class="flex items-center justify-between gap-2">
-                        <a href="{{ route('profile.show', $entry->author->name) }}" class="text-xs font-bold text-slate-900 hover:text-indigo-600 transition">
-                            {{ $entry->author->name }}
-                        </a>
-                        <span class="text-[10px] text-slate-400">{{ $entry->created_at->diffForHumans() }}</span>
+                        <div class="flex items-center gap-1.5">
+                            <a href="{{ route('profile.show', $entry->author->name) }}" class="text-xs font-bold text-slate-900 hover:text-indigo-600 transition">
+                                {{ $entry->author->name }}
+                            </a>
+                            @if($entry->author->user && $entry->author->user->role !== 'user')
+                                @php $gBadge = $entry->author->user->role_badge; @endphp
+                                <span class="text-[9px] font-black uppercase tracking-wider {{ $gBadge['bg'] }} {{ $gBadge['text'] }} border {{ $gBadge['border'] }} px-1.5 py-0.2 rounded inline-flex items-center gap-1">
+                                    <i class="fa-solid {{ $gBadge['icon'] }} text-[8px]"></i> {{ $gBadge['label'] }}
+                                </span>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400">{{ $entry->created_at->diffForHumans() }}</span>
+                            @if($entry->author_character_id === Auth::user()->character->id || $entry->profile_character_id === Auth::user()->character->id || Auth::user()->canModerate())
+                            <form action="{{ route('guestbook.destroy', $entry) }}" method="POST"
+                                  data-confirm="{{ ($entry->author_character_id === Auth::user()->character->id || $entry->profile_character_id === Auth::user()->character->id) ? 'Weet je zeker dat je dit gastenboekbericht wilt verwijderen?' : 'Weet je zeker dat je dit gastenboekbericht als moderator/beheerder wilt verwijderen?' }}"
+                                  data-confirm-title="Gastenboek Bericht Verwijderen"
+                                  data-confirm-btn="Verwijderen"
+                                  data-confirm-type="danger"
+                                  data-confirm-icon="fa-trash-can"
+                                  class="inline-block">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-slate-100 transition cursor-pointer" title="{{ Auth::user()->canModerate() ? 'Verwijderen als moderator/beheerder' : 'Verwijderen' }}">
+                                    <i class="fa-regular fa-trash-can text-xs"></i>
+                                </button>
+                            </form>
+                            @endif
+                        </div>
                     </div>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ $entry->message }}</p>
                 </div>

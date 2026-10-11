@@ -374,4 +374,36 @@ class Character extends Model
 
         return $this->gang?->isOfficer($this) ?? false;
     }
+
+    /**
+     * Check if character user can moderate content across the platform.
+     */
+    public function canModerate(): bool
+    {
+        return $this->user?->canModerate() ?? false;
+    }
+
+    /**
+     * Check if character user is owner.
+     */
+    public function isOwner(): bool
+    {
+        return $this->user?->isOwner() ?? false;
+    }
+
+    /**
+     * Check if character user is admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->user?->isAdmin() ?? false;
+    }
+
+    /**
+     * Check if character user is moderator.
+     */
+    public function isModerator(): bool
+    {
+        return $this->user?->isModerator() ?? false;
+    }
 }

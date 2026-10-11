@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\TimelinePost;
+use App\Models\User;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +27,7 @@ class TimelineController extends Controller
         $character = Auth::user()->character;
         $this->energyService->refresh($character);
 
-        $posts = TimelinePost::with(['character.gang'])
+        $posts = TimelinePost::with(['character.gang', 'character.user'])
             ->latest()
             ->paginate(15);
 
@@ -72,17 +73,25 @@ class TimelineController extends Controller
     }
 
     /**
-     * Delete own timeline post.
+     * Delete timeline post (by author or moderators/admins/owner).
      */
     public function destroy(TimelinePost $post): RedirectResponse
     {
-        $character = Auth::user()->character;
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
 
-        if ($post->character_id !== $character->id) {
-            return back()->with('error', 'Je kunt alleen je eigen berichten verwijderen.');
+        if ($post->character_id !== $character->id && ! $user->canModerate()) {
+            return back()->with('error', 'Je hebt geen toestemming om dit bericht te verwijderen.');
         }
 
+        $isModeratorAction = ($post->character_id !== $character->id);
+
         $post->delete();
+
+        if ($isModeratorAction) {
+            return back()->with('success', 'Bericht succesvol verwijderd van de tijdlijn (als moderator/beheerder).');
+        }
 
         return back()->with('success', 'Bericht verwijderd van de tijdlijn.');
     }

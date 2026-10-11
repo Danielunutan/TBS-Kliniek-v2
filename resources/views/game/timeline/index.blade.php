@@ -90,6 +90,12 @@
                                 <a href="{{ route('profile.show', $post->character->name) }}" class="font-black text-xs sm:text-sm text-slate-900 hover:text-purple-700 transition">
                                     {{ $post->character->name }}
                                 </a>
+                                @if($post->character->user && $post->character->user->role !== 'user')
+                                    @php $badge = $post->character->user->role_badge; @endphp
+                                    <span class="text-[9px] font-black uppercase tracking-wider {{ $badge['bg'] }} {{ $badge['text'] }} border {{ $badge['border'] }} px-2 py-0.5 rounded-md inline-flex items-center gap-1 shadow-2xs">
+                                        <i class="fa-solid {{ $badge['icon'] }} text-[8px]"></i> {{ $badge['label'] }}
+                                    </span>
+                                @endif
                                 <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
                                     Level {{ $post->character->level }}
                                 </span>
@@ -110,19 +116,24 @@
                         </div>
                     </div>
 
-                    <!-- Delete button if own post -->
-                    @if($post->character_id === $character->id)
+                    <!-- Delete button if own post OR moderator -->
+                    @if($post->character_id === $character->id || Auth::user()->canModerate())
                     <form action="{{ route('timeline.destroy', $post) }}" method="POST"
-                          data-confirm="Weet je zeker dat je dit bericht definitief van de tijdlijn wilt verwijderen?"
-                          data-confirm-title="Tijdlijn Bericht Verwijderen"
+                          data-confirm="{{ $post->character_id === $character->id ? 'Weet je zeker dat je dit bericht definitief van de tijdlijn wilt verwijderen?' : 'Weet je zeker dat je dit bericht als moderator/beheerder wilt verwijderen?' }}"
+                          data-confirm-title="{{ $post->character_id === $character->id ? 'Tijdlijn Bericht Verwijderen' : 'Bericht Verwijderen (Moderatie)' }}"
                           data-confirm-btn="Bericht Verwijderen"
                           data-confirm-type="danger"
                           data-confirm-icon="fa-trash-can"
                           class="shrink-0">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Verwijderen">
+                        <button type="submit" 
+                                class="{{ $post->character_id === $character->id ? 'text-slate-400 hover:text-rose-600 hover:bg-slate-100' : 'text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 px-2.5 shadow-2xs' }} p-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 text-[11px] font-bold" 
+                                title="{{ $post->character_id === $character->id ? 'Verwijderen' : 'Verwijderen als moderator/beheerder' }}">
                             <i class="fa-regular fa-trash-can text-xs"></i>
+                            @if($post->character_id !== $character->id)
+                                <span class="hidden sm:inline">Mod Verwijder</span>
+                            @endif
                         </button>
                     </form>
                     @endif

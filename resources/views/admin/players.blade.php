@@ -26,6 +26,10 @@
                class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ !request('filter') ? 'bg-purple-100 text-purple-700 font-extrabold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                 Alle ({{ $players->total() }})
             </a>
+            <a href="{{ route('admin.players', ['filter' => 'staff']) }}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ request('filter') === 'staff' ? 'bg-indigo-100 text-indigo-800 font-extrabold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                <i class="fa-solid fa-shield-halved text-indigo-600 mr-1"></i> Staff / Mod
+            </a>
             <a href="{{ route('admin.players', ['filter' => 'vip']) }}" 
                class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ request('filter') === 'vip' ? 'bg-amber-100 text-amber-800 font-extrabold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                 <i class="fa-solid fa-crown text-amber-500 mr-1"></i> VIPs
@@ -44,6 +48,7 @@
                 <thead>
                     <tr class="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-200">
                         <th class="py-3 px-4">PATIËNT</th>
+                        <th class="py-3 px-3">FUNCTIE</th>
                         <th class="py-3 px-3">GANG</th>
                         <th class="py-3 px-3 text-right">CONTANT</th>
                         <th class="py-3 px-3 text-right">BANK</th>
@@ -65,6 +70,16 @@
                                     <div class="text-[10px] text-slate-400 font-mono">{{ $player->user?->email ?? '-' }}</div>
                                 </div>
                             </div>
+                        </td>
+                        <td class="py-3.5 px-3">
+                            @if($player->user)
+                                @php $pBadge = $player->user->role_badge; @endphp
+                                <span class="{{ $pBadge['bg'] }} {{ $pBadge['text'] }} border {{ $pBadge['border'] }} text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid {{ $pBadge['icon'] }} text-[9px]"></i> {{ $pBadge['label'] }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 text-[10px]">-</span>
+                            @endif
                         </td>
                         <td class="py-3.5 px-3 text-slate-600">
                             {{ $player->gang?->name ?? 'Geen' }}
@@ -109,7 +124,7 @@
 
                     <!-- Expandable Edit Form Drawer -->
                     <tr x-show="editingId === {{ $player->id }}" x-cloak class="bg-purple-50/50">
-                        <td colspan="9" class="p-6 border-y border-purple-200">
+                        <td colspan="10" class="p-6 border-y border-purple-200">
                             <form action="{{ route('admin.player.update', $player) }}" method="POST" class="space-y-4">
                                 @csrf
                                 <div class="flex items-center justify-between border-b border-purple-200 pb-2">
@@ -121,7 +136,27 @@
                                     </button>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                    <!-- Rol / Functie Ranking -->
+                                    <div class="bg-white p-3.5 rounded-xl border border-purple-200 space-y-2">
+                                        <label class="text-[10px] font-black text-purple-900 uppercase tracking-wider block flex items-center gap-1.5">
+                                            <i class="fa-solid fa-ranking-star text-purple-600"></i> Functie & Rank
+                                        </label>
+                                        <div>
+                                            <select name="role" class="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-xs font-bold text-slate-800 focus:bg-white focus:ring-1 focus:ring-purple-600">
+                                                <option value="user" {{ ($player->user?->role ?? 'user') === 'user' ? 'selected' : '' }}>Lid (Speler)</option>
+                                                <option value="moderator" {{ ($player->user?->role ?? '') === 'moderator' ? 'selected' : '' }}>Moderator (Mod)</option>
+                                                <option value="admin" {{ ($player->user?->role ?? '') === 'admin' ? 'selected' : '' }}>Beheerder (Admin)</option>
+                                                @if(Auth::user()->isOwner())
+                                                <option value="owner" {{ ($player->user?->role ?? '') === 'owner' ? 'selected' : '' }}>👑 Eigenaar</option>
+                                                @endif
+                                            </select>
+                                            <p class="text-[10px] text-slate-400 mt-1.5 leading-snug">
+                                                Moderators kunnen ongepaste berichten modereren & verwijderen.
+                                            </p>
+                                        </div>
+                                    </div>
+
                                     <!-- VIP Toggle & Days -->
                                     <div class="bg-white p-3.5 rounded-xl border border-purple-200 space-y-2">
                                         <label class="flex items-center gap-2 cursor-pointer">
@@ -190,7 +225,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="py-8 text-center text-slate-400 text-xs">Geen spelers gevonden voor deze zoekopdracht.</td>
+                        <td colspan="10" class="py-8 text-center text-slate-400 text-xs">Geen spelers gevonden voor deze zoekopdracht.</td>
                     </tr>
                     @endforelse
                 </tbody>
