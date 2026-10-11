@@ -136,4 +136,19 @@ class Gang extends Model
 
         return max(0, (int) now()->diffInSeconds($cooldownEnds, false));
     }
+
+    /**
+     * Check if a character has management/admin rights in this gang (Leader, Co-leader, Kantine Smokkelaar, or Kasbeheerder).
+     */
+    public function isOfficer(?Character $character): bool
+    {
+        if (! $character || (int) $this->id !== (int) $character->gang_id) {
+            return false;
+        }
+
+        return in_array($character->gang_role, ['leader', 'co_leader'], true)
+            || (int) $this->leader_character_id === (int) $character->id
+            || ((int) $this->personal_shopper === (int) $character->id)
+            || ((int) $this->money_magnet === (int) $character->id);
+    }
 }

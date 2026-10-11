@@ -103,7 +103,7 @@
                         @endif
                     </button>
 
-                    @if(in_array($character->gang_role, ['leader', 'co_leader'], true))
+                    @if($myGang && $myGang->isOfficer($character))
                     <button type="button" @click="setGangTab('beheer')" 
                             :class="activeGangTab === 'beheer' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
@@ -128,15 +128,6 @@
                         <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
                     </button>
                     @endif
-
-                    <a href="{{ route('informants.index') }}" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 text-slate-600 transition">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-user-secret text-slate-400 w-4 text-center"></i>
-                            <span>Spionnen</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
-                    </a>
 
                     <!-- Winkel Tab -->
                     <button type="button" @click="setGangTab('winkel')" 
@@ -436,11 +427,11 @@
 
             <!-- TAB 2: WINKEL -->
             @php
-                $spendableCash = ($myGang && $character->gang_role === 'leader')
+                $spendableCash = ($myGang && $myGang->isOfficer($character))
                     ? max((int) ($myGang->treasury ?? 0), (int) ($character->cash ?? 0))
                     : (int) ($character->cash ?? 0);
 
-                $spendableStars = ($myGang && $character->gang_role === 'leader')
+                $spendableStars = ($myGang && $myGang->isOfficer($character))
                     ? max((int) ($character->stars ?? 0), (int) ($myGang->gang_stars ?? 0))
                     : (int) ($character->stars ?? 0);
 
@@ -805,7 +796,7 @@
                                                     <i class="fa-solid fa-lock text-[10px]"></i> Gesloten
                                                 </span>
                                             @endif
-                                        @elseif($myGang && $g['id'] !== $myGang->id && in_array($character->gang_role, ['leader', 'co_leader'], true))
+                                        @elseif($myGang && $g['id'] !== $myGang->id && $myGang->isOfficer($character))
                                             <button type="button" @click="setGangTab('oorlog')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] transition cursor-pointer inline-flex items-center gap-1 shadow-xs">
                                                 <i class="fa-solid fa-crosshairs text-[10px]"></i> Aanvallen
                                             </button>
@@ -834,7 +825,7 @@
             </div>
 
             <!-- TAB: BENDE BEHEER (Eigen Volwaardige Pagina) -->
-            @if($myGang && in_array($character->gang_role, ['leader', 'co_leader'], true))
+            @if($myGang && $myGang->isOfficer($character))
             <div x-show="activeGangTab === 'beheer'" class="space-y-6">
                 <!-- Beheer Header Card -->
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
@@ -850,9 +841,21 @@
                             <p class="text-xs text-slate-500 mt-0.5">Beheer de leden van {{ $myGang->name }}, verwerk toetredingsverzoeken en onderhoud bende-relaties.</p>
                         </div>
                         <div class="flex items-center gap-2">
+                            @php
+                                $officerRoleName = 'Bendelid';
+                                if ($character->gang_role === 'leader') {
+                                    $officerRoleName = 'Bendeleider';
+                                } elseif ($character->gang_role === 'co_leader') {
+                                    $officerRoleName = 'Co-Leider';
+                                } elseif ((int) $myGang->money_magnet === (int) $character->id) {
+                                    $officerRoleName = 'Kasbeheerder';
+                                } elseif ((int) $myGang->personal_shopper === (int) $character->id) {
+                                    $officerRoleName = 'Kantine Smokkelaar';
+                                }
+                            @endphp
                             <span class="px-3 py-1 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-xs font-black uppercase tracking-wider inline-flex items-center gap-1.5">
-                                <i class="fa-solid {{ $character->gang_role === 'leader' ? 'fa-crown text-amber-500' : 'fa-star text-purple-600' }} text-xs"></i>
-                                <span>{{ $character->gang_role === 'leader' ? 'Bendeleider' : 'Co-Leider' }}</span>
+                                <i class="fa-solid {{ $character->gang_role === 'leader' ? 'fa-crown text-amber-500' : 'fa-shield-halved text-purple-600' }} text-xs"></i>
+                                <span>{{ $officerRoleName }}</span>
                             </span>
                             <button type="button" @click="setGangTab('instellingen')" 
                                     class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
@@ -965,8 +968,9 @@
                                 </div>
                             </div>
 
-                            @if($character->gang_role === 'leader' && $mem->id !== $character->id)
+                            @if($myGang->isOfficer($character) && $mem->id !== $character->id && $mem->gang_role !== 'leader')
                             <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                                @if($character->gang_role === 'leader')
                                 <form action="{{ route('gangs.promote', $mem) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="role" value="{{ $mem->gang_role === 'co_leader' ? 'member' : 'co_leader' }}">
@@ -974,6 +978,7 @@
                                         {{ $mem->gang_role === 'co_leader' ? 'Degradeer' : 'Promoveer tot Co-Leider' }}
                                     </button>
                                 </form>
+                                @endif
                                 <form action="{{ route('gangs.kick', $mem) }}" method="POST"
                                       data-confirm="Weet je zeker dat je bendelid '{{ $mem->name }}' wilt verwijderen uit {{ $myGang->name }}?"
                                       data-confirm-title="Bendelid Verwijderen"
@@ -1302,7 +1307,7 @@
             @endif
 
             <!-- DEDICATED TAB: BENDE INSTELLINGEN (EIGEN PAGINA) -->
-            @if($myGang && in_array($character->gang_role, ['leader', 'co_leader'], true))
+            @if($myGang && $myGang->isOfficer($character))
             <div x-show="activeGangTab === 'instellingen'" class="space-y-6">
 
                 <!-- Header Banner -->
@@ -1683,15 +1688,15 @@
 
                         <!-- Role authority indicator -->
                         <div class="shrink-0">
-                            @if(in_array($character->gang_role, ['leader', 'co_leader'], true))
+                            @if($myGang->isOfficer($character))
                                 <div class="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black flex items-center gap-2 shadow-xs">
                                     <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                                    <span>Bevoegd: {{ $character->gang_role === 'leader' ? 'Bendeleider' : 'Co-Leider' }}</span>
+                                    <span>Bevoegd: {{ $officerRoleName ?? 'Bende Beheerder' }}</span>
                                 </div>
                             @else
                                 <div class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-black flex items-center gap-2 shadow-xs">
                                     <i class="fa-solid fa-shield text-amber-600"></i>
-                                    <span>Alleen Leider & Co-Leider kunnen aanvallen</span>
+                                    <span>Alleen Beheerders kunnen aanvallen</span>
                                 </div>
                             @endif
                         </div>
@@ -1768,7 +1773,7 @@
                                     $isAlly = $myGang->alliances()->where('ally_gang_id', $rg->id)->exists();
                                     $hasShield = $rg->isUnderShield();
                                     $onCooldown = $myGang->attackCooldownRemaining() > 0;
-                                    $canAttack = in_array($character->gang_role, ['leader', 'co_leader'], true) && ! $isAlly && ! $hasShield && ! $onCooldown;
+                                    $canAttack = $myGang->isOfficer($character) && ! $isAlly && ! $hasShield && ! $onCooldown;
                                 @endphp
                                 <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:border-purple-300">
                                     <div class="flex items-center gap-3.5 min-w-0">

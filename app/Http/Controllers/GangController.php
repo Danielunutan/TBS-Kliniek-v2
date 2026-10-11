@@ -272,7 +272,7 @@ class GangController extends Controller
         $character = $user->character;
 
         $gang = $character->gang;
-        if (! $gang || ! in_array($character->gang_role, ['leader', 'co_leader'], true) || $requestRecord->gang_id !== $gang->id) {
+        if (! $gang || ! $gang->isOfficer($character) || $requestRecord->gang_id !== $gang->id) {
             return back()->with('error', 'Geen bevoegdheid.');
         }
 
@@ -440,8 +440,8 @@ class GangController extends Controller
         $character = $user->character;
 
         $gang = $character->gang;
-        if (! $gang || ! in_array($character->gang_role, ['leader', 'co_leader'], true)) {
-            return back()->with('error', 'Alleen de bendeleider of co-leider kan instellingen wijzigen!');
+        if (! $gang || ! $gang->isOfficer($character)) {
+            return back()->with('error', 'Alleen bendebeheerders (leider, co-leider, kantine smokkelaar of kasbeheerder) kunnen instellingen wijzigen!');
         }
 
         $actionType = $request->input('action_type');
@@ -590,7 +590,7 @@ class GangController extends Controller
         $character = $user->character;
 
         $gang = $character->gang;
-        if (! $gang || ! in_array($character->gang_role, ['leader', 'co_leader'], true)) {
+        if (! $gang || ! $gang->isOfficer($character)) {
             return back()->with('error', 'Je hebt geen bevoegdheid om leden te verwijderen!');
         }
 
@@ -683,8 +683,8 @@ class GangController extends Controller
         $character = $user->character;
 
         $gang = $character->gang;
-        if (! $gang || $character->gang_role !== 'leader') {
-            return back()->with('error', 'Alleen de bendeleider kan geld uit de kas opnemen!');
+        if (! $gang || (! in_array($character->gang_role, ['leader', 'co_leader'], true) && (int) $gang->money_magnet !== (int) $character->id)) {
+            return back()->with('error', 'Alleen de bendeleider, co-leider of de aangewezen Kasbeheerder kan geld uit de kas opnemen!');
         }
 
         $validated = $request->validate([
@@ -716,8 +716,8 @@ class GangController extends Controller
         $character = $user->character;
 
         $gang = $character->gang;
-        if (! $gang || ! in_array($character->gang_role, ['leader', 'co_leader'], true)) {
-            return back()->with('error', 'Alleen de leiding kan een massabericht sturen!');
+        if (! $gang || ! $gang->isOfficer($character)) {
+            return back()->with('error', 'Alleen bendebeheerders (leider, co-leider, kantine smokkelaar of kasbeheerder) kunnen een massabericht sturen!');
         }
 
         $validated = $request->validate([
@@ -854,8 +854,8 @@ class GangController extends Controller
             case 'bling_shops':
                 $unitPrice = 1250000;
                 $totalCost = $unitPrice * $qty;
-                // Pay from Gang treasury if leader/co-leader and sufficient, otherwise player cash
-                if ($character->gang_role === 'leader' && $gang->treasury >= $totalCost) {
+                // Pay from Gang treasury if officer (leader, co-leader, kantine smokkelaar, kasbeheerder) and sufficient, otherwise player cash
+                if ($gang->isOfficer($character) && $gang->treasury >= $totalCost) {
                     $gang->treasury -= $totalCost;
                 } elseif ($character->cash >= $totalCost) {
                     $character->cash -= $totalCost;
@@ -874,7 +874,7 @@ class GangController extends Controller
             case 'protection':
                 $unitPrice = 15000;
                 $totalCost = $unitPrice * $qty;
-                if ($character->gang_role === 'leader' && $gang->treasury >= $totalCost) {
+                if ($gang->isOfficer($character) && $gang->treasury >= $totalCost) {
                     $gang->treasury -= $totalCost;
                 } elseif ($character->cash >= $totalCost) {
                     $character->cash -= $totalCost;
@@ -893,7 +893,7 @@ class GangController extends Controller
             case 'power':
                 $unitPrice = 15000;
                 $totalCost = $unitPrice * $qty;
-                if ($character->gang_role === 'leader' && $gang->treasury >= $totalCost) {
+                if ($gang->isOfficer($character) && $gang->treasury >= $totalCost) {
                     $gang->treasury -= $totalCost;
                 } elseif ($character->cash >= $totalCost) {
                     $character->cash -= $totalCost;
@@ -923,7 +923,7 @@ class GangController extends Controller
                 if (($character->stars ?? 0) >= $totalStars) {
                     $character->stars -= $totalStars;
                     $character->save();
-                } elseif (($gang->gang_stars ?? 0) >= $totalStars && $character->gang_role === 'leader') {
+                } elseif (($gang->gang_stars ?? 0) >= $totalStars && $gang->isOfficer($character)) {
                     $gang->gang_stars -= $totalStars;
                 } else {
                     return back()->with('error', "Niet genoeg Sterren ⭐ om {$qty} extra ledenplekken te kopen ({$totalStars} Sterren ⭐ vereist).");
@@ -990,8 +990,8 @@ class GangController extends Controller
             return back()->with('error', 'Je bent geen lid van een bende.');
         }
 
-        if (! in_array($character->gang_role, ['leader', 'co_leader'], true)) {
-            return back()->with('error', 'Alleen de bendeleider of co-leider heeft de autoriteit om bende-aanvallen uit te voeren!');
+        if (! $myGang->isOfficer($character)) {
+            return back()->with('error', 'Alleen bendebeheerders (leider, co-leider, kantine smokkelaar of kasbeheerder) kunnen bende-aanvallen starten!');
         }
 
         if ($character->isImprisoned()) {

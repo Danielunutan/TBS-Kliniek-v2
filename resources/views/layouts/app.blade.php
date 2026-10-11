@@ -74,6 +74,9 @@
     <meta name="turbo-prefetch" content="false">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
         html, body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -1075,6 +1078,7 @@
     @keydown.escape.window="cancel()"
     x-show="isOpen"
     x-cloak
+    style="display: none;"
     class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         
         <!-- Backdrop with Blur -->
@@ -1384,7 +1388,7 @@
     }" class="hidden md:block fixed bottom-5 right-5 z-50">
 
         <!-- CHAT WINDOW POPUP (Website Style: Clean Light Card with Royal Purple Accents) -->
-        <div x-show="isOpen" x-cloak
+        <div x-show="isOpen" x-cloak style="display: none;"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-6 scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 scale-100"

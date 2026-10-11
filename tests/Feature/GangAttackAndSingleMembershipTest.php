@@ -115,7 +115,7 @@ class GangAttackAndSingleMembershipTest extends TestCase
             'target_gang_id' => $defenderGang->id,
         ]);
 
-        $response->assertSessionHas('error', 'Alleen de bendeleider of co-leider heeft de autoriteit om bende-aanvallen uit te voeren!');
+        $response->assertSessionHas('error', 'Alleen bendebeheerders (leider, co-leider, kantine smokkelaar of kasbeheerder) kunnen bende-aanvallen starten!');
         $this->assertDatabaseCount('gang_attacks', 0);
     }
 

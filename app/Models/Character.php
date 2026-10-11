@@ -362,4 +362,16 @@ class Character extends Model
             ->where('status', 'accepted')
             ->exists();
     }
+
+    /**
+     * Check if this character has gang officer/management permissions in their gang.
+     */
+    public function isGangOfficer(): bool
+    {
+        if (! $this->gang_id) {
+            return false;
+        }
+
+        return $this->gang?->isOfficer($this) ?? false;
+    }
 }
