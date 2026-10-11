@@ -88,7 +88,7 @@
                         </div>
                         <div>
                             <div class="text-base font-extrabold text-slate-900">20 Diamanten</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Exclusieve Sterren ⭐</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Exclusieve Sterren</div>
                         </div>
                     </div>
 
@@ -110,7 +110,7 @@
                         </div>
                         <div>
                             <div class="text-base font-extrabold text-slate-900">1 Masker</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Voor Zakkenrollen 🎭</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Voor Zakkenrollen</div>
                         </div>
                     </div>
                 </div>
@@ -127,7 +127,7 @@
             <div class="space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2.5 text-base font-extrabold text-slate-900">
-                        <span class="text-xl">🐷</span>
+                        <i class="fa-solid fa-vault text-purple-600 text-lg"></i>
                         <span>Suikerkluis Kraakpaneel</span>
                     </div>
                     @if(isset($myCodes) && $myCodes->count() > 0)
@@ -236,8 +236,9 @@
                     <div class="p-4 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 hover:border-purple-300 transition shadow-xs flex flex-col justify-between gap-3">
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
-                                <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-700 font-mono text-xs font-extrabold tracking-wider">
-                                    🔑 {{ $c->code }}
+                                <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-700 font-mono text-xs font-extrabold tracking-wider inline-flex items-center gap-1.5">
+                                    <i class="fa-solid fa-key text-purple-600 text-[10px]"></i>
+                                    <span>{{ $c->code }}</span>
                                 </span>
                                 <span class="text-[10px] text-slate-400 font-bold">Klaar</span>
                             </div>
@@ -246,7 +247,7 @@
                                     +€{{ number_format($c->reward_cash, 0, ',', '.') }} wit bankgeld
                                 </div>
                                 <div class="text-[11px] text-slate-500 font-medium">
-                                    +{{ $c->reward_stars }} Sterren ⭐ &bull; +1 Masker 🎭 &bull; +5 Respect 🔥
+                                    +{{ $c->reward_stars }} Sterren &bull; +1 Masker &bull; +5 Respect
                                 </div>
                             </div>
                         </div>

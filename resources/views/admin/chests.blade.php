@@ -31,7 +31,7 @@
                     </div>
 
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                        <label class="text-xs font-black uppercase text-slate-900 block mb-1">Prijs in Sterren (⭐)</label>
+                        <label class="text-xs font-black uppercase text-slate-900 block mb-1">Prijs in Sterren</label>
                         <p class="text-[11px] text-slate-500 mb-2">Aantal sterren vereist in de winkel.</p>
                         <input type="number" name="case_xxl_price_stars" value="{{ $settings['case_xxl_price_stars'] }}" min="0" 
                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-black text-purple-700">
@@ -52,7 +52,7 @@
                     </div>
 
                     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                        <label class="text-xs font-black uppercase text-slate-900 block mb-1">Bonus Sterren Kans (⭐)</label>
+                        <label class="text-xs font-black uppercase text-slate-900 block mb-1">Bonus Sterren Kans</label>
                         <input type="number" name="case_xxl_stars_reward" value="{{ $settings['case_xxl_stars_reward'] }}" min="0" 
                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-black text-amber-500">
                     </div>

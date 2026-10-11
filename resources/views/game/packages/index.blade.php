@@ -119,7 +119,7 @@
                     </span>
                 </div>
                 <p class="text-[11px] text-slate-600 mb-3 leading-relaxed">
-                    Grotere prijzen: tot wel <strong>€75.000 cash</strong> op je bank, <strong>25 Sterren ⭐</strong>, <strong>12 Maskers 🎭</strong> en geheime kluiscodes!
+                    Grotere prijzen: tot wel <strong>€75.000 cash</strong> op je bank, <strong>25 Sterren</strong>, <strong>12 Maskers</strong> en geheime kluiscodes!
                 </p>
                 <div class="space-y-2">
                     @if(($character->xxl_cases ?? 0) > 0)
@@ -136,7 +136,7 @@
                         <button type="submit" 
                                 @if(($character->stars ?? 0) < 100) disabled @endif
                                 class="w-full py-2 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs">
-                            <i class="fa-solid fa-star text-amber-400"></i> Koop XXL Koffer (100 ⭐)
+                            <i class="fa-solid fa-star text-amber-400"></i> Koop XXL Koffer (100 Sterren)
                         </button>
                     </form>
                 </div>
@@ -146,8 +146,9 @@
             <div class="pt-4 border-t border-slate-100 bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div class="flex items-center justify-between gap-3 mb-1.5">
                     <span class="text-xs font-black text-slate-900">Exclusief Master Pakket</span>
-                    <span class="text-[11px] font-extrabold text-amber-700 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full">
-                        150 Sterren ⭐
+                    <span class="text-[11px] font-extrabold text-amber-700 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                        <span>150 Sterren</span>
+                        <i class="fa-solid fa-star text-amber-600 text-[10px]"></i>
                     </span>
                 </div>
                 <p class="text-[11px] text-slate-500 mb-3">
@@ -160,7 +161,7 @@
                             @if(($character->stars ?? 0) < 150) disabled @endif
                             class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs">
                         <i class="fa-solid fa-star text-amber-300"></i>
-                        <span>Koop Pakket (150 ⭐)</span>
+                        <span>Koop Pakket (150 Sterren)</span>
                     </button>
                 </form>
             </div>
@@ -242,8 +243,9 @@
                 <form action="{{ route('cooldown.skip') }}" method="POST">
                     @csrf
                     <input type="hidden" name="action" value="package">
-                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer">
-                        Overslaan (1 ⭐)
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center gap-1">
+                        <i class="fa-solid fa-star text-white text-[10px]"></i>
+                        <span>Overslaan (1 Ster)</span>
                     </button>
                 </form>
             </div>

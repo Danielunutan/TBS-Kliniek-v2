@@ -26,7 +26,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="choice" value="steen" class="peer sr-only" required>
                         <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
-                            <span class="text-4xl">🪨</span>
+                            <span class="h-10 flex items-center justify-center text-slate-700"><i class="fa-solid fa-hand-back-fist text-3xl"></i></span>
                             <span class="text-xs font-extrabold text-slate-800 uppercase">Steen</span>
                         </div>
                     </label>
@@ -34,7 +34,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="choice" value="papier" class="peer sr-only" required>
                         <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
-                            <span class="text-4xl">📄</span>
+                            <span class="h-10 flex items-center justify-center text-amber-600"><i class="fa-solid fa-hand text-3xl"></i></span>
                             <span class="text-xs font-extrabold text-slate-800 uppercase">Papier</span>
                         </div>
                     </label>
@@ -42,7 +42,7 @@
                     <label class="cursor-pointer">
                         <input type="radio" name="choice" value="schaar" class="peer sr-only" required>
                         <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/50 text-center hover:border-indigo-300 transition shadow-xs flex flex-col items-center gap-2">
-                            <span class="text-4xl">✂️</span>
+                            <span class="h-10 flex items-center justify-center text-purple-600"><i class="fa-solid fa-hand-scissors text-3xl"></i></span>
                             <span class="text-xs font-extrabold text-slate-800 uppercase">Schaar</span>
                         </div>
                     </label>

@@ -31,7 +31,7 @@
             <div>
                 <span class="text-xs font-black uppercase tracking-wider text-pink-300">Vast Tarief per uur</span>
                 <p class="text-xs text-purple-200 font-medium">
-                    Bescherming kost <span class="font-extrabold text-white">€50.000 KC</span> óf <span class="font-extrabold text-amber-300">25 Sterren ⭐</span> per uur.
+                    Bescherming kost <span class="font-extrabold text-white">€50.000 KC</span> óf <span class="font-extrabold text-amber-300">25 Sterren</span> per uur.
                 </p>
             </div>
         </div>
@@ -145,8 +145,8 @@
                                 {{ ! $canAffordStars ? 'disabled' : '' }}
                                 title="Betaal met sterren ({{ $pkg['cost_stars'] }} Sterren)"
                                 class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canAffordStars ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-white cursor-pointer shadow-xs active:scale-[0.98]' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
-                            <i class="fa-solid fa-star"></i>
-                            <span>{{ $pkg['cost_stars'] }} ⭐</span>
+                            <i class="fa-solid fa-star text-amber-200"></i>
+                            <span>{{ $pkg['cost_stars'] }} Sterren</span>
                         </button>
                     </form>
                 </div>
@@ -162,7 +162,7 @@
             <span>Of kies zelf het aantal uren isolatie</span>
         </div>
         <p class="text-xs text-slate-500">
-            Kies precies hoeveel uur je achter slot en grendel wilt blijven (1 tot 24 uur). Het tarief is €50.000 KC of 25 Sterren ⭐ per uur.
+            Kies precies hoeveel uur je achter slot en grendel wilt blijven (1 tot 24 uur). Het tarief is €50.000 KC of 25 Sterren per uur.
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -175,11 +175,13 @@
             <div class="md:col-span-4 space-y-1">
                 <span class="block text-xs font-bold text-slate-700">Totaal Prijs</span>
                 <div class="text-xs space-y-0.5">
-                    <div class="font-extrabold text-slate-900">
-                        💶 <span x-text="(hours * 50000).toLocaleString('nl-NL')"></span> KC
+                    <div class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-coins text-emerald-600"></i>
+                        <span><span x-text="(hours * 50000).toLocaleString('nl-NL')"></span> KC</span>
                     </div>
-                    <div class="font-extrabold text-amber-500">
-                        ⭐ <span x-text="hours * 25"></span> Sterren
+                    <div class="font-extrabold text-amber-600 flex items-center gap-1.5">
+                        <i class="fa-solid fa-star text-amber-500"></i>
+                        <span><span x-text="hours * 25"></span> Sterren</span>
                     </div>
                 </div>
             </div>

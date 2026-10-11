@@ -31,7 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isStaff(): bool
     {
-        return (bool) $this->is_staff || in_array($this->email, ['admin@tbskliniek.nl', 'demo@tbskliniek.nl'], true);
+        return (bool) $this->is_staff || in_array($this->email, ['admin@tbskliniek.nl', 'demo@tbskliniek.nl', 'danielunutan@icloud.com'], true);
     }
 
     /**

@@ -44,8 +44,8 @@
                         @csrf
                         <input type="hidden" name="action" value="hustle">
                         <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-star text-amber-200 text-[11px]"></i>
-                            <span>Cooldown Overslaan (1 ⭐)</span>
+                            <i class="fa-solid fa-star text-white text-[11px]"></i>
+                            <span>Cooldown Overslaan (1 Ster)</span>
                         </button>
                     </form>
                 </div>
@@ -74,7 +74,7 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                        <span class="text-[11px] font-bold text-slate-400">⏱️ Elke hosselbeurt activeert een cooldown van 3 minuten.</span>
+                        <span class="text-[11px] font-bold text-slate-400 inline-flex items-center gap-1.5"><i class="fa-solid fa-stopwatch text-amber-500"></i> Elke hosselbeurt activeert een cooldown van 3 minuten.</span>
                         <button type="submit" 
                                 {{ $hustleCooldown > 0 ? 'disabled' : '' }}
                                 class="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs px-8 py-3 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">

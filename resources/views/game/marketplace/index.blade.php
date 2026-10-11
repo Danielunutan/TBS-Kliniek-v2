@@ -12,7 +12,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white">De Kliniek Marktplaats</h1>
                 <p class="text-purple-200/90 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-                    Verkoop en koop zeldzame goederen tussen patiënten onderling: ruil <strong>Sterren ⭐ voor Geld</strong>, <strong>Geld voor Sterren</strong>, verhandel <strong>Kluiscodes</strong> en ongeopende <strong>Smokkeltassen</strong>!
+                    Verkoop en koop zeldzame goederen tussen patiënten onderling: ruil <strong>Sterren voor Geld</strong>, <strong>Geld voor Sterren</strong>, verhandel <strong>Kluiscodes</strong> en ongeopende <strong>Smokkeltassen</strong>!
                 </p>
             </div>
 
@@ -37,7 +37,7 @@
             </div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Sterren</span>
-                <span class="text-sm font-black text-amber-700">{{ $character->stars ?? 0 }} ⭐</span>
+                <span class="text-sm font-black text-amber-700">{{ $character->stars ?? 0 }}</span>
             </div>
         </div>
 
@@ -47,7 +47,7 @@
             </div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Smokkeltassen</span>
-                <span class="text-sm font-black text-indigo-700">{{ $character->unopened_bags ?? 0 }} 🧳</span>
+                <span class="text-sm font-black text-indigo-700">{{ $character->unopened_bags ?? 0 }}</span>
             </div>
         </div>
 
@@ -57,7 +57,7 @@
             </div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Eigen Kluiscodes</span>
-                <span class="text-sm font-black text-purple-700">{{ $myVaultCodes->count() }} 🔐</span>
+                <span class="text-sm font-black text-purple-700">{{ $myVaultCodes->count() }}</span>
             </div>
         </div>
 
@@ -67,7 +67,7 @@
             </div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Maskers</span>
-                <span class="text-sm font-black text-rose-700">{{ $character->masks ?? 0 }} 🎭</span>
+                <span class="text-sm font-black text-rose-700">{{ $character->masks ?? 0 }}</span>
             </div>
         </div>
 
@@ -90,23 +90,23 @@
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'stars']) }}" 
             class="px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'stars' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200' }}">
-            ⭐ Sterren
+            <i class="fa-solid fa-star text-amber-500 mr-1.5"></i> Sterren
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'vault_codes']) }}" 
             class="px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'vault_codes' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200' }}">
-            🔐 Kluiscodes
+            <i class="fa-solid fa-key text-purple-600 mr-1.5"></i> Kluiscodes
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'packages']) }}" 
             class="px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'packages' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200' }}">
-            🧳 Smokkelkoffers
+            <i class="fa-solid fa-briefcase text-indigo-600 mr-1.5"></i> Smokkelkoffers
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'masks']) }}" 
             class="px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'masks' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200' }}">
-            🎭 Maskers
+            <i class="fa-solid fa-masks-theater text-rose-600 mr-1.5"></i> Maskers
         </a>
         <a href="{{ route('marketplace.index', ['type' => 'cash']) }}" 
             class="px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap {{ $filterType === 'cash' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200' }}">
-            💰 Contant Geld
+            <i class="fa-solid fa-coins text-emerald-600 mr-1.5"></i> Contant Geld
         </a>
     </div>
 
@@ -178,7 +178,7 @@
                             <td class="p-4 text-right">
                                 <span class="font-black text-sm {{ $item->currency === 'stars' ? 'text-amber-600' : 'text-emerald-700' }}">
                                     @if($item->currency === 'stars')
-                                        {{ $item->price }} ⭐
+                                        {{ $item->price }} Sterren
                                     @else
                                         {{ number_format($item->price, 0, ',', '.') }} KC
                                     @endif
@@ -241,11 +241,11 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Wat wil je verkopen?</label>
                     <select name="item_type" x-model="selectedType" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
-                        <option value="packages">🧳 Smokkelkoffers (beschikbaar: {{ $character->unopened_bags ?? 0 }})</option>
-                        <option value="vault_codes">🔐 Geheime Kluiscodes (beschikbaar: {{ $myVaultCodes->count() }})</option>
-                        <option value="masks">🎭 Maskers (beschikbaar: {{ $character->masks ?? 0 }})</option>
-                        <option value="stars">⭐ Exclusieve Sterren (beschikbaar: {{ $character->stars ?? 0 }})</option>
-                        <option value="cash">💰 Contant Geld (voor Sterren)</option>
+                        <option value="packages">Smokkelkoffers (beschikbaar: {{ $character->unopened_bags ?? 0 }})</option>
+                        <option value="vault_codes">Geheime Kluiscodes (beschikbaar: {{ $myVaultCodes->count() }})</option>
+                        <option value="masks">Maskers (beschikbaar: {{ $character->masks ?? 0 }})</option>
+                        <option value="stars">Exclusieve Sterren (beschikbaar: {{ $character->stars ?? 0 }})</option>
+                        <option value="cash">Contant Geld (voor Sterren)</option>
                     </select>
                 </div>
 
@@ -288,7 +288,7 @@
                         </label>
                         <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
                             <input type="radio" name="currency" value="stars" class="text-purple-600 focus:ring-purple-500">
-                            <span class="text-xs font-bold text-slate-800">Sterren ⭐</span>
+                            <span class="text-xs font-bold text-slate-800 inline-flex items-center gap-1">Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></span>
                         </label>
                     </div>
                 </div>

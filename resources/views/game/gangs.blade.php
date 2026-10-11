@@ -101,8 +101,8 @@
                             <span class="font-black">Bende Oorlog</span>
                         </span>
                         @if($myGang->attackCooldownRemaining() > 0)
-                            <span class="text-[10px] font-mono text-amber-600 font-extrabold">
-                                ⏱️ {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
+                            <span class="text-[10px] font-mono text-amber-600 font-extrabold flex items-center gap-1">
+                                <i class="fa-solid fa-stopwatch text-amber-500 text-[10px]"></i> {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
                             </span>
                         @else
                             <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
@@ -203,7 +203,7 @@
                     Richt je eigen factie op en heers over de oostvleugel van de TBS kliniek.
                 </p>
                 <div class="flex items-center justify-between pt-1">
-                    <span class="text-xs font-bold text-amber-600">250 Sterren ⭐</span>
+                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1">250 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></span>
                     <button type="button" @click="showCreateModal = true" class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">
                         Oprichten
                     </button>
@@ -472,7 +472,7 @@
                             <div class="text-base sm:text-xl font-extrabold text-amber-600 font-mono">
                                 {{ $character->stars ?? 0 }}
                             </div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Sterren ⭐</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
                         </div>
                     </div>
 
@@ -583,7 +583,7 @@
                                     <span>Meer leden capaciteit</span>
                                 </h3>
                                 <p class="text-xs text-slate-500 mt-0.5">
-                                    Prijs per stuk: <strong class="text-amber-600">⭐ 500 Sterren</strong>
+                                    Prijs per stuk: <strong class="text-amber-600 inline-flex items-center gap-1"><i class="fa-solid fa-star text-amber-500"></i> 500 Sterren</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
                                     Mogelijk: <strong class="text-purple-700 font-extrabold">{{ number_format($possibleMaxMembers, 0, ',', '.') }}x</strong>
                                 </p>
@@ -816,7 +816,7 @@
                                                 <i class="fa-solid fa-users-slash"></i>
                                             </div>
                                             <span class="font-bold text-slate-700 text-xs">Er zijn momenteel nog geen bendes opgericht!</span>
-                                            <span class="text-[11px] text-slate-400 max-w-sm">Richt als eerste een bende op met 250 Sterren ⭐ om over de kliniek te heersen.</span>
+                                            <span class="text-[11px] text-slate-400 max-w-sm">Richt als eerste een bende op met 250 Sterren om over de kliniek te heersen.</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -844,8 +844,9 @@
                             <p class="text-xs text-slate-500 mt-0.5">Beheer de leden van {{ $myGang->name }}, verwerk toetredingsverzoeken en onderhoud bende-relaties.</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="px-3 py-1 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-xs font-black uppercase tracking-wider">
-                                {{ $character->gang_role === 'leader' ? '👑 Bendeleider' : '⭐ Co-Leider' }}
+                            <span class="px-3 py-1 rounded-xl bg-purple-50 border border-purple-200 text-purple-700 text-xs font-black uppercase tracking-wider inline-flex items-center gap-1.5">
+                                <i class="fa-solid {{ $character->gang_role === 'leader' ? 'fa-crown text-amber-500' : 'fa-star text-purple-600' }} text-xs"></i>
+                                <span>{{ $character->gang_role === 'leader' ? 'Bendeleider' : 'Co-Leider' }}</span>
                             </span>
                             <button type="button" @click="setGangTab('instellingen')" 
                                     class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
@@ -924,12 +925,12 @@
                                             {{ $mem->name }}
                                         </a>
                                         @if($mem->gang_role === 'leader')
-                                            <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black uppercase">
-                                                👑 Leider
+                                            <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black uppercase inline-flex items-center gap-1">
+                                                <i class="fa-solid fa-crown text-amber-500 text-[9px]"></i> Leider
                                             </span>
                                         @elseif($mem->gang_role === 'co_leader')
-                                            <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-black uppercase">
-                                                ⭐ Co-Leider
+                                            <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-black uppercase inline-flex items-center gap-1">
+                                                <i class="fa-solid fa-star text-purple-600 text-[9px]"></i> Co-Leider
                                             </span>
                                         @else
                                             <span class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 text-[10px] font-bold">
@@ -938,13 +939,13 @@
                                         @endif
 
                                         @if($myGang->personal_shopper === $mem->id)
-                                            <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
-                                                📦 Kantine Smokkelaar
+                                            <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                                <i class="fa-solid fa-box text-indigo-500 text-[9px]"></i> Kantine Smokkelaar
                                             </span>
                                         @endif
                                         @if($myGang->money_magnet === $mem->id)
-                                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
-                                                💰 Kasbeheerder
+                                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                                <i class="fa-solid fa-vault text-emerald-600 text-[9px]"></i> Kasbeheerder
                                             </span>
                                         @endif
                                     </div>
@@ -1407,7 +1408,7 @@
                             <!-- Bendeleider -->
                             <div class="space-y-1.5">
                                 <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <span class="text-amber-500">👑</span> Bendeleider
+                                    <i class="fa-solid fa-crown text-amber-500"></i> Bendeleider
                                 </label>
                                 <select name="boss_babe_id" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
                                     @foreach($myGang->members as $m)
@@ -1421,7 +1422,7 @@
                             <!-- Kantine Smokkelaar -->
                             <div class="space-y-1.5">
                                 <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <span class="text-indigo-500">📦</span> Kantine Smokkelaar
+                                    <i class="fa-solid fa-box text-indigo-500"></i> Kantine Smokkelaar
                                 </label>
                                 <select name="personal_shopper_id" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
                                     <option value="">Geen aangewezen</option>
@@ -1436,7 +1437,7 @@
                             <!-- Kasbeheerder -->
                             <div class="space-y-1.5">
                                 <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <span class="text-emerald-500">💰</span> Kasbeheerder
+                                    <i class="fa-solid fa-vault text-emerald-600"></i> Kasbeheerder
                                 </label>
                                 <select name="money_magnet_id" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
                                     <option value="">Geen aangewezen</option>
@@ -1660,8 +1661,8 @@
                             <div>
                                 <span class="text-[10px] font-bold text-slate-300 uppercase block">Aanvalsstatus</span>
                                 @if($myGang->attackCooldownRemaining() > 0)
-                                    <span class="text-xs font-black text-amber-300 font-mono">
-                                        ⏱️ Wachten: {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
+                                    <span class="text-xs font-black text-amber-300 font-mono flex items-center gap-1.5">
+                                        <i class="fa-solid fa-stopwatch text-amber-300"></i> Wachten: {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
                                     </span>
                                 @else
                                     <span class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
@@ -1716,16 +1717,16 @@
                                                     [{{ $rg->tag }}]
                                                 </span>
                                                 @if($isAlly)
-                                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-extrabold text-[10px] border border-blue-200">
-                                                        🤝 Bondgenoot
+                                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-extrabold text-[10px] border border-blue-200 inline-flex items-center gap-1">
+                                                        <i class="fa-solid fa-handshake text-blue-600 text-[9px]"></i> Bondgenoot
                                                     </span>
                                                 @elseif($hasShield)
-                                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-extrabold text-[10px] border border-amber-200">
-                                                        🛡️ Schild ({{ gmdate('i:s', $rg->shieldSecondsRemaining()) }})
+                                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-extrabold text-[10px] border border-amber-200 inline-flex items-center gap-1">
+                                                        <i class="fa-solid fa-shield text-amber-600 text-[9px]"></i> Schild ({{ gmdate('i:s', $rg->shieldSecondsRemaining()) }})
                                                     </span>
                                                 @else
-                                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-extrabold text-[10px] border border-emerald-200">
-                                                        ⚔️ Kwetsbaar
+                                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-extrabold text-[10px] border border-emerald-200 inline-flex items-center gap-1">
+                                                        <i class="fa-solid fa-crosshairs text-emerald-600 text-[9px]"></i> Kwetsbaar
                                                     </span>
                                                 @endif
                                             </div>
@@ -1743,7 +1744,7 @@
                                         <form action="{{ route('gangs.attack') }}" method="POST"
                                               data-confirm="Weet je zeker dat je bende '{{ $rg->name }}' wilt overvallen? Breek door hun verdediging heen om de buit te plunderen!"
                                               data-confirm-title="Bende Oorlog Overval"
-                                              data-confirm-btn="⚔️ Overval Bende"
+                                              data-confirm-btn="Overval Bende"
                                               data-confirm-type="attack"
                                               data-confirm-icon="fa-crosshairs">
                                             @csrf
@@ -1834,7 +1835,7 @@
                 </div>
             @else
                 <p class="text-xs text-slate-500 font-medium">
-                    Kosten: <strong class="text-amber-600">250 Sterren ⭐</strong> (Je hebt er {{ $character->stars ?? 0 }}).
+                    Kosten: <strong class="text-amber-600 inline-flex items-center gap-1">250 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></strong> (Je hebt er {{ $character->stars ?? 0 }}).
                 </p>
                 <form action="{{ route('gangs.create') }}" method="POST" class="space-y-3">
                     @csrf
@@ -1856,8 +1857,9 @@
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Annuleren</button>
-                        <button type="submit" @if(($character->stars ?? 0) < 250) disabled @endif class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-bold text-xs uppercase cursor-pointer">
-                            Oprichten (250 ⭐)
+                        <button type="submit" @if(($character->stars ?? 0) < 250) disabled @endif class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-bold text-xs uppercase cursor-pointer inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-star text-amber-300 text-xs"></i>
+                            <span>Oprichten (250 Sterren)</span>
                         </button>
                     </div>
                 </form>

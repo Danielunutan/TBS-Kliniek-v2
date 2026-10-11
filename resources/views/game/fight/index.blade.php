@@ -142,7 +142,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs font-extrabold uppercase tracking-wider text-purple-900">
-                            🚨 Cloudflare Turnstile Zaalwacht Controle
+                            Cloudflare Turnstile Zaalwacht Controle
                         </h4>
                         <p id="turnstile-status-text" class="text-xs text-purple-700 font-medium">
                             Bevestig via de Turnstile verificatie dat je een echte speler bent om contanten te kunnen stelen op de luchtplaats.

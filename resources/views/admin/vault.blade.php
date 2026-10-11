@@ -67,7 +67,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <label class="text-xs font-black uppercase text-slate-900 block mb-1">KluisMunten (🔑)</label>
+                    <label class="text-xs font-black uppercase text-slate-900 block mb-1">KluisMunten</label>
                     <input type="number" name="vault_reward_tokens" value="{{ $settings['vault_reward_tokens'] }}" min="0" 
                            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-black text-purple-700">
                 </div>
@@ -123,7 +123,7 @@
                         <td class="py-2.5 px-3 font-mono font-bold text-purple-700">{{ $code->code }}</td>
                         <td class="py-2.5 px-3 text-slate-900">{{ $code->character?->name ?? 'Algemeen' }}</td>
                         <td class="py-2.5 px-3 text-right font-mono text-emerald-600 font-bold">€{{ number_format($code->reward_cash, 0, ',', '.') }}</td>
-                        <td class="py-2.5 px-3 text-right font-mono text-amber-500 font-bold">⭐ {{ $code->reward_stars }}</td>
+                        <td class="py-2.5 px-3 text-right font-mono text-amber-500 font-bold"><i class="fa-solid fa-star text-amber-400 text-xs"></i> {{ $code->reward_stars }}</td>
                         <td class="py-2.5 px-3 text-center">
                             @if($code->is_redeemed)
                                 <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full">Ingewisseld</span>

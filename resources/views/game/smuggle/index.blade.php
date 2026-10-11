@@ -91,8 +91,9 @@
                                 <i class="fa-solid fa-smoking"></i>
                             </span>
                             <div>
-                                <h4 class="font-extrabold text-slate-900 text-xs">5x Sigaretten Draaien</h4>
-                                <span class="text-[11px] text-slate-500 font-medium">Kost 5 Energie &bull; +25 XP &bull; ⏱️ 5 min cooldown</span>
+                                <span class="text-[11px] text-slate-500 font-medium inline-flex items-center gap-1.5 flex-wrap">
+                                    <span>Kost 5 Energie</span> &bull; <span>+25 XP</span> &bull; <span><i class="fa-solid fa-stopwatch text-amber-500"></i> 5 min cooldown</span>
+                                </span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
@@ -106,8 +107,8 @@
                                         <input type="hidden" name="action" value="produce_sigaretten">
                                         <button type="submit" 
                                                 title="Sla cooldown over voor 1 Ster" 
-                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer">
-                                            1 ⭐
+                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                            <span>1</span> <i class="fa-solid fa-star text-[10px]"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -136,7 +137,9 @@
                             </span>
                             <div>
                                 <h4 class="font-extrabold text-slate-900 text-xs">3x Ritalin Strips Onderscheppen</h4>
-                                <span class="text-[11px] text-slate-500 font-medium">Kost 10 Energie &bull; +50 XP &bull; ⏱️ 15 min cooldown</span>
+                                <span class="text-[11px] text-slate-500 font-medium inline-flex items-center gap-1.5 flex-wrap">
+                                    <span>Kost 10 Energie</span> &bull; <span>+50 XP</span> &bull; <span><i class="fa-solid fa-stopwatch text-amber-500"></i> 15 min cooldown</span>
+                                </span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
@@ -150,8 +153,8 @@
                                         <input type="hidden" name="action" value="produce_ritalin">
                                         <button type="submit" 
                                                 title="Sla cooldown over voor 2 Sterren" 
-                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer">
-                                            2 ⭐
+                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                            <span>2</span> <i class="fa-solid fa-star text-[10px]"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -180,7 +183,9 @@
                             </span>
                             <div>
                                 <h4 class="font-extrabold text-slate-900 text-xs">1x Mini Telefoon Binnensmokkelen</h4>
-                                <span class="text-[11px] text-slate-500 font-medium">Kost 20 Energie &bull; +120 XP &bull; ⏱️ 30 min cooldown</span>
+                                <span class="text-[11px] text-slate-500 font-medium inline-flex items-center gap-1.5 flex-wrap">
+                                    <span>Kost 20 Energie</span> &bull; <span>+120 XP</span> &bull; <span><i class="fa-solid fa-stopwatch text-amber-500"></i> 30 min cooldown</span>
+                                </span>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
@@ -194,8 +199,8 @@
                                         <input type="hidden" name="action" value="produce_telefoon">
                                         <button type="submit" 
                                                 title="Sla cooldown over voor 3 Sterren" 
-                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer">
-                                            3 ⭐
+                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                            <span>3</span> <i class="fa-solid fa-star text-[10px]"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -216,7 +221,7 @@
             </div>
 
             <div class="p-4 bg-slate-50 border-t border-slate-100 text-xs text-slate-500 text-center font-medium">
-                Cooldowns verlagen de belasting op de kliniek. Verwijder de cooldown direct met Sterren ⭐!
+                Cooldowns verlagen de belasting op de kliniek. Verwijder de cooldown direct met Sterren!
             </div>
         </div>
 

@@ -29,7 +29,7 @@
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="rood" class="peer sr-only" required checked>
                             <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-rose-600 peer-checked:bg-rose-500 peer-checked:text-white text-center hover:border-rose-300 transition shadow-xs flex flex-col items-center gap-1 text-slate-700">
-                                <span class="text-xs font-black uppercase">🔴 Rood</span>
+                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-rose-500 peer-checked:text-white"></i> Rood</span>
                                 <span class="text-[10px] font-bold opacity-80">Uitbetaling: 2x</span>
                             </div>
                         </label>
@@ -37,7 +37,7 @@
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="zwart" class="peer sr-only" required>
                             <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white text-center hover:border-slate-400 transition shadow-xs flex flex-col items-center gap-1 text-slate-700">
-                                <span class="text-xs font-black uppercase">⚫ Zwart</span>
+                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-slate-800 peer-checked:text-white"></i> Zwart</span>
                                 <span class="text-[10px] font-bold opacity-80">Uitbetaling: 2x</span>
                             </div>
                         </label>
@@ -45,7 +45,7 @@
                         <label class="cursor-pointer">
                             <input type="radio" name="bet_type" value="groen" class="peer sr-only" required>
                             <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-emerald-600 peer-checked:bg-emerald-600 peer-checked:text-white text-center hover:border-emerald-300 transition shadow-xs flex flex-col items-center gap-1 text-slate-700">
-                                <span class="text-xs font-black uppercase">🟢 Groen (0)</span>
+                                <span class="text-xs font-black uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-emerald-500 peer-checked:text-white"></i> Groen (0)</span>
                                 <span class="text-[10px] font-bold opacity-80">Uitbetaling: 35x</span>
                             </div>
                         </label>

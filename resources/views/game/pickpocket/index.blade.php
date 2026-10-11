@@ -68,15 +68,15 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-extrabold text-amber-950">Zakkenrollen Cooldown Actief</h4>
-                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $ppCooldown) }}</strong> of sla direct over met 1 Ster ⭐.</p>
+                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $ppCooldown) }}</strong> of sla direct over met 1 Ster.</p>
                 </div>
             </div>
             <form action="{{ route('cooldown.skip') }}" method="POST">
                 @csrf
                 <input type="hidden" name="action" value="pickpocket">
                 <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-star text-amber-200 text-[11px]"></i>
-                    <span>Cooldown Overslaan (1 ⭐)</span>
+                    <i class="fa-solid fa-star text-white text-[11px]"></i>
+                    <span>Cooldown Overslaan (1 Ster)</span>
                 </button>
             </form>
         </div>

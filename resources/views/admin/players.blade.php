@@ -76,10 +76,10 @@
                             €{{ number_format($player->bank, 0, ',', '.') }}
                         </td>
                         <td class="py-3.5 px-3 text-right font-mono font-bold text-amber-500">
-                            ⭐ {{ number_format($player->stars, 0, ',', '.') }}
+                            <i class="fa-solid fa-star text-amber-400 text-xs"></i> {{ number_format($player->stars, 0, ',', '.') }}
                         </td>
                         <td class="py-3.5 px-3 text-right font-mono font-bold text-purple-700">
-                            💎 {{ number_format($player->vip_points ?? 0, 0, ',', '.') }}
+                            <i class="fa-solid fa-gem text-purple-500 text-xs"></i> {{ number_format($player->vip_points ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="py-3.5 px-3 text-center">
                             @if($player->is_vip)
@@ -137,7 +137,7 @@
                                     <!-- VIP Points & Respect -->
                                     <div class="bg-white p-3.5 rounded-xl border border-purple-200 space-y-2">
                                         <div>
-                                            <label class="text-[10px] font-bold text-slate-500 block">VIP Punten (💎)</label>
+                                            <label class="text-[10px] font-bold text-slate-500 block">VIP Punten</label>
                                             <input type="number" name="vip_points" value="{{ $player->vip_points ?? 0 }}" min="0" class="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs font-mono font-bold">
                                         </div>
                                         <div>
@@ -162,7 +162,7 @@
                                     <div class="bg-white p-3.5 rounded-xl border border-purple-200 space-y-2">
                                         <div class="grid grid-cols-2 gap-2">
                                             <div>
-                                                <label class="text-[10px] font-bold text-slate-500 block">Sterren ⭐</label>
+                                                <label class="text-[10px] font-bold text-slate-500 block">Sterren</label>
                                                 <input type="number" name="stars" value="{{ $player->stars }}" min="0" class="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs font-mono font-bold">
                                             </div>
                                             <div>

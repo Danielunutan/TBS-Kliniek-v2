@@ -34,7 +34,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kliniek Shop</h1>
                 <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren ⭐ of koop handige benodigdheden in de kantine met contant KliniekCash!
+                    Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren of koop handige benodigdheden in de kantine met contant KliniekCash!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -71,7 +71,7 @@
                         <i class="fa-solid fa-gem text-amber-500 w-4 text-center"></i>
                         <span>Sterren Items</span>
                     </span>
-                    <span class="text-[10px] text-amber-600 font-extrabold">{{ $character->stars ?? 0 }} ⭐</span>
+                    <span class="text-[10px] text-amber-600 font-extrabold flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
                 </button>
 
                 <button type="button" @click="setShopTab('items')" 
@@ -105,19 +105,19 @@
                 </span>
                 <div class="space-y-2.5 text-xs">
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Sterren ⭐:</span>
-                        <span class="font-extrabold text-amber-600">{{ $character->stars ?? 0 }}</span>
+                        <span class="text-slate-500 font-medium">Sterren:</span>
+                        <span class="font-extrabold text-amber-600 flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Koffers 🧳:</span>
+                        <span class="text-slate-500 font-medium">Koffers:</span>
                         <span class="font-extrabold text-purple-700">{{ $character->unopened_bags ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Maskers 🎭:</span>
+                        <span class="text-slate-500 font-medium">Maskers:</span>
                         <span class="font-extrabold text-indigo-700">{{ $character->masks ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Bank 🏦:</span>
+                        <span class="text-slate-500 font-medium">Bank:</span>
                         <span class="font-extrabold text-emerald-600">€{{ number_format($character->bank, 0, ',', '.') }}</span>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
                         SPECIALE ACTIE
                     </span>
                     <p class="text-xs sm:text-sm font-extrabold text-slate-900 mt-1">
-                        Bij iedere aankoop vanaf 100 sterren ontvang je <strong class="text-purple-700">1 XXL koffer als bonus 🎁</strong>
+                        Bij iedere aankoop vanaf 100 sterren ontvang je <strong class="text-purple-700">1 XXL koffer als bonus</strong>
                     </p>
                     <span class="text-xs text-slate-500 font-medium">Exclusief VIP en extra kluiscodes!</span>
                 </div>
@@ -148,8 +148,9 @@
                     <div class="border-b border-slate-100 pb-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <h3 class="text-lg font-extrabold text-slate-900" x-text="currentBundle().name"></h3>
-                            <div class="text-sm font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full w-fit">
-                                Prijs: <span x-text="currentBundle().cost_stars"></span> Sterren ⭐
+                            <div class="text-sm font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full w-fit inline-flex items-center gap-1.5">
+                                <span>Prijs: <span x-text="currentBundle().cost_stars"></span> Sterren</span>
+                                <i class="fa-solid fa-star text-amber-500 text-xs"></i>
                             </div>
                         </div>
 
@@ -279,7 +280,7 @@
                                 :disabled="({{ $character->stars ?? 0 }}) < (currentBundle().cost_stars * bundleQty)"
                                 class="w-full py-3 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2">
                             <i class="fa-solid fa-lock text-xs"></i>
-                            <span>Betalen (<span x-text="currentBundle().cost_stars * bundleQty"></span> Sterren ⭐)</span>
+                            <span>Betalen (<span x-text="currentBundle().cost_stars * bundleQty"></span> Sterren)</span>
                         </button>
                     </form>
                 </div>
@@ -325,7 +326,7 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="text-xs font-extrabold text-amber-600">{{ number_format($b['cost_stars']) }} Sterren ⭐</span>
+                            <span class="text-xs font-extrabold text-amber-600 inline-flex items-center gap-1">{{ number_format($b['cost_stars']) }} Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
                         </div>
                     </div>
                     @endforeach
@@ -359,15 +360,15 @@
                         <div class="bg-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
                             <div class="space-y-2">
                                 <div class="flex items-start justify-between gap-2">
-                                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg shrink-0">
+                                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-base shrink-0">
                                         @if(str_contains(strtolower($item->name), 'frikandel'))
-                                            🌭
+                                            <i class="fa-solid fa-hotdog"></i>
                                         @elseif(str_contains(strtolower($item->name), 'energie') || str_contains(strtolower($item->name), 'drank'))
-                                            ⚡
+                                            <i class="fa-solid fa-bolt text-amber-500"></i>
                                         @elseif(str_contains(strtolower($item->name), 'appel') || str_contains(strtolower($item->name), 'fruit'))
-                                            🍎
+                                            <i class="fa-solid fa-apple-whole text-rose-500"></i>
                                         @elseif(str_contains(strtolower($item->name), 'koffie'))
-                                            ☕
+                                            <i class="fa-solid fa-mug-hot text-amber-700"></i>
                                         @else
                                             <i class="fa-solid {{ $item->icon ?: 'fa-utensils' }}"></i>
                                         @endif
@@ -387,56 +388,56 @@
                                 <!-- Effect Pills -->
                                 <div class="flex flex-wrap gap-1.5 pt-1">
                                     @if($item->slug === 'adrenaline-injectie')
-                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
-                                        100% Volle Energie ⚡
+                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>100% Volle Energie</span> <i class="fa-solid fa-bolt text-amber-500 text-[9px]"></i>
                                     </span>
                                     @elseif($item->energy_restore > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
-                                        +{{ $item->energy_restore }} Energie ⚡
+                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+{{ $item->energy_restore }} Energie</span> <i class="fa-solid fa-bolt text-amber-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->slug === 'ehbo-noodverbanddoos')
-                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">
-                                        100% Volle HP ❤️
+                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>100% Volle HP</span> <i class="fa-solid fa-heart text-rose-500 text-[9px]"></i>
                                     </span>
                                     @elseif($item->health_restore > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">
-                                        +{{ $item->health_restore }} HP ❤️
+                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+{{ $item->health_restore }} HP</span> <i class="fa-solid fa-heart text-rose-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->slug === 'bivakmuts-masker')
-                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
-                                        +1 Masker 🎭
+                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+1 Masker</span> <i class="fa-solid fa-masks-theater text-indigo-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->slug === 'smokkelpakketje')
-                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold">
-                                        +1 Pakket/Koffer 📦
+                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+1 Pakket/Koffer</span> <i class="fa-solid fa-box text-purple-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->slug === 'ijzerzaagje')
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold">
-                                        -30m Celstraf ⏳
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>-30m Celstraf</span> <i class="fa-solid fa-hourglass-half text-amber-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->strength_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold">
-                                        +{{ $item->strength_bonus }} Kracht 💪
+                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+{{ $item->strength_bonus }} Kracht</span> <i class="fa-solid fa-dumbbell text-purple-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->defense_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold">
-                                        +{{ $item->defense_bonus }} Verdediging 🛡️
+                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+{{ $item->defense_bonus }} Verdediging</span> <i class="fa-solid fa-shield text-blue-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->stamina_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold">
-                                        +{{ $item->stamina_bonus }} Conditie 🏃
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+{{ $item->stamina_bonus }} Conditie</span> <i class="fa-solid fa-person-running text-amber-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->intelligence_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
-                                        +{{ $item->intelligence_bonus }} Kennis 🧠
+                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+{{ $item->intelligence_bonus }} Kennis</span> <i class="fa-solid fa-brain text-indigo-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                 </div>
@@ -535,13 +536,13 @@
                                     <div class="flex items-center justify-between">
                                         <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                                             @if(str_contains(strtolower($inv->item->name), 'frikandel'))
-                                                🌭
+                                                <i class="fa-solid fa-hotdog"></i>
                                             @elseif(str_contains(strtolower($inv->item->name), 'energie') || str_contains(strtolower($inv->item->name), 'drank'))
-                                                ⚡
+                                                <i class="fa-solid fa-bolt text-amber-500"></i>
                                             @elseif(str_contains(strtolower($inv->item->name), 'appel') || str_contains(strtolower($inv->item->name), 'fruit'))
-                                                🍎
+                                                <i class="fa-solid fa-apple-whole text-rose-500"></i>
                                             @elseif(str_contains(strtolower($inv->item->name), 'koffie'))
-                                                ☕
+                                                <i class="fa-solid fa-mug-hot text-amber-700"></i>
                                             @else
                                                 <i class="fa-solid {{ $inv->item->icon ?: 'fa-utensils' }}"></i>
                                             @endif
@@ -652,11 +653,11 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
                             <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl">
-                                🎭
+                                <i class="fa-solid fa-masks-theater text-xl"></i>
                             </div>
                             <div>
                                 <h4 class="text-xs font-extrabold text-slate-900">1x Masker</h4>
-                                <p class="text-xs font-extrabold text-amber-600 mt-0.5">15 Sterren ⭐</p>
+                                <p class="text-xs font-extrabold text-amber-600 mt-0.5 inline-flex items-center gap-1">15 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
                             </div>
                             <form action="{{ route('shop.buy-star-item') }}" method="POST">
                                 @csrf
@@ -666,11 +667,11 @@
                         </div>
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
                             <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl">
-                                🎭
+                                <i class="fa-solid fa-masks-theater text-xl"></i>
                             </div>
                             <div>
                                 <h4 class="text-xs font-extrabold text-slate-900">5x Maskers</h4>
-                                <p class="text-xs font-extrabold text-amber-600 mt-0.5">65 Sterren ⭐</p>
+                                <p class="text-xs font-extrabold text-amber-600 mt-0.5 inline-flex items-center gap-1">65 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
                             </div>
                             <form action="{{ route('shop.buy-star-item') }}" method="POST">
                                 @csrf
@@ -680,11 +681,11 @@
                         </div>
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
                             <div class="w-12 h-12 mx-auto rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
-                                📦
+                                <i class="fa-solid fa-box-open text-xl"></i>
                             </div>
                             <div>
                                 <h4 class="text-xs font-extrabold text-slate-900">Exclusief Pakket</h4>
-                                <p class="text-xs font-extrabold text-amber-600 mt-0.5">150 Sterren ⭐</p>
+                                <p class="text-xs font-extrabold text-amber-600 mt-0.5 inline-flex items-center gap-1">150 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
                             </div>
                             <form action="{{ route('shop.buy-star-item') }}" method="POST">
                                 @csrf

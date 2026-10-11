@@ -49,7 +49,7 @@
                     DE 24 UUR <span class="text-purple-300">Battle</span>
                 </h1>
                 <p class="text-slate-300 text-xs sm:text-sm font-medium max-w-xl leading-relaxed">
-                    Strijd dagelijks mee om de absolute macht in de kliniek en win unieke beloningen zoals <strong class="text-white underline">XXL Koffers 🧳</strong>, Sterren ⭐ en Maskers 🎭 als je in de top 3 eindigt!
+                    Strijd dagelijks mee om de absolute macht in de kliniek en win unieke beloningen zoals <strong class="text-white underline">XXL Koffers</strong>, Sterren en Maskers als je in de top 3 eindigt!
                 </p>
             </div>
 

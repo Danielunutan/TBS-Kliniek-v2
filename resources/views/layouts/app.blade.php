@@ -427,6 +427,12 @@
                 <span class="text-[10px] font-extrabold text-slate-700 max-w-[70px] truncate">{{ $character->name }}</span>
             </a>
 
+            @if(Auth::check() && Auth::user()->isStaff())
+            <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-xl text-purple-700 bg-purple-50 hover:bg-purple-100 transition" title="Medewerkers Admin">
+                <i class="fa-solid fa-shield-halved text-sm"></i>
+            </a>
+            @endif
+
             <button @click="mobileMenuOpen = true" class="text-slate-700 p-2 focus:outline-none rounded-xl hover:bg-slate-100 cursor-pointer active:scale-95 transition" aria-label="Open menu">
                 <i class="fa-solid fa-bars text-base"></i>
             </button>
@@ -794,7 +800,13 @@
                     </div>
 
                     <!-- Icons on Far Right -->
-                    <div class="flex items-center gap-1 pl-2 border-l border-slate-200 text-slate-400">
+                    <div class="flex items-center gap-2 pl-2 border-l border-slate-200 text-slate-400">
+                        @if(Auth::check() && Auth::user()->isStaff())
+                        <a href="{{ route('admin.dashboard') }}" class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs" title="Medewerkers Admin Panel">
+                            <i class="fa-solid fa-shield-halved text-purple-600"></i>
+                            <span>Admin Panel</span>
+                        </a>
+                        @endif
                         <a href="{{ route('profile.me') }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition" title="Mijn Profiel">
                             <i class="fa-solid fa-user"></i>
                         </a>
@@ -833,30 +845,39 @@
             @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
             <div x-data="{ sec: {{ $character->remainingPrisonSeconds() }} }" 
                  x-init="if (sec > 0) { const timer = setInterval(() => { sec--; if (sec <= 0) { clearInterval(timer); window.location.reload(); } }, 1000); }" 
-                 class="mb-6 bg-gradient-to-r from-purple-950 via-[#230438] to-purple-950 border-2 border-pink-500/80 p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-pink-500/20 border border-pink-500/40 text-pink-400 flex items-center justify-center text-xl shrink-0 animate-pulse">
+                 class="mb-6 bg-white border border-rose-200/90 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5 w-full sm:w-auto">
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-lock"></i>
                     </div>
                     <div>
-                        <p class="text-xs font-black text-rose-300 uppercase tracking-wider">🔒 Vast in de isoleercel</p>
-                        <p class="text-xs text-purple-200 mt-0.5">
-                            Resterende straftijd: <strong class="text-white font-mono" x-text="sec + ' sec vast'">{{ $character->remainingPrisonSeconds() }} sec vast</strong>.
-                            Reden: <span class="text-pink-200 font-semibold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black text-rose-700 uppercase tracking-wide flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
+                                Vast in de isoleercel
+                            </span>
+                            <span class="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-mono font-extrabold" x-text="sec + 's'">
+                                {{ $character->remainingPrisonSeconds() }}s
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-1 font-medium">
+                            Resterende straftijd: <strong class="text-slate-900 font-mono" x-text="sec + ' sec vast'">{{ $character->remainingPrisonSeconds() }} sec vast</strong>.
+                            Reden: <span class="text-rose-700 font-semibold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto">
+                <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
                     <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
                         @csrf
                         <button type="submit" 
-                                class="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-star text-amber-200"></i>
-                            <span>Koop Vrij (2 ⭐)</span>
+                                class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-star text-white"></i>
+                            <span>Koop Vrij (2 Sterren)</span>
                         </button>
                     </form>
-                    <a href="{{ route('prison') }}" class="px-3 py-2 rounded-xl bg-purple-900/60 hover:bg-purple-800 border border-pink-500/30 text-pink-200 font-bold text-xs transition text-center shrink-0">
-                        Gevangenis
+                    <a href="{{ route('prison') }}" class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-building-shield"></i>
+                        <span>Gevangenis</span>
                     </a>
                 </div>
             </div>
@@ -1100,7 +1121,7 @@
                     if (lower.includes('aanvallen') || lower.includes('oorlog') || lower.includes('overval')) {
                         type = 'attack';
                         icon = 'fa-crosshairs';
-                        btn = '⚔️ Ja, Aanvallen!';
+                        btn = 'Ja, Aanvallen!';
                         title = 'Bende Oorlog Aanval';
                     } else if (lower.includes('verwijderen') || lower.includes('opheffen') || lower.includes('weigeren') || lower.includes('annuleren')) {
                         type = 'danger';
@@ -1177,7 +1198,7 @@
         messages: [
             {
                 from: 'bot',
-                text: 'Hoi patiënt! 🏥 Ik ben de TBS Zaalwacht AI. Heb je vragen over het spel, VIP worden, gevechten, de kluis of je account? Stel gerust je vraag of klik op een snel onderwerp hieronder!',
+                text: 'Hoi patiënt! Ik ben de TBS Zaalwacht AI. Heb je vragen over het spel, VIP worden, gevechten, de kluis of je account? Stel gerust je vraag of klik op een snel onderwerp hieronder!',
                 links: []
             }
         ],
@@ -1339,17 +1360,17 @@
                 <div class="pt-2">
                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">Snel Onderwerp Kiezen:</span>
                     <div class="flex flex-wrap gap-1.5">
-                        <button type="button" @click="sendQuery('Hoe word ik VIP?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
-                            👑 VIP Lidmaatschap
+                        <button type="button" @click="sendQuery('Hoe word ik VIP?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i> VIP Lidmaatschap
                         </button>
-                        <button type="button" @click="sendQuery('Hoeveel aanvallen mag ik doen?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
-                            ⚔️ 100 Aanvallen Limiet
+                        <button type="button" @click="sendQuery('Hoeveel aanvallen mag ik doen?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-crosshairs text-rose-500 text-[10px]"></i> 100 Aanvallen Limiet
                         </button>
-                        <button type="button" @click="sendQuery('Hoe kraak ik de kluis?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
-                            🔑 Kluis Kraak
+                        <button type="button" @click="sendQuery('Hoe kraak ik de kluis?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-key text-amber-500 text-[10px]"></i> Kluis Kraak
                         </button>
-                        <button type="button" @click="sendQuery('Wachtwoord vergeten')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs">
-                            🔒 Wachtwoord Vergeten
+                        <button type="button" @click="sendQuery('Wachtwoord vergeten')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-lock text-purple-600 text-[10px]"></i> Wachtwoord Vergeten
                         </button>
                     </div>
                 </div>

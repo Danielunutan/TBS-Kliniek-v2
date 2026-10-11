@@ -30,8 +30,10 @@
                     <span>💎</span>
                 </div>
             </div>
-            <div class="text-[11px] font-bold text-amber-300 tracking-wider uppercase mt-3">
-                ⭐ 3x 7️⃣ = 50x JACKPOT | 3x 💎 = 30x | 2 gelijke = 1.5x ⭐
+            <div class="text-[11px] font-bold text-amber-300 tracking-wider uppercase mt-3 flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-star text-amber-400"></i>
+                <span>3x 7 = 50x JACKPOT &bull; 3x Diamant = 30x &bull; 2 gelijke = 1.5x</span>
+                <i class="fa-solid fa-star text-amber-400"></i>
             </div>
         </div>
 

@@ -284,7 +284,7 @@
                         <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform">
                         @if($f->is_bff)
                         <span class="absolute -top-1 -right-1 bg-pink-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs" title="BFF">
-                            💖
+                            <i class="fa-solid fa-heart text-[7px] text-white"></i>
                         </span>
                         @endif
                     </div>

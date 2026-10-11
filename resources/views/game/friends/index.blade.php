@@ -56,8 +56,8 @@
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
                 <a href="{{ route('profile.show', $bff->friend->name) }}" class="relative group shrink-0">
                     <img src="{{ $bff->friend->avatar_url }}" alt="{{ $bff->friend->name }}" class="w-20 h-20 rounded-2xl object-cover border-2 border-pink-300 shadow-md group-hover:scale-105 transition-transform">
-                    <span class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-white shadow-xs">
-                        💖 BFF
+                    <span class="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full border border-white shadow-xs inline-flex items-center gap-1">
+                        <i class="fa-solid fa-heart text-[8px]"></i> <span>BFF</span>
                     </span>
                 </a>
                 <div class="flex-1 text-center sm:text-left space-y-1">
@@ -431,8 +431,9 @@
                         <button type="button" @click="selectedFriendForRespect = null" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
                             Annuleren
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl transition shadow-sm">
-                            Respect Bevestigen 🔥
+                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl transition shadow-sm inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-fire text-amber-300"></i>
+                            <span>Respect Bevestigen</span>
                         </button>
                     </div>
                 </form>
