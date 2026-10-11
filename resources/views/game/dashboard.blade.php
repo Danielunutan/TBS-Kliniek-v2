@@ -192,9 +192,7 @@
                         </a>
                     </div>
                     <div class="p-5 flex items-center gap-4 hover:bg-slate-50 transition">
-                        <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl shadow-sm">
-                            <i class="fa-solid fa-dumbbell"></i>
-                        </div>
+                        <img src="{{ asset('assets/daily_training.jpg') }}" alt="Dagelijkse Training" class="w-12 h-12 rounded-lg object-cover shadow-sm">
                         <div class="flex-1">
                             <h4 class="text-sm font-bold text-slate-800">Dagelijkse Training</h4>
                             <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">1/2</p>
