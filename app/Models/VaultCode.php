@@ -19,9 +19,14 @@ class VaultCode extends Model
         'is_redeemed' => 'boolean',
     ];
 
-    public function owner(): BelongsTo
+    public function character(): BelongsTo
     {
         return $this->belongsTo(Character::class, 'character_id');
+    }
+
+    public function owner(): BelongsTo
+    {
+        return $this->character();
     }
 
     public function redeemedBy(): BelongsTo
