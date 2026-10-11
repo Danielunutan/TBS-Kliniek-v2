@@ -118,7 +118,7 @@
                }
            }">
         <!-- Logo Header (TBS Kliniek Brand Emblem & Typography) -->
-        <div class="px-5 py-4 flex items-center justify-between border-b border-slate-100 bg-white sticky top-0 z-10">
+        <div class="px-5 py-4 flex items-center border-b border-slate-100 bg-white sticky top-0 z-10">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group" title="TBS Kliniek Dashboard">
                 <div class="w-11 h-11 shrink-0 drop-shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
                     <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
@@ -127,13 +127,14 @@
                     <div class="flex items-center gap-1.5">
                         <span class="text-sm font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
                     </div>
-                    <span class="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-0.5">Online Game</span>
+                    <div class="mt-1">
+                        <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>Live</span>
+                        </span>
+                    </div>
                 </div>
             </a>
-            <span class="inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Live</span>
-            </span>
         </div>
 
         <!-- Navigation Sections with Collapsible Categories -->
