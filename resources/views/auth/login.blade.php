@@ -22,14 +22,19 @@
             <div class="absolute inset-0 bg-gradient-to-r from-[#120224]/50 via-transparent to-transparent pointer-events-none"></div>
 
             <div class="relative z-10 space-y-5">
-                <!-- Branding Header -->
-                <div>
-                    <h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-lg">
-                        TBS <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400">Kliniek</span>
-                    </h1>
-                    <p class="mt-2 text-xs sm:text-sm text-purple-100 font-medium leading-relaxed max-w-sm drop-shadow">
-                        Respect verdien je niet met goed gedrag. Frikandelbroodjes moet je bevechten.
-                    </p>
+                <!-- Branding Header with Official New Logo Emblem -->
+                <div class="flex items-center gap-4">
+                    <div class="w-18 h-18 sm:w-22 sm:h-22 shrink-0 drop-shadow-2xl">
+                        <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div>
+                        <h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-lg">
+                            TBS <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400">Kliniek</span>
+                        </h1>
+                        <p class="mt-1 text-xs text-purple-100 font-medium leading-relaxed max-w-sm drop-shadow">
+                            Respect verdien je niet met goed gedrag. Frikandelbroodjes moet je bevechten.
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Modern Glowing Purple Glass Feature Cards -->

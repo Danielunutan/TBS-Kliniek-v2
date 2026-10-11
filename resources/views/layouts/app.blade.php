@@ -120,8 +120,8 @@
         <!-- Logo Header (TBS Kliniek Brand Emblem & Typography) -->
         <div class="px-5 py-4 flex items-center justify-between border-b border-slate-100 bg-white sticky top-0 z-10">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group" title="TBS Kliniek Dashboard">
-                <div class="w-11 h-11 shrink-0 drop-shadow-md group-hover:scale-105 transition-transform">
-                    <img src="{{ asset('assets/logo.svg') }}" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
+                <div class="w-11 h-11 shrink-0 drop-shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
+                    <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
                 </div>
                 <div class="flex flex-col">
                     <div class="flex items-center gap-1.5">
@@ -398,8 +398,8 @@
     <!-- MOBILE TOP HEADER BAR -->
     <div class="lg:hidden bg-white text-slate-800 px-4 py-3 flex items-center justify-between border-b border-slate-200 sticky top-0 z-50 shadow-xs">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
-            <div class="w-9 h-9 shrink-0 drop-shadow-xs">
-                <img src="{{ asset('assets/logo.svg') }}" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
+            <div class="w-9 h-9 shrink-0 drop-shadow-xs flex items-center justify-center">
+                <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
             </div>
             <span class="text-sm font-black tracking-tight text-slate-900">TBS <span class="text-purple-600">KLINIEK</span></span>
         </a>
@@ -600,8 +600,8 @@
         <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-xs">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
                 <a href="{{ route('login') }}" data-turbo="false" data-turbo-prefetch="false" class="flex items-center gap-3 group">
-                    <div class="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 p-0.5 shadow-2xs group-hover:scale-105 transition-transform flex items-center justify-center">
-                        <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek" class="w-full h-full object-contain">
+                    <div class="w-11 h-11 shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
+                        <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek" class="w-full h-full object-contain drop-shadow-md">
                     </div>
                     <div>
                         <span class="block text-base font-extrabold tracking-tight text-slate-900 uppercase leading-none">
@@ -682,9 +682,9 @@
         <!-- SITE-WIDE FOOTER (Altijd zichtbaar, schoon en professioneel) -->
         <footer class="mt-auto border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
             <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div class="flex items-center gap-2">
-                    <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek" class="w-5 h-5 object-contain">
-                    <span class="font-bold text-slate-700">TBS Kliniek</span>
+                <div class="flex items-center gap-2.5">
+                    <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek" class="w-7 h-7 object-contain drop-shadow-xs">
+                    <span class="font-extrabold text-slate-800 text-sm">TBS <span class="text-purple-600">Kliniek</span></span>
                 </div>
                 <div>
                     <span>Respect verdien je. Frikandelbroodjes moet je bevechten.</span>

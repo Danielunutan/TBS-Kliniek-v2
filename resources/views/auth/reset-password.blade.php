@@ -19,7 +19,7 @@
 
         <div class="text-center space-y-2">
             <a href="{{ route('login') }}" class="inline-flex items-center gap-3">
-                <img src="{{ asset('assets/logo.svg') }}" alt="TBS Kliniek Logo" class="w-12 h-12 object-contain drop-shadow">
+                <img src="{{ asset('assets/logo.png') }}" alt="TBS Kliniek Logo" class="w-12 h-12 object-contain drop-shadow">
                 <div class="text-left">
                     <span class="block text-xl font-black tracking-tight text-white">TBS KLINIEK</span>
                     <span class="block text-[10px] font-extrabold uppercase tracking-widest text-purple-400">BEVEILIGD HERSTEL</span>
