@@ -3,12 +3,12 @@
 @section('content')
 <div class="space-y-6" x-data="tbsDailyRewards()">
 
-    <!-- Hero Header -->
-    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-7 overflow-hidden relative">
+    <!-- Header Card (Clean Solid White TBS Styling) -->
+    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-7 relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
-                    <i class="fa-solid fa-dharmachakra animate-spin-slow"></i>
+                <div class="w-14 h-14 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl shadow-xs border border-slate-800 shrink-0">
+                    <i class="fa-solid fa-dharmachakra"></i>
                 </div>
                 <div>
                     <div class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-amber-200 mb-1">
@@ -18,15 +18,15 @@
                         Rad van Fortuin & Login Kalender
                     </h1>
                     <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                        Draai elke dag gratis aan het rad voor flinke buit en bouw je 7-daagse login streak op voor de Directeurskluis!
+                        Draai elke dag gratis aan het rad voor kluiscodes, maskers, koffers en contanten!
                     </p>
                 </div>
             </div>
 
             <!-- Stats & Spin status -->
             <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-center">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Beschikbare Draaien</span>
+                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Draaien Vandaag</span>
                     <span class="text-base font-black text-purple-700" x-text="availableSpins">
                         {{ $availableSpins }}
                     </span>
@@ -34,7 +34,7 @@
                         {{ $character->isVip() ? 'VIP: 2x per dag' : 'Normaal: 1x per dag' }}
                     </span>
                 </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-center">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Actieve Streak</span>
                     <span class="text-base font-black text-amber-600">
                         {{ $currentStreak }} {{ $currentStreak === 1 ? 'dag' : 'dagen' }}
@@ -63,27 +63,27 @@
                         </h2>
                     </div>
                     <span class="text-xs font-extrabold px-2.5 py-1 rounded-full"
-                          :class="availableSpins > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'">
+                          :class="availableSpins > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'">
                         <span x-text="availableSpins > 0 ? 'Klaar om te draaien!' : 'Vandaag verbruikt'"></span>
                     </span>
                 </div>
 
                 <!-- Wheel Canvas / Interactive Display -->
-                <div class="relative my-4 flex items-center justify-center">
+                <div class="relative my-3 flex items-center justify-center">
                     <!-- Flapper / Arrow at top -->
                     <div class="absolute -top-3 z-30 flex flex-col items-center pointer-events-none drop-shadow-md">
-                        <div class="w-7 h-8 bg-amber-500 clip-arrow shadow-md flex items-center justify-center text-white text-xs pt-1 font-black">
-                            <i class="fa-solid fa-caret-down text-base text-amber-900"></i>
+                        <div class="w-8 h-9 bg-amber-500 clip-arrow shadow-md flex items-center justify-center text-white text-xs pt-0.5 font-black border-t-2 border-amber-300">
+                            <i class="fa-solid fa-caret-down text-lg text-amber-950"></i>
                         </div>
                     </div>
 
-                    <!-- Canvas Wheel -->
-                    <div class="p-2 rounded-full bg-slate-900 shadow-xl border-4 border-slate-800">
-                        <canvas id="dailyWheelCanvas" width="340" height="340" class="max-w-full rounded-full transition-transform duration-75"></canvas>
+                    <!-- Canvas Wheel Outer Container -->
+                    <div class="p-2 sm:p-2.5 rounded-full bg-slate-950 shadow-xl border-4 border-slate-800">
+                        <canvas id="dailyWheelCanvas" width="380" height="380" class="max-w-[310px] sm:max-w-[350px] aspect-square rounded-full transition-transform duration-75"></canvas>
                     </div>
 
                     <!-- Center Pin / Logo -->
-                    <div class="absolute z-20 w-16 h-16 rounded-full bg-slate-900 border-4 border-amber-400 text-amber-400 flex flex-col items-center justify-center shadow-lg pointer-events-none">
+                    <div class="absolute z-20 w-16 h-16 rounded-full bg-slate-950 border-4 border-amber-400 text-amber-400 flex flex-col items-center justify-center shadow-lg pointer-events-none">
                         <i class="fa-solid fa-crosshairs text-base"></i>
                         <span class="text-[8px] font-black uppercase tracking-wider text-white">TBS</span>
                     </div>
@@ -95,13 +95,13 @@
                     <div class="text-base font-black text-purple-900" x-text="lastPrizeMessage"></div>
                 </div>
 
-                <!-- Action Controls -->
-                <div class="w-full max-w-sm mt-6 flex flex-col gap-2">
+                <!-- Action Controls (Solid button, NO gradients) -->
+                <div class="w-full max-w-sm mt-5 flex flex-col gap-2">
                     <button type="button" 
                             @click="spinWheel()" 
                             :disabled="spinning || availableSpins <= 0"
-                            class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white shadow-md transition transform active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            :class="availableSpins > 0 ? 'bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 hover:from-amber-600 hover:to-indigo-700' : 'bg-slate-400'">
+                            class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            :class="availableSpins > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-slate-400'">
                         <span x-show="!spinning && availableSpins > 0">
                             <i class="fa-solid fa-play mr-1"></i> Gratis Draaien!
                         </span>
@@ -128,10 +128,12 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         @foreach($sectors as $sec)
                         <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2 text-left">
-                            <span class="w-6 h-6 rounded-lg text-white flex items-center justify-center text-[10px] shrink-0" style="background-color: {{ $sec['color'] }}">
+                            <span class="w-7 h-7 rounded-lg text-white flex items-center justify-center text-xs shrink-0" style="background-color: {{ $sec['color'] }}">
                                 <i class="fa-solid {{ $sec['icon'] }}"></i>
                             </span>
-                            <span class="text-[11px] font-black text-slate-800 truncate">{{ $sec['label'] }}</span>
+                            <div class="min-w-0">
+                                <span class="text-[11px] font-black text-slate-800 block truncate">{{ $sec['label'] }}</span>
+                            </div>
                         </div>
                         @endforeach
                     </div>
@@ -148,101 +150,88 @@
                             <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs font-bold border border-amber-200">
                                 <i class="fa-solid fa-calendar-days"></i>
                             </span>
-                            <div>
-                                <h2 class="text-sm sm:text-base font-black text-slate-900">
-                                    7-Dagen Login Kalender
-                                </h2>
-                                <span class="text-[10px] font-bold text-slate-400 block">
-                                    Log elke dag in om je streak te behouden!
-                                </span>
-                            </div>
+                            <h2 class="text-sm sm:text-base font-black text-slate-900">
+                                7-Dagen Login Kalender
+                            </h2>
                         </div>
-                        <span class="text-xs font-black text-amber-600 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                        <span class="text-xs font-bold text-slate-400">
                             Dag {{ $nextStreakDay }} van 7
                         </span>
                     </div>
 
-                    <!-- 7 Days Grid -->
+                    <!-- Days list -->
                     <div class="space-y-2.5">
-                        @foreach($schedule as $dayNumber => $dayData)
-                        @php
-                            $isPast = $dayNumber < $nextStreakDay;
-                            $isCurrent = $dayNumber === $nextStreakDay;
-                            $isFuture = $dayNumber > $nextStreakDay;
-                            $isFinalDay = ($dayNumber === 7);
-                        @endphp
-                        <div class="p-3.5 rounded-xl border transition flex items-center justify-between gap-3
-                            {{ $isCurrent ? 'bg-gradient-to-r from-amber-50 via-purple-50/50 to-white border-2 border-purple-500 shadow-xs' : '' }}
-                            {{ $isPast ? 'bg-slate-50 border-slate-200 text-slate-500 opacity-80' : '' }}
-                            {{ $isFuture && !$isFinalDay ? 'bg-white border-slate-200 text-slate-700' : '' }}
-                            {{ $isFinalDay && !$isCurrent ? 'bg-gradient-to-r from-amber-50 to-amber-100/50 border-amber-300' : '' }}">
-                            
-                            <div class="flex items-center gap-3 min-w-0">
-                                <!-- Day Badge / Icon -->
-                                <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0
-                                    {{ $isCurrent ? 'bg-purple-600 text-white shadow-xs' : '' }}
-                                    {{ $isPast ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : '' }}
-                                    {{ $isFuture && !$isFinalDay ? 'bg-slate-100 text-slate-500' : '' }}
-                                    {{ $isFinalDay ? 'bg-amber-500 text-white shadow-xs' : '' }}">
-                                    @if($isPast)
-                                        <i class="fa-solid fa-check"></i>
-                                    @elseif($isFinalDay)
-                                        <i class="fa-solid fa-gift"></i>
-                                    @else
-                                        <span>D{{ $dayNumber }}</span>
-                                    @endif
-                                </div>
+                        @for($d = 1; $d <= 7; $d++)
+                            @php
+                                $item = $schedule[$d];
+                                $isCompleted = ($currentStreak >= $d && !$canClaimStreak) || ($currentStreak >= $d && $d < $nextStreakDay);
+                                $isCurrent = ($d === $nextStreakDay && $canClaimStreak);
+                                $isFinalDay = ($d === 7);
+                            @endphp
+
+                            <div class="p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3
+                                {{ $isCompleted ? 'bg-slate-50 border-slate-200 opacity-60' : '' }}
+                                {{ $isCurrent ? 'bg-purple-50/50 border-2 border-purple-600 shadow-xs' : '' }}
+                                {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-white border-slate-200' : '' }}
+                                {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-50/40 border-2 border-amber-400' : '' }}">
                                 
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-xs font-black {{ $isCurrent ? 'text-purple-900' : 'text-slate-900' }}">
-                                            Dag {{ $dayNumber }} {{ $isFinalDay ? '★ Jackpot' : '' }}
-                                        </span>
-                                        @if($isCurrent && $canClaimStreak)
-                                            <span class="inline-flex items-center text-[9px] font-black px-1.5 py-0.2 rounded bg-emerald-500 text-white uppercase tracking-wider animate-pulse">
-                                                Klaar!
-                                            </span>
-                                        @elseif($isPast)
-                                            <span class="text-[10px] text-emerald-600 font-bold">
-                                                Geclaimd
-                                            </span>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0
+                                        {{ $isCompleted ? 'bg-emerald-600 text-white' : '' }}
+                                        {{ $isCurrent ? 'bg-purple-700 text-white' : '' }}
+                                        {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-slate-100 text-slate-600' : '' }}
+                                        {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-500 text-white' : '' }}">
+                                        @if($isCompleted)
+                                            <i class="fa-solid fa-check"></i>
+                                        @else
+                                            D{{ $d }}
                                         @endif
                                     </div>
-                                    <p class="text-[11px] font-extrabold text-slate-600 truncate mt-0.5">
-                                        {{ $dayData['label'] }}
-                                    </p>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-black text-slate-900">
+                                                Dag {{ $d }}
+                                            </span>
+                                            @if($isCompleted)
+                                                <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                                                    Geclaimd
+                                                </span>
+                                            @elseif($isCurrent)
+                                                <span class="text-[9px] font-black uppercase text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded border border-purple-200 animate-pulse">
+                                                    Klaar!
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-[11px] font-medium text-slate-500 mt-0.5">
+                                            {{ $item['label'] }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-right shrink-0">
+                                    <span class="text-xs font-black text-slate-800 block">
+                                        +€{{ number_format($item['cash'], 0, ',', '.') }}
+                                    </span>
                                 </div>
                             </div>
-
-                            <!-- Reward icon / value -->
-                            <div class="text-right shrink-0">
-                                <span class="text-xs font-black {{ $isCurrent ? 'text-purple-700' : 'text-slate-800' }}">
-                                    +{{ number_format($dayData['cash'], 0, ',', '.') }}
-                                </span>
-                            </div>
-                        </div>
-                        @endforeach
+                        @endfor
                     </div>
                 </div>
 
-                <!-- Claim Button -->
+                <!-- Claim Button (Solid color, NO gradient) -->
                 <div class="mt-6 pt-4 border-t border-slate-100">
                     @if($canClaimStreak)
                     <form action="{{ route('daily.claim-streak') }}" method="POST">
                         @csrf
-                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-md transition transform active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" 
+                                class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-gift"></i> Claim Dag {{ $nextStreakDay }} Beloning!
                         </button>
                     </form>
                     @else
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
-                        <div class="text-xs font-black text-slate-700 flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-check-circle text-emerald-500"></i>
-                            <span>Vandaag al geclaimd!</span>
-                        </div>
-                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">
-                            Kom morgen terug om Dag {{ ($nextStreakDay % 7) + 1 }} te incasseren.
-                        </p>
+                    <div class="w-full py-3 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        Vandaag al geclaimd! Kom morgen terug voor Dag {{ $nextStreakDay === 7 ? 1 : $nextStreakDay + 1 }}.
                     </div>
                     @endif
                 </div>
@@ -274,34 +263,73 @@ function tbsDailyRewards() {
             const arc = (2 * Math.PI) / numSectors;
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const radius = centerX - 10;
+            const radius = centerX - 12;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw sectors
+            // 1. Draw outer rim (Dark slate with gold rivets)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius + 8, 0, 2 * Math.PI);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 2. Draw 24 gold studs / rivets around the perimeter
+            const numStuds = 24;
+            for (let s = 0; s < numStuds; s++) {
+                const studAngle = (2 * Math.PI / numStuds) * s;
+                const studX = centerX + (radius + 2) * Math.cos(studAngle);
+                const studY = centerY + (radius + 2) * Math.sin(studAngle);
+                ctx.beginPath();
+                ctx.arc(studX, studY, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fill();
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // 3. Draw wheel slices
             for (let i = 0; i < numSectors; i++) {
                 const angle = this.currentAngle + (i * arc);
                 ctx.beginPath();
                 ctx.fillStyle = this.sectors[i].color;
                 ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, angle, angle + arc, false);
+                ctx.arc(centerX, centerY, radius - 4, angle, angle + arc, false);
                 ctx.lineTo(centerX, centerY);
                 ctx.fill();
 
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
+                // Crisp divider line between wedges
+                ctx.strokeStyle = '#f8fafc';
+                ctx.lineWidth = 2.5;
                 ctx.stroke();
 
-                // Draw Text & icon
+                // Outer peg on divider
+                const pegX = centerX + (radius - 5) * Math.cos(angle);
+                const pegY = centerY + (radius - 5) * Math.sin(angle);
+                ctx.beginPath();
+                ctx.arc(pegX, pegY, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = '#f59e0b';
+                ctx.fill();
+
+                // 4. Draw Slice Text & Emoji / Icon
                 ctx.save();
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 12px sans-serif';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 4;
                 ctx.translate(centerX, centerY);
                 ctx.rotate(angle + arc / 2);
+
                 ctx.textAlign = 'right';
-                ctx.fillText(this.sectors[i].label, radius - 20, 4);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetX = 1;
+                ctx.shadowOffsetY = 1;
+
+                const textLabel = (this.sectors[i].emoji || '') + ' ' + (this.sectors[i].short || this.sectors[i].label);
+                ctx.fillText(textLabel, radius - 24, 4);
+
                 ctx.restore();
             }
         },
@@ -330,17 +358,16 @@ function tbsDailyRewards() {
                 const numSectors = this.sectors.length;
                 const arc = (2 * Math.PI) / numSectors;
 
-                // The arrow is at the top (angle: -PI/2 or 3*PI/2)
-                // Calculate target angle so winning sector centers at top
+                // Arrow is at the top (-PI/2 or 3*PI/2)
                 const targetSectorMiddle = winningIndex * arc + (arc / 2);
                 const desiredFinalOffset = (3 * Math.PI / 2) - targetSectorMiddle;
 
-                // Do 5 to 7 full extra revolutions
+                // 6 full revolutions + offset
                 const extraRevolutions = 6 * (2 * Math.PI);
                 const totalTargetAngle = extraRevolutions + (desiredFinalOffset % (2 * Math.PI));
 
                 const startAngle = this.currentAngle % (2 * Math.PI);
-                const duration = 4000; // 4 seconds
+                const duration = 4000;
                 const startTime = performance.now();
 
                 const animate = (currentTime) => {
@@ -359,11 +386,9 @@ function tbsDailyRewards() {
                         this.availableSpins = data.available_spins;
                         this.lastPrizeMessage = data.message;
                         
-                        // Show celebration
                         setTimeout(() => {
-                            alert(data.message);
                             window.location.reload();
-                        }, 500);
+                        }, 1200);
                     }
                 };
 
@@ -382,13 +407,6 @@ function tbsDailyRewards() {
 <style>
 .clip-arrow {
     clip-path: polygon(50% 100%, 0 0, 100% 0);
-}
-@keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-.animate-spin-slow {
-    animation: spin-slow 20s linear infinite;
 }
 </style>
 @endsection

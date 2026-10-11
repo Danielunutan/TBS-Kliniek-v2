@@ -7,7 +7,7 @@
     <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-7 relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 via-red-600 to-rose-700 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-2xl shadow-xs shrink-0">
                     <i class="fa-solid fa-crosshairs"></i>
                 </div>
                 <div>
@@ -68,7 +68,7 @@
                 <div class="bg-white rounded-2xl border-2 border-rose-200 shadow-xs hover:border-rose-400 transition overflow-hidden flex flex-col justify-between group">
                     <div>
                         <!-- Header Banner -->
-                        <div class="bg-gradient-to-r from-rose-600 to-red-700 px-4 py-2.5 flex items-center justify-between text-white">
+                        <div class="bg-rose-700 px-4 py-2.5 flex items-center justify-between text-white">
                             <span class="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
                                 <i class="fa-solid fa-skull"></i> VOGELVRIJ
                             </span>
@@ -208,7 +208,7 @@
 
                 <!-- Submit Button -->
                 <div class="pt-3">
-                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-700 hover:to-red-800 text-white font-black text-sm uppercase tracking-wider shadow-md transition transform active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm uppercase tracking-wider shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-bullseye"></i> Plaats Kopgeld op het Prikbord
                     </button>
                 </div>

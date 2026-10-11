@@ -22,30 +22,30 @@ class DailyRewardController extends Controller
     ) {}
 
     /**
-     * Sectors on the Wheel of Fortune.
+     * Sectors on the Wheel of Fortune (No VIP stars - contains cash, masks, koffers, vault codes, energy).
      */
     protected array $wheelSectors = [
-        0 => ['id' => 'cash_2500',  'label' => '€ 2.500 Contant',  'type' => 'cash',    'value' => 2500,  'color' => '#8b5cf6', 'icon' => 'fa-coins'],
-        1 => ['id' => 'energy_50',   'label' => '+50 Energie',       'type' => 'energy',  'value' => 50,    'color' => '#10b981', 'icon' => 'fa-bolt'],
-        2 => ['id' => 'stars_5',     'label' => '5 VIP Sterren',     'type' => 'stars',   'value' => 5,     'color' => '#f59e0b', 'icon' => 'fa-star'],
-        3 => ['id' => 'respect_25',  'label' => '+25 Respect',       'type' => 'respect', 'value' => 25,    'color' => '#ec4899', 'icon' => 'fa-fire-flame-curved'],
-        4 => ['id' => 'cash_10000', 'label' => '€ 10.000 Jackpot',  'type' => 'cash',    'value' => 10000, 'color' => '#6366f1', 'icon' => 'fa-sack-dollar'],
-        5 => ['id' => 'health_100',  'label' => '+100 HP Gezondheid', 'type' => 'health',  'value' => 100,   'color' => '#ef4444', 'icon' => 'fa-heart-pulse'],
-        6 => ['id' => 'stars_15',    'label' => '15 VIP Sterren',    'type' => 'stars',   'value' => 15,    'color' => '#d97706', 'icon' => 'fa-crown'],
-        7 => ['id' => 'cash_5000',   'label' => '€ 5.000 Buit',      'type' => 'cash',    'value' => 5000,  'color' => '#06b6d4', 'icon' => 'fa-gem'],
+        0 => ['id' => 'vault_code_1', 'label' => '1x Kluiscode',  'short' => '1x Kluis',   'type' => 'vault_code', 'value' => 1,    'color' => '#1e293b', 'icon' => 'fa-key',       'emoji' => '🔑'],
+        1 => ['id' => 'masks_2',       'label' => '2x Maskers',    'short' => '2x Masker',  'type' => 'masks',      'value' => 2,    'color' => '#4c1d95', 'icon' => 'fa-mask',      'emoji' => '🎭'],
+        2 => ['id' => 'koffer_1',      'label' => '1x XXL Koffer', 'short' => '1x Koffer',  'type' => 'koffer',     'value' => 1,    'color' => '#065f46', 'icon' => 'fa-briefcase', 'emoji' => '💼'],
+        3 => ['id' => 'cash_2500',     'label' => '€ 2.500 Cash',  'short' => '€ 2.500',    'type' => 'cash',       'value' => 2500, 'color' => '#0f766e', 'icon' => 'fa-coins',     'emoji' => '💶'],
+        4 => ['id' => 'energy_50',     'label' => '+50 Energie',   'short' => '+50 Nrg',    'type' => 'energy',     'value' => 50,   'color' => '#1e3a8a', 'icon' => 'fa-bolt',      'emoji' => '⚡'],
+        5 => ['id' => 'vault_code_2', 'label' => '2x Kluiscodes', 'short' => '2x Kluis',   'type' => 'vault_code', 'value' => 2,    'color' => '#312e81', 'icon' => 'fa-key',       'emoji' => '🔑'],
+        6 => ['id' => 'masks_5',       'label' => '5x Maskers',    'short' => '5x Masker',  'type' => 'masks',      'value' => 5,    'color' => '#831843', 'icon' => 'fa-mask',      'emoji' => '🎭'],
+        7 => ['id' => 'cash_10000',    'label' => '€ 10.000 Buit', 'short' => '€ 10.000',   'type' => 'cash',       'value' => 10000, 'color' => '#78350f', 'icon' => 'fa-sack-dollar', 'emoji' => '💰'],
     ];
 
     /**
      * 7-day Streak schedule.
      */
     protected array $streakSchedule = [
-        1 => ['cash' => 1500,  'energy' => 0,  'respect' => 0,  'stars' => 0,  'xp' => 15,  'label' => '€1.500 Cash + 15 XP'],
-        2 => ['cash' => 2500,  'energy' => 25, 'respect' => 0,  'stars' => 0,  'xp' => 25,  'label' => '€2.500 + 25 Energie'],
-        3 => ['cash' => 4000,  'energy' => 0,  'respect' => 15, 'stars' => 0,  'xp' => 40,  'label' => '€4.000 + 15 Respect'],
-        4 => ['cash' => 6000,  'energy' => 0,  'respect' => 0,  'stars' => 5,  'xp' => 60,  'label' => '€6.000 + 5 Sterren'],
-        5 => ['cash' => 8500,  'energy' => 50, 'respect' => 0,  'stars' => 0,  'xp' => 85,  'label' => '€8.500 + 50 Energie'],
-        6 => ['cash' => 12000, 'energy' => 0,  'respect' => 35, 'stars' => 0,  'xp' => 120, 'label' => '€12.000 + 35 Respect'],
-        7 => ['cash' => 25000, 'energy' => 100, 'respect' => 50, 'stars' => 20, 'xp' => 250, 'label' => '🎁 Directeur Kluiskist!'],
+        1 => ['cash' => 1500,  'energy' => 0,   'masks' => 0, 'koffers' => 0, 'vault_codes' => 0, 'xp' => 15,  'label' => '€ 1.500 Cash + 15 XP'],
+        2 => ['cash' => 2500,  'energy' => 25,  'masks' => 0, 'koffers' => 0, 'vault_codes' => 0, 'xp' => 25,  'label' => '€ 2.500 + 25 Energie'],
+        3 => ['cash' => 4000,  'energy' => 0,   'masks' => 2, 'koffers' => 0, 'vault_codes' => 0, 'xp' => 40,  'label' => '€ 4.000 + 2x Maskers 🎭'],
+        4 => ['cash' => 6000,  'energy' => 0,   'masks' => 0, 'koffers' => 1, 'vault_codes' => 0, 'xp' => 60,  'label' => '€ 6.000 + 1x XXL Koffer 💼'],
+        5 => ['cash' => 8500,  'energy' => 50,  'masks' => 0, 'koffers' => 0, 'vault_codes' => 1, 'xp' => 85,  'label' => '€ 8.500 + 1x Kluiscode 🔑'],
+        6 => ['cash' => 12000, 'energy' => 0,   'masks' => 4, 'koffers' => 1, 'vault_codes' => 0, 'xp' => 120, 'label' => '€ 12.000 + 4 Maskers 🎭 + 1 Koffer 💼'],
+        7 => ['cash' => 25000, 'energy' => 100, 'masks' => 5, 'koffers' => 2, 'vault_codes' => 2, 'xp' => 250, 'label' => '🎁 Directeur Kluiskist (€25.000 + 2 Koffers + 2 Kluiscodes)!'],
     ];
 
     public function index(): View
@@ -60,7 +60,7 @@ class DailyRewardController extends Controller
         // Calculate current active streak day for display
         $currentStreak = (int) $character->streak_days;
         if ($character->last_streak_claim_at) {
-            $diffDays = $character->last_streak_claim_at->startOfDay()->diffInDays(now()->startOfDay());
+            $diffDays = (int) $character->last_streak_claim_at->startOfDay()->diffInDays(now()->startOfDay());
             if ($diffDays > 1) {
                 // Streak was broken
                 $nextStreakDay = 1;
@@ -122,14 +122,14 @@ class DailyRewardController extends Controller
             case 'energy':
                 $character->energy = min($character->max_energy, $character->energy + $prize['value']);
                 break;
-            case 'stars':
-                $character->stars = ($character->stars ?? 0) + $prize['value'];
+            case 'masks':
+                $character->masks = ($character->masks ?? 0) + $prize['value'];
                 break;
-            case 'respect':
-                $character->respect = ($character->respect ?? 0) + $prize['value'];
+            case 'koffer':
+                $character->xxl_cases = ($character->xxl_cases ?? 0) + $prize['value'];
                 break;
-            case 'health':
-                $character->health = min($character->max_health, $character->health + $prize['value']);
+            case 'vault_code':
+                $character->vault_tokens = ($character->vault_tokens ?? 0) + $prize['value'];
                 break;
         }
 
@@ -146,6 +146,7 @@ class DailyRewardController extends Controller
         GameNotification::create([
             'character_id' => $character->id,
             'type' => 'daily_spin',
+            'icon' => $prize['icon'],
             'title' => 'Rad van Fortuin gedraaid!',
             'message' => "Je draaide aan het Rad van Fortuin en won: {$rewardDescription}!",
             'is_read' => false,
@@ -164,8 +165,9 @@ class DailyRewardController extends Controller
                     'cash' => $character->cash,
                     'energy' => $character->energy,
                     'health' => $character->health,
-                    'stars' => $character->stars,
-                    'respect' => $character->respect,
+                    'masks' => $character->masks ?? 0,
+                    'vault_tokens' => $character->vault_tokens ?? 0,
+                    'xxl_cases' => $character->xxl_cases ?? 0,
                 ],
             ]);
         }
@@ -188,7 +190,7 @@ class DailyRewardController extends Controller
         $currentStreak = (int) $character->streak_days;
 
         if ($character->last_streak_claim_at) {
-            $diffDays = $character->last_streak_claim_at->startOfDay()->diffInDays($now->startOfDay());
+            $diffDays = (int) $character->last_streak_claim_at->startOfDay()->diffInDays($now->startOfDay());
             if ($diffDays === 1) {
                 // Continued yesterday
                 $newStreak = ($currentStreak % 7) + 1;
@@ -209,11 +211,14 @@ class DailyRewardController extends Controller
         if ($reward['energy'] > 0) {
             $character->energy = min($character->max_energy, $character->energy + $reward['energy']);
         }
-        if ($reward['respect'] > 0) {
-            $character->respect = ($character->respect ?? 0) + $reward['respect'];
+        if (($reward['masks'] ?? 0) > 0) {
+            $character->masks = ($character->masks ?? 0) + $reward['masks'];
         }
-        if ($reward['stars'] > 0) {
-            $character->stars = ($character->stars ?? 0) + $reward['stars'];
+        if (($reward['koffers'] ?? 0) > 0) {
+            $character->xxl_cases = ($character->xxl_cases ?? 0) + $reward['koffers'];
+        }
+        if (($reward['vault_codes'] ?? 0) > 0) {
+            $character->vault_tokens = ($character->vault_tokens ?? 0) + $reward['vault_codes'];
         }
         if ($reward['xp'] > 0) {
             $this->level->addXp($character, $reward['xp']);
@@ -226,6 +231,7 @@ class DailyRewardController extends Controller
         GameNotification::create([
             'character_id' => $character->id,
             'type' => 'daily_streak',
+            'icon' => 'fa-calendar-check',
             'title' => "Dag {$newStreak} Login Streak Geclaimd!",
             'message' => "Je hebt je dagelijkse loginbeloning geclaimd: {$reward['label']}!",
             'is_read' => false,

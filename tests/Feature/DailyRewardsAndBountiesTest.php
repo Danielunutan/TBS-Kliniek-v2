@@ -118,6 +118,77 @@ class DailyRewardsAndBountiesTest extends TestCase
         $secondResponse->assertSessionHas('error');
     }
 
+    public function test_wheel_sectors_contain_vault_codes_masks_and_koffers_and_no_stars(): void
+    {
+        $character = $this->createCharacter('ItemSpinner');
+        $response = $this->actingAs($character->user)->get(route('daily.index'));
+        $response->assertStatus(200);
+
+        /** @var array $sectors */
+        $sectors = $response->viewData('sectors');
+        $types = array_column($sectors, 'type');
+
+        // Verify NO stars
+        $this->assertNotContains('stars', $types);
+
+        // Verify new reward types are present
+        $this->assertContains('vault_code', $types);
+        $this->assertContains('masks', $types);
+        $this->assertContains('koffer', $types);
+        $this->assertContains('cash', $types);
+    }
+
+    public function test_streak_day_three_awards_masks(): void
+    {
+        $character = $this->createCharacter('MaskCollector', [
+            'cash' => 1000,
+            'streak_days' => 2,
+            'masks' => 0,
+            'last_streak_claim_at' => now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($character->user)->post(route('daily.claim-streak'));
+        $response->assertRedirect(route('daily.index'));
+
+        $character->refresh();
+        $this->assertEquals(3, $character->streak_days);
+        $this->assertEquals(2, $character->masks);
+    }
+
+    public function test_streak_day_four_awards_xxl_case(): void
+    {
+        $character = $this->createCharacter('CaseCollector', [
+            'cash' => 1000,
+            'streak_days' => 3,
+            'xxl_cases' => 0,
+            'last_streak_claim_at' => now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($character->user)->post(route('daily.claim-streak'));
+        $response->assertRedirect(route('daily.index'));
+
+        $character->refresh();
+        $this->assertEquals(4, $character->streak_days);
+        $this->assertEquals(1, $character->xxl_cases);
+    }
+
+    public function test_streak_day_five_awards_vault_tokens(): void
+    {
+        $character = $this->createCharacter('VaultCollector', [
+            'cash' => 1000,
+            'streak_days' => 4,
+            'vault_tokens' => 0,
+            'last_streak_claim_at' => now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($character->user)->post(route('daily.claim-streak'));
+        $response->assertRedirect(route('daily.index'));
+
+        $character->refresh();
+        $this->assertEquals(5, $character->streak_days);
+        $this->assertEquals(1, $character->vault_tokens);
+    }
+
     public function test_bounty_can_be_placed_and_deducts_cash(): void
     {
         $charA = $this->createCharacter('TargetPlacer', [
