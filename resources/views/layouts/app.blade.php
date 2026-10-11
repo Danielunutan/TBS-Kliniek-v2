@@ -97,6 +97,8 @@
             $activeCategory = 'economie';
         } elseif (request()->routeIs('missions.*', 'training.*', 'profile.*') || request()->is('missies*', 'training*', 'profiel*', 'speler*')) {
             $activeCategory = 'voortgang';
+        } elseif (request()->routeIs('faq.*', 'help.*') || request()->is('faq*', 'kennisbank*', 'help*')) {
+            $activeCategory = 'helptool';
         }
     @endphp
 
@@ -359,10 +361,6 @@
                         </div>
                         <span class="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded-sm shadow-2xs">€7,50</span>
                     </a>
-                    <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-circle-question w-4 text-center text-sky-500"></i>
-                        <span>Kennisbank & FAQ</span>
-                    </a>
                     <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         <i class="fa-solid fa-gear w-4 text-center text-slate-500"></i>
                         <span>Account Instellingen</span>
@@ -376,6 +374,40 @@
                         <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
                     </a>
                     @endif
+                </div>
+            </div>
+
+            <!-- 6. HELPTOOL -->
+            <div class="space-y-1">
+                <button @click="toggleCategory('helptool')" 
+                        type="button" 
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-headset text-indigo-500"></i> Helptool
+                    </span>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'helptool' ? 'rotate-180' : ''"></i>
+                </button>
+                <div x-show="openCategory === 'helptool'" x-collapse class="space-y-0.5 pl-1">
+                    <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <i class="fa-solid fa-circle-question w-4 text-center text-sky-500"></i>
+                        <span>FAQ & Kennisbank</span>
+                    </a>
+                    <a href="{{ route('help.tickets.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-ticket w-4 text-center text-purple-500"></i>
+                            <span>Support Tickets</span>
+                        </div>
+                        @php
+                            $userOpenTicketsDesk = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
+                        @endphp
+                        @if($userOpenTicketsDesk > 0)
+                        <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Reactie!</span>
+                        @endif
+                    </a>
+                    <a href="{{ route('help.tickets.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <i class="fa-solid fa-plus w-4 text-center text-emerald-500"></i>
+                        <span>Nieuw Ticket Aanmaken</span>
+                    </a>
                 </div>
             </div>
 
@@ -636,9 +668,6 @@
                     <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <i class="fa-solid fa-id-badge w-4 text-blue-500"></i> Mijn Profiel
                     </a>
-                    <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-circle-question w-4 text-sky-500"></i> Kennisbank & FAQ
-                    </a>
                     <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <i class="fa-solid fa-gear w-4 text-slate-500"></i> Account Instellingen
                     </a>
@@ -648,6 +677,26 @@
                         <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
                     </a>
                     @endif
+                </div>
+
+                <!-- 7. Helptool -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 block px-2">Helptool</span>
+                    <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-circle-question w-4 text-sky-500"></i> FAQ & Kennisbank
+                    </a>
+                    <a href="{{ route('help.tickets.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-ticket w-4 text-purple-500"></i> Support Tickets</span>
+                        @php
+                            $userOpenTicketsMob = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
+                        @endphp
+                        @if($userOpenTicketsMob > 0)
+                        <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Reactie!</span>
+                        @endif
+                    </a>
+                    <a href="{{ route('help.tickets.create') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-plus w-4 text-emerald-500"></i> Nieuw Ticket Aanmaken
+                    </a>
                 </div>
 
                 <div class="pt-2 border-t border-slate-100">

@@ -65,6 +65,9 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <a href="{{ route('admin.tickets.index') }}" class="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-xs font-black uppercase tracking-wider transition text-purple-700 border border-purple-200">
+                <i class="fa-solid fa-headset mr-1 text-purple-600"></i> Support Tickets
+            </a>
             <a href="{{ route('admin.players') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-black uppercase tracking-wider transition text-white shadow-xs">
                 <i class="fa-solid fa-crown mr-1"></i> VIP Toekennen
             </a>

@@ -52,6 +52,18 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.vault') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-vault"></i> Kluis & Codes
             </a>
+            <a href="{{ route('admin.tickets.index') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.tickets.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-solid fa-headset"></i> Support Tickets
+                @php
+                    $pendingAdminTicketsCount = \App\Models\SupportTicket::whereIn('status', ['open', 'in_behandeling'])->count();
+                @endphp
+                @if($pendingAdminTicketsCount > 0)
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.tickets.*') ? 'bg-white text-purple-700' : 'bg-rose-500 text-white' }}">
+                    {{ $pendingAdminTicketsCount }}
+                </span>
+                @endif
+            </a>
         </div>
     </div>
 

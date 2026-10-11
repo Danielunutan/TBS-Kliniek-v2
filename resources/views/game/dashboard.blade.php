@@ -6,6 +6,40 @@
     <!-- Main Content (Left) -->
     <div class="xl:col-span-8 space-y-6">
         
+        <!-- Open Beta Notice Card -->
+        <div class="bg-white border border-purple-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center text-lg shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
+                    <i class="fa-solid fa-flask-vial"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse"></span>
+                            Open Beta Testfase
+                        </span>
+                        <span class="text-xs font-black text-slate-900">TBS Kliniek de Game is momenteel in Open Beta!</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                        We bouwen elke dag aan nieuwe gameplay en updates. Mocht je fouten, bugs of onduidelijkheden tegenkomen, of heb je goede feedback en suggesties? Maak eenvoudig een ticket aan onder <strong>Helptool</strong> of raadpleeg de Kennisbank.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <a href="{{ route('help.tickets.create') }}" 
+                   class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-plus text-[10px]"></i>
+                    <span>Ticket Aanmaken</span>
+                </a>
+                <a href="{{ route('help.tickets.index') }}" 
+                   class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs transition inline-flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-headset text-slate-500"></i>
+                    <span>Helpdesk</span>
+                </a>
+            </div>
+        </div>
+
         <!-- Welcome Hero Card -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
             <!-- Optional subtle pattern background -->

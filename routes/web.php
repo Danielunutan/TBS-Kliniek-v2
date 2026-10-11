@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminTicketController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\CasinoController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\RpsController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SlotsController;
 use App\Http\Controllers\SmuggleController;
+use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\TheftController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TrainingController;
@@ -68,9 +70,17 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->name('verification.send');
 
-    // FAQ & Helpcentrum
+    // Helptool: FAQ & Kennisbank
     Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
     Route::get('/kennisbank', [FaqController::class, 'index'])->name('faq');
+
+    // Helptool: Support Ticketsysteem
+    Route::get('/help/tickets', [SupportTicketController::class, 'index'])->name('help.tickets.index');
+    Route::get('/help/tickets/nieuw', [SupportTicketController::class, 'create'])->name('help.tickets.create');
+    Route::post('/help/tickets', [SupportTicketController::class, 'store'])->name('help.tickets.store');
+    Route::get('/help/tickets/{ticket}', [SupportTicketController::class, 'show'])->name('help.tickets.show');
+    Route::post('/help/tickets/{ticket}/reactie', [SupportTicketController::class, 'reply'])->name('help.tickets.reply');
+    Route::post('/help/tickets/{ticket}/sluiten', [SupportTicketController::class, 'close'])->name('help.tickets.close');
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -287,5 +297,9 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/kluis', [AdminController::class, 'vault'])->name('vault');
         Route::post('/kluis', [AdminController::class, 'updateVault'])->name('vault.update');
         Route::post('/kluis/nieuwe-code', [AdminController::class, 'randomizeVaultCode'])->name('vault.randomize');
+        Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets.index');
+        Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
+        Route::post('/tickets/{ticket}/reactie', [AdminTicketController::class, 'reply'])->name('tickets.reply');
+        Route::post('/tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->name('tickets.status');
     });
 });

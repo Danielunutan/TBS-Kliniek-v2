@@ -340,4 +340,12 @@ class Character extends Model
     {
         return $this->cooldownRemaining($action) > 0;
     }
+
+    /**
+     * Get support tickets created by character.
+     */
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
 }
