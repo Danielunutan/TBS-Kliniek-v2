@@ -2,15 +2,15 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="bg-gradient-to-r from-slate-900 to-amber-950 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden">
+    <div class="bg-white rounded-2xl p-6 sm:p-8 text-slate-800 relative overflow-hidden shadow-xs border border-slate-200">
         <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/20 mb-3">
-                <i class="fa-solid fa-gem"></i> Gokkasten & Slots
+            <div class="inline-flex items-center gap-2 bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200 mb-3">
+                <i class="fa-solid fa-gem text-amber-500"></i> Gokkasten & Slots
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Fruitautomaat</h1>
-            <p class="text-slate-300 text-xs sm:text-sm mt-1">Draai aan de rollen! 3 dezelfde symbolen leveren tot 50x jackpot op!</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Fruitautomaat</h1>
+            <p class="text-slate-500 text-xs sm:text-sm mt-1">Draai aan de rollen! 3 dezelfde symbolen leveren tot 50x jackpot op!</p>
         </div>
-        <div class="absolute -right-6 -bottom-6 text-white/5 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-coins"></i>
         </div>
     </div>
@@ -18,7 +18,7 @@
     <!-- Machine Visual -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 sm:p-8 space-y-6 text-center">
         <!-- Reel Window -->
-        <div class="bg-gradient-to-b from-slate-900 to-slate-800 p-6 rounded-2xl border-4 border-amber-400/30 shadow-inner max-w-sm mx-auto">
+        <div class="bg-slate-50 p-6 rounded-2xl border-2 border-amber-300 shadow-xs max-w-sm mx-auto">
             <div class="grid grid-cols-3 gap-3">
                 <div class="bg-white rounded-xl h-24 flex items-center justify-center text-4xl shadow-md border-2 border-slate-200">
                     <span>🍒</span>
@@ -30,10 +30,10 @@
                     <span>💎</span>
                 </div>
             </div>
-            <div class="text-[11px] font-bold text-amber-300 tracking-wider uppercase mt-3 flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-star text-amber-400"></i>
+            <div class="text-[11px] font-bold text-amber-800 tracking-wider uppercase mt-3 flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-star text-amber-500"></i>
                 <span>3x 7 = 50x JACKPOT &bull; 3x Diamant = 30x &bull; 2 gelijke = 1.5x</span>
-                <i class="fa-solid fa-star text-amber-400"></i>
+                <i class="fa-solid fa-star text-amber-500"></i>
             </div>
         </div>
 

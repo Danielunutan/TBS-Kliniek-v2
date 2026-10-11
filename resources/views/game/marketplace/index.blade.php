@@ -3,28 +3,28 @@
 @section('content')
 <div class="space-y-6" x-data="{ activeTab: 'alle', createModalOpen: false }">
 
-    <!-- Header Banner -->
-    <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xs">
+    <!-- Clean TBS Kliniek Header Banner -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 text-slate-800 relative overflow-hidden shadow-xs border border-slate-200">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20 mb-3">
+                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-3">
                     <i class="fa-solid fa-shop"></i> Speler-tot-Speler Handelsplatform
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white">De Kliniek Marktplaats</h1>
-                <p class="text-purple-200/90 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">De Kliniek Marktplaats</h1>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
                     Verkoop en koop zeldzame goederen tussen patiënten onderling: ruil <strong>Sterren voor Geld</strong>, <strong>Geld voor Sterren</strong>, verhandel <strong>Kluiscodes</strong> en ongeopende <strong>Smokkeltassen</strong>!
                 </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-3 shrink-0">
-                <button @click="createModalOpen = true" class="px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs flex items-center gap-2 transition shadow-md cursor-pointer">
-                    <i class="fa-solid fa-plus-circle text-sm text-amber-200"></i>
+                <button @click="createModalOpen = true" class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs flex items-center gap-2 transition shadow-xs cursor-pointer">
+                    <i class="fa-solid fa-plus-circle text-sm text-purple-200"></i>
                     <span>Aanbod Plaatsen</span>
                 </button>
             </div>
         </div>
 
-        <div class="absolute -right-6 -bottom-6 text-white/5 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-scale-balanced"></i>
         </div>
     </div>

@@ -3,33 +3,33 @@
 @section('content')
 <div class="space-y-6" x-data="{ activeTab: 'kopen' }">
 
-    <!-- Top Banner -->
-    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-gradient-to-r from-purple-950 via-slate-900 to-amber-950 border border-purple-900/40">
+    <!-- Clean TBS Kliniek Top Banner -->
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 relative overflow-hidden bg-white border border-slate-200">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <div class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-400/20 mb-2">
-                    <i class="fa-solid fa-crown text-amber-400"></i> Exclusief Lidmaatschap
+                <div class="inline-flex items-center gap-2 bg-amber-50 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200 mb-2">
+                    <i class="fa-solid fa-crown text-amber-500"></i> Exclusief Lidmaatschap
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">TBS VIP Lounge & Punten Shop</h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">TBS VIP Lounge & Punten Shop</h1>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Word VIP lid via onze Discord voor <strong>€7,50 per maand</strong>. Ontvang elk actief speeluur <strong>5 VIP Punten</strong> en wissel ze in voor unieke bonussen en privileges!
                 </p>
             </div>
             
             <!-- VIP Status Card -->
-            <div class="shrink-0 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 flex items-center gap-4 shadow-md">
-                <div class="w-12 h-12 rounded-xl {{ $character->isVip() ? 'bg-amber-400 text-slate-950' : 'bg-slate-800 text-slate-400' }} flex items-center justify-center text-xl font-black shadow-xs">
+            <div class="shrink-0 bg-slate-50 rounded-2xl p-4 border border-slate-200 flex items-center gap-4 shadow-2xs">
+                <div class="w-12 h-12 rounded-xl {{ $character->isVip() ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-slate-100 text-slate-400 border border-slate-200' }} flex items-center justify-center text-xl font-black shadow-xs">
                     <i class="fa-solid fa-crown"></i>
                 </div>
                 <div>
-                    <div class="text-[10px] uppercase font-bold text-slate-300">Jouw VIP Saldo</div>
-                    <div class="text-xl font-black text-amber-300 font-mono flex items-center gap-1.5">
+                    <div class="text-[10px] uppercase font-bold text-slate-400">Jouw VIP Saldo</div>
+                    <div class="text-xl font-black text-amber-600 font-mono flex items-center gap-1.5">
                         <span>{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}</span>
-                        <span class="text-xs font-bold text-white">Punten</span>
+                        <span class="text-xs font-bold text-slate-600">Punten</span>
                     </div>
                     <div class="text-[10px] font-bold mt-0.5">
                         @if($character->isVip())
-                            <span class="text-emerald-400 font-black flex items-center gap-1">
+                            <span class="text-emerald-600 font-black flex items-center gap-1">
                                 <i class="fa-solid fa-circle-check"></i> Actief VIP Lid
                             </span>
                         @else

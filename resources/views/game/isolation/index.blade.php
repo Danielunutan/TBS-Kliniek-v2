@@ -4,43 +4,37 @@
 <div class="space-y-6">
     
     <!-- Title Card (Clean & Modern) -->
-    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-slate-950 border border-purple-900/40">
-        <!-- Background Banner Asset (TBS Paarse Style) -->
-        <div class="absolute inset-0 z-0 pointer-events-none">
-            <img src="{{ asset('assets/illustrations/banner_prison.jpg') }}" alt="Isolatie" class="w-full h-full object-cover object-center opacity-45">
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
-        </div>
-
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 relative overflow-hidden bg-white border border-slate-200">
         <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full border border-indigo-400/20 mb-3">
-                <i class="fa-solid fa-ghost"></i> Persoonlijke Bescherming
+            <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200 mb-3">
+                <i class="fa-solid fa-ghost text-indigo-600"></i> Persoonlijke Bescherming
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Vrijwillige Isolatie</h1>
-            <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Vrijwillige Isolatie</h1>
+            <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                 Heb je ruzie met gevaarlijke patiënten op de luchtplaats? Trek je tijdelijk terug in je cel achter slot en grendel zodat niemand je kan aanvallen.
             </p>
         </div>
     </div>
 
     <!-- Pricing Summary Banner -->
-    <div class="bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-purple-950/40 border border-purple-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-purple-100">
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-700 shadow-xs">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-pink-400 text-lg shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 text-lg shrink-0">
                 <i class="fa-solid fa-tags"></i>
             </div>
             <div>
-                <span class="text-xs font-black uppercase tracking-wider text-pink-300">Vast Tarief per uur</span>
-                <p class="text-xs text-purple-200 font-medium">
-                    Bescherming kost <span class="font-extrabold text-white">€50.000 KC</span> óf <span class="font-extrabold text-amber-300">25 Sterren</span> per uur.
+                <span class="text-xs font-black uppercase tracking-wider text-purple-700">Vast Tarief per uur</span>
+                <p class="text-xs text-slate-500 font-medium">
+                    Bescherming kost <span class="font-extrabold text-slate-900">€50.000 KC</span> óf <span class="font-extrabold text-amber-600">25 Sterren</span> per uur.
                 </p>
             </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <span class="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-wallet"></i> €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}
+            <span class="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-emerald-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-wallet text-emerald-600"></i> €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}
             </span>
-            <span class="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                <i class="fa-solid fa-star"></i> {{ $character->stars ?? 0 }} Sterren
+            <span class="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-amber-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
             </span>
         </div>
     </div>

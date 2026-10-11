@@ -4,22 +4,22 @@
 <div class="space-y-6">
 
     <!-- Secret Vault Code Control Card -->
-    <div class="bg-linear-to-r from-slate-950 via-purple-950 to-slate-900 border border-purple-800/40 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl">
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 text-slate-900 relative overflow-hidden shadow-xs">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
             <div>
-                <span class="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-amber-400/30 mb-2">
-                    <i class="fa-solid fa-key"></i> Centrale Kliniekkluiskraak
+                <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-amber-200 mb-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> Centrale Kliniekkluiskraak
                 </span>
-                <h3 class="text-xl sm:text-2xl font-black">Huidige Geheime Kluiscode</h3>
-                <p class="text-xs text-purple-200 mt-1 max-w-lg">
+                <h3 class="text-xl sm:text-2xl font-black text-slate-900">Huidige Geheime Kluiscode</h3>
+                <p class="text-xs text-slate-500 mt-1 max-w-lg">
                     Dit is de actieve code die spelers moeten raden of ontcijferen in de Kluis-Kraak minigame.
                 </p>
             </div>
 
-            <div class="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-xs">
+            <div class="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-2xl p-4">
                 <div class="text-center">
                     <span class="text-[10px] font-extrabold uppercase text-slate-400 block">ACTIEVE CODE</span>
-                    <span class="text-3xl sm:text-4xl font-mono font-black tracking-widest text-amber-400">
+                    <span class="text-3xl sm:text-4xl font-mono font-black tracking-widest text-purple-700">
                         {{ $settings['vault_code'] }}
                     </span>
                 </div>
@@ -27,7 +27,7 @@
                     @csrf
                     <button type="submit" 
                             title="Genereer direct een nieuwe willekeurige 4-cijferige code"
-                            class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black uppercase tracking-wider transition cursor-pointer shadow-lg">
+                            class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black uppercase tracking-wider transition cursor-pointer shadow-xs">
                         <i class="fa-solid fa-shuffle mr-1"></i> Nieuwe Code
                     </button>
                 </form>

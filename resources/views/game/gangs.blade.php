@@ -19,27 +19,21 @@
     }
 }">
 
-    <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-slate-950 border border-purple-900/40">
-        <!-- Background Banner Asset (TBS Paarse Style) -->
-        <div class="absolute inset-0 z-0 pointer-events-none">
-            <img src="{{ asset('assets/illustrations/banner_gangs.jpg') }}" alt="Gangs & Facties" class="w-full h-full object-cover object-center opacity-45">
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
-        </div>
-
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <!-- Top Hero Banner (Clean TBS White Style) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20 mb-2">
+                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
                     <i class="fa-solid fa-users"></i> Facties & Allianties
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kliniek Gangs</h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Kliniek Gangs</h1>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Verenig je met andere gevangenen in een bende. Doneer aan de gezamenlijke kas, verhoog het collectieve uurloon, koop smokkelkiosken en voer oorlog om de vleugels van de kliniek!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-bold text-amber-300 flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-star text-amber-400"></i> {{ $character->stars ?? 0 }} Sterren
+                <span class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800 flex items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-star text-amber-600"></i> {{ $character->stars ?? 0 }} Sterren
                 </span>
                 @if(!$character->gang_id)
                 <button type="button" @click="showCreateModal = true" 
@@ -219,29 +213,28 @@
             @if($myGang)
             <div x-show="activeGangTab === 'mijn_gang'" class="space-y-6">
                 <!-- Gang Profile Top Banner -->
-                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-slate-900">
-                    <div class="h-44 sm:h-52 w-full overflow-hidden relative">
-                        <img src="{{ asset('assets/characters/avatar_female_2.jpg') }}" alt="Gang Header" class="w-full h-full object-cover opacity-75">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
-                        <button type="button" class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/60 hover:bg-black/80 text-rose-300 text-xs font-bold border border-rose-500/30 flex items-center gap-1.5">
+                <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white">
+                    <div class="h-40 sm:h-48 w-full overflow-hidden relative bg-purple-50">
+                        <img src="{{ asset('assets/characters/avatar_female_2.jpg') }}" alt="Gang Header" class="w-full h-full object-cover opacity-85">
+                        <button type="button" class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-white/90 hover:bg-white text-rose-600 text-xs font-bold border border-rose-200 shadow-xs flex items-center gap-1.5">
                             <i class="fa-solid fa-triangle-exclamation"></i> Rapporteer
                         </button>
                     </div>
 
                     <!-- Gang Emblem and Tag Badge -->
-                    <div class="px-6 pb-6 -mt-12 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-900 border-2 border-white p-2 shadow-lg flex items-center justify-center text-3xl text-white shrink-0">
+                    <div class="px-6 pb-6 pt-3 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                        <div class="flex items-center gap-4 -mt-12 sm:-mt-14">
+                            <div class="w-20 h-20 rounded-2xl bg-purple-600 border-4 border-white p-2 shadow-lg flex items-center justify-center text-3xl text-white shrink-0">
                                 <i class="fa-solid {{ $myGang->emblem ?? 'fa-crown' }}"></i>
                             </div>
-                            <div>
-                                <h2 class="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                            <div class="pt-10 sm:pt-0">
+                                <h2 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                                     <span>{{ $myGang->name }}</span>
-                                    <span class="text-purple-300 text-xs font-mono font-bold">[{{ $myGang->tag }}]</span>
-                                    <i class="fa-solid fa-circle-check text-purple-400 text-sm"></i>
+                                    <span class="text-purple-600 text-xs font-mono font-bold">[{{ $myGang->tag }}]</span>
+                                    <i class="fa-solid fa-circle-check text-purple-600 text-sm"></i>
                                 </h2>
-                                <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5 mt-0.5">
-                                    <i class="fa-solid fa-users text-xs"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
+                                <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                    <i class="fa-solid fa-users text-xs text-purple-600"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
                                 </span>
                             </div>
                         </div>
@@ -720,16 +713,19 @@
             <!-- TAB 4: RANGLIJST -->
             <div x-show="activeGangTab === 'ranglijst'" class="space-y-6">
                 <!-- Gangs Banner Art -->
-                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-gradient-to-r from-slate-900 via-indigo-950 to-purple-950 h-44 sm:h-52 flex items-center justify-between px-8 text-white">
-                    <div class="z-10 space-y-1">
-                        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white p-6 sm:p-8 flex items-center justify-between">
+                    <div class="space-y-1">
+                        <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
+                            <i class="fa-solid fa-trophy"></i> Prestigieuze Facties
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
                             Gangs Ranglijst
                         </h2>
-                        <p class="text-xs sm:text-sm text-slate-300">
+                        <p class="text-xs sm:text-sm text-slate-500">
                             Strijd om de macht en controleer de vleugels van de kliniek.
                         </p>
                     </div>
-                    <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white/20 overflow-hidden shadow-2xl shrink-0 hidden sm:block">
+                    <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border border-slate-200 overflow-hidden shadow-xs shrink-0 hidden sm:block">
                         <img src="{{ asset('assets/characters/avatar_female_1.jpg') }}" alt="Gangs Hero" class="w-full h-full object-cover">
                     </div>
                 </div>
@@ -1601,17 +1597,17 @@
             @if($myGang)
             <div x-show="activeGangTab === 'oorlog'" class="space-y-6">
                 <!-- Header Banner -->
-                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-gradient-to-r from-rose-950 via-slate-900 to-purple-950 p-6 text-white space-y-3">
+                <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white p-6 sm:p-8 space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="space-y-1">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[10px] font-black uppercase tracking-wider">
-                                <i class="fa-solid fa-fire text-rose-400"></i> Bende Rivaliteit & Plunderingen
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold mb-1">
+                                <i class="fa-solid fa-fire text-rose-600"></i> Bende Rivaliteit & Plunderingen
                             </span>
-                            <h2 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                                <i class="fa-solid fa-crosshairs text-rose-500"></i>
+                            <h2 class="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-crosshairs text-rose-600"></i>
                                 <span>Bende Oorlog</span>
                             </h2>
-                            <p class="text-xs text-slate-300 max-w-xl leading-relaxed">
+                            <p class="text-xs sm:text-sm text-slate-500 max-w-xl leading-relaxed">
                                 Zet de opgebouwde <strong>Power (Aanvalskracht)</strong> van je bende in om rivaliserende bendes te overvallen. Breek door hun <strong>Bescherming (Verdediging)</strong> heen om hun kas te plunderen en aanzien te veroveren!
                             </p>
                         </div>
@@ -1619,13 +1615,13 @@
                         <!-- Role authority indicator -->
                         <div class="shrink-0">
                             @if(in_array($character->gang_role, ['leader', 'co_leader'], true))
-                                <div class="px-3.5 py-2 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black flex items-center gap-2 shadow-xs">
-                                    <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <div class="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-black flex items-center gap-2 shadow-xs">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i>
                                     <span>Bevoegd: {{ $character->gang_role === 'leader' ? 'Bendeleider' : 'Co-Leider' }}</span>
                                 </div>
                             @else
-                                <div class="px-3.5 py-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-black flex items-center gap-2 shadow-xs">
-                                    <i class="fa-solid fa-shield text-amber-400"></i>
+                                <div class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-black flex items-center gap-2 shadow-xs">
+                                    <i class="fa-solid fa-shield text-amber-600"></i>
                                     <span>Alleen Leider & Co-Leider kunnen aanvallen</span>
                                 </div>
                             @endif
@@ -1634,39 +1630,39 @@
 
                     <!-- Battle Stats Bar -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-amber-500/30 border border-amber-400/40 text-amber-300 flex items-center justify-center text-lg font-black shrink-0">
+                        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-amber-100 border border-amber-200 text-amber-700 flex items-center justify-center text-lg font-black shrink-0">
                                 <i class="fa-solid fa-bolt"></i>
                             </div>
                             <div>
-                                <span class="text-[10px] font-bold text-slate-300 uppercase block">Jullie Power (Aanval)</span>
-                                <span class="text-base font-black text-amber-300 font-mono">{{ number_format($myGang->attack_power ?? 500, 0, ',', '.') }}</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase block">Jullie Power (Aanval)</span>
+                                <span class="text-base font-black text-amber-800 font-mono">{{ number_format($myGang->attack_power ?? 500, 0, ',', '.') }}</span>
                             </div>
                         </div>
 
-                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-indigo-500/30 border border-indigo-400/40 text-indigo-300 flex items-center justify-center text-lg font-black shrink-0">
+                        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-100 border border-indigo-200 text-indigo-700 flex items-center justify-center text-lg font-black shrink-0">
                                 <i class="fa-solid fa-shield"></i>
                             </div>
                             <div>
-                                <span class="text-[10px] font-bold text-slate-300 uppercase block">Jullie Bescherming (Def)</span>
-                                <span class="text-base font-black text-indigo-300 font-mono">{{ number_format($myGang->protection_points ?? 1000, 0, ',', '.') }}</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase block">Jullie Bescherming (Def)</span>
+                                <span class="text-base font-black text-indigo-800 font-mono">{{ number_format($myGang->protection_points ?? 1000, 0, ',', '.') }}</span>
                             </div>
                         </div>
 
-                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg {{ $myGang->attackCooldownRemaining() > 0 ? 'bg-amber-500/30 text-amber-300' : 'bg-emerald-500/30 text-emerald-300' }} border border-white/10 flex items-center justify-center text-lg font-black shrink-0">
+                        <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg {{ $myGang->attackCooldownRemaining() > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200' }} border flex items-center justify-center text-lg font-black shrink-0">
                                 <i class="fa-solid fa-clock"></i>
                             </div>
                             <div>
-                                <span class="text-[10px] font-bold text-slate-300 uppercase block">Aanvalsstatus</span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase block">Aanvalsstatus</span>
                                 @if($myGang->attackCooldownRemaining() > 0)
-                                    <span class="text-xs font-black text-amber-300 font-mono flex items-center gap-1.5">
-                                        <i class="fa-solid fa-stopwatch text-amber-300"></i> Wachten: {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
+                                    <span class="text-xs font-black text-amber-800 font-mono flex items-center gap-1.5">
+                                        <i class="fa-solid fa-stopwatch text-amber-600"></i> Wachten: {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
                                     </span>
                                 @else
-                                    <span class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span class="text-xs font-black text-emerald-700 flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                         Gereed voor aanval!
                                     </span>
                                 @endif

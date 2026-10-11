@@ -31,38 +31,32 @@
     }
 }" x-init="if (secReset > 0) { setInterval(() => { secReset--; if (secReset <= 0) window.location.reload(); }, 1000); }">
 
-    <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-slate-950 border border-purple-900/40">
-        <!-- Background Banner Asset (TBS Paarse Style) -->
-        <div class="absolute inset-0 z-0 pointer-events-none">
-            <img src="{{ asset('assets/illustrations/banner_battle.jpg') }}" alt="24 Uur Battle" class="w-full h-full object-cover object-center opacity-45">
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
-        </div>
-
-        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+    <!-- Top Hero Banner (Clean TBS White Style) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
             <div class="space-y-2 text-center md:text-left">
-                <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20">
+                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Automatische 24-Uurs Dagbattle</span>
                 </div>
-                <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white uppercase">
-                    DE 24 UUR <span class="text-purple-300">Battle</span>
+                <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 uppercase">
+                    DE 24 UUR <span class="text-purple-600">Battle</span>
                 </h1>
-                <p class="text-slate-300 text-xs sm:text-sm font-medium max-w-xl leading-relaxed">
-                    Strijd dagelijks mee om de absolute macht in de kliniek en win unieke beloningen zoals <strong class="text-white underline">XXL Koffers</strong>, Sterren en Maskers als je in de top 3 eindigt!
+                <p class="text-slate-500 text-xs sm:text-sm font-medium max-w-xl leading-relaxed">
+                    Strijd dagelijks mee om de absolute macht in de kliniek en win unieke beloningen zoals <strong class="text-slate-900 underline">XXL Koffers</strong>, Sterren en Maskers als je in de top 3 eindigt!
                 </p>
             </div>
 
             <!-- Countdown Timer Card -->
-            <div class="bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-300 block mb-1">
+            <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 block mb-1">
                     Volgende Reset & Uitbetaling
                 </span>
-                <div class="text-2xl sm:text-3xl font-black font-mono text-amber-300 tracking-wider" 
+                <div class="text-2xl sm:text-3xl font-black font-mono text-purple-700 tracking-wider" 
                      x-text="formatCountdown(secReset)">
                     {{ $resetTimeFormatted }}
                 </div>
-                <span class="text-[10px] text-slate-400 block mt-1 font-medium">Prijzen worden direct gestort</span>
+                <span class="text-[10px] text-purple-600 block mt-1 font-medium">Prijzen worden direct gestort</span>
             </div>
         </div>
     </div>

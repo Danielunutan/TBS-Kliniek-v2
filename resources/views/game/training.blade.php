@@ -3,18 +3,18 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-xl font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
-                <i class="fa-solid fa-dumbbell text-purple-700"></i>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <i class="fa-solid fa-dumbbell text-purple-600"></i>
                 <span>De Sportzaal & Oefenruimte</span>
             </h1>
-            <p class="text-xs text-slate-600 mt-1">
+            <p class="text-xs text-slate-500 mt-1">
                 Train je vaardigheden onder leiding van beruchte kliniekfiguren. Hogere eigenschappen verhogen je overlevingskansen bij gevechten, diefstallen en missies.
             </p>
         </div>
-        <div class="bg-purple-950 text-white px-4 py-2 rounded-lg text-xs font-semibold border border-purple-800">
-            <span>Contant Geld: <strong class="text-amber-400">{{ number_format($character->cash, 0, ',', '.') }} KC</strong></span>
+        <div class="bg-purple-50 text-purple-700 px-4 py-2 rounded-xl text-xs font-bold border border-purple-200 shadow-xs">
+            <span>Contant Geld: <strong class="text-slate-900">{{ number_format($character->cash, 0, ',', '.') }} KC</strong></span>
         </div>
     </div>
 
@@ -26,16 +26,16 @@
             $cashCost = (int) max(20, round(15 + ($val * 3.5)));
             $canAfford = $character->cash >= $cashCost && $character->energy >= 10;
         @endphp
-        <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
             <div class="p-5 space-y-3">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h2 class="text-base font-bold text-slate-900">{{ $info['name'] }}</h2>
-                        <span class="text-[11px] font-bold text-purple-800">
+                        <h2 class="text-base font-black text-slate-900">{{ $info['name'] }}</h2>
+                        <span class="text-[11px] font-bold text-purple-600">
                             <i class="fa-solid fa-user-ninja mr-1"></i>Trainer: {{ $info['trainer'] }}
                         </span>
                     </div>
-                    <div class="w-12 h-12 rounded-lg bg-purple-900 text-amber-300 font-bold text-lg flex items-center justify-center shadow-inner">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 font-black text-lg flex items-center justify-center shadow-xs">
                         {{ $val }}
                     </div>
                 </div>

@@ -6,13 +6,12 @@
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         
         <!-- Header -->
-        <div class="relative overflow-hidden bg-slate-950 p-6 flex items-center justify-between text-white border-b border-purple-900/40">
-            <div class="absolute inset-0 z-0 pointer-events-none">
-                <img src="{{ asset('assets/illustrations/banner_fight.jpg') }}" alt="Geweld" class="w-full h-full object-cover object-center opacity-45">
-                <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
-            </div>
-            <h2 class="relative z-10 font-extrabold text-lg flex items-center gap-3">
-                <i class="fa-solid fa-skull text-rose-500"></i> Geweldsstatistieken
+        <div class="p-6 flex items-center justify-between border-b border-slate-200">
+            <h2 class="font-black text-xl text-slate-900 flex items-center gap-3">
+                <span class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-sm border border-rose-200">
+                    <i class="fa-solid fa-skull"></i>
+                </span>
+                <span>Geweldsstatistieken</span>
             </h2>
         </div>
 

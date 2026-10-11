@@ -3,33 +3,32 @@
 @section('content')
 <div class="space-y-6" x-data="{ addFriendOpen: false, massMessageOpen: false, selectedFriendForRespect: null }">
 
-    <!-- Custom Purple TBS Kliniek Page Title Bar -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-900 p-6 sm:p-8 text-white shadow-lg border border-purple-800/40">
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Clean TBS Kliniek Page Title Bar -->
+    <div class="rounded-2xl bg-white p-6 sm:p-8 text-slate-800 shadow-xs border border-slate-200 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-2xl text-purple-300 shadow-inner">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-2xl text-purple-600 shadow-2xs shrink-0">
                     <i class="fa-solid fa-user-group"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-300 bg-purple-900/80 px-2 py-0.5 rounded-md border border-purple-700/50">TBS Kliniek Sociaal</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">TBS Kliniek Sociaal</span>
                     </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
                         Vrienden & Medepatiënten
                     </h1>
-                    <p class="text-xs text-purple-200/80 mt-0.5 max-w-xl">
+                    <p class="text-xs text-slate-500 mt-0.5 max-w-xl">
                         Bouw een betrouwbaar netwerk op binnen de muren. Stel een officiële BFF in, stuur 24-uurs omroepen en geef elkaar dagelijks respect via kliniek-verificatie.
                     </p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <button type="button" @click="massMessageOpen = true" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs transition shadow-md flex items-center gap-2">
+                <button type="button" @click="massMessageOpen = true" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs transition shadow-xs flex items-center gap-2">
                     <i class="fa-solid fa-bullhorn text-amber-300"></i>
                     <span>Massa Bericht</span>
                 </button>
-                <button type="button" @click="addFriendOpen = true" class="px-4 py-2.5 rounded-xl bg-white text-purple-950 hover:bg-purple-50 font-black text-xs transition shadow-md flex items-center gap-2">
+                <button type="button" @click="addFriendOpen = true" class="px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-black text-xs transition shadow-2xs flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-purple-600"></i>
                     <span>Vriend Toevoegen</span>
                 </button>

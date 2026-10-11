@@ -57,19 +57,19 @@
     </div>
 
     <!-- Quick Actions Banner -->
-    <div class="bg-linear-to-r from-purple-900 to-slate-900 rounded-2xl p-6 text-white border border-purple-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="bg-white rounded-2xl p-6 text-slate-900 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h3 class="text-base font-extrabold">Snelle Medewerkers Handelingen</h3>
-            <p class="text-xs text-purple-200 mt-1 max-w-xl">
+            <h3 class="text-base font-extrabold text-slate-900">Snelle Medewerkers Handelingen</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-xl">
                 Ken direct VIP-lidmaatschap toe aan een Discord koper of pas de winkansen en kistbeloningen aan voor de hele kliniek.
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <a href="{{ route('admin.players') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-black uppercase tracking-wider transition text-white shadow">
+            <a href="{{ route('admin.players') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-xs font-black uppercase tracking-wider transition text-white shadow-xs">
                 <i class="fa-solid fa-crown mr-1"></i> VIP Toekennen
             </a>
-            <a href="{{ route('admin.gameplay') }}" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-black uppercase tracking-wider transition text-white border border-white/20">
-                <i class="fa-solid fa-sliders mr-1"></i> Winkansen
+            <a href="{{ route('admin.gameplay') }}" class="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-black uppercase tracking-wider transition text-slate-700 border border-slate-200">
+                <i class="fa-solid fa-sliders mr-1 text-slate-500"></i> Winkansen
             </a>
         </div>
     </div>

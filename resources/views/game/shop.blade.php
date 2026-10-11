@@ -20,29 +20,23 @@
 }">
 
     <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-slate-950 border border-purple-900/40">
-        <!-- Background Banner Asset (TBS Paarse Style) -->
-        <div class="absolute inset-0 z-0 pointer-events-none">
-            <img src="{{ asset('assets/illustrations/banner_shop.jpg') }}" alt="Kantine & Shop" class="w-full h-full object-cover object-center opacity-45">
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
-        </div>
-
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 relative overflow-hidden bg-white border border-slate-200">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20 mb-2">
+                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
                     <i class="fa-solid fa-store"></i> De Kliniek Kiosk & Winkel
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Kliniek Shop</h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Kliniek Shop</h1>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren of koop handige benodigdheden in de kantine met contant KliniekCash!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-bold text-amber-300 flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-star text-amber-400"></i> {{ $character->stars ?? 0 }} Sterren
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-amber-700 flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
                 </span>
-                <span class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-bold text-purple-300 flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-mask text-purple-400"></i> {{ $character->masks ?? 0 }} Maskers
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-purple-700 flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-mask text-purple-600"></i> {{ $character->masks ?? 0 }} Maskers
                 </span>
             </div>
         </div>

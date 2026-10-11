@@ -2,15 +2,15 @@
 
 @section('content')
 <div class="space-y-6">
-    <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden">
+    <div class="bg-white rounded-2xl p-6 sm:p-8 text-slate-800 relative overflow-hidden shadow-xs border border-slate-200">
         <div class="relative z-10">
-            <div class="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full border border-indigo-400/20 mb-3">
-                <i class="fa-solid fa-hand-scissors"></i> Casino Minigame
+            <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200 mb-3">
+                <i class="fa-solid fa-hand-scissors text-indigo-600"></i> Casino Minigame
             </div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Steen, Papier, Schaar</h1>
-            <p class="text-slate-300 text-xs sm:text-sm mt-1">Speel tegen het huis. Win verdubbelt je inzet!</p>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Steen, Papier, Schaar</h1>
+            <p class="text-slate-500 text-xs sm:text-sm mt-1">Speel tegen het huis. Win verdubbelt je inzet!</p>
         </div>
-        <div class="absolute -right-6 -bottom-6 text-white/5 text-9xl font-black select-none pointer-events-none">
+        <div class="absolute -right-6 -bottom-6 text-slate-100 text-9xl font-black select-none pointer-events-none">
             <i class="fa-solid fa-hand-fist"></i>
         </div>
     </div>

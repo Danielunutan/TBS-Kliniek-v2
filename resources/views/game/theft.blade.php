@@ -2,32 +2,31 @@
 
 @section('content')
 <div class="space-y-6">
-    <!-- Purple TBS Kliniek Title Banner -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-900 p-6 sm:p-8 text-white shadow-lg border border-purple-800/40">
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Clean TBS Kliniek Title Banner -->
+    <div class="rounded-2xl bg-white p-6 sm:p-8 text-slate-800 shadow-xs border border-slate-200 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-2xl text-purple-300 shadow-inner">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-2xl text-purple-600 shadow-2xs shrink-0">
                     <i class="fa-solid fa-mask"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-300 bg-purple-900/80 px-2 py-0.5 rounded-md border border-purple-700/50">TBS Kliniek Illegaal</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">TBS Kliniek Illegaal</span>
                     </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1">
                         Diefstal & Klusjes
                     </h1>
-                    <p class="text-xs text-purple-200/80 mt-0.5 max-w-xl">
+                    <p class="text-xs text-slate-500 mt-0.5 max-w-xl">
                         Zakrol medebewoners of waag een overval op gevoelige locaties in de kliniek. Pas op: de bewakers patrouilleren constant. Als je wordt betrapt ga je direct de isoleercel in!
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-2 text-xs font-bold">
-                <span class="bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-xl border border-emerald-400/30">
-                    <i class="fa-solid fa-check mr-1"></i> {{ $character->thefts_succeeded }} Geslaagd
+                <span class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    <i class="fa-solid fa-check mr-1 text-emerald-600"></i> {{ $character->thefts_succeeded }} Geslaagd
                 </span>
-                <span class="bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-xl border border-rose-400/30">
-                    <i class="fa-solid fa-xmark mr-1"></i> {{ $character->thefts_failed }} Mislukt
+                <span class="bg-rose-50 text-rose-700 px-3 py-1.5 rounded-xl border border-rose-200">
+                    <i class="fa-solid fa-xmark mr-1 text-rose-600"></i> {{ $character->thefts_failed }} Mislukt
                 </span>
             </div>
         </div>

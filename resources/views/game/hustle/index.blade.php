@@ -7,19 +7,19 @@
     <div class="xl:col-span-8 space-y-6">
         <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
             
-            <!-- Purple TBS Kliniek Title Banner -->
-            <div class="relative overflow-hidden bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-900 p-6 sm:p-7 text-white border-b border-purple-800/40">
+            <!-- Clean TBS Kliniek Title Banner -->
+            <div class="p-6 sm:p-7 text-slate-900 border-b border-slate-100 bg-white">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-xl text-purple-300 shadow-inner">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-xl text-purple-600 shadow-2xs shrink-0">
                             <i class="fa-solid fa-comments-dollar"></i>
                         </div>
                         <div>
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-300 bg-purple-900/80 px-2 py-0.5 rounded-md border border-purple-700/50">TBS Kliniek Illegaal</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">TBS Kliniek Illegaal</span>
                             </div>
-                            <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">Hosselen & Klussen</h1>
-                            <p class="text-xs text-purple-200/80 mt-0.5">Scharrel wat bij tussen de corridors van de kliniek voor directe zakcenten en respect.</p>
+                            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Hosselen & Klussen</h1>
+                            <p class="text-xs text-slate-500 mt-0.5">Scharrel wat bij tussen de corridors van de kliniek voor directe zakcenten en respect.</p>
                         </div>
                     </div>
                 </div>

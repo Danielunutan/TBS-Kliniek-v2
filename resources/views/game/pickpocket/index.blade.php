@@ -3,27 +3,21 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- Top Hero Banner (Clean & Modern TBS Style) -->
-    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-slate-950 border border-purple-900/40">
-        <!-- Background Banner Asset (TBS Paarse Style) -->
-        <div class="absolute inset-0 z-0 pointer-events-none">
-            <img src="{{ asset('assets/illustrations/banner_prison.jpg') }}" alt="Zakkenrollen" class="w-full h-full object-cover object-center opacity-45">
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
-        </div>
-
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <!-- Top Hero Banner (Clean TBS White Style) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20 mb-3">
+                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-3">
                     <i class="fa-solid fa-mask"></i> Illegale Zakkenrollerij
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Zakkenrollen</h1>
-                <p class="text-slate-300 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Zakkenrollen</h1>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Trek je masker op en sla toe in de drukke wandelgangen van de kliniek. Elke move kost 1 masker. Scoor contant zwart geld, smokkelkoffers en respect!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-bold text-purple-300 flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-mask text-purple-400"></i> {{ $character->masks ?? 0 }} Maskers
+                <span class="px-3.5 py-2 rounded-xl bg-purple-50 border border-purple-200 text-xs font-bold text-purple-700 flex items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-mask text-purple-600"></i> {{ $character->masks ?? 0 }} Maskers
                 </span>
                 <a href="{{ route('shop.index') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-cart-shopping"></i> Koop Maskers

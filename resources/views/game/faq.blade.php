@@ -3,15 +3,15 @@
 @section('content')
 <div class="space-y-6" x-data="{ activeTab: 'all', openQuestion: null }">
 
-    <!-- Top Hero Banner -->
-    <div class="bg-slate-900 border border-purple-500/30 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg">
+    <!-- Top Hero Banner (Clean TBS White Style) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <div class="inline-flex items-center gap-1.5 bg-purple-500/20 text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-400/20 mb-2">
+                <div class="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
                     <i class="fa-solid fa-circle-question"></i> Helpcentrum & Documentatie
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black tracking-tight">Kliniek Kennisbank & FAQ</h1>
-                <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Kliniek Kennisbank & FAQ</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl">
                     Volledige uitleg over alle spelonderdelen, gevechtsregels, VIP-voordelen, beveiliging en wachtwoordherstel.
                 </p>
             </div>
@@ -20,8 +20,8 @@
                 <form method="GET" action="{{ route('faq') }}">
                     <div class="relative">
                         <input type="text" name="search" value="{{ $search }}" placeholder="Zoek een vraag of onderwerp..." 
-                               class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white/15">
-                        <button type="submit" class="absolute right-3 top-2.5 text-purple-300 hover:text-white">
+                               class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white">
+                        <button type="submit" class="absolute right-3 top-2.5 text-purple-600 hover:text-purple-800">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </button>
                     </div>

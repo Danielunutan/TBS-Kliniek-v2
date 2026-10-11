@@ -499,15 +499,15 @@
              x-transition:leave-end="translate-x-full"
              class="relative w-[85vw] max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800">
             
-            <div class="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+            <div class="p-4 bg-white text-slate-900 flex items-center justify-between border-b border-slate-200">
                 <div class="flex items-center gap-3">
-                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-400">
+                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-200">
                     <div>
-                        <div class="font-extrabold text-sm leading-tight">{{ $character->name }}</div>
-                        <div class="text-[11px] text-purple-300 font-medium">Level {{ $character->level }} &bull; {{ $character->title ?? 'Patiënt' }}</div>
+                        <div class="font-extrabold text-sm leading-tight text-slate-900">{{ $character->name }}</div>
+                        <div class="text-[11px] text-purple-700 font-bold">Level {{ $character->level }} &bull; {{ $character->title ?? 'Patiënt' }}</div>
                     </div>
                 </div>
-                <button @click="mobileMenuOpen = false" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer">
+                <button @click="mobileMenuOpen = false" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>

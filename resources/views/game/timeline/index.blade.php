@@ -4,34 +4,28 @@
 <div class="space-y-6">
 
     <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-sm p-6 sm:p-8 text-white relative overflow-hidden bg-slate-950 border border-purple-900/40">
-        <!-- Background Banner Asset (TBS Paarse Style) -->
-        <div class="absolute inset-0 z-0 pointer-events-none">
-            <img src="{{ asset('assets/illustrations/banner_fight.jpg') }}" alt="Kliniek Tijdlijn" class="w-full h-full object-cover object-center opacity-45">
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-purple-950/70"></div>
-        </div>
-
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 relative overflow-hidden bg-white border border-slate-200">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-2xl text-purple-300 shadow-inner shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-2xl text-purple-600 shadow-2xs shrink-0">
                     <i class="fa-solid fa-bullhorn"></i>
                 </div>
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-purple-400/20 mb-1">
+                    <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-purple-200 mb-1">
                         TBS Kliniek Sociaal
                     </div>
-                    <h1 class="text-xl sm:text-3xl font-black text-white tracking-tight">
+                    <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
                         Kliniek Tijdlijn (Feed)
                     </h1>
-                    <p class="text-xs sm:text-sm text-slate-300 mt-0.5 max-w-xl">
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5 max-w-xl">
                         De openbare praatpaal van de TBS kliniek. Plaats mededelingen, daag rivaliserende bendes uit en volg alle ontwikkelingen op de voet.
                     </p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-bold text-purple-200">
-                    <i class="fa-solid fa-comment-dots text-purple-400 mr-1.5"></i> Live Kliniek Feed
+                <span class="px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-purple-700 shadow-2xs">
+                    <i class="fa-solid fa-comment-dots text-purple-600 mr-1.5"></i> Live Kliniek Feed
                 </span>
             </div>
         </div>

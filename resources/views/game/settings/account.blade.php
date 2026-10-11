@@ -3,22 +3,22 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
 
-    <!-- Top Header Card -->
-    <div class="bg-slate-900 border border-purple-500/30 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg">
+    <!-- Top Header Card (Clean TBS White Style) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-2xl text-purple-300 shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-2xl text-purple-700 shrink-0">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-black tracking-tight">Account & Beveiliging</h1>
-                    <p class="text-xs sm:text-sm text-slate-300 mt-0.5">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Account & Beveiliging</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                         Beheer je inloggegevens, tweestapsverificatie, gebruikersnaam en actieve sessies op afstand.
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <span class="px-3.5 py-1.5 rounded-full bg-white/10 text-xs font-mono font-bold text-purple-300 border border-white/10">
+                <span class="px-3.5 py-1.5 rounded-full bg-purple-50 text-xs font-mono font-bold text-purple-700 border border-purple-200">
                     {{ $user->email }}
                 </span>
             </div>

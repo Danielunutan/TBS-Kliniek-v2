@@ -3,35 +3,34 @@
 @section('content')
 <div class="space-y-6" x-data="{ activeFilter: 'all' }">
     
-    <!-- Purple TBS Kliniek Title Banner -->
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-900 to-purple-900 p-6 sm:p-8 text-white shadow-lg border border-purple-800/40">
-        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Clean TBS Kliniek Title Banner -->
+    <div class="rounded-2xl bg-white p-6 sm:p-8 text-slate-800 shadow-xs border border-slate-200 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-2xl text-purple-300 shadow-inner">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-2xl text-purple-600 shadow-2xs shrink-0">
                     <i class="fa-solid fa-list-check"></i>
                 </div>
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-purple-900/80 text-purple-300 text-xs font-bold px-3 py-0.5 rounded-full border border-purple-700/50 mb-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-0.5 rounded-full border border-purple-200 mb-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span>TBS Kliniek Dossier</span>
                     </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
                         Kliniek Missies & Opdrachten
                     </h1>
-                    <p class="text-purple-200/80 text-xs sm:text-sm mt-0.5 max-w-2xl leading-relaxed">
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5 max-w-2xl leading-relaxed">
                         Voer officiële en geheime opdrachten uit voor sleutelfiguren in de kliniek. Beloningen zijn 100% wit geld en worden <strong>rechtstreeks op je bankrekening</strong> gestort!
                     </p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 bg-purple-950/60 backdrop-blur-md px-5 py-3 rounded-2xl border border-purple-700/50 shrink-0 shadow-lg">
-                <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 text-amber-300 flex items-center justify-center font-bold text-lg">
+            <div class="flex items-center gap-3 bg-slate-50 px-5 py-3 rounded-2xl border border-slate-200 shrink-0 shadow-2xs">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-lg">
                     <i class="fa-solid fa-bullseye"></i>
                 </div>
                 <div>
-                    <span class="text-[10px] font-bold text-purple-300 uppercase tracking-wide block leading-none">Voltooid Totaal</span>
-                    <span class="text-lg font-black text-white">{{ $character->missions_completed }} missies</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block leading-none">Voltooid Totaal</span>
+                    <span class="text-lg font-black text-slate-900">{{ $character->missions_completed }} missies</span>
                 </div>
             </div>
         </div>
@@ -40,7 +39,7 @@
     <!-- Category Filter Tabs -->
     <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
         <button @click="activeFilter = 'all'" 
-            :class="activeFilter === 'all' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'" 
+            :class="activeFilter === 'all' ? 'bg-purple-600 text-white font-bold shadow-xs' : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'" 
             class="px-4 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap cursor-pointer">
             Alle Missies ({{ count($missions) }})
         </button>
