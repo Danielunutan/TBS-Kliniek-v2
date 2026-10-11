@@ -448,7 +448,7 @@
         @if(isset($character))
         <!-- TOP MODERN WHITE HEADER BAR -->
         <header class="bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
+            <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 h-18 flex items-center justify-between gap-4 sm:gap-6">
                 
                 <!-- Left: Player Profile summary -->
                 <div class="flex items-center gap-3 sm:gap-4 shrink-0">
@@ -479,8 +479,8 @@
                     </div>
                 </div>
 
-                <!-- Right: Stat badges (Cash, Bank, Energy, Health) -->
-                <div class="flex items-center gap-2 sm:gap-3 text-xs font-semibold overflow-x-auto py-1">
+                <!-- Right: Stat badges (Cash, Bank, Respect, Stars, VIP, Energy, Health) -->
+                <div class="flex items-center gap-2.5 lg:gap-3.5 text-xs font-semibold overflow-x-auto py-1 scrollbar-none">
                     <!-- Cash -->
                     <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
                         <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black shadow-xs">
@@ -541,21 +541,8 @@
                         </div>
                     </a>
 
-                    @if(($character->unopened_bags ?? 0) > 0)
-                    <!-- Unopened Bags Badge -->
-                    <a href="{{ route('packages.index') }}" class="flex items-center gap-2 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0 animate-pulse" title="Je hebt ongeopende tassen!">
-                        <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-bag-shopping"></i>
-                        </span>
-                        <div>
-                            <span class="text-[9px] uppercase font-bold text-indigo-500 block leading-none">Tassen</span>
-                            <span class="font-extrabold text-indigo-700 text-xs">{{ $character->unopened_bags }} Openen</span>
-                        </div>
-                    </a>
-                    @endif
-
                     <!-- Energie -->
-                    <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
+                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
                         <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
                             <i class="fa-solid fa-bolt"></i>
                         </span>
@@ -564,14 +551,14 @@
                                 <span class="text-[9px] uppercase font-bold text-slate-400 leading-none">Energie</span>
                                 <span class="font-extrabold text-emerald-700 text-[11px]">{{ $character->energy }}/{{ $character->max_energy }}</span>
                             </div>
-                            <div class="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
+                            <div class="w-18 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
                                 <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Gezondheid -->
-                    <div class="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
+                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
                         <span class="w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
                             <i class="fa-solid fa-heart-pulse"></i>
                         </span>
@@ -580,7 +567,7 @@
                                 <span class="text-[9px] uppercase font-bold text-slate-400 leading-none">Gezondheid</span>
                                 <span class="font-extrabold text-rose-700 text-[11px]">{{ $character->health }}/{{ $character->max_health }}</span>
                             </div>
-                            <div class="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
+                            <div class="w-18 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
                                 <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
                             </div>
                         </div>
