@@ -854,60 +854,47 @@ class GangController extends Controller
             case 'bling_shops':
                 $unitPrice = 50000;
                 $totalCost = $unitPrice * $qty;
-                // Pay from Gang treasury if officer (leader, co-leader, kantine smokkelaar, kasbeheerder) and sufficient, otherwise player cash
-                if ($gang->isOfficer($character) && $gang->treasury >= $totalCost) {
-                    $gang->treasury -= $totalCost;
-                } elseif ($character->cash >= $totalCost) {
-                    $character->cash -= $totalCost;
-                    $character->save();
-                } else {
-                    return back()->with('error', 'Niet genoeg geld (noch in de bende kas, noch contant) om '.number_format($qty, 0, ',', '.').' Smokkelkiosk(en) te kopen (€'.number_format($totalCost, 0, ',', '.').' vereist).');
+                if ($gang->treasury < $totalCost) {
+                    return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($gang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
                 }
 
+                $gang->treasury -= $totalCost;
                 $gang->bling_shops = ($gang->bling_shops ?? 0) + $qty;
                 $gang->save();
 
                 return back()
                     ->with('active_gang_tab', 'winkel')
-                    ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft voor de bende! Het uurloon is verhoogd!");
+                    ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft vanuit de bende kas! Het uurloon is verhoogd!");
 
             case 'protection':
                 $unitPrice = 15000;
                 $totalCost = $unitPrice * $qty;
-                if ($gang->isOfficer($character) && $gang->treasury >= $totalCost) {
-                    $gang->treasury -= $totalCost;
-                } elseif ($character->cash >= $totalCost) {
-                    $character->cash -= $totalCost;
-                    $character->save();
-                } else {
-                    return back()->with('error', 'Niet genoeg contant geld om bescherming te kopen (€'.number_format($totalCost, 0, ',', '.').' vereist).');
+                if ($gang->treasury < $totalCost) {
+                    return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($gang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
                 }
 
+                $gang->treasury -= $totalCost;
                 $gang->protection_points = ($gang->protection_points ?? 1000) + ($qty * 5000);
                 $gang->save();
 
                 return back()
                     ->with('active_gang_tab', 'winkel')
-                    ->with('success', "Succesvol {$qty}x Bescherming aangeschaft (+".number_format($qty * 5000, 0, ',', '.').' verdedigingspunten)!');
+                    ->with('success', "Succesvol {$qty}x Bescherming aangeschaft vanuit de bende kas (+".number_format($qty * 5000, 0, ',', '.').' verdedigingspunten)!');
 
             case 'power':
                 $unitPrice = 15000;
                 $totalCost = $unitPrice * $qty;
-                if ($gang->isOfficer($character) && $gang->treasury >= $totalCost) {
-                    $gang->treasury -= $totalCost;
-                } elseif ($character->cash >= $totalCost) {
-                    $character->cash -= $totalCost;
-                    $character->save();
-                } else {
-                    return back()->with('error', 'Niet genoeg contant geld om power te kopen (€'.number_format($totalCost, 0, ',', '.').' vereist).');
+                if ($gang->treasury < $totalCost) {
+                    return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($gang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
                 }
 
+                $gang->treasury -= $totalCost;
                 $gang->attack_power = ($gang->attack_power ?? 500) + ($qty * 2500);
                 $gang->save();
 
                 return back()
                     ->with('active_gang_tab', 'winkel')
-                    ->with('success', "Succesvol {$qty}x Power aangeschaft (+".number_format($qty * 2500, 0, ',', '.').' aanvalspunten)!');
+                    ->with('success', "Succesvol {$qty}x Power aangeschaft vanuit de bende kas (+".number_format($qty * 2500, 0, ',', '.').' aanvalspunten)!');
 
             case 'max_members':
                 $starPrice = 25;

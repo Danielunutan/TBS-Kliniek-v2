@@ -427,20 +427,19 @@
 
             <!-- TAB 2: WINKEL -->
             @php
-                $spendableCash = ($myGang && $myGang->isOfficer($character))
-                    ? max((int) ($myGang->treasury ?? 0), (int) ($character->cash ?? 0))
-                    : (int) ($character->cash ?? 0);
+                $gangTreasury = $myGang ? (int) ($myGang->treasury ?? 0) : 0;
+                $gangStars = $myGang ? (int) ($myGang->gang_stars ?? 0) : 0;
+                $personalCash = (int) ($character->cash ?? 0);
+                $personalStars = (int) ($character->stars ?? 0);
 
-                $spendableStars = ($myGang && $myGang->isOfficer($character))
-                    ? max((int) ($character->stars ?? 0), (int) ($myGang->gang_stars ?? 0))
-                    : (int) ($character->stars ?? 0);
-
-                $possibleBlingShops = (int) floor($spendableCash / 50000);
-                $possibleProtection = (int) floor($spendableCash / 15000);
-                $possiblePower = (int) floor($spendableCash / 15000);
+                // Shop items can ONLY be bought with money from the gangpot (gang treasury)
+                $possibleBlingShops = (int) floor($gangTreasury / 50000);
+                $possibleProtection = (int) floor($gangTreasury / 15000);
+                $possiblePower = (int) floor($gangTreasury / 15000);
 
                 $currentMembersLimit = $myGang ? ($myGang->max_members ?? 10) : 10;
                 $remainingCapacity = max(0, 35 - $currentMembersLimit);
+                $spendableStars = max($gangStars, $personalStars);
                 $possibleMaxMembers = min($remainingCapacity, (int) floor($spendableStars / 25));
             @endphp
             <div x-show="activeGangTab === 'winkel'" class="space-y-6">
@@ -452,20 +451,52 @@
                         </p>
                     </div>
 
-                    <!-- Balances Header -->
-                    <div class="flex items-center justify-around p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
-                        <div>
-                            <div class="text-base sm:text-xl font-extrabold text-emerald-700 font-mono">
-                                €{{ number_format($myGang ? $myGang->treasury : $character->cash, 0, ',', '.') }}
+                    <!-- Notice: Gangpot Only -->
+                    <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-start sm:items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid fa-vault text-base"></i>
                             </div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Cash Beschikbaar</span>
+                            <div class="space-y-0.5">
+                                <p class="font-black text-purple-950 text-xs sm:text-sm">
+                                    Aankopen gaan uitsluitend via de Bende Kas (Gangpot)
+                                </p>
+                                <p class="text-[11px] text-purple-800 leading-snug">
+                                    Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de kas om ermee te kunnen winkelen!
+                                </p>
+                            </div>
                         </div>
-                        <div class="w-px h-8 bg-slate-200"></div>
-                        <div>
-                            <div class="text-base sm:text-xl font-extrabold text-amber-600 font-mono">
-                                {{ $character->stars ?? 0 }}
+                        <button type="button" @click="setGangTab('doneren')" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase shrink-0 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-circle-plus text-xs"></i>
+                            <span>Nu Doneren</span>
+                        </button>
+                    </div>
+
+                    <!-- Balances Header -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="text-base sm:text-xl font-extrabold text-emerald-700 font-mono">
+                                €{{ number_format($gangTreasury, 0, ',', '.') }}
                             </div>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-vault text-emerald-600 text-[10px]"></i> Bende Kas (Gangpot)
+                            </span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="text-base sm:text-xl font-extrabold text-slate-700 font-mono">
+                                €{{ number_format($personalCash, 0, ',', '.') }}
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-wallet text-slate-400 text-[10px]"></i> Jouw Contant (Niet gedoneerd)
+                            </span>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="text-base sm:text-xl font-extrabold text-amber-600 font-mono">
+                                {{ $gangStars }} <span class="text-xs text-slate-400 font-normal">/ {{ $personalStars }} eigen</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> Sterren (Kas / Eigen)
+                            </span>
                         </div>
                     </div>
 
@@ -482,7 +513,7 @@
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     Verhoogt het uurloon met +€50/uur per kiosk. Prijs: <strong class="text-slate-900">€50.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
-                                    Mogelijk: <strong class="text-purple-700 font-extrabold">{{ number_format($possibleBlingShops, 0, ',', '.') }}x</strong>
+                                    Uit Gangpot: <strong class="text-purple-700 font-extrabold">{{ number_format($possibleBlingShops, 0, ',', '.') }}x</strong>
                                 </p>
                             </div>
                             <form action="{{ route('gangs.shop-buy') }}" method="POST" class="flex items-center gap-2">
@@ -514,7 +545,7 @@
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     Prijs per stuk: <strong class="text-slate-900">€15.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
-                                    Mogelijk: <strong class="text-indigo-700 font-extrabold">{{ number_format($possibleProtection, 0, ',', '.') }}x</strong>
+                                    Uit Gangpot: <strong class="text-indigo-700 font-extrabold">{{ number_format($possibleProtection, 0, ',', '.') }}x</strong>
                                 </p>
                             </div>
                             <form action="{{ route('gangs.shop-buy') }}" method="POST" class="flex items-center gap-2">
@@ -546,7 +577,7 @@
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     Prijs per stuk: <strong class="text-slate-900">€15.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
-                                    Mogelijk: <strong class="text-amber-700 font-extrabold">{{ number_format($possiblePower, 0, ',', '.') }}x</strong>
+                                    Uit Gangpot: <strong class="text-amber-700 font-extrabold">{{ number_format($possiblePower, 0, ',', '.') }}x</strong>
                                 </p>
                             </div>
                             <form action="{{ route('gangs.shop-buy') }}" method="POST" class="flex items-center gap-2">
