@@ -1307,7 +1307,7 @@
              class="fixed bottom-20 right-5 w-[90vw] sm:w-96 max-h-[520px] bg-white border border-slate-200/90 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 z-50">
             
             <!-- Header -->
-            <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 p-3.5 border-b border-purple-500/30 flex items-center justify-between text-white shadow-xs">
+            <div class="bg-purple-700 p-3.5 border-b border-purple-800 flex items-center justify-between text-white shadow-xs">
                 <div class="flex items-center gap-3">
                     <div class="relative">
                         <div class="w-9 h-9 rounded-xl bg-white/20 border border-white/30 backdrop-blur-xs flex items-center justify-center p-1 shadow-xs overflow-hidden">
@@ -1338,7 +1338,7 @@
             <div x-ref="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3 max-h-80 text-xs bg-slate-50/70">
                 <template x-for="(msg, i) in messages" :key="i">
                     <div :class="msg.from === 'bot' ? 'flex flex-col items-start' : 'flex flex-col items-end'">
-                        <div :class="msg.from === 'bot' ? 'bg-white border border-slate-200 text-slate-800' : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium'"
+                        <div :class="msg.from === 'bot' ? 'bg-white border border-slate-200 text-slate-800' : 'bg-purple-600 text-white font-medium'"
                              class="rounded-2xl p-3 max-w-[85%] space-y-2 shadow-2xs">
                             <p class="whitespace-pre-line leading-relaxed" x-text="msg.text"></p>
                             
@@ -1388,10 +1388,10 @@
 
         <!-- FLOATING LAUNCHER BUTTON -->
         <button type="button" @click="isOpen = !isOpen"
-                class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-600 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-purple-900/40 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-105 active:scale-95 border border-purple-400/30">
-            <div class="relative w-6 h-6 shrink-0 flex items-center justify-center">
+                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/20 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-500">
+            <div class="relative w-5 h-5 shrink-0 flex items-center justify-center">
                 <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Helpbot" class="w-full h-full object-contain">
-                <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-purple-600"></span>
             </div>
             <span class="tracking-wide">Kliniek Helpbot</span>
         </button>
