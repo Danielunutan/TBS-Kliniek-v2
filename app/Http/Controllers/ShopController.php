@@ -162,15 +162,67 @@ class ShopController extends Controller
             return back()->with('shop_tab', 'inventaris')->with('error', 'Item niet gevonden.');
         }
 
+        if ($item->category === 'equipment') {
+            return back()->with('shop_tab', 'inventaris')->with('info', "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!");
+        }
+
         $energyBefore = $character->energy;
         $healthBefore = $character->health;
+        $customFeedback = [];
 
-        if ($item->energy_restore > 0) {
+        // 1. Volledig herstel items
+        if ($item->slug === 'adrenaline-injectie') {
+            $character->energy = $character->max_energy;
+            $customFeedback[] = "100% Volledige Energie hersteld ({$character->max_energy}/{$character->max_energy})! ⚡";
+        } elseif ($item->energy_restore > 0) {
             $character->energy = min($character->max_energy, $character->energy + $item->energy_restore);
         }
 
-        if ($item->health_restore > 0) {
+        if ($item->slug === 'ehbo-noodverbanddoos') {
+            $character->health = $character->max_health;
+            $customFeedback[] = "100% Volledige Gezondheid hersteld ({$character->max_health}/{$character->max_health} HP)! ❤️";
+        } elseif ($item->health_restore > 0) {
             $character->health = min($character->max_health, $character->health + $item->health_restore);
+        }
+
+        // 2. Permanente stat boosts
+        if ($item->slug === 'eiwitshake-bodybuilder') {
+            $character->strength += 1;
+            $customFeedback[] = "+1 Permanente Kracht 💪 (nu: {$character->strength})!";
+        }
+        if ($item->slug === 'multivitaminen-focus') {
+            $character->stamina += 1;
+            $customFeedback[] = "+1 Permanente Conditie 🏃 (nu: {$character->stamina})!";
+        }
+
+        // 3. Masker toevoegen
+        if ($item->slug === 'bivakmuts-masker') {
+            $character->masks = ($character->masks ?? 0) + 1;
+            $customFeedback[] = "+1 Masker 🎭 toegevoegd aan je voorraad (totaal: {$character->masks})!";
+        }
+
+        // 4. Ongeopend pakketje toevoegen
+        if ($item->slug === 'smokkelpakketje') {
+            $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
+            $customFeedback[] = "+1 Ongeopend Pakket 📦 toegevoegd aan Koffers & Buit (totaal: {$character->unopened_bags})!";
+        }
+
+        // 5. IJzerzaagje (Strafvermindering cel)
+        if ($item->slug === 'ijzerzaagje') {
+            if ($character->is_in_prison && $character->prison_until) {
+                $newPrisonUntil = $character->prison_until->copy()->subMinutes(30);
+                if ($newPrisonUntil->isPast()) {
+                    $character->is_in_prison = false;
+                    $character->prison_until = null;
+                    $character->prison_reason = null;
+                    $customFeedback[] = 'Tralies doorgezaagd! Je bent direct ontsnapt uit de cel! 🔓';
+                } else {
+                    $character->prison_until = $newPrisonUntil;
+                    $customFeedback[] = '30 minuten straftijd afgezagen van je celstraf! ⏳';
+                }
+            } else {
+                $customFeedback[] = 'Zaagje bewaard en getest! Klaar voor je volgende uitbraak! ⏳';
+            }
         }
 
         $character->save();
@@ -185,11 +237,20 @@ class ShopController extends Controller
         $energyGained = $character->energy - $energyBefore;
         $healthGained = $character->health - $healthBefore;
 
-        $msg = "Je hebt {$item->name} genuttigd!";
-        if ($energyGained > 0 || $healthGained > 0) {
-            $msg .= " (+{$energyGained} Energie, +{$healthGained} Gezondheid)";
+        $msg = "Je hebt {$item->name} gebruikt!";
+        if (! empty($customFeedback)) {
+            $msg .= ' '.implode(' ', $customFeedback);
+        } elseif ($energyGained > 0 || $healthGained > 0) {
+            $parts = [];
+            if ($energyGained > 0) {
+                $parts[] = "+{$energyGained} Energie ⚡";
+            }
+            if ($healthGained > 0) {
+                $parts[] = "+{$healthGained} HP ❤️";
+            }
+            $msg .= ' ('.implode(', ', $parts).')';
         } else {
-            $msg .= ' (Energie & Gezondheid waren al maximaal)';
+            $msg .= ' (Energie en Gezondheid waren al maximaal)';
         }
 
         return back()

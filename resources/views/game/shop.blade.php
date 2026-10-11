@@ -386,14 +386,57 @@
 
                                 <!-- Effect Pills -->
                                 <div class="flex flex-wrap gap-1.5 pt-1">
-                                    @if($item->energy_restore > 0)
+                                    @if($item->slug === 'adrenaline-injectie')
+                                    <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
+                                        100% Volle Energie ⚡
+                                    </span>
+                                    @elseif($item->energy_restore > 0)
                                     <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
                                         +{{ $item->energy_restore }} Energie ⚡
                                     </span>
                                     @endif
-                                    @if($item->health_restore > 0)
+                                    @if($item->slug === 'ehbo-noodverbanddoos')
+                                    <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">
+                                        100% Volle HP ❤️
+                                    </span>
+                                    @elseif($item->health_restore > 0)
                                     <span class="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold">
                                         +{{ $item->health_restore }} HP ❤️
+                                    </span>
+                                    @endif
+                                    @if($item->slug === 'bivakmuts-masker')
+                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
+                                        +1 Masker 🎭
+                                    </span>
+                                    @endif
+                                    @if($item->slug === 'smokkelpakketje')
+                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold">
+                                        +1 Pakket/Koffer 📦
+                                    </span>
+                                    @endif
+                                    @if($item->slug === 'ijzerzaagje')
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold">
+                                        -30m Celstraf ⏳
+                                    </span>
+                                    @endif
+                                    @if($item->strength_bonus > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold">
+                                        +{{ $item->strength_bonus }} Kracht 💪
+                                    </span>
+                                    @endif
+                                    @if($item->defense_bonus > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold">
+                                        +{{ $item->defense_bonus }} Verdediging 🛡️
+                                    </span>
+                                    @endif
+                                    @if($item->stamina_bonus > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold">
+                                        +{{ $item->stamina_bonus }} Conditie 🏃
+                                    </span>
+                                    @endif
+                                    @if($item->intelligence_bonus > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
+                                        +{{ $item->intelligence_bonus }} Kennis 🧠
                                     </span>
                                     @endif
                                 </div>
@@ -515,29 +558,82 @@
 
                                     <!-- Effects Pills -->
                                     <div class="flex flex-wrap gap-1.5 pt-1">
-                                        @if($inv->item->energy_restore > 0)
+                                        @if($inv->item->slug === 'adrenaline-injectie')
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-bolt text-emerald-600"></i> 100% Volle Energie
+                                        </span>
+                                        @elseif($inv->item->energy_restore > 0)
                                         <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1">
                                             <i class="fa-solid fa-bolt text-emerald-600"></i> +{{ $inv->item->energy_restore }} Energie
                                         </span>
                                         @endif
-                                        @if($inv->item->health_restore > 0)
+                                        @if($inv->item->slug === 'ehbo-noodverbanddoos')
+                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-heart text-rose-600"></i> 100% Volle HP
+                                        </span>
+                                        @elseif($inv->item->health_restore > 0)
                                         <span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-black flex items-center gap-1">
                                             <i class="fa-solid fa-heart text-rose-600"></i> +{{ $inv->item->health_restore }} HP
+                                        </span>
+                                        @endif
+                                        @if($inv->item->slug === 'bivakmuts-masker')
+                                        <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-mask text-indigo-600"></i> +1 Masker
+                                        </span>
+                                        @endif
+                                        @if($inv->item->slug === 'smokkelpakketje')
+                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-box text-purple-600"></i> +1 Pakket
+                                        </span>
+                                        @endif
+                                        @if($inv->item->slug === 'ijzerzaagje')
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-screwdriver-wrench text-amber-600"></i> -30m Straf
+                                        </span>
+                                        @endif
+                                        @if($inv->item->strength_bonus > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-hand-back-fist text-purple-600"></i> +{{ $inv->item->strength_bonus }} Kracht
+                                        </span>
+                                        @endif
+                                        @if($inv->item->defense_bonus > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-shield text-blue-600"></i> +{{ $inv->item->defense_bonus }} Def
+                                        </span>
+                                        @endif
+                                        @if($inv->item->stamina_bonus > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-person-running text-amber-600"></i> +{{ $inv->item->stamina_bonus }} Conditie
                                         </span>
                                         @endif
                                     </div>
                                 </div>
 
-                                <!-- Action Button: Eten / Nuttigen -->
+                                <!-- Action Button -->
                                 <div class="pt-2 border-t border-slate-200">
-                                    <form action="{{ route('shop.consume', $inv->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]">
-                                            <i class="fa-solid fa-utensils text-xs"></i>
-                                            <span>Eten / Nuttigen</span>
-                                        </button>
-                                    </form>
+                                    @if($inv->item->category === 'equipment')
+                                        <div class="w-full py-2.5 rounded-xl bg-slate-100 text-slate-700 font-extrabold text-xs flex items-center justify-center gap-2 border border-slate-200">
+                                            <i class="fa-solid fa-shield-halved text-purple-600 text-xs"></i>
+                                            <span>Actieve Uitrusting</span>
+                                        </div>
+                                    @else
+                                        <form action="{{ route('shop.consume', $inv->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" 
+                                                    class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]">
+                                                @if(str_contains(strtolower($inv->item->name), 'broodje') || str_contains(strtolower($inv->item->name), 'frikandel') || str_contains(strtolower($inv->item->name), 'bami') || str_contains(strtolower($inv->item->name), 'kapsalon') || str_contains(strtolower($inv->item->name), 'bitterbal'))
+                                                    <i class="fa-solid fa-utensils text-xs"></i>
+                                                    <span>Opeten</span>
+                                                @elseif(str_contains(strtolower($inv->item->name), 'drank') || str_contains(strtolower($inv->item->name), 'koffie') || str_contains(strtolower($inv->item->name), 'shake'))
+                                                    <i class="fa-solid fa-mug-hot text-xs"></i>
+                                                    <span>Opdrinken</span>
+                                                @else
+                                                    <i class="fa-solid fa-hand-holding-medical text-xs"></i>
+                                                    <span>Gebruiken</span>
+                                                @endif
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                             @endforeach

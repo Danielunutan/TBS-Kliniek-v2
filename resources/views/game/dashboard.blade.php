@@ -148,20 +148,48 @@
         
         <!-- Gang Card -->
         <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden relative group">
-            <div class="p-6 flex flex-col items-center text-center">
-                <div class="w-16 h-16 mb-3 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform">
-                    <i class="fa-solid fa-crown"></i>
+            @if($character->gang)
+                <div class="p-6 flex flex-col items-center text-center">
+                    <div class="w-16 h-16 mb-3 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform">
+                        <i class="fa-solid {{ $character->gang->emblem ?: 'fa-crown' }}"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 justify-center flex-wrap">
+                        <h3 class="text-base font-bold text-slate-900 mb-0.5">{{ $character->gang->name }}</h3>
+                        <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">[{{ $character->gang->tag }}]</span>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-400 mb-4">{{ ucfirst($character->gang_role ?: 'Lid') }}</span>
+                    <div class="w-full border-t border-slate-100 pt-3 mb-4 space-y-2 text-xs font-bold">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Leden:</span>
+                            <span class="text-slate-900">{{ $character->gang->members()->count() }} actief</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Bendekas:</span>
+                            <span class="text-emerald-600 font-extrabold">€{{ number_format($character->gang->treasury, 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+                    <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
+                        Bekijk Mijn Bende <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+                    </a>
                 </div>
-                <h3 class="text-base font-bold text-slate-900 mb-0.5">De Kantinebende</h3>
-                <span class="text-xs font-semibold text-slate-400 mb-4">Officiële Gang</span>
-                <div class="w-full border-t border-slate-100 pt-3 mb-4 flex justify-between items-center text-xs font-bold">
-                    <span class="text-slate-500">Leden:</span>
-                    <span class="text-slate-900">12 actief</span>
+            @else
+                <div class="p-6 flex flex-col items-center text-center">
+                    <div class="w-16 h-16 mb-3 rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 mb-0.5">Maak Gang of word lid van een gang</h3>
+                    <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                        Alleen sta je zwak in de TBS kliniek. Sluit je aan bij een factie of richt je eigen bende op om samen te heersen!
+                    </p>
+                    <div class="w-full border-t border-slate-100 pt-3 mb-4 flex justify-between items-center text-xs font-bold">
+                        <span class="text-slate-500">Status:</span>
+                        <span class="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Geen Bende</span>
+                    </div>
+                    <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
+                        Maak Gang of Word Lid <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+                    </a>
                 </div>
-                <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
-                    Bekijk Bende <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
-                </a>
-            </div>
+            @endif
         </div>
 
         <!-- Actieve Missies -->
