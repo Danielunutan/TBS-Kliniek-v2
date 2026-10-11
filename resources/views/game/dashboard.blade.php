@@ -213,33 +213,35 @@
         </div>
 
         <!-- Recente activiteiten -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200">
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-lg font-bold text-slate-900">Recente activiteiten</h3>
-            </div>
-            <div class="p-0">
-                <div class="divide-y divide-slate-100">
-                    <div class="p-4 hover:bg-slate-50 transition flex items-start gap-4">
-                        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-check text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-slate-700">Je hebt de missie 'Koffie en Kaas' voltooid!</p>
-                            <p class="text-xs font-bold text-emerald-600 mt-1">+ €450 &nbsp; + 120 XP</p>
-                        </div>
-                        <div class="text-xs text-slate-400 font-semibold whitespace-nowrap">2 uur geleden</div>
-                    </div>
-                    <div class="p-4 hover:bg-slate-50 transition flex items-start gap-4">
-                        <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-dumbbell text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-slate-700">Je hebt 1 energie verbruikt bij Training.</p>
-                            <p class="text-xs font-bold text-purple-600 mt-1">+ 75 XP</p>
-                        </div>
-                        <div class="text-xs text-slate-400 font-semibold whitespace-nowrap">3 uur geleden</div>
-                    </div>
+        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </span>
+                    <h3 class="text-sm font-extrabold text-slate-900">Recente activiteiten</h3>
                 </div>
+            </div>
+            <div class="divide-y divide-slate-100">
+                @forelse($recentActivities as $activity)
+                    <div class="p-4 hover:bg-slate-50/70 transition flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full {{ $activity['icon_bg'] }} flex items-center justify-center shrink-0 shadow-2xs">
+                            <i class="fa-solid {{ $activity['icon'] }} text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800 truncate">{{ $activity['title'] }}</p>
+                            <p class="text-xs font-bold {{ $activity['badge_color'] }} mt-0.5">{{ $activity['badge'] }}</p>
+                        </div>
+                        <div class="text-xs text-slate-400 font-semibold whitespace-nowrap shrink-0">
+                            {{ \Carbon\Carbon::parse($activity['time'])->diffForHumans() }}
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-8 text-center text-xs text-slate-400 font-medium">
+                        <i class="fa-solid fa-clock-rotate-left text-2xl text-slate-300 mb-2 block"></i>
+                        Nog geen recente activiteiten geregistreerd. Voer een missie, misdaad of training uit!
+                    </div>
+                @endforelse
             </div>
         </div>
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\TrainingLog;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -65,6 +66,15 @@ class CombatTrainingController extends Controller
         $character->cash -= $session['cost'];
         $character->{$session['stat']} += $session['gain'];
         $character->save();
+
+        TrainingLog::create([
+            'character_id' => $character->id,
+            'stat' => $session['stat'],
+            'stat_gain' => $session['gain'],
+            'energy_cost' => $session['energy'],
+            'cash_cost' => $session['cost'],
+            'trainer' => 'Barry Biceps',
+        ]);
 
         $this->level->addXp($character, $session['xp']);
 
