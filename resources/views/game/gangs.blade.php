@@ -748,7 +748,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-medium">
-                                @foreach($gangRankings as $index => $g)
+                                @forelse($gangRankings as $index => $g)
                                 <tr class="hover:bg-slate-50 transition-colors">
                                     <td class="py-3.5 px-2 text-center font-bold font-mono text-xs {{ $index < 3 ? 'text-purple-700' : 'text-slate-400' }}">
                                         {{ $index + 1 }}
@@ -761,12 +761,13 @@
                                             <div>
                                                 <div class="font-extrabold text-slate-900 text-xs leading-tight flex items-center gap-1.5">
                                                     <span>{{ $g['name'] }}</span>
+                                                    <span class="text-purple-600 font-mono text-[10px] font-bold">[{{ $g['tag'] }}]</span>
                                                     @if($index < 3)
                                                         <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
                                                     @endif
                                                 </div>
                                                 <div class="text-[11px] text-slate-400 font-medium">
-                                                    {{ $g['leader_tag'] }}
+                                                    {{ $g['leader_tag'] }} &bull; {{ $g['members_count'] }} leden
                                                 </div>
                                             </div>
                                         </div>
@@ -778,23 +779,48 @@
                                         {{ $g['cash'] }}
                                     </td>
                                     <td class="py-3.5 px-3 text-right">
-                                        @if($g['is_real'] && !$character->gang_id)
+                                        @if($myGang && $g['id'] === $myGang->id)
+                                            <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-extrabold text-[11px] inline-flex items-center gap-1 border border-purple-200">
+                                                <i class="fa-solid fa-check text-[10px]"></i> Jouw Gang
+                                            </span>
+                                        @elseif(! $character->gang_id)
+                                            @if($g['is_open'])
                                             <form action="{{ route('gangs.join', $g['model']) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">
+                                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs">
                                                     Aansluiten
                                                 </button>
                                             </form>
-                                        @elseif($g['is_real'] && $myGang && $g['id'] !== $myGang->id && in_array($character->gang_role, ['leader', 'co_leader'], true))
+                                            @else
+                                            <form action="{{ route('gangs.request-join', $g['model']) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-purple-50 text-purple-700 font-bold text-xs transition cursor-pointer border border-slate-200">
+                                                    Aanvragen
+                                                </button>
+                                            </form>
+                                            @endif
+                                        @elseif($myGang && $g['id'] !== $myGang->id && in_array($character->gang_role, ['leader', 'co_leader'], true))
                                             <button type="button" @click="setGangTab('oorlog')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] transition cursor-pointer inline-flex items-center gap-1 shadow-xs">
                                                 <i class="fa-solid fa-crosshairs text-[10px]"></i> Aanvallen
                                             </button>
                                         @else
-                                            <span class="text-slate-400 text-xs">&bull;&bull;&bull;</span>
+                                            <span class="text-slate-400 text-xs font-mono">&bull;&bull;&bull;</span>
                                         @endif
                                     </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center gap-2 text-slate-400">
+                                            <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
+                                                <i class="fa-solid fa-users-slash"></i>
+                                            </div>
+                                            <span class="font-bold text-slate-700 text-xs">Er zijn momenteel nog geen bendes opgericht!</span>
+                                            <span class="text-[11px] text-slate-400 max-w-sm">Richt als eerste een bende op met 250 Sterren ⭐ om over de kliniek te heersen.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -1783,7 +1809,7 @@
                     @endif
                 </div>
             </div>
-
+    </div>
     </div>
 
     <!-- CREATE GANG MODAL (250 STARS) -->

@@ -53,21 +53,12 @@ class GangController extends Controller
             ]);
         }
 
-        // Mock top gangs if not enough real ones, matching TBS Kliniek theme
-        $presetGangs = [
-            ['name' => 'De TBS Gladiatoren', 'leader_tag' => '@klaas_kaak', 'slay' => '69M', 'cash' => '€56.8M', 'icon' => 'fa-crown'],
-            ['name' => 'Isolatie Squad', 'leader_tag' => '@sjakie_slip', 'slay' => '48M', 'cash' => '€50.9M', 'icon' => 'fa-shield-halved'],
-            ['name' => 'Frikandel Maffia', 'leader_tag' => '@broodje_hans', 'slay' => '11M', 'cash' => '€6.0M', 'icon' => 'fa-skull'],
-            ['name' => 'Pillen & Pap Brigade', 'leader_tag' => '@dr_kalm', 'slay' => '7.47M', 'cash' => '€5.0M', 'icon' => 'fa-pills'],
-            ['name' => 'Luchtplaats Kartel', 'leader_tag' => '@graaf_gerrit', 'slay' => '3.12M', 'cash' => '€4.4M', 'icon' => 'fa-hand-fist'],
-            ['name' => 'Sokken & Sandalen', 'leader_tag' => '@henk_hiel', 'slay' => '1.81M', 'cash' => '€0', 'icon' => 'fa-burst'],
-            ['name' => 'Kliniek Syndicaat', 'leader_tag' => '@directeur_dries', 'slay' => '1.75M', 'cash' => '€1.3M', 'icon' => 'fa-star'],
-            ['name' => 'Vleugel D Elite', 'leader_tag' => '@cor_slot', 'slay' => '1.74M', 'cash' => '€613.5K', 'icon' => 'fa-ghost'],
-            ['name' => 'De Smokkelaars', 'leader_tag' => '@tonnie_tabak', 'slay' => '1.21M', 'cash' => '€518.9K', 'icon' => 'fa-gun'],
-            ['name' => 'Kalmeringsteam', 'leader_tag' => '@zuster_miep', 'slay' => '1.17M', 'cash' => '€685.8K', 'icon' => 'fa-clover'],
-        ];
+        // Real gang ranking list sorted by total member respect
+        $realGangs = Gang::with(['leader', 'members'])->withCount('members')->get();
+        $realGangs = $realGangs->sortByDesc(function ($g) {
+            return $g->members->sum('respect');
+        })->values();
 
-        // Format combined gang ranking list
         $gangRankings = collect();
 
         foreach ($realGangs as $g) {
@@ -75,28 +66,19 @@ class GangController extends Controller
             $gangRankings->push([
                 'id' => $g->id,
                 'name' => $g->name,
+                'tag' => $g->tag,
+                'leader_name' => $g->leader?->name ?? 'Onbekend',
                 'leader_tag' => '@'.($g->leader?->name ?? 'onbekend'),
-                'slay' => $totalSlay >= 1000000 ? number_format($totalSlay / 1000000, 2).'M' : ($totalSlay >= 1000 ? number_format($totalSlay / 1000, 1).'K' : $totalSlay),
-                'cash' => '€'.($g->treasury >= 1000000 ? number_format($g->treasury / 1000000, 1).'M' : number_format($g->treasury, 0, ',', '.')),
+                'slay' => $totalSlay >= 1000000 ? number_format($totalSlay / 1000000, 2).'M' : ($totalSlay >= 1000 ? number_format($totalSlay / 1000, 1).'K' : number_format($totalSlay, 0, ',', '.')),
+                'raw_slay' => $totalSlay,
+                'cash' => '€'.number_format($g->treasury, 0, ',', '.'),
                 'icon' => $g->emblem ?? 'fa-crown',
+                'members_count' => $g->members_count,
                 'is_real' => true,
+                'is_open' => (bool) ($g->is_open ?? true),
+                'min_respect' => (int) ($g->min_respect ?? 0),
                 'model' => $g,
             ]);
-        }
-
-        foreach ($presetGangs as $p) {
-            if (! $gangRankings->contains('name', $p['name'])) {
-                $gangRankings->push([
-                    'id' => null,
-                    'name' => $p['name'],
-                    'leader_tag' => $p['leader_tag'],
-                    'slay' => $p['slay'],
-                    'cash' => $p['cash'],
-                    'icon' => $p['icon'],
-                    'is_real' => false,
-                    'model' => null,
-                ]);
-            }
         }
 
         $topRankings = Character::orderByDesc('respect')->take(10)->get();
