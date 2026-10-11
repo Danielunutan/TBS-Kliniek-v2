@@ -17,7 +17,7 @@
     <meta property="og:locale" content="nl_NL">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:site_name" content="TBS Kliniek">
-    <meta property="og:title" content="TBS Kliniek - Respect verdien je. Frikandelbroodjes moet je bevechten.">
+    <meta property="og:title" content="TBS Kliniek - Overleef de afdeling, leid je bende en heers over de kliniek.">
     <meta property="og:description" content="Dé toonaangevende online misdaad- & gevangenissimulator. Vecht in de arena, claim je gang-uurloon en heers over de afdelingen!">
     <meta property="og:image" content="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}">
     <meta property="og:image:width" content="1200">
@@ -687,10 +687,10 @@
                     <span class="font-extrabold text-slate-800 text-sm">TBS <span class="text-purple-600">Kliniek</span></span>
                 </div>
                 <div>
-                    <span>Respect verdien je. Frikandelbroodjes moet je bevechten.</span>
+                    <span class="font-medium text-slate-600">Overleef de afdeling, leid je bende en heers over de kliniek.</span>
                 </div>
                 <div class="text-[11px] text-slate-400">
-                    &copy; {{ date('Y') }} TBS Kliniek Game. Alle rechten voorbehouden.
+                    &copy; {{ date('Y') }} TBS Kliniek. Alle rechten voorbehouden.
                 </div>
             </div>
         </footer>

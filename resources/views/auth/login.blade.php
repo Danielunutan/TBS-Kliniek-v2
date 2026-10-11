@@ -32,7 +32,7 @@
                             TBS <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400">Kliniek</span>
                         </h1>
                         <p class="mt-1 text-xs text-purple-100 font-medium leading-relaxed max-w-sm drop-shadow">
-                            Respect verdien je niet met goed gedrag. Frikandelbroodjes moet je bevechten.
+                            Overleef de afdeling, leid je bende en heers over de kliniek.
                         </p>
                     </div>
                 </div>
