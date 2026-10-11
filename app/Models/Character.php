@@ -348,4 +348,17 @@ class Character extends Model
     {
         return $this->hasMany(SupportTicket::class);
     }
+
+    /**
+     * Check if this character is accepted friends with another character.
+     */
+    public function isFriendWith(Character|int $other): bool
+    {
+        $otherId = $other instanceof Character ? $other->id : $other;
+
+        return Friend::where('character_id', $this->id)
+            ->where('friend_id', $otherId)
+            ->where('status', 'accepted')
+            ->exists();
+    }
 }

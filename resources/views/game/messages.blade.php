@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6" x-data="{ composeOpen: false }">
+<div class="space-y-6" x-data="{ composeOpen: {{ !empty($initialRecipient) ? 'true' : 'false' }} }">
 
     <!-- Header Banner -->
     <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
@@ -174,18 +174,38 @@
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-feather text-indigo-600"></i>
-                    <span>Brief Versturen naar Medepatiënt</span>
+                    <span>Brief Versturen naar Vriend</span>
                 </h3>
                 <button type="button" @click="composeOpen = false" class="text-slate-400 hover:text-slate-600">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
+            <div class="p-3 bg-purple-50/80 rounded-xl border border-purple-200 text-xs text-purple-900 flex items-start gap-2">
+                <i class="fa-solid fa-circle-info text-purple-600 mt-0.5 shrink-0"></i>
+                <span>Je kunt in de kliniek alleen brieven sturen naar spelers op je vriendenlijst.</span>
+            </div>
+
+            @if($otherPlayers->isEmpty())
+            <div class="p-6 text-center space-y-3 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl mx-auto">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h4 class="text-xs font-black text-slate-900">Je hebt nog geen vrienden op je lijst</h4>
+                <p class="text-[11px] text-slate-500 max-w-xs mx-auto">
+                    Voeg eerst medepatiënten toe als vriend via de vriendenpagina om geheime brieven met hen uit te wisselen.
+                </p>
+                <a href="{{ route('friends.index') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 text-white font-black text-xs hover:bg-purple-700 transition">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Naar Vriendenlijst</span>
+                </a>
+            </div>
+            @else
             <form action="{{ route('messages.send') }}" method="POST" class="space-y-3">
                 @csrf
                 <div x-data="{
-                    search: '',
-                    selectedPlayer: '',
+                    search: '{{ $initialRecipient }}',
+                    selectedPlayer: '{{ $initialRecipient }}',
                     openDropdown: false,
                     players: {{ $otherPlayers->map(fn($p) => ['name' => $p->name, 'level' => $p->level, 'avatar' => $p->avatar_url])->toJson() }},
                     get filteredPlayers() {
@@ -198,7 +218,7 @@
                         this.openDropdown = false;
                     }
                 }" class="relative">
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Ontvanger (Medepatiënt)</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Vriend (Ontvanger)</label>
                     <input type="hidden" name="recipient_name" :value="selectedPlayer || search" required>
                     <div class="relative flex items-center">
                         <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-purple-500 text-xs z-10">
@@ -210,7 +230,7 @@
                                @input="openDropdown = true; selectedPlayer = ''"
                                @click.outside="openDropdown = false"
                                autocomplete="off"
-                               placeholder="Zoek medepatiënt op naam..."
+                               placeholder="Kies een vriend uit je lijst..."
                                class="w-full text-xs font-semibold bg-slate-50 border border-purple-300 text-slate-800 rounded-xl py-2.5 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-200 outline-none transition tbs-search-input"
                                style="padding-left: 2.75rem !important; padding-right: 2.25rem !important;">
                         <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
@@ -224,7 +244,7 @@
                          class="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-xl border border-purple-200 divide-y divide-slate-100">
                         <template x-if="filteredPlayers.length === 0">
                             <div class="p-3 text-xs text-slate-400 text-center">
-                                Geen medepatiënt gevonden met '<span x-text="search"></span>'
+                                Geen vriend gevonden met '<span x-text="search"></span>'
                             </div>
                         </template>
                         <template x-for="p in filteredPlayers" :key="p.name">
@@ -262,6 +282,7 @@
                     </button>
                 </div>
             </form>
+            @endif
         </div>
     </div>
 

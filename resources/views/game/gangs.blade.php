@@ -780,20 +780,21 @@
                                                 <i class="fa-solid fa-check text-[10px]"></i> Jouw Gang
                                             </span>
                                         @elseif(! $character->gang_id)
-                                            @if($g['is_open'])
-                                            <form action="{{ route('gangs.join', $g['model']) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs">
-                                                    Aansluiten
-                                                </button>
-                                            </form>
+                                            @if($g['has_pending_request'])
+                                                <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-extrabold text-[11px] inline-flex items-center gap-1 border border-amber-200" title="Je hebt al een openstaande aanvraag ingediend">
+                                                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> In Behandeling
+                                                </span>
+                                            @elseif($g['is_open'])
+                                                <form action="{{ route('gangs.request-join', $g['model']) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-user-plus text-[10px]"></i> Aanvragen
+                                                    </button>
+                                                </form>
                                             @else
-                                            <form action="{{ route('gangs.request-join', $g['model']) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-purple-50 text-purple-700 font-bold text-xs transition cursor-pointer border border-slate-200">
-                                                    Aanvragen
-                                                </button>
-                                            </form>
+                                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-400 font-bold text-[11px] inline-flex items-center gap-1 border border-slate-200" title="Deze bende accepteert momenteel geen nieuwe lidmaatschapsverzoeken">
+                                                    <i class="fa-solid fa-lock text-[10px]"></i> Gesloten
+                                                </span>
                                             @endif
                                         @elseif($myGang && $g['id'] !== $myGang->id && in_array($character->gang_role, ['leader', 'co_leader'], true))
                                             <button type="button" @click="setGangTab('oorlog')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] transition cursor-pointer inline-flex items-center gap-1 shadow-xs">
@@ -1455,69 +1456,128 @@
                     </form>
                 </div>
 
-                <!-- 3. TOELATINGSEISEN & VERLATINGSKOSTEN -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Minimaal Respect -->
+                <!-- 3. TOELATINGSEISEN & VERZOEKEN INSTELLINGEN -->
+                <div class="space-y-6">
+                    <!-- Lidmaatschapsverzoeken Toggle Card -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                        <div class="border-b border-slate-100 pb-3">
-                            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-shield-halved text-purple-600"></i>
-                                <span>Toelatingseis (Minimaal Respect)</span>
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-1">
-                                Minimale respectscore die een patiënt moet hebben om een aanvraag te kunnen doen om lid te worden.
-                            </p>
+                        <div class="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-user-shield text-purple-600"></i>
+                                    <span>Lidmaatschapsverzoeken (Toelating)</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Bepaal of nieuwe patiënten een verzoek mogen indienen om lid te worden van <strong>{{ $myGang->name }}</strong>.
+                                </p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-[11px] font-black self-start sm:self-auto {{ $myGang->is_open ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
+                                <i class="fa-solid {{ $myGang->is_open ? 'fa-circle-check' : 'fa-circle-xmark' }}"></i>
+                                {{ $myGang->is_open ? 'Verzoeken Toegestaan (Open)' : 'Verzoeken Uitgeschakeld (Gesloten)' }}
+                            </span>
                         </div>
 
                         <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
                             @csrf
-                            <input type="hidden" name="action_type" value="min_respect">
+                            <input type="hidden" name="action_type" value="requests_toggle">
 
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Minimaal vereist respect</label>
-                                <input type="number" name="min_respect" value="{{ $myGang->min_respect ?? 0 }}" min="0" step="100"
-                                       class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition {{ $myGang->is_open ? 'border-purple-400 bg-purple-50/40 shadow-2xs' : 'border-slate-200 bg-slate-50 hover:border-slate-300' }}">
+                                    <input type="radio" name="is_open" value="1" {{ $myGang->is_open ? 'checked' : '' }} class="mt-0.5 text-purple-600 focus:ring-purple-500">
+                                    <div class="text-xs">
+                                        <span class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-door-open text-emerald-600"></i>
+                                            <span>Verzoeken Inschakelen (Open)</span>
+                                        </span>
+                                        <span class="text-slate-500 block text-[11px] mt-1 leading-relaxed">
+                                            Spelers kunnen via de benderanglijst een lidmaatschapsverzoek indienen. De leiding kan verzoeken goedkeuren of weigeren.
+                                        </span>
+                                    </div>
+                                </label>
+
+                                <label class="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition {{ ! $myGang->is_open ? 'border-purple-400 bg-purple-50/40 shadow-2xs' : 'border-slate-200 bg-slate-50 hover:border-slate-300' }}">
+                                    <input type="radio" name="is_open" value="0" {{ ! $myGang->is_open ? 'checked' : '' }} class="mt-0.5 text-purple-600 focus:ring-purple-500">
+                                    <div class="text-xs">
+                                        <span class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-lock text-rose-500"></i>
+                                            <span>Verzoeken Uitschakelen (Gesloten)</span>
+                                        </span>
+                                        <span class="text-slate-500 block text-[11px] mt-1 leading-relaxed">
+                                            Nieuwe patiënten kunnen geen aanvraag indienen. Je bende toont de badge 'Gesloten' in het overzicht.
+                                        </span>
+                                    </div>
+                                </label>
                             </div>
 
                             <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
                                 <i class="fa-solid fa-check"></i>
-                                <span>Minimaal Respect Opslaan</span>
+                                <span>Verzoek Status Opslaan</span>
                             </button>
                         </form>
                     </div>
 
-                    <!-- Verlatingskosten -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4" x-data="{ multiplier: {{ $myGang->leave_fee_multiplier ?? 48 }}, hourly: {{ $hourlyWage }} }">
-                        <div class="border-b border-slate-100 pb-3">
-                            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-door-open text-purple-600"></i>
-                                <span>Verlatingskosten (Vertrekboete)</span>
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-1">
-                                Boete die een bendelid betaalt aan de kluis wanneer hij/zij besluit de factie te verlaten.
-                            </p>
-                        </div>
-
-                        <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
-                            @csrf
-                            <input type="hidden" name="action_type" value="leave_fee">
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Factor van het Uurloon (bijv. 48x)</label>
-                                <div class="relative">
-                                    <input type="number" name="leave_fee_multiplier" x-model.number="multiplier" min="0" max="5000"
-                                           class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition pr-28">
-                                    <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-purple-700 font-mono" 
-                                          x-text="'€' + ((multiplier || 0) * hourly).toLocaleString('nl-NL')">
-                                    </span>
-                                </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Minimaal Respect -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+                            <div class="border-b border-slate-100 pb-3">
+                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-shield-halved text-purple-600"></i>
+                                    <span>Toelatingseis (Minimaal Respect)</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Minimale respectscore die een patiënt moet hebben om een aanvraag te kunnen doen om lid te worden.
+                                </p>
                             </div>
 
-                            <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
-                                <i class="fa-solid fa-check"></i>
-                                <span>Verlatingskosten Opslaan</span>
-                            </button>
-                        </form>
+                            <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
+                                @csrf
+                                <input type="hidden" name="action_type" value="min_respect">
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Minimaal vereist respect</label>
+                                    <input type="number" name="min_respect" value="{{ $myGang->min_respect ?? 0 }}" min="0" step="100"
+                                           class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
+                                </div>
+
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Minimaal Respect Opslaan</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Verlatingskosten -->
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4" x-data="{ multiplier: {{ $myGang->leave_fee_multiplier ?? 48 }}, hourly: {{ $hourlyWage }} }">
+                            <div class="border-b border-slate-100 pb-3">
+                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-door-open text-purple-600"></i>
+                                    <span>Verlatingskosten (Vertrekboete)</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Boete die een bendelid betaalt aan de kluis wanneer hij/zij besluit de factie te verlaten.
+                                </p>
+                            </div>
+
+                            <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
+                                @csrf
+                                <input type="hidden" name="action_type" value="leave_fee">
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Factor van het Uurloon (bijv. 48x)</label>
+                                    <div class="relative">
+                                        <input type="number" name="leave_fee_multiplier" x-model.number="multiplier" min="0" max="5000"
+                                               class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition pr-28">
+                                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-purple-700 font-mono" 
+                                              x-text="'€' + ((multiplier || 0) * hourly).toLocaleString('nl-NL')">
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Verlatingskosten Opslaan</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\Friend;
 use App\Models\GameMessage;
 use App\Models\Mission;
 use App\Models\User;
@@ -203,6 +204,12 @@ class GameFeatureTest extends TestCase
             'speed' => 10,
             'intellect' => 10,
             'respect' => 10,
+        ]);
+
+        Friend::create([
+            'character_id' => $sender->character->id,
+            'friend_id' => $recipientChar->id,
+            'status' => 'accepted',
         ]);
 
         $this->actingAs($sender);

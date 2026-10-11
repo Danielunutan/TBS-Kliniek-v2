@@ -344,8 +344,8 @@
                                 </form>
 
                                 <!-- Send message link -->
-                                <a href="{{ route('messages.index') }}" 
-                                   title="Brief sturen"
+                                <a href="{{ route('messages.index', ['recipient' => $f->friend->name]) }}" 
+                                   title="Brief sturen naar {{ $f->friend->name }}"
                                    class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 text-xs transition">
                                     <i class="fa-solid fa-envelope"></i>
                                 </a>

@@ -89,11 +89,18 @@
                             </form>
                         @endif
 
-                        <!-- Send Private Letter -->
-                        <a href="{{ route('messages.index') }}" class="px-3.5 py-2 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-2xs">
+                        <!-- Send Private Letter (Friends only) -->
+                        @if($character->isFriendWith($profileCharacter))
+                        <a href="{{ route('messages.index', ['recipient' => $profileCharacter->name]) }}" class="px-3.5 py-2 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-2xs">
                             <i class="fa-solid fa-envelope text-indigo-600"></i>
                             <span>Brief Sturen</span>
                         </a>
+                        @else
+                        <span class="px-3.5 py-2 text-xs font-bold bg-slate-50 text-slate-400 rounded-xl border border-slate-200 flex items-center gap-1.5 cursor-not-allowed" title="Je kunt alleen brieven sturen naar vrienden. Voeg deze patiënt eerst toe als vriend!">
+                            <i class="fa-solid fa-lock text-slate-400"></i>
+                            <span>Brief (Vrienden)</span>
+                        </span>
+                        @endif
 
                         <!-- Direct Steal Button with 3s anti-script loader -->
                         <div x-data="{ stealing: false, countdown: 3, intervalId: null }">

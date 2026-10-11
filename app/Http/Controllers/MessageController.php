@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\Friend;
 use App\Models\GameMessage;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
@@ -42,17 +43,22 @@ class MessageController extends Controller
         // Mark visible messages as read
         GameMessage::where('recipient_id', $character->id)->where('is_read', false)->update(['is_read' => true]);
 
-        // Other active players to send a message to
-        $otherPlayers = Character::where('id', '!=', $character->id)
+        // Only accepted friends can receive messages
+        $friendIds = Friend::where('character_id', $character->id)
+            ->where('status', 'accepted')
+            ->pluck('friend_id');
+
+        $otherPlayers = Character::whereIn('id', $friendIds)
             ->orderBy('name')
-            ->limit(30)
             ->get(['id', 'name', 'avatar', 'level']);
 
-        return view('game.messages', compact('character', 'messages', 'filter', 'unreadCount', 'otherPlayers'));
+        $initialRecipient = $request->query('recipient', '');
+
+        return view('game.messages', compact('character', 'messages', 'filter', 'unreadCount', 'otherPlayers', 'initialRecipient'));
     }
 
     /**
-     * Send a private message to another inmate.
+     * Send a private message to another inmate (friends only).
      */
     public function send(Request $request): RedirectResponse
     {
@@ -76,6 +82,11 @@ class MessageController extends Controller
 
         if ($recipient->id === $character->id) {
             return back()->with('error', 'Je kunt geen brief naar jezelf sturen!');
+        }
+
+        // Only allowed to send messages to accepted friends
+        if (! $character->isFriendWith($recipient)) {
+            return back()->with('error', "Je kunt alleen brieven sturen naar patiënten die op je vriendenlijst staan! Voeg {$recipient->name} eerst toe als vriend via Vrienden.");
         }
 
         GameMessage::create([

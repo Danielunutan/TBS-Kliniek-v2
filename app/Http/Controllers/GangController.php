@@ -59,6 +59,14 @@ class GangController extends Controller
             return $g->members->sum('respect');
         })->values();
 
+        $pendingGangRequestIds = [];
+        if (! $character->gang_id) {
+            $pendingGangRequestIds = GangRequest::where('character_id', $character->id)
+                ->where('status', 'pending')
+                ->pluck('gang_id', 'gang_id')
+                ->toArray();
+        }
+
         $gangRankings = collect();
 
         foreach ($realGangs as $g) {
@@ -77,6 +85,7 @@ class GangController extends Controller
                 'is_real' => true,
                 'is_open' => (bool) ($g->is_open ?? true),
                 'min_respect' => (int) ($g->min_respect ?? 0),
+                'has_pending_request' => isset($pendingGangRequestIds[$g->id]),
                 'model' => $g,
             ]);
         }
@@ -181,46 +190,15 @@ class GangController extends Controller
     }
 
     /**
-     * Join an open gang.
+     * Join gang (redirected to requestJoin to require approval).
      */
-    public function join(Gang $gang): RedirectResponse
+    public function join(Gang $gang, Request $request): RedirectResponse
     {
-        /** @var User $user */
-        $user = Auth::user();
-        $character = $user->character;
-
-        if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je je niet aansluiten bij een bende!');
-        }
-
-        if ($character->gang_id) {
-            return back()->with('error', 'Je bent al aangesloten bij een bende.');
-        }
-
-        if (($gang->min_respect ?? 0) > 0 && ($character->respect ?? 0) < $gang->min_respect) {
-            return back()->with('error', "Je hebt minimaal {$gang->min_respect} slay/respect nodig om je aan te sluiten bij bende '{$gang->name}'.");
-        }
-
-        $character->gang_id = $gang->id;
-        $character->gang_role = 'member';
-        $character->last_gang_wage_at = now();
-        $character->save();
-
-        if ($gang->leader && $gang->leader->id !== $character->id) {
-            GameNotification::create([
-                'character_id' => $gang->leader->id,
-                'type' => 'gang',
-                'icon' => 'fa-users',
-                'title' => 'Nieuw bendelid!',
-                'message' => "{$character->name} heeft zich aangesloten bij jouw bende '{$gang->name}'!",
-            ]);
-        }
-
-        return back()->with('success', "Je hebt je succesvol aangesloten bij bende '{$gang->name}'!");
+        return $this->requestJoin($gang, $request);
     }
 
     /**
-     * Request to join a closed gang.
+     * Request to join a gang.
      */
     public function requestJoin(Gang $gang, Request $request): RedirectResponse
     {
@@ -228,12 +206,20 @@ class GangController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen lidmaatschapsverzoek indienen!');
+        }
+
         if ($character->gang_id) {
-            return back()->with('error', 'Je zit al in een bende.');
+            return back()->with('error', 'Je bent al aangesloten bij een bende. Verlaat eerst je huidige bende.');
+        }
+
+        if (! (bool) ($gang->is_open ?? true)) {
+            return back()->with('error', "Bende '{$gang->name}' accepteert momenteel geen nieuwe lidmaatschapsverzoeken (gesloten).");
         }
 
         if (($gang->min_respect ?? 0) > 0 && ($character->respect ?? 0) < $gang->min_respect) {
-            return back()->with('error', "Je hebt minimaal {$gang->min_respect} slay/respect nodig om je aan te melden bij {$gang->name}.");
+            return back()->with('error', "Je hebt minimaal {$gang->min_respect} respect nodig om je aan te melden bij {$gang->name}.");
         }
 
         $exists = GangRequest::where('gang_id', $gang->id)
@@ -242,13 +228,13 @@ class GangController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->with('info', 'Je hebt al een openstaande aanvraag bij deze bende.');
+            return back()->with('info', "Je hebt al een openstaande aanvraag bij bende '{$gang->name}'. Wacht tot de leiding deze beoordeelt.");
         }
 
         GangRequest::create([
             'gang_id' => $gang->id,
             'character_id' => $character->id,
-            'message' => strip_tags((string) $request->input('message', 'Mag ik meedoen?')),
+            'message' => strip_tags((string) $request->input('message', 'Mag ik lid worden van jullie bende?')),
             'status' => 'pending',
         ]);
 
@@ -261,9 +247,19 @@ class GangController extends Controller
                 'content' => "Patiënt {$character->name} wil zich graag aansluiten bij jouw bende {$gang->name}. Beheer verzoeken via Bende Beheer!",
                 'type' => 'gang',
             ]);
+
+            if ($gang->leader->id !== $character->id) {
+                GameNotification::create([
+                    'character_id' => $gang->leader->id,
+                    'type' => 'gang',
+                    'icon' => 'fa-user-plus',
+                    'title' => 'Nieuw lidmaatschapsverzoek!',
+                    'message' => "{$character->name} heeft een verzoek ingediend om lid te worden van '{$gang->name}'!",
+                ]);
+            }
         }
 
-        return back()->with('success', "Aanvraag ingediend bij bende '{$gang->name}'!");
+        return back()->with('success', "Je lidmaatschapsverzoek is ingediend bij bende '{$gang->name}'! De leiding zal je aanvraag beoordelen.");
     }
 
     /**
@@ -298,9 +294,26 @@ class GangController extends Controller
                     'content' => "Welkom bij de bende! Je bent nu officieel lid van {$gang->name}.",
                     'type' => 'gang',
                 ]);
+
+                GameNotification::create([
+                    'character_id' => $candidate->id,
+                    'type' => 'gang',
+                    'icon' => 'fa-users',
+                    'title' => 'Toegelaten tot bende!',
+                    'message' => "Gefeliciteerd! Je aanvraag voor '{$gang->name}' is geaccepteerd. Je bent nu lid!",
+                ]);
             }
+
             $requestRecord->status = 'accepted';
             $requestRecord->save();
+
+            // Cancel any other pending requests for this character
+            if ($candidate) {
+                GangRequest::where('character_id', $candidate->id)
+                    ->where('id', '!=', $requestRecord->id)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'rejected']);
+            }
 
             return back()
                 ->with('active_gang_tab', 'beheer')
@@ -310,6 +323,16 @@ class GangController extends Controller
 
         $requestRecord->status = 'rejected';
         $requestRecord->save();
+
+        if ($candidate = $requestRecord->character) {
+            GameNotification::create([
+                'character_id' => $candidate->id,
+                'type' => 'gang',
+                'icon' => 'fa-xmark',
+                'title' => 'Aanvraag afgewezen',
+                'message' => "Je verzoek om lid te worden van bende '{$gang->name}' is afgewezen.",
+            ]);
+        }
 
         return back()
             ->with('active_gang_tab', 'beheer')
@@ -520,6 +543,20 @@ class GangController extends Controller
             return back()
                 ->with('active_gang_tab', 'instellingen')
                 ->with('success', 'Bende profieltekst succesvol opgeslagen!');
+        }
+
+        if ($actionType === 'requests_toggle' || $actionType === 'is_open') {
+            $isOpen = $request->boolean('is_open');
+            $gang->update([
+                'is_open' => $isOpen,
+            ]);
+
+            return back()
+                ->with('active_gang_tab', 'instellingen')
+                ->with('success', $isOpen
+                    ? 'Lidmaatschapsverzoeken zijn ingeschakeld. Spelers kunnen zich nu aanmelden via de ranglijst!'
+                    : 'Lidmaatschapsverzoeken zijn uitgeschakeld. Je bende is nu gesloten voor nieuwe aanmeldingen.'
+                );
         }
 
         $validated = $request->validate([
