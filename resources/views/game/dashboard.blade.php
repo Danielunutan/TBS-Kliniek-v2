@@ -134,6 +134,29 @@
             </div>
         </div>
 
+        <!-- Rad van Fortuin Daily Notification Banner -->
+        @if($character->canDailySpin())
+            <div class="bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-600 rounded-xl p-4 shadow-md text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 backdrop-blur-xs text-xl shadow-inner">
+                        <i class="fa-solid fa-dharmachakra"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-black text-white">Rad van Fortuin & Dagelijkse Beloning!</h3>
+                            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-400 text-slate-900 shadow-xs">Nu Beschikbaar</span>
+                        </div>
+                        <p class="text-xs text-purple-100 mt-0.5">
+                            Draai gratis aan het TBS rad voor contant geld, kogels of kluissleutels en behoud je 7-daagse streak!
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ route('daily.index') }}" class="shrink-0 px-4 py-2 rounded-lg bg-white text-purple-900 hover:bg-purple-50 font-black text-xs uppercase tracking-wider shadow-sm transition">
+                    <i class="fa-solid fa-play mr-1"></i> Nu Draaien
+                </a>
+            </div>
+        @endif
+
         <!-- TBS Uitkering Banner for inmates without a gang -->
         @if($allowanceDetails['eligible'] ?? false)
             <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

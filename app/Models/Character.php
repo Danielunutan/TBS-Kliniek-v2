@@ -105,7 +105,60 @@ class Character extends Model
         'username_changed_at' => 'datetime',
         'today_respect' => 'decimal:2',
         'today_respect_date' => 'string',
+        'last_daily_spin_at' => 'datetime',
+        'daily_spins_today' => 'integer',
+        'last_streak_claim_at' => 'datetime',
+        'streak_days' => 'integer',
     ];
+
+    /**
+     * Check how many spins the character has available today.
+     */
+    public function availableSpinsCount(): int
+    {
+        $maxSpins = $this->isVip() ? 2 : 1;
+        if (! $this->last_daily_spin_at || ! $this->last_daily_spin_at->isToday()) {
+            return $maxSpins;
+        }
+
+        return max(0, $maxSpins - $this->daily_spins_today);
+    }
+
+    /**
+     * Can character spin the wheel of fortune right now?
+     */
+    public function canDailySpin(): bool
+    {
+        return $this->availableSpinsCount() > 0;
+    }
+
+    /**
+     * Can character claim today's daily streak reward?
+     */
+    public function canClaimStreak(): bool
+    {
+        if (! $this->last_streak_claim_at) {
+            return true;
+        }
+
+        return ! $this->last_streak_claim_at->isToday();
+    }
+
+    /**
+     * Get active bounties on this character.
+     */
+    public function activeBounties()
+    {
+        return $this->hasMany(Bounty::class, 'target_character_id')->where('is_claimed', false);
+    }
+
+    /**
+     * Total bounty on this character's head.
+     */
+    public function totalBountyAmount(): int
+    {
+        return (int) $this->activeBounties()->sum('amount');
+    }
 
     protected static function booted(): void
     {

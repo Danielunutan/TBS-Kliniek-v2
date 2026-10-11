@@ -277,6 +277,17 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'bonus'" x-collapse class="space-y-0.5 pl-1">
+                    <a href="{{ route('daily.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500"></i>
+                            <span>Rad van Fortuin</span>
+                        </div>
+                        @if($character->canDailySpin())
+                        <span class="bg-amber-100 text-amber-700 text-[9px] font-black uppercase px-1.5 py-0.2 rounded border border-amber-200 animate-pulse">
+                            Gratis
+                        </span>
+                        @endif
+                    </a>
                     <a href="{{ route('vault.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('vault.*') ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         <i class="fa-solid fa-vault w-4 text-center text-purple-500"></i>
                         <span>MedicijnKluis (Kraak)</span>
@@ -318,6 +329,10 @@
                     <a href="{{ route('hitman.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hitman.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         <i class="fa-solid fa-crosshairs w-4 text-center text-rose-600"></i>
                         <span>Liquidatie</span>
+                    </a>
+                    <a href="{{ route('bounties.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bounties.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                        <i class="fa-solid fa-skull-crossbones w-4 text-center text-rose-500"></i>
+                        <span>Kopgeld & Premies</span>
                     </a>
                     <a href="{{ route('informants.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('informants.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
                         <i class="fa-solid fa-user-secret w-4 text-center text-slate-700"></i>
@@ -621,6 +636,16 @@
                 <!-- 4. Bonus & Kluizen -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 block px-2">Bonus & Kluizen</span>
+                    <a href="{{ route('daily.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-dharmachakra w-4 text-amber-500"></i> Rad van Fortuin
+                        </div>
+                        @if($character->canDailySpin())
+                        <span class="bg-amber-100 text-amber-700 text-[9px] font-black uppercase px-1.5 py-0.2 rounded border border-amber-200">
+                            Gratis
+                        </span>
+                        @endif
+                    </a>
                     <a href="{{ route('vault.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <i class="fa-solid fa-vault w-4 text-purple-500"></i> MedicijnKluis (Kraak)
                     </a>
@@ -646,6 +671,9 @@
                     </a>
                     <a href="{{ route('hitman.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <i class="fa-solid fa-crosshairs w-4 text-rose-600"></i> Liquidatie
+                    </a>
+                    <a href="{{ route('bounties.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                        <i class="fa-solid fa-skull-crossbones w-4 text-rose-500"></i> Kopgeld & Premies
                     </a>
                     <a href="{{ route('informants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
                         <i class="fa-solid fa-user-secret w-4 text-slate-700"></i> Informanten

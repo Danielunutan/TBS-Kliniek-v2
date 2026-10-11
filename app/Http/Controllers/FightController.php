@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bounty;
 use App\Models\Character;
 use App\Models\GameNotification;
 use App\Services\CooldownService;
@@ -214,9 +215,37 @@ class FightController extends Controller
             $this->battleService->record($attacker, 'kills', 1);
             $this->battleService->record($attacker, 'slay', 2);
 
+            // Check for and claim any active bounties on defender
+            $claimedBountyCash = 0;
+            $activeBounties = Bounty::where('target_character_id', $defender->id)->where('is_claimed', false)->get();
+            if ($activeBounties->isNotEmpty()) {
+                $claimedBountyCash = (int) $activeBounties->sum('amount');
+                $this->economy->addCash($attacker, $claimedBountyCash);
+                foreach ($activeBounties as $bounty) {
+                    $bounty->update([
+                        'is_claimed' => true,
+                        'claimed_by_character_id' => $attacker->id,
+                        'claimed_at' => now(),
+                    ]);
+
+                    GameNotification::create([
+                        'character_id' => $bounty->placed_by_character_id,
+                        'type' => 'bounty_claimed',
+                        'icon' => 'fa-crosshairs',
+                        'title' => 'Kopgeld Geïncasseerd!',
+                        'message' => 'Het kopgeld van €'.number_format($bounty->amount, 0, ',', '.')." dat je op {$defender->name} had gezet is zojuist geclaimd door {$attacker->name}!",
+                        'is_read' => false,
+                    ]);
+                }
+            }
+
             $notificationMessage = $stolenCash > 0
                 ? "{$attacker->name} heeft je overmeesterd op de luchtplaats en €".number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'
                 : "{$attacker->name} heeft je overmeesterd op de luchtplaats om je te beroven, maar je had gelukkig geen contanten op zak!";
+
+            if ($claimedBountyCash > 0) {
+                $notificationMessage .= ' Tevens is het openstaande kopgeld van €'.number_format($claimedBountyCash, 0, ',', '.').' op jouw hoofd geïncasseerd!';
+            }
 
             GameNotification::create([
                 'character_id' => $defender->id,
@@ -234,6 +263,7 @@ class FightController extends Controller
                 'defender_level' => $defender->level,
                 'won' => true,
                 'stolen_cash' => $stolenCash,
+                'claimed_bounty' => $claimedBountyCash,
                 'defender_had_no_cash' => ($defenderCash <= 0),
                 'damage' => 0,
                 'xp' => 25,

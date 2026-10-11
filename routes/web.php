@@ -6,10 +6,12 @@ use App\Http\Controllers\AdminNewsController;
 use App\Http\Controllers\AdminTicketController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
+use App\Http\Controllers\BountyController;
 use App\Http\Controllers\CasinoController;
 use App\Http\Controllers\CombatTrainingController;
 use App\Http\Controllers\CooldownController;
 use App\Http\Controllers\DailyBattleController;
+use App\Http\Controllers\DailyRewardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExtortController;
 use App\Http\Controllers\FaqController;
@@ -158,6 +160,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/24-uur-battle', [DailyBattleController::class, 'index'])->name('battle.index');
     Route::get('/24-uur-battle/categorie/{category}', [DailyBattleController::class, 'categoryDetails'])->name('battle.category');
 
+    // Rad van Fortuin & Dagelijkse Beloningen
+    Route::get('/rad-van-fortuin', [DailyRewardController::class, 'index'])->name('daily.index');
+    Route::post('/rad-van-fortuin/spin', [DailyRewardController::class, 'spin'])->name('daily.spin');
+    Route::post('/rad-van-fortuin/streak', [DailyRewardController::class, 'claimStreak'])->name('daily.claim-streak');
+
     // Vault (Kluis Kraak & Codes)
     Route::get('/kluis-kraak', [VaultController::class, 'index'])->name('vault.index');
     Route::post('/kluis-kraak/raden', [VaultController::class, 'guess'])->name('vault.guess');
@@ -179,6 +186,10 @@ Route::middleware('auth')->group(function (): void {
     // Hitman (Liquidatie)
     Route::get('/liquidatie', [HitmanController::class, 'index'])->name('hitman.index');
     Route::post('/liquidatie/contract', [HitmanController::class, 'contract'])->name('hitman.contract');
+
+    // Kopgeld & Opsporingsbord (Bounty Hunter)
+    Route::get('/kopgeld', [BountyController::class, 'index'])->name('bounties.index');
+    Route::post('/kopgeld/plaatsen', [BountyController::class, 'store'])->name('bounties.store');
 
     // Informants (Spionnenleger)
     Route::get('/informanten', [InformantController::class, 'index'])->name('informants.index');
