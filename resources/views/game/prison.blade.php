@@ -30,14 +30,39 @@
     @if($isImprisoned)
     <div x-data="{ 
             sec: {{ $remainingSeconds }},
+            reloaded: false,
             formatTime(s) {
                 if (s <= 0) return '00:00';
                 const m = Math.floor(s / 60);
                 const remainder = s % 60;
                 return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
+            },
+            reloadSite() {
+                if (this.reloaded) return;
+                this.reloaded = true;
+                this.sec = 0;
+                if (window.Turbo) {
+                    window.Turbo.clearCache();
+                    window.Turbo.visit(window.location.href, { action: 'replace' });
+                } else {
+                    window.location.reload();
+                }
+            },
+            init() {
+                if (this.sec <= 0) {
+                    this.reloadSite();
+                    return;
+                }
+                const timer = setInterval(() => {
+                    this.sec--;
+                    if (this.sec <= 0) {
+                        clearInterval(timer);
+                        this.reloadSite();
+                    }
+                }, 1000);
             }
          }" 
-         x-init="if (sec > 0) { const timer = setInterval(() => { sec--; if (sec <= 0) { clearInterval(timer); window.location.reload(); } }, 1000); }" 
+         x-show="sec > 0"
          class="bg-rose-50 border border-rose-200 rounded-xl p-5 text-rose-950 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
             <div class="w-11 h-11 rounded-xl bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center text-xl shrink-0 font-bold">

@@ -845,14 +845,39 @@
             @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
             <div x-data="{ 
                     sec: {{ $character->remainingPrisonSeconds() }},
+                    reloaded: false,
                     formatTime(s) {
                         if (s <= 0) return '00:00';
                         const m = Math.floor(s / 60);
                         const remainder = s % 60;
                         return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
+                    },
+                    reloadSite() {
+                        if (this.reloaded) return;
+                        this.reloaded = true;
+                        this.sec = 0;
+                        if (window.Turbo) {
+                            window.Turbo.clearCache();
+                            window.Turbo.visit(window.location.href, { action: 'replace' });
+                        } else {
+                            window.location.reload();
+                        }
+                    },
+                    init() {
+                        if (this.sec <= 0) {
+                            this.reloadSite();
+                            return;
+                        }
+                        const timer = setInterval(() => {
+                            this.sec--;
+                            if (this.sec <= 0) {
+                                clearInterval(timer);
+                                this.reloadSite();
+                            }
+                        }, 1000);
                     }
                  }" 
-                 x-init="if (sec > 0) { const timer = setInterval(() => { sec--; if (sec <= 0) { clearInterval(timer); window.location.reload(); } }, 1000); }" 
+                 x-show="sec > 0"
                  class="mb-6 bg-white border border-rose-200/90 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-3.5 w-full sm:w-auto">
                     <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-lg shrink-0">
