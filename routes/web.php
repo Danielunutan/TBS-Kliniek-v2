@@ -361,6 +361,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Gangs
     Route::get('/gangs', [GangController::class, 'index'])->name('gangs.index');
+    Route::get('/gangs/leden', [GangController::class, 'leden'])->name('gangs.leden');
     Route::get('/gangs/beheer', [GangController::class, 'beheer'])->name('gangs.beheer');
     Route::get('/gangs/instellingen', [GangController::class, 'instellingen'])->name('gangs.instellingen');
     Route::post('/gangs/aanmaken', [GangController::class, 'create'])->name('gangs.create');

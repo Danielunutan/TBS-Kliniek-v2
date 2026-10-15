@@ -92,6 +92,27 @@
                         <span class="text-[10px] text-purple-700 dark:text-purple-300 font-extrabold">[{{ $myGang->tag }}]</span>
                     </button>
 
+                    <!-- Ledenlijst & Online Tab -->
+                    <button type="button" @click="setGangTab('leden')" 
+                            :class="activeGangTab === 'leden' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-users text-purple-600 dark:text-purple-400 w-4 text-center"></i>
+                            <span>Ledenlijst</span>
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                            @if(($onlineMembersCount ?? 0) > 0)
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900" title="{{ $onlineMembersCount ?? 0 }} leden nu online">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span>{{ $onlineMembersCount ?? 0 }} online</span>
+                                </span>
+                            @else
+                                <span class="text-[10px] text-slate-400 font-bold">{{ $myGang->members->count() }}</span>
+                            @endif
+                            <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                        </div>
+                    </button>
+
                     <!-- Bende Oorlog Tab -->
                     <button type="button" @click="setGangTab('oorlog')" 
                             :class="activeGangTab === 'oorlog' ? 'bg-rose-50/90 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
@@ -415,11 +436,47 @@
                         {{ $myGang->description ?: 'Dit profiel is nog leeg, medepatiënt.' }}
                     </div>
 
-                    <!-- ALLE LEDEN Table -->
-                    <div class="space-y-3 pt-2">
-                        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2">
-                            <i class="fa-solid fa-users text-purple-600"></i>
-                            <span>ALLE LEDEN</span>
+                    <!-- ALLE LEDEN Table with Realtime Search & Online Filter -->
+                    <div class="space-y-3 pt-2"
+                         x-data="{
+                             memberSearch: '',
+                             onlyOnline: false,
+                             members: {{ Js::from($gangMembersData ?? []) }},
+                             get list() {
+                                 let q = this.memberSearch.toLowerCase().trim();
+                                 return this.members.filter(m => {
+                                     if (q && !m.name.toLowerCase().includes(q) && !m.role_label.toLowerCase().includes(q)) return false;
+                                     if (this.onlyOnline && !m.is_online) return false;
+                                     return true;
+                                 });
+                             }
+                         }">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
+                            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                                <i class="fa-solid fa-users text-purple-600"></i>
+                                <span>ALLE LEDEN</span>
+                                <span class="text-slate-400 font-normal">({{ $myGang->members->count() }})</span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                        @click="onlyOnline = !onlyOnline" 
+                                        :class="onlyOnline ? 'bg-emerald-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                        class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full" :class="onlyOnline ? 'bg-white' : 'bg-emerald-500 animate-pulse'"></span>
+                                    <span>Online ({{ $onlineMembersCount ?? 0 }})</span>
+                                </button>
+                                <div class="relative w-44">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
+                                    <input type="text" 
+                                           x-model="memberSearch" 
+                                           placeholder="Zoek lid..." 
+                                           class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:border-purple-600 transition">
+                                    <button type="button" x-show="memberSearch" @click="memberSearch = ''" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-[10px]">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="overflow-x-auto">
@@ -433,34 +490,39 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 font-medium">
-                                    @foreach($myGang->members as $member)
-                                    <tr class="hover:bg-slate-50 transition">
-                                        <td class="py-3 px-3">
-                                            <div class="flex items-center gap-3">
-                                                <a href="{{ route('profile.show', $member->name) }}" class="relative shrink-0">
-                                                    <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}" class="w-8 h-8 rounded-full object-cover border border-slate-200">
-                                                    <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white {{ $member->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $member->online_status_label }}"></span>
-                                                </a>
-                                                <a href="{{ route('profile.show', $member->name) }}" class="font-bold text-slate-900 hover:text-purple-600 transition">
-                                                    {{ $member->name }}
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td class="py-3 px-3">
-                                            <span class="text-xs font-bold {{ $member->gang_role === 'leader' ? 'text-amber-600' : ($member->gang_role === 'co_leader' ? 'text-purple-700' : 'text-slate-500') }}">
-                                                {{ $member->gang_role === 'leader' ? 'Boss / Leider' : ($member->gang_role === 'co_leader' ? 'Co-Leider' : 'Bendelid') }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3 px-3 text-right font-bold text-slate-700">
-                                            {{ $member->level }}
-                                        </td>
-                                        <td class="py-3 px-3 text-right font-extrabold text-purple-700 font-mono">
-                                            {{ number_format($member->respect, 0, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                    @endforeach
+                                    <template x-for="member in list" :key="member.id">
+                                        <tr class="hover:bg-slate-50 transition">
+                                            <td class="py-3 px-3">
+                                                <div class="flex items-center gap-3">
+                                                    <a :href="member.profile_url" class="relative shrink-0">
+                                                        <img :src="member.avatar_url" :alt="member.name" class="w-8 h-8 rounded-full object-cover border border-slate-200">
+                                                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white"
+                                                              :class="member.is_online ? 'bg-emerald-500' : 'bg-slate-300'"
+                                                              :title="member.online_label">
+                                                        </span>
+                                                    </a>
+                                                    <a :href="member.profile_url" class="font-bold text-slate-900 hover:text-purple-600 transition" x-text="member.name"></a>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-3">
+                                                <span class="text-xs font-bold"
+                                                      :class="{
+                                                          'text-amber-600': member.gang_role === 'leader',
+                                                          'text-purple-700': member.gang_role === 'co_leader',
+                                                          'text-slate-500': member.gang_role !== 'leader' && member.gang_role !== 'co_leader'
+                                                      }"
+                                                      x-text="member.role_label">
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-3 text-right font-bold text-slate-700" x-text="member.level"></td>
+                                            <td class="py-3 px-3 text-right font-extrabold text-purple-700 font-mono" x-text="member.respect_formatted"></td>
+                                        </tr>
+                                    </template>
                                 </tbody>
                             </table>
+                            <div x-show="list.length === 0" class="py-6 text-center text-xs text-slate-400">
+                                Geen leden gevonden die voldoen aan je zoekopdracht.
+                            </div>
                         </div>
                     </div>
 
@@ -509,6 +571,224 @@
                         </div>
                     </div>
 
+                </div>
+            </div>
+            @endif
+
+            <!-- TAB: DEDICATED LEDENLIJST & ONLINE (REALTIME ZOEKBALK) -->
+            @if($myGang)
+            <div x-show="activeGangTab === 'leden'" 
+                 x-data="{
+                     search: '',
+                     statusFilter: 'all', // 'all', 'online', 'offline'
+                     sortBy: 'respect_desc', // 'respect_desc', 'level_desc', 'name_asc', 'online_first'
+                     members: {{ Js::from($gangMembersData ?? []) }},
+                     get filteredMembers() {
+                         let q = this.search.toLowerCase().trim();
+                         return this.members.filter(m => {
+                             if (q && !m.name.toLowerCase().includes(q) && !m.role_label.toLowerCase().includes(q)) {
+                                 return false;
+                             }
+                             if (this.statusFilter === 'online' && !m.is_online) return false;
+                             if (this.statusFilter === 'offline' && m.is_online) return false;
+                             return true;
+                         }).sort((a, b) => {
+                             if (this.sortBy === 'respect_desc') return b.respect - a.respect;
+                             if (this.sortBy === 'level_desc') return b.level - a.level;
+                             if (this.sortBy === 'name_asc') return a.name.localeCompare(b.name);
+                             if (this.sortBy === 'online_first') {
+                                 if (a.is_online && !b.is_online) return -1;
+                                 if (!a.is_online && b.is_online) return 1;
+                                 return b.respect - a.respect;
+                             }
+                             return 0;
+                         });
+                     },
+                     get onlineCount() {
+                         return this.members.filter(m => m.is_online).length;
+                     },
+                     get offlineCount() {
+                         return this.members.filter(m => !m.is_online).length;
+                     }
+                 }" 
+                 class="space-y-6">
+
+                <!-- Header Card -->
+                <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                    {{ $myGang->name }} [{{ $myGang->tag }}]
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span x-text="onlineCount + ' Online'"></span>
+                                </span>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2">
+                                <i class="fa-solid fa-users text-purple-600 dark:text-purple-400 text-lg"></i>
+                                <span>Bende Ledenlijst</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Realtime overzicht van alle bendelieden, live activiteitsstatus en direct contact.
+                            </p>
+                        </div>
+
+                        <!-- Stats Pills -->
+                        <div class="flex items-center gap-2 shrink-0">
+                            <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
+                                <span class="text-[10px] font-bold text-slate-400 block uppercase">Totaal</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-slate-100 font-mono">{{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }}</span>
+                            </div>
+                            <div class="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-center">
+                                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block uppercase flex items-center justify-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                                </span>
+                                <span class="text-sm font-black text-emerald-700 dark:text-emerald-300 font-mono" x-text="onlineCount"></span>
+                            </div>
+                            <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
+                                <span class="text-[10px] font-bold text-slate-400 block uppercase">Offline</span>
+                                <span class="text-sm font-black text-slate-600 dark:text-slate-400 font-mono" x-text="offlineCount"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div class="space-y-3 pt-1">
+                        <!-- Realtime Search Bar -->
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   x-model="search"
+                                   placeholder="Zoek bendelid op naam of rol (realtime)..." 
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl pl-9 pr-9 py-2.5 text-xs font-semibold focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-900 transition">
+                            <button type="button" 
+                                    x-show="search.length > 0" 
+                                    @click="search = ''" 
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <!-- Filter Buttons & Sorter -->
+                        <div class="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+                            <!-- Status Filters (Alle / Online / Offline) -->
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" 
+                                        @click="statusFilter = 'all'" 
+                                        :class="statusFilter === 'all' ? 'bg-purple-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                        class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <span>Alle Leden</span>
+                                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="statusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="members.length"></span>
+                                </button>
+                                <button type="button" 
+                                        @click="statusFilter = 'online'" 
+                                        :class="statusFilter === 'online' ? 'bg-emerald-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                        class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full" :class="statusFilter === 'online' ? 'bg-white' : 'bg-emerald-500 animate-pulse'"></span>
+                                    <span>Nu Online</span>
+                                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="statusFilter === 'online' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'" x-text="onlineCount"></span>
+                                </button>
+                                <button type="button" 
+                                        @click="statusFilter = 'offline'" 
+                                        :class="statusFilter === 'offline' ? 'bg-slate-700 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+                                        class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <span>Offline</span>
+                                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="statusFilter === 'offline' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="offlineCount"></span>
+                                </button>
+                            </div>
+
+                            <!-- Sorting Dropdown -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-bold text-slate-400 hidden sm:inline">Sorteren:</span>
+                                <select x-model="sortBy" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:border-purple-600 transition cursor-pointer">
+                                    <option value="respect_desc">Hoogste Respect</option>
+                                    <option value="level_desc">Hoogste Level</option>
+                                    <option value="online_first">Online Leden Eerst</option>
+                                    <option value="name_asc">Naam (A-Z)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leden Grid / Cards View -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <template x-for="m in filteredMembers" :key="m.id">
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs hover:border-purple-300 dark:hover:border-purple-800 transition flex items-center justify-between gap-3 group">
+                            <!-- Left: Avatar & Info -->
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <a :href="m.profile_url" class="relative shrink-0">
+                                    <img :src="m.avatar_url" :alt="m.name" class="w-11 h-11 rounded-2xl object-cover border border-slate-200 dark:border-slate-700">
+                                    <!-- Online Indicator Ring/Dot -->
+                                    <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#111827]"
+                                          :class="m.is_online ? 'bg-emerald-500 ring-2 ring-emerald-300/40' : 'bg-slate-300 dark:bg-slate-600'"
+                                          :title="m.online_label">
+                                    </span>
+                                </a>
+
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <a :href="m.profile_url" class="font-extrabold text-sm text-slate-900 dark:text-slate-100 hover:text-purple-600 dark:hover:text-purple-400 transition truncate" x-text="m.name"></a>
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shrink-0"
+                                              :class="{
+                                                  'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800': m.gang_role === 'leader',
+                                                  'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800': m.gang_role === 'co_leader',
+                                                  'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700': m.gang_role !== 'leader' && m.gang_role !== 'co_leader'
+                                              }"
+                                              x-text="m.role_label">
+                                        </span>
+                                    </div>
+
+                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        <span>Level <strong class="text-slate-700 dark:text-slate-300" x-text="m.level"></strong></span>
+                                        <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+                                        <span>Respect <strong class="text-purple-700 dark:text-purple-400 font-mono" x-text="m.respect_formatted"></strong></span>
+                                    </div>
+
+                                    <!-- Status line -->
+                                    <div class="mt-1 flex items-center gap-1.5 text-[11px]">
+                                        <template x-if="m.is_online">
+                                            <span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                <span>Nu Online</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!m.is_online">
+                                            <span class="text-slate-400" x-text="m.online_label"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Actions -->
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <a :href="m.message_url" title="Stuur privébericht" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-purple-100 hover:text-purple-700 dark:bg-slate-800 dark:hover:bg-purple-950/60 dark:text-slate-300 dark:hover:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </a>
+                                <a :href="m.profile_url" title="Bekijk profiel" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs transition cursor-pointer">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Empty State -->
+                <div x-show="filteredMembers.length === 0" class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl p-8 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto text-xl">
+                        <i class="fa-solid fa-user-slash"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Geen bendeleden gevonden</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Er zijn geen bendelieden die voldoen aan je huidige zoekopdracht of filter.
+                        </p>
+                    </div>
+                    <button type="button" @click="search = ''; statusFilter = 'all';" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">
+                        Filters wissen
+                    </button>
                 </div>
             </div>
             @endif

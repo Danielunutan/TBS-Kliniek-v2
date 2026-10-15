@@ -117,10 +117,39 @@ class GangController extends Controller
 
         $recentAttacks = GangAttack::with(['attackerGang', 'targetGang', 'character'])->latest()->take(15)->get();
 
+        $gangMembersData = $myGang ? $myGang->members->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'name' => $m->name,
+                'avatar_url' => $m->avatar_url,
+                'level' => (int) $m->level,
+                'respect' => (float) $m->respect,
+                'respect_formatted' => number_format($m->respect, 0, ',', '.'),
+                'gang_role' => $m->gang_role,
+                'role_label' => $m->gang_role === 'leader' ? 'Boss / Leider' : ($m->gang_role === 'co_leader' ? 'Co-Leider' : 'Bendelid'),
+                'is_online' => $m->isOnline(),
+                'online_label' => $m->online_status_label,
+                'profile_url' => route('profile.show', $m->name),
+                'message_url' => route('messages.index', ['recipient' => $m->name]),
+                'last_active_at' => $m->last_active_at ? $m->last_active_at->diffForHumans() : 'Nooit',
+                'last_active_timestamp' => $m->last_active_at ? $m->last_active_at->timestamp : 0,
+            ];
+        })->values() : collect();
+
+        $onlineMembersCount = $myGang ? $myGang->members->filter(fn ($m) => $m->isOnline())->count() : 0;
+
         $defaultTab = $myGang ? 'mijn_gang' : 'ranglijst';
         $activeTab = $forceTab ?? $request->query('tab', session('active_gang_tab', $defaultTab));
 
-        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'activeTab'));
+        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab'));
+    }
+
+    /**
+     * Dedicated Gang Members & Online status page view.
+     */
+    public function leden(Request $request): View
+    {
+        return $this->index($request, 'leden');
     }
 
     /**
