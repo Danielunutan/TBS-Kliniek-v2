@@ -140,7 +140,7 @@ class GangController extends Controller
     }
 
     /**
-     * Create a new gang (costs 250 Stars).
+     * Create a new gang (costs 25 Stars).
      */
     public function create(Request $request): RedirectResponse
     {
@@ -156,7 +156,7 @@ class GangController extends Controller
             return back()->with('error', 'Je bent al lid van een bende. Verlaat eerst je huidige bende.');
         }
 
-        $starCost = 250;
+        $starCost = 25;
         if (($character->stars ?? 0) < $starCost) {
             return back()->with('error', "Een bende oprichten kost {$starCost} Sterren ⭐! Je hebt momenteel {$character->stars} sterren.");
         }
@@ -186,7 +186,7 @@ class GangController extends Controller
         $character->last_gang_wage_at = now();
         $character->save();
 
-        return back()->with('success', "Gefeliciteerd! Bende '{$gang->name}' [{$gang->tag}] is succesvol opgericht voor 250 Sterren ⭐!");
+        return back()->with('success', "Gefeliciteerd! Bende '{$gang->name}' [{$gang->tag}] is succesvol opgericht voor 25 Sterren ⭐!");
     }
 
     /**

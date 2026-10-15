@@ -57,7 +57,7 @@
                         <i class="fa-solid fa-users text-purple-600 dark:text-purple-400 text-xs"></i> Gangs Menu
                     </span>
                     @if(! $myGang)
-                    <button type="button" @click="showCreateModal = true" title="Nieuwe Bende Oprichten (250 Sterren)" class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-bold transition cursor-pointer">
+                    <button type="button" @click="showCreateModal = true" title="Nieuwe Bende Oprichten (25 Sterren)" class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-bold transition cursor-pointer">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                     @endif
@@ -188,7 +188,7 @@
                     Richt je eigen factie op en heers over de oostvleugel van de TBS kliniek.
                 </p>
                 <div class="flex items-center justify-between pt-1">
-                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1">250 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></span>
+                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1">25 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></span>
                     <button type="button" @click="showCreateModal = true" class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">
                         Oprichten
                     </button>
@@ -850,7 +850,7 @@
                                                 <i class="fa-solid fa-users-slash"></i>
                                             </div>
                                             <span class="font-bold text-slate-700 text-xs">Er zijn momenteel nog geen bendes opgericht!</span>
-                                            <span class="text-[11px] text-slate-400 max-w-sm">Richt als eerste een bende op met 250 Sterren om over de kliniek te heersen.</span>
+                                            <span class="text-[11px] text-slate-400 max-w-sm">Richt als eerste een bende op met 25 Sterren om over de kliniek te heersen.</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -1932,7 +1932,7 @@
     </div>
     </div>
 
-    <!-- CREATE GANG MODAL (250 STARS) -->
+    <!-- CREATE GANG MODAL (25 STARS) -->
     <div x-show="showCreateModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full text-slate-900 shadow-xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1954,7 +1954,7 @@
                 </div>
             @else
                 <p class="text-xs text-slate-500 font-medium">
-                    Kosten: <strong class="text-amber-600 inline-flex items-center gap-1">250 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></strong> (Je hebt er {{ $character->stars ?? 0 }}).
+                    Kosten: <strong class="text-amber-600 inline-flex items-center gap-1">25 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></strong> (Je hebt er {{ $character->stars ?? 0 }}).
                 </p>
                 <form action="{{ route('gangs.create') }}" method="POST" class="space-y-3">
                     @csrf
@@ -1976,9 +1976,9 @@
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
                         <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Annuleren</button>
-                        <button type="submit" @if(($character->stars ?? 0) < 250) disabled @endif class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-bold text-xs uppercase cursor-pointer inline-flex items-center gap-1.5">
+                        <button type="submit" @if(($character->stars ?? 0) < 25) disabled @endif class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-bold text-xs uppercase cursor-pointer inline-flex items-center gap-1.5">
                             <i class="fa-solid fa-star text-amber-300 text-xs"></i>
-                            <span>Oprichten (250 Sterren)</span>
+                            <span>Oprichten (25 Sterren)</span>
                         </button>
                     </div>
                 </form>
