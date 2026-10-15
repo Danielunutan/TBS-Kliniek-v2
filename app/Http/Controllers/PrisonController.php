@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\GameMessage;
+use App\Models\GameNotification;
 use App\Models\User;
+use App\Services\DailyBattleService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
@@ -69,7 +71,7 @@ class PrisonController extends Controller
                 continue;
             }
 
-            $chance = min(25, max(5, 5 + (int) floor(($character->intelligence + $character->strength) / 30)));
+            $chance = min(35, max(5, 5 + (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveStrength()) / 20)));
             $jailList->push([
                 'id' => $rp->id,
                 'name' => $rp->name,
@@ -132,6 +134,8 @@ class PrisonController extends Controller
             $character->prison_escapes++;
             $character->breakout_slay = ($character->breakout_slay ?? 0) + 0.1;
             $character->save();
+
+            app(DailyBattleService::class)->record($character, 'breakouts', 1);
 
             return redirect()->route('dashboard')->with('success', $result['message']);
         }
@@ -198,9 +202,9 @@ class PrisonController extends Controller
             return back()->with('error', 'Je kunt jezelf niet op deze manier uitbreken, gebruik de ontsnappingsknop!');
         }
 
-        // Breakout chance based on stats
-        $chanceBonus = (int) floor(($character->intelligence + $character->strength) / 30);
-        $successRate = min(25, max(8, 8 + $chanceBonus));
+        // Breakout chance based on effective stats (including gear)
+        $chanceBonus = (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveStrength()) / 20);
+        $successRate = min(35, max(8, 8 + $chanceBonus));
 
         $roll = rand(1, 100);
 
@@ -209,7 +213,14 @@ class PrisonController extends Controller
             $character->breakout_slay = ($character->breakout_slay ?? 0) + 0.1;
             $character->respect += 2;
             $this->levelService->addXp($character, 140);
+
+            // 25% chance of +1 strength from forcing security locks/bars
+            if (rand(1, 100) <= 25) {
+                $character->strength = ($character->strength ?? 10) + 1;
+            }
             $character->save();
+
+            app(DailyBattleService::class)->record($character, 'breakouts', 1);
 
             // Release real inmate
             if ($targetInmate && $targetInmate->isImprisoned()) {

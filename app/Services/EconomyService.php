@@ -65,6 +65,34 @@ class EconomyService
     }
 
     /**
+     * Withdraw cash from bank with clinic tax deduction.
+     */
+    public function withdrawWithTax(Character $character, int $totalDebit, int $netCashToAdd, int $taxAmount): bool
+    {
+        if ($totalDebit <= 0 || $character->bank < $totalDebit) {
+            return false;
+        }
+
+        return DB::transaction(function () use ($character, $totalDebit, $netCashToAdd): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if ($locked->bank < $totalDebit) {
+                return false;
+            }
+
+            $locked->bank -= $totalDebit;
+            $locked->cash += $netCashToAdd;
+            $locked->save();
+
+            $character->cash = $locked->cash;
+            $character->bank = $locked->bank;
+
+            return true;
+        });
+    }
+
+    /**
      * Add cash with transaction lock.
      */
     public function addCash(Character $character, int $amount): void

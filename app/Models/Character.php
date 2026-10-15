@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Class Character
@@ -67,6 +68,17 @@ class Character extends Model
     protected $guarded = ['id'];
 
     /**
+     * The model's default values for attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_onboarded' => true,
+        'profile_color' => 'purple',
+        'current_location' => 'Paviljoen 1 (Gesloten)',
+    ];
+
+    /**
      * @var array<string, string>
      */
     protected $casts = [
@@ -101,6 +113,7 @@ class Character extends Model
         'vip_points' => 'integer',
         'is_vip' => 'boolean',
         'vip_expires_at' => 'datetime',
+        'discord_reward_claimed_at' => 'datetime',
         'last_vip_reward_at' => 'datetime',
         'username_changed_at' => 'datetime',
         'today_respect' => 'decimal:2',
@@ -109,7 +122,98 @@ class Character extends Model
         'daily_spins_today' => 'integer',
         'last_streak_claim_at' => 'datetime',
         'streak_days' => 'integer',
+        'leave_until' => 'datetime',
+        'sedated_until' => 'datetime',
+        'last_treatment_at' => 'datetime',
+        'treatment_score' => 'integer',
+        'leave_trips_count' => 'integer',
+        'treatment_history' => 'array',
+        'ads_watched_today' => 'integer',
+        'ads_watched_total' => 'integer',
+        'last_ad_watched_at' => 'datetime',
+        'last_ad_date' => 'string',
+        'birthdate' => 'date',
+        'is_onboarded' => 'boolean',
     ];
+
+    /**
+     * Get display name, falling back to name.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->attributes['display_name'] ?? $this->name;
+    }
+
+    /**
+     * Get clean alphanumeric username.
+     */
+    public function getUsernameAttribute(): string
+    {
+        return $this->attributes['username'] ?? strtolower((string) preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $this->name));
+    }
+
+    /**
+     * Get avatar url (supporting custom uploads and presets).
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if (! empty($this->avatar_custom)) {
+            $customPath = ltrim((string) $this->avatar_custom, '/');
+
+            return asset($customPath);
+        }
+
+        if (empty($this->avatar)) {
+            return asset('assets/characters/avatar_male_1.jpg');
+        }
+
+        $path = ltrim((string) $this->avatar, '/');
+        if (! str_starts_with($path, 'assets/') && ! str_starts_with($path, 'uploads/')) {
+            $path = 'assets/'.$path;
+        }
+
+        return asset($path);
+    }
+
+    /**
+     * Check if character is currently granted accompanied leave outside the clinic.
+     */
+    public function isOnLeave(): bool
+    {
+        return ! $this->isImprisoned() && $this->leave_until && $this->leave_until->isFuture();
+    }
+
+    /**
+     * Get remaining accompanied leave time in seconds.
+     */
+    public function getLeaveRemainingSeconds(): int
+    {
+        if (! $this->isOnLeave()) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($this->leave_until, false));
+    }
+
+    /**
+     * Check if character is currently under mandatory psychiatric sedation.
+     */
+    public function isSedated(): bool
+    {
+        return $this->sedated_until && $this->sedated_until->isFuture();
+    }
+
+    /**
+     * Get remaining sedation time in seconds.
+     */
+    public function getSedatedRemainingSeconds(): int
+    {
+        if (! $this->isSedated()) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($this->sedated_until, false));
+    }
 
     /**
      * Check how many spins the character has available today.
@@ -142,6 +246,62 @@ class Character extends Model
         }
 
         return ! $this->last_streak_claim_at->isToday();
+    }
+
+    /**
+     * Get effective number of ads watched today (resets if new day).
+     */
+    public function getEffectiveAdsWatchedToday(): int
+    {
+        if ($this->last_ad_date !== now()->toDateString()) {
+            return 0;
+        }
+
+        return (int) $this->ads_watched_today;
+    }
+
+    /**
+     * Get remaining ads character is allowed to watch today (max 500/day).
+     */
+    public function getRemainingAdsToday(): int
+    {
+        return max(0, 500 - $this->getEffectiveAdsWatchedToday());
+    }
+
+    /**
+     * Get cooldown between ads in seconds (0s = geen wachttijd, direct doorkijken).
+     */
+    public function getRemainingAdCooldownSeconds(): int
+    {
+        return 0;
+    }
+
+    /**
+     * Can character watch a sponsor ad right now?
+     */
+    public function canWatchAd(): bool
+    {
+        return $this->getRemainingAdsToday() > 0;
+    }
+
+    /**
+     * Progress percentage toward next 50-ad 24h VIP milestone.
+     */
+    public function getVipAdMilestoneProgress(): float
+    {
+        $currentInTier = $this->ads_watched_total % 50;
+
+        return min(100.0, round(($currentInTier / 50) * 100, 1));
+    }
+
+    /**
+     * How many ads left until the next 50-ad 24h VIP unlock.
+     */
+    public function getAdsUntilNextVip(): int
+    {
+        $currentInTier = $this->ads_watched_total % 50;
+
+        return 50 - $currentInTier;
     }
 
     /**
@@ -192,6 +352,35 @@ class Character extends Model
         if ($this->vip_expires_at && $this->vip_expires_at->isPast()) {
             return false;
         }
+
+        return true;
+    }
+
+    /**
+     * Check if character has claimed the Discord link bonus.
+     */
+    public function hasClaimedDiscordReward(): bool
+    {
+        return ! is_null($this->discord_reward_claimed_at);
+    }
+
+    /**
+     * Grant the Discord connection starter bonus (€2,500 cash + 3 days VIP).
+     */
+    public function claimDiscordReward(): bool
+    {
+        if ($this->hasClaimedDiscordReward()) {
+            return false;
+        }
+
+        $this->cash += 2500;
+        $this->is_vip = true;
+        $currentExpiry = ($this->vip_expires_at && $this->vip_expires_at->isFuture())
+            ? $this->vip_expires_at
+            : now();
+        $this->vip_expires_at = $currentExpiry->addDays(3);
+        $this->discord_reward_claimed_at = now();
+        $this->save();
 
         return true;
     }
@@ -249,6 +438,22 @@ class Character extends Model
     }
 
     /**
+     * Referrals invited by this character.
+     */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    /**
+     * Referral record for when this character was invited.
+     */
+    public function referredByRecord(): HasOne
+    {
+        return $this->hasOne(Referral::class, 'referred_id');
+    }
+
+    /**
      * Get completed missions records.
      */
     public function missions(): HasMany
@@ -301,6 +506,52 @@ class Character extends Model
     public function items(): HasMany
     {
         return $this->hasMany(CharacterItem::class);
+    }
+
+    /**
+     * Get total item bonus for a specific stat.
+     * Capped at 1 of each unique equipment item in backpack to prevent stacking duplicate items infinitely.
+     */
+    public function getItemBonus(string $stat): int
+    {
+        $bonusColumn = $stat.'_bonus';
+
+        return (int) $this->items()
+            ->whereHas('item', fn ($q) => $q->where($bonusColumn, '>', 0))
+            ->with('item')
+            ->get()
+            ->unique('item_id')
+            ->sum(fn ($ci) => $ci->item->{$bonusColumn} ?? 0);
+    }
+
+    public function getEffectiveStrength(): int
+    {
+        return (int) ($this->strength ?? 10) + $this->getItemBonus('strength');
+    }
+
+    public function getEffectiveDefense(): int
+    {
+        return (int) ($this->defense ?? 10) + $this->getItemBonus('defense');
+    }
+
+    public function getEffectiveStamina(): int
+    {
+        return (int) ($this->stamina ?? 10) + $this->getItemBonus('stamina');
+    }
+
+    public function getEffectiveIntelligence(): int
+    {
+        return (int) ($this->intelligence ?? 10) + $this->getItemBonus('intelligence');
+    }
+
+    public function getEffectiveCharisma(): int
+    {
+        return (int) ($this->charisma ?? 10) + $this->getItemBonus('charisma');
+    }
+
+    public function getEffectiveDiscipline(): int
+    {
+        return (int) ($this->discipline ?? 10) + $this->getItemBonus('discipline');
     }
 
     /**
@@ -386,23 +637,6 @@ class Character extends Model
     public function isProtected(): bool
     {
         return $this->protection_until && now()->lt($this->protection_until);
-    }
-
-    /**
-     * Get full avatar URL or default fallback.
-     */
-    public function getAvatarUrlAttribute(): string
-    {
-        if (empty($this->avatar)) {
-            return asset('assets/characters/avatar_male_1.jpg');
-        }
-
-        $path = ltrim($this->avatar, '/');
-        if (! str_starts_with($path, 'assets/')) {
-            $path = 'assets/'.$path;
-        }
-
-        return asset($path);
     }
 
     /**
@@ -567,5 +801,716 @@ class Character extends Model
     public function getFormattedTodayRespectAttribute(): string
     {
         return number_format($this->today_respect_score, 2, '.', '');
+    }
+
+    /**
+     * Check if character is considered online (active in the past 5 minutes).
+     */
+    public function isOnline(): bool
+    {
+        return $this->last_active_at && $this->last_active_at->isAfter(now()->subMinutes(5));
+    }
+
+    /**
+     * Get human readable online status label.
+     */
+    public function getOnlineStatusLabelAttribute(): string
+    {
+        if ($this->isOnline()) {
+            return 'Nu Online';
+        }
+
+        return $this->last_active_at ? 'Laatst gezien '.$this->last_active_at->diffForHumans() : 'Nog niet actief';
+    }
+
+    /**
+     * Get count of currently online characters (minimum 1 if user is active).
+     */
+    public static function getOnlineCount(): int
+    {
+        $count = static::where('last_active_at', '>=', now()->subMinutes(5))->count();
+
+        return max(1, $count);
+    }
+
+    /**
+     * Profile respects received from other players.
+     */
+    public function receivedRespects(): HasMany
+    {
+        return $this->hasMany(ProfileRespect::class, 'receiver_id');
+    }
+
+    /**
+     * Profile respects given to other players.
+     */
+    public function givenRespects(): HasMany
+    {
+        return $this->hasMany(ProfileRespect::class, 'giver_id');
+    }
+
+    /**
+     * Get all available character titles with unlock status.
+     *
+     * @return list<array{id: string, name: string, unlocked: bool, description: string, icon: string}>
+     */
+    public function getAvailableTitles(): array
+    {
+        $totalWealth = $this->cash + $this->bank;
+
+        return [
+            [
+                'id' => 'Modelpatiënt',
+                'name' => 'Modelpatiënt (Schijn bedriegt)',
+                'unlocked' => true,
+                'description' => 'Altijd beleefd tegen de bewakers, maar in stilte plannend.',
+                'icon' => 'fa-solid fa-face-smile',
+            ],
+            [
+                'id' => 'Sigarettensmokkelaar',
+                'name' => 'Sigarettensmokkelaar',
+                'unlocked' => $this->level >= 2,
+                'description' => 'Voorziet de afdeling van broodnodige rookwaren (Level 2+).',
+                'icon' => 'fa-solid fa-smoking',
+            ],
+            [
+                'id' => 'Luchtplaats Vechter',
+                'name' => 'Luchtplaats Vechter',
+                'unlocked' => $this->fights_won >= 3,
+                'description' => 'Gevreesd tijdens het dagelijkse luchtuurtje (3+ gevechten gewonnen).',
+                'icon' => 'fa-solid fa-hand-fist',
+            ],
+            [
+                'id' => 'Gevaarlijk Onvoorspelbaar',
+                'name' => 'Gevaarlijk Onvoorspelbaar',
+                'unlocked' => $this->level >= 5,
+                'description' => 'Zelfs de bewaarders lopen met een boog om je heen (Level 5+).',
+                'icon' => 'fa-solid fa-radiation',
+            ],
+            [
+                'id' => 'Mokerslag van de Afdeling',
+                'name' => 'Mokerslag van de Afdeling',
+                'unlocked' => $this->fights_won >= 10,
+                'description' => 'Niemand daagt jou ongestraft uit (10+ gevechten gewonnen).',
+                'icon' => 'fa-solid fa-hammer',
+            ],
+            [
+                'id' => 'Kliniek Bankier',
+                'name' => 'Kliniek Bankier',
+                'unlocked' => $totalWealth >= 50000,
+                'description' => 'Beheert het zwarte geld van de hele inrichting (€50.000+ vermogen).',
+                'icon' => 'fa-solid fa-vault',
+            ],
+            [
+                'id' => 'Bende Kopstuk',
+                'name' => 'Bende Kopstuk',
+                'unlocked' => ! empty($this->gang_id),
+                'description' => 'Heeft de rugdekking van een georganiseerde bende.',
+                'icon' => 'fa-solid fa-users-viewfinder',
+            ],
+            [
+                'id' => 'Kliniek Psychopaat',
+                'name' => 'Kliniek Psychopaat',
+                'unlocked' => $this->level >= 10,
+                'description' => 'Een kille legende binnen de muren van de kliniek (Level 10+).',
+                'icon' => 'fa-solid fa-skull',
+            ],
+            [
+                'id' => 'Vluchtgevaarlijk (Code Rood)',
+                'name' => 'Vluchtgevaarlijk (Code Rood)',
+                'unlocked' => $this->level >= 15 || $this->prison_escapes >= 5,
+                'description' => 'Staat onder continue camerabewaking (Level 15+ of 5 ontsnappingen).',
+                'icon' => 'fa-solid fa-triangle-exclamation',
+            ],
+        ];
+    }
+
+    /**
+     * Get definitions for all achievement medal sets.
+     *
+     * @return array<string, array{id: string, name: string, icon: string, description: string}>
+     */
+    public static function getBadgeSets(): array
+    {
+        return [
+            'inrichting' => [
+                'id' => 'inrichting',
+                'name' => 'Inrichting & Dossier',
+                'icon' => 'fa-solid fa-hospital-user',
+                'description' => 'Officiële dossiers, rangen en institutionele reputatie in de TBS kliniek.',
+            ],
+            'luchtplaats' => [
+                'id' => 'luchtplaats',
+                'name' => 'Luchtplaats & Gevechten',
+                'icon' => 'fa-solid fa-hand-fist',
+                'description' => 'Geweld, gevechten en heerschappij tijdens het dagelijkse luchten.',
+            ],
+            'misdaad' => [
+                'id' => 'misdaad',
+                'name' => 'Misdaad & Boevenpad',
+                'icon' => 'fa-solid fa-mask',
+                'description' => 'Inbraak, diefstal, smokkel en het ontlopen van isolatiecellen.',
+            ],
+            'rijkdom' => [
+                'id' => 'rijkdom',
+                'name' => 'Zwart Geld & Financiën',
+                'icon' => 'fa-solid fa-sack-dollar',
+                'description' => 'Smokkelwinsten, witwassen en de rijkste bajesbankrekening.',
+            ],
+            'broederschap' => [
+                'id' => 'broederschap',
+                'name' => 'Broederschap & Netwerk',
+                'icon' => 'fa-solid fa-users',
+                'description' => 'Allianties, trouwe vrienden, bendeconnecties en invloed op de afdeling.',
+            ],
+            'missies' => [
+                'id' => 'missies',
+                'name' => 'Missies & Discipline',
+                'icon' => 'fa-solid fa-bullseye',
+                'description' => 'Klusjes voor bewakers, speciale operaties en strak regime.',
+            ],
+        ];
+    }
+
+    /**
+     * Get profile achievements and medals with unlock status and progress.
+     *
+     * @return list<array{id: string, name: string, set_id: string, set_name: string, set_icon: string, tier: string, tier_name: string, tier_stars: int, asset_id: string, icon: string, color: string, description: string, unlocked: bool, progress: string, progress_pct: int}>
+     */
+    public function getBadges(): array
+    {
+        $totalWealth = $this->cash + $this->bank;
+        $hasFriend = Friend::where('character_id', $this->id)->where('status', 'accepted')->exists();
+        $friendsCount = Friend::where('character_id', $this->id)->where('status', 'accepted')->count();
+        $referralsCount = Referral::where('referrer_id', $this->id)->count();
+
+        return [
+            // --- SET 1: INRICHTING & DOSSIER ---
+            [
+                'id' => 'first_intake',
+                'name' => 'Officiële Opname',
+                'set_id' => 'inrichting',
+                'set_name' => 'Inrichting & Dossier',
+                'set_icon' => 'fa-solid fa-hospital-user',
+                'tier' => 'bronze',
+                'tier_name' => 'Brons',
+                'tier_stars' => 1,
+                'asset_id' => 'intake',
+                'icon' => 'fa-solid fa-file-signature',
+                'color' => 'from-amber-600 to-amber-700',
+                'description' => 'Geregistreerd in het officiële dossier van de TBS Kliniek.',
+                'unlocked' => true,
+                'progress' => 'Voltooid',
+                'progress_pct' => 100,
+            ],
+            [
+                'id' => 'veteran',
+                'name' => 'Kliniek Veteraan',
+                'set_id' => 'inrichting',
+                'set_name' => 'Inrichting & Dossier',
+                'set_icon' => 'fa-solid fa-hospital-user',
+                'tier' => 'silver',
+                'tier_name' => 'Zilver',
+                'tier_stars' => 2,
+                'asset_id' => 'veteran',
+                'icon' => 'fa-solid fa-trophy',
+                'color' => 'from-slate-400 to-slate-600',
+                'description' => 'Bereik Level 10 of hoger in de inrichting.',
+                'unlocked' => $this->level >= 10,
+                'progress' => 'Lvl '.$this->level.' / 10',
+                'progress_pct' => min(100, (int) round(($this->level / 10) * 100)),
+            ],
+            [
+                'id' => 'legend',
+                'name' => 'Afdelings Legende',
+                'set_id' => 'inrichting',
+                'set_name' => 'Inrichting & Dossier',
+                'set_icon' => 'fa-solid fa-hospital-user',
+                'tier' => 'gold',
+                'tier_name' => 'Goud',
+                'tier_stars' => 3,
+                'asset_id' => 'legend',
+                'icon' => 'fa-solid fa-crown',
+                'color' => 'from-yellow-400 to-amber-600',
+                'description' => 'Bereik Level 25 en word een legendarische naam op de afdeling.',
+                'unlocked' => $this->level >= 25,
+                'progress' => 'Lvl '.$this->level.' / 25',
+                'progress_pct' => min(100, (int) round(($this->level / 25) * 100)),
+            ],
+            [
+                'id' => 'respect_lord',
+                'name' => 'Onbetwist Respect',
+                'set_id' => 'inrichting',
+                'set_name' => 'Inrichting & Dossier',
+                'set_icon' => 'fa-solid fa-hospital-user',
+                'tier' => 'diamond',
+                'tier_name' => 'Diamant',
+                'tier_stars' => 4,
+                'asset_id' => 'respect',
+                'icon' => 'fa-solid fa-heart-pulse',
+                'color' => 'from-cyan-400 to-blue-600',
+                'description' => 'Verzamel minimaal 500 respectpunten onder medepatiënten.',
+                'unlocked' => $this->respect >= 500,
+                'progress' => min(500, $this->respect).' / 500 respect',
+                'progress_pct' => min(100, (int) round(($this->respect / 500) * 100)),
+            ],
+
+            // --- SET 2: LUCHTPLAATS & GEVECHTEN ---
+            [
+                'id' => 'brawler',
+                'name' => 'Luchtplaats Kampioen',
+                'set_id' => 'luchtplaats',
+                'set_name' => 'Luchtplaats & Gevechten',
+                'set_icon' => 'fa-solid fa-hand-fist',
+                'tier' => 'bronze',
+                'tier_name' => 'Brons',
+                'tier_stars' => 1,
+                'asset_id' => 'brawler',
+                'icon' => 'fa-solid fa-hand-fist',
+                'color' => 'from-rose-500 to-red-600',
+                'description' => 'Win minimaal 5 gevechten op de luchtplaats.',
+                'unlocked' => $this->fights_won >= 5,
+                'progress' => min(5, $this->fights_won).' / 5 gevechten',
+                'progress_pct' => min(100, (int) round(($this->fights_won / 5) * 100)),
+            ],
+            [
+                'id' => 'gladiator',
+                'name' => 'Gladiator van de Kliniek',
+                'set_id' => 'luchtplaats',
+                'set_name' => 'Luchtplaats & Gevechten',
+                'set_icon' => 'fa-solid fa-hand-fist',
+                'tier' => 'silver',
+                'tier_name' => 'Zilver',
+                'tier_stars' => 2,
+                'asset_id' => 'gladiator',
+                'icon' => 'fa-solid fa-shield-halved',
+                'color' => 'from-blue-500 to-indigo-600',
+                'description' => 'Win 20 gevechten tegen medepatiënten.',
+                'unlocked' => $this->fights_won >= 20,
+                'progress' => min(20, $this->fights_won).' / 20 gevechten',
+                'progress_pct' => min(100, (int) round(($this->fights_won / 20) * 100)),
+            ],
+            [
+                'id' => 'executioner',
+                'name' => 'Bajes Beul',
+                'set_id' => 'luchtplaats',
+                'set_name' => 'Luchtplaats & Gevechten',
+                'set_icon' => 'fa-solid fa-hand-fist',
+                'tier' => 'gold',
+                'tier_name' => 'Goud',
+                'tier_stars' => 3,
+                'asset_id' => 'executioner',
+                'icon' => 'fa-solid fa-skull',
+                'color' => 'from-amber-500 to-orange-600',
+                'description' => 'Win minimaal 50 gevechten en boezem ontzag in op de luchtplaats.',
+                'unlocked' => $this->fights_won >= 50,
+                'progress' => min(50, $this->fights_won).' / 50 gevechten',
+                'progress_pct' => min(100, (int) round(($this->fights_won / 50) * 100)),
+            ],
+            [
+                'id' => 'iron_eater',
+                'name' => 'IJzervreter',
+                'set_id' => 'luchtplaats',
+                'set_name' => 'Luchtplaats & Gevechten',
+                'set_icon' => 'fa-solid fa-hand-fist',
+                'tier' => 'diamond',
+                'tier_name' => 'Diamant',
+                'tier_stars' => 4,
+                'asset_id' => 'strength',
+                'icon' => 'fa-solid fa-dumbbell',
+                'color' => 'from-cyan-500 to-teal-600',
+                'description' => 'Kweek minimaal 100 spierkracht in het krachthonk.',
+                'unlocked' => $this->strength >= 100,
+                'progress' => min(100, $this->strength).' / 100 kracht',
+                'progress_pct' => min(100, (int) round(($this->strength / 100) * 100)),
+            ],
+
+            // --- SET 3: MISDAAD & BOEVENPAD ---
+            [
+                'id' => 'pickpocket',
+                'name' => 'Vlugge Vingers',
+                'set_id' => 'misdaad',
+                'set_name' => 'Misdaad & Boevenpad',
+                'set_icon' => 'fa-solid fa-mask',
+                'tier' => 'bronze',
+                'tier_name' => 'Brons',
+                'tier_stars' => 1,
+                'asset_id' => 'pickpocket',
+                'icon' => 'fa-solid fa-hand',
+                'color' => 'from-emerald-500 to-teal-600',
+                'description' => 'Voer minimaal 10 succesvolle diefstallen of zakkenrollerijen uit.',
+                'unlocked' => ($this->thefts_succeeded ?? 0) >= 10,
+                'progress' => min(10, $this->thefts_succeeded ?? 0).' / 10 diefstallen',
+                'progress_pct' => min(100, (int) round((($this->thefts_succeeded ?? 0) / 10) * 100)),
+            ],
+            [
+                'id' => 'master_burglar',
+                'name' => 'Meester Inbreker',
+                'set_id' => 'misdaad',
+                'set_name' => 'Misdaad & Boevenpad',
+                'set_icon' => 'fa-solid fa-mask',
+                'tier' => 'silver',
+                'tier_name' => 'Zilver',
+                'tier_stars' => 2,
+                'asset_id' => 'burglar',
+                'icon' => 'fa-solid fa-key',
+                'color' => 'from-blue-500 to-cyan-600',
+                'description' => 'Kraak 30 keer succesvol spullen van anderen of kluizen.',
+                'unlocked' => ($this->thefts_succeeded ?? 0) >= 30,
+                'progress' => min(30, $this->thefts_succeeded ?? 0).' / 30 diefstallen',
+                'progress_pct' => min(100, (int) round((($this->thefts_succeeded ?? 0) / 30) * 100)),
+            ],
+            [
+                'id' => 'shadow_walker',
+                'name' => 'Kliniek Schaduw',
+                'set_id' => 'misdaad',
+                'set_name' => 'Misdaad & Boevenpad',
+                'set_icon' => 'fa-solid fa-mask',
+                'tier' => 'gold',
+                'tier_name' => 'Goud',
+                'tier_stars' => 3,
+                'asset_id' => 'shadow',
+                'icon' => 'fa-solid fa-user-secret',
+                'color' => 'from-yellow-500 to-amber-600',
+                'description' => 'Voer minimaal 75 succesvolle misdaden uit zonder sporen achter te laten.',
+                'unlocked' => ($this->thefts_succeeded ?? 0) >= 75,
+                'progress' => min(75, $this->thefts_succeeded ?? 0).' / 75 misdaden',
+                'progress_pct' => min(100, (int) round((($this->thefts_succeeded ?? 0) / 75) * 100)),
+            ],
+            [
+                'id' => 'escape_artist',
+                'name' => 'Bivak Meester',
+                'set_id' => 'misdaad',
+                'set_name' => 'Misdaad & Boevenpad',
+                'set_icon' => 'fa-solid fa-mask',
+                'tier' => 'diamond',
+                'tier_name' => 'Diamant',
+                'tier_stars' => 4,
+                'asset_id' => 'mask',
+                'icon' => 'fa-solid fa-mask',
+                'color' => 'from-cyan-400 to-emerald-600',
+                'description' => 'Pleeg minimaal 150 misdaden of ontsnap succesvol uit isolatie.',
+                'unlocked' => (($this->thefts_succeeded ?? 0) >= 150) || (($this->prison_escapes ?? 0) >= 1),
+                'progress' => min(150, $this->thefts_succeeded ?? 0).' / 150 acties',
+                'progress_pct' => min(100, (int) round((($this->thefts_succeeded ?? 0) / 150) * 100)),
+            ],
+
+            // --- SET 4: ZWART GELD & FINANCIËN ---
+            [
+                'id' => 'pennypincher',
+                'name' => 'Kruimelspaarder',
+                'set_id' => 'rijkdom',
+                'set_name' => 'Zwart Geld & Financiën',
+                'set_icon' => 'fa-solid fa-sack-dollar',
+                'tier' => 'bronze',
+                'tier_name' => 'Brons',
+                'tier_stars' => 1,
+                'asset_id' => 'money_bronze',
+                'icon' => 'fa-solid fa-money-bill-wave',
+                'color' => 'from-emerald-500 to-green-600',
+                'description' => 'Verzamel een gecombineerd vermogen van minimaal € 10.000.',
+                'unlocked' => $totalWealth >= 10000,
+                'progress' => '€'.number_format($totalWealth, 0, ',', '.').' / €10.000',
+                'progress_pct' => min(100, (int) round(($totalWealth / 10000) * 100)),
+            ],
+            [
+                'id' => 'wealthy',
+                'name' => 'Zwartgeld Tycoon',
+                'set_id' => 'rijkdom',
+                'set_name' => 'Zwart Geld & Financiën',
+                'set_icon' => 'fa-solid fa-sack-dollar',
+                'tier' => 'silver',
+                'tier_name' => 'Zilver',
+                'tier_stars' => 2,
+                'asset_id' => 'tycoon',
+                'icon' => 'fa-solid fa-coins',
+                'color' => 'from-yellow-400 to-amber-600',
+                'description' => 'Verzamel een gecombineerd vermogen van minimaal € 50.000.',
+                'unlocked' => $totalWealth >= 50000,
+                'progress' => '€'.number_format($totalWealth, 0, ',', '.').' / €50.000',
+                'progress_pct' => min(100, (int) round(($totalWealth / 50000) * 100)),
+            ],
+            [
+                'id' => 'millionaire',
+                'name' => 'Kliniek Miljonair',
+                'set_id' => 'rijkdom',
+                'set_name' => 'Zwart Geld & Financiën',
+                'set_icon' => 'fa-solid fa-sack-dollar',
+                'tier' => 'gold',
+                'tier_name' => 'Goud',
+                'tier_stars' => 3,
+                'asset_id' => 'millionaire',
+                'icon' => 'fa-solid fa-gem',
+                'color' => 'from-violet-500 to-fuchsia-600',
+                'description' => 'Bereik een vermogen van minimaal € 1.000.000.',
+                'unlocked' => $totalWealth >= 1000000,
+                'progress' => '€'.number_format($totalWealth, 0, ',', '.').' / €1.000.000',
+                'progress_pct' => min(100, (int) round(($totalWealth / 1000000) * 100)),
+            ],
+            [
+                'id' => 'oligarch',
+                'name' => 'Oligarch van de Afdeling',
+                'set_id' => 'rijkdom',
+                'set_name' => 'Zwart Geld & Financiën',
+                'set_icon' => 'fa-solid fa-sack-dollar',
+                'tier' => 'diamond',
+                'tier_name' => 'Diamant',
+                'tier_stars' => 4,
+                'asset_id' => 'oligarch',
+                'icon' => 'fa-solid fa-landmark',
+                'color' => 'from-cyan-400 to-blue-600',
+                'description' => 'Bezit minimaal € 5.000.000 zwart geld en heers over de kliniekeconomie.',
+                'unlocked' => $totalWealth >= 5000000,
+                'progress' => '€'.number_format($totalWealth, 0, ',', '.').' / €5.000.000',
+                'progress_pct' => min(100, (int) round(($totalWealth / 5000000) * 100)),
+            ],
+
+            // --- SET 5: BROEDERSCHAP & NETWERK ---
+            [
+                'id' => 'brotherhood',
+                'name' => 'Kameraadschap',
+                'set_id' => 'broederschap',
+                'set_name' => 'Broederschap & Netwerk',
+                'set_icon' => 'fa-solid fa-users',
+                'tier' => 'bronze',
+                'tier_name' => 'Brons',
+                'tier_stars' => 1,
+                'asset_id' => 'friend',
+                'icon' => 'fa-solid fa-user-group',
+                'color' => 'from-pink-500 to-rose-600',
+                'description' => 'Sluit vriendschap met minimaal één medepatiënt.',
+                'unlocked' => $hasFriend,
+                'progress' => $hasFriend ? 'Voltooid' : '0 / 1 vriend',
+                'progress_pct' => $hasFriend ? 100 : 0,
+            ],
+            [
+                'id' => 'social_butterfly',
+                'name' => 'Gezelligheidsdier',
+                'set_id' => 'broederschap',
+                'set_name' => 'Broederschap & Netwerk',
+                'set_icon' => 'fa-solid fa-users',
+                'tier' => 'silver',
+                'tier_name' => 'Zilver',
+                'tier_stars' => 2,
+                'asset_id' => 'network',
+                'icon' => 'fa-solid fa-comments',
+                'color' => 'from-blue-500 to-indigo-600',
+                'description' => 'Bouw een netwerk op van minimaal 3 geaccepteerde vrienden.',
+                'unlocked' => $friendsCount >= 3,
+                'progress' => min(3, $friendsCount).' / 3 vrienden',
+                'progress_pct' => min(100, (int) round(($friendsCount / 3) * 100)),
+            ],
+            [
+                'id' => 'gang',
+                'name' => 'Bende Broederschap',
+                'set_id' => 'broederschap',
+                'set_name' => 'Broederschap & Netwerk',
+                'set_icon' => 'fa-solid fa-users',
+                'tier' => 'gold',
+                'tier_name' => 'Goud',
+                'tier_stars' => 3,
+                'asset_id' => 'gang',
+                'icon' => 'fa-solid fa-skull-crossbones',
+                'color' => 'from-slate-700 to-slate-900',
+                'description' => 'Sluit je aan bij een bende of richt er zelf een op.',
+                'unlocked' => ! empty($this->gang_id),
+                'progress' => ! empty($this->gang_id) ? 'Voltooid' : 'Nog geen bende',
+                'progress_pct' => ! empty($this->gang_id) ? 100 : 0,
+            ],
+            [
+                'id' => 'recruiter',
+                'name' => 'Kliniek Recruiter',
+                'set_id' => 'broederschap',
+                'set_name' => 'Broederschap & Netwerk',
+                'set_icon' => 'fa-solid fa-users',
+                'tier' => 'diamond',
+                'tier_name' => 'Diamant',
+                'tier_stars' => 4,
+                'asset_id' => 'recruiter',
+                'icon' => 'fa-solid fa-bullhorn',
+                'color' => 'from-cyan-400 to-purple-600',
+                'description' => 'Breng nieuwe spelers aan via je referral link of bezit 50 charisma.',
+                'unlocked' => ($referralsCount >= 1) || ($this->charisma >= 50),
+                'progress' => $referralsCount > 0 ? ($referralsCount.' referrals') : ($this->charisma.' / 50 charisma'),
+                'progress_pct' => ($referralsCount >= 1 || $this->charisma >= 50) ? 100 : min(100, (int) round(($this->charisma / 50) * 100)),
+            ],
+
+            // --- SET 6: MISSIES & DISCIPLINE ---
+            [
+                'id' => 'handyman',
+                'name' => 'Klusjesman',
+                'set_id' => 'missies',
+                'set_name' => 'Missies & Discipline',
+                'set_icon' => 'fa-solid fa-bullseye',
+                'tier' => 'bronze',
+                'tier_name' => 'Brons',
+                'tier_stars' => 1,
+                'asset_id' => 'task',
+                'icon' => 'fa-solid fa-screwdriver-wrench',
+                'color' => 'from-amber-500 to-orange-600',
+                'description' => 'Voltooi minimaal 3 klusjes en opdrachten in de inrichting.',
+                'unlocked' => $this->missions_completed >= 3,
+                'progress' => min(3, $this->missions_completed).' / 3 missies',
+                'progress_pct' => min(100, (int) round(($this->missions_completed / 3) * 100)),
+            ],
+            [
+                'id' => 'missions',
+                'name' => 'Missie Meester',
+                'set_id' => 'missies',
+                'set_name' => 'Missies & Discipline',
+                'set_icon' => 'fa-solid fa-bullseye',
+                'tier' => 'silver',
+                'tier_name' => 'Zilver',
+                'tier_stars' => 2,
+                'asset_id' => 'mission_master',
+                'icon' => 'fa-solid fa-bullseye',
+                'color' => 'from-blue-500 to-cyan-600',
+                'description' => 'Voltooi minimaal 10 kliniek opdrachten & missies.',
+                'unlocked' => $this->missions_completed >= 10,
+                'progress' => min(10, $this->missions_completed).' / 10 missies',
+                'progress_pct' => min(100, (int) round(($this->missions_completed / 10) * 100)),
+            ],
+            [
+                'id' => 'commander',
+                'name' => 'Operatie Commandeur',
+                'set_id' => 'missies',
+                'set_name' => 'Missies & Discipline',
+                'set_icon' => 'fa-solid fa-bullseye',
+                'tier' => 'gold',
+                'tier_name' => 'Goud',
+                'tier_stars' => 3,
+                'asset_id' => 'commander',
+                'icon' => 'fa-solid fa-award',
+                'color' => 'from-yellow-400 to-amber-600',
+                'description' => 'Voltooi 25 missies en bewijs je tactische leiding.',
+                'unlocked' => $this->missions_completed >= 25,
+                'progress' => min(25, $this->missions_completed).' / 25 missies',
+                'progress_pct' => min(100, (int) round(($this->missions_completed / 25) * 100)),
+            ],
+            [
+                'id' => 'discipline_iron',
+                'name' => 'IJzeren Discipline',
+                'set_id' => 'missies',
+                'set_name' => 'Missies & Discipline',
+                'set_icon' => 'fa-solid fa-bullseye',
+                'tier' => 'diamond',
+                'tier_name' => 'Diamant',
+                'tier_stars' => 4,
+                'asset_id' => 'discipline',
+                'icon' => 'fa-solid fa-stopwatch-20',
+                'color' => 'from-cyan-400 to-indigo-600',
+                'description' => 'Behaal 100 discipline of voltooi 50 missies zonder wankelen.',
+                'unlocked' => ($this->discipline >= 100) || ($this->missions_completed >= 50),
+                'progress' => min(50, $this->missions_completed).' / 50 missies',
+                'progress_pct' => min(100, (int) round(($this->missions_completed / 50) * 100)),
+            ],
+        ];
+    }
+
+    /**
+     * Generate dynamic official psychiatric evaluation report from Dr. Van Beek.
+     *
+     * @return array{dossier_nr: string, threat_level: string, threat_color: string, threat_icon: string, danger_desc: string, diagnosis: string, doctor_notes: string, treatment_plan: string, doctor_name: string, doctor_role: string}
+     */
+    public function getPsychiatricReport(): array
+    {
+        $fights = $this->fights_won;
+        $level = $this->level;
+        $wealth = $this->cash + $this->bank;
+
+        if ($fights >= 35 || $level >= 20) {
+            $threatLevel = 'Code Zwart';
+            $threatColor = 'bg-slate-900 text-rose-400 border-rose-600/80 shadow-lg shadow-rose-950/30';
+            $threatBadgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/50';
+            $threatIcon = 'fa-solid fa-biohazard text-rose-400 animate-pulse';
+            $dangerDesc = 'EXTREEM GEVAARLIJK. Maximale penitentiaire isolatie. Verhoogd ontsnappings- en gijzelingsrisico.';
+            $threatMeter = 100;
+            $regime = 'EBI - Extra Beveiligde Inrichting';
+        } elseif ($fights >= 15 || $level >= 10) {
+            $threatLevel = 'Code Rood';
+            $threatColor = 'bg-rose-50 text-rose-900 border-rose-300 shadow-xs';
+            $threatBadgeColor = 'bg-rose-100 text-rose-800 border-rose-300';
+            $threatIcon = 'fa-solid fa-skull-crossbones text-rose-600';
+            $dangerDesc = 'Uiterst gewelddadig en dominant. Vermijd direct oogcontact tijdens recreatie en luchtuurtjes.';
+            $threatMeter = 80;
+            $regime = 'Afdeling Intensief Toezicht (AIT)';
+        } elseif ($fights >= 5 || $level >= 5) {
+            $threatLevel = 'Code Oranje';
+            $threatColor = 'bg-amber-50 text-amber-900 border-amber-300 shadow-xs';
+            $threatBadgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+            $threatIcon = 'fa-solid fa-triangle-exclamation text-amber-600';
+            $dangerDesc = 'Verhoogde waakzaamheid geboden. Vertoont manipulatief, territoriaal en opstandig gedrag.';
+            $threatMeter = 55;
+            $regime = 'Gesloten Behandelafdeling';
+        } elseif ($level >= 2) {
+            $threatLevel = 'Code Geel';
+            $threatColor = 'bg-yellow-50 text-yellow-900 border-yellow-300 shadow-xs';
+            $threatBadgeColor = 'bg-yellow-100 text-yellow-800 border-yellow-300';
+            $threatIcon = 'fa-solid fa-circle-exclamation text-yellow-600';
+            $dangerDesc = 'Matig risico. Patiënt past zich ogenschijnlijk aan de regels aan, maar beraamt plannen in de schaduw.';
+            $threatMeter = 30;
+            $regime = 'Regulier Gesloten Regime';
+        } else {
+            $threatLevel = 'Code Groen';
+            $threatColor = 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-xs';
+            $threatBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+            $threatIcon = 'fa-solid fa-shield-halved text-emerald-600';
+            $dangerDesc = 'Nieuwe intake. Observatieperiode loopt nog; vooralsnog beheersbaar binnen de leefgroep.';
+            $threatMeter = 10;
+            $regime = 'Intake & Observatiegroep';
+        }
+
+        if ($wealth >= 100000) {
+            $dsmCode = 'DSM-TBS 301.81 / F60.8';
+            $diagnosis = 'Witteboorden-paranoia & Illegaal Vermogensbeheer';
+            $notes = 'Patiënt vertoont opvallende obsessie met zwarte geldstromen, sigarettenhandel en omkoping van mede-gedetineerden. Vermoedelijk spilfiguur in illegale smokkelnetwerken binnen de inrichting.';
+            $treatment = 'Regelmatige inspectie van celkluisjes en smokkelroutes; maximaal € 50 zakgeld per week toegestaan op de kliniekrekening.';
+            $medication = '15mg Oxazepam p.n. bij financiële onrust; strikte financiële curatele.';
+        } elseif ($fights >= 5) {
+            $dsmCode = 'DSM-TBS 312.34 / F63.81';
+            $diagnosis = 'Chronische Impuls-beheersingsstoornis & Luchtplaats-agressie';
+            $notes = 'Sterk ontwikkelde fysieke drang tot territoriumdrift en dominantie. Zoekt actief confrontaties op met mede-inwoners tijdens het luchtuurtje en krachttraining.';
+            $treatment = '200mg Kalmeringstabletten per dag; verplichte woedebeheersingstherapie en extra bewaking bij de gewichten en het recreatieplein.';
+            $medication = '200mg Haloperidol depot 1x p/w + Stemmingsstabilisatoren.';
+        } elseif (($this->thefts_succeeded ?? 0) >= 5) {
+            $dsmCode = 'DSM-TBS 312.32 / F63.2';
+            $diagnosis = 'Compulsieve Kleptomanie & Georganiseerde Beroepscriminaliteit';
+            $notes = 'Kan andermans eigendommen absoluut niet met rust laten. Beweegt zich geruisloos over de gangen en ontvreemdt systematisch persoonlijke bezittingen en gereedschappen.';
+            $treatment = 'Grondige fouillering bij het betreden en verlaten van gemeenschappelijke ruimtes; metaaldetectie bij celdeuren.';
+            $medication = '50mg Sertraline '.'s ochtends ter vermindering van compulsieve drang.';
+        } else {
+            $dsmCode = 'DSM-TBS 301.7 / F60.2';
+            $diagnosis = 'Anti-sociale Persoonlijkheidsstructuur (Type TBS-1)';
+            $notes = 'Vertoont typisch kliniekgedrag: zoekt allianties, bouwt reputatie op en probeert de regels van de inrichting naar eigen hand te zetten.';
+            $treatment = 'Wekelijkse één-op-één sessies met psychiater Dr. Van Beek; deelname aan kliniekactiviteiten en dagbesteding stimuleren.';
+            $medication = 'Geen zware medicatie geïndiceerd; gedragsmonitoring in teamoverleg.';
+        }
+
+        return [
+            'dossier_nr' => 'TBS-'.str_pad((string) $this->id, 5, '0', STR_PAD_LEFT),
+            'threat_level' => $threatLevel,
+            'threat_color' => $threatColor,
+            'threat_badge_color' => $threatBadgeColor,
+            'threat_icon' => $threatIcon,
+            'danger_desc' => $dangerDesc,
+            'threat_meter' => $threatMeter,
+            'regime' => $regime,
+            'dsm_code' => $dsmCode,
+            'diagnosis' => $diagnosis,
+            'doctor_notes' => $notes,
+            'treatment_plan' => $treatment,
+            'medication' => $medication,
+            'doctor_name' => 'Dr. H. van Beek',
+            'doctor_role' => 'Hoofd Behandelend Geneesheer Forensische Zorg',
+            'big_registration' => 'BIG: 492.019.481',
+        ];
+    }
+
+    /**
+     * @return HasOne<CharacterArmWrestleStat, $this>
+     */
+    public function armWrestleStat(): HasOne
+    {
+        return $this->hasOne(CharacterArmWrestleStat::class);
     }
 }

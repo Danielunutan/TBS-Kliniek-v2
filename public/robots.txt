@@ -1,7 +1,13 @@
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
 User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /dashboard
 Disallow: /instellingen/
 
-Sitemap: https://tbskliniek.nl/sitemap.xml
+Sitemap: https://tbs-kliniek.nl/sitemap.xml

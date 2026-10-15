@@ -165,10 +165,45 @@ class MissionService
             ];
         }
 
-        // Lowered base chance for real gameplay suspense
+        // Stat affinity per mission category
+        $primaryStat = match ($mission->category) {
+            'gevecht', 'intimidatie', 'kracht' => 'strength',
+            'smokkel', 'vluchten' => 'stamina',
+            'inbraak', 'tactisch', 'hack', 'ontsnapping' => 'intelligence',
+            'kantine', 'sociaal', 'afpersing', 'bende' => 'charisma',
+            default => 'discipline',
+        };
+
+        $secondaryStat = match ($mission->category) {
+            'gevecht', 'intimidatie', 'kracht' => 'defense',
+            'smokkel', 'vluchten' => 'charisma',
+            'inbraak', 'tactisch', 'hack', 'ontsnapping' => 'discipline',
+            'kantine', 'sociaal', 'afpersing', 'bende' => 'intelligence',
+            default => 'stamina',
+        };
+
+        $primaryVal = match ($primaryStat) {
+            'strength' => $character->getEffectiveStrength(),
+            'defense' => $character->getEffectiveDefense(),
+            'stamina' => $character->getEffectiveStamina(),
+            'intelligence' => $character->getEffectiveIntelligence(),
+            'charisma' => $character->getEffectiveCharisma(),
+            'discipline' => $character->getEffectiveDiscipline(),
+        };
+
+        $secondaryVal = match ($secondaryStat) {
+            'strength' => $character->getEffectiveStrength(),
+            'defense' => $character->getEffectiveDefense(),
+            'stamina' => $character->getEffectiveStamina(),
+            'intelligence' => $character->getEffectiveIntelligence(),
+            'charisma' => $character->getEffectiveCharisma(),
+            'discipline' => $character->getEffectiveDiscipline(),
+        };
+
+        // Lowered base chance for real gameplay suspense + Stat bonus from character & gear
         $baseChance = ($mission->success_rate >= 100) ? 100 : min(65, (int) round($mission->success_rate * 0.75));
-        $bonus = (int) floor(($character->intelligence + $character->discipline) / 25);
-        $totalChance = ($mission->success_rate >= 100) ? 100 : min(75, max(20, $baseChance + $bonus));
+        $bonus = (int) floor(($primaryVal * 1.5 + $secondaryVal) / 15);
+        $totalChance = ($mission->success_rate >= 100) ? 100 : min(85, max(20, $baseChance + $bonus));
 
         $roll = random_int(1, 100);
         $isSuccess = $roll <= $totalChance;
@@ -189,6 +224,21 @@ class MissionService
             $this->levelService->addXp($character, $xpEarned);
             $character->addRespect($respectEarned);
 
+            // 30% chance for a permanent stat upgrade in the primary skill through hands-on experience
+            $statBonusMsg = '';
+            if (random_int(1, 100) <= 30) {
+                $character->{$primaryStat} = ($character->{$primaryStat} ?? 10) + 1;
+                $statLabels = [
+                    'strength' => 'Kracht 💪',
+                    'defense' => 'Verdediging 🛡️',
+                    'stamina' => 'Conditie 🏃',
+                    'intelligence' => 'Intelligentie 🧠',
+                    'charisma' => 'Charisma 😎',
+                    'discipline' => 'Discipline ⚖️',
+                ];
+                $statBonusMsg = " 🔥 Ervaring opgedaan: +1 {$statLabels[$primaryStat]}!";
+            }
+
             $progression->completed_count = 1;
             $progression->save();
 
@@ -198,7 +248,7 @@ class MissionService
             $character->save();
 
             $msg = $mission->success_message ?: 'Missie succesvol afgerond! Je tactische beslissing was vlekkeloos.';
-            $fullMsg = "🎯 {$msg} Beloning: €".number_format($cashEarned, 0, ',', '.')." wit geld direct gestort op je bankrekening 🏦, +{$xpEarned} XP en +{$respectEarned} Respect!";
+            $fullMsg = "🎯 {$msg} Beloning: €".number_format($cashEarned, 0, ',', '.')." wit geld direct gestort op je bankrekening 🏦, +{$xpEarned} XP en +{$respectEarned} Respect!{$statBonusMsg}";
 
             return [
                 'success' => true,
@@ -211,9 +261,25 @@ class MissionService
 
         $progression->save();
 
-        // On failure: player is sent to prison (foute criminele opdracht)
+        // On failure: Check if player can dodge arrest through high stamina and defense
+        $dodgeChance = min(40, (int) floor(($character->getEffectiveStamina() + $character->getEffectiveDefense()) / 15));
+        if (random_int(1, 100) <= $dodgeChance) {
+            $failMsg = $mission->fail_message ?: 'Missie mislukt! De bewakers kwamen af op het rumoer, maar dankzij je getrainde conditie en reflexen wist je net op tijd weg te sprinten en ontliep je de isoleercel!';
+
+            return [
+                'success' => false,
+                'message' => $failMsg,
+                'jailed' => false,
+                'cash_earned' => 0,
+                'xp_earned' => 0,
+                'respect_earned' => 0,
+            ];
+        }
+
+        // On arrest: Discipline reduces jail time
         $failMsg = $mission->fail_message ?: 'Missie mislukt! Ondanks je poging liep de afhandeling door onvoorziene patrouilles in het honderd.';
-        $jailSeconds = random_int(60, 180);
+        $jailReduction = min(60, (int) floor($character->getEffectiveDiscipline() / 5));
+        $jailSeconds = max(45, random_int(60, 180) - $jailReduction);
         $this->prisonService->jailSeconds($character, $jailSeconds, "Mislukte criminele missie: {$mission->title}");
         $failMsg .= " Bewakers grepen je in de kraag! {$jailSeconds} sec vast in de isoleercel!";
 

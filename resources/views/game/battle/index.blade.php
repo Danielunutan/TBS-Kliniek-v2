@@ -48,15 +48,15 @@
             </div>
 
             <!-- Countdown Timer Card -->
-            <div class="bg-purple-50 border border-purple-200 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 block mb-1">
+            <div class="bg-purple-50 dark:bg-slate-800 border border-purple-200 dark:border-slate-700 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 dark:text-slate-200 block mb-1">
                     Volgende Reset & Uitbetaling
                 </span>
-                <div class="text-2xl sm:text-3xl font-black font-mono text-purple-700 tracking-wider" 
+                <div class="text-2xl sm:text-3xl font-black font-mono text-purple-700 dark:text-purple-400 tracking-wider" 
                      x-text="formatCountdown(secReset)">
                     {{ $resetTimeFormatted }}
                 </div>
-                <span class="text-[10px] text-purple-600 block mt-1 font-medium">Prijzen worden direct gestort</span>
+                <span class="text-[10px] text-purple-600 dark:text-slate-400 block mt-1 font-medium">Prijzen worden direct gestort</span>
             </div>
         </div>
     </div>
@@ -64,53 +64,53 @@
     <!-- 7 BATTLE CATEGORY CARDS GRID -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         @foreach($categories as $catKey => $cat)
-        <div class="bg-white border border-slate-200 hover:border-purple-300 transition-all rounded-xl p-5 shadow-xs flex flex-col justify-between space-y-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600 transition-all rounded-xl p-5 shadow-xs flex flex-col justify-between space-y-4">
             <!-- Header with Category Title & Clickable Arrow -->
             <div>
                 <button type="button" 
                         @click="openCategoryDetails('{{ $catKey }}', '{{ $cat['title'] }}')"
-                        class="w-full flex items-center justify-between pb-3 border-b border-slate-100 text-left group cursor-pointer">
-                    <span class="text-xs font-extrabold uppercase tracking-wider text-slate-900 group-hover:text-purple-600 transition flex items-center gap-2">
-                        <i class="fa-solid {{ $cat['icon'] }} text-purple-600"></i>
+                        class="w-full flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 text-left group cursor-pointer">
+                    <span class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition flex items-center gap-2">
+                        <i class="fa-solid {{ $cat['icon'] }} text-purple-600 dark:text-purple-400"></i>
                         <span>{{ $cat['title'] }}</span>
                     </span>
-                    <i class="fa-solid fa-chevron-right text-[11px] text-slate-400 group-hover:translate-x-1 group-hover:text-purple-600 transition"></i>
+                    <i class="fa-solid fa-chevron-right text-[11px] text-slate-400 group-hover:translate-x-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition"></i>
                 </button>
 
                 <!-- Rewards List (1, 2, 3) -->
                 <div class="space-y-2 pt-3 text-xs">
                     <!-- Rank 1 Reward -->
-                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/70 transition">
+                    <div class="flex items-center justify-between p-2.5 rounded-lg bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300/40 dark:border-amber-800/40 transition">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="w-6 h-6 rounded-md bg-amber-400 text-slate-950 flex items-center justify-center text-xs font-black shrink-0 shadow-xs">
                                 1
                             </span>
-                            <span class="font-extrabold text-slate-900 text-xs truncate">
+                            <span class="font-extrabold text-slate-900 dark:text-white text-xs truncate">
                                 {{ $cat['rewards'][1]['label'] }}
                             </span>
                         </div>
-                        <span class="text-[10px] font-black uppercase text-amber-800 bg-amber-200/60 px-2 py-0.5 rounded shrink-0">Hoofdprijs</span>
+                        <span class="text-[10px] font-black uppercase text-amber-800 dark:text-amber-300 bg-amber-200/60 dark:bg-amber-900/40 px-2 py-0.5 rounded shrink-0">Hoofdprijs</span>
                     </div>
 
                     <!-- Rank 2 Reward -->
-                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 transition">
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 transition">
                         <div class="flex items-center gap-2.5 min-w-0">
-                            <span class="w-6 h-6 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-black shrink-0">
+                            <span class="w-6 h-6 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-black shrink-0">
                                 2
                             </span>
-                            <span class="font-bold text-slate-700 text-xs truncate">
+                            <span class="font-bold text-slate-700 dark:text-slate-200 text-xs truncate">
                                 {{ $cat['rewards'][2]['label'] }}
                             </span>
                         </div>
                     </div>
 
                     <!-- Rank 3 Reward -->
-                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 transition">
+                    <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 transition">
                         <div class="flex items-center gap-2.5 min-w-0">
-                            <span class="w-6 h-6 rounded-md bg-orange-100 text-orange-900 flex items-center justify-center text-xs font-black shrink-0">
+                            <span class="w-6 h-6 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-900 dark:text-orange-300 flex items-center justify-center text-xs font-black shrink-0">
                                 3
                             </span>
-                            <span class="font-bold text-slate-700 text-xs truncate">
+                            <span class="font-bold text-slate-700 dark:text-slate-200 text-xs truncate">
                                 {{ $cat['rewards'][3]['label'] }}
                             </span>
                         </div>
@@ -119,28 +119,28 @@
             </div>
 
             <!-- Current Leaderboard in Category Preview -->
-            <div class="pt-3 border-t border-slate-100">
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                         Huidige Top 3:
                     </span>
                     <button type="button" 
                             @click="openCategoryDetails('{{ $catKey }}', '{{ $cat['title'] }}')"
-                            class="text-[10px] font-bold text-purple-600 hover:text-purple-800 transition cursor-pointer">
+                            class="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition cursor-pointer">
                         Bekijk alle &rarr;
                     </button>
                 </div>
                 <div class="space-y-1.5">
                     @forelse($cat['top3'] ?? [] as $topPlayer)
-                    <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-xs hover:bg-purple-50/40 transition">
+                    <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-xs hover:bg-purple-50/40 dark:hover:bg-slate-800 transition">
                         <div class="flex items-center gap-2 min-w-0">
                             <span class="w-4 font-mono font-black text-center {{ $topPlayer['rank'] === 1 ? 'text-amber-500' : 'text-slate-400' }}">#{{ $topPlayer['rank'] }}</span>
-                            <span class="font-bold text-slate-800 truncate">{{ $topPlayer['name'] }}</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200 truncate">{{ $topPlayer['name'] }}</span>
                         </div>
-                        <span class="font-mono font-extrabold text-purple-700 text-xs shrink-0 ml-2">{{ number_format($topPlayer['score'], 0, ',', '.') }}</span>
+                        <span class="font-mono font-extrabold text-purple-700 dark:text-purple-400 text-xs shrink-0 ml-2">{{ number_format($topPlayer['score'], 0, ',', '.') }}</span>
                     </div>
                     @empty
-                    <div class="text-xs text-slate-400 italic py-2 text-center bg-slate-50 rounded-lg">Nog geen activiteit vandaag</div>
+                    <div class="text-xs text-slate-400 italic py-2 text-center bg-slate-50 dark:bg-slate-800/50 rounded-lg">Nog geen activiteit vandaag</div>
                     @endforelse
                 </div>
             </div>

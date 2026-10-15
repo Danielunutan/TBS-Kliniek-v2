@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\Friend;
 use App\Models\GameNotification;
 use App\Models\GuestbookEntry;
+use App\Models\ProfileRespect;
 use App\Models\User;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -76,6 +77,20 @@ class ProfileController extends Controller
             }
         }
 
+        // Respect and profile customization data
+        $hasGivenRespectToday = false;
+        if (! $isOwnProfile) {
+            $hasGivenRespectToday = ProfileRespect::where('giver_id', $myCharacter->id)
+                ->where('receiver_id', $profileCharacter->id)
+                ->where('created_at', '>=', now()->subHours(24))
+                ->exists();
+        }
+        $totalRespectsReceived = ProfileRespect::where('receiver_id', $profileCharacter->id)->count();
+        $badges = $profileCharacter->getBadges();
+        $badgeSets = Character::getBadgeSets();
+        $psychiatricReport = $profileCharacter->getPsychiatricReport();
+        $availableTitles = $isOwnProfile ? $myCharacter->getAvailableTitles() : [];
+
         // $character must be passed for layouts.app navigation bar and sidebar
         $character = $myCharacter;
 
@@ -91,7 +106,13 @@ class ProfileController extends Controller
             'bff',
             'isOwnProfile',
             'friendStatus',
-            'pendingRequestRecord'
+            'pendingRequestRecord',
+            'hasGivenRespectToday',
+            'totalRespectsReceived',
+            'badges',
+            'badgeSets',
+            'psychiatricReport',
+            'availableTitles'
         ));
     }
 
@@ -213,5 +234,75 @@ class ProfileController extends Controller
         $character->update(['avatar' => $validated['avatar']]);
 
         return back()->with('success', 'Je profielfoto is succesvol aangepast!');
+    }
+
+    /**
+     * Offer a cigarette & respect point to a fellow inmate.
+     */
+    public function giveRespect(string $name): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $myCharacter = $user->character;
+
+        $targetCharacter = Character::where('name', $name)->firstOrFail();
+
+        if ($targetCharacter->id === $myCharacter->id) {
+            return back()->with('error', 'Je kunt jezelf geen respect aanbieden!');
+        }
+
+        $recent = ProfileRespect::where('giver_id', $myCharacter->id)
+            ->where('receiver_id', $targetCharacter->id)
+            ->where('created_at', '>=', now()->subHours(24))
+            ->first();
+
+        if ($recent) {
+            $hoursLeft = max(1, 24 - (int) $recent->created_at->diffInHours(now()));
+
+            return back()->with('error', "Je hebt {$targetCharacter->name} vandaag al respect gegeven! Probeer het over ~{$hoursLeft}u weer.");
+        }
+
+        ProfileRespect::create([
+            'giver_id' => $myCharacter->id,
+            'receiver_id' => $targetCharacter->id,
+        ]);
+
+        $targetCharacter->respect += 1;
+        $targetCharacter->save();
+
+        GameNotification::create([
+            'character_id' => $targetCharacter->id,
+            'type' => 'respect',
+            'icon' => 'fa-smoking',
+            'title' => 'Respect ontvangen!',
+            'message' => "{$myCharacter->name} heeft jou een sigaret & respectpunt aangeboden op je profiel! (+1 Respect)",
+        ]);
+
+        return back()->with('success', "Je hebt {$targetCharacter->name} een peuk en respect aangeboden! (+1 Respect)");
+    }
+
+    /**
+     * Update active character dossier title.
+     */
+    public function updateTitle(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:60'],
+        ]);
+
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $availableTitles = collect($character->getAvailableTitles());
+        $matchedTitle = $availableTitles->firstWhere('id', $validated['title']);
+
+        if (! $matchedTitle || ! $matchedTitle['unlocked']) {
+            return back()->with('error', 'Deze titel heb je nog niet ontgrendeld!');
+        }
+
+        $character->update(['title' => $matchedTitle['id']]);
+
+        return back()->with('success', "Je actieve titel is succesvol gewijzigd naar '{$matchedTitle['name']}'!");
     }
 }

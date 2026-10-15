@@ -163,4 +163,36 @@ class ShopAndFriendRequestTest extends TestCase
         $res->assertSee('Vriendenlijst');
         $res->assertSee('Dashboard'); // Sidebar present
     }
+
+    public function test_can_consume_with_fill_max_in_one_click(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'energy' => 40,
+            'max_energy' => 100,
+            'health' => 60,
+            'max_health' => 100,
+        ]);
+
+        $item = Item::where('slug', 'frikandelbroodje')->first();
+        $charItem = CharacterItem::updateOrCreate(
+            ['character_id' => $char->id, 'item_id' => $item->id],
+            ['quantity' => 10]
+        );
+
+        $this->actingAs($user);
+
+        // Consume with fill_max = 1
+        $consumeRes = $this->post(route('shop.consume', $charItem), ['fill_max' => 1]);
+        $consumeRes->assertSessionHas('success');
+
+        $char->refresh();
+        $charItem->refresh();
+
+        // Energy was deficit 60, per frikandelbroodje is 25 -> ceil(60/25) = 3 needed.
+        // Should consume exactly 3 items and reach 100 energy!
+        $this->assertEquals(100, $char->energy);
+        $this->assertEquals(7, $charItem->quantity);
+    }
 }

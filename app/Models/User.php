@@ -12,12 +12,21 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_onboarded' => true,
+    ];
 
     /**
      * Get the player's character.
@@ -130,6 +139,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_staff' => 'boolean',
             'two_factor_enabled' => 'boolean',
+            'is_onboarded' => 'boolean',
+            'birthdate' => 'date',
         ];
     }
 }

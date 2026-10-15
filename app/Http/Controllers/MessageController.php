@@ -35,13 +35,13 @@ class MessageController extends Controller
             $query->where('type', 'theft');
         } elseif ($filter === 'player') {
             $query->whereIn('type', ['player', 'friend_request']);
+        } elseif ($filter === 'unread') {
+            $query->where('is_read', false);
         }
 
         $messages = $query->paginate(12)->withQueryString();
         $unreadCount = GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count();
-
-        // Mark visible messages as read
-        GameMessage::where('recipient_id', $character->id)->where('is_read', false)->update(['is_read' => true]);
+        $totalCount = GameMessage::where('recipient_id', $character->id)->count();
 
         // Only accepted friends can receive messages
         $friendIds = Friend::where('character_id', $character->id)
@@ -54,7 +54,7 @@ class MessageController extends Controller
 
         $initialRecipient = $request->query('recipient', '');
 
-        return view('game.messages', compact('character', 'messages', 'filter', 'unreadCount', 'otherPlayers', 'initialRecipient'));
+        return view('game.messages', compact('character', 'messages', 'filter', 'unreadCount', 'totalCount', 'otherPlayers', 'initialRecipient'));
     }
 
     /**
@@ -99,6 +99,84 @@ class MessageController extends Controller
         ]);
 
         return back()->with('success', "Je brief is discreet bezorgd bij {$recipient->name} via de binnendienst!");
+    }
+
+    /**
+     * Mark all unread messages as read.
+     */
+    public function markAllRead(Request $request): RedirectResponse
+    {
+        $character = Auth::user()->character;
+
+        $query = GameMessage::where('recipient_id', $character->id)->where('is_read', false);
+
+        if ($request->filled('filter') && $request->filter !== 'all') {
+            if ($request->filter === 'theft') {
+                $query->where('type', 'theft');
+            } elseif ($request->filter === 'system') {
+                $query->whereIn('type', ['system', 'jail', 'level']);
+            } elseif ($request->filter === 'player') {
+                $query->whereIn('type', ['player', 'friend_request']);
+            }
+        }
+
+        $updated = $query->update(['is_read' => true]);
+
+        if ($updated === 0) {
+            return back()->with('info', 'Er zijn geen ongelezen berichten om te markeren.');
+        }
+
+        return back()->with('success', "{$updated} ".($updated === 1 ? 'ongelezen bericht is' : 'ongelezen berichten zijn').' als gelezen gemarkeerd.');
+    }
+
+    /**
+     * Mark a single message as read.
+     */
+    public function markRead(GameMessage $message): RedirectResponse
+    {
+        $character = Auth::user()->character;
+
+        if ($message->recipient_id !== $character->id) {
+            abort(403);
+        }
+
+        $message->update(['is_read' => true]);
+
+        return back()->with('success', 'Bericht gemarkeerd als gelezen.');
+    }
+
+    /**
+     * Delete all messages based on filter / scope.
+     */
+    public function destroyAll(Request $request): RedirectResponse
+    {
+        $character = Auth::user()->character;
+
+        $query = GameMessage::where('recipient_id', $character->id);
+
+        $scope = $request->input('scope', 'filter');
+
+        if ($scope === 'read_only') {
+            $query->where('is_read', true);
+        } elseif ($scope === 'filter' && $request->filled('filter') && $request->filter !== 'all') {
+            if ($request->filter === 'theft') {
+                $query->where('type', 'theft');
+            } elseif ($request->filter === 'system') {
+                $query->whereIn('type', ['system', 'jail', 'level']);
+            } elseif ($request->filter === 'player') {
+                $query->whereIn('type', ['player', 'friend_request']);
+            } elseif ($request->filter === 'unread') {
+                $query->where('is_read', false);
+            }
+        }
+
+        $count = $query->delete();
+
+        if ($count === 0) {
+            return back()->with('info', 'Er waren geen berichten om te verwijderen.');
+        }
+
+        return back()->with('success', "{$count} ".($count === 1 ? 'bericht is' : 'berichten zijn').' succesvol verwijderd uit je dossier.');
     }
 
     /**

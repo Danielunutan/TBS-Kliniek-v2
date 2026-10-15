@@ -147,4 +147,63 @@ class PrisonBaddieTest extends TestCase
         $char->refresh();
         $this->assertTrue($char->isImprisoned());
     }
+
+    public function test_successful_breakout_creates_notification_and_message_without_error(): void
+    {
+        $user1 = User::where('email', 'demo@tbskliniek.nl')->first();
+        $rescuer = $user1->character;
+        $rescuer->update(['is_in_prison' => false, 'energy' => 100]);
+
+        $user2 = User::factory()->create();
+        $inmate = Character::create([
+            'user_id' => $user2->id,
+            'name' => 'CellMate_Breakout_Target',
+            'title' => 'Patiënt',
+            'avatar' => 'characters/henkie.jpg',
+            'gender' => 'male',
+            'level' => 1,
+            'cash' => 100,
+            'bank' => 0,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(10),
+            'prison_reason' => 'Vastgezet voor testen',
+        ]);
+
+        $this->actingAs($user1);
+
+        $succeeded = false;
+        for ($i = 0; $i < 50; $i++) {
+            $rescuer->update(['is_in_prison' => false, 'prison_until' => null, 'prison_reason' => null, 'energy' => 100]);
+            $inmate->update(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
+
+            $response = $this->post(route('prison.breakout', $inmate->id));
+            $this->assertNotEquals(500, $response->getStatusCode());
+
+            if (session('success')) {
+                $succeeded = true;
+                $inmate->refresh();
+                $this->assertFalse($inmate->is_in_prison);
+                $this->assertNull($inmate->prison_until);
+
+                $this->assertDatabaseHas('game_notifications', [
+                    'character_id' => $inmate->id,
+                    'type' => 'prison',
+                ]);
+
+                $this->assertDatabaseHas('game_messages', [
+                    'recipient_id' => $inmate->id,
+                    'sender_id' => $rescuer->id,
+                    'type' => 'jail',
+                ]);
+
+                break;
+            }
+        }
+
+        $this->assertTrue($succeeded, 'Should have achieved at least one successful breakout');
+    }
 }

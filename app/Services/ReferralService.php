@@ -1,0 +1,143 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Character;
+use App\Models\GameMessage;
+use App\Models\Referral;
+
+class ReferralService
+{
+    /**
+     * Record a new referral when a player registers.
+     */
+    public function recordReferral(Character $newCharacter, ?string $referrerIdentifier, ?string $ipAddress = null): ?Referral
+    {
+        if (empty($referrerIdentifier)) {
+            return null;
+        }
+
+        $cleanIdentifier = trim($referrerIdentifier);
+
+        // Find referrer by ID, by Character username, or by Character name
+        $referrer = null;
+        if (is_numeric($cleanIdentifier)) {
+            $referrer = Character::find((int) $cleanIdentifier);
+        }
+        if (! $referrer) {
+            $referrer = Character::where('username', $cleanIdentifier)->first();
+        }
+        if (! $referrer) {
+            $referrer = Character::whereRaw('LOWER(username) = ?', [strtolower($cleanIdentifier)])->first();
+        }
+        if (! $referrer) {
+            $referrer = Character::where('name', $cleanIdentifier)->first();
+        }
+        if (! $referrer) {
+            $referrer = Character::whereRaw('LOWER(name) = ?', [strtolower($cleanIdentifier)])->first();
+        }
+
+        if (! $referrer || $referrer->id === $newCharacter->id) {
+            return null;
+        }
+
+        // Avoid duplicate entry if already recorded
+        $existing = Referral::where('referred_id', $newCharacter->id)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        $referral = Referral::create([
+            'referrer_id' => $referrer->id,
+            'referred_id' => $newCharacter->id,
+            'ip_address' => $ipAddress,
+            'rewarded' => false,
+        ]);
+
+        $this->checkAndGrantRewards($referrer);
+
+        return $referral;
+    }
+
+    /**
+     * Check if referrer has 3 or more unrewarded referrals and grant 1 month VIP per trio.
+     */
+    public function checkAndGrantRewards(Character $referrer): int
+    {
+        $unrewarded = Referral::where('referrer_id', $referrer->id)
+            ->where('rewarded', false)
+            ->orderBy('id')
+            ->get();
+
+        $monthsGranted = 0;
+
+        while ($unrewarded->count() >= 3) {
+            $trio = $unrewarded->splice(0, 3);
+
+            foreach ($trio as $item) {
+                $item->update([
+                    'rewarded' => true,
+                    'rewarded_at' => now(),
+                ]);
+            }
+
+            // Extend or activate VIP for 30 days
+            if ($referrer->isVip() && $referrer->vip_expires_at && $referrer->vip_expires_at->isFuture()) {
+                $referrer->vip_expires_at = $referrer->vip_expires_at->copy()->addDays(30);
+            } else {
+                $referrer->is_vip = true;
+                $referrer->vip_expires_at = now()->addDays(30);
+            }
+            $referrer->save();
+
+            $monthsGranted++;
+
+            // Send notification message to referrer
+            $untilFormatted = $referrer->vip_expires_at ? $referrer->vip_expires_at->format('d-m-Y H:i') : 'onbepaalde tijd';
+            GameMessage::create([
+                'recipient_id' => $referrer->id,
+                'sender_id' => null,
+                'sender_name' => 'Directie TBS Kliniek',
+                'type' => 'vip_reward',
+                'subject' => '🎁 1 Maand Gratis VIP Ontvangen (Referral Beloning)!',
+                'content' => "Geweldig nieuws! Je hebt 3 nieuwe patiënten aangebracht via jouw persoonlijke referral link. Je VIP status is automatisch geactiveerd of met 30 dagen verlengd (geldig t/m {$untilFormatted})! Bedankt voor het laten groeien van TBS Kliniek.",
+            ]);
+        }
+
+        return $monthsGranted;
+    }
+
+    /**
+     * Get statistics for a character's referral dashboard.
+     *
+     * @return array{total: int, unrewarded: int, rewarded_months: int, progress: int, needed: int, username: string, has_username: bool, link: string}
+     */
+    public function getStats(Character $character): array
+    {
+        $total = Referral::where('referrer_id', $character->id)->count();
+        $unrewarded = Referral::where('referrer_id', $character->id)->where('rewarded', false)->count();
+        $rewardedCount = Referral::where('referrer_id', $character->id)->where('rewarded', true)->count();
+        $rewardedMonths = (int) floor($rewardedCount / 3);
+        $progress = $unrewarded % 3;
+        $needed = 3 - $progress;
+
+        // Use custom configured username if available, otherwise character username or ID
+        $rawUsername = $character->getRawOriginal('username');
+        $hasCustomUsername = ! empty($rawUsername);
+        $refCode = $hasCustomUsername ? $rawUsername : $character->username;
+        if (empty($refCode)) {
+            $refCode = (string) $character->id;
+        }
+
+        return [
+            'total' => $total,
+            'unrewarded' => $unrewarded,
+            'rewarded_months' => $rewardedMonths,
+            'progress' => $progress,
+            'needed' => $needed,
+            'username' => $refCode,
+            'has_username' => $hasCustomUsername,
+            'link' => url('/?ref='.$refCode),
+        ];
+    }
+}

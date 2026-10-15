@@ -52,6 +52,10 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.vault') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-vault"></i> Kluis & Codes
             </a>
+            <a href="{{ route('admin.referrals') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.referrals*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-solid fa-user-plus"></i> Referrals & VIP Beloningen
+            </a>
             <a href="{{ route('admin.news.index') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.news.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-newspaper"></i> Nieuws Artikelen
@@ -67,6 +71,10 @@
                     {{ $pendingAdminTicketsCount }}
                 </span>
                 @endif
+            </a>
+            <a href="{{ route('admin.discord_shield.index') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.discord_shield.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-brands fa-discord text-indigo-400"></i> Discord Shield
             </a>
         </div>
     </div>

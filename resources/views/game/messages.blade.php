@@ -24,28 +24,125 @@
             </div>
         </div>
 
-        <button type="button" @click="composeOpen = true" class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow-xs transition active:scale-[0.98]">
-            <i class="fa-solid fa-pen-to-square text-amber-400"></i>
-            <span>Brief Schrijven</span>
-        </button>
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <!-- Alles Gelezen Form -->
+            <form action="{{ route('messages.mark-all-read') }}" method="POST" class="inline">
+                @csrf
+                <input type="hidden" name="filter" value="{{ $filter }}">
+                <button type="submit" 
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black transition border shadow-2xs active:scale-[0.98] cursor-pointer {{ $unreadCount > 0 ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-emerald-200' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200' }}"
+                        title="Markeer alle ongelezen berichten als gelezen">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>Alles Gelezen</span>
+                    @if($unreadCount > 0)
+                        <span class="bg-emerald-800 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadCount }}</span>
+                    @endif
+                </button>
+            </form>
+
+            <!-- Verwijderen Acties Dropdown -->
+            <div x-data="{ openDelete: false }" class="relative inline-block w-full sm:w-auto">
+                <button @click="openDelete = !openDelete" 
+                        type="button" 
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-black bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 shadow-2xs transition active:scale-[0.98] cursor-pointer">
+                    <i class="fa-solid fa-trash-can text-rose-500"></i>
+                    <span>Alles Verwijderen</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform ml-0.5" :class="openDelete ? 'rotate-180' : ''"></i>
+                </button>
+
+                <div x-show="openDelete" 
+                     @click.away="openDelete = false" 
+                     x-cloak 
+                     class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-100 text-left">
+                    <div class="px-3 py-1.5 border-b border-slate-100">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Berichten Verwijderen</span>
+                    </div>
+
+                    <!-- 1. Huidige categorie / alles -->
+                    <form action="{{ route('messages.destroy-all') }}" method="POST"
+                          data-confirm="{{ $filter !== 'all' ? 'Weet je zeker dat je alle berichten in deze categorie wilt verwijderen?' : 'Weet je zeker dat je ALLE berichten definitief wilt verwijderen uit je berichtenbox?' }}"
+                          data-confirm-title="{{ $filter !== 'all' ? 'Categorie Berichten Verwijderen' : 'Alle Berichten Verwijderen' }}"
+                          data-confirm-btn="Verwijderen"
+                          data-confirm-type="danger"
+                          data-confirm-icon="fa-trash-can">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="scope" value="filter">
+                        <input type="hidden" name="filter" value="{{ $filter }}">
+                        <button type="submit" class="w-full px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-700 transition flex items-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-trash text-slate-400 w-4 text-center"></i>
+                            <span>{{ $filter !== 'all' ? 'Verwijder huidige selectie' : 'Verwijder alle berichten' }}</span>
+                        </button>
+                    </form>
+
+                    <!-- 2. Alleen gelezen berichten -->
+                    <form action="{{ route('messages.destroy-all') }}" method="POST"
+                          data-confirm="Weet je zeker dat je alle reeds gelezen berichten wilt verwijderen? Ongelezen berichten blijven bewaard."
+                          data-confirm-title="Gelezen Berichten Verwijderen"
+                          data-confirm-btn="Verwijder Gelezen"
+                          data-confirm-type="danger"
+                          data-confirm-icon="fa-envelope-open">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="scope" value="read_only">
+                        <button type="submit" class="w-full px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-700 transition flex items-center gap-2 cursor-pointer">
+                            <i class="fa-regular fa-envelope-open text-slate-400 w-4 text-center"></i>
+                            <span>Alleen gelezen berichten</span>
+                        </button>
+                    </form>
+
+                    <!-- 3. Volledig postvak legen -->
+                    @if($filter !== 'all')
+                    <form action="{{ route('messages.destroy-all') }}" method="POST"
+                          data-confirm="Weet je zeker dat je je HELE berichtenbox (alle categorieën) definitief wilt legen?"
+                          data-confirm-title="Volledige Postvak Legen"
+                          data-confirm-btn="Alles Legen"
+                          data-confirm-type="danger"
+                          data-confirm-icon="fa-bomb">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="scope" value="everything">
+                        <button type="submit" class="w-full px-3 py-2 text-left text-xs font-bold text-rose-600 hover:bg-rose-50 transition flex items-center gap-2 cursor-pointer border-t border-slate-100">
+                            <i class="fa-solid fa-bomb text-rose-500 w-4 text-center"></i>
+                            <span>Volledige postvak legen</span>
+                        </button>
+                    </form>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Brief Schrijven -->
+            <button type="button" @click="composeOpen = true" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow-xs transition active:scale-[0.98] cursor-pointer">
+                <i class="fa-solid fa-pen-to-square text-amber-400"></i>
+                <span>Brief Schrijven</span>
+            </button>
+        </div>
     </div>
 
     <!-- Filter Tabs -->
-    <div class="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
         <a href="{{ route('messages.index', ['filter' => 'all']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'all' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'all' ? 'bg-indigo-600 dark:bg-purple-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
             <i class="fa-solid fa-inbox mr-1"></i> Alle Berichten
         </a>
+        <a href="{{ route('messages.index', ['filter' => 'unread']) }}" 
+           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 {{ $filter === 'unread' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+            <i class="fa-solid fa-bell"></i>
+            <span>Ongelezen</span>
+            @if($unreadCount > 0)
+                <span class="{{ $filter === 'unread' ? 'bg-white text-rose-700' : 'bg-rose-500 text-white' }} text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadCount }}</span>
+            @endif
+        </a>
         <a href="{{ route('messages.index', ['filter' => 'theft']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'theft' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'theft' ? 'bg-rose-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
             <i class="fa-solid fa-mask mr-1"></i> Diefstal & Berovingen
         </a>
         <a href="{{ route('messages.index', ['filter' => 'system']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'system' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'system' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
             <i class="fa-solid fa-building-shield mr-1"></i> Arrestaties & Directie
         </a>
         <a href="{{ route('messages.index', ['filter' => 'player']) }}" 
-           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'player' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+           class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition {{ $filter === 'player' ? 'bg-indigo-600 text-white shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
             <i class="fa-solid fa-user-group mr-1"></i> Spelersbrieven
         </a>
     </div>
@@ -63,7 +160,7 @@
         @else
         <div class="divide-y divide-slate-100">
             @foreach($messages as $msg)
-            <div class="p-4 sm:p-5 hover:bg-slate-50/70 transition flex items-start gap-3.5 sm:gap-4 {{ ! $msg->is_read ? 'bg-indigo-50/20' : '' }}">
+            <div class="p-4 sm:p-5 hover:bg-slate-50/70 transition flex items-start gap-3.5 sm:gap-4 {{ ! $msg->is_read ? 'bg-indigo-50/30 border-l-4 border-indigo-500 pl-3 sm:pl-4' : '' }}">
                 <!-- Icon badge per type -->
                 @if($msg->type === 'theft')
                 <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-sm shrink-0 font-bold shadow-2xs">
@@ -91,6 +188,11 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                         <div class="flex items-center gap-2">
                             <span class="text-xs font-black text-slate-900">{{ $msg->sender_name }}</span>
+                            @if(! $msg->is_read)
+                            <span class="bg-indigo-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">
+                                NIEUW
+                            </span>
+                            @endif
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider
                                 {{ $msg->type === 'theft' ? 'bg-rose-100 text-rose-800' : ($msg->type === 'jail' ? 'bg-amber-100 text-amber-800' : ($msg->type === 'friend_request' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-600')) }}">
                                 {{ $msg->type === 'friend_request' ? 'VRIENDSCHAPSVERZOEK' : $msg->type }}
@@ -144,20 +246,30 @@
                     @endif
                 </div>
 
-                <!-- Delete button -->
-                <form action="{{ route('messages.destroy', $msg) }}" method="POST" 
-                      data-confirm="Weet je zeker dat je dit bericht definitief wilt verwijderen uit je dossier?"
-                      data-confirm-title="Bericht Verwijderen"
-                      data-confirm-btn="Verwijderen"
-                      data-confirm-type="danger"
-                      data-confirm-icon="fa-trash-can"
-                      class="shrink-0">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Verwijderen">
-                        <i class="fa-regular fa-trash-can text-xs"></i>
-                    </button>
-                </form>
+                <!-- Actions: Mark as Read & Delete -->
+                <div class="flex items-center gap-1 shrink-0">
+                    @if(! $msg->is_read)
+                    <form action="{{ route('messages.mark-read', $msg) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="text-slate-400 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-emerald-50 transition cursor-pointer" title="Als gelezen markeren">
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </button>
+                    </form>
+                    @endif
+
+                    <form action="{{ route('messages.destroy', $msg) }}" method="POST" 
+                          data-confirm="Weet je zeker dat je dit bericht definitief wilt verwijderen uit je dossier?"
+                          data-confirm-title="Bericht Verwijderen"
+                          data-confirm-btn="Verwijderen"
+                          data-confirm-type="danger"
+                          data-confirm-icon="fa-trash-can">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Verwijderen">
+                            <i class="fa-regular fa-trash-can text-xs"></i>
+                        </button>
+                    </form>
+                </div>
             </div>
             @endforeach
         </div>

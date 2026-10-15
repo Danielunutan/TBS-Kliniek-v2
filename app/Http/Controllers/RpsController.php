@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ class RpsController extends Controller
     public function __construct(
         protected EconomyService $economy,
         protected LevelService $level,
+        protected CooldownService $cooldownService,
     ) {}
 
     public function index(): View
@@ -31,6 +33,12 @@ class RpsController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je niet gokken!');
         }
 
+        if ($this->cooldownService->isOnCooldown($character, 'casino_rps')) {
+            $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_rps');
+
+            return back()->with('error', "⏳ Even schudden! Wacht nog {$remaining}s voor een volgend potje.");
+        }
+
         $validated = $request->validate([
             'choice' => ['required', 'in:steen,papier,schaar'],
             'bet' => ['required', 'integer', 'min:50', 'max:50000'],
@@ -40,6 +48,8 @@ class RpsController extends Controller
         if ($character->cash < $bet) {
             return back()->with('error', 'Je hebt onvoldoende contant geld. Je inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
+
+        $this->cooldownService->setCooldown($character, 'casino_rps', 5);
 
         $options = ['steen', 'papier', 'schaar'];
         $houseChoice = $options[array_rand($options)];

@@ -16,11 +16,11 @@
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-amber-700 flex items-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
+                <span class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/50 text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-star text-amber-500"></i> {{ number_format($character->stars ?? 0, 0, ',', '.') }} Sterren
                 </span>
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-purple-700 flex items-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-mask text-purple-600"></i> {{ $character->masks ?? 0 }} Maskers
+                <span class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-700/50 text-xs font-bold text-purple-800 dark:text-purple-300 flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-mask text-purple-600 dark:text-purple-400"></i> {{ number_format($character->masks ?? 0, 0, ',', '.') }} Maskers
                 </span>
                 @if(($character->masks ?? 0) > 0)
                     <form action="{{ route('vault.sell-mask') }}" method="POST" class="inline">
@@ -28,8 +28,8 @@
                         <input type="hidden" name="amount" value="1">
                         <button type="submit" 
                                 title="Verkoop 1 masker direct voor €1.500 wit bankgeld"
-                                class="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-xs font-bold text-emerald-300 flex items-center gap-1.5 shadow-xs cursor-pointer transition">
-                            <i class="fa-solid fa-sack-dollar text-emerald-400"></i> Verkoop 1 Masker (€1.500)
+                                class="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-300 dark:border-emerald-700/60 text-xs font-extrabold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 shadow-2xs cursor-pointer transition">
+                            <i class="fa-solid fa-sack-dollar text-emerald-600 dark:text-emerald-400"></i> Verkoop 1 Masker (€1.500)
                         </button>
                     </form>
                     @if(($character->masks ?? 0) > 1)
@@ -38,15 +38,16 @@
                         <input type="hidden" name="amount" value="{{ $character->masks }}">
                         <button type="submit" 
                                 title="Verkoop alle {{ $character->masks }} maskers voor €{{ number_format($character->masks * 1500, 0, ',', '.') }} bankgeld"
-                                class="px-3 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/40 border border-emerald-400/40 text-xs font-bold text-emerald-200 flex items-center gap-1.5 shadow-xs cursor-pointer transition">
+                                class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 border border-emerald-600 text-xs font-extrabold text-white flex items-center gap-1.5 shadow-xs cursor-pointer transition">
                             <i class="fa-solid fa-money-bill-transfer"></i> Verkoop Alle ({{ $character->masks }})
                         </button>
                     </form>
                     @endif
                 @endif
                 <a href="{{ route('marketplace.index') }}" 
-                   class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-bold text-white flex items-center gap-1.5 shadow-xs transition">
-                    <i class="fa-solid fa-scale-balanced text-amber-300"></i> Marktplaats
+                   class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 border border-slate-800 dark:border-purple-500 text-xs font-extrabold text-white flex items-center gap-2 shadow-2xs transition">
+                    <i class="fa-solid fa-scale-balanced text-amber-400"></i>
+                    <span>Marktplaats</span>
                 </a>
             </div>
         </div>

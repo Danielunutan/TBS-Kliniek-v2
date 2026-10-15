@@ -230,18 +230,24 @@
         @endphp
 
         @if($pkgCooldown > 0)
-            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-4">
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex flex-wrap items-center justify-between gap-3">
                 <span class="text-xs font-bold text-amber-900">
                     <i class="fa-solid fa-clock mr-1 text-amber-600"></i> Cooldown actief: nog <strong>{{ gmdate('i:s', $pkgCooldown) }}</strong>
                 </span>
-                <form action="{{ route('cooldown.skip') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="action" value="package">
-                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center gap-1">
-                        <i class="fa-solid fa-star text-white text-[10px]"></i>
-                        <span>Overslaan (1 Ster)</span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-tv text-white text-[10px]"></i>
+                        <span>Kijk Ad (Reset)</span>
                     </button>
-                </form>
+                    <form action="{{ route('cooldown.skip') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="action" value="package">
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center gap-1">
+                            <i class="fa-solid fa-star text-white text-[10px]"></i>
+                            <span>1 Ster ⭐</span>
+                        </button>
+                    </form>
+                </div>
             </div>
         @endif
 

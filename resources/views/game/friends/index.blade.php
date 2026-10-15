@@ -278,18 +278,26 @@
                     <tr class="hover:bg-slate-50/70 transition">
                         <td class="py-3.5 px-4">
                             <div class="flex items-center gap-3">
-                                <a href="{{ route('profile.show', $f->friend->name) }}">
-                                    <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-2xs hover:scale-105 transition-transform">
-                                </a>
+                                <div class="relative shrink-0">
+                                    <a href="{{ route('profile.show', $f->friend->name) }}">
+                                        <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-2xs hover:scale-105 transition-transform">
+                                    </a>
+                                    <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $f->friend->online_status_label }}"></span>
+                                </div>
                                 <div>
                                     <a href="{{ route('profile.show', $f->friend->name) }}" class="font-extrabold text-slate-900 hover:text-purple-600 transition block">
                                         {{ $f->friend->name }}
                                     </a>
-                                    @if($f->friend->gang)
-                                    <span class="text-[10px] font-bold text-purple-600">
-                                        [{{ $f->friend->gang->tag }}]
-                                    </span>
-                                    @endif
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        @if($f->friend->gang)
+                                        <span class="text-[10px] font-bold text-purple-600">
+                                            [{{ $f->friend->gang->tag }}]
+                                        </span>
+                                        @endif
+                                        <span class="text-[10px] {{ $f->friend->isOnline() ? 'text-emerald-600 font-bold' : 'text-slate-400' }}">
+                                            {{ $f->friend->isOnline() ? 'Online' : 'Offline' }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </td>

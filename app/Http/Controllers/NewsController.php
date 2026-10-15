@@ -6,6 +6,7 @@ use App\Models\NewsArticle;
 use App\Models\NewsComment;
 use App\Models\User;
 use App\Services\EnergyService;
+use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,10 @@ class NewsController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('game.news.index', compact('character', 'pinnedArticles', 'articles'));
+        $referralService = app(ReferralService::class);
+        $referralStats = $referralService->getStats($character);
+
+        return view('game.news.index', compact('character', 'pinnedArticles', 'articles', 'referralStats'));
     }
 
     /**

@@ -46,7 +46,7 @@
                     </span>
                 </div>
                 <p class="text-slate-500 text-xs mt-0.5 leading-snug">
-                    Elke missie is eenmalig. Beloningen zijn wit bankgeld 🏦, XP en dagelijks Respect!
+                    Elke missie is eenmalig. Beloningen zijn wit bankgeld , XP en dagelijks Respect!
                 </p>
             </div>
         </div>
@@ -64,27 +64,27 @@
     </div>
 
     <!-- Compact Multi-Filter Controls -->
-    <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-2xs space-y-2.5">
+    <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-xl p-3 shadow-2xs space-y-2.5">
         <!-- Status Filter Tabs -->
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex flex-wrap items-center gap-1.5 text-xs">
                 <button @click="statusFilter = 'all'"
-                    :class="statusFilter === 'all' ? 'bg-purple-600 text-white font-bold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                    :class="statusFilter === 'all' ? 'bg-purple-600 text-white font-bold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                     Alle ({{ count($missions) }})
                 </button>
                 <button @click="statusFilter = 'available'"
-                    :class="statusFilter === 'available' ? 'bg-indigo-600 text-white font-bold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                    :class="statusFilter === 'available' ? 'bg-indigo-600 text-white font-bold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer">
                     Beschikbaar
                 </button>
                 <button @click="statusFilter = 'completed'"
-                    :class="statusFilter === 'completed' ? 'bg-emerald-600 text-white font-bold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                    :class="statusFilter === 'completed' ? 'bg-emerald-600 text-white font-bold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1">
                     <i class="fa-solid fa-check text-[10px]"></i> Voltooid ({{ $completedCount }})
                 </button>
                 <button @click="statusFilter = 'locked'"
-                    :class="statusFilter === 'locked' ? 'bg-slate-800 text-white font-bold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                    :class="statusFilter === 'locked' ? 'bg-slate-800 dark:bg-slate-700 text-white font-bold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
                     class="px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1">
                     <i class="fa-solid fa-lock text-[10px]"></i> Vergrendeld
                 </button>
@@ -94,7 +94,7 @@
             <div class="relative w-full sm:w-56">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
                 <input type="text" x-model="search" placeholder="Zoek missie..."
-                    class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-purple-600">
+                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-purple-600">
             </div>
         </div>
 
@@ -202,11 +202,20 @@
 
                     <!-- Interactive Scenario (if defined and NOT yet completed) -->
                     @if($scenario && $isUnlocked && !$isCompleted)
-                    <div class="bg-purple-50/60 border border-purple-200/80 rounded-lg p-2.5 text-xs space-y-2">
-                        <div class="flex items-center gap-2">
-                            <img src="{{ asset($scenario['npc_avatar']) }}" alt="{{ $scenario['npc_name'] }}" class="w-6 h-6 rounded-md object-cover border border-purple-200 bg-white shrink-0">
-                            <span class="font-bold text-[11px] text-purple-900 leading-tight">{{ $scenario['npc_name'] }}:</span>
-                            <span class="text-[10px] text-purple-700 truncate">"{{ $scenario['dilemma'] }}"</span>
+                    <div class="bg-purple-50/70 border border-purple-200/90 rounded-lg p-2.5 text-xs space-y-2">
+                        <div class="flex items-start gap-2.5">
+                            <img src="{{ asset($scenario['npc_avatar']) }}" alt="{{ $scenario['npc_name'] }}" class="w-7 h-7 rounded-md object-cover border border-purple-200 bg-white shrink-0 mt-0.5 shadow-2xs">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-black text-[11px] text-purple-950 leading-tight">{{ $scenario['npc_name'] }}</span>
+                                    @if(!empty($scenario['npc_role']))
+                                    <span class="text-[9px] text-purple-600 font-semibold">({{ $scenario['npc_role'] }})</span>
+                                    @endif
+                                </div>
+                                <p class="text-[11px] text-purple-900 mt-1 leading-relaxed font-medium">
+                                    "{{ $scenario['dilemma'] }}"
+                                </p>
+                            </div>
                         </div>
                     </div>
                     @endif
@@ -256,8 +265,8 @@
                                 <span class="text-[9px] font-black uppercase text-purple-900 block tracking-wider">Kies tactische actie:</span>
                                 <div class="grid grid-cols-1 gap-1">
                                     @foreach($scenario['choices'] as $optKey => $optText)
-                                    <label class="flex items-center gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-200 hover:border-purple-400 hover:bg-purple-50/50 cursor-pointer text-[11px] font-medium text-slate-800 transition">
-                                        <input type="radio" name="choice" value="{{ $optKey }}" required class="text-purple-600 focus:ring-purple-500">
+                                    <label class="flex items-start gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-200 hover:border-purple-400 hover:bg-purple-50/50 cursor-pointer text-[11px] font-medium text-slate-800 transition">
+                                        <input type="radio" name="choice" value="{{ $optKey }}" required class="text-purple-600 focus:ring-purple-500 mt-0.5 shrink-0">
                                         <span class="leading-tight"><strong class="text-purple-700">{{ $optKey }}:</strong> {{ $optText }}</span>
                                     </label>
                                     @endforeach
@@ -267,7 +276,7 @@
 
                             <button type="submit"
                                 class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs py-2 px-3 rounded-lg transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]">
-                                <span>Missie Uitvoeren (⚡ {{ $m->energy_cost }})</span>
+                                <span>Missie Uitvoeren ( {{ $m->energy_cost }})</span>
                                 <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </button>
                         </form>

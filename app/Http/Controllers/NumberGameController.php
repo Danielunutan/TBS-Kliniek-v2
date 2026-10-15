@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ class NumberGameController extends Controller
     public function __construct(
         protected EconomyService $economy,
         protected LevelService $level,
+        protected CooldownService $cooldownService,
     ) {}
 
     public function index(): View
@@ -31,6 +33,12 @@ class NumberGameController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je niet gokken!');
         }
 
+        if ($this->cooldownService->isOnCooldown($character, 'casino_numbergame')) {
+            $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_numbergame');
+
+            return back()->with('error', "⏳ De nummers worden opnieuw geschud! Wacht nog {$remaining}s.");
+        }
+
         $validated = $request->validate([
             'number' => ['required', 'integer', 'between:1,20'],
             'bet' => ['required', 'integer', 'min:50', 'max:50000'],
@@ -43,6 +51,8 @@ class NumberGameController extends Controller
 
         $drawn = rand(1, 20);
         $guess = (int) $validated['number'];
+
+        $this->cooldownService->setCooldown($character, 'casino_numbergame', 8);
 
         if ($guess === $drawn) {
             // Jackpot: 15x multiplier

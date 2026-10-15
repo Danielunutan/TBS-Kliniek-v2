@@ -91,8 +91,27 @@
 
     <!-- Other Casino Games Grid -->
     <div>
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Andere Casino Spellen</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Casino & Gokspellen</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            <!-- LOTERIJ JACKPOT PROMO CARD -->
+            <a href="{{ route('lottery.index') }}" class="p-5 bg-gradient-to-r from-amber-50/70 via-purple-50/50 to-white dark:bg-[#180d2e] rounded-xl border-2 border-amber-400/60 shadow-xs hover:border-amber-400 transition group flex items-center justify-between gap-4 col-span-1 sm:col-span-2 lg:col-span-3">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-400/25 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-400/40 group-hover:scale-105 transition-transform shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-extrabold text-slate-900 dark:text-slate-100 text-sm group-hover:text-purple-600 dark:group-hover:text-amber-400 transition">TBS Afdelingsloterij (Jackpot Pot)</h4>
+                            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-2xs">Mega Pot</span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Iedere cent bankopname-belasting stroomt in deze pot. Koop loten met contant geld of sterren en grijp de hoofdprijs!</p>
+                    </div>
+                </div>
+                <div class="shrink-0 hidden sm:flex items-center text-xs font-black text-amber-700 dark:text-amber-400 group-hover:translate-x-1 transition-transform">
+                    <span>Loten Kopen</span> <i class="fa-solid fa-arrow-right ml-1.5 text-xs"></i>
+                </div>
+            </a>
             
             <a href="{{ route('rps.index') }}" class="p-5 bg-white rounded-xl border border-slate-200/80 shadow-xs hover:border-slate-400 transition group flex items-start gap-4">
                 <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg border border-indigo-100 group-hover:scale-105 transition-transform">

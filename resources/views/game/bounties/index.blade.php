@@ -147,23 +147,83 @@
             <form action="{{ route('bounties.store') }}" method="POST" class="space-y-5">
                 @csrf
 
-                <!-- Target selection -->
-                <div>
+                <!-- Target selection (Interactive Autocomplete) -->
+                <div x-data="{
+                    search: '',
+                    selectedId: '',
+                    openDropdown: false,
+                    targets: [
+                        @foreach($potentialTargets as $pt)
+                        {
+                            id: '{{ $pt->id }}',
+                            name: '{{ addslashes($pt->name) }}',
+                            level: {{ $pt->level }},
+                            avatar: '{{ $pt->avatar_url }}'
+                        },
+                        @endforeach
+                    ],
+                    get filtered() {
+                        if (!this.search.trim()) return this.targets.slice(0, 10);
+                        return this.targets.filter(t => t.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 10);
+                    },
+                    select(t) {
+                        this.selectedId = t.id;
+                        this.search = t.name;
+                        this.openDropdown = false;
+                    }
+                }" class="relative">
                     <label class="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
                         Kies Doelwit (Patiënt)
                     </label>
-                    <div class="relative">
+
+                    <input type="hidden" name="target_id" :value="selectedId">
+
+                    <div class="relative flex items-center">
+                        <div class="absolute left-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-purple-600 text-sm z-10">
+                            <i class="fa-solid fa-crosshairs"></i>
+                        </div>
                         <input type="text" 
-                               name="target_name" 
-                               list="patientsList" 
+                               name="target_name"
+                               x-model="search"
+                               @focus="openDropdown = true"
+                               @input="openDropdown = true; selectedId = ''"
+                               @click.outside="openDropdown = false"
                                required
+                               autocomplete="off"
                                placeholder="Typ de naam van de patiënt..."
-                               class="w-full text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-200 outline-none transition">
-                        <datalist id="patientsList">
-                            @foreach($potentialTargets as $pt)
-                                <option value="{{ $pt->name }}">Niveau {{ $pt->level }}</option>
-                            @endforeach
-                        </datalist>
+                               class="w-full text-sm font-semibold bg-slate-50 border border-slate-200 rounded-xl py-3 pl-11 pr-10 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-200 outline-none transition shadow-2xs">
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
+                            <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
+                        </div>
+                    </div>
+
+                    <!-- Autocomplete Dropdown Menu -->
+                    <div x-show="openDropdown && filtered.length > 0" 
+                         x-transition
+                         class="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 divide-y divide-slate-100">
+                        <template x-for="t in filtered" :key="t.id">
+                            <button type="button" 
+                                    @click="select(t)"
+                                    class="w-full text-left px-4 py-2.5 hover:bg-purple-50 flex items-center justify-between text-xs transition cursor-pointer group">
+                                <div class="flex items-center gap-3">
+                                    <img :src="t.avatar" class="w-8 h-8 rounded-xl object-cover border border-slate-200 shadow-2xs bg-slate-100 shrink-0">
+                                    <div>
+                                        <span class="font-black text-slate-900 group-hover:text-purple-700 block text-xs" x-text="t.name"></span>
+                                        <span class="text-[10px] text-slate-400 font-semibold" x-text="'Niveau ' + t.level"></span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-bold text-purple-600 bg-purple-50 group-hover:bg-purple-100 px-2 py-0.5 rounded-md border border-purple-200">
+                                    Kies
+                                </span>
+                            </button>
+                        </template>
+                    </div>
+
+                    <!-- No results message -->
+                    <div x-show="openDropdown && filtered.length === 0 && search.trim() !== ''"
+                         x-transition
+                         class="absolute z-50 left-0 right-0 mt-1 p-3 bg-white rounded-xl shadow-xl border border-slate-200 text-center text-xs text-slate-400">
+                        Geen patiënt gevonden met deze naam
                     </div>
                 </div>
 

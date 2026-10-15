@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CooldownService;
 use App\Services\EconomyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CasinoController extends Controller
 {
-    private EconomyService $economy;
-
-    public function __construct(EconomyService $economy)
-    {
-        $this->economy = $economy;
-    }
+    public function __construct(
+        protected EconomyService $economy,
+        protected CooldownService $cooldownService,
+    ) {}
 
     public function index()
     {
@@ -25,6 +24,23 @@ class CasinoController extends Controller
     public function play(Request $request)
     {
         $character = Auth::user()->character;
+
+        if ($character->is_jailed || $character->isImprisoned()) {
+            $msg = 'Vanuit de isoleercel kun je niet gokken!';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 403)
+                : redirect()->route('prison')->with('error', $msg);
+        }
+
+        if ($this->cooldownService->isOnCooldown($character, 'casino_dice')) {
+            $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_dice');
+            $msg = "⏳ De croupier verzamelt de fiches! Wacht nog {$remaining}s.";
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 429)
+                : back()->with('error', $msg);
+        }
 
         $validated = $request->validate([
             'game' => 'required|in:coinflip,dice',
@@ -41,15 +57,8 @@ class CasinoController extends Controller
                 : back()->with('error', $msg);
         }
 
-        if ($character->is_jailed) {
-            $msg = 'Vanuit de isoleercel kun je niet gokken!';
-
-            return $request->expectsJson()
-                ? response()->json(['success' => false, 'message' => $msg], 403)
-                : redirect()->route('prison')->with('error', $msg);
-        }
-
         $this->economy->deductCash($character, $bet);
+        $this->cooldownService->setCooldown($character, 'casino_dice', 5);
 
         // Simple Coin Flip (50/50)
         $win = rand(0, 1) === 1;

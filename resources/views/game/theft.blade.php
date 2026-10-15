@@ -55,10 +55,13 @@
             @foreach($victims as $vic)
             <div class="bg-slate-50 rounded-xl border border-slate-200/80 p-3.5 flex flex-col justify-between gap-3 hover:border-slate-300 transition">
                 <div class="flex items-center gap-3">
-                    <img src="{{ $vic->avatar_url }}" alt="{{ $vic->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0">
+                    <div class="relative shrink-0">
+                        <img src="{{ $vic->avatar_url }}" alt="{{ $vic->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs">
+                        <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $vic->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $vic->online_status_label }}"></span>
+                    </div>
                     <div class="min-w-0">
                         <h4 class="text-xs font-black text-slate-900 truncate">{{ $vic->name }}</h4>
-                        <span class="text-[10px] text-slate-500 font-bold block">Level {{ $vic->level }} &bull; {{ $vic->gender === 'female' ? 'Vrouw' : 'Man' }}</span>
+                        <span class="text-[10px] {{ $vic->isOnline() ? 'text-emerald-600 font-bold' : 'text-slate-500' }} block">Level {{ $vic->level }} &bull; {{ $vic->isOnline() ? 'Online' : 'Offline' }}</span>
                     </div>
                 </div>
 

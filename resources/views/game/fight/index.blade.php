@@ -35,7 +35,7 @@
                 <!-- Slaylist Header Tab -->
                 <div class="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200">
                     <span class="text-xs font-extrabold tracking-wider uppercase text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-list text-purple-600 text-xs"></i> Slaylist
+                        <i class="fa-solid fa-list text-purple-600 text-xs"></i> Respectlijst
                     </span>
                     <span class="text-xs font-bold text-slate-400">Patiënten</span>
                 </div>
@@ -43,7 +43,7 @@
                 <div class="p-4 space-y-3">
                     <!-- Online Status Counter -->
                     <div class="flex items-center justify-between text-xs font-bold text-slate-700 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-                        <span>Online ({{ count($opponents) + 1 }})</span>
+                        <span>Online ({{ \App\Models\Character::getOnlineCount() }})</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     </div>
 
@@ -187,7 +187,7 @@
                                     <div class="relative">
                                         <img src="{{ $opp->avatar_url }}" alt="{{ $opp->name }}" 
                                              class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-xs">
-                                        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></span>
+                                        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white {{ $opp->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $opp->online_status_label }}"></span>
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-1.5">

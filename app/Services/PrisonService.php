@@ -77,18 +77,24 @@ class PrisonService
             ];
         }
 
-        // Escape chance: Base 25% + (intelligence + stamina) / 10, capped at 60%
-        $bonus = ($character->intelligence + $character->stamina) / 10;
-        $chance = min(60, (int) round(25 + $bonus));
+        // Escape chance: Base 25% + (effective intelligence + stamina) / 10, capped at 65%
+        $bonus = ($character->getEffectiveIntelligence() + $character->getEffectiveStamina()) / 10;
+        $chance = min(65, (int) round(25 + $bonus));
 
         $roll = random_int(1, 100);
 
         if ($roll <= $chance) {
+            $newStamina = $character->stamina;
+            if (random_int(1, 100) <= 25) {
+                $newStamina += 1;
+            }
+
             $character->update([
                 'is_in_prison' => false,
                 'prison_until' => null,
                 'prison_reason' => null,
                 'prison_escapes' => $character->prison_escapes + 1,
+                'stamina' => $newStamina,
                 'respect' => $character->respect + 15,
             ]);
 

@@ -27,3 +27,11 @@ Homestead.yaml
 Thumbs.db
 askpass.bat
 ssh_cmd.ps1
+/scratch
+/check_dom.php
+/check_remote_files.ps1
+/rendered_prison.html
+/tag_checker.php
+/test_render.php
+*.jpg
+

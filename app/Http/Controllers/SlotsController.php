@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ class SlotsController extends Controller
     public function __construct(
         protected EconomyService $economy,
         protected LevelService $level,
+        protected CooldownService $cooldownService,
     ) {}
 
     public function index(): View
@@ -34,6 +36,15 @@ class SlotsController extends Controller
                 : back()->with('error', $msg);
         }
 
+        if ($this->cooldownService->isOnCooldown($character, 'casino_slots')) {
+            $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_slots');
+            $msg = "⏳ De gokkast draait nog! Wacht nog {$remaining}s.";
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 429)
+                : back()->with('error', $msg);
+        }
+
         $validated = $request->validate([
             'bet' => ['required', 'integer', 'min:50', 'max:50000'],
         ]);
@@ -48,6 +59,7 @@ class SlotsController extends Controller
         }
 
         $this->economy->deductCash($character, $bet);
+        $this->cooldownService->setCooldown($character, 'casino_slots', 4);
 
         $symbols = ['🍋', '🍒', '🍀', '⭐', '💎', '🔔', '7️⃣'];
         $weights = [30,   25,   18,   12,    8,    5,    2]; // total 100

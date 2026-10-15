@@ -47,14 +47,20 @@
                     <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $lockerCooldown) }}</strong> of sla direct over met 1 Ster.</p>
                 </div>
             </div>
-            <form action="{{ route('cooldown.skip') }}" method="POST">
-                @csrf
-                <input type="hidden" name="action" value="locker">
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-star text-white text-[11px]"></i>
-                    <span>Cooldown Overslaan (1 Ster)</span>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-tv text-white text-[11px]"></i>
+                    <span>Kijk Ad (Reset Cooldown)</span>
                 </button>
-            </form>
+                <form action="{{ route('cooldown.skip') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="action" value="locker">
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-star text-white text-[11px]"></i>
+                        <span>1 Ster ⭐</span>
+                    </button>
+                </form>
+            </div>
         </div>
     @endif
 

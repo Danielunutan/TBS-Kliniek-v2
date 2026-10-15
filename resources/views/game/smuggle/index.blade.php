@@ -96,6 +96,10 @@
                                     <span class="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">
                                         <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $sigCooldown) }}
                                     </span>
+                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" title="Kijk Ad (Reset Alle Cooldowns)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-tv text-[10px]"></i>
+                                        <span>Ad</span>
+                                    </button>
                                     <form action="{{ route('smuggle.skip-cooldown') }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="action" value="produce_sigaretten">
@@ -142,6 +146,10 @@
                                     <span class="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">
                                         <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $ritCooldown) }}
                                     </span>
+                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" title="Kijk Ad (Reset Alle Cooldowns)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-tv text-[10px]"></i>
+                                        <span>Ad</span>
+                                    </button>
                                     <form action="{{ route('smuggle.skip-cooldown') }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="action" value="produce_ritalin">
@@ -188,6 +196,10 @@
                                     <span class="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">
                                         <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $phoneCooldown) }}
                                     </span>
+                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" title="Kijk Ad (Reset Alle Cooldowns)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-tv text-[10px]"></i>
+                                        <span>Ad</span>
+                                    </button>
                                     <form action="{{ route('smuggle.skip-cooldown') }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="action" value="produce_telefoon">

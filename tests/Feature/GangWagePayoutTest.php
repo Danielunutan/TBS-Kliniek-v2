@@ -54,7 +54,8 @@ class GangWagePayoutTest extends TestCase
 
         $character->gang_id = $gang->id;
         $character->gang_role = 'leader';
-        $character->bank = 1000;
+        $character->cash = 1000;
+        $character->bank = 5000;
         // Last paid 3 hours ago
         $character->last_gang_wage_at = Carbon::now()->subHours(3);
         $character->save();
@@ -66,8 +67,9 @@ class GangWagePayoutTest extends TestCase
 
         $character->refresh();
 
-        // 3 hours * 250 = 750 added to bank
-        $this->assertEquals(1750, $character->bank);
+        // 3 hours * 250 = 750 added to cash (bank untouched)
+        $this->assertEquals(1750, $character->cash);
+        $this->assertEquals(5000, $character->bank);
         $response->assertSee('Bende Uurloon Ontvangen');
         $response->assertSee('UURLOON €250');
     }
@@ -87,7 +89,8 @@ class GangWagePayoutTest extends TestCase
         ]);
 
         $character->gang_id = $gang->id;
-        $character->bank = 500;
+        $character->cash = 500;
+        $character->bank = 10000;
         $character->last_gang_wage_at = Carbon::now()->subHours(2);
         $character->save();
 
@@ -96,8 +99,9 @@ class GangWagePayoutTest extends TestCase
             ->assertSuccessful();
 
         $character->refresh();
-        // 2 hours * 150 = 300 added to bank
-        $this->assertEquals(800, $character->bank);
+        // 2 hours * 150 = 300 added to cash (bank untouched)
+        $this->assertEquals(800, $character->cash);
+        $this->assertEquals(10000, $character->bank);
     }
 
     public function test_manual_claim_wage_endpoint(): void
@@ -115,7 +119,8 @@ class GangWagePayoutTest extends TestCase
         ]);
 
         $character->gang_id = $gang->id;
-        $character->bank = 2000;
+        $character->cash = 2000;
+        $character->bank = 3000;
         $character->last_gang_wage_at = Carbon::now()->subMinutes(130); // 2 hours
         $character->save();
 
@@ -125,7 +130,8 @@ class GangWagePayoutTest extends TestCase
         $response->assertSessionHas('success');
 
         $character->refresh();
-        $this->assertEquals(2400, $character->bank); // 2000 + 2 * 200
+        $this->assertEquals(2400, $character->cash); // 2000 + 2 * 200
+        $this->assertEquals(3000, $character->bank); // Bank remains untouched
     }
 
     public function test_officer_can_upload_gang_avatar_and_banner(): void

@@ -181,9 +181,9 @@ class FightController extends Controller
             session(['fight_consecutive_attacks' => $consecutive]);
         }
 
-        // Combat calculation using strength & defense to determine if theft succeeds
-        $attackerPower = $attacker->strength + rand(5, 15);
-        $defenderPower = $defender->defense + rand(5, 15);
+        // Combat calculation using effective strength & defense (including backpack equipment)
+        $attackerPower = $attacker->getEffectiveStrength() + rand(5, 15);
+        $defenderPower = $defender->getEffectiveDefense() + rand(5, 15);
 
         if ($attackerPower >= $defenderPower) {
             // Attacker succeeds: Steal between 10% and 25% of cash on hand (just like diefstal / zakkenrollen)
@@ -204,11 +204,19 @@ class FightController extends Controller
             $attacker->thefts_succeeded = ($attacker->thefts_succeeded ?? 0) + 1;
             $attacker->fights_won += 1;
             $defender->fights_lost += 1;
-            $defender->health = max(0, $defender->health - rand(10, 25));
+
+            // Damage mitigated by defender's defense
+            $damageTaken = max(5, rand(12, 25) - (int) floor($defender->getEffectiveDefense() / 15));
+            $defender->health = max(0, $defender->health - $damageTaken);
             $defender->save();
 
             $this->level->addXp($attacker, 25);
             $attacker->respect += 2;
+
+            // 20% chance to gain +1 permanent Kracht from winning a real brawl
+            if (rand(1, 100) <= 20) {
+                $attacker->strength = ($attacker->strength ?? 10) + 1;
+            }
             $attacker->save();
 
             // Record in 24 Hour Battle
@@ -279,6 +287,11 @@ class FightController extends Controller
             $damage = rand(10, 20);
             $attacker->health = max(0, $attacker->health - $damage);
             $attacker->save();
+
+            // 20% chance for defender to gain +1 defense from defending their ground
+            if (rand(1, 100) <= 20) {
+                $defender->defense = ($defender->defense ?? 10) + 1;
+            }
             $defender->save();
 
             GameNotification::create([

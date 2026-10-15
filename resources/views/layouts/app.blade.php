@@ -1,8 +1,21 @@
 <!DOCTYPE html>
-<html lang="nl" class="h-full bg-[#f8fafc]">
+<html lang="nl" class="h-full">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ANTI-FOUC DARK MODE THEME SCRIPT -->
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('tbs_theme');
+                if (savedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <title>@yield('title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Browsergame van Nederland')</title>
     
     <!-- PRIMARY SEO META TAGS -->
@@ -72,6 +85,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <meta name="turbo-prefetch" content="false">
+
+    <!-- GOOGLE ADSENSE (Tijdelijk uitgeschakeld) -->
+    {{--
+    <meta name="google-adsense-account" content="ca-pub-2509357892188070">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2509357892188070"
+         crossorigin="anonymous"></script>
+    --}}
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         [x-cloak] {
@@ -84,32 +105,122 @@
             text-rendering: optimizeLegibility;
         }
     </style>
-</head>
-<body class="min-h-full flex flex-col lg:flex-row bg-[#f8fafc] text-slate-800 antialiased selection:bg-slate-900 selection:text-white" x-data="{ mobileMenuOpen: false }">
 
     @php
         $character = $character ?? (Auth::check() ? Auth::user()->character : null);
+        $onlineCount = $character ? \App\Models\Character::getOnlineCount() : 0;
+        $reqXp = 100;
+        $pctXp = 0;
+        if ($character) {
+            $lvlService = app(\App\Services\LevelService::class);
+            $reqXp = $lvlService->getXpRequiredForNextLevel($character->level);
+            $pctXp = min(100, max(0, round(($character->xp / max(1, $reqXp)) * 100)));
+        }
         $activeCategory = '';
-        if (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'gangs.*', 'news.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'gangs*', 'bendes*', 'nieuws*')) {
+        if (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'gangs.*', 'news.*', 'newspaper.*', 'roadmap.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'gangs*', 'bendes*', 'nieuws*', 'afdelingsblad*', 'roadmap*')) {
             $activeCategory = 'algemeen';
-        } elseif (request()->routeIs('missions.*', 'training.*') || request()->is('missies*', 'training*')) {
+        } elseif (request()->routeIs('missions.*', 'training.*', 'treatment.*', 'infirmary.*', 'daycare.*') || request()->is('missies*', 'training*', 'behandeling*', 'ziekenboeg*', 'dagbesteding*')) {
             $activeCategory = 'voortgang';
         } elseif (request()->routeIs('hustle.*', 'smuggle.*', 'extort.*', 'lockers.*') || request()->is('hosselen*', 'smokkelen*', 'afpersen*', 'kluisjes*')) {
             $activeCategory = 'misdaad';
         } elseif (request()->routeIs('vault.*', 'packages.*', 'pickpocket.*') || request()->is('kluis-kraak*', 'pakketjes*', 'zakkenrollen*', 'vault*')) {
             $activeCategory = 'bonus';
-        } elseif (request()->routeIs('fight.*', 'theft.*', 'combat_training.*', 'hitman.*', 'informants.*', 'isolation.*') || request()->is('luchtplaats*', 'vechten*', 'diefstal*', 'klusjes*', 'vechtoefening*', 'liquidatie*', 'informanten*', 'vrijwillige-isolatie*')) {
+        } elseif (request()->routeIs('fight.*', 'theft.*', 'combat_training.*', 'armwrestling.*', 'hitman.*', 'informants.*', 'isolation.*', 'murder_stats.*') || request()->is('luchtplaats*', 'vechten*', 'diefstal*', 'klusjes*', 'vechtoefening*', 'armpjedrukken*', 'liquidatie*', 'informanten*', 'vrijwillige-isolatie*', 'geweldsstatistieken*')) {
             $activeCategory = 'geweld';
-        } elseif (request()->routeIs('bank.*', 'travel.*', 'casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*', 'shop.*', 'marketplace.*') || request()->is('bank*', 'verplaatsen*', 'reizen*', 'casino*', 'gokhal*', 'winkel*', 'shop*', 'marktplaats*')) {
+        } elseif (request()->routeIs('bank.*', 'travel.*', 'casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*', 'shop.*', 'marketplace.*', 'lottery.*') || request()->is('bank*', 'verplaatsen*', 'reizen*', 'casino*', 'gokhal*', 'winkel*', 'shop*', 'marktplaats*', 'loterij*')) {
             $activeCategory = 'economie';
         } elseif (request()->routeIs('profile.*', 'vip.*', 'settings.*', 'admin.*', 'faq.*', 'help.*') || request()->is('profiel*', 'speler*', 'vip*', 'instellingen*', 'admin*', 'faq*', 'kennisbank*', 'help*')) {
             $activeCategory = 'account';
         }
     @endphp
 
-    @if(isset($character) && $character)
+    @if($character)
+    <script>
+        function tbsStatsTracker() {
+            return {
+                mobileMenuOpen: false,
+                stats: {
+                    cash: {{ (int)$character->cash }},
+                    cashFormatted: '€{{ number_format($character->cash, 0, ',', '.') }}',
+                    cash_formatted: '€{{ number_format($character->cash, 0, ',', '.') }}',
+                    bank: {{ (int)$character->bank }},
+                    bankFormatted: '€{{ number_format($character->bank, 0, ',', '.') }}',
+                    bank_formatted: '€{{ number_format($character->bank, 0, ',', '.') }}',
+                    total: {{ (int)($character->cash + $character->bank) }},
+                    totalFormatted: '€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}',
+                    total_formatted: '€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}',
+                    energy: {{ (int)$character->energy }},
+                    max_energy: {{ (int)$character->max_energy }},
+                    energy_pct: {{ max(18, min(100, round(($character->energy / max(1, $character->max_energy)) * 100))) }},
+                    health: {{ (int)$character->health }},
+                    max_health: {{ (int)$character->max_health }},
+                    health_pct: {{ max(18, min(100, round(($character->health / max(1, $character->max_health)) * 100))) }},
+                    xp: {{ (int)$character->xp }},
+                    req_xp: {{ (int)$reqXp }},
+                    xp_pct: {{ (int)$pctXp }},
+                    xpFormatted: '{{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP',
+                    stars: {{ (int)($character->stars ?? 0) }},
+                    starsFormatted: '{{ number_format($character->stars ?? 0, 0, ',', '.') }}',
+                    stars_formatted: '{{ number_format($character->stars ?? 0, 0, ',', '.') }}',
+                    vip_points: {{ (int)($character->vip_points ?? 0) }},
+                    vipPointsFormatted: '{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}',
+                    vip_points_formatted: '{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}',
+                    respect: '{{ $character->formatted_respect }}',
+                    formatted_respect: '{{ $character->formatted_respect }}',
+                    onlineCount: {{ (int)$onlineCount }}
+                },
+                init() {
+                    setInterval(() => {
+                        if (document.visibilityState === 'visible') {
+                            this.refresh();
+                        }
+                    }, 4000);
+                    window.addEventListener('stats:refresh', () => this.refresh());
+                },
+                async refresh() {
+                    try {
+                        const res = await fetch('{{ route('character.realtime-stats') }}', {
+                            credentials: 'same-origin',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            this.stats = {
+                                ...this.stats,
+                                ...data,
+                                cashFormatted: data.cashFormatted || data.cash_formatted || this.stats.cashFormatted,
+                                bankFormatted: data.bankFormatted || data.bank_formatted || this.stats.bankFormatted,
+                                totalFormatted: data.totalFormatted || data.total_formatted || this.stats.totalFormatted,
+                                starsFormatted: data.starsFormatted || data.stars_formatted || this.stats.starsFormatted,
+                                vipPointsFormatted: data.vipPointsFormatted || data.vip_points_formatted || this.stats.vipPointsFormatted,
+                                respect: data.formatted_respect || data.respect || this.stats.respect,
+                                onlineCount: (data.onlineCount !== undefined) ? data.onlineCount : this.stats.onlineCount
+                            };
+                        }
+                    } catch (e) {}
+                }
+            };
+        }
+    </script>
+    @else
+    <script>
+        function tbsStatsTracker() {
+            return {
+                mobileMenuOpen: false,
+                stats: {}
+            };
+        }
+    </script>
+    @endif
+</head>
+<body class="min-h-full flex flex-col lg:flex-row bg-[#f8fafc] text-slate-800 antialiased selection:bg-slate-900 selection:text-white dark:bg-[#0b0f19] dark:text-slate-100" @if($character) x-data="tbsStatsTracker()" @else x-data="{ mobileMenuOpen: false }" @endif>
+
+    @if($character)
     <!-- SIDEBAR NAVIGATION (Desktop & Tablet) - Clean Modern White Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col w-68 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
+    <aside class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
            x-data="{
                openCategory: localStorage.getItem('tbs_sidebar_category') || '{{ $activeCategory }}',
                init() {
@@ -135,9 +246,9 @@
                         <span class="text-sm font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
                     </div>
                     <div class="mt-1">
-                        <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200" title="{{ $onlineCount }} patiënten momenteel online in de kliniek">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span>Live</span>
+                            <span>{{ $onlineCount }} Online</span>
                         </span>
                     </div>
                 </div>
@@ -148,14 +259,14 @@
         <nav class="flex-1 px-3 py-4 space-y-2 text-xs font-semibold">
 
             <!-- Vaste Hoofdnavigatie Boven Dropdowns (Dashboard & Berichten & Post) -->
-            <div class="space-y-1 pb-2 mb-1 border-b border-slate-100">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 shadow-xs' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50' }}">
-                    <i class="fa-solid fa-gauge w-4 text-center text-indigo-500"></i>
+            <div class="space-y-1 pb-2 mb-1 border-b border-slate-100 dark:border-slate-800/60">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('dashboard') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-gauge w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="{{ route('messages.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('messages.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 shadow-xs' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50' }}">
+                <a href="{{ route('messages.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('messages.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-envelope w-4 text-center text-blue-500"></i>
+                        <i class="fa-solid fa-envelope w-4 text-center text-blue-500 dark:text-blue-400"></i>
                         <span>Berichten & Post</span>
                     </div>
                     @php
@@ -171,45 +282,72 @@
             <div class="space-y-1">
                 <button @click="toggleCategory('algemeen')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-slate-400"></i> Algemeen
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'algemeen'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('news.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-newspaper w-4 text-center text-purple-600"></i>
+                    <a href="{{ route('news.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-newspaper w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Kliniek Nieuws</span>
                     </a>
-                    <a href="{{ route('timeline.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('timeline.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-bullhorn w-4 text-center text-sky-500"></i>
-                        <span>Tijdlijn (Feed)</span>
-                    </a>
-                    <a href="{{ route('friends.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('friends.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-user-group w-4 text-center text-pink-500"></i>
-                        <span>Vrienden & BFF</span>
-                    </a>
-                    <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('leaderboard.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-trophy w-4 text-center text-amber-500"></i>
-                        <span>Ranglijsten</span>
-                    </a>
-                    <a href="{{ route('battle.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battle.*') ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <a href="{{ route('newspaper.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('newspaper.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-bolt w-4 text-center text-purple-600"></i>
-                            <span>24 Uur Battle</span>
+                            <i class="fa-solid fa-file-lines w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                            <span>Het Afdelingsblad</span>
                         </div>
-                        <span class="bg-purple-100 text-purple-700 text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-purple-200">
+                        <span class="bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Editie
+                        </span>
+                    </a>
+                    <a href="{{ route('radio.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('radio.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-radio w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <span>TBS FM (Radio)</span>
+                        </div>
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
                             Live
                         </span>
                     </a>
-                    <a href="{{ route('prison') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-dungeon w-4 text-center text-rose-500"></i>
+                    <a href="{{ route('timeline.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('timeline.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-bullhorn w-4 text-center text-sky-500 dark:text-sky-400"></i>
+                        <span>Tijdlijn (Feed)</span>
+                    </a>
+                    <a href="{{ route('friends.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('friends.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-user-group w-4 text-center text-pink-500 dark:text-pink-400"></i>
+                        <span>Vrienden & BFF</span>
+                    </a>
+                    <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('leaderboard.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                        <span>Ranglijsten</span>
+                    </a>
+                    <a href="{{ route('battle.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-bolt w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                            <span>24 Uur Battle</span>
+                        </div>
+                        <span class="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Live
+                        </span>
+                    </a>
+                    <a href="{{ route('prison') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-dungeon w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Isoleercel</span>
                     </a>
-                    <a href="{{ route('gangs.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-users w-4 text-center text-purple-500"></i>
+                    <a href="{{ route('gangs.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-users w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Bendes & Gangs</span>
+                    </a>
+                    <a href="{{ route('roadmap.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-compass w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <span>Toekomst & Roadmap</span>
+                        </div>
+                        <span class="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            10 Updates
+                        </span>
                     </a>
                 </div>
             </div>
@@ -218,20 +356,53 @@
             <div class="space-y-1">
                 <button @click="toggleCategory('voortgang')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 hover:text-indigo-800 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-chart-line text-indigo-500"></i> Voortgang
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'voortgang'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('missions.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-list-check w-4 text-center text-indigo-500"></i>
+                    <a href="{{ route('missions.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-list-check w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Missies & Opdrachten</span>
                     </a>
-                    <a href="{{ route('training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('training.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-dumbbell w-4 text-center text-purple-500"></i>
+                    <a href="{{ route('training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('training.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-dumbbell w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Krachttraining</span>
+                    </a>
+                    <a href="{{ route('treatment.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('treatment.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-brain w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                            <span>Behandelaarsgesprek</span>
+                        </div>
+                        @if($character->isOnLeave())
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                            Verlof!
+                        </span>
+                        @elseif($character->isSedated())
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Sedatie
+                        </span>
+                        @endif
+                    </a>
+                    <a href="{{ route('infirmary.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('infirmary.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-hospital-user w-4 text-center text-teal-500 dark:text-teal-400"></i>
+                            <span>Ziekenboeg & Pillen</span>
+                        </div>
+                        <span class="bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Heal
+                        </span>
+                    </a>
+                    <a href="{{ route('daycare.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daycare.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <span>Dagbesteding & Werk</span>
+                        </div>
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Veilig
+                        </span>
                     </a>
                 </div>
             </div>
@@ -240,28 +411,46 @@
             <div class="space-y-1">
                 <button @click="toggleCategory('misdaad')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-handcuffs text-slate-400"></i> Illegale Acties
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'misdaad' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'misdaad'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('hustle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-hand-holding-dollar w-4 text-center text-emerald-500"></i>
+                    <a href="{{ route('hustle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-hand-holding-dollar w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>Hosselen</span>
                     </a>
-                    <a href="{{ route('smuggle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('smuggle.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-capsules w-4 text-center text-teal-500"></i>
+                    <a href="{{ route('smuggle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('smuggle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-capsules w-4 text-center text-teal-500 dark:text-teal-400"></i>
                         <span>Dealen & Smokkel</span>
                     </a>
-                    <a href="{{ route('extort.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('extort.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-person-military-pointing w-4 text-center text-orange-500"></i>
+                    <a href="{{ route('extort.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('extort.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-person-military-pointing w-4 text-center text-orange-500 dark:text-orange-400"></i>
                         <span>Afpersen</span>
                     </a>
-                    <a href="{{ route('lockers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('lockers.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-id-card w-4 text-center text-blue-500"></i>
+                    <a href="{{ route('lockers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('lockers.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-id-card w-4 text-center text-blue-500 dark:text-blue-400"></i>
                         <span>Kluisjes Kraken</span>
+                    </a>
+                    <a href="{{ route('droppings.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('droppings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-plane-arrival w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <span>Tennisbal & Drones</span>
+                        </div>
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Drop
+                        </span>
+                    </a>
+                    <a href="{{ route('tunnel.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('tunnel.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <span>Uitbraaktunnel</span>
+                        </div>
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Tunnel
+                        </span>
                     </a>
                 </div>
             </div>
@@ -270,159 +459,180 @@
             <div class="space-y-1">
                 <button @click="toggleCategory('bonus')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-purple-600 hover:text-purple-800 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-gift text-purple-500"></i> Bonus & Kluizen
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'bonus'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('daily.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                    <a href="{{ route('daily.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500"></i>
+                            <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Rad van Fortuin</span>
                         </div>
                         @if($character->canDailySpin())
-                        <span class="bg-amber-100 text-amber-700 text-[9px] font-black uppercase px-1.5 py-0.2 rounded border border-amber-200 animate-pulse">
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
                             Gratis
                         </span>
                         @endif
                     </a>
-                    <a href="{{ route('vault.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('vault.*') ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-vault w-4 text-center text-purple-500"></i>
+                    <a href="{{ route('vault.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('vault.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-vault w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>MedicijnKluis (Kraak)</span>
                     </a>
-                    <a href="{{ route('packages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('packages.*') ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-box-open w-4 text-center text-amber-500"></i>
+                    <a href="{{ route('packages.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('packages.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-box-open w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Koffers & Pakketjes</span>
                     </a>
-                    <a href="{{ route('pickpocket.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('pickpocket.*') ? 'bg-purple-50 text-purple-700 font-bold border border-purple-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-mask w-4 text-center text-indigo-500"></i>
+                    <a href="{{ route('pickpocket.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('pickpocket.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-mask w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Zakkenrollen</span>
                     </a>
                 </div>
             </div>
 
-            <!-- 3. GEWELD & STRIJD -->
+            <!-- 4. GEWELD & STRIJD -->
             <div class="space-y-1">
                 <button @click="toggleCategory('geweld')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-fire text-slate-400"></i> Geweld & Strijd
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'geweld' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'geweld'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-skull w-4 text-center text-rose-500"></i>
-                        <span>Slaylist (Respectlijst)</span>
+                    <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-skull w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                        <span>Respectlijst</span>
                     </a>
-                    <a href="{{ route('theft.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('theft.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-briefcase w-4 text-center text-slate-600"></i>
+                    <a href="{{ route('theft.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('theft.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-briefcase w-4 text-center text-slate-500 dark:text-slate-400"></i>
                         <span>Klusjes & Diefstal</span>
                     </a>
-                    <a href="{{ route('combat_training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('combat_training.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-bullseye w-4 text-center text-indigo-500"></i>
+                    <a href="{{ route('combat_training.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('combat_training.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-bullseye w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Vechtoefening</span>
                     </a>
-                    <a href="{{ route('hitman.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hitman.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-crosshairs w-4 text-center text-rose-600"></i>
+                    <a href="{{ route('armwrestling.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('armwrestling.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-hand-back-fist w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <span>Armpjedruk Arena</span>
+                        </div>
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Duel
+                        </span>
+                    </a>
+                    <a href="{{ route('hitman.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hitman.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-crosshairs w-4 text-center text-rose-600 dark:text-rose-400"></i>
                         <span>Liquidatie</span>
                     </a>
-                    <a href="{{ route('bounties.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bounties.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-skull-crossbones w-4 text-center text-rose-500"></i>
+                    <a href="{{ route('bounties.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bounties.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-skull-crossbones w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Kopgeld & Premies</span>
                     </a>
-                    <a href="{{ route('informants.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('informants.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-user-secret w-4 text-center text-slate-700"></i>
+                    <a href="{{ route('informants.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('informants.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-user-secret w-4 text-center text-slate-500 dark:text-slate-400"></i>
                         <span>Informanten</span>
                     </a>
-                    <a href="{{ route('isolation.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('isolation.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-ghost w-4 text-center text-purple-500"></i>
+                    <a href="{{ route('isolation.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('isolation.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-ghost w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Vrijwillige Isolatie</span>
                     </a>
                 </div>
             </div>
 
-            <!-- 4. ECONOMIE & GOKKEN -->
+            <!-- 5. ECONOMIE & GOKKEN -->
             <div class="space-y-1">
                 <button @click="toggleCategory('economie')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-coins text-slate-400"></i> Economie & Gokken
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'economie' ? 'rotate-180' : ''"></i>
                 </button>
                 <div x-show="openCategory === 'economie'" x-collapse class="space-y-0.5 pl-1">
-                    <a href="{{ route('bank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-building-columns w-4 text-center text-emerald-500"></i>
+                    <a href="{{ route('bank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-building-columns w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>De Bank</span>
                     </a>
-                    <a href="{{ route('travel.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('travel.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-signs-post w-4 text-center text-teal-500"></i>
+                    <a href="{{ route('travel.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('travel.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-signs-post w-4 text-center text-teal-500 dark:text-teal-400"></i>
                         <span>Verplaatsen</span>
                     </a>
-                    <a href="{{ route('casino.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-dice w-4 text-center text-rose-500"></i>
+                    <a href="{{ route('casino.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-dice w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Casino & Gokhal</span>
                     </a>
-                    <a href="{{ route('shop.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-cart-shopping w-4 text-center text-amber-500"></i>
+                    <a href="{{ route('lottery.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('lottery.*') ? 'nav-item-active bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-crown w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                        <span>Afdelingsloterij</span>
+                        <span class="ml-auto bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">Pot</span>
+                    </a>
+                    <a href="{{ route('shop.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-cart-shopping w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Kliniek Winkel</span>
                     </a>
-                    <a href="{{ route('marketplace.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('marketplace.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                        <i class="fa-solid fa-shop w-4 text-center text-purple-600"></i>
+                    <a href="{{ route('marketplace.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('marketplace.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-shop w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Marktplaats</span>
                     </a>
                 </div>
             </div>
 
-            <!-- HELPTOOL, PROFIEL & ACCOUNT (Direct boven Veilig Uitloggen) -->
-            <div class="space-y-0.5 pt-3 mt-2 border-t border-slate-100">
-                <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                    <i class="fa-solid fa-headset w-4 text-center text-indigo-500"></i>
+            <!-- 6. HELPTOOL, PROFIEL & ACCOUNT (Direct boven Veilig Uitloggen) -->
+            <div class="space-y-0.5 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800/60">
+                <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-headset w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                     <span>Helptool & FAQ</span>
                 </a>
-                <a href="{{ route('help.tickets.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                <a href="{{ route('help.tickets.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-ticket w-4 text-center text-purple-500"></i>
+                        <i class="fa-solid fa-ticket w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Support Tickets</span>
                     </div>
                     @php
                         $userOpenTicketsDesk = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
                     @endphp
                     @if($userOpenTicketsDesk > 0)
-                    <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Reactie!</span>
+                    <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Reactie!</span>
                     @endif
                 </a>
-                <a href="{{ route('help.tickets.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                    <i class="fa-solid fa-plus w-4 text-center text-emerald-500"></i>
+                <a href="{{ route('help.tickets.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-plus w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                     <span>Nieuw Ticket Aanmaken</span>
                 </a>
-                <a href="{{ route('profile.me') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                    <i class="fa-solid fa-id-badge w-4 text-center text-blue-500"></i>
+                <a href="{{ route('profile.me') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-id-badge w-4 text-center text-blue-500 dark:text-blue-400"></i>
                     <span>Mijn Profiel</span>
                 </a>
-                <a href="{{ route('vip.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('vip.*') ? 'bg-amber-50 text-amber-800 font-bold border border-amber-200' : 'text-amber-700 hover:text-amber-900 hover:bg-amber-50/60' }}">
+                <a href="{{ route('vip.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('vip.*') ? 'nav-item-active bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : 'text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' }}">
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-crown w-4 text-center text-amber-500"></i>
+                        <i class="fa-solid fa-crown w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span class="font-extrabold">VIP Shop & Punten</span>
                     </div>
-                    <span class="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded-sm shadow-2xs">€7,50</span>
+                    <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-2xs">€7,50</span>
                 </a>
-                <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'bg-indigo-50 text-indigo-700 font-bold border border-indigo-100' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                    <i class="fa-solid fa-gear w-4 text-center text-slate-500"></i>
+                <a href="{{ route('sponsor.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-tv w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                        <span class="font-extrabold">Sponsorkamer</span>
+                    </div>
+                    <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Gratis VIP</span>
+                </a>
+                <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-gear w-4 text-center text-slate-500 dark:text-slate-400"></i>
                     <span>Account Instellingen</span>
                 </a>
                 @if(Auth::check() && Auth::user()->isStaff())
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('admin.*') ? 'bg-purple-100 text-purple-900 font-bold border border-purple-300' : 'text-purple-700 hover:text-purple-950 hover:bg-purple-50' }}">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('admin.*') ? 'nav-item-active bg-purple-100/90 dark:bg-purple-950/70 text-purple-900 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-950 dark:hover:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-950/30' }}">
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600"></i>
+                        <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span class="font-black">Medewerkers Admin</span>
                     </div>
-                    <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
+                    <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Staff</span>
                 </a>
                 @endif
             </div>
@@ -438,7 +648,7 @@
                   data-confirm-type="logout"
                   data-confirm-icon="fa-right-from-bracket">
                 @csrf
-                <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition cursor-pointer">
+                <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition cursor-pointer">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Veilig Uitloggen</span>
                 </button>
@@ -447,15 +657,16 @@
     </aside>
 
     <!-- MOBILE TOP HEADER BAR -->
-    <div class="lg:hidden bg-white text-slate-800 px-3.5 py-2.5 flex items-center justify-between border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <div class="lg:hidden bg-white dark:bg-[#110726] text-slate-800 dark:text-slate-100 px-3.5 py-2.5 flex items-center justify-between border-b border-slate-200 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
             <div class="w-8 h-8 shrink-0 drop-shadow-xs flex items-center justify-center">
                 <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
             </div>
             <div class="flex flex-col">
-                <span class="text-xs font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
-                <span class="text-[9px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+                <span class="text-xs font-black tracking-tight text-slate-900 dark:text-white leading-none">TBS <span class="text-purple-600 dark:text-purple-400">KLINIEK</span></span>
+                <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5" title="Online patiënten">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 
+                    <span x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
                 </span>
             </div>
         </a>
@@ -463,72 +674,90 @@
             @php
                 $unreadMsgCount = \App\Models\GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count();
             @endphp
-            <a href="{{ route('messages.index') }}" class="relative p-2 rounded-xl text-slate-500 hover:text-purple-600 hover:bg-slate-100 transition" title="Berichten">
+            <a href="{{ route('messages.index') }}" class="relative p-2 rounded-xl text-slate-500 dark:text-purple-300 hover:text-purple-600 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition" title="Berichten">
                 <i class="fa-solid fa-envelope text-sm"></i>
                 @if($unreadMsgCount > 0)
                     <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
                 @endif
             </a>
 
-            <a href="{{ route('profile.me') }}" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-xl transition">
+            <a href="{{ route('profile.me') }}" class="flex items-center gap-1.5 bg-slate-100 dark:bg-purple-950/60 hover:bg-slate-200 dark:hover:bg-purple-900/60 px-2 py-1 rounded-xl transition border border-transparent dark:border-purple-800/40">
                 <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-6 h-6 rounded-full object-cover">
-                <span class="text-[10px] font-extrabold text-slate-700 max-w-[70px] truncate">{{ $character->name }}</span>
+                <span class="text-[10px] font-extrabold text-slate-700 dark:text-purple-200 max-w-[70px] truncate">{{ $character->name }}</span>
             </a>
 
             @if(Auth::check() && Auth::user()->isStaff())
-            <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-xl text-purple-700 bg-purple-50 hover:bg-purple-100 transition" title="Medewerkers Admin">
+            <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-xl text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition border border-transparent dark:border-purple-800/40" title="Medewerkers Admin">
                 <i class="fa-solid fa-shield-halved text-sm"></i>
             </a>
             @endif
 
-            <button @click="mobileMenuOpen = true" class="text-slate-700 p-2 focus:outline-none rounded-xl hover:bg-slate-100 cursor-pointer active:scale-95 transition" aria-label="Open menu">
+            <!-- Mobile Dark Mode Animated Switch -->
+            <button type="button" onclick="window.tbsToggleTheme()" 
+                    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-300 dark:bg-purple-950/80 transition-colors duration-200 ease-in-out focus:outline-none shadow-inner overflow-hidden" 
+                    title="Wissel Thema"
+                    aria-label="Wissel Thema">
+                <span class="theme-toggle-knob pointer-events-none inline-flex h-5 w-5 transform rounded-full bg-white dark:bg-purple-900 shadow-md ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-5 items-center justify-center overflow-hidden">
+                    <span class="theme-toggle-sun items-center justify-center">
+                        <i class="fa-solid fa-sun text-amber-500 text-[9px]"></i>
+                    </span>
+                    <span class="theme-toggle-moon items-center justify-center">
+                        <i class="fa-solid fa-moon text-indigo-300 text-[9px]"></i>
+                    </span>
+                </span>
+            </button>
+
+            <button @click="mobileMenuOpen = true" class="text-slate-700 dark:text-purple-200 p-2 focus:outline-none rounded-xl hover:bg-slate-100 dark:hover:bg-purple-950/60 cursor-pointer active:scale-95 transition" aria-label="Open menu">
                 <i class="fa-solid fa-bars text-base"></i>
             </button>
         </div>
     </div>
 
     <!-- MOBILE QUICK STATS STRIP -->
-    <div class="lg:hidden bg-slate-50 border-b border-slate-200/90 px-3 py-1.5 flex items-center gap-2 overflow-x-auto text-[11px] font-bold scrollbar-none sticky top-[49px] z-30 shadow-2xs">
-        <a href="{{ route('bank.index') }}" class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 text-slate-700 shadow-2xs">
-            <span class="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center text-[9px] font-black"><i class="fa-solid fa-euro-sign"></i></span>
-            <span>€{{ number_format($character->cash, 0, ',', '.') }}</span>
+    <div class="lg:hidden bg-white dark:bg-[#110726] border-b border-slate-200/90 dark:border-purple-900/40 px-3 py-1.5 flex items-center gap-2.5 overflow-x-auto text-[11px] font-bold scrollbar-none sticky top-[49px] z-30 shadow-2xs">
+        <!-- Unified Money Block -->
+        <a href="{{ route('bank.index') }}" class="flex items-center gap-2 bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-900/40 px-2.5 py-1 rounded-xl shrink-0 text-slate-700 dark:text-purple-200 shadow-2xs" title="Naar De Bank">
+            <span class="w-5 h-5 rounded-lg bg-indigo-50 dark:bg-purple-900/50 text-indigo-600 dark:text-purple-300 flex items-center justify-center text-[10px] font-bold"><i class="fa-solid fa-wallet"></i></span>
+            <div class="flex flex-col leading-tight">
+                <span class="font-extrabold text-slate-900 dark:text-white text-xs" x-text="stats.totalFormatted">€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}</span>
+                <span class="text-[9px] text-slate-400 dark:text-purple-300/70 font-medium">
+                    <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span> c &middot; <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span> b
+                </span>
+            </div>
         </a>
 
-        <a href="{{ route('bank.index') }}" class="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 text-slate-700 shadow-2xs">
-            <span class="w-4 h-4 rounded bg-indigo-600 text-white flex items-center justify-center text-[9px] font-bold"><i class="fa-solid fa-building-columns"></i></span>
-            <span>€{{ number_format($character->bank, 0, ',', '.') }}</span>
+        <!-- Energy -->
+        <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" class="flex flex-col gap-0.5 bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-900/40 px-2.5 py-1 rounded-xl shrink-0 shadow-2xs min-w-[100px]" title="Energie: klik voor Inventaris">
+            <div class="flex items-center justify-between text-[9px] leading-none">
+                <span class="text-slate-400 dark:text-purple-300/70 font-black flex items-center gap-1 uppercase tracking-wider"><i class="fa-solid fa-bolt text-emerald-500"></i> ENERGIE</span>
+                <span class="text-emerald-700 dark:text-emerald-400 font-black font-mono" x-text="stats.energy + '/' + stats.max_energy">{{ $character->energy }}/{{ $character->max_energy }}</span>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.energy_pct + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+            </div>
         </a>
 
-        <div class="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 shadow-2xs">
-            <span class="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-bolt"></i></span>
-            <span class="text-emerald-700">{{ $character->energy }}/{{ $character->max_energy }}</span>
-            <div class="w-10 bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+        <!-- Health -->
+        <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" class="flex flex-col gap-0.5 bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-900/40 px-2.5 py-1 rounded-xl shrink-0 shadow-2xs min-w-[100px]" title="Gezondheid: klik voor Inventaris">
+            <div class="flex items-center justify-between text-[9px] leading-none">
+                <span class="text-slate-400 dark:text-purple-300/70 font-black flex items-center gap-1 uppercase tracking-wider"><i class="fa-solid fa-heart text-rose-500"></i> GEZONDHEID</span>
+                <span class="text-rose-700 dark:text-rose-400 font-black font-mono" x-text="stats.health + '/' + stats.max_health">{{ $character->health }}/{{ $character->max_health }}</span>
             </div>
+            <div class="w-full bg-slate-200 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-rose-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.health_pct + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+            </div>
+        </a>
+
+        <!-- Respect -->
+        <div class="flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-900/50 px-2 py-1 rounded-xl shrink-0 text-purple-800 dark:text-purple-300 shadow-2xs" title="Totaal Respect">
+            <i class="fa-solid fa-fire-flame-curved text-purple-500 text-[10px]"></i>
+            <span x-text="stats.respect">{{ $character->formatted_respect }}</span>
         </div>
 
-        <div class="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 shadow-2xs">
-            <span class="w-4 h-4 rounded bg-rose-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-heart-pulse"></i></span>
-            <span class="text-rose-700">{{ $character->health }}/{{ $character->max_health }}</span>
-            <div class="w-10 bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
-            </div>
-        </div>
-
-        <!-- Respect & Daily Respect Mobile Badge -->
-        <div class="flex items-center gap-1.5 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 shadow-2xs" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
-            <span class="w-4 h-4 rounded bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-[9px] shadow-2xs">
-                <i class="fa-solid fa-fire-flame-curved text-[9px]"></i>
-            </span>
-            <div class="flex flex-col text-[10px] leading-tight">
-                <span class="font-bold text-slate-800">Respect: <span class="text-purple-700 font-black">{{ $character->formatted_respect }}</span></span>
-                <span class="text-[9px] text-slate-400">Vandaag: <strong class="text-purple-600">{{ $character->formatted_today_respect }}</strong></span>
-            </div>
-        </div>
-
-        <a href="{{ route('vip.index') }}" class="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg shrink-0 text-amber-800 shadow-2xs">
-            <span class="w-4 h-4 rounded bg-amber-500 text-white flex items-center justify-center text-[9px]"><i class="fa-solid fa-star"></i></span>
-            <span>{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
+        <!-- Stars -->
+        <a href="{{ route('vip.index') }}" class="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900/50 px-2 py-1 rounded-xl shrink-0 text-amber-800 dark:text-amber-300 shadow-2xs" title="Sterren">
+            <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+            <span x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
         </a>
     </div>
 
@@ -551,194 +780,238 @@
              x-transition:leave="transition ease-in-out duration-300 transform"
              x-transition:leave-start="translate-x-0"
              x-transition:leave-end="translate-x-full"
-             class="relative w-[85vw] max-w-sm bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800">
+             class="relative w-[85vw] max-w-sm bg-white dark:bg-[#0f172a] h-full shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100">
             
-            <div class="p-4 bg-white text-slate-900 flex items-center justify-between border-b border-slate-200">
+            <div class="p-4 bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-200">
+                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-200 dark:border-purple-800">
                     <div>
-                        <div class="font-extrabold text-sm leading-tight text-slate-900">{{ $character->name }}</div>
-                        <div class="text-[11px] text-purple-700 font-bold">Level {{ $character->level }} &bull; {{ $character->title ?? 'Patiënt' }}</div>
+                        <div class="font-extrabold text-sm leading-tight text-slate-900 dark:text-white">{{ $character->name }}</div>
+                        <div class="text-[11px] text-purple-700 dark:text-purple-300 font-bold">Level {{ $character->level }} &bull; {{ $character->title ?? 'Patiënt' }}</div>
                     </div>
                 </div>
-                <button @click="mobileMenuOpen = false" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
+                <button @click="mobileMenuOpen = false" class="p-2 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
             <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-semibold">
                 <div class="grid grid-cols-2 gap-2">
-                    <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2 p-2.5 rounded-xl {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-black' : 'bg-slate-50 text-slate-700 border-slate-200 font-bold' }} border">
-                        <i class="fa-solid fa-gauge text-indigo-600"></i> Dashboard
+                    <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2 p-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
+                        <i class="fa-solid fa-gauge text-indigo-600 dark:text-indigo-400"></i> Dashboard
                     </a>
-                    <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl {{ request()->routeIs('messages.*') ? 'bg-indigo-50 text-indigo-700 border-indigo-200 font-black' : 'bg-slate-50 text-slate-700 border-slate-200 font-bold' }} border">
-                        <span class="flex items-center gap-2"><i class="fa-solid fa-envelope text-blue-500"></i> Post</span>
+                    <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl transition {{ request()->routeIs('messages.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-envelope text-blue-500 dark:text-blue-400"></i> Post</span>
                         @if($unreadMsgCount > 0)<span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadMsgCount }}</span>@endif
                     </a>
                 </div>
-                <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold transition hover:bg-amber-100/60 dark:hover:bg-amber-900/50">
                     <span class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> VIP Shop</span>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-full">Exclusief</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/60 px-2 py-0.5 rounded-full">Exclusief</span>
                 </a>
 
                 <!-- 1. Algemeen -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Algemeen</span>
-                    <a href="{{ route('timeline.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-bullhorn w-4 text-sky-500"></i> Tijdlijn (Feed)
+                    <a href="{{ route('news.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('news.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-newspaper w-4 text-purple-600 dark:text-purple-400"></i> Kliniek Nieuws
                     </a>
-                    <a href="{{ route('friends.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-user-group w-4 text-pink-500"></i> Vrienden & BFF
+                    <a href="{{ route('newspaper.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('newspaper.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-file-lines w-4 text-indigo-500 dark:text-indigo-400"></i> Het Afdelingsblad</span>
+                        <span class="bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Editie</span>
                     </a>
-                    <a href="{{ route('leaderboard.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-trophy w-4 text-amber-500"></i> Ranglijsten
+                    <a href="{{ route('radio.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('radio.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-radio w-4 text-purple-500 dark:text-purple-400"></i> TBS FM Radio</span>
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">Live</span>
                     </a>
-                    <a href="{{ route('battle.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-bolt w-4 text-purple-600"></i> 24 Uur Battle</span>
-                        <span class="bg-purple-100 text-purple-700 text-[9px] font-black uppercase px-1.5 py-0.5 rounded">Live</span>
+                    <a href="{{ route('timeline.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('timeline.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-bullhorn w-4 text-sky-500 dark:text-sky-400"></i> Tijdlijn (Feed)
                     </a>
-                    <a href="{{ route('prison') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-dungeon w-4 text-rose-500"></i> Isoleercel
+                    <a href="{{ route('friends.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('friends.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-user-group w-4 text-pink-500 dark:text-pink-400"></i> Vrienden & BFF
                     </a>
-                    <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-users w-4 text-purple-500"></i> Bendes & Gangs
+                    <a href="{{ route('leaderboard.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('leaderboard.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-trophy w-4 text-amber-500 dark:text-amber-400"></i> Ranglijsten
+                    </a>
+                    <a href="{{ route('battle.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('battle.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-bolt w-4 text-purple-600 dark:text-purple-400"></i> 24 Uur Battle</span>
+                        <span class="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Live</span>
+                    </a>
+                    <a href="{{ route('prison') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('prison') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-dungeon w-4 text-rose-500 dark:text-rose-400"></i> Isoleercel
+                    </a>
+                    <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('gangs.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-users w-4 text-purple-500 dark:text-purple-400"></i> Bendes & Gangs
                     </a>
                 </div>
 
                 <!-- 2. Voortgang -->
                 <div class="space-y-1">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-600 block px-2">Voortgang</span>
-                    <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-list-check w-4 text-indigo-500"></i> Missies & Opdrachten
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Voortgang</span>
+                    <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('missions.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-list-check w-4 text-indigo-500 dark:text-indigo-400"></i> Missies & Opdrachten
                     </a>
-                    <a href="{{ route('training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-dumbbell w-4 text-purple-500"></i> Krachttraining
+                    <a href="{{ route('training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('training.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-dumbbell w-4 text-purple-500 dark:text-purple-400"></i> Krachttraining
+                    </a>
+                    <a href="{{ route('treatment.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('treatment.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-brain w-4 text-rose-500 dark:text-rose-400"></i> Behandelaarsgesprek
+                    </a>
+                    <a href="{{ route('infirmary.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('infirmary.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-hospital-user w-4 text-teal-500 dark:text-teal-400"></i> Ziekenboeg & Pillen</span>
+                        <span class="bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Heal</span>
+                    </a>
+                    <a href="{{ route('daycare.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('daycare.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-person-digging w-4 text-amber-500 dark:text-amber-400"></i> Dagbesteding</span>
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Veilig</span>
                     </a>
                 </div>
 
                 <!-- 3. Illegale Acties -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Illegale Acties</span>
-                    <a href="{{ route('hustle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-hand-holding-dollar w-4 text-emerald-500"></i> Hosselen
+                    <a href="{{ route('hustle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('hustle.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-hand-holding-dollar w-4 text-emerald-500 dark:text-emerald-400"></i> Hosselen
                     </a>
-                    <a href="{{ route('smuggle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-capsules w-4 text-teal-500"></i> Dealen & Smokkel
+                    <a href="{{ route('smuggle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('smuggle.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-capsules w-4 text-teal-500 dark:text-teal-400"></i> Dealen & Smokkel
                     </a>
-                    <a href="{{ route('extort.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-person-military-pointing w-4 text-orange-500"></i> Afpersen
+                    <a href="{{ route('extort.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('extort.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-person-military-pointing w-4 text-orange-500 dark:text-orange-400"></i> Afpersen
                     </a>
-                    <a href="{{ route('lockers.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-id-card w-4 text-blue-500"></i> Kluisjes Kraken
+                    <a href="{{ route('lockers.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('lockers.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-id-card w-4 text-blue-500 dark:text-blue-400"></i> Kluisjes Kraken
+                    </a>
+                    <a href="{{ route('droppings.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('droppings.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-plane-arrival w-4 text-emerald-500 dark:text-emerald-400"></i> Tennisbal & Drones</span>
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Drop</span>
+                    </a>
+                    <a href="{{ route('tunnel.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('tunnel.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-person-digging w-4 text-amber-500 dark:text-amber-400"></i> Uitbraaktunnel</span>
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Tunnel</span>
                     </a>
                 </div>
 
                 <!-- 4. Bonus & Kluizen -->
                 <div class="space-y-1">
-                    <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 block px-2">Bonus & Kluizen</span>
-                    <a href="{{ route('daily.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Bonus & Kluizen</span>
+                    <a href="{{ route('daily.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('daily.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-dharmachakra w-4 text-amber-500"></i> Rad van Fortuin
+                            <i class="fa-solid fa-dharmachakra w-4 text-amber-500 dark:text-amber-400"></i> Rad van Fortuin
                         </div>
                         @if($character->canDailySpin())
-                        <span class="bg-amber-100 text-amber-700 text-[9px] font-black uppercase px-1.5 py-0.2 rounded border border-amber-200">
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
                             Gratis
                         </span>
                         @endif
                     </a>
-                    <a href="{{ route('vault.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-vault w-4 text-purple-500"></i> MedicijnKluis (Kraak)
+                    <a href="{{ route('vault.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('vault.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-vault w-4 text-purple-500 dark:text-purple-400"></i> MedicijnKluis (Kraak)
                     </a>
-                    <a href="{{ route('packages.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-box-open w-4 text-amber-500"></i> Koffers & Pakketjes
+                    <a href="{{ route('packages.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('packages.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-box-open w-4 text-amber-500 dark:text-amber-400"></i> Koffers & Pakketjes
                     </a>
-                    <a href="{{ route('pickpocket.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-mask w-4 text-indigo-500"></i> Zakkenrollen
+                    <a href="{{ route('pickpocket.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('pickpocket.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-mask w-4 text-indigo-500 dark:text-indigo-400"></i> Zakkenrollen
                     </a>
                 </div>
 
                 <!-- 5. Geweld & Strijd -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Geweld & Strijd</span>
-                    <a href="{{ route('fight.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-skull w-4 text-rose-500"></i> Slaylist (Luchtplaats)
+                    <a href="{{ route('fight.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('fight.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-skull w-4 text-rose-500 dark:text-rose-400"></i> Respectlijst
                     </a>
-                    <a href="{{ route('theft.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-briefcase w-4 text-slate-600"></i> Klusjes & Diefstal
+                    <a href="{{ route('theft.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('theft.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-briefcase w-4 text-slate-500 dark:text-slate-400"></i> Klusjes & Diefstal
                     </a>
-                    <a href="{{ route('combat_training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-bullseye w-4 text-indigo-500"></i> Vechtoefening
+                    <a href="{{ route('combat_training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('combat_training.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-bullseye w-4 text-indigo-500 dark:text-indigo-400"></i> Vechtoefening
                     </a>
-                    <a href="{{ route('hitman.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-crosshairs w-4 text-rose-600"></i> Liquidatie
+                    <a href="{{ route('armwrestling.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('armwrestling.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-hand-back-fist w-4 text-amber-500 dark:text-amber-400"></i> Armpjedruk Arena</span>
+                        <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Duel</span>
                     </a>
-                    <a href="{{ route('bounties.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-skull-crossbones w-4 text-rose-500"></i> Kopgeld & Premies
+                    <a href="{{ route('hitman.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('hitman.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-crosshairs w-4 text-rose-600 dark:text-rose-400"></i> Liquidatie
                     </a>
-                    <a href="{{ route('informants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-user-secret w-4 text-slate-700"></i> Informanten
+                    <a href="{{ route('bounties.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('bounties.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-skull-crossbones w-4 text-rose-500 dark:text-rose-400"></i> Kopgeld & Premies
                     </a>
-                    <a href="{{ route('isolation.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-ghost w-4 text-purple-500"></i> Vrijwillige Isolatie
+                    <a href="{{ route('informants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('informants.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-user-secret w-4 text-slate-500 dark:text-slate-400"></i> Informanten
+                    </a>
+                    <a href="{{ route('isolation.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('isolation.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-ghost w-4 text-purple-500 dark:text-purple-400"></i> Vrijwillige Isolatie
                     </a>
                 </div>
 
                 <!-- 6. Economie & Gokken -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Economie & Gokken</span>
-                    <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-building-columns w-4 text-emerald-500"></i> De Bank
+                    <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('bank.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-building-columns w-4 text-emerald-500 dark:text-emerald-400"></i> De Bank
                     </a>
-                    <a href="{{ route('travel.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-signs-post w-4 text-teal-500"></i> Verplaatsen
+                    <a href="{{ route('travel.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('travel.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-signs-post w-4 text-teal-500 dark:text-teal-400"></i> Verplaatsen
                     </a>
-                    <a href="{{ route('casino.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-dice w-4 text-rose-500"></i> Casino & Gokhal
+                    <a href="{{ route('casino.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-dice w-4 text-rose-500 dark:text-rose-400"></i> Casino & Gokhal
                     </a>
-                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-cart-shopping w-4 text-amber-500"></i> Kliniek Winkel
+                    <a href="{{ route('lottery.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('lottery.*') ? 'bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-crown w-4 text-amber-500 dark:text-amber-400"></i> Afdelingsloterij
+                        </span>
+                        <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">Pot</span>
                     </a>
-                    <a href="{{ route('marketplace.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-shop w-4 text-purple-600"></i> Marktplaats
+                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('shop.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-cart-shopping w-4 text-amber-500 dark:text-amber-400"></i> Kliniek Winkel
+                    </a>
+                    <a href="{{ route('marketplace.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('marketplace.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-shop w-4 text-purple-600 dark:text-purple-400"></i> Marktplaats
                     </a>
                 </div>
 
                 <!-- Helptool, Profiel & Account (Direct boven Veilig Uitloggen) -->
-                <div class="space-y-1 pt-2 border-t border-slate-100">
-                    <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-headset w-4 text-indigo-500"></i> Helptool & FAQ
+                <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                    <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('faq.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-headset w-4 text-indigo-500 dark:text-indigo-400"></i> Helptool & FAQ
                     </a>
-                    <a href="{{ route('help.tickets.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-ticket w-4 text-purple-500"></i> Support Tickets</span>
+                    <a href="{{ route('help.tickets.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('help.tickets.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-ticket w-4 text-purple-500 dark:text-purple-400"></i> Support Tickets</span>
                         @php
                             $userOpenTicketsMob = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
                         @endphp
                         @if($userOpenTicketsMob > 0)
-                        <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Reactie!</span>
+                        <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Reactie!</span>
                         @endif
                     </a>
-                    <a href="{{ route('help.tickets.create') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-plus w-4 text-emerald-500"></i> Nieuw Ticket Aanmaken
+                    <a href="{{ route('help.tickets.create') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('help.tickets.create') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-plus w-4 text-emerald-500 dark:text-emerald-400"></i> Nieuw Ticket Aanmaken
                     </a>
-                    <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-id-badge w-4 text-blue-500"></i> Mijn Profiel
+                    <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('profile.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-id-badge w-4 text-blue-500 dark:text-blue-400"></i> Mijn Profiel
                     </a>
-                    <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-crown w-4 text-amber-500"></i> VIP Shop & Punten</span>
-                        <span class="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded-sm shadow-2xs">€7,50</span>
+                    <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('vip.*') ? 'bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-crown w-4 text-amber-500 dark:text-amber-400"></i> VIP Shop & Punten</span>
+                        <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-2xs">€7,50</span>
                     </a>
-                    <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 transition text-slate-700">
-                        <i class="fa-solid fa-gear w-4 text-slate-500"></i> Account Instellingen
+                    <a href="{{ route('sponsor.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-purple-700 dark:text-purple-300 {{ request()->routeIs('sponsor.*') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-tv w-4 text-purple-600 dark:text-purple-400"></i> Sponsorkamer</span>
+                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Gratis VIP</span>
+                    </a>
+                    <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('settings.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <i class="fa-solid fa-gear w-4 text-slate-500 dark:text-slate-400"></i> Account Instellingen
                     </a>
                     @if(Auth::check() && Auth::user()->isStaff())
-                    <a href="{{ route('admin.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg bg-purple-50 text-purple-900 font-bold border border-purple-200">
-                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-shield-halved w-4 text-purple-600"></i> Medewerkers Admin</span>
-                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.2 rounded-full uppercase">Staff</span>
+                    <a href="{{ route('admin.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg bg-purple-100/90 dark:bg-purple-950/70 text-purple-900 dark:text-purple-300 font-bold">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-shield-halved w-4 text-purple-600 dark:text-purple-400"></i> Medewerkers Admin</span>
+                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Staff</span>
                     </a>
                     @endif
                 </div>
 
-                <div class="pt-2 border-t border-slate-100">
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/60">
                     <form method="POST" action="{{ route('logout') }}"
                           data-confirm="Weet je zeker dat je wilt uitloggen uit de TBS Kliniek?"
                           data-confirm-title="Veilig Uitloggen"
@@ -746,7 +1019,7 @@
                           data-confirm-type="logout"
                           data-confirm-icon="fa-right-from-bracket">
                         @csrf
-                        <button type="submit" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer">
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-transparent transition cursor-pointer">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>Veilig Uitloggen</span>
                         </button>
@@ -760,151 +1033,175 @@
     <!-- MAIN APP WRAPPER -->
     <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
-        <!-- TOP MODERN WHITE HEADER BAR (DESKTOP) -->
-        <header class="hidden lg:block bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
-            <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 h-18 flex items-center justify-between gap-4 sm:gap-6">
+        <!-- TOP MODERN WHITE HEADER BAR (DESKTOP) - Styled after Reference Design in Site Colors -->
+        <header class="hidden lg:block bg-white dark:bg-[#110726] border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-30 shadow-xs">
+            <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 h-20 flex items-center justify-between gap-4">
                 
-                <!-- Left: Player Profile summary -->
-                <div class="flex items-center gap-3 sm:gap-4 shrink-0">
-                    <a href="{{ route('profile.me') }}" class="relative group">
-                        <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-11 h-11 rounded-full object-cover border-2 border-slate-200 shadow-xs group-hover:scale-105 transition-transform bg-slate-100">
-                        <span class="absolute -bottom-1 -right-1 bg-slate-900 text-white font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white">
-                            {{ $character->level }}
-                        </span>
+                <!-- 1. LEFT: Player Profile Summary (Avatar with ring, Name, LVL Badge, XP Bar & Handle) -->
+                <div class="flex items-center gap-3.5 shrink-0">
+                    <a href="{{ route('profile.me') }}" class="relative group shrink-0" title="Bekijk mijn profiel">
+                        <div class="w-12 h-12 rounded-full p-0.5 ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all bg-white dark:bg-purple-950/60 shadow-2xs">
+                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover bg-slate-100">
+                        </div>
                     </a>
-                    <div>
+                    <div class="flex flex-col gap-1 min-w-0">
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('profile.me') }}" class="font-extrabold text-slate-900 text-sm hover:text-indigo-600 transition">
+                            <a href="{{ route('profile.me') }}" class="font-black text-slate-900 dark:text-white text-sm hover:text-indigo-600 dark:hover:text-purple-400 transition leading-none truncate max-w-[140px]">
                                 {{ $character->name }}
                             </a>
-                            <span class="text-[11px] font-bold text-slate-400">Level {{ $character->level }}</span>
+                            <span class="bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 border border-slate-200/80 dark:border-purple-800/40 font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider shadow-2xs shrink-0">
+                                LVL {{ $character->level }}
+                            </span>
                         </div>
-                        @php
-                            $lvlService = app(\App\Services\LevelService::class);
-                            $reqXp = $lvlService->getXpRequiredForNextLevel($character->level);
-                            $pctXp = min(100, max(0, round(($character->xp / max(1, $reqXp)) * 100)));
-                        @endphp
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <div class="w-24 sm:w-32 bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
-                                <div class="bg-indigo-600 h-full rounded-full transition-all duration-300" style="width: {{ $pctXp }}%"></div>
-                            </div>
-                            <span class="text-[10px] font-bold text-slate-400">{{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP</span>
+                        <div class="w-36 sm:w-44 bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
+                            <div class="bg-indigo-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.xp_pct + '%'" style="width: {{ $pctXp }}%"></div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Right: Stat badges (Cash, Bank, Respect, Stars, VIP, Energy, Health) -->
-                <div class="flex items-center gap-2.5 lg:gap-3.5 text-xs font-semibold overflow-x-auto py-1 scrollbar-none">
-                    <!-- Cash -->
-                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
-                        <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black shadow-xs">
-                            <i class="fa-solid fa-euro-sign"></i>
-                        </span>
-                        <div>
-                            <span class="text-[9px] uppercase font-bold text-slate-400 block leading-none">Contant</span>
-                            <span class="font-extrabold text-slate-900 text-xs">€{{ number_format($character->cash, 0, ',', '.') }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Bank -->
-                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
-                        <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-building-columns"></i>
-                        </span>
-                        <div>
-                            <span class="text-[9px] uppercase font-bold text-slate-400 block leading-none">Bank</span>
-                            <span class="font-extrabold text-slate-900 text-xs">€{{ number_format($character->bank, 0, ',', '.') }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Respect & Daily Respect Badge -->
-                    <div class="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0 select-none hover:border-purple-200 transition" title="Totaal Respect: {{ number_format($character->respect, 0, ',', '.') }} | Vandaag: {{ $character->formatted_today_respect }}">
-                        <span class="w-6 h-6 rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-fire-flame-curved text-[11px]"></i>
-                        </span>
-                        <div>
-                            <div class="flex items-center gap-1 leading-none">
-                                <span class="text-[9px] uppercase font-bold text-slate-400 block">Respect</span>
-                                <span class="font-extrabold text-purple-700 text-xs">{{ $character->formatted_respect }}</span>
-                            </div>
-                            <span class="text-[9px] font-semibold text-slate-400 block leading-none mt-0.5">
-                                Vandaag: <strong class="text-purple-600 font-bold">{{ $character->formatted_today_respect }}</strong>
+                        <div class="flex items-center justify-between text-[10px] leading-none pt-0.5">
+                            <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[90px]">
+                                {{ $character->gang ? $character->gang->name : ($character->title ?? '#TBS-'.$character->id) }}
+                            </span>
+                            <span class="font-medium text-slate-400 dark:text-purple-300/70 font-mono" x-text="stats.xpFormatted">
+                                {{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP
                             </span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Sterren (VIP Valuta) -->
-                    <a href="{{ route('vip.index') }}" class="flex items-center gap-2 bg-amber-50/70 border border-amber-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0 hover:bg-amber-100/70 transition" title="Exclusieve Sterren Shop">
-                        <span class="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-star"></i>
-                        </span>
-                        <div>
-                            <span class="text-[9px] uppercase font-bold text-amber-600 block leading-none">Sterren</span>
-                            <span class="font-extrabold text-amber-800 text-xs">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
+                <!-- VERTICAL DIVIDER -->
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
+
+                <!-- 2. CENTER-LEFT: Clean Energy & Health Dual Filled Pill Bars -->
+                <div class="flex flex-col justify-center gap-2 w-44 sm:w-48 shrink-0">
+                    <!-- Energy (Clickable to Inventory) -->
+                    <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
+                       class="group cursor-pointer block"
+                       title="Energie: klik voor Inventaris">
+                        <div class="flex items-center justify-between text-[10px] font-bold mb-1 leading-none">
+                            <span class="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1 transition">
+                                <i class="fa-solid fa-bolt text-emerald-500 text-[9px]"></i> ENERGIE
+                            </span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-extrabold font-mono text-[10px]" x-text="stats.energy + '/' + stats.max_energy">
+                                {{ $character->energy }}/{{ $character->max_energy }}
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
+                            <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.energy_pct + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                         </div>
                     </a>
 
-                    <!-- VIP Punten -->
-                    <a href="{{ route('vip.index') }}" class="flex items-center gap-2 bg-purple-50/80 border border-purple-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0 hover:bg-purple-100 transition" title="VIP Punten Shop & Discord Voordelen">
-                        <span class="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-crown text-[10px] text-amber-300"></i>
+                    <!-- Health (Clickable to Inventory) -->
+                    <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
+                       class="group cursor-pointer block"
+                       title="Gezondheid: klik voor Inventaris">
+                        <div class="flex items-center justify-between text-[10px] font-bold mb-1 leading-none">
+                            <span class="group-hover:text-rose-600 dark:group-hover:text-rose-400 text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1 transition">
+                                <i class="fa-solid fa-heart text-rose-500 text-[9px]"></i> GEZONDHEID
+                            </span>
+                            <span class="text-rose-600 dark:text-rose-400 font-extrabold font-mono text-[10px]" x-text="stats.health + '/' + stats.max_health">
+                                {{ $character->health }}/{{ $character->max_health }}
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
+                            <div class="bg-rose-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.health_pct + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- VERTICAL DIVIDER -->
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
+
+                <!-- 3. CENTER-RIGHT: Financial Overview (Wallet Icon, Total + Cash & Bank Subtitle) -->
+                <a href="{{ route('bank.index') }}" class="flex items-center gap-3 group cursor-pointer shrink-0 hover:opacity-90 transition select-none" title="Totaal Vermogen &bull; Klik voor De Bank">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-purple-950/60 border border-slate-200/90 dark:border-purple-900/40 text-slate-600 dark:text-purple-300 group-hover:bg-indigo-600 dark:group-hover:bg-purple-600 group-hover:text-white group-hover:border-indigo-600 transition flex items-center justify-center text-lg shadow-2xs">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none group-hover:text-indigo-600 dark:group-hover:text-purple-400 transition" x-text="stats.totalFormatted">
+                            €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}
                         </span>
-                        <div>
-                            <div class="flex items-center gap-1 leading-none">
-                                <span class="text-[9px] uppercase font-bold text-purple-600 block">VIP Punten</span>
-                                @if($character->isVip())
-                                    <span class="text-[8px] bg-amber-400 text-slate-950 font-black px-1 rounded-sm">VIP</span>
-                                @endif
-                            </div>
-                            <span class="font-extrabold text-purple-900 text-xs font-mono">{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}</span>
+                        <span class="text-[10px] font-medium text-slate-400 dark:text-purple-300/70 mt-1 leading-none">
+                            <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span> contant &middot; <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span> bank
+                        </span>
+                    </div>
+                </a>
+
+                <!-- VERTICAL DIVIDER -->
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
+
+                <!-- 4. RIGHT: VIP, STARS & RESPECT -->
+                <div class="flex items-center gap-4 shrink-0">
+                    <!-- VIP -->
+                    <a href="{{ route('vip.index') }}" class="flex flex-col items-center gap-1 group" title="VIP Punten">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-purple-800/40">
+                            VIP
+                        </span>
+                        <div class="flex items-center gap-1 text-slate-900 dark:text-white font-black text-xs sm:text-sm leading-none group-hover:text-purple-600 dark:group-hover:text-purple-400 transition">
+                            <i class="fa-solid fa-star text-purple-500 text-xs"></i>
+                            <span x-text="stats.vipPointsFormatted">{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}</span>
                         </div>
                     </a>
 
-                    <!-- Energie -->
-                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
-                        <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-bolt"></i>
+                    <!-- STARS -->
+                    <a href="{{ route('vip.index') }}" class="flex flex-col items-center gap-1 group" title="Sterren">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-amber-800/40">
+                            STERREN
                         </span>
-                        <div>
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[9px] uppercase font-bold text-slate-400 leading-none">Energie</span>
-                                <span class="font-extrabold text-emerald-700 text-[11px]">{{ $character->energy }}/{{ $character->max_energy }}</span>
-                            </div>
-                            <div class="w-18 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
-                                <div class="bg-emerald-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
-                            </div>
+                        <div class="flex items-center gap-1 text-slate-900 dark:text-white font-black text-xs sm:text-sm leading-none group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">
+                            <i class="fa-solid fa-star text-amber-500 text-xs"></i>
+                            <span x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
                         </div>
-                    </div>
+                    </a>
 
-                    <!-- Gezondheid -->
-                    <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs shrink-0">
-                        <span class="w-6 h-6 rounded-lg bg-rose-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <i class="fa-solid fa-heart-pulse"></i>
+                    <!-- RESPECT -->
+                    <div class="flex flex-col items-center gap-1 cursor-default select-none" title="Respect">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-indigo-800/40">
+                            RESPECT
                         </span>
-                        <div>
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[9px] uppercase font-bold text-slate-400 leading-none">Gezondheid</span>
-                                <span class="font-extrabold text-rose-700 text-[11px]">{{ $character->health }}/{{ $character->max_health }}</span>
-                            </div>
-                            <div class="w-18 bg-slate-200 rounded-full h-1.5 overflow-hidden mt-0.5">
-                                <div class="bg-rose-500 h-full rounded-full" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
-                            </div>
+                        <div class="flex items-center gap-1 text-slate-900 dark:text-white font-black text-xs sm:text-sm leading-none">
+                            <i class="fa-solid fa-fire text-amber-500 text-xs"></i>
+                            <span x-text="stats.respect">{{ $character->formatted_respect }}</span>
                         </div>
-                    </div>
-
-                    <!-- Icons on Far Right -->
-                    <div class="flex items-center gap-2 pl-2 border-l border-slate-200 text-slate-400">
-                        @if(Auth::check() && Auth::user()->isStaff())
-                        <a href="{{ route('admin.dashboard') }}" class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs" title="Medewerkers Admin Panel">
-                            <i class="fa-solid fa-shield-halved text-purple-600"></i>
-                            <span>Admin Panel</span>
-                        </a>
-                        @endif
-                        <a href="{{ route('profile.me') }}" class="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition" title="Mijn Profiel">
-                            <i class="fa-solid fa-user"></i>
-                        </a>
                     </div>
                 </div>
+
+                <!-- VERTICAL DIVIDER -->
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
+
+                <!-- 5. FAR RIGHT: Online status, Admin button & Profile Icon -->
+                <div class="flex items-center gap-2.5 shrink-0">
+                    <!-- Online Indicator -->
+                    <div class="flex items-center gap-1.5 text-[10px] font-black text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/50 px-2.5 py-1.5 rounded-xl shadow-2xs select-none" title="Patiënten online">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-400" x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
+                    </div>
+
+                    @if(Auth::check() && Auth::user()->isStaff())
+                    <a href="{{ route('admin.dashboard') }}" class="px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs" title="Medewerkers Admin Panel">
+                        <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
+                        <span class="hidden xl:inline">Admin</span>
+                    </a>
+                    @endif
+
+                    <!-- Sleek Animated Dark/Light Switch Slider -->
+                    <button type="button" onclick="window.tbsToggleTheme()" 
+                            class="relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-300 dark:bg-purple-950/80 transition-colors duration-200 ease-in-out focus:outline-none shadow-inner overflow-hidden" 
+                            title="Wissel Thema (Licht / Donker)"
+                            aria-label="Wissel Thema">
+                        <span class="theme-toggle-knob pointer-events-none inline-flex h-6 w-6 transform rounded-full bg-white dark:bg-purple-900 shadow-md ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-6 items-center justify-center overflow-hidden">
+                            <span class="theme-toggle-sun items-center justify-center">
+                                <i class="fa-solid fa-sun text-amber-500 text-[10px]"></i>
+                            </span>
+                            <span class="theme-toggle-moon items-center justify-center">
+                                <i class="fa-solid fa-moon text-indigo-300 text-[10px]"></i>
+                            </span>
+                        </span>
+                    </button>
+
+                    <a href="{{ route('profile.me') }}" class="w-8 h-8 rounded-xl hover:bg-slate-100 dark:hover:bg-purple-950/60 border border-transparent hover:border-slate-200 dark:hover:border-purple-900/40 flex items-center justify-center text-slate-500 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white transition" title="Mijn Profiel">
+                        <i class="fa-solid fa-user"></i>
+                    </a>
+                </div>
+
             </div>
         </header>
         @else
@@ -923,6 +1220,21 @@
                 </a>
 
                 <div class="flex items-center gap-3">
+                    <!-- Guest Dark Mode Animated Switch -->
+                    <button type="button" onclick="window.tbsToggleTheme()" 
+                            class="relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-300 dark:bg-purple-950/80 transition-colors duration-200 ease-in-out focus:outline-none shadow-inner overflow-hidden" 
+                            title="Wissel Thema (Licht / Donker)"
+                            aria-label="Wissel Thema">
+                        <span class="theme-toggle-knob pointer-events-none inline-flex h-6 w-6 transform rounded-full bg-white dark:bg-purple-900 shadow-md ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-6 items-center justify-center overflow-hidden">
+                            <span class="theme-toggle-sun items-center justify-center">
+                                <i class="fa-solid fa-sun text-amber-500 text-[10px]"></i>
+                            </span>
+                            <span class="theme-toggle-moon items-center justify-center">
+                                <i class="fa-solid fa-moon text-indigo-300 text-[10px]"></i>
+                            </span>
+                        </span>
+                    </button>
+
                     <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs sm:text-sm font-extrabold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-discord text-sm"></i>
                         <span>Word lid van onze Discord</span>
@@ -1010,22 +1322,45 @@
             @endif
 
             <!-- Flash messages -->
-            @if(session('success'))
-            <div class="mb-6 bg-emerald-50 border border-emerald-200 p-4 rounded-xl shadow-xs flex items-start gap-3">
-                <i class="fa-solid fa-circle-check text-emerald-600 text-lg mt-0.5"></i>
+            @if(session('evening_drop_awarded'))
+            <div class="mb-6 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border-2 border-amber-400 p-4 sm:p-5 rounded-2xl shadow-md flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl font-black shrink-0 shadow-sm animate-bounce">
+                        
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                            <span>22:00 AVONDRONDE BELONING!</span>
+                            <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">3x Kluiscodes</span>
+                        </h4>
+                        <p class="text-xs text-slate-600 mt-0.5">
+                            Omdat je aanwezig bent in de TBS Kliniek heb je <strong>3 gratis geheime kluiscodes</strong> ontvangen in je dossier en postvak!
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ route('vault.index') }}" class="shrink-0 hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black shadow-xs transition active:scale-95">
+                    <i class="fa-solid fa-vault text-amber-400"></i>
+                    <span>Naar MedicijnKluis</span>
+                </a>
+            </div>
+            @endif
+
+            @if(session('success') || session('status'))
+            <div class="mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
+                <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-lg mt-0.5 shrink-0"></i>
                 <div>
-                    <p class="text-xs font-extrabold text-emerald-900">Actie Geslaagd!</p>
-                    <p class="text-xs text-emerald-800 mt-0.5">{{ session('success') }}</p>
+                    <p class="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">Actie Geslaagd!</p>
+                    <p class="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 leading-relaxed">{{ session('success') ?? session('status') }}</p>
                 </div>
             </div>
             @endif
 
             @if(session('error'))
-            <div class="mb-6 bg-rose-50 border border-rose-200 p-4 rounded-xl shadow-xs flex items-start gap-3">
-                <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5"></i>
+            <div class="mb-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-lg mt-0.5 shrink-0"></i>
                 <div>
-                    <p class="text-xs font-extrabold text-rose-900">Let op / Tegenwerking!</p>
-                    <p class="text-xs text-rose-800 mt-0.5">{{ session('error') }}</p>
+                    <p class="text-xs font-extrabold text-rose-900 dark:text-rose-200">Let op / Tegenwerking!</p>
+                    <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5 leading-relaxed">{{ session('error') }}</p>
                 </div>
             </div>
             @endif
@@ -1033,19 +1368,105 @@
             @yield('content')
         </main>
 
-        <!-- SITE-WIDE FOOTER (Altijd zichtbaar, schoon en professioneel) -->
-        <footer class="mt-auto border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-            <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div class="flex items-center gap-2.5">
-                    <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek" class="w-8 h-8 object-contain drop-shadow-xs">
-                    <span class="font-extrabold text-slate-800 text-sm">TBS <span class="text-purple-600">Kliniek</span></span>
+        <!-- SITE-WIDE JURIDISCHE & COMPLIANCE FOOTER (Nederland & Europa AVG/GDPR) -->
+        <footer class="mt-auto border-t border-slate-200 bg-white pt-10 pb-20 lg:pb-10 text-xs text-slate-500">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+                
+                <!-- Main Footer Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    
+                    <!-- Col 1: Branding & Intro -->
+                    <div class="space-y-3 md:col-span-1">
+                        <div class="flex items-center gap-2.5">
+                            <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek" class="w-8 h-8 object-contain drop-shadow-xs">
+                            <span class="font-black text-slate-900 text-base">TBS <span class="text-purple-600">Kliniek</span></span>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Het #1 Nederlandse misdaad- & gevangenis browsergame. Overleef de afdeling, leid je bende en heers over de kliniek.
+                        </p>
+                        <div class="flex items-center gap-2 pt-1">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                                <i class="fa-solid fa-lock text-[9px]"></i> SSL Beveiligd
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-200">
+                                <i class="fa-solid fa-shield-halved text-[9px]"></i> AVG Compliant
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Col 2: Spel & Actie -->
+                    <div class="space-y-2.5">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900">Spel & Features</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-600">
+                            <li><a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">Dashboard & Profiel</a></li>
+                            <li><a href="{{ route('fight.index') }}" class="hover:text-purple-600 transition">De Luchtplaats (Vechten)</a></li>
+                            <li><a href="{{ route('vault.index') }}" class="hover:text-purple-600 transition">MedicijnKluis & Codes</a></li>
+                            <li><a href="{{ route('sponsor.index') }}" class="hover:text-purple-600 transition font-bold text-purple-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-tv text-purple-600 text-[10px]"></i> Sponsorkamer (Gratis VIP)
+                            </a></li>
+                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 transition">VIP Lidmaatschap (€7,50 pm)</a></li>
+                            <li><a href="{{ route('roadmap.index') }}" class="hover:text-purple-600 transition">Roadmap & Updates</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Col 3: Hulp & Ondersteuning -->
+                    <div class="space-y-2.5">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900">Ondersteuning</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-600">
+                            <li><a href="{{ route('faq.index') }}" class="hover:text-purple-600 transition">Kennisbank & FAQ</a></li>
+                            <li><a href="{{ route('help.tickets.index') }}" class="hover:text-purple-600 transition">Support Ticketsysteem</a></li>
+                            <li><a href="{{ route('help.tickets.create') }}" class="hover:text-purple-600 transition">Nieuw Ticket Openen</a></li>
+                            <li><a href="{{ route('settings.account') }}" class="hover:text-purple-600 transition">Account & Beveiliging</a></li>
+                            <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1">
+                                <i class="fa-brands fa-discord text-indigo-500"></i> Officiële Discord
+                            </a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Col 4: Juridisch & Privacy (NL / EU) -->
+                    <div class="space-y-2.5">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900">Juridisch & Privacy</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-600">
+                            <li><a href="{{ route('legal.terms') }}" class="hover:text-purple-600 transition">Algemene Voorwaarden</a></li>
+                            <li><a href="{{ route('legal.privacy') }}" class="hover:text-purple-600 transition">Privacybeleid (AVG / GDPR)</a></li>
+                            <li><a href="{{ route('legal.cookies') }}" class="hover:text-purple-600 transition">Cookiebeleid</a></li>
+                            <li><a href="{{ route('legal.disclaimer') }}" class="hover:text-purple-600 transition">Disclaimer & Colofon</a></li>
+                            <li>
+                                <button type="button" onclick="window.tbsOpenCookieSettings()" class="hover:text-purple-600 transition text-left cursor-pointer flex items-center gap-1.5 text-purple-700 font-bold">
+                                    <i class="fa-solid fa-cookie-bite text-amber-600 text-[10px]"></i> Cookie-instellingen Beheren
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
-                <div>
-                    <span class="font-medium text-slate-600">Overleef de afdeling, leid je bende en heers over de kliniek.</span>
+
+                <!-- Satire / Fictief Verklaring Bar -->
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-relaxed flex items-start gap-3">
+                    <i class="fa-solid fa-circle-info text-purple-600 text-sm mt-0.5 shrink-0"></i>
+                    <div>
+                        <strong class="text-slate-800 font-bold">Fictief Rollenspel Verklaring:</strong> TBS Kliniek is een 100% fictief online browsergame (RPG / satire) ter recreatief vermaak. Deze website is op geen enkele wijze gelieerd aan het Ministerie van Justitie en Veiligheid, de Dienst Justitiële Inrichtingen (DJI) of bestaande forensische psychiatrische centra. In-game valuta en items hebben geen reële economische waarde.
+                    </div>
                 </div>
-                <div class="text-[11px] text-slate-400">
-                    &copy; {{ date('Y') }} TBS Kliniek. Alle rechten voorbehouden.
+
+
+
+                <!-- Copyright Bar -->
+                <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+                    <div>
+                        &copy; {{ date('Y') }} TBS Kliniek (tbs-kliniek.nl). Alle rechten voorbehouden.
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ route('legal.terms') }}" class="hover:underline">Voorwaarden</a>
+                        <span>•</span>
+                        <a href="{{ route('legal.privacy') }}" class="hover:underline">Privacy</a>
+                        <span>•</span>
+                        <a href="{{ route('legal.cookies') }}" class="hover:underline">Cookies</a>
+                        <span>•</span>
+                        <a href="{{ route('legal.disclaimer') }}" class="hover:underline">Colofon</a>
+                    </div>
                 </div>
+
             </div>
         </footer>
 
@@ -1319,109 +1740,127 @@
 
     <!-- FLOATING KENNISBANK CHAT ASSISTANT WIDGET (TBS Kliniek Styling) - ALLEEN VOOR INGELOGDE SPELERS -->
     @auth
-    <div x-data="{
-        isOpen: false,
-        inputQuery: '',
-        messages: [
-            {
-                from: 'bot',
-                text: 'Hoi patiënt! Ik ben de TBS Zaalwacht AI. Heb je vragen over het spel, VIP worden, gevechten, de kluis of je account? Stel gerust je vraag of klik op een snel onderwerp hieronder!',
-                links: []
-            }
-        ],
-        faqKnowledge: [
-            {
-                keywords: ['vip', 'doneren', 'kopen', 'discord', 'ticket', '7,50'],
-                title: 'VIP Lidmaatschap (€7,50 pm)',
-                answer: 'Word lid van onze officiële Discord via discord.gg/tbs en maak een ticket aan voor VIP (€7,50 per maand). Elke actieve VIP ontvangt automatisch 5 VIP Punten per uur! VIP punten kun je inwisselen in de VIP Shop.',
-                links: [{ text: 'Naar VIP Shop', url: '{{ route('vip.index') }}' }]
-            },
-            {
-                keywords: ['vechten', 'aanval', 'aanvallen', 'luchtplaats', '100', 'arena'],
-                title: 'Luchtplaats & Aanvallen Limiet',
-                answer: 'Je mag maximaal 100 aanvallen per dag uitvoeren en maximaal 100 keer per dag hetzelfde doelwit aanvallen. Elk gevecht brengt je naar het interactieve 5-seconden Arena Scherm!',
-                links: [{ text: 'Naar de Luchtplaats', url: '{{ route('fight.index') }}' }]
-            },
-            {
-                keywords: ['kluis', 'kraken', 'code', 'jammer', 'hint'],
-                title: 'Kluis-Kraak & Codes',
-                answer: 'De centrale kluis bevat een 4-cijferige geheime code. Raad de code met behulp van hints (te hoog / te laag). Let op: na 3 fouten gaat het alarm af tenzij je een Alarm Jammer hebt.',
-                links: [{ text: 'Kluis Kraken', url: '{{ route('vault.index') }}' }]
-            },
-            {
-                keywords: ['wachtwoord', 'vergeten', 'kwijt', 'reset'],
-                title: 'Wachtwoord Vergeten',
-                answer: 'Ben je je wachtwoord vergeten? Ga naar de wachtwoord vergeten pagina en vul je e-mailadres in. Je ontvangt direct een veilige reset-link in je inbox.',
-                links: [{ text: 'Wachtwoord Resetten', url: '{{ route('password.request') }}' }]
-            },
-            {
-                keywords: ['naam', 'username', 'gebruikersnaam', '6 maanden'],
-                title: 'Gebruikersnaam Wijzigen',
-                answer: 'Je mag je gebruikersnaam maximaal 1 keer per 6 maanden aanpassen onder Account Instellingen (/instellingen/account). Dit voorkomt identiteitsfraude in de kliniek.',
-                links: [{ text: 'Account Instellingen', url: '{{ route('settings.account') }}' }]
-            },
-            {
-                keywords: ['2fa', 'sessies', 'uitloggen', 'apparaat', 'afstand'],
-                title: 'Beveiliging & Remote Sessies',
-                answer: 'Onder Account Instellingen kun je 2FA inschakelen en alle actieve apparaten bekijken. Met je wachtwoord kun je alle andere apparaten direct op afstand uitloggen.',
-                links: [{ text: 'Sessies Beheren', url: '{{ route('settings.account') }}' }]
-            },
-            {
-                keywords: ['isoleercel', 'gevangenis', 'ontsnappen', 'straf', 'vast'],
-                title: 'Isoleercel & Ontsnappen',
-                answer: 'Als je gepakt wordt bij een misdrijf beland je in de isoleercel. Wacht je straftijd af, vraag een ganggenoot je celdeur te forceren of koop jezelf vrij voor 2 Sterren.',
-                links: [{ text: 'Naar Gevangenis', url: '{{ route('prison') }}' }]
-            },
-            {
-                keywords: ['gang', 'bende', 'uurloon', 'loon', 'doneren'],
-                title: 'Gangs & Bende Uurloon',
-                answer: 'Leden van een gang kunnen elk uur hun gang-uurloon claimen vanuit de gezamenlijke bende-kluis!',
-                links: [{ text: 'Naar Gangs', url: '{{ route('gangs.index') }}' }]
-            }
-        ],
-        sendQuery(customText = null) {
-            const query = (customText || this.inputQuery).trim();
-            if (!query) return;
+    <script>
+        (function() {
+            const initHelpbot = () => {
+                if (window.Alpine) {
+                    window.Alpine.data('tbsHelpbot', () => ({
+                        isOpen: false,
+                        inputQuery: '',
+                        messages: [
+                            {
+                                from: 'bot',
+                                text: 'Hoi patiënt! Ik ben de TBS Zaalwacht AI. Ik weet álles over de kliniek: van energie, de isoleercel en de Respectlijst tot de centrale kluis, gangs en 24u gratis VIP. Stel gerust je vraag of klik hieronder op een snel onderwerp!',
+                                links: []
+                            }
+                        ],
+                        faqKnowledge: {!! json_encode(\App\Http\Controllers\FaqController::getBotKnowledge()) !!},
+                        sendQuery(customText = null) {
+                            const query = (customText || this.inputQuery).trim();
+                            if (!query) return;
 
-            // Add user message
-            this.messages.push({ from: 'user', text: query });
-            this.inputQuery = '';
+                            // Add user message
+                            this.messages.push({ from: 'user', text: query });
+                            this.inputQuery = '';
 
-            // Scroll down
-            this.$nextTick(() => {
-                const el = this.$refs.chatBox;
-                if (el) el.scrollTop = el.scrollHeight;
-            });
+                            // Scroll down
+                            this.$nextTick(() => {
+                                const el = this.$refs.chatBox;
+                                if (el) el.scrollTop = el.scrollHeight;
+                            });
 
-            // Match answer
-            setTimeout(() => {
-                const qLower = query.toLowerCase();
-                let matched = this.faqKnowledge.find(item => 
-                    item.keywords.some(k => qLower.includes(k)) || 
-                    qLower.includes(item.title.toLowerCase())
-                );
+                            // Match answer with intelligent scoring
+                            setTimeout(() => {
+                                const qRaw = query.toLowerCase();
+                                const qClean = qRaw.replace(/[^a-z0-9\s]/g, ' ');
+                                const words = qClean.split(/\s+/).filter(w => w.length > 2 && !['wat', 'hoe', 'kan', 'het', 'een', 'die', 'van', 'naar', 'voor', 'met', 'zijn', 'mijn', 'waar', 'over', 'alle', 'welke', 'moet', 'doen', 'krijg'].includes(w));
 
-                if (matched) {
-                    this.messages.push({
-                        from: 'bot',
-                        text: matched.title + ':\n' + matched.answer,
-                        links: matched.links || []
-                    });
-                } else {
-                    this.messages.push({
-                        from: 'bot',
-                        text: 'Ik kon geen specifiek antwoord vinden op jouw vraag. Bekijk onze volledige Kennisbank & FAQ pagina met alle speluitleg!',
-                        links: [{ text: 'Volledige FAQ Bekijken', url: '{{ route('faq') }}' }]
-                    });
+                                const isGreeting = ['hallo', 'hoi', 'hey', 'goedendag', 'help', 'tips', 'uitleg', 'beginnen', 'starter'].some(g => qRaw.includes(g));
+
+                                let bestItem = null;
+                                let bestScore = 0;
+
+                                for (const item of this.faqKnowledge) {
+                                    let score = 0;
+                                    const itemTitleLower = item.title.toLowerCase();
+                                    const itemAnswerLower = item.answer.toLowerCase();
+
+                                    // Direct title exact phrase match
+                                    if (qRaw.includes(itemTitleLower) || itemTitleLower.includes(qRaw)) {
+                                        score += 20;
+                                    }
+
+                                    // Keyword matches
+                                    if (item.keywords && Array.isArray(item.keywords)) {
+                                        for (const kw of item.keywords) {
+                                            if (qRaw === kw) {
+                                                score += 15;
+                                            } else if (qRaw.includes(kw)) {
+                                                score += kw.length > 4 ? 10 : 6;
+                                            } else {
+                                                for (const w of words) {
+                                                    if (kw === w) score += 8;
+                                                    else if (kw.startsWith(w) || w.startsWith(kw)) score += 4;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // Content relevance score
+                                    for (const w of words) {
+                                        if (itemAnswerLower.includes(w)) {
+                                            score += 2;
+                                        }
+                                    }
+
+                                    if (score > bestScore) {
+                                        bestScore = score;
+                                        bestItem = item;
+                                    }
+                                }
+
+                                if (bestScore >= 5 && bestItem) {
+                                    this.messages.push({
+                                        from: 'bot',
+                                        text: bestItem.title + ':\n' + bestItem.answer,
+                                        links: bestItem.links || []
+                                    });
+                                } else if (isGreeting) {
+                                    const starterItem = this.faqKnowledge.find(i => i.keywords && i.keywords.includes('beginnen')) || this.faqKnowledge[0];
+                                    this.messages.push({
+                                        from: 'bot',
+                                        text: 'Hoi patiënt!  Goed dat je het vraagt! Hier is de beknopte spoedcursus voor de TBS Kliniek:\n\n' + starterItem.answer,
+                                        links: starterItem.links || []
+                                    });
+                                } else {
+                                    this.messages.push({
+                                        from: 'bot',
+                                        text: 'Ik begreep je vraag niet helemaal. Probeer een korter zoekwoord zoals \'energie\', \'vechten\', \'bank\', \'kluis\', \'verlof\', \'bende\' of \'isoleercel\'.\n\nOf bekijk direct ons complete Handboek & Kennisbank:',
+                                        links: [
+                                            { text: 'Volledige FAQ Bekijken', url: '{{ route('faq') }}' },
+                                            { text: 'Support Ticket Aanmaken', url: '{{ route('help.tickets.create') }}' }
+                                        ]
+                                    });
+                                }
+
+                                this.$nextTick(() => {
+                                    const el = this.$refs.chatBox;
+                                    if (el) el.scrollTop = el.scrollHeight;
+                                });
+                            }, 300);
+                        }
+                    }));
                 }
+            };
 
-                this.$nextTick(() => {
-                    const el = this.$refs.chatBox;
-                    if (el) el.scrollTop = el.scrollHeight;
-                });
-            }, 300);
-        }
-    }" class="hidden md:block fixed bottom-5 right-5 z-50">
+            if (window.Alpine) {
+                initHelpbot();
+            } else {
+                document.addEventListener('alpine:init', initHelpbot);
+            }
+        })();
+    </script>
+    <div x-data="tbsHelpbot" class="hidden md:block fixed bottom-5 right-5 z-50">
 
         <!-- CHAT WINDOW POPUP (Website Style: Clean Light Card with Royal Purple Accents) -->
         <div x-show="isOpen" x-cloak style="display: none;"
@@ -1483,21 +1922,36 @@
                     </div>
                 </template>
 
-                <!-- Quick Suggested Topic Pills -->
+                <!-- Quick Suggested Topic Pills (Newb Friendly) -->
                 <div class="pt-2">
                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">Snel Onderwerp Kiezen:</span>
                     <div class="flex flex-wrap gap-1.5">
-                        <button type="button" @click="sendQuery('Hoe word ik VIP?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i> VIP Lidmaatschap
+                        <button type="button" @click="sendQuery('Eerste stappen gids')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-graduation-cap text-purple-600 text-[10px]"></i> Eerste Stappen Gids
                         </button>
-                        <button type="button" @click="sendQuery('Hoeveel aanvallen mag ik doen?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-crosshairs text-rose-500 text-[10px]"></i> 100 Aanvallen Limiet
+                        <button type="button" @click="sendQuery('Hoe krijg ik energie?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-bolt text-emerald-500 text-[10px]"></i> Energie Herstel
+                        </button>
+                        <button type="button" @click="sendQuery('Waarom moet ik geld op de bank zetten?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-building-columns text-emerald-600 text-[10px]"></i> Geld op de Bank
+                        </button>
+                        <button type="button" @click="sendQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-dungeon text-rose-500 text-[10px]"></i> Isoleercel Ontsnappen
+                        </button>
+                        <button type="button" @click="sendQuery('Hoe werkt de Respectlijst?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-fist text-purple-600 text-[10px]"></i> Respectlijst Vechten
+                        </button>
+                        <button type="button" @click="sendQuery('Wat is veilige dagbesteding?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-person-digging text-amber-500 text-[10px]"></i> Veilige Dagbesteding
                         </button>
                         <button type="button" @click="sendQuery('Hoe kraak ik de kluis?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-key text-amber-500 text-[10px]"></i> Kluis Kraak
+                            <i class="fa-solid fa-key text-amber-500 text-[10px]"></i> Medicijnkluis Kraken
                         </button>
-                        <button type="button" @click="sendQuery('Wachtwoord vergeten')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-lock text-purple-600 text-[10px]"></i> Wachtwoord Vergeten
+                        <button type="button" @click="sendQuery('Hoe verdien ik gratis VIP?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-tv text-purple-600 text-[10px]"></i> 24u Gratis VIP
+                        </button>
+                        <button type="button" @click="sendQuery('Hoe werkt het Behandelaarsgesprek en verlof?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-doctor text-teal-600 text-[10px]"></i> Verlof & Psychiater
                         </button>
                     </div>
                 </div>
@@ -1559,5 +2013,454 @@
         </button>
     </nav>
     @endif
+    <!-- GLOBAL REWARDED SPONSOR AD WATCH MODAL (Adsterra Smartlink & Anti-abuse Validation) -->
+    <div x-data="{
+        isOpen: false,
+        rewardType: 'cash',
+        rewardTitle: '€ 2.500 Zakgeld',
+        rewardIcon: 'fa-money-bill-wave',
+        status: 'idle', // 'loading', 'watching', 'ready_to_claim', 'claiming', 'claimed', 'error'
+        statusMessage: '',
+        secondsLeft: 15,
+        totalSeconds: 15,
+        token: null,
+        smartlinkUrl: '',
+        callback: null,
+        async checkAdblock() {
+            try {
+                const bait = document.createElement('div');
+                bait.className = 'pub_300x250 pub_300x250m pub_728x90 text-ad textAd text_ad text_ads text-ads text-ad-links banner-ad ad-unit';
+                bait.style.cssText = 'width: 1px !important; height: 1px !important; position: absolute !important; left: -10000px !important; top: -10000px !important;';
+                document.body.appendChild(bait);
+                const isBlocked = (bait.offsetParent === null || bait.offsetHeight === 0 || window.getComputedStyle(bait).display === 'none');
+                bait.remove();
+                if (isBlocked) return true;
+
+                // Secondary test: network fetch to standard ad script
+                const netCheck = await fetch('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', { method: 'HEAD', mode: 'no-cors' }).catch(() => true);
+                return netCheck === true;
+            } catch(e) {
+                return false;
+            }
+        },
+        init() {
+            window.tbsOpenSponsorAd = async (rewardType = 'cash', callback = null) => {
+                this.rewardType = rewardType;
+                this.callback = callback;
+                this.secondsLeft = 15;
+                this.totalSeconds = 15;
+                this.status = 'loading';
+                this.statusMessage = 'Sponsor advertentie initialiseren...';
+                this.isOpen = true;
+
+                // Check for adblocker
+                const hasAdblock = await this.checkAdblock();
+                if (hasAdblock) {
+                    this.status = 'adblock_detected';
+                    this.statusMessage = 'Adblocker gedetecteerd! Schakel je adblocker uit voor TBS Kliniek of whitelist de website om de sponsor te bekijken en gratis beloningen te verdienen.';
+                    return;
+                }
+
+                if (rewardType === 'prison') {
+                    this.rewardTitle = '-15 Min Isoleercel Straf';
+                    this.rewardIcon = 'fa-hourglass-half';
+                } else if (rewardType === 'cooldown') {
+                    this.rewardTitle = ' Reset Alle Cooldowns';
+                    this.rewardIcon = 'fa-bolt';
+                } else if (rewardType === 'mask') {
+                    this.rewardTitle = '+1 Bivakmuts / Masker';
+                    this.rewardIcon = 'fa-masks-theater';
+                } else if (rewardType === 'token') {
+                    this.rewardTitle = '+1 Kluismunt';
+                    this.rewardIcon = 'fa-coins';
+                } else if (rewardType === 'star') {
+                    this.rewardTitle = '+1 Gratis Ster';
+                    this.rewardIcon = 'fa-star';
+                } else {
+                    this.rewardTitle = '€ 2.500 Contant Zakgeld';
+                    this.rewardIcon = 'fa-money-bill-wave';
+                }
+
+                fetch('{{ route('sponsor.start') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ reward_type: this.rewardType })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        this.status = 'error';
+                        this.statusMessage = data.message || 'Kon advertentie niet starten.';
+                        return;
+                    }
+
+                    this.token = data.token;
+                    this.smartlinkUrl = data.smartlink_url;
+                    this.secondsLeft = data.duration || 15;
+                    this.totalSeconds = data.duration || 15;
+                    this.status = 'watching';
+                    this.statusMessage = 'De sponsor advertentie is geopend in een nieuw tabblad. Bekijk deze tijdens de afteltimer om je beloning te claimen!';
+
+                    // Open smartlink in new tab (adsterra smartlink)
+                    try {
+                        window.open(this.smartlinkUrl, '_blank');
+                    } catch(e) {
+                        console.warn('Popup blocked, click manually', e);
+                    }
+
+                    // Countdown timer
+                    const timer = setInterval(() => {
+                        this.secondsLeft--;
+                        if (this.secondsLeft <= 0) {
+                            clearInterval(timer);
+                            this.status = 'ready_to_claim';
+                            this.statusMessage = 'Gefeliciteerd! De kijktijd is voltooid. Klik hieronder om jouw beloning direct te claimen!';
+                        }
+                    }, 1000);
+                })
+                .catch(err => {
+                    this.status = 'error';
+                    this.statusMessage = 'Er is een netwerkfout opgetreden bij het laden van de sponsor.';
+                });
+            };
+        },
+        openAdTabAgain() {
+            if (this.smartlinkUrl) {
+                window.open(this.smartlinkUrl, '_blank');
+            }
+        },
+        claim() {
+            this.status = 'claiming';
+            this.statusMessage = 'Beloning verifiëren en verwerken...';
+
+            fetch('{{ route('sponsor.claim') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ token: this.token })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    this.status = 'error';
+                    this.statusMessage = data.message || 'Kon beloning niet claimen.';
+                    return;
+                }
+
+                this.status = 'claimed';
+                this.statusMessage = data.message;
+
+                setTimeout(() => {
+                    this.isOpen = false;
+                    if (typeof this.callback === 'function') {
+                        this.callback(data);
+                    } else {
+                        // Return seamlessly to the exact same page
+                        window.location.reload();
+                    }
+                }, 1600);
+            })
+            .catch(err => {
+                this.status = 'error';
+                this.statusMessage = 'Netwerkfout bij claimen van beloning.';
+            });
+        },
+        closeModal() {
+            this.isOpen = false;
+        }
+    }"
+    x-show="isOpen"
+    x-cloak
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs select-none">
+        
+        <div @click.away="if(status !== 'watching') closeModal()"
+             class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden text-center space-y-5">
+            
+            <!-- Top Badges -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-[11px] font-black border border-purple-200">
+                    <i class="fa-solid fa-tv text-purple-600"></i> TBS Sponsorkamer
+                </div>
+                <button type="button" @click="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg transition cursor-pointer p-1">
+                    &times;
+                </button>
+            </div>
+
+            <!-- Reward Display Box -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50/50 border border-purple-100 space-y-2">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-white text-purple-600 border border-purple-200 flex items-center justify-center text-2xl shadow-xs">
+                    <i class="fa-solid" :class="rewardIcon"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-600">Jouw Gekozen Beloning</span>
+                    <h3 class="text-lg font-black text-slate-900" x-text="rewardTitle"></h3>
+                </div>
+            </div>
+
+            <!-- WATCHING PROGRESS & TIMER -->
+            <template x-if="status === 'watching'">
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                            <span>Sponsor bekijken...</span>
+                            <span class="font-mono text-purple-700 text-sm" x-text="secondsLeft + 's resterend'">15s</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
+                            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full transition-all duration-1000 shadow-xs"
+                                 :style="'width: ' + ((totalSeconds - secondsLeft) / totalSeconds * 100) + '%;'"></div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-500 leading-relaxed" x-text="statusMessage"></p>
+
+
+
+                    <button type="button" @click="openAdTabAgain()" class="text-xs text-purple-600 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Advertentietabblad opnieuw openen
+                    </button>
+                </div>
+            </template>
+
+            <!-- READY TO CLAIM BUTTON (Pulsing Green) -->
+            <template x-if="status === 'ready_to_claim'">
+                <div class="space-y-4 animate-fade-in">
+                    <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shadow-xs">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <p class="text-xs text-slate-600 font-medium" x-text="statusMessage"></p>
+
+                    <button type="button" @click="claim()"
+                            class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition transform hover:scale-102 active:scale-98 cursor-pointer flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-gift text-base"></i>
+                        <span>Claim Beloning & Terug naar Spel</span>
+                    </button>
+                </div>
+            </template>
+
+            <!-- CLAIMING SPINNER -->
+            <template x-if="status === 'claiming'">
+                <div class="py-6 space-y-3">
+                    <div class="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+                    <p class="text-xs text-slate-600 font-bold" x-text="statusMessage"></p>
+                </div>
+            </template>
+
+            <!-- CLAIMED CELEBRATION -->
+            <template x-if="status === 'claimed'">
+                <div class="py-4 space-y-3 animate-fade-in">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-emerald-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/30">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h4 class="text-base font-black text-emerald-800">Gelukt!</h4>
+                    <p class="text-xs text-slate-700 font-semibold" x-text="statusMessage"></p>
+                    <span class="text-[11px] text-slate-400 block">Je wordt direct teruggebracht naar de pagina...</span>
+                </div>
+            </template>
+
+            <!-- ADBLOCK DETECTED STATE -->
+            <template x-if="status === 'adblock_detected'">
+                <div class="space-y-4 animate-fade-in">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center text-2xl shadow-xs">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-base font-black text-slate-900">Adblocker Actief</h4>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                            Advertenties houden de <strong>TBS Kliniek gratis online</strong> voor iedereen. Schakel je adblocker uit voor deze website of zet <code>tbs-kliniek.nl</code> op de whitelist om advertenties te bekijken en beloningen te claimen!
+                        </p>
+                    </div>
+                    <div class="pt-2 flex flex-col gap-2">
+                        <button type="button" @click="window.tbsOpenSponsorAd(rewardType, callback)" 
+                                class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>Ik heb hem uitgeschakeld (Opnieuw proberen)</span>
+                        </button>
+                        <button type="button" @click="closeModal()" class="w-full py-2 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition">
+                            Sluiten
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ERROR STATE -->
+            <template x-if="status === 'error'">
+                <div class="space-y-4">
+                    <div class="w-12 h-12 mx-auto rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <p class="text-xs text-rose-700 font-bold" x-text="statusMessage"></p>
+                    <button type="button" @click="closeModal()" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                        Sluiten
+                    </button>
+                </div>
+            </template>
+
+        </div>
+    </div>
+
+    <!-- GLOBAL AVG / GDPR INTERACTIEVE COOKIE BANNER & VOORKEUREN MODAL -->
+    <div x-data="{
+        showBanner: false,
+        showModal: false,
+        prefs: {
+            necessary: true,
+            functional: true,
+            marketing: true
+        },
+        init() {
+            window.tbsOpenCookieSettings = () => {
+                this.showModal = true;
+            };
+
+            const consent = localStorage.getItem('tbs_cookie_consent');
+            if (!consent) {
+                this.showBanner = true;
+            } else {
+                try {
+                    this.prefs = JSON.parse(consent);
+                } catch(e) {
+                    this.showBanner = true;
+                }
+            }
+        },
+        acceptAll() {
+            this.prefs = { necessary: true, functional: true, marketing: true };
+            this.savePreferences();
+        },
+        acceptNecessary() {
+            this.prefs = { necessary: true, functional: false, marketing: false };
+            this.savePreferences();
+        },
+        savePreferences() {
+            localStorage.setItem('tbs_cookie_consent', JSON.stringify(this.prefs));
+            this.showBanner = false;
+            this.showModal = false;
+        }
+    }">
+
+        <!-- FLOATING BOTTOM COOKIE CONSENT BANNER (Website Style: Clean Light Card) -->
+        <div x-show="showBanner" x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-8"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-8"
+             class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-40 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 shadow-2xl space-y-3.5 text-slate-800">
+            
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center text-lg shrink-0 shadow-2xs">
+                    <i class="fa-solid fa-cookie-bite"></i>
+                </div>
+                <div class="space-y-1">
+                    <h4 class="text-sm font-black text-slate-900 tracking-tight">Wij respecteren jouw privacy & cookies</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        TBS Kliniek gebruikt functionele cookies voor inloggen en beveiliging, en optionele advertentiecookies van partners zoals Google AdSense en de gratis Sponsorkamer. Conform de AVG bepalen wij dit samen met jou.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                <button type="button" @click="acceptAll()"
+                        class="w-full sm:flex-1 py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer shadow-xs text-center">
+                    Alles Accepteren
+                </button>
+                <button type="button" @click="acceptNecessary()"
+                        class="w-full sm:flex-1 py-2 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer text-center">
+                    Alleen Noodzakelijk
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-100">
+                <button type="button" @click="showModal = true" class="text-purple-600 hover:underline font-bold cursor-pointer">
+                    Voorkeuren Aanpassen &raquo;
+                </button>
+                <a href="{{ route('legal.cookies') }}" class="hover:underline">Lees ons Cookiebeleid</a>
+            </div>
+        </div>
+
+        <!-- COOKIE PREFERENCES MODAL (AVG Conform) -->
+        <div x-show="showModal" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
+            
+            <div @click.away="showModal = false"
+                 class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-slate-800">
+                
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-cookie-bite text-purple-600 text-lg"></i>
+                        <h3 class="text-base font-black text-slate-900">Cookie-instellingen Beheren</h3>
+                    </div>
+                    <button type="button" @click="showModal = false" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer p-1">
+                        &times;
+                    </button>
+                </div>
+
+                <div class="space-y-3.5 max-h-80 overflow-y-auto text-xs pr-1">
+                    
+                    <!-- 1. Noodzakelijk -->
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3">
+                        <div class="space-y-0.5">
+                            <h5 class="font-bold text-slate-900">Noodzakelijke Cookies</h5>
+                            <p class="text-slate-500 text-[11px]">Vereist voor inloggen, sessiebeheer en CSRF-beveiliging. Kunnen niet worden uitgeschakeld.</p>
+                        </div>
+                        <input type="checkbox" checked disabled class="mt-1 rounded text-purple-600 cursor-not-allowed">
+                    </div>
+
+                    <!-- 2. Functioneel -->
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3">
+                        <div class="space-y-0.5">
+                            <h5 class="font-bold text-slate-900">Functionele Voorkeuren</h5>
+                            <p class="text-slate-500 text-[11px]">Onthoudt interface-instellingen, menu-status en helpbot gesprekken.</p>
+                        </div>
+                        <input type="checkbox" x-model="prefs.functional" class="mt-1 rounded text-purple-600 focus:ring-purple-500 cursor-pointer">
+                    </div>
+
+                    <!-- 3. Advertenties / Sponsoren -->
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3">
+                        <div class="space-y-0.5">
+                            <h5 class="font-bold text-slate-900">Advertenties & Google AdSense</h5>
+                            <p class="text-slate-500 text-[11px]">Maakt het mogelijk om advertenties van Google AdSense en sponsoren te tonen om het spel gratis te houden en beloningen te verdienen.</p>
+                        </div>
+                        <input type="checkbox" x-model="prefs.marketing" class="mt-1 rounded text-purple-600 focus:ring-purple-500 cursor-pointer">
+                    </div>
+
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button type="button" @click="acceptAll()"
+                            class="py-2 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                        Alles Accepteren
+                    </button>
+                    <button type="button" @click="savePreferences()"
+                            class="py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold transition cursor-pointer shadow-xs">
+                        Voorkeuren Opslaan
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GLOBAL THEME TOGGLE SCRIPT -->
+    <script>
+        window.tbsToggleTheme = function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('tbs_theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('tbs_theme', 'dark');
+            }
+        };
+    </script>
 </body>
 </html>

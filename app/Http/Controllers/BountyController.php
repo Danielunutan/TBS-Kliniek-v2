@@ -37,8 +37,8 @@ class BountyController extends Controller
         // Potential targets to place bounty on (other active players)
         $potentialTargets = Character::where('id', '!=', $character->id)
             ->orderBy('name')
-            ->limit(50)
-            ->get(['id', 'name', 'level', 'avatar']);
+            ->limit(200)
+            ->get();
 
         return view('game.bounties.index', compact('character', 'bounties', 'claimedBounties', 'potentialTargets'));
     }

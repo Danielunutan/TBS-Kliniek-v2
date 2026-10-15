@@ -6,6 +6,7 @@ use App\Models\CharacterItem;
 use App\Models\Item;
 use App\Models\User;
 use App\Services\CooldownService;
+use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -109,6 +110,8 @@ class SmuggleController extends Controller
         $charItem->increment('quantity', $cfg['quantity']);
         $this->level->addXp($character, $cfg['xp']);
 
+        app(DailyBattleService::class)->record($character, 'drugs_made', $cfg['quantity']);
+
         // Set difficulty-scaled production cooldown
         $this->cooldownService->setCooldown($character, $actionName);
 
@@ -154,6 +157,8 @@ class SmuggleController extends Controller
         $this->economy->addCash($character, $order['reward_cash']);
         $character->addRespect($order['reward_respect']);
         $character->save();
+
+        app(DailyBattleService::class)->record($character, 'drugs_sold', $order['amount']);
 
         // 5% Rank XP reward for completing the sale
         $xpGain = max(45, (int) round(($character->level * 80) * 0.05 + $order['reward_cash'] * 0.2));

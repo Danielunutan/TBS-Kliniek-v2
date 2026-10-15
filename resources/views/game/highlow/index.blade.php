@@ -52,20 +52,44 @@
                 </div>
             </div>
 
-            <!-- Choice -->
+@php
+    $higherCount = 13 - $currentCard;
+    $lowerCount = $currentCard - 1;
+    $higherMult = round(max(1.15, min(4.5, (12 / max(1, $higherCount)) * 0.95)), 2);
+    $lowerMult = round(max(1.15, min(4.5, (12 / max(1, $lowerCount)) * 0.95)), 2);
+@endphp
+
+            <!-- Choice Buttons with Multipliers -->
             <div class="grid grid-cols-2 gap-3">
                 <button type="submit" name="choice" value="lager"
                         {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
-                        class="p-4 rounded-xl border-2 border-rose-300 hover:border-rose-500 bg-rose-50/50 hover:bg-rose-100/50 transition font-extrabold text-sm text-rose-700 flex flex-col items-center gap-1 shadow-xs disabled:opacity-50">
+                        class="p-4 rounded-xl border-2 border-rose-300 hover:border-rose-500 bg-rose-50/50 hover:bg-rose-100/50 transition font-extrabold text-sm text-rose-700 flex flex-col items-center gap-1 shadow-xs disabled:opacity-50 cursor-pointer">
                     <i class="fa-solid fa-arrow-down text-2xl"></i>
                     <span>LAGER</span>
+                    <span class="text-[11px] font-black text-rose-600 bg-white px-2 py-0.5 rounded-full border border-rose-200">
+                        {{ $lowerMult }}x uitkering
+                    </span>
                 </button>
                 <button type="submit" name="choice" value="hoger"
                         {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
-                        class="p-4 rounded-xl border-2 border-emerald-300 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-100/50 transition font-extrabold text-sm text-emerald-700 flex flex-col items-center gap-1 shadow-xs disabled:opacity-50">
+                        class="p-4 rounded-xl border-2 border-emerald-300 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-100/50 transition font-extrabold text-sm text-emerald-700 flex flex-col items-center gap-1 shadow-xs disabled:opacity-50 cursor-pointer">
                     <i class="fa-solid fa-arrow-up text-2xl"></i>
                     <span>HOGER</span>
+                    <span class="text-[11px] font-black text-emerald-600 bg-white px-2 py-0.5 rounded-full border border-emerald-200">
+                        {{ $higherMult }}x uitkering
+                    </span>
                 </button>
+            </div>
+
+            <!-- Fair Play & Cooldown Info -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-[11px] text-slate-500 flex items-center justify-between gap-3 text-left">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-500 text-sm"></i>
+                    <span><strong>Eerlijk spel:</strong> Multiplier past zich aan op risico. Bij gelijkspel wint de bank.</span>
+                </div>
+                <span class="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200 whitespace-nowrap">
+                    <i class="fa-solid fa-stopwatch text-slate-400"></i> 6s cooldown
+                </span>
             </div>
         </form>
     </div>

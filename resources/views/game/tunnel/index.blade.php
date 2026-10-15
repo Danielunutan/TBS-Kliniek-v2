@@ -1,0 +1,227 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="space-y-6">
+
+    <!-- Top Header Banner (TBS Kliniek Website Styling) -->
+    <div class="bg-white dark:bg-[#111827] rounded-2xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div class="flex items-start gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs mt-0.5">
+                    <i class="fa-solid fa-person-digging"></i>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-700/60">
+                            <i class="fa-solid fa-spoon"></i> Het Grote Uitbraakcomplot
+                        </span>
+                        <span class="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                            Etappe {{ $tunnel->stage }}/5 &bull; {{ $tunnel->progress_pct }}% Voltooid
+                        </span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                        De Geheime Uitbraaktunnel
+                    </h1>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed font-medium">
+                        Verborgen achter een vergeelde poster in je cel graaf je lepel voor lepel een ondergrondse vluchtweg. Strooi het zand ongezien uit tijdens het luchtuurtje en bereik de buitenmuur voor een megabeloning van €25.000 en 25 Sterren ⭐!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Stats Summary Badges -->
+            <div class="flex items-center gap-3 shrink-0 self-start md:self-center">
+                <div class="p-3 sm:p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-center min-w-[100px]">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Lepels</span>
+                    <span class="text-lg font-black text-slate-900 dark:text-white leading-none font-mono">
+                        {{ $tunnel->spoons_used }}x
+                    </span>
+                </div>
+                <div class="p-3 sm:p-3.5 rounded-xl bg-amber-50 dark:bg-slate-800 border border-amber-200 dark:border-slate-700 text-center min-w-[120px]">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 block mb-0.5">Voortgang</span>
+                    <span class="text-lg font-black text-amber-600 dark:text-amber-400 leading-none font-mono">
+                        {{ $tunnel->progress_pct }}%
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if(session('success'))
+        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
+            <i class="fa-solid fa-circle-check text-emerald-500 mt-1 shrink-0"></i>
+            <span class="text-xs font-bold">{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if(session('info'))
+        <div class="p-4 rounded-xl bg-sky-50 dark:bg-sky-950/20 border border-sky-300 dark:border-sky-800/60 text-sky-900 dark:text-sky-200 flex items-start gap-3">
+            <i class="fa-solid fa-circle-info text-sky-500 mt-1 shrink-0"></i>
+            <span class="text-xs font-bold">{{ session('info') }}</span>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-300 dark:border-rose-800/60 text-rose-900 dark:text-rose-200 flex items-start gap-3">
+            <i class="fa-solid fa-circle-exclamation text-rose-500 mt-1 shrink-0"></i>
+            <span class="text-xs font-bold">{{ session('error') }}</span>
+        </div>
+    @endif
+
+    <!-- Voortgangsbalk & Huidige Etappe Card -->
+    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">Huidige Etappe ({{ $tunnel->stage }}/5)</span>
+                <h2 class="text-base font-black text-slate-900 dark:text-white">{{ $currentStageInfo['name'] }}</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $currentStageInfo['desc'] }}</p>
+            </div>
+            <div class="text-left sm:text-right">
+                <span class="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">{{ $tunnel->progress_pct }}%</span>
+                <span class="text-[11px] text-slate-400 block font-semibold">totale tunnel voltooid</span>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="space-y-2">
+            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
+                <div class="bg-gradient-to-r from-amber-500 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: {{ $tunnel->progress_pct }}%"></div>
+            </div>
+
+            <!-- Steps -->
+            <div class="grid grid-cols-5 gap-1 pt-1 text-center">
+                @foreach($stages as $num => $st)
+                    <div class="space-y-1">
+                        <div class="w-6 h-6 rounded-full mx-auto flex items-center justify-center text-[10px] font-black {{ $tunnel->stage > $num || $tunnel->progress_pct >= $st['target_progress'] ? 'bg-emerald-500 text-white' : ($tunnel->stage == $num ? 'bg-amber-500 text-white ring-2 ring-amber-300 dark:ring-amber-800' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 border border-slate-200 dark:border-slate-700') }}">
+                            @if($tunnel->stage > $num || $tunnel->progress_pct >= $st['target_progress'])
+                                <i class="fa-solid fa-check text-[9px]"></i>
+                            @else
+                                {{ $num }}
+                            @endif
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 hidden sm:block truncate">{{ $st['name'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <!-- Acties: Graven & Zand Dumpen -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Actie 1: Graven met Eetlepel -->
+        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5">
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-spoon"></i>
+                    </div>
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                        20 Energie per beurt
+                    </span>
+                </div>
+
+                <div>
+                    <h3 class="text-base font-black text-slate-900 dark:text-white">Graven met Eetlepel</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        Kruip onder je bed en schraap zand en puin los. Elke graafsessie levert 2% tot 5% voortgang op, maar vult ook je zakken en sokken met zand.
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 text-xs space-y-1.5 font-medium text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800">
+                    <div class="flex justify-between">
+                        <span><i class="fa-solid fa-utensils text-amber-500 mr-1.5"></i> Versleten lepels:</span>
+                        <span class="font-bold text-slate-900 dark:text-white">{{ $tunnel->spoons_used }} stuks</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span><i class="fa-solid fa-bolt text-indigo-500 mr-1.5"></i> Energie vereist:</span>
+                        <span class="font-bold text-slate-900 dark:text-white">20 Energie</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                @if($tunnel->is_completed)
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-trophy"></i> Tunnel Voltooid & Ontsnapt!
+                    </button>
+                @elseif($tunnel->progress_pct >= 100)
+                    <form action="{{ route('tunnel.escape') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs hover:shadow-sm transition flex items-center justify-center gap-2 cursor-pointer animate-pulse">
+                            <i class="fa-solid fa-person-running"></i> Breek Uit Naar Vrijheid (€25.000 + 25 Sterren)
+                        </button>
+                    </form>
+                @elseif($tunnel->sand_in_socks >= 100)
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 border border-rose-200 dark:border-rose-800 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Zakken Vol Zand (Eerst Dumpen)
+                    </button>
+                @elseif($digCooldown > 0)
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-clock"></i> Uitrusten (Nog {{ ceil($digCooldown / 60) }} min)
+                    </button>
+                @else
+                    <form action="{{ route('tunnel.dig') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider shadow-xs hover:shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-person-digging"></i> Schraap Zand Af met Lepel
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+
+        <!-- Actie 2: Zand Afvoeren op Luchtplaats -->
+        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5">
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="w-12 h-12 rounded-xl bg-stone-50 dark:bg-stone-900/40 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-mound"></i>
+                    </div>
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full {{ $tunnel->sand_in_socks >= 80 ? 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300 border border-rose-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }}">
+                        Zandcapaciteit: {{ $tunnel->sand_in_socks }}% / 100%
+                    </span>
+                </div>
+
+                <div>
+                    <h3 class="text-base font-black text-slate-900 dark:text-white">Zand Afvoeren op Luchtplaats</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        Verstop het uitgegraven zand in je sokken en trek tijdens het luchtuurtje aan een geheim touwtje in je broekspijp om het zand onopgemerkt tussen het grind te laten glijden.
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
+                        <span>Zand in je zakken:</span>
+                        <span class="{{ $tunnel->sand_in_socks >= 100 ? 'text-rose-600 font-black animate-pulse' : 'text-slate-900 dark:text-white' }}">{{ $tunnel->sand_in_socks }}% vol</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200 dark:border-slate-700">
+                        <div class="h-full rounded-full transition-all duration-300 {{ $tunnel->sand_in_socks >= 100 ? 'bg-rose-500' : 'bg-stone-500' }}" style="width: {{ $tunnel->sand_in_socks }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                @if($dumpCooldown > 0)
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-clock"></i> Bewaker Kijkt (Nog {{ ceil($dumpCooldown / 60) }} min)
+                    </button>
+                @elseif($tunnel->sand_in_socks <= 0)
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-check"></i> Zakken zijn Schoon (0% Zand)
+                    </button>
+                @else
+                    <form action="{{ route('tunnel.dump') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-stone-700 hover:bg-stone-800 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider shadow-xs hover:shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-shoe-prints"></i> Strooi Zand Uit op Luchtplaats (Leeg {{ $tunnel->sand_in_socks }}%)
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+
+    </div>
+
+</div>
+@endsection

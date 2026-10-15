@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,7 @@ class RouletteController extends Controller
     public function __construct(
         protected EconomyService $economy,
         protected LevelService $level,
+        protected CooldownService $cooldownService,
     ) {}
 
     public function index(): View
@@ -29,6 +31,12 @@ class RouletteController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je niet gokken!');
+        }
+
+        if ($this->cooldownService->isOnCooldown($character, 'casino_roulette')) {
+            $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_roulette');
+
+            return back()->with('error', "⏳ Het roulettewiel draait nog! Wacht nog {$remaining}s.");
         }
 
         $validated = $request->validate([
@@ -73,6 +81,8 @@ class RouletteController extends Controller
         ];
 
         $multiplier = $multipliers[$betType] ?? 2;
+
+        $this->cooldownService->setCooldown($character, 'casino_roulette', 8);
 
         if ($won) {
             $payout = $bet * $multiplier;

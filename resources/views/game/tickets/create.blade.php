@@ -82,11 +82,11 @@
                             name="category" 
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 text-xs font-bold text-slate-800 bg-white outline-none transition"
                             required>
-                        <option value="bug" {{ old('category') === 'bug' ? 'selected' : '' }}>🐛 Bug / Foutmelding</option>
-                        <option value="vraag" {{ old('category', 'vraag') === 'vraag' ? 'selected' : '' }}>❓ Vraag over de Game</option>
-                        <option value="feedback" {{ old('category') === 'feedback' ? 'selected' : '' }}>💡 Feedback & Suggestie</option>
+                        <option value="bug" {{ old('category') === 'bug' ? 'selected' : '' }}> Bug / Foutmelding</option>
+                        <option value="vraag" {{ old('category', 'vraag') === 'vraag' ? 'selected' : '' }}> Vraag over de Game</option>
+                        <option value="feedback" {{ old('category') === 'feedback' ? 'selected' : '' }}> Feedback & Suggestie</option>
                         <option value="vip" {{ old('category') === 'vip' ? 'selected' : '' }}>⭐ VIP & Donaties</option>
-                        <option value="overig" {{ old('category') === 'overig' ? 'selected' : '' }}>📩 Overig</option>
+                        <option value="overig" {{ old('category') === 'overig' ? 'selected' : '' }}> Overig</option>
                     </select>
                     @error('category')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
@@ -105,7 +105,7 @@
                         <option value="laag" {{ old('priority') === 'laag' ? 'selected' : '' }}>Laag (Geen haast)</option>
                         <option value="normaal" {{ old('priority', 'normaal') === 'normaal' ? 'selected' : '' }}>Normaal (Standaard)</option>
                         <option value="hoog" {{ old('priority') === 'hoog' ? 'selected' : '' }}>Hoog (Belangrijk probleem)</option>
-                        <option value="spoed" {{ old('priority') === 'spoed' ? 'selected' : '' }}>🚨 Spoed (Game blocker)</option>
+                        <option value="spoed" {{ old('priority') === 'spoed' ? 'selected' : '' }}> Spoed (Game blocker)</option>
                     </select>
                     @error('priority')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>

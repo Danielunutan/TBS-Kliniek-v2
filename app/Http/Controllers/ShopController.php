@@ -8,6 +8,7 @@ use App\Models\GameMessage;
 use App\Models\Item;
 use App\Models\User;
 use App\Models\VaultCode;
+use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
@@ -122,7 +123,11 @@ class ShopController extends Controller
         $character = $user->character;
 
         $quantity = max(1, (int) $request->input('quantity', 1));
-        $totalCost = $item->price_kc * $quantity;
+
+        // Charisma discount up to 15% (1% per 10 charisma)
+        $discountPct = min(15, (int) floor($character->getEffectiveCharisma() / 10));
+        $unitPrice = $discountPct > 0 ? (int) round($item->price_kc * (1 - ($discountPct / 100))) : $item->price_kc;
+        $totalCost = $unitPrice * $quantity;
 
         if ($character->cash < $totalCost) {
             $formatted = number_format($totalCost, 0, ',', '.');
@@ -141,11 +146,14 @@ class ShopController extends Controller
         $inv->quantity = ($inv->quantity ?? 0) + $quantity;
         $inv->save();
 
+        app(DailyBattleService::class)->record($character, 'payments', $totalCost);
+
         $formatted = number_format($totalCost, 0, ',', '.');
+        $discountNote = $discountPct > 0 ? " (inclusief {$discountPct}% Charisma-korting! 😎)" : '';
 
         return back()
             ->with('shop_tab', 'items')
-            ->with('success', "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}!");
+            ->with('success', "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}!");
     }
 
     /**
@@ -191,68 +199,114 @@ class ShopController extends Controller
         $healthBefore = $character->health;
         $customFeedback = [];
 
+        // Bereken hoeveel stuks geconsumeerd worden (optie voor enkel, specifiek aantal of tot 100% vol)
+        $requestedQty = max(1, (int) $request->input('quantity', 1));
+        if ($request->boolean('fill_max')) {
+            $energyDeficit = max(0, $character->max_energy - $character->energy);
+            $healthDeficit = max(0, $character->max_health - $character->health);
+
+            $perEnergy = $item->energy_restore;
+            $perHealth = $item->health_restore;
+            if ($item->slug === 'sigaretten') {
+                $perEnergy = 20;
+                $perHealth = 10;
+            } elseif ($item->slug === 'ritalin') {
+                $perEnergy = 35;
+                $perHealth = 15;
+            } elseif ($item->slug === 'telefoon') {
+                $perEnergy = 50;
+                $perHealth = 25;
+            } elseif ($item->slug === 'adrenaline-injectie' || $item->slug === 'ehbo-noodverbanddoos') {
+                $perEnergy = 100;
+                $perHealth = 100;
+            }
+
+            $neededForEnergy = ($perEnergy > 0 && $energyDeficit > 0) ? (int) ceil($energyDeficit / $perEnergy) : 0;
+            $neededForHealth = ($perHealth > 0 && $healthDeficit > 0) ? (int) ceil($healthDeficit / $perHealth) : 0;
+            $needed = max(1, max($neededForEnergy, $neededForHealth));
+            $consumeQty = max(1, min($characterItem->quantity, $needed));
+        } else {
+            $consumeQty = max(1, min($characterItem->quantity, $requestedQty));
+        }
+
         // 1. Contraband / Smokkelwaren herstel
         if ($item->slug === 'sigaretten') {
-            $restoreEnergy = $item->energy_restore > 0 ? $item->energy_restore : 20;
-            $restoreHealth = $item->health_restore > 0 ? $item->health_restore : 10;
+            $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 20) * $consumeQty;
+            $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 10) * $consumeQty;
             $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
             $character->health = min($character->max_health, $character->health + $restoreHealth);
-            $customFeedback[] = 'Lekker een peuk gerookt op de binnenplaats! 🚬';
+            $customFeedback[] = "Lekker {$consumeQty}x peuk gerookt op de binnenplaats! 🚬";
         } elseif ($item->slug === 'ritalin') {
-            $restoreEnergy = $item->energy_restore > 0 ? $item->energy_restore : 35;
-            $restoreHealth = $item->health_restore > 0 ? $item->health_restore : 15;
+            $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 35) * $consumeQty;
+            $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 15) * $consumeQty;
             $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
             $character->health = min($character->max_health, $character->health + $restoreHealth);
-            $customFeedback[] = 'Scherpe focus en alertheid gekregen van de Ritalin! 💊';
+            $customFeedback[] = "Scherpe focus en alertheid gekregen ({$consumeQty}x Ritalin)! 💊";
         } elseif ($item->slug === 'telefoon') {
-            $restoreEnergy = $item->energy_restore > 0 ? $item->energy_restore : 50;
-            $restoreHealth = $item->health_restore > 0 ? $item->health_restore : 25;
+            $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 50) * $consumeQty;
+            $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 25) * $consumeQty;
             $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
             $character->health = min($character->max_health, $character->health + $restoreHealth);
             $customFeedback[] = 'Kort contact gehad met de buitenwereld voor morele steun! 📱';
+        } elseif ($item->slug === 'strip-oxazepam') {
+            $restoreHealth = 35 * $consumeQty;
+            $character->health = min($character->max_health, $character->health + $restoreHealth);
+            $character->discipline = ($character->discipline ?? 10) + (1 * $consumeQty);
+            $customFeedback[] = "Rust keert terug in je hoofd (+{$restoreHealth} Gezondheid, +{$consumeQty} Weerbaarheid/Discipline)! 💊";
+        } elseif ($item->slug === 'strip-ritalin') {
+            $restoreEnergy = 45 * $consumeQty;
+            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
+            $character->xp += (25 * $consumeQty);
+            $customFeedback[] = "Laserfocus en adrenalinekick (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
+        } elseif ($item->slug === 'haloperidol-forte') {
+            $restoreHealth = 60 * $consumeQty;
+            $character->health = min($character->max_health, $character->health + $restoreHealth);
+            $character->strength += (2 * $consumeQty);
+            $character->defense += (2 * $consumeQty);
+            $customFeedback[] = "💥 BERSERK STATUS! Alle pijn verdoofd (+{$restoreHealth} Gezondheid, +{$consumeQty}x 2 Kracht & 2 Verdediging)!";
         } else {
             // Reguliere herstel items
             if ($item->slug === 'adrenaline-injectie') {
                 $character->energy = $character->max_energy;
                 $customFeedback[] = "100% Volledige Energie hersteld ({$character->max_energy}/{$character->max_energy})! ⚡";
             } elseif ($item->energy_restore > 0) {
-                $character->energy = min($character->max_energy, $character->energy + $item->energy_restore);
+                $character->energy = min($character->max_energy, $character->energy + ($item->energy_restore * $consumeQty));
             }
 
             if ($item->slug === 'ehbo-noodverbanddoos') {
                 $character->health = $character->max_health;
                 $customFeedback[] = "100% Volledige Gezondheid hersteld ({$character->max_health}/{$character->max_health} HP)! ❤️";
             } elseif ($item->health_restore > 0) {
-                $character->health = min($character->max_health, $character->health + $item->health_restore);
+                $character->health = min($character->max_health, $character->health + ($item->health_restore * $consumeQty));
             }
         }
 
         // 2. Permanente stat boosts
         if ($item->slug === 'eiwitshake-bodybuilder') {
-            $character->strength += 1;
-            $customFeedback[] = "+1 Permanente Kracht 💪 (nu: {$character->strength})!";
+            $character->strength += (1 * $consumeQty);
+            $customFeedback[] = "+{$consumeQty} Permanente Kracht 💪 (nu: {$character->strength})!";
         }
         if ($item->slug === 'multivitaminen-focus') {
-            $character->stamina += 1;
-            $customFeedback[] = "+1 Permanente Conditie 🏃 (nu: {$character->stamina})!";
+            $character->stamina += (1 * $consumeQty);
+            $customFeedback[] = "+{$consumeQty} Permanente Conditie 🏃 (nu: {$character->stamina})!";
         }
 
         // 3. Masker toevoegen
         if ($item->slug === 'bivakmuts-masker') {
-            $character->masks = ($character->masks ?? 0) + 1;
-            $customFeedback[] = "+1 Masker 🎭 toegevoegd aan je voorraad (totaal: {$character->masks})!";
+            $character->masks = ($character->masks ?? 0) + $consumeQty;
+            $customFeedback[] = "+{$consumeQty} Masker(s) 🎭 toegevoegd aan je voorraad (totaal: {$character->masks})!";
         }
 
         // 4. Ongeopend pakketje toevoegen
         if ($item->slug === 'smokkelpakketje') {
-            $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
-            $customFeedback[] = "+1 Ongeopend Pakket 📦 toegevoegd aan Koffers & Buit (totaal: {$character->unopened_bags})!";
+            $character->unopened_bags = ($character->unopened_bags ?? 0) + $consumeQty;
+            $customFeedback[] = "+{$consumeQty} Ongeopend Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$character->unopened_bags})!";
         }
 
         // 5. IJzerzaagje (Strafvermindering cel)
         if ($item->slug === 'ijzerzaagje') {
             if ($character->is_in_prison && $character->prison_until) {
-                $newPrisonUntil = $character->prison_until->copy()->subMinutes(30);
+                $newPrisonUntil = $character->prison_until->copy()->subMinutes(30 * $consumeQty);
                 if ($newPrisonUntil->isPast()) {
                     $character->is_in_prison = false;
                     $character->prison_until = null;
@@ -260,7 +314,7 @@ class ShopController extends Controller
                     $customFeedback[] = 'Tralies doorgezaagd! Je bent direct ontsnapt uit de cel! 🔓';
                 } else {
                     $character->prison_until = $newPrisonUntil;
-                    $customFeedback[] = '30 minuten straftijd afgezagen van je celstraf! ⏳';
+                    $customFeedback[] = (30 * $consumeQty).' minuten straftijd afgezagen van je celstraf! ⏳';
                 }
             } else {
                 $customFeedback[] = 'Zaagje bewaard en getest! Klaar voor je volgende uitbraak! ⏳';
@@ -269,7 +323,7 @@ class ShopController extends Controller
 
         $character->save();
 
-        $characterItem->quantity--;
+        $characterItem->quantity -= $consumeQty;
         if ($characterItem->quantity <= 0) {
             $characterItem->delete();
         } else {
@@ -279,7 +333,7 @@ class ShopController extends Controller
         $energyGained = $character->energy - $energyBefore;
         $healthGained = $character->health - $healthBefore;
 
-        $msg = "Je hebt {$item->name} gebruikt!";
+        $msg = $consumeQty > 1 ? "Je hebt {$consumeQty}x {$item->name} geconsumeerd!" : "Je hebt {$item->name} gebruikt!";
         $details = [];
         if (! empty($customFeedback)) {
             $details[] = implode(' ', $customFeedback);

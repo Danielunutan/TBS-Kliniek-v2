@@ -24,6 +24,25 @@ class CooldownService
         'locker' => 180,     // 3 min
         'package' => 180,    // 3 min
         'extort' => 240,     // 4 min
+
+        // Behandelaarsgesprek & Verlof
+        'treatment_session' => 7200,      // 2 uur tussen gesprekken
+        'treatment_leave_action' => 180,  // 3 min tussen verlofactiviteiten
+
+        // Nieuwe Functies
+        'dropping_tennisball' => 600,     // 10 min
+        'dropping_drone' => 1800,         // 30 min
+        'radio_shoutout' => 90,           // 1.5 min
+        'tunnel_dig' => 180,              // 3 min
+        'tunnel_dump_sand' => 120,        // 2 min
+
+        // Casino Games Cooldowns (anti-spam / anti-cheat)
+        'casino_highlow' => 6,
+        'casino_roulette' => 8,
+        'casino_slots' => 4,
+        'casino_dice' => 5,
+        'casino_numbergame' => 8,
+        'casino_rps' => 5,
     ];
 
     /**
@@ -39,6 +58,10 @@ class CooldownService
         'locker' => 1,
         'package' => 1,
         'extort' => 2,
+        'treatment_session' => 2,
+        'dropping_tennisball' => 1,
+        'dropping_drone' => 2,
+        'tunnel_dig' => 1,
     ];
 
     public function getDuration(string $action): int

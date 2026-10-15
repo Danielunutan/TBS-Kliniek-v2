@@ -121,27 +121,44 @@
         </div>
 
         <!-- Withdraw Form -->
-        <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm" x-data="{ bank: {{ $character->bank }} }">
-            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2 mb-4">
-                <i class="fa-solid fa-arrow-up text-amber-600"></i>
-                <span>Geld Opnemen van Bank</span>
-            </h2>
+        <div class="bg-white dark:bg-[#111827] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm" x-data="{ bank: {{ $character->bank }} }">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-up text-amber-600"></i>
+                    <span>Geld Opnemen van Bank</span>
+                </h2>
+                <a href="{{ route('lottery.index') }}" class="text-[10px] font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-ticket"></i> Naar Loterij
+                </a>
+            </div>
+
+            <!-- Tax notice -->
+            <div class="mb-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/50 flex items-start gap-2.5">
+                <i class="fa-solid fa-percent text-amber-600 dark:text-amber-400 text-xs mt-0.5"></i>
+                <div class="text-[11px] text-amber-900 dark:text-amber-200 leading-snug">
+                    <span class="font-extrabold">Kliniek Opnamebelasting: {{ $character->isVip() ? '3% (VIP tarief)' : '5% (Standaard tarief)' }}</span>
+                    <span class="text-amber-700 dark:text-amber-300 block mt-0.5">
+                        Alle opnamebelasting vloeit 100% door naar de <a href="{{ route('lottery.index') }}" class="underline font-bold text-amber-900 dark:text-amber-100">TBS Afdelingsloterij Jackpot</a>!
+                    </span>
+                </div>
+            </div>
+
             <form method="POST" action="{{ route('bank.withdraw') }}" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Bedrag (€ Euro's)</label>
-                    <input type="number" name="amount" x-ref="withdrawInput" min="1" max="{{ $character->bank }}" value="100" required class="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-amber-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Bedrag (€ Euro's)</label>
+                    <input type="number" name="amount" x-ref="withdrawInput" min="1" max="{{ $character->bank }}" value="100" required class="w-full px-3 py-2 text-sm border border-slate-300 dark:border-purple-800 rounded-xl bg-slate-50 dark:bg-purple-950/30 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none">
                 </div>
 
                 <div class="flex items-center gap-2 text-xs">
-                    <button type="button" @click="$refs.withdrawInput.value = 100" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded font-semibold text-slate-700">€100</button>
-                    <button type="button" @click="$refs.withdrawInput.value = 500" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded font-semibold text-slate-700">€500</button>
-                    <button type="button" @click="$refs.withdrawInput.value = bank" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded font-semibold text-slate-700">Alles (€{{ number_format($character->bank, 0, ',', '.') }})</button>
+                    <button type="button" @click="$refs.withdrawInput.value = 100" class="px-2.5 py-1 bg-slate-100 dark:bg-purple-950/50 hover:bg-slate-200 dark:hover:bg-purple-900/50 rounded-lg font-semibold text-slate-700 dark:text-slate-200">€100</button>
+                    <button type="button" @click="$refs.withdrawInput.value = 500" class="px-2.5 py-1 bg-slate-100 dark:bg-purple-950/50 hover:bg-slate-200 dark:hover:bg-purple-900/50 rounded-lg font-semibold text-slate-700 dark:text-slate-200">€500</button>
+                    <button type="button" @click="$refs.withdrawInput.value = bank" class="px-2.5 py-1 bg-slate-100 dark:bg-purple-950/50 hover:bg-slate-200 dark:hover:bg-purple-900/50 rounded-lg font-semibold text-slate-700 dark:text-slate-200">Alles (€{{ number_format($character->bank, 0, ',', '.') }})</button>
                 </div>
 
-                <button type="submit" @if($character->bank <= 0) disabled @endif class="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                <button type="submit" @if($character->bank <= 0) disabled @endif class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-money-bill-wave"></i>
-                    <span>Contant Opnemen</span>
+                    <span>Contant Opnemen (-{{ $character->isVip() ? '3%' : '5%' }} tax)</span>
                 </button>
             </form>
         </div>

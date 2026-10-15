@@ -76,7 +76,15 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-2 w-full md:w-auto">
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <!-- Watch ad for -15 min reduction or instant release -->
+            <button type="button" 
+                    onclick="window.tbsOpenSponsorAd('prison')"
+                    class="flex-1 md:flex-initial px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-tv text-white"></i>
+                <span>Kijk Ad (-15 Min)</span>
+            </button>
+
             <!-- Buy self out for 2 stars -->
             <form action="{{ route('prison.buyout') }}" method="POST" class="flex-1 md:flex-initial">
                 @csrf

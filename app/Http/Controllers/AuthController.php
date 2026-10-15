@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\DiscordShieldSetting;
 use App\Models\User;
+use App\Services\DiscordShieldService;
+use App\Services\ReferralService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
@@ -35,6 +38,10 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
 
+        if ($request->filled('ref')) {
+            $request->session()->put('referral_name', trim((string) $request->query('ref')));
+        }
+
         try {
             $totalPlayers = Character::count();
             $totalCash = Character::sum('cash') + Character::sum('bank');
@@ -58,8 +65,8 @@ class AuthController extends Controller
             return response()->noContent();
         }
 
-        $clientId = config('services.discord.client_id');
-        $redirectUri = url('/auth/discord/callback');
+        $clientId = DiscordShieldSetting::get('client_id', config('services.discord.client_id', '1558628995439005748'));
+        $redirectUri = 'https://tbs-kliniek.nl/discord/callback';
 
         if ($clientId) {
             $state = bin2hex(random_bytes(16));
@@ -110,9 +117,10 @@ class AuthController extends Controller
      */
     public function discordCallback(Request $request): Response|RedirectResponse
     {
-        $clientId = config('services.discord.client_id');
-        $clientSecret = config('services.discord.client_secret');
+        $clientId = DiscordShieldSetting::get('client_id', config('services.discord.client_id', '1558628995439005748'));
+        $clientSecret = DiscordShieldSetting::get('client_secret', config('services.discord.client_secret', 'tvX_NGRzmXI4fwt4HJGrl7Lc6cUNjBo9'));
         $code = $request->query('code');
+        $redirectUri = 'https://tbs-kliniek.nl/discord/callback';
 
         if ($clientId && $clientSecret && $code) {
             try {
@@ -121,7 +129,7 @@ class AuthController extends Controller
                     'client_secret' => $clientSecret,
                     'grant_type' => 'authorization_code',
                     'code' => $code,
-                    'redirect_uri' => url('/auth/discord/callback'),
+                    'redirect_uri' => $redirectUri,
                 ]);
 
                 if ($response->successful()) {
@@ -133,24 +141,57 @@ class AuthController extends Controller
 
                         if ($userResponse->successful()) {
                             $discordUser = $userResponse->json();
+
+                            // If this request came from the Discord Shield verification portal
+                            if (str_starts_with((string) $request->query('state'), 'shield_')) {
+                                session([
+                                    'discord_shield_user' => [
+                                        'id' => (string) $discordUser['id'],
+                                        'username' => $discordUser['username'],
+                                        'global_name' => $discordUser['global_name'] ?? $discordUser['username'],
+                                        'avatar' => $discordUser['avatar'] ?? null,
+                                        'email' => $discordUser['email'] ?? null,
+                                    ],
+                                    'discord_shield_access_token' => $accessToken,
+                                ]);
+
+                                return redirect()->route('discord.verify')->with('success', 'Discord account gekoppeld! Voltooi nu de korte beveiligingscheck.');
+                            }
+
                             $email = $discordUser['email'] ?? ($discordUser['username'].'@discord.tbskliniek.nl');
-                            $username = $discordUser['global_name'] ?? $discordUser['username'] ?? 'Discord Speler';
+                            $rawName = $discordUser['global_name'] ?? $discordUser['username'] ?? 'Discord Speler';
+                            $cleanUsername = strtolower((string) preg_replace('/[^a-zA-Z0-9_-]/', '', (string) ($discordUser['username'] ?? 'inmate')));
+                            if (strlen($cleanUsername) < 3) {
+                                $cleanUsername = 'inmate_'.rand(100, 999);
+                            }
+
+                            $isNew = ! User::where('email', $email)->exists();
 
                             $user = User::firstOrCreate(
                                 ['email' => $email],
                                 [
-                                    'name' => $username,
+                                    'name' => $cleanUsername,
                                     'password' => Hash::make(Str::random(32)),
                                     'email_verified_at' => now(),
+                                    'is_onboarded' => false,
                                 ]
                             );
 
                             if (! $user->character) {
-                                Character::create([
+                                $candidateUsername = $cleanUsername;
+                                $counter = 1;
+                                while (Character::where('username', $candidateUsername)->exists()) {
+                                    $candidateUsername = substr($cleanUsername, 0, 15).'_'.$counter;
+                                    $counter++;
+                                }
+
+                                $newChar = Character::create([
                                     'user_id' => $user->id,
-                                    'name' => Character::where('name', $username)->exists() ? ($username.'_'.rand(100, 999)) : $username,
+                                    'username' => $candidateUsername,
+                                    'name' => $rawName,
+                                    'display_name' => $rawName,
                                     'title' => 'Nieuwe Patiënt',
-                                    'avatar' => 'characters/avatar_male_1.jpg',
+                                    'avatar' => 'assets/characters/avatar_male_1.jpg',
                                     'bio' => 'Aangemeld via Discord bij de TBS Kliniek.',
                                     'status_message' => 'Vers binnengebracht via Discord!',
                                     'level' => 1,
@@ -163,11 +204,22 @@ class AuthController extends Controller
                                     'health' => 100,
                                     'max_health' => 100,
                                     'respect' => 20,
+                                    'is_onboarded' => false,
                                 ]);
+
+                                $refName = request()->session()->get('referral_name');
+                                if ($refName) {
+                                    app(ReferralService::class)->recordReferral($newChar, (string) $refName, request()->ip());
+                                    request()->session()->forget('referral_name');
+                                }
                             }
 
                             Auth::login($user);
                             request()->session()->regenerate();
+
+                            if (! $user->is_onboarded || ! $user->character?->is_onboarded) {
+                                return redirect()->route('onboarding.index')->with('success', 'Welkom via Discord! Maak nu jouw patiëntendossier compleet.');
+                            }
 
                             return redirect()->route('dashboard')->with('success', 'Welkom! Je bent succesvol ingelogd via Discord.');
                         }
@@ -258,7 +310,7 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        Character::create([
+        $character = Character::create([
             'user_id' => $user->id,
             'name' => $validated['username'],
             'title' => $gender === 'female' ? 'Nieuwe Patiënte' : 'Nieuwe Patiënt',
@@ -278,12 +330,37 @@ class AuthController extends Controller
             'respect' => 10,
         ]);
 
+        $refName = $request->input('ref') ?: $request->session()->get('referral_name');
+        if ($refName) {
+            app(ReferralService::class)->recordReferral($character, (string) $refName, $request->ip());
+            $request->session()->forget('referral_name');
+        }
+
+        // Auto-link verified Discord and award Starter Bonus (€2.500 Cash + 3 Days VIP + Roles)
+        $verifiedDiscordId = $request->session()->get('verified_discord_id');
+        if ($verifiedDiscordId) {
+            $user->discord_id = $verifiedDiscordId;
+            $user->save();
+            $character->claimDiscordReward();
+            $request->session()->forget(['verified_discord_id', 'verified_discord_username']);
+
+            $shieldService = app(DiscordShieldService::class);
+            $guildId = $shieldService->getGuildId();
+            if (! empty($guildId)) {
+                $shieldService->syncGameRoles($guildId, $verifiedDiscordId, $character);
+            }
+        }
+
         Auth::login($user);
         $request->session()->regenerate();
 
         event(new Registered($user));
 
-        return redirect()->route('verification.notice')->with('success', 'Welkom in TBS Kliniek, '.$validated['username'].'! Bevestig je e-mailadres via de verzonden e-mail om te kunnen spelen.');
+        $welcomeMsg = $verifiedDiscordId
+            ? 'Welkom in TBS Kliniek, '.$validated['username'].'! Je Discord is direct gekoppeld: je hebt €2.500 startbonus + 3 dagen gratis VIP ontvangen! Bevestig nog even je e-mailadres.'
+            : 'Welkom in TBS Kliniek, '.$validated['username'].'! Bevestig je e-mailadres via de verzonden e-mail om te kunnen spelen.';
+
+        return redirect()->route('verification.notice')->with('success', $welcomeMsg);
     }
 
     /**

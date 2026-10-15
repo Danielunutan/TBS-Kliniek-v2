@@ -164,9 +164,6 @@ class DailyBattleService
             ]);
         }
 
-        // Ensure competitive atmosphere: seed default active scores if too empty
-        $this->ensureAtmosphereScores($today);
-
         return $battle;
     }
 
@@ -353,41 +350,5 @@ class DailyBattleService
             'secondsUntilReset' => $secondsUntilReset,
             'resetTimeFormatted' => $resetTimeFormatted,
         ];
-    }
-
-    /**
-     * Ensure default atmosphere scores exist so leaderboard is never barren.
-     */
-    protected function ensureAtmosphereScores(string $today): void
-    {
-        $existingCount = DailyBattleScore::whereDate('battle_date', $today)->count();
-        if ($existingCount >= 5) {
-            return;
-        }
-
-        $npcs = Character::where('name', '!=', 'DemoPatient')->take(8)->get();
-        if ($npcs->isEmpty()) {
-            return;
-        }
-
-        foreach ($npcs as $index => $npc) {
-            $existing = DailyBattleScore::whereDate('battle_date', $today)
-                ->where('character_id', $npc->id)
-                ->first();
-
-            if (! $existing) {
-                DailyBattleScore::create([
-                    'battle_date' => $today,
-                    'character_id' => $npc->id,
-                    'score_slay' => max(5, 120 - ($index * 12)),
-                    'score_hustles' => max(2, 45 - ($index * 5)),
-                    'score_payments' => max(1500, 95000 - ($index * 11000)),
-                    'score_breakouts' => max(1, 14 - ($index * 2)),
-                    'score_drugs_made' => max(1, 35 - ($index * 4)),
-                    'score_drugs_sold' => max(1, 28 - ($index * 3)),
-                    'score_kills' => max(1, 18 - ($index * 2)),
-                ]);
-            }
-        }
     }
 }

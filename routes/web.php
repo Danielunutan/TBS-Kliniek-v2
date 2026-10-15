@@ -4,15 +4,21 @@ use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminNewsController;
 use App\Http\Controllers\AdminTicketController;
+use App\Http\Controllers\ArmWrestleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\BountyController;
 use App\Http\Controllers\CasinoController;
 use App\Http\Controllers\CombatTrainingController;
 use App\Http\Controllers\CooldownController;
+use App\Http\Controllers\CpaleadPostbackController;
 use App\Http\Controllers\DailyBattleController;
 use App\Http\Controllers\DailyRewardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DaycareController;
+use App\Http\Controllers\DiscordShieldAdminController;
+use App\Http\Controllers\DiscordShieldController;
+use App\Http\Controllers\DroppingController;
 use App\Http\Controllers\ExtortController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FightController;
@@ -21,30 +27,40 @@ use App\Http\Controllers\GangController;
 use App\Http\Controllers\HighLowController;
 use App\Http\Controllers\HitmanController;
 use App\Http\Controllers\HustleController;
+use App\Http\Controllers\InfirmaryController;
 use App\Http\Controllers\InformantController;
 use App\Http\Controllers\IsolationController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LockerController;
+use App\Http\Controllers\LotteryController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MissionController;
 use App\Http\Controllers\MurderStatsController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\NewspaperController;
 use App\Http\Controllers\NumberGameController;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PickpocketController;
 use App\Http\Controllers\PrisonController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RadioController;
+use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\RouletteController;
 use App\Http\Controllers\RpsController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SlotsController;
 use App\Http\Controllers\SmuggleController;
+use App\Http\Controllers\SponsorAdController;
 use App\Http\Controllers\SupportTicketController;
 use App\Http\Controllers\TheftController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\TravelController;
+use App\Http\Controllers\TreatmentController;
+use App\Http\Controllers\TunnelController;
 use App\Http\Controllers\VaultController;
 use App\Http\Controllers\VipController;
 use App\Http\Middleware\EnsureUserIsStaff;
@@ -53,6 +69,7 @@ use Illuminate\Support\Facades\Route;
 // Guest Authentication Routes
 Route::middleware('guest')->group(function (): void {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+    Route::get('/registreren', [AuthController::class, 'showLogin'])->name('register');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::post('/register', [AuthController::class, 'register'])->name('register.post');
     Route::get('/auth/discord', [AuthController::class, 'discordLogin'])->name('login.discord');
@@ -65,18 +82,54 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/wachtwoord-reset', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
+// Publieke Juridische Routes (AVG, Cookiewet, Voorwaarden)
+Route::get('/algemene-voorwaarden', [LegalController::class, 'terms'])->name('legal.terms');
+Route::get('/voorwaarden', [LegalController::class, 'terms']);
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/privacybeleid', [LegalController::class, 'privacy']);
+Route::get('/cookies', [LegalController::class, 'cookies'])->name('legal.cookies');
+Route::get('/cookiebeleid', [LegalController::class, 'cookies']);
+Route::get('/disclaimer', [LegalController::class, 'disclaimer'])->name('legal.disclaimer');
+Route::get('/colofon', [LegalController::class, 'disclaimer']);
+
+// Publieke Kennisbank & FAQ (Toegankelijk voor gasten en zoekmachines)
+Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
+Route::get('/kennisbank', [FaqController::class, 'index'])->name('faq');
+
+// Publieke Sponsor Redirect (Bypasses browser adblockers)
+Route::get('/sponsorkamer/redirect', [SponsorAdController::class, 'redirect'])->name('sponsor.redirect');
+
+// CPAlead Publisher Postback Callback (Server-to-Server GET)
+Route::get('/api/cpalead/postback', [CpaleadPostbackController::class, 'handle'])->name('cpalead.postback');
+
+// Discord Shield Verificatie & Spelers Account Koppeling
+Route::get('/discord/verifieer', [DiscordShieldController::class, 'show'])->name('discord.verify');
+Route::get('/discord/login', [DiscordShieldController::class, 'redirect'])->name('discord.redirect');
+Route::get('/discord/callback', [DiscordShieldController::class, 'callback'])->name('discord.callback');
+Route::post('/discord/verifieer/submit', [DiscordShieldController::class, 'process'])->name('discord.process');
+Route::match(['GET', 'POST'], '/discord/koppel', [DiscordShieldController::class, 'linkGameAccount'])->name('discord.link');
+Route::match(['GET', 'POST'], '/discord/sync-roles', [DiscordShieldController::class, 'syncRoles'])->name('discord.sync_roles');
+Route::get('/discord/widget-data', [DiscordShieldController::class, 'widgetData'])->name('discord.widget_data');
+
 // Authenticated Game Routes
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Onboarding Wizard (Nieuwe spelers & Discord)
+    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
+    Route::match(['GET', 'POST'], '/onboarding/check-username', [OnboardingController::class, 'checkUsername'])->name('onboarding.check-username');
+    Route::post('/onboarding/upload-avatar', [OnboardingController::class, 'uploadAvatar'])->name('onboarding.upload-avatar');
+    Route::post('/onboarding/voltooien', [OnboardingController::class, 'complete'])->name('onboarding.complete');
+
+    // Sponsorkamer & Rewarded Ads
+    Route::get('/sponsorkamer', [SponsorAdController::class, 'index'])->name('sponsor.index');
+    Route::post('/sponsorkamer/start', [SponsorAdController::class, 'start'])->name('sponsor.start');
+    Route::post('/sponsorkamer/claim', [SponsorAdController::class, 'claim'])->name('sponsor.claim');
 
     // E-mail Bevestiging
     Route::get('/email/verify', [AuthController::class, 'verifyNotice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->name('verification.send');
-
-    // Helptool: FAQ & Kennisbank
-    Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
-    Route::get('/kennisbank', [FaqController::class, 'index'])->name('faq');
 
     // Helptool: Support Ticketsysteem
     Route::get('/help/tickets', [SupportTicketController::class, 'index'])->name('help.tickets.index');
@@ -92,6 +145,9 @@ Route::middleware('auth')->group(function (): void {
     // Berichten (Messages & Post)
     Route::get('/berichten', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/berichten/versturen', [MessageController::class, 'send'])->name('messages.send');
+    Route::post('/berichten/alles-lezen', [MessageController::class, 'markAllRead'])->name('messages.mark-all-read');
+    Route::post('/berichten/{message}/lezen', [MessageController::class, 'markRead'])->name('messages.mark-read');
+    Route::delete('/berichten/alles-verwijderen', [MessageController::class, 'destroyAll'])->name('messages.destroy-all');
     Route::delete('/berichten/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
 
     // Vrienden (Friends & BFF)
@@ -118,6 +174,23 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/training', [TrainingController::class, 'index'])->name('training.index');
     Route::post('/training', [TrainingController::class, 'train'])->name('training.train');
 
+    // Behandelaarsgesprek & Verlofregeling (Dr. Visser & Yvonne)
+    Route::get('/behandeling', [TreatmentController::class, 'index'])->name('treatment.index');
+    Route::post('/behandeling/gesprek', [TreatmentController::class, 'submit'])->name('treatment.submit');
+    Route::post('/behandeling/verlof-missie', [TreatmentController::class, 'doLeaveAction'])->name('treatment.leave-action');
+
+    // Ziekenboeg & Pillen Palmen (Functie 1)
+    Route::get('/ziekenboeg', [InfirmaryController::class, 'index'])->name('infirmary.index');
+    Route::post('/ziekenboeg/innemen', [InfirmaryController::class, 'take'])->name('infirmary.take');
+    Route::post('/ziekenboeg/palmen', [InfirmaryController::class, 'palm'])->name('infirmary.palm');
+
+    // Dagbesteding & Werkplaats (Functie 6)
+    Route::get('/dagbesteding', [DaycareController::class, 'index'])->name('daycare.index');
+    Route::post('/dagbesteding/uitvoeren', [DaycareController::class, 'perform'])->name('daycare.perform');
+
+    // Het Afdelingsblad - De Kliniekbode (Functie 4)
+    Route::get('/afdelingsblad', [NewspaperController::class, 'index'])->name('newspaper.index');
+
     // Cooldown Skip (Sterren ⭐)
     Route::post('/cooldown/overslaan', [CooldownController::class, 'skip'])->name('cooldown.skip');
 
@@ -135,6 +208,22 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/smokkelen/verkopen', [SmuggleController::class, 'sell'])->name('smuggle.sell');
     Route::post('/smokkelen/weigeren', [SmuggleController::class, 'reject'])->name('smuggle.reject');
     Route::post('/smokkelen/cooldown-overslaan', [CooldownController::class, 'skip'])->name('smuggle.skip-cooldown');
+
+    // Functie 2: Tennisbal & Drone Droppings
+    Route::get('/smokkel-droppings', [DroppingController::class, 'index'])->name('droppings.index');
+    Route::post('/smokkel-droppings/tennisbal', [DroppingController::class, 'catchTennisball'])->name('droppings.tennisball');
+    Route::post('/smokkel-droppings/drone', [DroppingController::class, 'orderDrone'])->name('droppings.drone');
+
+    // Functie 3: TBS FM (Radio & Shoutouts)
+    Route::get('/tbs-fm', [RadioController::class, 'index'])->name('radio.index');
+    Route::post('/tbs-fm/shoutout', [RadioController::class, 'shoutout'])->name('radio.shoutout');
+    Route::post('/tbs-fm/{shoutout}/like', [RadioController::class, 'like'])->name('radio.like');
+
+    // Functie 7: Het Grote Uitbraakcomplot (Tunnel)
+    Route::get('/ontsnappingstunnel', [TunnelController::class, 'index'])->name('tunnel.index');
+    Route::post('/ontsnappingstunnel/graven', [TunnelController::class, 'dig'])->name('tunnel.dig');
+    Route::post('/ontsnappingstunnel/zand-dumpen', [TunnelController::class, 'dumpSand'])->name('tunnel.dump');
+    Route::post('/ontsnappingstunnel/uitbreken', [TunnelController::class, 'escape'])->name('tunnel.escape');
 
     // Extort (Afpersen)
     Route::get('/afpersen', [ExtortController::class, 'index'])->name('extort.index');
@@ -222,8 +311,16 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/casino/fruitautomaat', [SlotsController::class, 'index'])->name('slots.index');
     Route::post('/casino/fruitautomaat/draaien', [SlotsController::class, 'spin'])->name('slots.spin');
 
+    // TBS Afdelingsloterij (Jackpot & Belastingpot)
+    Route::get('/loterij', [LotteryController::class, 'index'])->name('lottery.index');
+    Route::post('/loterij/kopen', [LotteryController::class, 'buyTickets'])->name('lottery.buy');
+
+    // Realtime Character Stats API
+    Route::get('/api/character/realtime-stats', [DashboardController::class, 'realtimeStats'])->name('character.realtime-stats');
+
     // Travel (Reizen / Verplaatsen)
     Route::get('/essentials/verplaatsen', [TravelController::class, 'index'])->name('travel.index');
+    Route::post('/essentials/verplaatsen', [TravelController::class, 'move'])->name('travel.move');
 
     // PvP (Luchtplaats)
     Route::get('/luchtplaats', [FightController::class, 'index'])->name('fight.index');
@@ -255,10 +352,12 @@ Route::middleware('auth')->group(function (): void {
     // Player Profile & Guestbook
     Route::get('/profiel', [ProfileController::class, 'show'])->name('profile.me');
     Route::get('/speler/{name}', [ProfileController::class, 'show'])->name('profile.show');
+    Route::post('/speler/{name}/respect', [ProfileController::class, 'giveRespect'])->name('profile.respect');
     Route::post('/speler/{name}/gastenboek', [ProfileController::class, 'postGuestbook'])->name('guestbook.post');
     Route::delete('/speler/gastenboek/{entry}', [ProfileController::class, 'destroyGuestbook'])->name('guestbook.destroy');
     Route::post('/profiel/bijwerken', [ProfileController::class, 'updateBio'])->name('profile.update');
     Route::post('/profiel/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
+    Route::post('/profiel/titel', [ProfileController::class, 'updateTitle'])->name('profile.title');
 
     // Gangs
     Route::get('/gangs', [GangController::class, 'index'])->name('gangs.index');
@@ -296,6 +395,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/instellingen/account', [AccountSettingsController::class, 'index'])->name('settings.account');
     Route::post('/instellingen/wachtwoord', [AccountSettingsController::class, 'updatePassword'])->name('settings.password.update');
     Route::post('/instellingen/gebruikersnaam', [AccountSettingsController::class, 'updateUsername'])->name('settings.username.update');
+    Route::post('/instellingen/avatar', [AccountSettingsController::class, 'updateAvatar'])->name('settings.avatar.update');
     Route::post('/instellingen/2fa', [AccountSettingsController::class, 'toggleTwoFactor'])->name('settings.2fa.toggle');
     Route::post('/instellingen/sessies/uitloggen', [AccountSettingsController::class, 'logoutOtherDevices'])->name('settings.sessions.logout-others');
 
@@ -304,6 +404,17 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/nieuws/{slug}', [NewsController::class, 'show'])->name('news.show');
     Route::post('/nieuws/{article}/reactie', [NewsController::class, 'comment'])->name('news.comment');
     Route::delete('/nieuws/reactie/{comment}', [NewsController::class, 'destroyComment'])->name('news.comment.destroy');
+
+    // Toekomst & Roadmap (De 6 Nieuwe Features)
+    Route::get('/roadmap', [RoadmapController::class, 'index'])->name('roadmap.index');
+    Route::post('/roadmap/stem/{featureKey}', [RoadmapController::class, 'vote'])->name('roadmap.vote');
+
+    // De Illegale Armpjedruk Arena (Kracht Showdown & PvP Tafel)
+    Route::get('/armpjedrukken', [ArmWrestleController::class, 'index'])->name('armwrestling.index');
+    Route::post('/armpjedrukken/npc/finish', [ArmWrestleController::class, 'finishNpc'])->name('armwrestling.npc.finish');
+    Route::post('/armpjedrukken/uitdaging/maken', [ArmWrestleController::class, 'createChallenge'])->name('armwrestling.challenge.create');
+    Route::post('/armpjedrukken/uitdaging/{id}/annuleren', [ArmWrestleController::class, 'cancelChallenge'])->name('armwrestling.challenge.cancel');
+    Route::post('/armpjedrukken/uitdaging/{id}/accepteren', [ArmWrestleController::class, 'acceptChallenge'])->name('armwrestling.challenge.accept');
 
     // Staff Medewerkers Admin Panel
     Route::middleware(EnsureUserIsStaff::class)->prefix('admin')->name('admin.')->group(function (): void {
@@ -317,6 +428,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/kluis', [AdminController::class, 'vault'])->name('vault');
         Route::post('/kluis', [AdminController::class, 'updateVault'])->name('vault.update');
         Route::post('/kluis/nieuwe-code', [AdminController::class, 'randomizeVaultCode'])->name('vault.randomize');
+        Route::get('/referrals', [AdminController::class, 'referrals'])->name('referrals');
         Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets.index');
         Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
         Route::post('/tickets/{ticket}/reactie', [AdminTicketController::class, 'reply'])->name('tickets.reply');
@@ -330,5 +442,13 @@ Route::middleware('auth')->group(function (): void {
         Route::put('/nieuws/{article}', [AdminNewsController::class, 'update'])->name('news.update');
         Route::post('/nieuws/{article}/toggle-reacties', [AdminNewsController::class, 'toggleComments'])->name('news.toggle-comments');
         Route::delete('/nieuws/{article}', [AdminNewsController::class, 'destroy'])->name('news.destroy');
+
+        // Discord Shield Beheer
+        Route::get('/discord-shield', [DiscordShieldAdminController::class, 'index'])->name('discord_shield.index');
+        Route::post('/discord-shield/settings', [DiscordShieldAdminController::class, 'updateSettings'])->name('discord_shield.settings');
+        Route::post('/discord-shield/post-message', [DiscordShieldAdminController::class, 'postVerificationMessage'])->name('discord_shield.post_message');
+        Route::post('/discord-shield/ban', [DiscordShieldAdminController::class, 'ban'])->name('discord_shield.ban');
+        Route::delete('/discord-shield/ban/{id}', [DiscordShieldAdminController::class, 'unban'])->name('discord_shield.unban');
+        Route::post('/discord-shield/approve/{id}', [DiscordShieldAdminController::class, 'approve'])->name('discord_shield.approve');
     });
 });

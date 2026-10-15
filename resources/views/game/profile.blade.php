@@ -4,6 +4,7 @@
 <div class="space-y-6" x-data="{ 
     avatarModalOpen: false, 
     bioModalOpen: false, 
+    titleModalOpen: false,
     activeTab: '{{ session('profile_tab', request('tab', 'overzicht')) }}',
     init() {
         if (!'{{ session('profile_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_profile_tab')) {
@@ -16,14 +17,97 @@
     }
 }">
 
+@php
+    $accentColor = $profileCharacter->profile_color ?: 'purple';
+    $colorMaps = [
+        'purple' => [
+            'bar' => 'bg-purple-600',
+            'ring' => 'ring-purple-500',
+            'border' => 'border-purple-600',
+            'badge_bg' => 'bg-purple-50 dark:bg-purple-950/50',
+            'badge_text' => 'text-purple-700 dark:text-purple-300',
+            'badge_border' => 'border-purple-200 dark:border-purple-800',
+            'tab_active' => 'border-purple-600 text-purple-700 dark:text-purple-400 font-extrabold',
+            'accent_text' => 'text-purple-600 dark:text-purple-400',
+        ],
+        'rose' => [
+            'bar' => 'bg-rose-600',
+            'ring' => 'ring-rose-500',
+            'border' => 'border-rose-600',
+            'badge_bg' => 'bg-rose-50 dark:bg-rose-950/50',
+            'badge_text' => 'text-rose-700 dark:text-rose-300',
+            'badge_border' => 'border-rose-200 dark:border-rose-800',
+            'tab_active' => 'border-rose-600 text-rose-700 dark:text-rose-400 font-extrabold',
+            'accent_text' => 'text-rose-600 dark:text-rose-400',
+        ],
+        'emerald' => [
+            'bar' => 'bg-emerald-600',
+            'ring' => 'ring-emerald-500',
+            'border' => 'border-emerald-600',
+            'badge_bg' => 'bg-emerald-50 dark:bg-emerald-950/50',
+            'badge_text' => 'text-emerald-700 dark:text-emerald-300',
+            'badge_border' => 'border-emerald-200 dark:border-emerald-800',
+            'tab_active' => 'border-emerald-600 text-emerald-700 dark:text-emerald-400 font-extrabold',
+            'accent_text' => 'text-emerald-600 dark:text-emerald-400',
+        ],
+        'amber' => [
+            'bar' => 'bg-amber-500',
+            'ring' => 'ring-amber-500',
+            'border' => 'border-amber-500',
+            'badge_bg' => 'bg-amber-50 dark:bg-amber-950/50',
+            'badge_text' => 'text-amber-700 dark:text-amber-300',
+            'badge_border' => 'border-amber-200 dark:border-amber-800',
+            'tab_active' => 'border-amber-500 text-amber-700 dark:text-amber-400 font-extrabold',
+            'accent_text' => 'text-amber-500 dark:text-amber-400',
+        ],
+        'blue' => [
+            'bar' => 'bg-blue-600',
+            'ring' => 'ring-blue-500',
+            'border' => 'border-blue-600',
+            'badge_bg' => 'bg-blue-50 dark:bg-blue-950/50',
+            'badge_text' => 'text-blue-700 dark:text-blue-300',
+            'badge_border' => 'border-blue-200 dark:border-blue-800',
+            'tab_active' => 'border-blue-600 text-blue-700 dark:text-blue-400 font-extrabold',
+            'accent_text' => 'text-blue-600 dark:text-blue-400',
+        ],
+        'indigo' => [
+            'bar' => 'bg-indigo-600',
+            'ring' => 'ring-indigo-500',
+            'border' => 'border-indigo-600',
+            'badge_bg' => 'bg-indigo-50 dark:bg-indigo-950/50',
+            'badge_text' => 'text-indigo-700 dark:text-indigo-300',
+            'badge_border' => 'border-indigo-200 dark:border-indigo-800',
+            'tab_active' => 'border-indigo-600 text-indigo-700 dark:text-indigo-400 font-extrabold',
+            'accent_text' => 'text-indigo-600 dark:text-indigo-400',
+        ],
+        'dark' => [
+            'bar' => 'bg-slate-800',
+            'ring' => 'ring-slate-600',
+            'border' => 'border-slate-800',
+            'badge_bg' => 'bg-slate-100 dark:bg-slate-800',
+            'badge_text' => 'text-slate-800 dark:text-slate-200',
+            'badge_border' => 'border-slate-300 dark:border-slate-700',
+            'tab_active' => 'border-slate-900 dark:border-white text-slate-900 dark:text-white font-extrabold',
+            'accent_text' => 'text-slate-700 dark:text-slate-300',
+        ],
+    ];
+    $theme = $colorMaps[$accentColor] ?? $colorMaps['purple'];
+@endphp
+
     <!-- Profile Header Card (Clean Modern Light) -->
-    <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden relative">
+        <!-- Dynamic Player Accent Color Top Bar -->
+        <div class="h-1.5 w-full {{ $theme['bar'] }}"></div>
+
         <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative">
             
-            <!-- Avatar with Selection Button -->
+            <!-- Avatar with Dynamic Player Accent Ring -->
             <div class="relative shrink-0 group">
-                <img src="{{ $profileCharacter->avatar_url }}" alt="{{ $profileCharacter->name }}" class="w-32 h-32 rounded-2xl object-cover border-4 border-slate-100 shadow-sm bg-slate-100 transition-transform duration-300 group-hover:scale-105">
+                <img src="{{ $profileCharacter->avatar_url }}" alt="{{ $profileCharacter->name }}" class="w-32 h-32 rounded-2xl object-cover border-4 border-slate-100 shadow-sm bg-slate-100 transition-transform duration-300 group-hover:scale-105 ring-4 {{ $theme['ring'] }}/30">
                 
+                <!-- Online Status Indicator -->
+                <span class="absolute top-2 right-2 w-4 h-4 rounded-full border-2 border-white shadow-xs {{ $profileCharacter->isOnline() ? 'bg-emerald-500 ring-2 ring-emerald-300/50' : 'bg-slate-300' }}" title="{{ $profileCharacter->online_status_label }}"></span>
+
                 @if(Auth::user()->character->id === $profileCharacter->id)
                 <button @click="avatarModalOpen = true" type="button" class="absolute -bottom-2 -right-2 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-indigo-600 transition shadow-sm border-2 border-white flex items-center justify-center text-xs" title="Kies een andere profielfoto">
                     <i class="fa-solid fa-camera"></i>
@@ -35,14 +119,34 @@
             <div class="flex-1 w-full text-center md:text-left">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                     <div>
-                        <div class="flex items-center justify-center md:justify-start gap-2.5">
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
                             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $profileCharacter->name }}</h1>
                             <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-md border border-slate-200">
                                 Level {{ $profileCharacter->level }}
                             </span>
+
+                            <!-- Active Dossier Title Badge with Accent Color -->
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-extrabold {{ $theme['badge_bg'] }} {{ $theme['badge_text'] }} border {{ $theme['badge_border'] }} shadow-2xs">
+                                <i class="fa-solid fa-award text-amber-500 text-[11px]"></i>
+                                <span>{{ $profileCharacter->title ?? 'Modelpatiënt' }}</span>
+                                @if($isOwnProfile)
+                                <button @click="titleModalOpen = true" type="button" class="ml-1 text-slate-400 hover:{{ $theme['badge_text'] }} transition cursor-pointer" title="Titel wijzigen">
+                                    <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+                                </button>
+                                @endif
+                            </span>
                         </div>
-                        <p class="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">
-                            Patiënt &bull; TBS Kliniek &bull; {{ $profileCharacter->gang ? $profileCharacter->gang->name : 'Geen Bende' }}
+                        <p class="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider flex items-center flex-wrap justify-center md:justify-start gap-1.5">
+                            <span>Patiënt</span>
+                            <span>&bull;</span>
+                            <span>TBS Kliniek</span>
+                            <span>&bull;</span>
+                            <span>{{ $profileCharacter->gang ? $profileCharacter->gang->name : 'Geen Bende' }}</span>
+                            <span>&bull;</span>
+                            <span class="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold lowercase first-letter:uppercase">
+                                <i class="fa-solid fa-map-location-dot text-[11px]"></i>
+                                {{ $profileCharacter->current_location ?? 'Paviljoen 1 (Gesloten)' }}
+                            </span>
                         </p>
                     </div>
                     
@@ -102,6 +206,22 @@
                         </span>
                         @endif
 
+                        <!-- Give Respect (+1 Sigaret) Button -->
+                        @if(! $hasGivenRespectToday)
+                        <form action="{{ route('profile.respect', $profileCharacter->name) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="px-3.5 py-2 text-xs font-black bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer" title="Bied een sigaret & respectpunt aan (1x per 24 uur)">
+                                <i class="fa-solid fa-smoking text-amber-100"></i>
+                                <span>Geef Respect (+1)</span>
+                            </button>
+                        </form>
+                        @else
+                        <span class="px-3.5 py-2 text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 rounded-xl flex items-center gap-1.5 shadow-2xs" title="Je hebt deze patiënt vandaag al een sigaret/respect gegeven">
+                            <i class="fa-solid fa-check text-amber-600"></i>
+                            <span>Respect Gegeven</span>
+                        </span>
+                        @endif
+
                         <!-- Direct Steal Button with 3s anti-script loader -->
                         <div x-data="{ stealing: false, countdown: 3, intervalId: null }">
                             <form x-ref="stealForm" action="{{ route('theft.steal') }}" method="POST">
@@ -129,10 +249,6 @@
                                 </button>
                             </form>
                         </div>
-
-                        <a href="{{ route('fight.index') }}" class="px-3.5 py-2 text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 rounded-xl transition flex items-center gap-2">
-                            <i class="fa-solid fa-hand-fist"></i> Vechten
-                        </a>
                     </div>
                     @endif
                 </div>
@@ -162,43 +278,105 @@
         </div>
 
         <!-- Stats Bar -->
-        <div class="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/50">
-            <div class="p-4 sm:p-5 text-center flex flex-col items-center justify-center">
+        <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/50">
+            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
                 <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                     <i class="fa-solid fa-shield-halved text-indigo-500"></i> Respect
                 </span>
-                <span class="text-lg sm:text-xl font-extrabold text-slate-900">{{ number_format($profileCharacter->respect, 0, ',', '.') }}</span>
+                <span class="text-base sm:text-xl font-extrabold text-slate-900">{{ number_format($profileCharacter->respect, 0, ',', '.') }}</span>
             </div>
-            <div class="p-4 sm:p-5 text-center flex flex-col items-center justify-center">
+            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
                 <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <i class="fa-solid fa-coins text-amber-500"></i> Contant Geld
+                    <i class="fa-solid fa-smoking text-amber-500"></i> Peuk Fooi (+1)
                 </span>
-                <span class="text-lg sm:text-xl font-extrabold text-slate-900">€{{ number_format($profileCharacter->cash, 0, ',', '.') }}</span>
+                <span class="text-base sm:text-xl font-extrabold text-amber-600">{{ number_format($totalRespectsReceived, 0, ',', '.') }}</span>
             </div>
-            <div class="p-4 sm:p-5 text-center flex flex-col items-center justify-center">
+            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
+                <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-coins text-amber-500"></i> Contant
+                </span>
+                <span class="text-base sm:text-xl font-extrabold text-slate-900">€{{ number_format($profileCharacter->cash, 0, ',', '.') }}</span>
+            </div>
+            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
                 <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                     <i class="fa-solid fa-building-columns text-emerald-500"></i> Banktegoed
                 </span>
-                <span class="text-lg sm:text-xl font-extrabold text-slate-900">€{{ number_format($profileCharacter->bank, 0, ',', '.') }}</span>
+                <span class="text-base sm:text-xl font-extrabold text-slate-900">€{{ number_format($profileCharacter->bank, 0, ',', '.') }}</span>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
+        <!-- Navigation Tabs with Dynamic Accent Color -->
         <div class="flex border-t border-slate-100 px-6 gap-6 overflow-x-auto">
-            <button @click="setActiveTab('overzicht')" :class="activeTab === 'overzicht' ? 'border-purple-600 text-purple-900 font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap">
+            <button @click="setActiveTab('overzicht')" :class="activeTab === 'overzicht' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-id-card"></i> Dossier Overzicht
             </button>
-            <button @click="setActiveTab('vrienden')" :class="activeTab === 'vrienden' ? 'border-purple-600 text-purple-900 font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap">
+            <button @click="setActiveTab('psychiatrisch')" :class="activeTab === 'psychiatrisch' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-clipboard-user text-rose-500"></i> Psychiatrisch Rapport
+            </button>
+            <button @click="setActiveTab('medailles')" :class="activeTab === 'medailles' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-medal text-amber-500"></i> Medailles & Prestaties
+            </button>
+            <button @click="setActiveTab('vrienden')" :class="activeTab === 'vrienden' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-user-group text-purple-500"></i> Vriendenlijst ({{ $friendsCount }})
             </button>
-            <button @click="setActiveTab('gastenboek')" :class="activeTab === 'gastenboek' ? 'border-purple-600 text-purple-900 font-extrabold' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap">
-                <i class="fa-solid fa-book-open"></i> Gastenboek ({{ $guestbookEntries->total() }})
+            <button @click="setActiveTab('gastenboek')" :class="activeTab === 'gastenboek' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+                <i class="fa-solid fa-book-open text-indigo-500"></i> Gastenboek ({{ $guestbookEntries->total() }})
             </button>
         </div>
     </div>
 
     <!-- Tab 1: Overzicht & Statistieken -->
     <div x-show="activeTab === 'overzicht'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        @if(Auth::id() === $profileCharacter->user_id)
+        <!-- Discord Koppeling & Beloningen Banner -->
+        <div class="md:col-span-2 bg-gradient-to-r from-[#5865F2]/10 via-purple-500/10 to-amber-500/10 border border-[#5865F2]/30 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-[#5865F2] text-white flex items-center justify-center text-2xl shadow-sm shrink-0">
+                    <i class="fa-brands fa-discord"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-black text-slate-900 font-['Outfit']">Discord Koppeling & Server Rollen</span>
+                        @if(Auth::user()->discord_id)
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                <i class="fa-solid fa-check text-[9px]"></i> Gekoppeld
+                            </span>
+                        @else
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
+                                + €2.500 & 3 Dagen VIP
+                            </span>
+                        @endif
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        @if(Auth::user()->discord_id)
+                            Je account is verbonden met Discord ID: <code class="font-mono text-purple-700 bg-purple-50 px-1 py-0.5 rounded">{{ Auth::user()->discord_id }}</code>. Jouw spelersrol en VIP-status worden automatisch gesynchroniseerd.
+                        @else
+                            Koppel je Discord en ontvang direct <strong>€2.500 zakgeld</strong>, <strong>3 dagen gratis VIP</strong> én de <strong>TBS-Kliniek.nl</strong> rol in de Discord server!
+                        @endif
+                    </p>
+                </div>
+            </div>
+
+            <div class="shrink-0 w-full md:w-auto">
+                @if(Auth::user()->discord_id)
+                    <form method="POST" action="{{ route('discord.sync_roles') }}">
+                        @csrf
+                        <button type="submit" class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white font-extrabold text-xs py-2.5 px-4 rounded-xl transition shadow-xs cursor-pointer">
+                            <i class="fa-solid fa-rotate"></i>
+                            <span>Rollen Syncen</span>
+                        </button>
+                    </form>
+                @else
+                    <a href="{{ route('discord.redirect') }}" class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs py-2.5 px-5 rounded-xl transition shadow-xs cursor-pointer">
+                        <i class="fa-solid fa-gift"></i>
+                        <span>Koppel Discord & Claim Bonus</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Attributen & Stats -->
         <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6">
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Statistieken & Vaardigheden</h3>
@@ -221,6 +399,24 @@
                         <i class="fa-solid fa-bolt text-emerald-500 w-4"></i> Conditie / Stamina
                     </span>
                     <span class="font-extrabold text-slate-900">{{ $profileCharacter->stamina }}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
+                        <i class="fa-solid fa-brain text-purple-500 w-4"></i> Intelligentie
+                    </span>
+                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->intelligence ?? 10 }}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
+                        <i class="fa-solid fa-face-smile-wink text-amber-500 w-4"></i> Charisma
+                    </span>
+                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->charisma ?? 10 }}</span>
+                </div>
+                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
+                        <i class="fa-solid fa-scale-balanced text-sky-500 w-4"></i> Discipline
+                    </span>
+                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->discipline ?? 10 }}</span>
                 </div>
                 <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
                     <span class="font-bold text-slate-600 flex items-center gap-2.5">
@@ -258,9 +454,15 @@
                 </div>
             </div>
 
-            <div class="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
-                <span>Geregistreerd in kliniek: {{ $profileCharacter->created_at->format('d-m-Y') }}</span>
-                <span>Actief: {{ $profileCharacter->last_active_at ? $profileCharacter->last_active_at->diffForHumans() : 'Zojuist' }}</span>
+            <div class="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                <span>Geregistreerd in kliniek: {{ $profileCharacter->created_at ? \Illuminate\Support\Carbon::parse($profileCharacter->created_at)->format('d-m-Y') : now()->format('d-m-Y') }}</span>
+                <span>Status: 
+                    @if($profileCharacter->isOnline())
+                        <strong class="text-emerald-600 font-extrabold inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>Nu Online</strong>
+                    @else
+                        <span class="text-slate-500 font-medium">{{ $profileCharacter->last_active_at ? 'Laatst gezien ' . $profileCharacter->last_active_at->diffForHumans() : 'Nog niet actief geweest' }}</span>
+                    @endif
+                </span>
             </div>
         </div>
 
@@ -289,6 +491,7 @@
                 <a href="{{ route('profile.show', $f->friend->name) }}" class="p-2.5 rounded-xl border border-slate-200/70 hover:border-purple-300 hover:bg-purple-50/20 transition flex flex-col items-center text-center group">
                     <div class="relative mb-2">
                         <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform">
+                        <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $f->friend->online_status_label }}"></span>
                         @if($f->is_bff)
                         <span class="absolute -top-1 -right-1 bg-pink-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs" title="BFF">
                             <i class="fa-solid fa-heart text-[7px] text-white"></i>
@@ -303,6 +506,374 @@
                 @endforeach
             </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Tab: Psychiatrisch Rapport (Dr. H. van Beek) -->
+    <div x-show="activeTab === 'psychiatrisch'" x-cloak class="space-y-6">
+        <!-- Forensic Clinic File Container -->
+        <div class="bg-gradient-to-b from-stone-50 via-white to-stone-100/60 rounded-2xl shadow-md border-2 border-stone-300 p-6 sm:p-8 relative overflow-hidden">
+            <!-- Background Security Watermark & Grid Pattern -->
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none select-none bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            <div class="absolute -right-8 -top-8 opacity-10 pointer-events-none select-none text-9xl text-slate-800 rotate-12">
+                <i class="fa-solid fa-stamp"></i>
+            </div>
+
+            <!-- Top Forensic Header Bar -->
+            <div class="border-b-2 border-stone-300 pb-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-700 text-white shadow-xs">
+                            <i class="fa-solid fa-lock text-[9px]"></i> STRIKT MEDISCH GEHEIM
+                        </span>
+                        <span class="px-2 py-0.5 rounded bg-stone-200 text-stone-700 font-mono text-[10px] font-bold">
+                            WGBO ART. 7:457
+                        </span>
+                        <span class="text-xs font-mono font-extrabold text-stone-800 tracking-wider">
+                            DOSSIER #{{ $psychiatricReport['dossier_nr'] }}
+                        </span>
+                    </div>
+                    <div class="pt-1">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-stone-500">
+                            MINISTERIE VAN JUSTITIE &bull; DIENST JUSTITIËLE INRICHTINGEN &bull; FORENSISCHE ZORG
+                        </p>
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <span>Psychiatrisch Onderzoeksverslag</span>
+                        </h2>
+                    </div>
+                    <div class="text-xs text-stone-600 flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5 font-medium">
+                        <span>Patiënt: <strong class="text-slate-900 font-black">{{ $profileCharacter->name }}</strong></span>
+                        <span>&bull;</span>
+                        <span>Opnamedatum: <strong class="text-slate-800 font-bold">{{ $profileCharacter->created_at ? \Illuminate\Support\Carbon::parse($profileCharacter->created_at)->format('d-m-Y') : now()->format('d-m-Y') }}</strong></span>
+                        <span>&bull;</span>
+                        <span>Status: <span class="text-amber-800 font-extrabold bg-amber-100/80 px-2 py-0.2 rounded text-[10px]">TBS met Dwangverpleging</span></span>
+                    </div>
+                </div>
+
+                <!-- Doctor Card Header -->
+                <div class="bg-white/90 border border-stone-300 rounded-xl p-3 shadow-2xs flex items-center gap-3 shrink-0 self-start md:self-center">
+                    <div class="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-user-doctor"></i>
+                    </div>
+                    <div>
+                        <div class="text-[9px] font-black uppercase tracking-wider text-stone-400">Behandelend Geneesheer</div>
+                        <div class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                            {{ $psychiatricReport['doctor_name'] }}
+                            <i class="fa-solid fa-circle-check text-blue-600 text-[11px]" title="BIG Geverifieerd"></i>
+                        </div>
+                        <div class="text-[10px] text-stone-500 font-medium leading-tight">{{ $psychiatricReport['doctor_role'] }}</div>
+                        <div class="text-[9px] font-mono text-stone-400">{{ $psychiatricReport['big_registration'] ?? 'BIG: 492.019.481' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Threat Level Meter Banner -->
+            <div class="p-5 rounded-xl border-2 {{ $psychiatricReport['threat_color'] }} mb-6 relative z-10 transition-all">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-white/90 border border-current flex items-center justify-center text-2xl shrink-0 shadow-xs">
+                            <i class="{{ $psychiatricReport['threat_icon'] }}"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-widest block opacity-75">Vastgesteld Dreigingsniveau</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg font-black tracking-wide">{{ $psychiatricReport['threat_level'] }}</span>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full {{ $psychiatricReport['threat_badge_color'] ?? 'bg-white/40' }} border">
+                                    {{ $psychiatricReport['regime'] ?? 'Gesloten Afdeling' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-xs font-bold md:max-w-md md:text-right leading-relaxed bg-white/60 md:bg-transparent p-2.5 md:p-0 rounded-lg">
+                        {{ $psychiatricReport['danger_desc'] }}
+                    </div>
+                </div>
+
+                <!-- Threat Scale Visual Meter -->
+                <div class="mt-4 pt-3 border-t border-current/20">
+                    <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-wider mb-1.5 opacity-80">
+                        <span>Dreigingsladder (TBS Risico-index)</span>
+                        <span>Schaal: {{ $psychiatricReport['threat_meter'] ?? 50 }}%</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-black/10 rounded-full overflow-hidden p-0.5 flex gap-1">
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 10 ? 'bg-emerald-500' : 'bg-transparent' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 30 ? 'bg-yellow-400' : 'bg-stone-300' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 55 ? 'bg-amber-500' : 'bg-stone-300' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 80 ? 'bg-rose-600' : 'bg-stone-300' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 95 ? 'bg-slate-900 border border-rose-500' : 'bg-stone-300' }} flex-1"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] font-bold text-stone-500 mt-1">
+                        <span class="text-emerald-700">Groen (Intake)</span>
+                        <span class="text-yellow-700">Geel</span>
+                        <span class="text-amber-700">Oranje</span>
+                        <span class="text-rose-700">Rood</span>
+                        <span class="text-stone-900 font-extrabold">Zwart (EBI)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnosis & Treatment Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
+                <!-- Card 1: Hoofddiagnose -->
+                <div class="bg-white rounded-xl p-5 border-2 border-stone-200/90 shadow-2xs space-y-2.5 hover:border-purple-300 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase text-purple-800 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-stethoscope text-purple-600"></i> Voorlopige Hoofddiagnose
+                        </span>
+                        <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-mono font-black border border-purple-200">
+                            {{ $psychiatricReport['dsm_code'] ?? 'DSM-TBS 301.7' }}
+                        </span>
+                    </div>
+                    <h3 class="text-sm font-black text-slate-900 leading-snug">
+                        {{ $psychiatricReport['diagnosis'] }}
+                    </h3>
+                    <p class="text-xs text-stone-600 leading-relaxed font-sans pt-1 border-t border-stone-100">
+                        Vastgesteld conform klinische DSM-TBS standaarden. Patiënt toont een structureel patroon van verhoogde risicobereidheid, dominantiedrang en verminderde impulsremming.
+                    </p>
+                </div>
+
+                <!-- Card 2: Behandelplan & Medicatie -->
+                <div class="bg-white rounded-xl p-5 border-2 border-stone-200/90 shadow-2xs space-y-2.5 hover:border-rose-300 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase text-rose-800 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-pills text-rose-600"></i> Behandelplan & Maatregel
+                        </span>
+                        <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-mono font-black border border-rose-200">
+                            ℞ MEDICATIE & REGIME
+                        </span>
+                    </div>
+                    <div class="text-xs font-bold text-slate-900 leading-relaxed bg-stone-50 p-3 rounded-lg border border-stone-200">
+                        <div class="text-[10px] uppercase font-black text-stone-400 mb-1">Voorgeschreven Kuur:</div>
+                        {{ $psychiatricReport['medication'] ?? $psychiatricReport['treatment_plan'] }}
+                    </div>
+                    <p class="text-[11px] text-stone-500 font-medium">
+                        <strong>Maatregel:</strong> {{ $psychiatricReport['treatment_plan'] }}
+                    </p>
+                </div>
+
+                <!-- Card 3: Artsenobservatie (Full width) -->
+                <div class="md:col-span-2 bg-white rounded-xl p-5 border-2 border-stone-200/90 shadow-2xs space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase text-stone-600 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-notes-medical text-indigo-600"></i> Artsenobservatie & Gedragsanalyse
+                        </span>
+                        <span class="text-[10px] text-stone-400 font-mono">Vertrouwelijk Inrichtingsverslag</span>
+                    </div>
+                    <div class="text-xs text-slate-800 leading-relaxed bg-stone-50/80 p-4 rounded-xl border border-stone-200/80 italic font-serif relative">
+                        <span class="text-2xl text-stone-300 absolute -top-1 left-2 font-serif select-none">&ldquo;</span>
+                        <p class="relative z-10 pl-3">
+                            {{ $psychiatricReport['doctor_notes'] }}
+                        </p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-stone-100 text-[10px] text-stone-500">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span>Afdeling Forensisch Toezicht & Diagnostiek &bull; FPC De Balk</span>
+                        </div>
+                        <div class="font-mono flex items-center gap-2 text-indigo-900 font-bold">
+                            <i class="fa-solid fa-signature text-stone-400"></i>
+                            <span>Digitale handtekening geverifieerd: {{ $psychiatricReport['doctor_name'] }}, arts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barcode & Official Stamp Footer -->
+            <div class="mt-6 pt-5 border-t-2 border-stone-300/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-stone-400">
+                <div class="font-mono text-xs tracking-widest flex items-center gap-2 select-none">
+                    <span class="text-stone-800 font-black text-sm tracking-tighter">||| | |||| ||| ||||| |||| || |||</span>
+                    <span class="text-[10px] text-stone-500">{{ $psychiatricReport['dossier_nr'] }}-DJI-NETHERLANDS</span>
+                </div>
+                <div class="text-[10px] text-stone-500 font-medium">
+                    Dit document is uitsluitend bestemd voor de behandelstaf en de commissie van toezicht.
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Explainer: Hoe werkt het rapport? -->
+        <div x-data="{ openExplainer: false }" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <button type="button" 
+                    @click="openExplainer = !openExplainer" 
+                    class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-circle-question"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Hoe werkt het Psychiatrisch Rapport?</h4>
+                        <p class="text-[11px] text-slate-500">Klik hier om te zien hoe jouw acties en statistieken dit verslag beïnvloeden.</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openExplainer }"></i>
+            </button>
+
+            <div x-show="openExplainer" x-collapse x-cloak class="px-5 pb-5 pt-1 border-t border-slate-100 text-xs text-slate-600 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                        <span class="font-black text-slate-900 flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Dreigingsniveau
+                        </span>
+                        <p class="text-[11px] text-slate-600">
+                            Bepaald door je <strong>Level</strong> en het aantal <strong>gewonnen gevechten</strong>. Stijgt van <em>Code Groen</em> (intake) naar <em>Geel</em>, <em>Oranje</em>, <em>Rood</em> tot het gevreesde <em>Code Zwart</em> (EBI status).
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                        <span class="font-black text-slate-900 flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-solid fa-brain text-purple-600"></i> Dynamische Diagnose
+                        </span>
+                        <p class="text-[11px] text-slate-600">
+                            Dr. Van Beek analyseert je gedrag: meer dan <strong>€100.000 vermogen</strong> geeft <em>Witteboorden-paranoia</em>, veel <strong>vechten</strong> geeft <em>Impuls-agressie</em>, en veel <strong>diefstallen</strong> geeft <em>Kleptomanie</em>.
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                        <span class="font-black text-slate-900 flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-solid fa-prescription-bottle-medical text-rose-600"></i> Behandeling & Medicatie
+                        </span>
+                        <p class="text-[11px] text-slate-600">
+                            Elke diagnose krijgt een passend kliniekvoorschrift, variërend van lichte dagbesteding tot zware kalmeringsdepots en strikte fouillering bij de cellen.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Medailles & Prestaties (Badgeskast) -->
+    <div x-show="activeTab === 'medailles'" x-cloak x-data="{ activeSet: 'all' }" class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+                <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-medal text-amber-500"></i>
+                    <span>Dossier Medailles & Prestaties van {{ $profileCharacter->name }}</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Officiële reputatiestempels, mijlpalen en prestaties behaald tijdens het verblijf in de inrichting.</p>
+            </div>
+            <span class="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-extrabold flex items-center gap-1.5 self-start sm:self-auto">
+                <i class="fa-solid fa-trophy text-amber-500"></i>
+                <span>{{ collect($badges)->where('unlocked', true)->count() }} / {{ count($badges) }} Ontgrendeld</span>
+            </span>
+        </div>
+
+        <!-- Totale Voortgangsbalk -->
+        @php
+            $unlockedCount = collect($badges)->where('unlocked', true)->count();
+            $totalBadgesCount = count($badges);
+            $totalPercentage = $totalBadgesCount > 0 ? (int) round(($unlockedCount / $totalBadgesCount) * 100) : 0;
+        @endphp
+        <div class="space-y-1.5 bg-slate-50 p-3.5 rounded-xl border border-slate-200/70">
+            <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-slate-600 flex items-center gap-1.5">
+                    <i class="fa-solid fa-trophy text-amber-500"></i> Totale Medaille Collectie
+                </span>
+                <span class="text-purple-700 font-black">
+                    {{ $totalPercentage }}% Voltooid ({{ $unlockedCount }}/{{ $totalBadgesCount }})
+                </span>
+            </div>
+            <div class="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-amber-500 rounded-full transition-all duration-500" style="width: {{ $totalPercentage }}%"></div>
+            </div>
+        </div>
+
+        <!-- Set Filter Tabs Bar -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-filter text-slate-400"></i> Selecteer Medaille Set
+                </span>
+                <span class="text-[11px] text-slate-500 font-semibold" x-text="activeSet === 'all' ? 'Alle sets getoond' : 'Gefilterd op set'"></span>
+            </div>
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                <button type="button" @click="activeSet = 'all'"
+                    :class="activeSet === 'all' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                    class="px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>Alle Sets</span>
+                    <span :class="activeSet === 'all' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'" class="px-1.5 py-0.5 rounded-md text-[10px] font-extrabold">
+                        {{ $unlockedCount }}/{{ $totalBadgesCount }}
+                    </span>
+                </button>
+
+                @foreach($badgeSets as $sKey => $sData)
+                    @php
+                        $setBadges = collect($badges)->where('set_id', $sKey);
+                        $setUnlocked = $setBadges->where('unlocked', true)->count();
+                        $setTotal = $setBadges->count();
+                    @endphp
+                    <button type="button" @click="activeSet = '{{ $sKey }}'"
+                        :class="activeSet === '{{ $sKey }}' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                        class="px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="{{ $sData['icon'] }}"></i>
+                        <span>{{ $sData['name'] }}</span>
+                        <span :class="activeSet === '{{ $sKey }}' ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'" class="px-1.5 py-0.5 rounded-md text-[10px] font-extrabold">
+                            {{ $setUnlocked }}/{{ $setTotal }}
+                        </span>
+                    </button>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Medailles Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            @foreach($badges as $badge)
+            <div x-show="activeSet === 'all' || activeSet === '{{ $badge['set_id'] }}'"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                class="p-4 rounded-xl border transition flex flex-col justify-between gap-3 {{ $badge['unlocked'] ? 'bg-white border-slate-200 hover:border-purple-300 hover:shadow-xs' : 'bg-slate-50/70 border-slate-200/60 opacity-75' }}">
+                <div class="flex items-start gap-3">
+                    <!-- Eigen Icon Asset via Blade Component -->
+                    <x-medal-badge :badge="$badge" size="md" />
+
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-1 flex-wrap">
+                            @php
+                                $tierStyle = match($badge['tier']) {
+                                    'silver' => 'text-slate-700 bg-slate-100 border-slate-300',
+                                    'gold' => 'text-amber-800 bg-amber-50 border-amber-300',
+                                    'diamond' => 'text-cyan-800 bg-cyan-50 border-cyan-300',
+                                    default => 'text-orange-800 bg-orange-50 border-orange-300',
+                                };
+                                $tierStars = str_repeat('★', $badge['tier_stars']);
+                            @endphp
+                            <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded border {{ $tierStyle }}">
+                                {{ $tierStars }} {{ $badge['tier_name'] }}
+                            </span>
+
+                            @if($badge['unlocked'])
+                                <span class="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                                    <i class="fa-solid fa-check text-[8px]"></i> Behaald
+                                </span>
+                            @else
+                                <span class="text-[9px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded">
+                                    <i class="fa-solid fa-lock text-[8px]"></i> Gesloten
+                                </span>
+                            @endif
+                        </div>
+
+                        <h4 class="text-xs font-extrabold text-slate-900 mt-1 truncate">
+                            {{ $badge['name'] }}
+                        </h4>
+                        <p class="text-[11px] text-slate-500 mt-1 leading-snug">
+                            {{ $badge['description'] }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 space-y-1.5">
+                    <div class="flex items-center justify-between text-[10px]">
+                        <span class="font-bold text-slate-400 uppercase tracking-wider">Voortgang:</span>
+                        <span class="font-extrabold {{ $badge['unlocked'] ? 'text-purple-700' : 'text-slate-600' }}">
+                            {{ $badge['progress'] }}
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-300 {{ $badge['unlocked'] ? 'bg-emerald-500' : 'bg-purple-500' }}" style="width: {{ $badge['progress_pct'] }}%"></div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
         </div>
     </div>
 
@@ -340,6 +911,7 @@
                 <div class="flex items-center gap-3">
                     <a href="{{ route('profile.show', $f->friend->name) }}" class="relative shrink-0">
                         <img src="{{ $f->friend->avatar_url }}" alt="{{ $f->friend->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs group-hover:scale-105 transition-transform">
+                        <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $f->friend->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $f->friend->online_status_label }}"></span>
                         @if($f->is_bff)
                         <span class="absolute -top-1 -right-1 bg-pink-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs" title="BFF (Beste Vriend)">
                             <i class="fa-solid fa-heart text-[8px]"></i>
@@ -550,6 +1122,58 @@
                 </div>
             </form>
 
+        </div>
+    </div>
+
+    <!-- MODAL 3: Title Selection Modal -->
+    <div x-show="titleModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div @click.away="titleModalOpen = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-award text-purple-600"></i>
+                        <span>Dossier Titel Kiezen</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Kies welke officiële status onder jouw naam getoond wordt.</p>
+                </div>
+                <button @click="titleModalOpen = false" type="button" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('profile.title') }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    @foreach($availableTitles as $t)
+                    <label class="p-3 rounded-xl border-2 transition flex items-center justify-between gap-3 {{ $t['unlocked'] ? 'cursor-pointer hover:border-purple-300 ' . (($profileCharacter->title === $t['id'] || (! $profileCharacter->title && $t['id'] === 'Modelpatiënt')) ? 'border-purple-600 bg-purple-50/50' : 'border-slate-200 bg-white') : 'opacity-50 bg-slate-50 border-slate-200 cursor-not-allowed' }}">
+                        <div class="flex items-center gap-3">
+                            <input type="radio" name="title" value="{{ $t['id'] }}" {{ $t['unlocked'] ? '' : 'disabled' }} {{ ($profileCharacter->title === $t['id'] || (! $profileCharacter->title && $t['id'] === 'Modelpatiënt')) ? 'checked' : '' }} class="text-purple-600 focus:ring-purple-500">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <i class="{{ $t['icon'] }} text-xs text-purple-600"></i>
+                                    <span class="text-xs font-black text-slate-900">{{ $t['name'] }}</span>
+                                </div>
+                                <span class="text-[10px] text-slate-500 block mt-0.5">{{ $t['description'] }}</span>
+                            </div>
+                        </div>
+                        @if($t['unlocked'])
+                            <span class="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 shrink-0">Vrijgespeeld</span>
+                        @else
+                            <span class="text-[9px] font-bold text-slate-400 bg-slate-200 px-1.5 py-0.5 rounded shrink-0"><i class="fa-solid fa-lock text-[8px]"></i> Vergrendeld</span>
+                        @endif
+                    </label>
+                    @endforeach
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button @click="titleModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">
+                        Annuleren
+                    </button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition shadow-xs cursor-pointer">
+                        Titel Toepassen
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
     @endif

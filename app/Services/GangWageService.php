@@ -138,8 +138,8 @@ class GangWageService
             return null;
         }
 
-        // Clean white bank deposit directly to character bank account!
-        $character->bank += $totalPayout;
+        // Contant geld uitbetaling direct op zak van het personage!
+        $character->cash += $totalPayout;
         // Reset last wage payout timestamp directly to now so timer cleanly begins for the next hour
         $character->last_gang_wage_at = $now;
         $character->save();
@@ -150,7 +150,7 @@ class GangWageService
                 'sender_id' => $character->id,
                 'sender_name' => 'Bende Salaris Administratie',
                 'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
-                'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' wit salaris ontvangen op je bankrekening (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
+                'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld ontvangen op zak (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
                 'type' => 'gang',
             ]);
         }

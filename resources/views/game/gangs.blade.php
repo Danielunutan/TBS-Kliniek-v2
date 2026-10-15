@@ -50,23 +50,23 @@
 
         <!-- Left Column: Gangs Menu Navigation -->
         <div class="lg:col-span-3 space-y-4">
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
                 <!-- Gangs Header Tab with Pink + Button -->
-                <div class="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200 text-slate-900 font-extrabold uppercase text-xs tracking-wider">
+                <div class="bg-slate-50 dark:bg-slate-800/80 px-4 py-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-extrabold uppercase text-xs tracking-wider">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-users text-purple-600 text-xs"></i> Gangs Menu
+                        <i class="fa-solid fa-users text-purple-600 dark:text-purple-400 text-xs"></i> Gangs Menu
                     </span>
                     @if(! $myGang)
-                    <button type="button" @click="showCreateModal = true" title="Nieuwe Bende Oprichten (250 Sterren)" class="w-6 h-6 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center text-xs font-bold transition cursor-pointer">
+                    <button type="button" @click="showCreateModal = true" title="Nieuwe Bende Oprichten (250 Sterren)" class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs font-bold transition cursor-pointer">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                     @endif
                 </div>
 
                 <!-- Navigation List -->
-                <div class="p-2 space-y-1 text-xs font-bold text-slate-700">
+                <div class="p-2 space-y-1 text-xs font-bold text-slate-700 dark:text-slate-200">
                     <button type="button" @click="setGangTab('ranglijst')" 
-                            :class="activeGangTab === 'ranglijst' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'ranglijst' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
                             <i class="fa-solid fa-trophy text-amber-500 w-4 text-center"></i>
@@ -77,25 +77,25 @@
 
                     @if($myGang)
                     <button type="button" @click="setGangTab('mijn_gang')" 
-                            :class="activeGangTab === 'mijn_gang' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'mijn_gang' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-shield-halved text-purple-600 w-4 text-center"></i>
+                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 w-4 text-center"></i>
                             <span>Mijn Gang</span>
                         </span>
-                        <span class="text-[10px] text-purple-700 font-extrabold">[{{ $myGang->tag }}]</span>
+                        <span class="text-[10px] text-purple-700 dark:text-purple-300 font-extrabold">[{{ $myGang->tag }}]</span>
                     </button>
 
                     <!-- Bende Oorlog Tab -->
                     <button type="button" @click="setGangTab('oorlog')" 
-                            :class="activeGangTab === 'oorlog' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'oorlog' ? 'bg-rose-50/90 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-crosshairs text-rose-600 w-4 text-center"></i>
+                            <i class="fa-solid fa-crosshairs text-rose-600 dark:text-rose-400 w-4 text-center"></i>
                             <span class="font-black">Bende Oorlog</span>
                         </span>
                         @if($myGang->attackCooldownRemaining() > 0)
-                            <span class="text-[10px] font-mono text-amber-600 font-extrabold flex items-center gap-1">
+                            <span class="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-extrabold flex items-center gap-1">
                                 <i class="fa-solid fa-stopwatch text-amber-500 text-[10px]"></i> {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
                             </span>
                         @else
@@ -105,10 +105,10 @@
 
                     @if($myGang && $myGang->isOfficer($character))
                     <button type="button" @click="setGangTab('beheer')" 
-                            :class="activeGangTab === 'beheer' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'beheer' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-users-gear text-purple-600 w-4 text-center"></i>
+                            <i class="fa-solid fa-users-gear text-purple-600 dark:text-purple-400 w-4 text-center"></i>
                             <span>Bende Beheer</span>
                         </span>
                         @if($myGang->requests->where('status', 'pending')->count() > 0)
@@ -119,10 +119,10 @@
                     </button>
 
                     <button type="button" @click="setGangTab('instellingen')" 
-                            :class="activeGangTab === 'instellingen' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'instellingen' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-sliders text-slate-500 w-4 text-center"></i>
+                            <i class="fa-solid fa-sliders text-slate-500 dark:text-slate-400 w-4 text-center"></i>
                             <span>Instellingen</span>
                         </span>
                         <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
@@ -131,10 +131,10 @@
 
                     <!-- Winkel Tab -->
                     <button type="button" @click="setGangTab('winkel')" 
-                            :class="activeGangTab === 'winkel' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'winkel' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-store text-purple-600 w-4 text-center"></i>
+                            <i class="fa-solid fa-store text-purple-600 dark:text-purple-400 w-4 text-center"></i>
                             <span>Winkel & Kiosken</span>
                         </span>
                         <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
@@ -142,17 +142,17 @@
 
                     <!-- Doneren Tab -->
                     <button type="button" @click="setGangTab('doneren')" 
-                            :class="activeGangTab === 'doneren' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'doneren' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-circle-plus text-emerald-600 w-4 text-center"></i>
+                            <i class="fa-solid fa-circle-plus text-emerald-600 dark:text-emerald-400 w-4 text-center"></i>
                             <span>Doneren</span>
                         </span>
                         <i class="fa-solid fa-plus text-[10px] opacity-60"></i>
                     </button>
 
                     <button type="button" @click="setGangTab('logboek')" 
-                            :class="activeGangTab === 'logboek' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                            :class="activeGangTab === 'logboek' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
                         <span class="flex items-center gap-2.5">
                             <i class="fa-solid fa-book-bookmark text-blue-500 w-4 text-center"></i>
@@ -162,7 +162,7 @@
                     </button>
 
                     <a href="{{ route('murder_stats.index') }}" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 text-slate-600 transition">
+                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 transition border border-transparent">
                         <span class="flex items-center gap-2.5">
                             <i class="fa-solid fa-skull text-rose-500 w-4 text-center"></i>
                             <span>Moorden</span>
@@ -170,7 +170,7 @@
                     </a>
 
                     <a href="{{ route('leaderboard.index') }}" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 text-slate-600 transition">
+                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 transition border border-transparent">
                         <span class="flex items-center gap-2.5">
                             <i class="fa-solid fa-chart-column text-indigo-500 w-4 text-center"></i>
                             <span>Algemene stats</span>
@@ -400,8 +400,9 @@
                                     <tr class="hover:bg-slate-50 transition">
                                         <td class="py-3 px-3">
                                             <div class="flex items-center gap-3">
-                                                <a href="{{ route('profile.show', $member->name) }}">
+                                                <a href="{{ route('profile.show', $member->name) }}" class="relative shrink-0">
                                                     <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}" class="w-8 h-8 rounded-full object-cover border border-slate-200">
+                                                    <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white {{ $member->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $member->online_status_label }}"></span>
                                                 </a>
                                                 <a href="{{ route('profile.show', $member->name) }}" class="font-bold text-slate-900 hover:text-purple-600 transition">
                                                     {{ $member->name }}
@@ -963,7 +964,10 @@
                         @foreach($myGang->members as $mem)
                         <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition hover:bg-slate-100/60">
                             <div class="flex items-center gap-3">
-                                <img src="{{ $mem->avatar_url }}" alt="{{ $mem->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs">
+                                <div class="relative shrink-0">
+                                    <img src="{{ $mem->avatar_url }}" alt="{{ $mem->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs">
+                                    <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $mem->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $mem->online_status_label }}"></span>
+                                </div>
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <a href="{{ route('profile.show', $mem->name) }}" class="font-extrabold text-slate-900 hover:text-purple-700 hover:underline">
@@ -1056,7 +1060,10 @@
                         @forelse($myGang->requests->where('status', 'pending') as $req)
                         <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition hover:bg-slate-100/60">
                             <div class="flex items-center gap-3">
-                                <img src="{{ $req->character->avatar_url }}" alt="{{ $req->character->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs">
+                                <div class="relative shrink-0">
+                                    <img src="{{ $req->character->avatar_url }}" alt="{{ $req->character->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs">
+                                    <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white {{ $req->character->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}" title="{{ $req->character->online_status_label }}"></span>
+                                </div>
                                 <div>
                                     <div class="flex items-center gap-2">
                                         <a href="{{ route('profile.show', $req->character->name) }}" class="font-extrabold text-slate-900 hover:text-purple-700 hover:underline">

@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6" x-data="{ 
-    tab: '{{ $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') ? 'register' : 'login' }}', 
+    tab: '{{ request()->routeIs('register') || request('tab') === 'register' || $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') || request()->has('ref') || session()->has('referral_name') ? 'register' : 'login' }}', 
     regGender: '{{ old('gender', 'male') }}', 
     regAvatar: '{{ old('avatar', 'assets/characters/avatar_male_1.jpg') }}' 
 }">
@@ -162,11 +162,11 @@
                                 <input type="checkbox" name="remember" checked class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
                                 <span>Sessie onthouden</span>
                             </label>
-                            <a href="{{ route('password.request') }}" class="text-purple-600 hover:text-purple-700 font-semibold transition">Wachtwoord kwijt?</a>
+                            <a href="{{ route('password.request') }}" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-bold transition">Wachtwoord kwijt?</a>
                         </div>
 
                         <!-- Submit Button -->
-                        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow-xs transition active:scale-[0.99] flex items-center justify-center gap-2">
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-right-to-bracket text-xs"></i>
                             <span>Inloggen op Dossier</span>
                         </button>
@@ -192,6 +192,22 @@
 
                     <form method="POST" action="{{ route('register.post') }}" class="space-y-3.5">
                         @csrf
+
+                        @php
+                            $activeRef = request('ref', session('referral_name'));
+                        @endphp
+                        @if($activeRef)
+                        <input type="hidden" name="ref" value="{{ $activeRef }}">
+                        <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs flex items-center gap-2.5 shadow-2xs">
+                            <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm shrink-0">
+                                <i class="fa-solid fa-gift"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="font-extrabold block truncate">Uitgenodigd door: {{ $activeRef }}</span>
+                                <span class="text-[11px] text-purple-700">Meld je aan en begin direct samen in de TBS Kliniek!</span>
+                            </div>
+                        </div>
+                        @endif
 
                         <!-- 1. ACCOUNT FIELDS -->
                         <div class="space-y-2.5">
@@ -326,7 +342,7 @@
                             <label class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-600 group select-none">
                                 <input type="checkbox" name="terms" value="1" required class="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
                                 <span class="leading-snug group-hover:text-slate-900 transition text-[11px] sm:text-xs">
-                                    Ik ga akkoord met de <a href="#" class="text-indigo-600 font-extrabold hover:underline">algemene voorwaarden</a> en het kliniekreglement.
+                                    Ik ga akkoord met de <a href="{{ route('legal.terms') }}" target="_blank" class="text-indigo-600 font-extrabold hover:underline">algemene voorwaarden</a> en het <a href="{{ route('legal.privacy') }}" target="_blank" class="text-indigo-600 font-extrabold hover:underline">privacybeleid</a>.
                                 </span>
                             </label>
                         </div>

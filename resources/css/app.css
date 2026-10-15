@@ -5,6 +5,8 @@
 @source '../../storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
@@ -20,6 +22,192 @@ html, body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ======================================================== */
+/* TBS KLINIEK RICH DARK MODE THEME SYSTEM                  */
+/* ======================================================== */
+html.dark, html.dark body {
+    background-color: #0b0f19 !important;
+    color: #e2e8f0 !important;
+}
+
+html.dark .bg-white {
+    background-color: #111827 !important;
+}
+
+html.dark .bg-slate-50 {
+    background-color: #172033 !important;
+}
+
+html.dark .bg-slate-100 {
+    background-color: #1f293d !important;
+}
+
+html.dark .bg-slate-200 {
+    background-color: #27354f !important;
+}
+
+html.dark .bg-slate-300 {
+    background-color: #334460 !important;
+}
+
+html.dark .border-slate-300,
+html.dark .border-slate-200,
+html.dark .border-slate-100 {
+    border-color: #1f2937 !important;
+}
+
+/* 100% Borderless & Seamless Sidebar Navigation */
+aside nav a,
+aside nav button,
+.mobile-drawer-nav a,
+.mobile-drawer-nav button {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+aside nav button,
+aside nav a:not(.nav-item-active):not(:hover) {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+html.dark aside nav button,
+html.dark aside nav a:not(.nav-item-active):not(:hover) {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+html.dark header,
+html.dark nav,
+html.dark aside {
+    background-color: #0d131f !important;
+    border-color: #1e293b !important;
+}
+
+html.dark footer {
+    background-color: #090d16 !important;
+    border-color: #1e293b !important;
+}
+
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+    color: #f8fafc !important;
+}
+
+html.dark .text-slate-700 {
+    color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500 {
+    color: #94a3b8 !important;
+}
+
+html.dark .text-slate-400 {
+    color: #64748b !important;
+}
+
+/* Enhanced Contrast for Colored Text in Dark Mode */
+html.dark .text-purple-900,
+html.dark .text-purple-800,
+html.dark .text-purple-700 {
+    color: #c084fc !important;
+}
+
+html.dark .text-purple-600 {
+    color: #d8b4fe !important;
+}
+
+html.dark .text-amber-900,
+html.dark .text-amber-800,
+html.dark .text-amber-700 {
+    color: #fbbf24 !important;
+}
+
+html.dark .text-amber-600,
+html.dark .text-amber-500 {
+    color: #fcd34d !important;
+}
+
+html.dark .text-indigo-900,
+html.dark .text-indigo-800,
+html.dark .text-indigo-700 {
+    color: #a5b4fc !important;
+}
+
+html.dark .text-indigo-600 {
+    color: #c7d2fe !important;
+}
+
+html.dark .text-emerald-900,
+html.dark .text-emerald-800,
+html.dark .text-emerald-700 {
+    color: #6ee7b7 !important;
+}
+
+html.dark .text-emerald-600 {
+    color: #a7f3d0 !important;
+}
+
+html.dark .text-rose-900,
+html.dark .text-rose-800,
+html.dark .text-rose-700 {
+    color: #fda4af !important;
+}
+
+/* Background Pastels into Sleek Dark Tints in Dark Mode */
+html.dark .bg-purple-50,
+html.dark .bg-purple-100 {
+    background-color: rgba(168, 85, 247, 0.16) !important;
+    border-color: rgba(168, 85, 247, 0.3) !important;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-100 {
+    background-color: rgba(245, 158, 11, 0.16) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-100 {
+    background-color: rgba(99, 102, 241, 0.16) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-100 {
+    background-color: rgba(16, 185, 129, 0.16) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-100 {
+    background-color: rgba(244, 63, 94, 0.16) !important;
+    border-color: rgba(244, 63, 94, 0.3) !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+    background-color: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #f8fafc !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #64748b !important;
+}
+
+html.dark [role="dialog"],
+html.dark .modal-content {
+    background-color: #111827 !important;
+    border-color: #1f2937 !important;
+    color: #f8fafc !important;
 }
 
 /* Custom Search & Autocomplete Inputs */
@@ -72,4 +260,41 @@ input::-webkit-calendar-picker-indicator {
 }
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
     background: rgba(100, 116, 139, 0.55);
+}
+
+/* Strict Theme Toggle Icon Display (Prevents FontAwesome Specificity Leak) */
+.theme-toggle-knob {
+    overflow: hidden !important;
+}
+
+html:not(.dark) .theme-toggle-moon,
+html:not(.dark) [class*="theme-toggle-moon"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    pointer-events: none !important;
+}
+
+html.dark .theme-toggle-sun,
+html.dark [class*="theme-toggle-sun"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    pointer-events: none !important;
+}
+
+html:not(.dark) .theme-toggle-sun {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+html.dark .theme-toggle-moon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\CharacterMission;
 use App\Models\GameNotification;
+use App\Models\LotteryRound;
 use App\Models\Mission;
 use App\Models\NewsArticle;
 use App\Models\TheftRecord;
@@ -12,6 +14,8 @@ use App\Models\User;
 use App\Services\AllowanceService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
+use App\Services\ReferralService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -23,6 +27,7 @@ class DashboardController extends Controller
         protected EnergyService $energyService,
         protected LevelService $levelService,
         protected AllowanceService $allowanceService,
+        protected ReferralService $referralService,
     ) {}
 
     /**
@@ -46,7 +51,40 @@ class DashboardController extends Controller
         $nextLevelXp = $this->levelService->getXpRequiredForNextLevel($character->level);
         $xpPercentage = min(100, max(0, (int) round(($character->xp / max(1, $nextLevelXp)) * 100)));
 
-        $quickMissions = Mission::orderBy('required_level')->take(3)->get();
+        // Actieve en relevante missies voor het karakter
+        $completedMissionCounts = $character->missions()->pluck('completed_count', 'mission_id')->toArray();
+        $completedMissionIds = array_keys(array_filter($completedMissionCounts, fn ($c) => $c > 0));
+
+        // 1. Eerst nog niet voltooide missies voor het huidige level
+        $activeMissions = Mission::where('required_level', '<=', $character->level)
+            ->whereNotIn('id', $completedMissionIds)
+            ->orderBy('required_level')
+            ->orderBy('sort_order')
+            ->take(3)
+            ->get();
+
+        // 2. Indien minder dan 3, aanvullen met eerstvolgende of recent voltooide
+        if ($activeMissions->count() < 3) {
+            $needed = 3 - $activeMissions->count();
+            $nextMissions = Mission::where('required_level', '>', $character->level)
+                ->orderBy('required_level')
+                ->orderBy('sort_order')
+                ->take($needed)
+                ->get();
+
+            $quickMissions = $activeMissions->concat($nextMissions);
+
+            if ($quickMissions->count() < 3) {
+                $recentlyCompleted = Mission::whereIn('id', $completedMissionIds)
+                    ->orderByDesc('required_level')
+                    ->take(3 - $quickMissions->count())
+                    ->get();
+                $quickMissions = $quickMissions->concat($recentlyCompleted);
+            }
+        } else {
+            $quickMissions = $activeMissions;
+        }
+
         $notifications = $character->notifications()->take(5)->get();
         $recentGuestbook = $character->guestbookEntries()->with('author')->take(3)->get();
 
@@ -136,16 +174,80 @@ class DashboardController extends Controller
         // Sorteer op recentste datum en neem de top 5
         $recentActivities = $activities->sortByDesc('time')->take(5)->values();
 
+        $referralStats = $this->referralService->getStats($character);
+        $lotteryRound = LotteryRound::current();
+
         return view('game.dashboard', compact(
             'character',
             'nextLevelXp',
             'xpPercentage',
             'quickMissions',
+            'completedMissionCounts',
             'notifications',
             'recentGuestbook',
             'allowanceDetails',
             'latestNews',
-            'recentActivities'
+            'recentActivities',
+            'referralStats',
+            'lotteryRound'
         ));
+    }
+
+    /**
+     * Get real-time stats for the authenticated player.
+     */
+    public function realtimeStats(): JsonResponse
+    {
+        // Prevent background AJAX polling from consuming flash messages (like 'success' / 'error')
+        if (request()->hasSession()) {
+            request()->session()->reflash();
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['error' => 'Geen karakter gevonden.'], 404);
+        }
+
+        $this->energyService->refresh($character);
+
+        $nextLevelXp = $this->levelService->getXpRequiredForNextLevel($character->level);
+        $xpPercentage = min(100, max(0, (int) round(($character->xp / max(1, $nextLevelXp)) * 100)));
+
+        return response()->json([
+            'cash' => (int) $character->cash,
+            'bank' => (int) $character->bank,
+            'total_money' => (int) ($character->cash + $character->bank),
+            'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),
+            'cashFormatted' => '€'.number_format($character->cash, 0, ',', '.'),
+            'bank_formatted' => '€'.number_format($character->bank, 0, ',', '.'),
+            'bankFormatted' => '€'.number_format($character->bank, 0, ',', '.'),
+            'total_formatted' => '€'.number_format($character->cash + $character->bank, 0, ',', '.'),
+            'totalFormatted' => '€'.number_format($character->cash + $character->bank, 0, ',', '.'),
+            'energy' => (int) $character->energy,
+            'max_energy' => (int) $character->max_energy,
+            'energy_percent' => min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))),
+            'health' => (int) $character->health,
+            'max_health' => (int) $character->max_health,
+            'health_percent' => min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))),
+            'stars' => (int) ($character->stars ?? 0),
+            'stars_formatted' => number_format($character->stars ?? 0, 0, ',', '.'),
+            'starsFormatted' => number_format($character->stars ?? 0, 0, ',', '.'),
+            'vip_points' => (int) ($character->vip_points ?? 0),
+            'vip_points_formatted' => number_format($character->vip_points ?? 0, 0, ',', '.'),
+            'vipPointsFormatted' => number_format($character->vip_points ?? 0, 0, ',', '.'),
+            'respect' => (string) $character->formatted_respect,
+            'formatted_respect' => (string) $character->formatted_respect,
+            'level' => (int) $character->level,
+            'xp' => (int) $character->xp,
+            'next_level_xp' => (int) $nextLevelXp,
+            'xpFormatted' => number_format($character->xp, 0, ',', '.').' / '.number_format($nextLevelXp, 0, ',', '.').' XP',
+            'xp_percentage' => $xpPercentage,
+            'onlineCount' => Character::getOnlineCount(),
+            'is_in_prison' => (bool) $character->is_in_prison,
+            'prison_seconds' => (int) $character->remainingPrisonSeconds(),
+        ]);
     }
 }

@@ -96,7 +96,7 @@ class GangController extends Controller
         if ($myGang) {
             $wagePayout = $this->wageService->payoutPendingWages($character);
             if ($wagePayout && $wagePayout['amount'] > 0) {
-                session()->flash('success', '💰 Bende Uurloon Ontvangen! Er is zojuist €'.number_format($wagePayout['amount'], 0, ',', '.')." wit salaris op je bankrekening gestort voor {$wagePayout['hours']} gewerkte uur(en)!");
+                session()->flash('success', '💰 Bende Uurloon Ontvangen! Er is zojuist €'.number_format($wagePayout['amount'], 0, ',', '.')." contant geld op zak uitbetaald voor {$wagePayout['hours']} gewerkte uur(en)!");
             }
         }
 
@@ -1134,6 +1134,6 @@ class GangController extends Controller
             return back()->with('info', "Er is nog geen vol uur verstreken sinds je vorige uitbetaling. Volgende automatische uitbetaling over {$details['next_payout_human']}.");
         }
 
-        return back()->with('success', '💰 Succesvol €'.number_format($payout['amount'], 0, ',', '.')." bende-uurloon geïnd voor {$payout['hours']} uur en bijgeschreven op je bankrekening!");
+        return back()->with('success', '💰 Succesvol €'.number_format($payout['amount'], 0, ',', '.')." bende-uurloon geïnd voor {$payout['hours']} uur en als contant geld op zak ontvangen!");
     }
 }

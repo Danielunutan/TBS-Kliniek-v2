@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\CooldownService;
+use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -148,18 +149,34 @@ class HustleController extends Controller
         // Set 3 minute cooldown (180s)
         $this->cooldownService->setCooldown($character, 'hustle', 180);
 
+        // Stat bonus: Charisma & Intelligence boost hustle success rate
+        $statBonus = min(20, (int) floor(($character->getEffectiveCharisma() * 1.5 + $character->getEffectiveIntelligence()) / 15));
+        $effectiveRate = min(85, $hustle['rate'] + $statBonus);
+
         $roll = rand(1, 100);
 
-        if ($roll <= $hustle['rate']) {
-            $cash = rand($hustle['cash_min'], $hustle['cash_max']);
+        if ($roll <= $effectiveRate) {
+            // Charisma bonus on cash reward
+            $cashMultiplier = 1 + min(0.30, ($character->getEffectiveCharisma() * 0.005));
+            $cash = (int) round(rand($hustle['cash_min'], $hustle['cash_max']) * $cashMultiplier);
+
             // Zwart geld contant!
             $this->economy->addCash($character, $cash);
             $this->level->addXp($character, $hustle['xp']);
             $character->addRespect($hustle['respect']);
+
+            // 20% chance to gain +1 permanent Charisma from smooth hustling
+            $statGainMsg = '';
+            if (rand(1, 100) <= 20) {
+                $character->charisma = ($character->charisma ?? 10) + 1;
+                $statGainMsg = ' 😎 Gladde praatjes beloond: +1 Charisma!';
+            }
             $character->save();
 
+            app(DailyBattleService::class)->record($character, 'hustles', 1);
+
             $dropMsg = RandomDropService::roll($character);
-            $successMsg = 'Hossel gelukt! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!";
+            $successMsg = 'Hossel gelukt! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$statGainMsg}";
             if ($dropMsg) {
                 $successMsg .= ' '.$dropMsg;
             }
@@ -167,8 +184,15 @@ class HustleController extends Controller
             return back()->with('success', $successMsg);
         }
 
+        // Check if high stamina allows escaping isolation
+        $escapeChance = min(35, (int) floor($character->getEffectiveStamina() / 15));
         if ($hustle['jail_minutes'] > 0 && rand(1, 100) <= 60) {
-            $jailSeconds = random_int(80, 150);
+            if (rand(1, 100) <= $escapeChance) {
+                return back()->with('error', 'Hossel mislukt! De zaalwacht sloeg alarm, maar dankzij je snelle conditie wist je hem af te schudden en ontliep je de isolatie!');
+            }
+
+            $jailReduction = min(45, (int) floor($character->getEffectiveDiscipline() / 5));
+            $jailSeconds = max(50, random_int(80, 150) - $jailReduction);
             $this->prison->jailSeconds($character, $jailSeconds, 'Gepakt tijdens hosselen.');
 
             return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Gepakt door bewakers)");

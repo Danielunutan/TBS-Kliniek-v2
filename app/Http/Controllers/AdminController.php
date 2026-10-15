@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Character;
 use App\Models\GameSetting;
 use App\Models\Gang;
+use App\Models\Referral;
 use App\Models\User;
 use App\Models\VaultCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -283,5 +285,46 @@ class AdminController extends Controller
         GameSetting::set('vault_code', $newCode, 'Automatisch gegenereerde kluiscode');
 
         return back()->with('success', "Nieuwe geheime kluiscode gegenereerd: {$newCode}");
+    }
+
+    /**
+     * View referral system log and rewards.
+     */
+    public function referrals(Request $request): View
+    {
+        $query = Referral::with(['referrer.user', 'referred.user']);
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('referrer', function ($rq) use ($search) {
+                    $rq->where('name', 'like', "%{$search}%");
+                })->orWhereHas('referred', function ($rq) use ($search) {
+                    $rq->where('name', 'like', "%{$search}%");
+                })->orWhere('ip_address', 'like', "%{$search}%");
+            });
+        }
+
+        $referrals = $query->latest()->paginate(30)->withQueryString();
+
+        $totalReferrals = Referral::count();
+        $rewardedCount = Referral::where('rewarded', true)->count();
+        $totalVipMonthsGranted = (int) floor($rewardedCount / 3);
+        $unrewardedCount = Referral::where('rewarded', false)->count();
+
+        $topReferrers = Referral::select('referrer_id', DB::raw('count(*) as count'))
+            ->groupBy('referrer_id')
+            ->orderByDesc('count')
+            ->take(5)
+            ->with('referrer')
+            ->get();
+
+        return view('admin.referrals', compact(
+            'referrals',
+            'totalReferrals',
+            'rewardedCount',
+            'totalVipMonthsGranted',
+            'unrewardedCount',
+            'topReferrers'
+        ));
     }
 }

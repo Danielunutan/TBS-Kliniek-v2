@@ -46,9 +46,9 @@
         
         <!-- Left Navigation -->
         <div class="lg:col-span-4 space-y-4">
-            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold">
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold">
                 <button type="button" @click="activeTab = 'kopen'" 
-                        :class="activeTab === 'kopen' ? 'bg-amber-50 text-amber-800 border-amber-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 border-transparent'"
+                        :class="activeTab === 'kopen' ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 font-bold border-transparent shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 border-transparent'"
                         class="w-full flex items-center justify-between p-3.5 rounded-xl border transition cursor-pointer">
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-crown text-amber-500 text-sm"></i>
@@ -58,10 +58,10 @@
                 </button>
 
                 <button type="button" @click="activeTab = 'uitgeven'" 
-                        :class="activeTab === 'uitgeven' ? 'bg-purple-50 text-purple-700 border-purple-200 shadow-2xs' : 'text-slate-600 hover:bg-slate-50 border-transparent'"
+                        :class="activeTab === 'uitgeven' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border-transparent shadow-2xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 border-transparent'"
                         class="w-full flex items-center justify-between p-3.5 rounded-xl border transition cursor-pointer">
                     <span class="flex items-center gap-3">
-                        <i class="fa-solid fa-gift text-purple-600 text-sm"></i>
+                        <i class="fa-solid fa-gift text-purple-600 dark:text-purple-400 text-sm"></i>
                         <span>VIP Punten Inwisselen</span>
                     </span>
                     <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>

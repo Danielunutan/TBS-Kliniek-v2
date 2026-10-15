@@ -211,8 +211,8 @@ class TheftService
             ];
         }
 
-        // Calculate chance based on intelligence + stamina bonus
-        $bonus = (int) floor(($character->intelligence + $character->stamina) / 10);
+        // Calculate chance based on effective intelligence + stamina bonus (including gear)
+        $bonus = (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveStamina()) / 10);
         $maxCap = app()->environment('testing') && $bonus >= 50 ? 100 : 95;
         $totalChance = min($maxCap, max(15, $tier['base_chance'] + $bonus));
 
@@ -311,6 +311,8 @@ class TheftService
         $character->thefts_succeeded++;
         $character->save();
 
+        app(DailyBattleService::class)->record($character, 'hustles', 1);
+
         // Notify victim
         GameMessage::create([
             'recipient_id' => $victim->id,
@@ -375,12 +377,27 @@ class TheftService
                 $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
             }
 
+            // 25% chance of +1 Conditie or +1 Intelligentie from nimble theft
+            $statGain = '';
+            if (random_int(1, 100) <= 25) {
+                if (random_int(0, 1) === 0) {
+                    $character->stamina = ($character->stamina ?? 10) + 1;
+                    $statGain = ' 🏃 Ervaring: +1 Conditie!';
+                } else {
+                    $character->intelligence = ($character->intelligence ?? 10) + 1;
+                    $statGain = ' 🧠 Ervaring: +1 Intelligentie!';
+                }
+            }
+
             $character->addRespect($respectGained);
             $character->thefts_succeeded++;
             $character->save();
 
+            app(DailyBattleService::class)->record($character, 'hustles', 1);
+
             $logMsg = "Geslaagde diefstal: {$tier['name']} (+€{$cashStolen} contant, +{$xpGained} XP)"
-                .($tokenFound ? ' (+1 KluisMunt)' : '');
+                .($tokenFound ? ' (+1 KluisMunt)' : '')
+                .$statGain;
 
             TheftRecord::create([
                 'thief_id' => $character->id,
@@ -398,7 +415,8 @@ class TheftService
 
             $dropMsg = RandomDropService::roll($character);
             $successMsg = 'Buit binnen! Je stal €'.number_format($cashStolen, 0, ',', '.')." contant en verdiende {$xpGained} XP!"
-                .($tokenFound ? ' +1 KluisMunt!' : '');
+                .($tokenFound ? ' +1 KluisMunt!' : '')
+                .$statGain;
 
             if ($dropMsg) {
                 $successMsg .= ' '.$dropMsg;
@@ -414,11 +432,28 @@ class TheftService
             ];
         }
 
-        // Failure: caught and jailed
+        // Failure: Check if high stamina allows sprint escape
+        $dodgeChance = min(35, (int) floor($character->getEffectiveStamina() / 15));
+        if (random_int(1, 100) <= $dodgeChance) {
+            $character->thefts_failed++;
+            $character->save();
+
+            return [
+                'success' => false,
+                'message' => '🚨 Bijna betrapt! Maar dankzij je getrainde conditie sprintte je sneller dan de zaalwacht en wist je de isoleercel te ontlopen!',
+                'cash_stolen' => 0,
+                'xp_gained' => 0,
+                'jailed' => false,
+                'jail_minutes' => 0,
+            ];
+        }
+
+        // Failure: caught and jailed (discipline mitigates duration)
         $character->thefts_failed++;
         $character->save();
 
-        $jailSeconds = random_int(90, 160);
+        $jailReduction = min(50, (int) floor($character->getEffectiveDiscipline() / 5));
+        $jailSeconds = max(45, random_int(90, 160) - $jailReduction);
         $reason = "Betrapt bij poging tot diefstal: {$tier['name']}";
         $this->prisonService->jailSeconds($character, $jailSeconds, $reason);
 

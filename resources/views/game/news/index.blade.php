@@ -148,11 +148,95 @@
             @endforeach
         </div>
 
-        <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div class="p-4 bg-white dark:bg-[#111827] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
             {{ $articles->links() }}
         </div>
         @endif
     </div>
+
+    <!-- REFERRAL SECTIE ONDER HET NIEUWS (Vrienden uitnodigen met unieke @username) -->
+    @if(isset($referralStats))
+    <div class="bg-white dark:bg-[#111827] rounded-2xl p-5 sm:p-6 shadow-xs border border-purple-200/90 dark:border-slate-800 relative overflow-hidden" 
+         x-data="{ 
+             copied: false,
+             copyLink() {
+                 navigator.clipboard.writeText('{{ $referralStats['link'] }}');
+                 this.copied = true;
+                 setTimeout(() => this.copied = false, 2500);
+             }
+         }">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-start gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-slate-800 border border-purple-200 dark:border-slate-700 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 mt-0.5 shadow-2xs">
+                    <i class="fa-solid fa-crown text-amber-500"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40">
+                            <i class="fa-solid fa-gift text-amber-500 text-[10px]"></i>
+                            Gratis VIP Actie
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/50 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40">
+                            3 Vrienden = 1 Maand VIP
+                        </span>
+                    </div>
+                    <h2 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                        Nodig Vrienden Uit via jouw @Gebruikersnaam Link
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed max-w-xl">
+                        Deel jouw persoonlijke referral link met je vrienden of in Discord groepen. Voor elke 3 actieve spelers ontvang jij direct <strong class="text-purple-700 dark:text-purple-400 font-extrabold">1 maand gratis VIP</strong>!
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0 self-start md:self-center p-2.5 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 shadow-2xs">
+                <div class="text-center px-2">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-purple-300/70 block mb-0.5">Aangebracht</span>
+                    <span class="text-xl font-black text-slate-900 dark:text-white leading-none">{{ $referralStats['total'] }}</span>
+                </div>
+                <div class="w-px h-6 bg-slate-200 dark:bg-purple-800/50"></div>
+                <div class="text-center px-2">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-0.5">VIP Maanden</span>
+                    <span class="text-xl font-black text-amber-600 dark:text-amber-400 leading-none">{{ $referralStats['rewarded_months'] }}</span>
+                </div>
+            </div>
+        </div>
+
+        @if(! $referralStats['has_username'])
+        <!-- Notice when username is not configured yet -->
+        <div class="mt-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3 text-xs text-amber-900 dark:text-amber-200 font-bold">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg shrink-0"></i>
+                <span>Je hebt nog geen unieke @gebruikersnaam ingesteld! Stel eerst je gebruikersnaam in zodat jouw link jouw eigen naam bevat.</span>
+            </div>
+            <a href="{{ route('settings.account') }}" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition shrink-0 text-center shadow-xs">
+                Stel @gebruikersnaam In
+            </a>
+        </div>
+        @endif
+
+        <!-- Referral Link Copy Box -->
+        <div class="pt-4">
+            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-purple-300/70 block mb-1.5">
+                Jouw Persoonlijke Aanmeldlink (met @<span>{{ $referralStats['username'] }}</span>)
+            </span>
+            <div class="flex flex-col sm:flex-row items-stretch gap-2">
+                <div class="relative flex-1">
+                    <input type="text" readonly value="{{ $referralStats['link'] }}" 
+                           @click="$el.select()"
+                           class="w-full rounded-xl px-4 py-2.5 text-xs sm:text-sm font-mono font-bold text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-purple-950/50 border border-slate-200 dark:border-purple-800 outline-none select-all transition shadow-2xs">
+                </div>
+                <button type="button" 
+                        @click="copyLink()"
+                        class="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition cursor-pointer shadow-xs flex items-center justify-center gap-2 shrink-0">
+                    <i class="fa-solid" :class="copied ? 'fa-check text-emerald-400' : 'fa-copy'"></i>
+                    <span x-text="copied ? 'Gekopieerd!' : 'Kopieer Link'">Kopieer Link</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 
 </div>
 @endsection

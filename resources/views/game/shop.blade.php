@@ -504,6 +504,116 @@
                             </div>
                         </div>
                     </div>
+
+                    @php
+                        $foodAndRecovery = $inventory->filter(function($inv) {
+                            return ($inv->item->category !== 'equipment') && (
+                                $inv->item->energy_restore > 0 || 
+                                $inv->item->health_restore > 0 || 
+                                in_array($inv->item->slug, ['sigaretten', 'ritalin', 'telefoon', 'adrenaline-injectie', 'ehbo-noodverbanddoos'])
+                            );
+                        });
+                        $needsRecovery = ($character->energy < $character->max_energy) || ($character->health < $character->max_health);
+                    @endphp
+
+                    <!--  SNEL ETEN & HERSTELLEN BALK (1-KLIK) -->
+                    <div class="mt-4 p-4 rounded-xl border {{ $needsRecovery ? 'bg-gradient-to-r from-amber-50/70 via-emerald-50/50 to-white border-emerald-300/80' : 'bg-slate-50 border-slate-200' }}">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
+                            <div>
+                                <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs">
+                                        <i class="fa-solid fa-utensils"></i>
+                                    </span>
+                                    <span>Snel Eten & Herstellen</span>
+                                    @if(! $needsRecovery)
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">100% Volledig Hersteld!</span>
+                                    @endif
+                                </h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5">
+                                    Herstel je Energie en Gezondheid direct in 1 klik zonder eindeloos los te klikken.
+                                </p>
+                            </div>
+
+                            @if($foodAndRecovery->isEmpty())
+                                <button type="button" @click="setShopTab('items')" class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs w-fit">
+                                    <i class="fa-solid fa-store"></i>
+                                    <span>Naar Kantine voor Eten</span>
+                                </button>
+                            @endif
+                        </div>
+
+                        @if($foodAndRecovery->isNotEmpty())
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
+                                @foreach($foodAndRecovery as $quickInv)
+                                <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-sm shrink-0">
+                                            @if(str_contains(strtolower($quickInv->item->name), 'frikandel'))
+                                                <i class="fa-solid fa-hotdog"></i>
+                                            @elseif(str_contains(strtolower($quickInv->item->name), 'drank') || str_contains(strtolower($quickInv->item->name), 'energie'))
+                                                <i class="fa-solid fa-bolt text-amber-500"></i>
+                                            @elseif(str_contains(strtolower($quickInv->item->name), 'koffie'))
+                                                <i class="fa-solid fa-mug-hot text-amber-700"></i>
+                                            @else
+                                                <i class="fa-solid {{ $quickInv->item->icon ?: 'fa-utensils' }}"></i>
+                                            @endif
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="text-xs font-black text-slate-900 truncate flex items-center gap-1.5">
+                                                <span>{{ $quickInv->item->name }}</span>
+                                                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">{{ $quickInv->quantity }}x</span>
+                                            </div>
+                                            <div class="text-[10px] text-slate-500 flex items-center gap-2 pt-0.5">
+                                                @if($quickInv->item->energy_restore > 0)
+                                                    <span class="text-emerald-700 font-bold">+{{ $quickInv->item->energy_restore }}</span>
+                                                @endif
+                                                @if($quickInv->item->health_restore > 0)
+                                                    <span class="text-rose-700 font-bold">+{{ $quickInv->item->health_restore }}️</span>
+                                                @endif
+                                                @if(in_array($quickInv->item->slug, ['sigaretten', 'ritalin', 'telefoon']))
+                                                    <span class="text-purple-700 font-bold">Herstelboost</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5 shrink-0">
+                                        <!-- 1x Eten Knop -->
+                                        <form action="{{ route('shop.consume', $quickInv->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" 
+                                                    title="1 stuk consumeren"
+                                                    class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-xs transition cursor-pointer flex items-center gap-1 active:scale-95">
+                                                <span>1x</span>
+                                            </button>
+                                        </form>
+
+                                        <!-- Eet tot 100% Vol Knop -->
+                                        @if($needsRecovery)
+                                        <form action="{{ route('shop.consume', $quickInv->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="fill_max" value="1">
+                                            <button type="submit" 
+                                                    title="Eet automatisch het benodigde aantal om 100% vol te raken"
+                                                    class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95">
+                                                <i class="fa-solid fa-bolt text-[11px]"></i>
+                                                <span>Eet tot Vol</span>
+                                            </button>
+                                        </form>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="pt-3 text-xs text-slate-500 flex items-center justify-between gap-3">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-info text-amber-500"></i>
+                                    Je hebt geen eten of drinken in je rugzak. Koop snacks in de kantine om snel te herstellen na gevechten of misdaden!
+                                </span>
+                            </div>
+                        @endif
+                    </div>
                 </div>
 
                 <!-- Items Grid or Empty State -->
@@ -612,31 +722,50 @@
                                             <span>Actieve Uitrusting</span>
                                         </div>
                                     @else
-                                        <form action="{{ route('shop.consume', $inv->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit" 
-                                                    class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]">
-                                                @if(str_contains(strtolower($inv->item->name), 'broodje') || str_contains(strtolower($inv->item->name), 'frikandel') || str_contains(strtolower($inv->item->name), 'bami') || str_contains(strtolower($inv->item->name), 'kapsalon') || str_contains(strtolower($inv->item->name), 'bitterbal'))
-                                                    <i class="fa-solid fa-utensils text-xs"></i>
-                                                    <span>Opeten</span>
-                                                @elseif(str_contains(strtolower($inv->item->name), 'drank') || str_contains(strtolower($inv->item->name), 'koffie') || str_contains(strtolower($inv->item->name), 'shake'))
-                                                    <i class="fa-solid fa-mug-hot text-xs"></i>
-                                                    <span>Opdrinken</span>
-                                                @elseif(str_contains(strtolower($inv->item->name), 'sigaret'))
-                                                    <i class="fa-solid fa-smoking text-xs"></i>
-                                                    <span>Oproken</span>
-                                                @elseif(str_contains(strtolower($inv->item->name), 'ritalin') || str_contains(strtolower($inv->item->name), 'oxazepam'))
-                                                    <i class="fa-solid fa-pills text-xs"></i>
-                                                    <span>Innemen</span>
-                                                @elseif(str_contains(strtolower($inv->item->name), 'telefoon'))
-                                                    <i class="fa-solid fa-mobile-screen text-xs"></i>
-                                                    <span>Bellen / Gebruiken</span>
-                                                @else
-                                                    <i class="fa-solid fa-hand-holding-medical text-xs"></i>
-                                                    <span>Gebruiken</span>
-                                                @endif
-                                            </button>
-                                        </form>
+                                        @php
+                                            $isConsumableRecovery = ($inv->item->energy_restore > 0 || $inv->item->health_restore > 0 || in_array($inv->item->slug, ['sigaretten', 'ritalin', 'telefoon']));
+                                        @endphp
+                                        <div class="flex items-center gap-2">
+                                            <form action="{{ route('shop.consume', $inv->id) }}" method="POST" class="flex-1">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]">
+                                                    @if(str_contains(strtolower($inv->item->name), 'broodje') || str_contains(strtolower($inv->item->name), 'frikandel') || str_contains(strtolower($inv->item->name), 'bami') || str_contains(strtolower($inv->item->name), 'kapsalon') || str_contains(strtolower($inv->item->name), 'bitterbal'))
+                                                        <i class="fa-solid fa-utensils text-xs"></i>
+                                                        <span>1x Opeten</span>
+                                                    @elseif(str_contains(strtolower($inv->item->name), 'drank') || str_contains(strtolower($inv->item->name), 'koffie') || str_contains(strtolower($inv->item->name), 'shake'))
+                                                        <i class="fa-solid fa-mug-hot text-xs"></i>
+                                                        <span>1x Drinken</span>
+                                                    @elseif(str_contains(strtolower($inv->item->name), 'sigaret'))
+                                                        <i class="fa-solid fa-smoking text-xs"></i>
+                                                        <span>1x Oproken</span>
+                                                    @elseif(str_contains(strtolower($inv->item->name), 'ritalin') || str_contains(strtolower($inv->item->name), 'oxazepam'))
+                                                        <i class="fa-solid fa-pills text-xs"></i>
+                                                        <span>1x Innemen</span>
+                                                    @elseif(str_contains(strtolower($inv->item->name), 'telefoon'))
+                                                        <i class="fa-solid fa-mobile-screen text-xs"></i>
+                                                        <span>Gebruiken</span>
+                                                    @else
+                                                        <i class="fa-solid fa-hand-holding-medical text-xs"></i>
+                                                        <span>Gebruiken</span>
+                                                    @endif
+                                                </button>
+                                            </form>
+
+                                            @if($isConsumableRecovery && $inv->quantity > 1)
+                                            <form action="{{ route('shop.consume', $inv->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="fill_max" value="1">
+                                                <button type="submit" 
+                                                        title="Eet tot 100% vol (gebruikt automatisch meerdere stuks)"
+                                                        class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition cursor-pointer flex items-center gap-1 shadow-xs active:scale-[0.98]">
+                                                    <i class="fa-solid fa-bolt text-xs"></i>
+                                                    <span class="hidden sm:inline">Eet tot Vol</span>
+                                                    <span class="sm:hidden">Vol</span>
+                                                </button>
+                                            </form>
+                                            @endif
+                                        </div>
                                     @endif
                                 </div>
                             </div>
