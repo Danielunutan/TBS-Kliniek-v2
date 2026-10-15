@@ -233,13 +233,13 @@
                                 @endif
                             </div>
                             <div class="pt-8 sm:pt-0">
-                                <h2 class="text-2xl font-black text-white tracking-tight flex items-center gap-2 drop-shadow-md">
+                                <h2 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                                     <span>{{ $myGang->name }}</span>
-                                    <span class="text-purple-200 text-xs font-mono font-bold bg-purple-950/80 px-2 py-0.5 rounded border border-purple-400/40">[{{ $myGang->tag }}]</span>
-                                    <i class="fa-solid fa-circle-check text-purple-400 text-sm"></i>
+                                    <span class="text-purple-700 text-xs font-mono font-bold bg-purple-50 px-2 py-0.5 rounded border border-purple-200">[{{ $myGang->tag }}]</span>
+                                    <i class="fa-solid fa-circle-check text-purple-600 text-sm"></i>
                                 </h2>
-                                <span class="text-xs font-bold text-slate-100 flex items-center gap-1.5 mt-0.5 drop-shadow">
-                                    <i class="fa-solid fa-users text-xs text-purple-300"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
+                                <span class="text-xs font-black text-slate-950 flex items-center gap-1.5 mt-0.5">
+                                    <i class="fa-solid fa-users text-xs text-purple-600"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
                                 </span>
                             </div>
                         </div>
