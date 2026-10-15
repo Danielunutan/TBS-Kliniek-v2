@@ -45,6 +45,12 @@
         </div>
     </div>
 
+    @php
+        $myLeaveMultiplier = $myGang ? min(50, max(0, (int) ($myGang->leave_fee_multiplier ?? 0))) : 0;
+        $myLeaveFee = ($myGang && $character->gang_role !== 'leader') ? ($hourlyWage * $myLeaveMultiplier) : 0;
+        $hasEnoughCashToLeave = (int) $character->cash >= $myLeaveFee;
+    @endphp
+
     <!-- MAIN TWO COLUMN GANGS LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
@@ -176,6 +182,24 @@
                             <span>Algemene stats</span>
                         </span>
                     </a>
+
+                    <!-- Bende Verlaten Knop in Menu -->
+                    <div class="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800">
+                        <form action="{{ route('gangs.leave') }}" method="POST"
+                              onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
+                            @csrf
+                            <button type="submit" 
+                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 transition cursor-pointer font-bold text-xs group">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-arrow-right-from-bracket text-rose-500 w-4 text-center group-hover:translate-x-0.5 transition"></i>
+                                    <span>Bende Verlaten</span>
+                                </span>
+                                @if($character->gang_role !== 'leader' && $myLeaveFee > 0)
+                                    <span class="text-[10px] font-mono text-rose-500 font-extrabold bg-rose-50 dark:bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900">€{{ number_format($myLeaveFee, 0, ',', '.') }}</span>
+                                @endif
+                            </button>
+                        </form>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -242,6 +266,19 @@
                                     <i class="fa-solid fa-users text-xs text-purple-600"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
                                 </span>
                             </div>
+                        </div>
+
+                        <!-- Top Quick Leave Button -->
+                        <div class="flex items-center gap-2">
+                            <form action="{{ route('gangs.leave') }}" method="POST"
+                                  onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
+                                @csrf
+                                <button type="submit" 
+                                        class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                                    <i class="fa-solid fa-arrow-right-from-bracket text-rose-500"></i>
+                                    <span>Bende Verlaten</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -424,6 +461,51 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+
+                    <!-- Bende Verlaten Box -->
+                    <div class="bg-rose-50/50 border border-rose-200 rounded-xl p-5 space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="space-y-1">
+                                <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                    <i class="fa-solid fa-arrow-right-from-bracket text-rose-600"></i>
+                                    <span>Bende Verlaten</span>
+                                </h4>
+                                @if($character->gang_role === 'leader')
+                                    <p class="text-xs text-slate-600">
+                                        Als leider kun je de bende verlaten. Het leiderschap wordt dan overgedragen aan het volgende bendelid, of de factie wordt opgeheven als je het enige lid bent.
+                                    </p>
+                                @else
+                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                        @if($myLeaveFee > 0)
+                                            De vertrekboete (verlatingskosten) bedraagt <strong class="text-rose-700 font-bold font-mono">€{{ number_format($myLeaveFee, 0, ',', '.') }}</strong> ({{ $myLeaveMultiplier }}x het uurloon van €{{ number_format($hourlyWage, 0, ',', '.') }}). Deze boete betaal je aan de gezamenlijke kluis wanneer je vertrekt.
+                                        @else
+                                            Er is momenteel geen vertrekboete ingesteld door de leiding. Je kunt direct en kosteloos vertrekken.
+                                        @endif
+                                    </p>
+                                    @if($myLeaveFee > 0)
+                                        <div class="flex flex-wrap items-center gap-3 text-xs pt-1">
+                                            <span class="text-slate-500">Contant op zak: <strong class="font-mono {{ $hasEnoughCashToLeave ? 'text-emerald-700 font-bold' : 'text-rose-600 font-extrabold' }}">€{{ number_format($character->cash, 0, ',', '.') }}</strong></span>
+                                            @if(! $hasEnoughCashToLeave)
+                                                <span class="text-rose-600 font-bold flex items-center gap-1">
+                                                    <i class="fa-solid fa-circle-exclamation text-rose-500"></i> Te weinig cash op zak! Neem minimaal €{{ number_format($myLeaveFee - $character->cash, 0, ',', '.') }} op van je <a href="{{ route('bank.index') }}" class="underline font-bold text-purple-700">bank</a>.
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+
+                            <form action="{{ route('gangs.leave') }}" method="POST"
+                                  onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? Er wordt een vertrekboete van €' . number_format($myLeaveFee, 0, ',', '.') . ' overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
+                                @csrf
+                                <button type="submit" 
+                                        class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                    <span>Bende Verlaten</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
 
@@ -1609,14 +1691,14 @@
                         </div>
 
                         <!-- Verlatingskosten -->
-                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4" x-data="{ multiplier: {{ $myGang->leave_fee_multiplier ?? 48 }}, hourly: {{ $hourlyWage }} }">
+                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4" x-data="{ multiplier: {{ min(50, (int) ($myGang->leave_fee_multiplier ?? 48)) }}, hourly: {{ $hourlyWage }} }">
                             <div class="border-b border-slate-100 pb-3">
                                 <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                                     <i class="fa-solid fa-door-open text-purple-600"></i>
                                     <span>Verlatingskosten (Vertrekboete)</span>
                                 </h3>
                                 <p class="text-xs text-slate-500 mt-1">
-                                    Boete die een bendelid betaalt aan de kluis wanneer hij/zij besluit de factie te verlaten.
+                                    Boete die een bendelid betaalt aan de kluis wanneer hij/zij besluit de factie te verlaten (maximaal 50x het uurloon).
                                 </p>
                             </div>
 
@@ -1625,14 +1707,17 @@
                                 <input type="hidden" name="action_type" value="leave_fee">
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Factor van het Uurloon (bijv. 48x)</label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Factor van het Uurloon (0 - 50x)</label>
                                     <div class="relative">
-                                        <input type="number" name="leave_fee_multiplier" x-model.number="multiplier" min="0" max="5000"
+                                        <input type="number" name="leave_fee_multiplier" x-model.number="multiplier" min="0" max="50"
                                                class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition pr-28">
                                         <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-purple-700 font-mono" 
                                               x-text="'€' + ((multiplier || 0) * hourly).toLocaleString('nl-NL')">
                                         </span>
                                     </div>
+                                    <p class="text-[11px] text-slate-400 mt-1">
+                                        Huidig uurloon: €{{ number_format($hourlyWage, 0, ',', '.') }}. Maximaal 50x = €{{ number_format($hourlyWage * 50, 0, ',', '.') }}.
+                                    </p>
                                 </div>
 
                                 <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">

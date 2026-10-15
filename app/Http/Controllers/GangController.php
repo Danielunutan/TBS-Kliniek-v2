@@ -354,16 +354,21 @@ class GangController extends Controller
         }
 
         $gang = $character->gang;
+        $leaveFee = 0;
 
         // Leave fee multiplier deduction (only if not disbanding as leader)
         if ($gang && $character->gang_role !== 'leader') {
             $hourlyWage = 150 + (($gang->bling_shops ?? 0) * 50);
-            $leaveFee = $hourlyWage * ($gang->leave_fee_multiplier ?? 48);
+            $multiplier = min(50, max(0, (int) ($gang->leave_fee_multiplier ?? 0)));
+            $leaveFee = $hourlyWage * $multiplier;
 
-            if ($leaveFee > 0 && $character->cash > 0) {
-                $deducted = min($character->cash, $leaveFee);
-                $character->cash -= $deducted;
-                $gang->treasury += $deducted;
+            if ($leaveFee > 0) {
+                if ($character->cash < $leaveFee) {
+                    return back()->with('error', 'Je kunt de bende niet verlaten: de vertrekboete bedraagt €'.number_format($leaveFee, 0, ',', '.')." ({$multiplier}x uurloon). Je hebt momenteel slechts €".number_format($character->cash, 0, ',', '.').' contant geld op zak!');
+                }
+
+                $character->cash -= $leaveFee;
+                $gang->treasury += $leaveFee;
                 $gang->save();
             }
         }
@@ -386,7 +391,11 @@ class GangController extends Controller
         $character->last_gang_wage_at = null;
         $character->save();
 
-        return back()->with('success', 'Je hebt de bende verlaten.');
+        if ($leaveFee > 0) {
+            return redirect()->route('gangs.index')->with('success', 'Je hebt de bende verlaten. Er is €'.number_format($leaveFee, 0, ',', '.').' overgemaakt naar de bende kluis als vertrekboete.');
+        }
+
+        return redirect()->route('gangs.index')->with('success', 'Je hebt de bende succesvol verlaten.');
     }
 
     /**
@@ -505,7 +514,7 @@ class GangController extends Controller
 
         if ($actionType === 'leave_fee') {
             $validated = $request->validate([
-                'leave_fee_multiplier' => ['required', 'integer', 'min:0', 'max:5000'],
+                'leave_fee_multiplier' => ['required', 'integer', 'min:0', 'max:50'],
             ]);
 
             $gang->update([
@@ -514,7 +523,7 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
-                ->with('success', 'Verlatingskosten succesvol gewijzigd!');
+                ->with('success', 'Verlatingskosten succesvol gewijzigd (maximaal 50x uurloon)!');
         }
 
         if ($actionType === 'min_respect') {

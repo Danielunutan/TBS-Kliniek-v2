@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->string('banner')->nullable();
             }
             if (! Schema::hasColumn('gangs', 'leave_fee_multiplier')) {
-                $table->integer('leave_fee_multiplier')->default(48);
+                $table->integer('leave_fee_multiplier')->default(0);
             }
             if (! Schema::hasColumn('gangs', 'min_respect')) {
                 $table->integer('min_respect')->default(0);

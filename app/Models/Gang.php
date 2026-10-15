@@ -29,6 +29,13 @@ class Gang extends Model
     protected $guarded = ['id'];
 
     /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'leave_fee_multiplier' => 0,
+    ];
+
+    /**
      * @var array<string, string>
      */
     protected $casts = [
