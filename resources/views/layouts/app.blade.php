@@ -246,10 +246,10 @@
                         <span class="text-sm font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
                     </div>
                     <div class="mt-1">
-                        <span class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200" title="{{ $onlineCount }} patiënten momenteel online in de kliniek">
+                        <a href="{{ route('members.index', ['filter' => 'online']) }}" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 transition cursor-pointer" title="{{ $onlineCount }} patiënten momenteel online in de kliniek (klik voor online lijst)">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>{{ $onlineCount }} Online</span>
-                        </span>
+                        </a>
                     </div>
                 </div>
             </a>
@@ -318,6 +318,16 @@
                     <a href="{{ route('friends.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('friends.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-user-group w-4 text-center text-pink-500 dark:text-pink-400"></i>
                         <span>Vrienden & BFF</span>
+                    </a>
+                    <a href="{{ route('members.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('members.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-users w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <span>Leden & Online</span>
+                        </div>
+                        <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span x-text="(stats.onlineCount !== undefined) ? stats.onlineCount : {{ (int) $onlineCount }}">{{ $onlineCount }}</span>
+                        </span>
                     </a>
                     <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('leaderboard.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
@@ -664,10 +674,10 @@
             </div>
             <div class="flex flex-col">
                 <span class="text-xs font-black tracking-tight text-slate-900 dark:text-white leading-none">TBS <span class="text-purple-600 dark:text-purple-400">KLINIEK</span></span>
-                <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5" title="Online patiënten">
+                <a href="{{ route('members.index', ['filter' => 'online']) }}" class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5 hover:underline" title="Online patiënten (klik voor online overzicht)">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 
                     <span x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
-                </span>
+                </a>
             </div>
         </a>
         <div class="flex items-center gap-2">
@@ -829,6 +839,13 @@
                     </a>
                     <a href="{{ route('friends.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('friends.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <i class="fa-solid fa-user-group w-4 text-pink-500 dark:text-pink-400"></i> Vrienden & BFF
+                    </a>
+                    <a href="{{ route('members.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('members.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-users w-4 text-emerald-500 dark:text-emerald-400"></i> Leden & Online</span>
+                        <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span x-text="stats.onlineCount || {{ $onlineCount }}">{{ $onlineCount }}</span>
+                        </span>
                     </a>
                     <a href="{{ route('leaderboard.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('leaderboard.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <i class="fa-solid fa-trophy w-4 text-amber-500 dark:text-amber-400"></i> Ranglijsten
@@ -1170,10 +1187,10 @@
                 <!-- 5. FAR RIGHT: Online status, Admin button & Profile Icon -->
                 <div class="flex items-center gap-2.5 shrink-0">
                     <!-- Online Indicator -->
-                    <div class="flex items-center gap-1.5 text-[10px] font-black text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/50 px-2.5 py-1.5 rounded-xl shadow-2xs select-none" title="Patiënten online">
+                    <a href="{{ route('members.index', ['filter' => 'online']) }}" class="flex items-center gap-1.5 text-[10px] font-black text-emerald-800 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 border border-emerald-200/80 dark:border-emerald-800/50 px-2.5 py-1.5 rounded-xl shadow-2xs select-none transition cursor-pointer" title="Bekijk alle patiënten die nu online zijn">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span class="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-400" x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
-                    </div>
+                    </a>
 
                     @if(Auth::check() && Auth::user()->isStaff())
                     <a href="{{ route('admin.dashboard') }}" class="px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs" title="Medewerkers Admin Panel">

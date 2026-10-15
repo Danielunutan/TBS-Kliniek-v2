@@ -35,6 +35,7 @@ use App\Http\Controllers\LegalController;
 use App\Http\Controllers\LockerController;
 use App\Http\Controllers\LotteryController;
 use App\Http\Controllers\MarketplaceController;
+use App\Http\Controllers\MembersController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MissionController;
 use App\Http\Controllers\MurderStatsController;
@@ -389,8 +390,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/marktplaats/{listing}/kopen', [MarketplaceController::class, 'buy'])->name('marketplace.buy');
     Route::post('/marktplaats/{listing}/annuleren', [MarketplaceController::class, 'cancel'])->name('marketplace.cancel');
 
-    // Leaderboard
+    // Leaderboard & Leden / Patiëntenlijst
     Route::get('/ranglijst', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+    Route::get('/leden', [MembersController::class, 'index'])->name('members.index');
+    Route::get('/online', fn () => redirect()->route('members.index', ['filter' => 'online']))->name('online.index');
 
     // Account & Beveiliging (2FA, Wachtwoord, Username, Remote Sessions)
     Route::get('/instellingen/account', [AccountSettingsController::class, 'index'])->name('settings.account');
