@@ -8,6 +8,10 @@
     bundleQty: 1,
     recipientId: '',
     bundles: {{ json_encode($bundles) }},
+    ownedCounts: {{ json_encode($inventory->pluck('quantity', 'item_id')) }},
+    totalInvCount: {{ (int) $inventory->sum('quantity') }},
+    itemBuying: {},
+    itemToast: {},
     init() {
         if (!'{{ session('shop_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_shop_tab')) {
             this.shopTab = sessionStorage.getItem('tbs_shop_tab');
@@ -16,6 +20,68 @@
     setShopTab(tab) {
         this.shopTab = tab;
         sessionStorage.setItem('tbs_shop_tab', tab);
+        try {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', tab);
+            window.history.replaceState({}, '', url.toString());
+        } catch (e) {}
+    },
+    async buyItemViaAjax(event, itemId, qty) {
+        const form = event.target;
+        const url = form.action;
+        const token = form.querySelector('input[name=_token]') ? form.querySelector('input[name=_token]').value : '{{ csrf_token() }}';
+        
+        this.itemBuying[itemId] = true;
+        this.itemToast[itemId] = null;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ quantity: qty })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                this.ownedCounts[itemId] = data.owned_count;
+                this.totalInvCount = data.total_inventory_count;
+                
+                if (window.stats) {
+                    window.stats.cash = data.cash;
+                    window.stats.cashFormatted = '€' + data.cash_formatted;
+                }
+                
+                this.itemToast[itemId] = {
+                    type: 'success',
+                    text: qty + 'x Gekocht!'
+                };
+                setTimeout(() => {
+                    if (this.itemToast[itemId] && this.itemToast[itemId].type === 'success') {
+                        this.itemToast[itemId] = null;
+                    }
+                }, 2000);
+            } else {
+                this.itemToast[itemId] = {
+                    type: 'error',
+                    text: data.message || 'Niet genoeg geld of aankoop mislukt.'
+                };
+                setTimeout(() => {
+                    if (this.itemToast[itemId] && this.itemToast[itemId].type === 'error') {
+                        this.itemToast[itemId] = null;
+                    }
+                }, 3500);
+            }
+        } catch (err) {
+            form.submit();
+        } finally {
+            this.itemBuying[itemId] = false;
+        }
     }
 }">
 
@@ -86,7 +152,7 @@
                         <i class="fa-solid fa-box-archive text-purple-600 w-4 text-center"></i>
                         <span>Mijn Inventaris</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-extrabold text-[10px]">
+                    <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-extrabold text-[10px]" x-text="totalInvCount + ' items'">
                         {{ $inventory->sum('quantity') }} items
                     </span>
                 </button>
@@ -342,7 +408,7 @@
                         </div>
                         <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-box-archive"></i>
-                            <span>Naar mijn inventaris ({{ $inventory->sum('quantity') }})</span>
+                            <span x-text="'Naar mijn inventaris (' + totalInvCount + ')'">Naar mijn inventaris ({{ $inventory->sum('quantity') }})</span>
                         </button>
                     </div>
 
@@ -353,7 +419,7 @@
                         @endphp
                         <div class="bg-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
                             <div class="space-y-2">
-                                <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-start justify-between gap-2 min-h-[40px]">
                                     <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-base shrink-0">
                                         @if(str_contains(strtolower($item->name), 'frikandel'))
                                             <i class="fa-solid fa-hotdog"></i>
@@ -367,11 +433,14 @@
                                             <i class="fa-solid {{ $item->icon ?: 'fa-utensils' }}"></i>
                                         @endif
                                     </div>
-                                    @if($ownedCount > 0)
-                                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">
-                                        {{ $ownedCount }}x op voorraad
-                                    </span>
-                                    @endif
+                                    <div class="h-6 flex items-center">
+                                        <template x-if="ownedCounts[{{ $item->id }}] > 0">
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black shrink-0 transition"
+                                                  x-text="ownedCounts[{{ $item->id }}] + 'x op voorraad'">
+                                                {{ $ownedCount }}x op voorraad
+                                            </span>
+                                        </template>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -437,19 +506,73 @@
                                 </div>
                             </div>
 
-                            <div class="pt-2 border-t border-slate-200/70 space-y-2">
+                            <div class="pt-2 border-t border-slate-200/70 space-y-2.5"
+                                 x-data="{
+                                     buyQty: 1,
+                                     unitPrice: {{ $item->price_kc }},
+                                     discountPct: {{ min(15, (int) floor($character->getEffectiveCharisma() / 10)) }},
+                                     get actualPrice() {
+                                         return this.discountPct > 0 ? Math.round(this.unitPrice * (1 - (this.discountPct / 100))) : this.unitPrice;
+                                     },
+                                     get totalCost() {
+                                         return this.actualPrice * this.buyQty;
+                                     },
+                                     get maxAffordable() {
+                                         let cash = (typeof stats !== 'undefined' && stats.cash !== undefined) ? stats.cash : {{ (int) $character->cash }};
+                                         return Math.max(1, Math.min(100, Math.floor(cash / Math.max(1, this.actualPrice))));
+                                     }
+                                 }">
                                 <div class="flex items-center justify-between text-xs">
-                                    <span class="text-slate-500 font-medium">Prijs:</span>
-                                    <span class="font-extrabold text-emerald-700 font-mono">€{{ number_format($item->price_kc, 0, ',', '.') }}</span>
+                                    <span class="text-slate-500 font-medium">Prijs per stuk:</span>
+                                    <div class="text-right">
+                                        <span class="font-extrabold text-emerald-700 font-mono">
+                                            €{{ number_format($item->price_kc, 0, ',', '.') }}
+                                        </span>
+                                        <template x-if="buyQty > 1">
+                                            <span class="text-[10px] text-slate-400 block font-mono" x-text="'Totaal: €' + new Intl.NumberFormat('nl-NL').format(totalCost)"></span>
+                                        </template>
+                                    </div>
                                 </div>
-                                <form action="{{ route('shop.buy', $item->id) }}" method="POST">
+
+                                <!-- Snelle Aantal Knoppen (1x, 5x, 10x, Max) -->
+                                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/70">
+                                    <button type="button" @click="buyQty = 1" :class="buyQty === 1 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
+                                    <button type="button" @click="buyQty = 5" :class="buyQty === 5 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
+                                    <button type="button" @click="buyQty = 10" :class="buyQty === 10 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
+                                    <button type="button" @click="buyQty = Math.max(1, maxAffordable)" :class="buyQty > 10 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" title="Koop zoveel als je contant kunt betalen">Max</button>
+                                </div>
+
+                                <form action="{{ route('shop.buy', $item->id) }}" method="POST" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, buyQty)">
                                     @csrf
+                                    <input type="hidden" name="quantity" :value="buyQty">
+                                    
                                     <button type="submit" 
-                                            :disabled="{{ $character->cash < $item->price_kc ? 'true' : 'false' }}"
-                                            class="w-full py-2 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                                        <i class="fa-solid fa-cart-shopping text-xs"></i>
-                                        <span>Kopen</span>
+                                            :disabled="((typeof stats !== 'undefined' && stats.cash !== undefined) ? stats.cash : {{ (int) $character->cash }}) < totalCost || itemBuying[{{ $item->id }}]"
+                                            class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]">
+                                        <template x-if="itemBuying[{{ $item->id }}]">
+                                            <span class="inline-flex items-center gap-1.5 text-slate-300">
+                                                <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                                                <span>Inpakken...</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!itemBuying[{{ $item->id }}] && (!itemToast[{{ $item->id }}] || itemToast[{{ $item->id }}].type !== 'success')">
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                                <span x-text="buyQty > 1 ? 'Koop ' + buyQty + 'x direct' : 'Kopen'">Kopen</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!itemBuying[{{ $item->id }}] && itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'success'">
+                                            <span class="inline-flex items-center gap-1.5 text-emerald-400 font-black">
+                                                <i class="fa-solid fa-circle-check text-xs"></i>
+                                                <span x-text="itemToast[{{ $item->id }}].text"></span>
+                                            </span>
+                                        </template>
                                     </button>
+
+                                    <!-- Inline error toast if not enough cash without shifting layout -->
+                                    <template x-if="itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'error'">
+                                        <div class="mt-1 text-[11px] font-bold text-rose-600 text-center flex items-center justify-center gap-1" x-text="itemToast[{{ $item->id }}].text"></div>
+                                    </template>
                                 </form>
                             </div>
                         </div>

@@ -11,6 +11,7 @@ use App\Models\VaultCode;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -116,7 +117,7 @@ class ShopController extends Controller
     /**
      * Buy an item with regular cash.
      */
-    public function buy(Request $request, Item $item): RedirectResponse
+    public function buy(Request $request, Item $item): RedirectResponse|JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
@@ -131,12 +132,31 @@ class ShopController extends Controller
 
         if ($character->cash < $totalCost) {
             $formatted = number_format($totalCost, 0, ',', '.');
+            $errorMsg = "Niet genoeg contant geld! {$quantity}x {$item->name} kost €{$formatted}.";
 
-            return back()->with('error', "Niet genoeg contant geld! {$quantity}x {$item->name} kost €{$formatted}.");
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                ], 422);
+            }
+
+            return back()
+                ->with('shop_tab', 'items')
+                ->with('error', $errorMsg);
         }
 
         if (! $this->economyService->deductCash($character, $totalCost)) {
-            return back()->with('error', 'Betaling mislukt.');
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Betaling mislukt.',
+                ], 422);
+            }
+
+            return back()
+                ->with('shop_tab', 'items')
+                ->with('error', 'Betaling mislukt.');
         }
 
         $inv = CharacterItem::firstOrNew([
@@ -150,10 +170,25 @@ class ShopController extends Controller
 
         $formatted = number_format($totalCost, 0, ',', '.');
         $discountNote = $discountPct > 0 ? " (inclusief {$discountPct}% Charisma-korting! 😎)" : '';
+        $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}!";
+
+        if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMsg,
+                'item_id' => $item->id,
+                'item_name' => $item->name,
+                'quantity_bought' => $quantity,
+                'owned_count' => (int) $inv->quantity,
+                'cash' => (int) $character->cash,
+                'cash_formatted' => number_format($character->cash, 0, ',', '.'),
+                'total_inventory_count' => (int) CharacterItem::where('character_id', $character->id)->sum('quantity'),
+            ]);
+        }
 
         return back()
             ->with('shop_tab', 'items')
-            ->with('success', "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}!");
+            ->with('success', $successMsg);
     }
 
     /**

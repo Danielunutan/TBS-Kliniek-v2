@@ -195,4 +195,29 @@ class ShopAndFriendRequestTest extends TestCase
         $this->assertEquals(100, $char->energy);
         $this->assertEquals(7, $charItem->quantity);
     }
+
+    public function test_can_buy_item_via_ajax_with_quantity_and_returns_json(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update(['cash' => 5000]);
+
+        $item = Item::where('slug', 'frikandelbroodje')->first();
+        CharacterItem::where('character_id', $char->id)->where('item_id', $item->id)->delete();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('shop.buy', $item), [
+            'quantity' => 5,
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'quantity_bought' => 5,
+            'owned_count' => 5,
+        ]);
+
+        $this->assertEquals(5, CharacterItem::where('character_id', $char->id)->where('item_id', $item->id)->value('quantity'));
+    }
 }
