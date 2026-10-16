@@ -435,6 +435,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/kluis', [AdminController::class, 'updateVault'])->name('vault.update');
         Route::post('/kluis/nieuwe-code', [AdminController::class, 'randomizeVaultCode'])->name('vault.randomize');
         Route::get('/referrals', [AdminController::class, 'referrals'])->name('referrals');
+        Route::post('/systeem/migreren', [AdminController::class, 'runMigrations'])->name('system.migrate');
         Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets.index');
         Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
         Route::post('/tickets/{ticket}/reactie', [AdminTicketController::class, 'reply'])->name('tickets.reply');

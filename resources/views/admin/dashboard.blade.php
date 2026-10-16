@@ -65,6 +65,18 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
+            @if(Auth::user()->role === 'owner' || Auth::user()->role === 'admin')
+            <form action="{{ route('admin.system.migrate') }}" method="POST" class="inline"
+                  data-confirm="Wil je alle openstaande database migraties direct uitvoeren?"
+                  data-confirm-btn="Migraties Uitvoeren"
+                  data-confirm-type="warning"
+                  data-confirm-icon="fa-database">
+                @csrf
+                <button type="submit" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-xs font-black uppercase tracking-wider transition text-amber-800 border border-amber-200 cursor-pointer">
+                    <i class="fa-solid fa-database mr-1 text-amber-600"></i> Migraties Uitvoeren
+                </button>
+            </form>
+            @endif
             <a href="{{ route('admin.tickets.index') }}" class="px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-xs font-black uppercase tracking-wider transition text-purple-700 border border-purple-200">
                 <i class="fa-solid fa-headset mr-1 text-purple-600"></i> Support Tickets
             </a>

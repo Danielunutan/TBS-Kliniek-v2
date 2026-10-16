@@ -327,4 +327,25 @@ class AdminController extends Controller
             'topReferrers'
         ));
     }
+
+    /**
+     * Run database migrations safely from admin panel (owner/admin only).
+     */
+    public function runMigrations(): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->role !== 'owner' && $user->role !== 'admin') {
+            return back()->with('error', 'Geen bevoegdheid.');
+        }
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            return back()->with('success', 'Database migraties succesvol uitgevoerd: '.trim($output));
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Migratie fout: '.$e->getMessage());
+        }
+    }
 }
