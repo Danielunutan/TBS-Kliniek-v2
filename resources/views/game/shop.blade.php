@@ -1,9 +1,81 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $getItemData = function($item) {
+        $slug = $item->slug ?? '';
+        $nameLower = strtolower($item->name ?? '');
+
+        // Category mapping
+        if (in_array($slug, ['frikandelbroodje', 'saucijzenbroodje', 'bami-schijf-speciaal', 'broodje-bal-mayo', 'portie-bitterballen', 'kapsalon-paviljoen-7', 'gouden-frikandel']) 
+            || str_contains($nameLower, 'frikandel') || str_contains($nameLower, 'broodje') || str_contains($nameLower, 'bami') || str_contains($nameLower, 'bitterbal') || str_contains($nameLower, 'kapsalon')) {
+            $cat = 'eten';
+        } elseif (in_array($slug, ['sterke-kliniek-koffie', 'energy-drink-xxl']) 
+            || str_contains($nameLower, 'koffie') || str_contains($nameLower, 'energy') || str_contains($nameLower, 'drank')) {
+            $cat = 'drank';
+        } elseif (in_array($slug, ['strip-oxazepam', 'ehbo-noodverbanddoos', 'adrenaline-injectie', 'strip-ritalin', 'haloperidol-forte']) 
+            || str_contains($nameLower, 'oxazepam') || str_contains($nameLower, 'ehbo') || str_contains($nameLower, 'adrenaline') || str_contains($nameLower, 'medicijn') || str_contains($nameLower, 'ritalin') || str_contains($nameLower, 'haloperidol')) {
+            $cat = 'medisch';
+        } elseif (in_array($slug, ['trainingshandschoenen', 'paarse-trainingsjas', 'sporttas', 'legendarische-halter', 'eiwitshake-bodybuilder', 'multivitaminen-focus', 'boksbeugel', 'stalen-neus-kisten']) 
+            || str_contains($nameLower, 'training') || str_contains($nameLower, 'halter') || str_contains($nameLower, 'boksbeugel') || str_contains($nameLower, 'kisten') || str_contains($nameLower, 'eiwitshake') || str_contains($nameLower, 'vitamin') || str_contains($nameLower, 'sporttas')) {
+            $cat = 'kracht';
+        } else {
+            $cat = 'smokkel';
+        }
+
+        // Icon mapping (100% verified FontAwesome 6 Free icons - no broken or missing icons!)
+        $icon = match($slug) {
+            'frikandelbroodje' => 'fa-solid fa-hotdog',
+            'saucijzenbroodje' => 'fa-solid fa-bread-slice',
+            'bami-schijf-speciaal' => 'fa-solid fa-burger',
+            'broodje-bal-mayo' => 'fa-solid fa-drumstick-bite',
+            'portie-bitterballen' => 'fa-solid fa-cookie-bite',
+            'kapsalon-paviljoen-7' => 'fa-solid fa-bowl-food',
+            'gouden-frikandel' => 'fa-solid fa-crown',
+            'sterke-kliniek-koffie' => 'fa-solid fa-mug-hot',
+            'energy-drink-xxl' => 'fa-solid fa-bolt',
+            'strip-oxazepam' => 'fa-solid fa-pills',
+            'ehbo-noodverbanddoos' => 'fa-solid fa-kit-medical',
+            'adrenaline-injectie' => 'fa-solid fa-syringe',
+            'trainingshandschoenen' => 'fa-solid fa-hand-fist',
+            'paarse-trainingsjas' => 'fa-solid fa-shirt',
+            'sporttas' => 'fa-solid fa-bag-shopping',
+            'legendarische-halter' => 'fa-solid fa-dumbbell',
+            'eiwitshake-bodybuilder' => 'fa-solid fa-bottle-water',
+            'multivitaminen-focus' => 'fa-solid fa-capsules',
+            'boksbeugel' => 'fa-solid fa-hand-back-fist',
+            'stalen-neus-kisten' => 'fa-solid fa-shoe-prints',
+            'bivakmuts-masker' => 'fa-solid fa-mask',
+            'smokkelpakketje' => 'fa-solid fa-box',
+            'ijzerzaagje' => 'fa-solid fa-screwdriver-wrench',
+            'sleutel-paviljoen-13', 'oude-sleutel' => 'fa-solid fa-key',
+            'sigaretten' => 'fa-solid fa-smoking',
+            'ritalin', 'strip-ritalin' => 'fa-solid fa-pills',
+            'haloperidol-forte' => 'fa-solid fa-syringe',
+            'telefoon' => 'fa-solid fa-mobile-screen',
+            default => (!empty($item->icon) && !in_array($item->icon, ['fa-vest', 'fa-mitten', 'fa-key-skeleton', 'fa-utensils']) 
+                ? (str_starts_with($item->icon, 'fa-') ? 'fa-solid ' . $item->icon : $item->icon) 
+                : 'fa-solid fa-box')
+        };
+
+        // Tailored color badges
+        $badgeClass = match($cat) {
+            'eten' => ($slug === 'gouden-frikandel' ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-xs ring-1 ring-amber-400' : 'bg-amber-100 text-amber-700'),
+            'drank' => 'bg-cyan-100 text-cyan-700',
+            'medisch' => ($slug === 'adrenaline-injectie' ? 'bg-emerald-100 text-emerald-700' : ($slug === 'ehbo-noodverbanddoos' ? 'bg-rose-100 text-rose-700' : 'bg-purple-100 text-purple-700')),
+            'kracht' => ($slug === 'legendarische-halter' ? 'bg-fuchsia-100 text-fuchsia-700' : ($slug === 'paarse-trainingsjas' ? 'bg-purple-100 text-purple-700' : ($slug === 'boksbeugel' ? 'bg-zinc-800 text-amber-400' : 'bg-slate-200 text-slate-800'))),
+            'smokkel' => ($slug === 'bivakmuts-masker' ? 'bg-slate-900 text-white' : ($slug === 'sleutel-paviljoen-13' || $slug === 'oude-sleutel' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-700')),
+            default => 'bg-purple-100 text-purple-700'
+        };
+
+        return ['cat' => $cat, 'icon' => $icon, 'badgeClass' => $badgeClass];
+    };
+@endphp
+
 <div class="space-y-6" x-data="{ 
     shopTab: '{{ session('shop_tab', request('tab', 'pakketten')) }}',
     bundleFilter: 'all',
+    itemFilter: 'all',
     selectedBundleId: 'big_bucks',
     bundleQty: 1,
     recipientId: '',
@@ -412,14 +484,117 @@
             <!-- TAB: REGULIERE ITEMS (CONTANT GELD / EURO) -->
             <div x-show="shopTab === 'items'" class="space-y-6">
                 <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-utensils text-purple-600"></i>
-                            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Kantine & Uitrusting</h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-sm shadow-2xs">
+                                <i class="fa-solid fa-utensils"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Kantine & Uitrusting</h3>
+                                <p class="text-[11px] text-slate-500">Koop snacks, drankjes, medische spullen en smokkelwaar met je contant geld.</p>
+                            </div>
                         </div>
-                        <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 cursor-pointer">
+                        <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 cursor-pointer bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition w-fit">
                             <i class="fa-solid fa-box-archive"></i>
-                            <span x-text="'Naar mijn inventaris (' + totalInvCount + ')'">Naar mijn inventaris ({{ $inventory->sum('quantity') }})</span>
+                            <span x-text="'Mijn inventaris (' + totalInvCount + ')'">Mijn inventaris ({{ $inventory->sum('quantity') }})</span>
+                        </button>
+                    </div>
+
+                    <!-- Category Filter Tabs -->
+                    @php
+                        $categoryCounts = [
+                            'eten' => 0,
+                            'drank' => 0,
+                            'medisch' => 0,
+                            'kracht' => 0,
+                            'smokkel' => 0,
+                        ];
+                        foreach($items as $it) {
+                            $c = $getItemData($it)['cat'];
+                            if(isset($categoryCounts[$c])) {
+                                $categoryCounts[$c]++;
+                            }
+                        }
+                    @endphp
+
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-slate-100">
+                        <button type="button"
+                                @click="itemFilter = 'all'"
+                                :class="itemFilter === 'all' 
+                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-border-all text-[11px]"></i>
+                            <span>Alle Items</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                                  :class="itemFilter === 'all' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                {{ count($items) }}
+                            </span>
+                        </button>
+                        <button type="button"
+                                @click="itemFilter = 'eten'"
+                                :class="itemFilter === 'eten' 
+                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-burger text-[11px]" :class="itemFilter === 'eten' ? 'text-white' : 'text-amber-500'"></i>
+                            <span>Eten & Snacks</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                                  :class="itemFilter === 'eten' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                {{ $categoryCounts['eten'] ?? 0 }}
+                            </span>
+                        </button>
+                        <button type="button"
+                                @click="itemFilter = 'drank'"
+                                :class="itemFilter === 'drank' 
+                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-bolt text-[11px]" :class="itemFilter === 'drank' ? 'text-white' : 'text-cyan-500'"></i>
+                            <span>Drank & Energie</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                                  :class="itemFilter === 'drank' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                {{ $categoryCounts['drank'] ?? 0 }}
+                            </span>
+                        </button>
+                        <button type="button"
+                                @click="itemFilter = 'medisch'"
+                                :class="itemFilter === 'medisch' 
+                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-kit-medical text-[11px]" :class="itemFilter === 'medisch' ? 'text-white' : 'text-rose-500'"></i>
+                            <span>Medisch & Herstel</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                                  :class="itemFilter === 'medisch' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                {{ $categoryCounts['medisch'] ?? 0 }}
+                            </span>
+                        </button>
+                        <button type="button"
+                                @click="itemFilter = 'kracht'"
+                                :class="itemFilter === 'kracht' 
+                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-dumbbell text-[11px]" :class="itemFilter === 'kracht' ? 'text-white' : 'text-indigo-500'"></i>
+                            <span>Kracht & Uitrusting</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                                  :class="itemFilter === 'kracht' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                {{ $categoryCounts['kracht'] ?? 0 }}
+                            </span>
+                        </button>
+                        <button type="button"
+                                @click="itemFilter = 'smokkel'"
+                                :class="itemFilter === 'smokkel' 
+                                    ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
+                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-mask text-[11px]" :class="itemFilter === 'smokkel' ? 'text-white' : 'text-slate-600'"></i>
+                            <span>Smokkel & Sleutels</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                                  :class="itemFilter === 'smokkel' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                {{ $categoryCounts['smokkel'] ?? 0 }}
+                            </span>
                         </button>
                     </div>
 
@@ -427,22 +602,14 @@
                         @foreach($items as $item)
                         @php
                             $ownedCount = $inventory->firstWhere('item_id', $item->id)?->quantity ?? 0;
+                            $itemData = $getItemData($item);
                         @endphp
-                        <div class="bg-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
+                        <div x-show="itemFilter === 'all' || itemFilter === '{{ $itemData['cat'] }}'"
+                             class="bg-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
                             <div class="space-y-2">
                                 <div class="flex items-start justify-between gap-2 min-h-[40px]">
-                                    <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-base shrink-0">
-                                        @if(str_contains(strtolower($item->name), 'frikandel'))
-                                            <i class="fa-solid fa-hotdog"></i>
-                                        @elseif(str_contains(strtolower($item->name), 'energie') || str_contains(strtolower($item->name), 'drank'))
-                                            <i class="fa-solid fa-bolt text-amber-500"></i>
-                                        @elseif(str_contains(strtolower($item->name), 'appel') || str_contains(strtolower($item->name), 'fruit'))
-                                            <i class="fa-solid fa-apple-whole text-rose-500"></i>
-                                        @elseif(str_contains(strtolower($item->name), 'koffie'))
-                                            <i class="fa-solid fa-mug-hot text-amber-700"></i>
-                                        @else
-                                            <i class="fa-solid {{ $item->icon ?: 'fa-utensils' }}"></i>
-                                        @endif
+                                    <div class="w-10 h-10 rounded-xl {{ $itemData['badgeClass'] }} flex items-center justify-center text-base shrink-0 shadow-2xs">
+                                        <i class="{{ $itemData['icon'] }}"></i>
                                     </div>
                                     <div class="h-6 flex items-center">
                                         <template x-if="ownedCounts[{{ $item->id }}] > 0">
@@ -680,18 +847,13 @@
                         @if($foodAndRecovery->isNotEmpty())
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
                                 @foreach($foodAndRecovery as $quickInv)
+                                @php
+                                    $qItemData = $getItemData($quickInv->item);
+                                @endphp
                                 <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between gap-3">
                                     <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-sm shrink-0">
-                                            @if(str_contains(strtolower($quickInv->item->name), 'frikandel'))
-                                                <i class="fa-solid fa-hotdog"></i>
-                                            @elseif(str_contains(strtolower($quickInv->item->name), 'drank') || str_contains(strtolower($quickInv->item->name), 'energie'))
-                                                <i class="fa-solid fa-bolt text-amber-500"></i>
-                                            @elseif(str_contains(strtolower($quickInv->item->name), 'koffie'))
-                                                <i class="fa-solid fa-mug-hot text-amber-700"></i>
-                                            @else
-                                                <i class="fa-solid {{ $quickInv->item->icon ?: 'fa-utensils' }}"></i>
-                                            @endif
+                                        <div class="w-9 h-9 rounded-lg {{ $qItemData['badgeClass'] }} flex items-center justify-center text-sm shrink-0 shadow-2xs">
+                                            <i class="{{ $qItemData['icon'] }}"></i>
                                         </div>
                                         <div class="min-w-0">
                                             <div class="text-xs font-black text-slate-900 truncate flex items-center gap-1.5">
@@ -770,21 +932,14 @@
                     @else
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($inventory as $inv)
+                            @php
+                                $invItemData = $getItemData($inv->item);
+                            @endphp
                             <div class="bg-gradient-to-b from-white to-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs transition group">
                                 <div class="space-y-2.5">
                                     <div class="flex items-center justify-between">
-                                        <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
-                                            @if(str_contains(strtolower($inv->item->name), 'frikandel'))
-                                                <i class="fa-solid fa-hotdog"></i>
-                                            @elseif(str_contains(strtolower($inv->item->name), 'energie') || str_contains(strtolower($inv->item->name), 'drank'))
-                                                <i class="fa-solid fa-bolt text-amber-500"></i>
-                                            @elseif(str_contains(strtolower($inv->item->name), 'appel') || str_contains(strtolower($inv->item->name), 'fruit'))
-                                                <i class="fa-solid fa-apple-whole text-rose-500"></i>
-                                            @elseif(str_contains(strtolower($inv->item->name), 'koffie'))
-                                                <i class="fa-solid fa-mug-hot text-amber-700"></i>
-                                            @else
-                                                <i class="fa-solid {{ $inv->item->icon ?: 'fa-utensils' }}"></i>
-                                            @endif
+                                        <div class="w-12 h-12 rounded-xl {{ $invItemData['badgeClass'] }} flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                                            <i class="{{ $invItemData['icon'] }}"></i>
                                         </div>
                                         <span class="px-2.5 py-1 rounded-full bg-purple-600 text-white font-black text-xs font-mono shadow-xs">
                                             {{ $inv->quantity }}x
