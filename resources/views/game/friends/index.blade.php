@@ -593,13 +593,13 @@
 
     <!-- Bottom Podium Ranglijst (Kliniek Respect Top 10, Clean TBS Style) -->
     @if(isset($topRankings) && $topRankings->count())
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900">
+    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
                 <i class="fa-solid fa-trophy text-amber-500"></i>
                 <span>KLINIEK RESPECT RANGLIJST (TOP 10)</span>
             </div>
-            <a href="{{ route('leaderboard.index') }}" class="text-xs font-bold text-purple-600 hover:text-purple-800 transition">
+            <a href="{{ route('leaderboard.index') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition">
                 Volledige ranglijst bekijken &rarr;
             </a>
         </div>
@@ -610,7 +610,7 @@
                 <div class="relative mb-2">
                     <img src="{{ $ranked->avatar_url }}" alt="{{ $ranked->name }}" 
                          onerror="this.onerror=null; this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}';"
-                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($idx === 1 ? 'border-purple-400' : 'border-slate-200') }} group-hover:scale-105 transition-transform shadow-xs">
+                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $idx === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($idx === 1 ? 'border-purple-400' : 'border-slate-200 dark:border-slate-700') }} group-hover:scale-105 transition-transform shadow-xs">
                     
                     <span class="absolute -top-1 -left-1 w-5 h-5 rounded-full {{ $idx === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($idx < 3 ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-white font-bold') }} text-[11px] flex items-center justify-center shadow-xs">
                         {{ $idx + 1 }}
@@ -621,7 +621,7 @@
                     </span>
                 </div>
 
-                <a href="{{ route('profile.show', $ranked->name) }}" class="text-xs font-bold text-slate-900 group-hover:text-purple-600 transition truncate w-full block" title="{{ $ranked->name }}">
+                <a href="{{ route('profile.show', $ranked->name) }}" class="text-xs font-bold text-slate-900 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block" title="{{ $ranked->name }}">
                     {{ $ranked->name }}
                 </a>
                 <span class="text-[10px] font-bold text-slate-400">

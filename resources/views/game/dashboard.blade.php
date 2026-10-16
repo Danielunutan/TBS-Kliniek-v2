@@ -68,15 +68,15 @@
         </div>
 
         <!-- Welcome Hero Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
+        <div class="bg-white dark:bg-slate-900/90 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden relative">
             <!-- Optional subtle pattern background -->
-            <div class="absolute inset-0 bg-slate-50/50"></div>
+            <div class="absolute inset-0 bg-slate-50/50 dark:bg-transparent"></div>
             
             <div class="relative p-6 sm:p-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
                 <!-- Large Avatar with level -->
                 <div class="relative shrink-0">
-                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-32 h-32 rounded-xl object-cover shadow-md border-4 border-white bg-slate-100">
-                    <div class="absolute -bottom-3 -right-3 bg-white p-1 rounded-lg shadow-sm border border-slate-100">
+                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-32 h-32 rounded-xl object-cover shadow-md border-4 border-white dark:border-slate-800 bg-slate-100 dark:bg-slate-800">
+                    <div class="absolute -bottom-3 -right-3 bg-white dark:bg-slate-800 p-1 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
                         <div class="bg-slate-900 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex flex-col items-center leading-none">
                             <span class="text-[9px] text-amber-400 font-bold uppercase">Level</span>
                             <span class="text-lg">{{ $character->level }}</span>
@@ -85,8 +85,8 @@
                 </div>
 
                 <div class="flex-1 w-full text-center sm:text-left">
-                    <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-2">Welkom terug, {{ $character->name }}!</h1>
-                    <p class="text-slate-500 font-medium mb-6">De kliniek is zwaar, maar jij bent zwaarder.</p>
+                    <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">Welkom terug, {{ $character->name }}!</h1>
+                    <p class="text-slate-500 dark:text-slate-400 font-medium mb-6">De kliniek is zwaar, maar jij bent zwaarder.</p>
 
                     <!-- XP Bar (Sleek full-width without awkward clock circle) -->
                     @php
@@ -543,31 +543,31 @@
     <div class="xl:col-span-4 space-y-6">
 
         <!-- Laatste Nieuws Widget (TBS Kliniek Nieuws) -->
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
-            <div class="px-5 py-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900">
-                    <span class="w-5 h-5 rounded-md bg-purple-100 text-purple-700 flex items-center justify-center text-[10px] border border-purple-200">
+        <div class="bg-white dark:bg-slate-900/90 rounded-xl shadow-xs border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
+                    <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-[10px] border border-purple-200 dark:border-purple-800">
                         <i class="fa-solid fa-newspaper"></i>
                     </span>
                     <span>Laatste nieuws</span>
                 </div>
-                <span class="text-[10px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
                     Live Updates
                 </span>
             </div>
 
-            <div class="divide-y divide-slate-100">
+            <div class="divide-y divide-slate-100 dark:divide-slate-800">
                 @forelse($latestNews as $newsItem)
-                <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-slate-50/80 transition block group">
+                <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <span class="text-sm shrink-0 group-hover:scale-110 transition-transform">{{ $newsItem->emoji }}</span>
-                            <span class="text-xs font-bold text-slate-800 group-hover:text-purple-700 transition truncate">
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-700 dark:group-hover:text-purple-400 transition truncate">
                                 {{ $newsItem->title }}
                             </span>
                         </div>
                         @if($newsItem->is_pinned)
-                            <span class="text-[9px] font-black uppercase text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md border border-amber-300 shrink-0">Pin</span>
+                            <span class="text-[9px] font-black uppercase text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-1.5 py-0.5 rounded-md border border-amber-300 dark:border-amber-700 shrink-0">Pin</span>
                         @endif
                     </div>
                     <div class="text-[10px] font-semibold text-slate-400 mt-1 pl-6">
@@ -581,50 +581,50 @@
                 @endforelse
             </div>
 
-            <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-slate-50/70 hover:bg-slate-100 text-purple-700 hover:text-purple-900 font-extrabold text-xs transition border-t border-slate-100 flex items-center justify-center gap-1.5">
+            <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-slate-50/70 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/90 text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 font-extrabold text-xs transition border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-1.5">
                 <span>Meer nieuws</span>
                 <i class="fa-solid fa-angles-right text-[10px] text-purple-500"></i>
             </a>
         </div>
         
         <!-- Gang Card -->
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden relative group">
+        <div class="bg-white dark:bg-slate-900/90 rounded-xl shadow-xs border border-slate-200/80 dark:border-slate-800 overflow-hidden relative group">
             @if($character->gang)
                 <div class="p-6 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 mb-3 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform">
+                    <div class="w-16 h-16 mb-3 rounded-2xl bg-slate-900 dark:bg-slate-800 text-amber-400 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform">
                         <i class="fa-solid {{ $character->gang->emblem ?: 'fa-crown' }}"></i>
                     </div>
                     <div class="flex items-center gap-1.5 justify-center flex-wrap">
-                        <h3 class="text-base font-bold text-slate-900 mb-0.5">{{ $character->gang->name }}</h3>
-                        <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-purple-100 text-purple-700">[{{ $character->gang->tag }}]</span>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-0.5">{{ $character->gang->name }}</h3>
+                        <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300">[{{ $character->gang->tag }}]</span>
                     </div>
                     <span class="text-xs font-semibold text-slate-400 mb-4">{{ ucfirst($character->gang_role ?: 'Lid') }}</span>
-                    <div class="w-full border-t border-slate-100 pt-3 mb-4 space-y-2 text-xs font-bold">
+                    <div class="w-full border-t border-slate-100 dark:border-slate-800 pt-3 mb-4 space-y-2 text-xs font-bold">
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Leden:</span>
-                            <span class="text-slate-900">{{ $character->gang->members()->count() }} actief</span>
+                            <span class="text-slate-500 dark:text-slate-400">Leden:</span>
+                            <span class="text-slate-900 dark:text-white">{{ $character->gang->members()->count() }} actief</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-500">Bendekas:</span>
-                            <span class="text-emerald-600 font-extrabold">€{{ number_format($character->gang->treasury, 0, ',', '.') }}</span>
+                            <span class="text-slate-500 dark:text-slate-400">Bendekas:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">€{{ number_format($character->gang->treasury, 0, ',', '.') }}</span>
                         </div>
                     </div>
-                    <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
+                    <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
                         Bekijk Mijn Bende <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
                     </a>
                 </div>
             @else
                 <div class="p-6 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 mb-3 rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
+                    <div class="w-16 h-16 mb-3 rounded-2xl bg-purple-50 dark:bg-slate-800 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-slate-700 flex items-center justify-center text-2xl shadow-2xs group-hover:scale-105 transition-transform">
                         <i class="fa-solid fa-users"></i>
                     </div>
-                    <h3 class="text-base font-bold text-slate-900 mb-0.5">Maak Gang of word lid van een gang</h3>
-                    <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-0.5">Maak Gang of word lid van een gang</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
                         Alleen sta je zwak in de TBS kliniek. Sluit je aan bij een factie of richt je eigen bende op om samen te heersen!
                     </p>
-                    <div class="w-full border-t border-slate-100 pt-3 mb-4 flex justify-between items-center text-xs font-bold">
-                        <span class="text-slate-500">Status:</span>
-                        <span class="text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">Geen Bende</span>
+                    <div class="w-full border-t border-slate-100 dark:border-slate-800 pt-3 mb-4 flex justify-between items-center text-xs font-bold">
+                        <span class="text-slate-500 dark:text-slate-400">Status:</span>
+                        <span class="text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">Geen Bende</span>
                     </div>
                     <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
                         Maak Gang of Word Lid <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>

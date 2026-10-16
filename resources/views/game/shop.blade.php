@@ -169,22 +169,22 @@
 }">
 
     <!-- Top Hero Banner -->
-    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 relative overflow-hidden bg-white border border-slate-200">
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800 mb-2">
                     <i class="fa-solid fa-store"></i> De Kliniek Kiosk & Winkel
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Kliniek Shop</h1>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Kliniek Shop</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren of koop handige benodigdheden in de kantine met contante Euro's!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-amber-700 flex items-center gap-1.5 shadow-2xs">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 shadow-2xs">
                     <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
                 </span>
-                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-purple-700 flex items-center gap-1.5 shadow-2xs">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1.5 shadow-2xs">
                     <i class="fa-solid fa-mask text-purple-600"></i> {{ $character->masks ?? 0 }} Maskers
                 </span>
             </div>
@@ -196,9 +196,9 @@
 
         <!-- Left Column: Shop Sidebar Navigation -->
         <div class="lg:col-span-3 space-y-4">
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold text-slate-700">
+            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold text-slate-700 dark:text-slate-300">
                 <button type="button" @click="setShopTab('pakketten')" 
-                        :class="shopTab === 'pakketten' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        :class="shopTab === 'pakketten' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
                         class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
                     <span class="flex items-center gap-2.5">
                         <i class="fa-solid fa-basket-shopping text-purple-600 w-4 text-center"></i>
@@ -208,17 +208,17 @@
                 </button>
 
                 <button type="button" @click="setShopTab('sterren')" 
-                        :class="shopTab === 'sterren' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        :class="shopTab === 'sterren' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
                         class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
                     <span class="flex items-center gap-2.5">
                         <i class="fa-solid fa-gem text-amber-500 w-4 text-center"></i>
                         <span>Sterren Items</span>
                     </span>
-                    <span class="text-[10px] text-amber-600 font-extrabold flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
+                    <span class="text-[10px] text-amber-600 dark:text-amber-400 font-extrabold flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
                 </button>
 
                 <button type="button" @click="setShopTab('items')" 
-                        :class="shopTab === 'items' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        :class="shopTab === 'items' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
                         class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
                     <span class="flex items-center gap-2.5">
                         <i class="fa-solid fa-utensils text-emerald-600 w-4 text-center"></i>
@@ -229,39 +229,39 @@
 
                 <!-- Mijn Inventaris Tab -->
                 <button type="button" @click="setShopTab('inventaris')" 
-                        :class="shopTab === 'inventaris' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'hover:bg-slate-50 text-slate-600 border border-transparent'"
+                        :class="shopTab === 'inventaris' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
                         class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
                     <span class="flex items-center gap-2.5">
                         <i class="fa-solid fa-box-archive text-purple-600 w-4 text-center"></i>
                         <span>Mijn Inventaris</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-extrabold text-[10px]" x-text="totalInvCount + ' items'">
+                    <span class="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-extrabold text-[10px]" x-text="totalInvCount + ' items'">
                         {{ $inventory->sum('quantity') }} items
                     </span>
                 </button>
             </div>
 
             <!-- Character Wallet Badge Card -->
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block border-b border-slate-100 pb-2">
+            <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 block border-b border-slate-100 dark:border-slate-800 pb-2">
                     Jouw Bezittingen
                 </span>
                 <div class="space-y-2.5 text-xs">
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Sterren:</span>
-                        <span class="font-extrabold text-amber-600 flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Sterren:</span>
+                        <span class="font-extrabold text-amber-600 dark:text-amber-400 flex items-center gap-1">{{ $character->stars ?? 0 }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Koffers:</span>
-                        <span class="font-extrabold text-purple-700">{{ $character->unopened_bags ?? 0 }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Koffers:</span>
+                        <span class="font-extrabold text-purple-700 dark:text-purple-400">{{ $character->unopened_bags ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Maskers:</span>
-                        <span class="font-extrabold text-indigo-700">{{ $character->masks ?? 0 }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Maskers:</span>
+                        <span class="font-extrabold text-indigo-700 dark:text-indigo-400">{{ $character->masks ?? 0 }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-slate-500 font-medium">Bank:</span>
-                        <span class="font-extrabold text-emerald-600">€{{ number_format($character->bank, 0, ',', '.') }}</span>
+                        <span class="text-slate-500 dark:text-slate-400 font-medium">Bank:</span>
+                        <span class="font-extrabold text-emerald-600 dark:text-emerald-400">€{{ number_format($character->bank, 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -274,51 +274,51 @@
             <div x-show="shopTab === 'pakketten'" class="space-y-6">
 
                 <!-- Special Action Banner -->
-                <div class="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 border border-purple-200 rounded-xl p-4 text-center shadow-xs">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-100 border border-purple-200 px-3 py-0.5 rounded-full mb-1.5 inline-block">
+                <div class="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-950/40 dark:via-pink-950/20 dark:to-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-xl p-4 text-center shadow-xs">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 px-3 py-0.5 rounded-full mb-1.5 inline-block">
                         SPECIALE ACTIE
                     </span>
-                    <p class="text-xs sm:text-sm font-extrabold text-slate-900 mt-1">
-                        Bij iedere aankoop vanaf 100 sterren ontvang je <strong class="text-purple-700">1 XXL koffer als bonus</strong>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white mt-1">
+                        Bij iedere aankoop vanaf 100 sterren ontvang je <strong class="text-purple-700 dark:text-purple-400">1 XXL koffer als bonus</strong>
                     </p>
-                    <span class="text-xs text-slate-500 font-medium">Exclusief VIP en extra kluiscodes!</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Exclusief VIP en extra kluiscodes!</span>
                 </div>
 
                 <!-- Active Bundle Showcase Card -->
-                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5"
+                <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5"
                      x-data="{ currentBundle() { return bundles[selectedBundleId] || bundles['big_bucks']; } }">
                     
-                    <div class="border-b border-slate-100 pb-4">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <h3 class="text-lg font-extrabold text-slate-900" x-text="currentBundle().name"></h3>
-                            <div class="text-sm font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full w-fit inline-flex items-center gap-1.5">
+                            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white" x-text="currentBundle().name"></h3>
+                            <div class="text-sm font-extrabold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-3 py-1 rounded-full w-fit inline-flex items-center gap-1.5">
                                 <span>Prijs: <span x-text="currentBundle().cost_stars"></span> Sterren</span>
                                 <i class="fa-solid fa-star text-amber-500 text-xs"></i>
                             </div>
                         </div>
 
                         <!-- Bundle Contents List with Icons -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
-                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-200 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-coins"></i>
                                 </div>
                                 <span>€<strong x-text="new Intl.NumberFormat('nl-NL').format(currentBundle().cash)"></strong> Wit Bankgeld</span>
                             </div>
-                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-200 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-key"></i>
                                 </div>
                                 <span><strong x-text="currentBundle().codes"></strong> Kluiscodes</span>
                             </div>
-                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-200 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-briefcase"></i>
                                 </div>
                                 <span><strong x-text="currentBundle().koffers"></strong> Koffers</span>
                             </div>
-                            <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-700 font-bold">
-                                <div class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0">
+                            <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-200 font-bold">
+                                <div class="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-950/70 text-pink-600 dark:text-pink-400 flex items-center justify-center shrink-0">
                                     <i class="fa-solid fa-mask"></i>
                                 </div>
                                 <span><strong x-text="currentBundle().masks"></strong> Maskers</span>
@@ -332,11 +332,11 @@
                         <input type="hidden" name="bundle_id" :value="selectedBundleId">
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                                 Aantal keer kopen:
                             </label>
                             <input type="number" name="quantity" min="1" max="10" x-model="bundleQty" required 
-                                   class="w-full bg-white border border-slate-300 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 rounded-lg px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none">
+                                   class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 rounded-lg px-3.5 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none">
                         </div>
 
                         <!-- Gifting Selector with Autocomplete Search Input -->
@@ -363,14 +363,14 @@
                                 recipientId = patient.id;
                             }
                         }" class="relative">
-                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                                 Wil je dit product cadeau geven? Selecteer of typ ontvanger:
                             </label>
                             <input type="hidden" name="recipient_id" :value="selectedId">
                             <input type="hidden" name="recipient_name" :value="search">
 
                             <div class="relative flex items-center">
-                                <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-purple-600 text-xs z-10">
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-purple-600 dark:text-purple-400 text-xs z-10">
                                     <i class="fa-solid fa-user-tag"></i>
                                 </div>
                                 <input type="text"
@@ -380,7 +380,7 @@
                                        @click.outside="openDropdown = false"
                                        autocomplete="off"
                                        placeholder="Mijn eigen account ({{ $character->name }}) of typ naam..."
-                                       class="w-full bg-white border border-slate-300 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 rounded-lg py-2.5 text-xs font-bold text-slate-900 focus:outline-none transition tbs-search-input shadow-2xs"
+                                       class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:border-purple-600 focus:ring-1 focus:ring-purple-600 rounded-lg py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none transition tbs-search-input shadow-2xs"
                                        style="padding-left: 2.75rem !important; padding-right: 2.25rem !important;">
                                 <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
                                     <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
@@ -390,22 +390,22 @@
                             <!-- Supplemental Dropdown List -->
                             <div x-show="openDropdown" 
                                  x-transition
-                                 class="absolute z-50 left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white rounded-xl shadow-lg border border-slate-200 divide-y divide-slate-100">
+                                 class="absolute z-50 left-0 right-0 mt-1 max-h-52 overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
                                 <template x-for="p in filtered" :key="p.name">
                                     <button type="button" 
                                             @click="select(p)"
-                                            class="w-full text-left px-3.5 py-2.5 hover:bg-purple-50 flex items-center justify-between text-xs transition cursor-pointer group">
+                                            class="w-full text-left px-3.5 py-2.5 hover:bg-purple-50 dark:hover:bg-slate-700/60 flex items-center justify-between text-xs transition cursor-pointer group">
                                         <div class="flex items-center gap-2">
                                             <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black"
-                                                  :class="p.isSelf ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'">
+                                                  :class="p.isSelf ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200'">
                                                 <i :class="p.isSelf ? 'fa-solid fa-user' : 'fa-solid fa-user-ninja'"></i>
                                             </span>
                                             <div>
-                                                <span class="font-extrabold text-slate-900 group-hover:text-purple-700 block" x-text="p.name"></span>
+                                                <span class="font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 block" x-text="p.name"></span>
                                                 <span class="text-[10px] text-slate-400" x-text="'Level ' + p.level + ' • ' + p.respect + ' Respect'"></span>
                                             </div>
                                         </div>
-                                        <span x-show="selectedName === p.name" class="text-purple-600 text-xs">
+                                        <span x-show="selectedName === p.name" class="text-purple-600 dark:text-purple-400 text-xs">
                                             <i class="fa-solid fa-check"></i>
                                         </span>
                                     </button>
@@ -429,47 +429,47 @@
                 </div>
 
                 <!-- Category Selector -->
-                <div class="flex items-center justify-center gap-2 bg-slate-100 border border-slate-200 p-1.5 rounded-xl">
+                <div class="flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-1.5 rounded-xl">
                     <button type="button" @click="bundleFilter = 'all'" 
-                            :class="bundleFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            :class="bundleFilter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer">
                         Alle Deals
                     </button>
                     <button type="button" @click="bundleFilter = 'smokkel'" 
-                            :class="bundleFilter === 'smokkel' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            :class="bundleFilter === 'smokkel' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
                         <i class="fa-solid fa-box text-xs text-indigo-500"></i> Smokkel
                     </button>
                     <button type="button" @click="bundleFilter = 'kluisbuit'" 
-                            :class="bundleFilter === 'kluisbuit' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            :class="bundleFilter === 'kluisbuit' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
                         <i class="fa-solid fa-vault text-xs text-amber-500"></i> Kluisbuit
                     </button>
                     <button type="button" @click="bundleFilter = 'syndicaat'" 
-                            :class="bundleFilter === 'syndicaat' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                            :class="bundleFilter === 'syndicaat' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
                         <i class="fa-solid fa-crown text-xs text-purple-600"></i> Syndicaat
                     </button>
                 </div>
 
                 <!-- Deals List Table -->
-                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs divide-y divide-slate-100">
+                <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs divide-y divide-slate-100 dark:divide-slate-800">
                     @foreach($bundles as $bKey => $b)
                     <div x-show="bundleFilter === 'all' || bundleFilter === '{{ $b['category'] }}'"
                          @click="selectedBundleId = '{{ $bKey }}'"
-                         :class="selectedBundleId === '{{ $bKey }}' ? 'bg-purple-50/70 border-l-4 border-purple-600' : 'hover:bg-slate-50'"
+                         :class="selectedBundleId === '{{ $bKey }}' ? 'bg-purple-50/70 dark:bg-purple-950/40 border-l-4 border-purple-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'"
                          class="p-4 flex items-center justify-between gap-4 transition cursor-pointer">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-lg shrink-0">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
                                 <i class="fa-solid fa-box-open"></i>
                             </div>
                             <div>
-                                <h4 class="text-xs font-extrabold text-slate-900">{{ $b['name'] }}</h4>
-                                <span class="text-[11px] text-slate-500">{{ $b['codes'] }} codes &bull; {{ $b['koffers'] }} koffers &bull; {{ $b['masks'] }} maskers</span>
+                                <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">{{ $b['name'] }}</h4>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400">{{ $b['codes'] }} codes &bull; {{ $b['koffers'] }} koffers &bull; {{ $b['masks'] }} maskers</span>
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="text-xs font-extrabold text-amber-600 inline-flex items-center gap-1">{{ number_format($b['cost_stars']) }} Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
+                            <span class="text-xs font-extrabold text-amber-600 dark:text-amber-400 inline-flex items-center gap-1">{{ number_format($b['cost_stars']) }} Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></span>
                         </div>
                     </div>
                     @endforeach
@@ -483,18 +483,18 @@
 
             <!-- TAB: REGULIERE ITEMS (CONTANT GELD / EURO) -->
             <div x-show="shopTab === 'items'" class="space-y-6">
-                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-sm shadow-2xs">
+                            <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-sm shadow-2xs">
                                 <i class="fa-solid fa-utensils"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Kantine & Uitrusting</h3>
-                                <p class="text-[11px] text-slate-500">Koop snacks, drankjes, medische spullen en smokkelwaar met je contant geld.</p>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Kantine & Uitrusting</h3>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Koop snacks, drankjes, medische spullen en smokkelwaar met je contant geld.</p>
                             </div>
                         </div>
-                        <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1.5 cursor-pointer bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition w-fit">
+                        <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1.5 cursor-pointer bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 px-3 py-1.5 rounded-lg transition w-fit">
                             <i class="fa-solid fa-box-archive"></i>
                             <span x-text="'Mijn inventaris (' + totalInvCount + ')'">Mijn inventaris ({{ $inventory->sum('quantity') }})</span>
                         </button>
@@ -605,7 +605,7 @@
                             $itemData = $getItemData($item);
                         @endphp
                         <div x-show="itemFilter === 'all' || itemFilter === '{{ $itemData['cat'] }}'"
-                             class="bg-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
+                             class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 hover:border-purple-300 dark:hover:border-purple-500 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
                             <div class="space-y-2">
                                 <div class="flex items-start justify-between gap-2 min-h-[40px]">
                                     <div class="w-10 h-10 rounded-xl {{ $itemData['badgeClass'] }} flex items-center justify-center text-base shrink-0 shadow-2xs">
@@ -613,7 +613,7 @@
                                     </div>
                                     <div class="h-6 flex items-center">
                                         <template x-if="ownedCounts[{{ $item->id }}] > 0">
-                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black shrink-0 transition"
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-black shrink-0 transition"
                                                   x-text="ownedCounts[{{ $item->id }}] + 'x op voorraad'">
                                                 {{ $ownedCount }}x op voorraad
                                             </span>
@@ -622,8 +622,8 @@
                                 </div>
 
                                 <div>
-                                    <h4 class="text-xs font-extrabold text-slate-900">{{ $item->name }}</h4>
-                                    <p class="text-[11px] text-slate-500 line-clamp-2 mt-0.5">{{ $item->description ?: 'Heerlijke snack uit de kliniekkantine.' }}</p>
+                                    <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">{{ $item->name }}</h4>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ $item->description ?: 'Heerlijke snack uit de kliniekkantine.' }}</p>
                                 </div>
 
                                 <!-- Effect Pills -->
@@ -702,23 +702,23 @@
                                      }
                                  }">
                                 <div class="flex items-center justify-between text-xs">
-                                    <span class="text-slate-500 font-medium">Prijs per stuk:</span>
+                                    <span class="text-slate-500 dark:text-slate-400 font-medium">Prijs per stuk:</span>
                                     <div class="text-right">
-                                        <span class="font-extrabold text-emerald-700 font-mono">
+                                        <span class="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
                                             €{{ number_format($item->price_kc, 0, ',', '.') }}
                                         </span>
                                         <template x-if="buyQty > 1">
-                                            <span class="text-[10px] text-slate-400 block font-mono" x-text="'Totaal: €' + new Intl.NumberFormat('nl-NL').format(totalCost)"></span>
+                                            <span class="text-[10px] text-slate-400 dark:text-slate-400 block font-mono" x-text="'Totaal: €' + new Intl.NumberFormat('nl-NL').format(totalCost)"></span>
                                         </template>
                                     </div>
                                 </div>
 
                                 <!-- Snelle Aantal Knoppen (1x, 5x, 10x, Max) -->
-                                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/70">
-                                    <button type="button" @click="buyQty = 1" :class="buyQty === 1 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
-                                    <button type="button" @click="buyQty = 5" :class="buyQty === 5 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
-                                    <button type="button" @click="buyQty = 10" :class="buyQty === 10 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
-                                    <button type="button" @click="buyQty = Math.max(1, maxAffordable)" :class="buyQty > 10 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" title="Koop zoveel als je kunt betalen">Max</button>
+                                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
+                                    <button type="button" @click="buyQty = 1" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
+                                    <button type="button" @click="buyQty = 5" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
+                                    <button type="button" @click="buyQty = 10" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
+                                    <button type="button" @click="buyQty = Math.max(1, maxAffordable)" :class="buyQty > 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" title="Koop zoveel als je kunt betalen">Max</button>
                                 </div>
 
                                 <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, buyQty)">
@@ -763,16 +763,16 @@
             <!-- TAB: MIJN INVENTARIS (NEW & BEAUTIFUL) -->
             <div x-show="shopTab === 'inventaris'" class="space-y-6">
                 <!-- Status Bar with Live Energy & Health -->
-                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div>
-                            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fa-solid fa-box-archive text-purple-600"></i>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-box-archive text-purple-600 dark:text-purple-400"></i>
                                 <span>Mijn Rugzak & Inventaris</span>
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Hier bewaar je al je gekochte kantinesnacks, maaltijden en benodigdheden.</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Hier bewaar je al je gekochte kantinesnacks, maaltijden en benodigdheden.</p>
                         </div>
-                        <button type="button" @click="setShopTab('items')" class="px-3.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 w-fit">
+                        <button type="button" @click="setShopTab('items')" class="px-3.5 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 w-fit">
                             <i class="fa-solid fa-plus"></i>
                             <span>Snacks Kopen in Kantine</span>
                         </button>
@@ -780,27 +780,27 @@
 
                     <!-- Energy and Health Progress -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="text-slate-600 flex items-center gap-1.5">
+                                <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
                                     <i class="fa-solid fa-bolt text-amber-500"></i> Energie
                                 </span>
-                                <span class="text-slate-900 font-mono">{{ $character->energy }} / {{ $character->max_energy }}</span>
+                                <span class="text-slate-900 dark:text-white font-mono">{{ $character->energy }} / {{ $character->max_energy }}</span>
                             </div>
-                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div class="h-full bg-gradient-to-r from-amber-400 to-emerald-500 rounded-full transition-all duration-300" 
                                      style="width: {{ min(100, round(($character->energy / max(1, $character->max_energy)) * 100)) }}%"></div>
                             </div>
                         </div>
 
-                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1.5">
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-1.5">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="text-slate-600 flex items-center gap-1.5">
+                                <span class="text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
                                     <i class="fa-solid fa-heart-pulse text-rose-500"></i> Gezondheid (HP)
                                 </span>
-                                <span class="text-slate-900 font-mono">{{ $character->health }} / {{ $character->max_health }}</span>
+                                <span class="text-slate-900 dark:text-white font-mono">{{ $character->health }} / {{ $character->max_health }}</span>
                             </div>
-                            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                 <div class="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full transition-all duration-300" 
                                      style="width: {{ min(100, round(($character->health / max(1, $character->max_health)) * 100)) }}%"></div>
                             </div>
@@ -819,19 +819,19 @@
                     @endphp
 
                     <!--  SNEL ETEN & HERSTELLEN BALK (1-KLIK) -->
-                    <div class="mt-4 p-4 rounded-xl border {{ $needsRecovery ? 'bg-gradient-to-r from-amber-50/70 via-emerald-50/50 to-white border-emerald-300/80' : 'bg-slate-50 border-slate-200' }}">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
+                    <div class="mt-4 p-4 rounded-xl border {{ $needsRecovery ? 'bg-gradient-to-r from-amber-50/70 via-emerald-50/50 to-white dark:from-emerald-950/40 dark:via-slate-900 dark:to-slate-900 border-emerald-300/80 dark:border-emerald-800/60' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700' }}">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-slate-800">
                             <div>
-                                <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                                <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs shadow-2xs">
                                         <i class="fa-solid fa-utensils"></i>
                                     </span>
                                     <span>Snel Eten & Herstellen</span>
                                     @if(! $needsRecovery)
-                                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">100% Volledig Hersteld!</span>
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold">100% Volledig Hersteld!</span>
                                     @endif
                                 </h4>
-                                <p class="text-[11px] text-slate-500 mt-0.5">
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                                     Herstel je Energie en Gezondheid direct in 1 klik zonder eindeloos los te klikken.
                                 </p>
                             </div>
@@ -1067,19 +1067,19 @@
 
             <!-- TAB: STERREN & DIAMANTEN -->
             <div x-show="shopTab === 'sterren'" class="space-y-6">
-                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
-                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-gem text-amber-500"></i>
                         <span>Sterren & Maskers Shop</span>
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
-                            <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl">
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl">
                                 <i class="fa-solid fa-masks-theater text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="text-xs font-extrabold text-slate-900">1x Masker</h4>
-                                <p class="text-xs font-extrabold text-amber-600 mt-0.5 inline-flex items-center gap-1">15 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
+                                <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">1x Masker</h4>
+                                <p class="text-xs font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 inline-flex items-center gap-1">15 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
                             </div>
                             <form action="{{ route('shop.buy-star-item') }}" method="POST">
                                 @csrf
@@ -1087,13 +1087,13 @@
                                 <button type="submit" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">Kopen</button>
                             </form>
                         </div>
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
-                            <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl">
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl">
                                 <i class="fa-solid fa-masks-theater text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="text-xs font-extrabold text-slate-900">5x Maskers</h4>
-                                <p class="text-xs font-extrabold text-amber-600 mt-0.5 inline-flex items-center gap-1">65 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
+                                <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">5x Maskers</h4>
+                                <p class="text-xs font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 inline-flex items-center gap-1">65 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
                             </div>
                             <form action="{{ route('shop.buy-star-item') }}" method="POST">
                                 @csrf
@@ -1101,13 +1101,13 @@
                                 <button type="submit" class="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">Kopen</button>
                             </form>
                         </div>
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-3">
-                            <div class="w-12 h-12 mx-auto rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+                        <div class="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-center space-y-3">
+                            <div class="w-12 h-12 mx-auto rounded-xl bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xl">
                                 <i class="fa-solid fa-box-open text-xl"></i>
                             </div>
                             <div>
-                                <h4 class="text-xs font-extrabold text-slate-900">Exclusief Pakket</h4>
-                                <p class="text-xs font-extrabold text-amber-600 mt-0.5 inline-flex items-center gap-1">150 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
+                                <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">Exclusief Pakket</h4>
+                                <p class="text-xs font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 inline-flex items-center gap-1">150 Sterren <i class="fa-solid fa-star text-amber-500 text-[10px]"></i></p>
                             </div>
                             <form action="{{ route('shop.buy-star-item') }}" method="POST">
                                 @csrf
@@ -1124,8 +1124,8 @@
     </div>
 
     <!-- Bottom Podium Ranglijst -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-3">
+    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
             <i class="fa-solid fa-trophy text-amber-500"></i>
             <span>RANGLIJST TOP PATIËNTEN</span>
         </div>
@@ -1135,7 +1135,7 @@
             <div class="flex flex-col items-center text-center group">
                 <div class="relative mb-2">
                     <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" 
-                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200') }} group-hover:scale-105 transition-transform shadow-xs">
+                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200 dark:border-slate-700') }} group-hover:scale-105 transition-transform shadow-xs">
                     
                     <span class="absolute -top-1 -left-1 w-6 h-6 rounded-full {{ $index === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($index < 3 ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-white font-bold') }} text-xs flex items-center justify-center shadow">
                         {{ $index + 1 }}
@@ -1146,7 +1146,7 @@
                     </span>
                 </div>
 
-                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 group-hover:text-purple-600 transition truncate w-full block">
+                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block">
                     {{ $player->name }}
                 </a>
                 <span class="text-[10px] font-bold text-slate-400">

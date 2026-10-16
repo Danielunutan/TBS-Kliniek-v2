@@ -85,6 +85,9 @@ class AdminController extends Controller
     public function updatePlayer(Request $request, Character $character): RedirectResponse
     {
         $validated = $request->validate([
+            'username' => 'nullable|string|min:2|max:50',
+            'character_name' => 'nullable|string|min:2|max:50|unique:characters,name,'.$character->id,
+            'reset_avatar' => 'nullable|boolean',
             'cash' => 'required|numeric|min:0',
             'bank' => 'required|numeric|min:0',
             'stars' => 'required|numeric|min:0',
@@ -100,6 +103,23 @@ class AdminController extends Controller
 
         /** @var User $currentUser */
         $currentUser = Auth::user();
+
+        // Moderatie: Update login gebruikersnaam (User name)
+        if ($request->filled('username') && $character->user) {
+            $character->user->name = trim((string) $validated['username']);
+            $character->user->save();
+        }
+
+        // Moderatie: Update weergavenaam (Character name)
+        if ($request->filled('character_name')) {
+            $character->name = trim((string) $validated['character_name']);
+        }
+
+        // Moderatie: Reset profielfoto naar standaard default avatar
+        if ($request->boolean('reset_avatar')) {
+            $character->avatar_custom = null;
+            $character->avatar = 'assets/characters/avatar_male_1.jpg';
+        }
 
         // Update user platform role if provided
         if ($request->filled('role') && $character->user) {

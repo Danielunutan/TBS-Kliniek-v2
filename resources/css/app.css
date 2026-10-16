@@ -38,25 +38,38 @@ html.dark .bg-white {
 }
 
 html.dark .bg-slate-50 {
-    background-color: #172033 !important;
+    background-color: #0f172a !important;
 }
 
 html.dark .bg-slate-100 {
-    background-color: #1f293d !important;
+    background-color: #1e293b !important;
 }
 
 html.dark .bg-slate-200 {
-    background-color: #27354f !important;
+    background-color: #1e293b !important;
 }
 
 html.dark .bg-slate-300 {
-    background-color: #334460 !important;
+    background-color: #334155 !important;
+}
+
+/* Fix semi-transparent grey washes in darkmode */
+html.dark [class*="bg-slate-50/"],
+html.dark [class*="bg-slate-100/"] {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+}
+
+html.dark [class*="bg-slate-200/"],
+html.dark [class*="bg-slate-300/"] {
+    background-color: rgba(30, 41, 59, 0.6) !important;
 }
 
 html.dark .border-slate-300,
 html.dark .border-slate-200,
-html.dark .border-slate-100 {
-    border-color: #1f2937 !important;
+html.dark .border-slate-100,
+html.dark [class*="border-slate-100/"],
+html.dark [class*="border-slate-200/"] {
+    border-color: #1e293b !important;
 }
 
 /* 100% Borderless & Seamless Sidebar Navigation */

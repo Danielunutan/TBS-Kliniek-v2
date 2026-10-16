@@ -351,7 +351,7 @@
             @endforeach
         </div>
 
-        <div class="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div class="p-4 bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
             {{ $posts->links() }}
         </div>
         @endif
@@ -359,27 +359,27 @@
 
     <!-- Bottom Podium Ranglijst (Kliniek Respect Top 10, Clean TBS Style) -->
     @if(isset($topRankings) && $topRankings->count())
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-trophy text-amber-500"></i>
-                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Kliniek Respect Ranglijst (Top 10)</h3>
+                <h3 class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Kliniek Respect Ranglijst (Top 10)</h3>
             </div>
-            <a href="{{ route('leaderboard.index') }}" class="text-xs font-bold text-purple-600 hover:text-purple-700 transition">
+            <a href="{{ route('leaderboard.index') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition">
                 Volledige ranglijst bekijken &rarr;
             </a>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-3">
             @foreach($topRankings as $rank => $patient)
-            <div class="flex flex-col items-center text-center p-2 rounded-xl border border-slate-100 hover:border-purple-200 bg-slate-50/50 transition">
+            <div class="flex flex-col items-center text-center p-2 rounded-xl border border-slate-100 dark:border-slate-800/80 hover:border-purple-200 dark:hover:border-purple-600/60 bg-slate-50/50 dark:bg-slate-800/40 transition">
                 <div class="relative">
-                    <img src="{{ $patient->avatar_url }}" alt="{{ $patient->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-300 shadow-2xs">
+                    <img src="{{ $patient->avatar_url }}" alt="{{ $patient->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-300 dark:border-purple-500/60 shadow-2xs">
                     <span class="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-amber-400 text-slate-950 font-black text-[9px] flex items-center justify-center shadow-xs">
                         {{ $rank + 1 }}
                     </span>
                 </div>
-                <span class="font-extrabold text-[11px] text-slate-800 truncate max-w-full mt-1.5">{{ $patient->name }}</span>
-                <span class="text-[10px] text-slate-400 font-mono">{{ number_format($patient->respect) }}</span>
+                <span class="font-extrabold text-[11px] text-slate-800 dark:text-slate-200 truncate max-w-full mt-1.5">{{ $patient->name }}</span>
+                <span class="text-[10px] text-slate-400 dark:text-slate-400 font-mono">{{ number_format($patient->respect) }}</span>
             </div>
             @endforeach
         </div>

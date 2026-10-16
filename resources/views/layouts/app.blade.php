@@ -112,6 +112,85 @@
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
         }
+
+        /* Seamless Rich Dark Mode Overrides for TBS Kliniek */
+        html.dark body {
+            background-color: #0b0f19 !important;
+            color: #e2e8f0 !important;
+        }
+        html.dark .bg-white {
+            background-color: #111827 !important;
+        }
+        html.dark .bg-slate-50 {
+            background-color: #0f172a !important;
+        }
+        html.dark .bg-slate-100 {
+            background-color: #1e293b !important;
+        }
+        html.dark .bg-slate-200 {
+            background-color: #1e293b !important;
+        }
+        html.dark .bg-slate-300 {
+            background-color: #334155 !important;
+        }
+        /* Fix ugly semi-transparent grey washes in darkmode */
+        html.dark [class*="bg-slate-50/"],
+        html.dark [class*="bg-slate-100/"] {
+            background-color: rgba(15, 23, 42, 0.6) !important;
+        }
+        html.dark [class*="bg-slate-200/"],
+        html.dark [class*="bg-slate-300/"] {
+            background-color: rgba(30, 41, 59, 0.6) !important;
+        }
+        html.dark .border-slate-100,
+        html.dark .border-slate-200,
+        html.dark [class*="border-slate-100/"],
+        html.dark [class*="border-slate-200/"] {
+            border-color: #1e293b !important;
+        }
+        html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+        html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #1e293b !important;
+        }
+        html.dark .text-slate-900,
+        html.dark .text-slate-800 {
+            color: #f8fafc !important;
+        }
+        html.dark .text-slate-700 {
+            color: #e2e8f0 !important;
+        }
+        html.dark .text-slate-600,
+        html.dark .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+        html.dark .text-purple-700 {
+            color: #c084fc !important;
+        }
+        html.dark .text-purple-800,
+        html.dark .text-purple-900 {
+            color: #e9d5ff !important;
+        }
+        html.dark .text-amber-700,
+        html.dark .text-amber-800 {
+            color: #fbbf24 !important;
+        }
+        html.dark .bg-purple-50,
+        html.dark .bg-purple-100 {
+            background-color: rgba(168, 85, 247, 0.16) !important;
+            border-color: rgba(168, 85, 247, 0.3) !important;
+        }
+        html.dark .bg-amber-50,
+        html.dark .bg-amber-100 {
+            background-color: rgba(245, 158, 11, 0.16) !important;
+            border-color: rgba(245, 158, 11, 0.3) !important;
+        }
+        html.dark input:not([type="checkbox"]):not([type="radio"]),
+        html.dark select,
+        html.dark textarea {
+            background-color: #111827 !important;
+            border-color: #1e293b !important;
+            color: #f8fafc !important;
+        }
     </style>
 
     @php
@@ -676,7 +755,7 @@
         </nav>
 
         <!-- Sidebar Footer / Logout -->
-        <div class="p-3 border-t border-slate-100 bg-slate-50/50 mt-auto">
+        <div class="p-3 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/60 mt-auto">
             <form method="POST" action="{{ route('logout') }}"
                   data-confirm="Weet je zeker dat je wilt uitloggen uit de TBS Kliniek?"
                   data-confirm-title="Veilig Uitloggen"

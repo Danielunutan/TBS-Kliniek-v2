@@ -131,9 +131,33 @@
                                     <h4 class="text-xs font-black uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
                                         <i class="fa-solid fa-sliders text-purple-600"></i> Patiënt Aanpassen: {{ $player->name }}
                                     </h4>
-                                    <button type="button" @click="editingId = null" class="text-xs text-slate-500 hover:text-slate-900 cursor-pointer">
-                                        Sluiten &times;
-                                    </button>
+                                </div>
+
+                                <!-- Moderatie: Gebruikersnaam, Weergavenaam & Profielfoto Reset -->
+                                <div class="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200 grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                                    <div>
+                                        <label class="text-[10px] font-black text-amber-900 uppercase tracking-wider block flex items-center gap-1.5">
+                                            <i class="fa-solid fa-user-gear text-amber-600"></i> Account Inlognaam (User)
+                                        </label>
+                                        <input type="text" name="username" value="{{ $player->user?->name }}" required
+                                               class="w-full bg-white border border-amber-300 rounded px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:ring-1 focus:ring-amber-500 mt-1">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-black text-amber-900 uppercase tracking-wider block flex items-center gap-1.5">
+                                            <i class="fa-solid fa-id-card text-amber-600"></i> Inmate Weergavenaam (Character)
+                                        </label>
+                                        <input type="text" name="character_name" value="{{ $player->name }}" required
+                                               class="w-full bg-white border border-amber-300 rounded px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:ring-1 focus:ring-amber-500 mt-1">
+                                    </div>
+                                    <div class="flex items-center sm:pt-4">
+                                        <label class="w-full flex items-center gap-2 p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold cursor-pointer hover:bg-rose-100 transition">
+                                            <input type="checkbox" name="reset_avatar" value="1" class="rounded text-rose-600 focus:ring-rose-500">
+                                            <span class="flex items-center gap-1.5">
+                                                <i class="fa-solid fa-image-portrait text-rose-600"></i>
+                                                <span>Reset profielfoto naar default</span>
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
