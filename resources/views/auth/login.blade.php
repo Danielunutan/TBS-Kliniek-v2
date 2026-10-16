@@ -11,8 +11,43 @@
     regAvatar: '{{ old('avatar', 'assets/characters/avatar_male_1.jpg') }}' 
 }">
 
+    <!-- HERO SHOWCASE BANNER (OFFICIAL TBS CREW LINEUP & 3D LOGO) -->
+    <div class="relative rounded-2xl overflow-hidden border border-purple-500/30 shadow-xl bg-slate-950 group">
+        <div class="relative aspect-[16/9] w-full overflow-hidden">
+            <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}" 
+                 alt="TBS Kliniek - Het #1 Misdaad Spel van Nederland" 
+                 class="w-full h-full object-cover object-center transform group-hover:scale-[1.01] transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-transparent pointer-events-none"></div>
+            
+            <!-- Floating Quick Status & CTA Bar -->
+            <div class="absolute bottom-3 sm:bottom-4 left-4 sm:left-6 right-4 sm:right-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/80 border border-purple-400/40 text-purple-200 text-[10px] sm:text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        {{ number_format($totalPlayers, 0, ',', '.') }} Patiënten Geregistreerd
+                    </span>
+                    <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/80 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
+                        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+                        €{{ number_format($totalCash, 0, ',', '.') }} Buit
+                    </span>
+                    <span class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-900/60 border border-purple-500/30 text-purple-200 text-xs font-black uppercase tracking-wider backdrop-blur-md">
+                        <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
+                        Vrijheid Moet Je Bevechten
+                    </span>
+                </div>
+                <div>
+                    <button type="button" @click="tab = 'register'; const el = document.getElementById('auth-form-card'); if(el) el.scrollIntoView({behavior: 'smooth'})"
+                            class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-purple-900/50 transition active:scale-95 cursor-pointer flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                        <span>Start Direct (Gratis)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MAIN LOGIN / REGISTER CARD (MATCHES WEBSITE DESIGN) -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+    <div id="auth-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
         
         <!-- LEFT HERO COLUMN (VIBRANT PURPLE TBS KLINIEK ARTWORK & MODERN GAMING BRANDING) -->
         <div class="lg:col-span-6 bg-[#18042a] text-white relative p-7 sm:p-10 flex flex-col justify-between overflow-hidden shadow-inner min-h-[580px]">
