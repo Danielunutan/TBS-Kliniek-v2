@@ -80,7 +80,7 @@ class SponsorAdAndLegalTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('sponsor.redirect'));
 
-        $response->assertRedirect('https://uplcm.com/4/12026868');
+        $this->assertStringContainsString('https://uplcm.com/4/12026868', $response->headers->get('Location'));
     }
 
     public function test_claim_ad_fails_if_minimum_watch_duration_not_met(): void

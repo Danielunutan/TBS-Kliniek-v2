@@ -18,9 +18,9 @@ use Illuminate\View\View;
 
 class SponsorAdController extends Controller
 {
-    public const ADS_ENABLED = false;
+    public const ADS_ENABLED = true;
 
-    public const DEFAULT_SMARTLINK = 'https://www.mobilerewards.link/wall/8Pq0S';
+    public const DEFAULT_SMARTLINK = 'https://uplcm.com/4/12026868';
 
     public const DAILY_LIMIT = 500;
 
@@ -109,6 +109,7 @@ class SponsorAdController extends Controller
         return response()->json([
             'success' => true,
             'token' => $token,
+            'character_id' => $character->id,
             'smartlink_url' => $smartlinkUrl,
             'duration' => self::WATCH_DURATION_SECONDS,
             'message' => 'Sponsoropdracht gestart. Voltooi de opdracht om je beloning direct te ontvangen!',
@@ -116,7 +117,7 @@ class SponsorAdController extends Controller
     }
 
     /**
-     * Safe internal redirect to CPAlead Offerwall (passes player subid).
+     * Safe internal redirect to Monetag SmartLink (passes player ymid and tracking subids).
      */
     public function redirect(Request $request): RedirectResponse
     {
@@ -127,10 +128,11 @@ class SponsorAdController extends Controller
         $character = Auth::user()?->character;
         $subid = $character ? $character->id : 'guest';
         $subid2 = session()->get('tbs_ad_session.reward_type', 'cash');
+        $token = session()->get('tbs_ad_session.token', Str::random(8));
 
-        $baseUrl = GameSetting::get('cpalead_offerwall_url', self::DEFAULT_SMARTLINK);
+        $baseUrl = GameSetting::get('monetag_direct_link', GameSetting::get('cpalead_offerwall_url', self::DEFAULT_SMARTLINK));
         $separator = str_contains($baseUrl, '?') ? '&' : '?';
-        $targetUrl = "{$baseUrl}{$separator}subid={$subid}&subid2={$subid2}";
+        $targetUrl = "{$baseUrl}{$separator}ymid={$subid}_{$token}&subid={$subid}&subid2={$subid2}&requestVar={$subid2}";
 
         return redirect()->away($targetUrl);
     }

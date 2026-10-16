@@ -2240,15 +2240,19 @@
         },
         init() {
             window.tbsOpenSponsorAd = async (rewardType = 'cash', callback = null) => {
-                alert('Advertenties zijn momenteel tijdelijk uitgeschakeld.');
-                return;
-            };
+                this.isOpen = true;
+                this.rewardType = rewardType;
+                this.callback = callback;
+                this.status = 'loading';
+                this.statusMessage = 'Sponsoropdracht initialiseren...';
+                this.secondsLeft = 15;
+                this.totalSeconds = 15;
 
                 if (rewardType === 'prison') {
                     this.rewardTitle = '-15 Min Isoleercel Straf';
                     this.rewardIcon = 'fa-hourglass-half';
                 } else if (rewardType === 'cooldown') {
-                    this.rewardTitle = ' Reset Alle Cooldowns';
+                    this.rewardTitle = '⚡ Reset Alle Cooldowns';
                     this.rewardIcon = 'fa-bolt';
                 } else if (rewardType === 'mask') {
                     this.rewardTitle = '+1 Bivakmuts / Masker';
@@ -2257,7 +2261,7 @@
                     this.rewardTitle = '+1 Kluismunt';
                     this.rewardIcon = 'fa-coins';
                 } else if (rewardType === 'star') {
-                    this.rewardTitle = '+1 Gratis Ster';
+                    this.rewardTitle = '+1 Gratis Ster ⭐';
                     this.rewardIcon = 'fa-star';
                 } else {
                     this.rewardTitle = '€ 2.500 Contant Zakgeld';
@@ -2286,13 +2290,33 @@
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
                     this.status = 'watching';
-                    this.statusMessage = 'De sponsor advertentie is geopend in een nieuw tabblad. Bekijk deze tijdens de afteltimer om je beloning te claimen!';
+                    this.statusMessage = 'De sponsor advertentie is geopend in een nieuw venster. Bekijk deze tijdens de afteltimer om je beloning te claimen!';
 
-                    // Open smartlink in new tab (adsterra smartlink)
-                    try {
-                        window.open(this.smartlinkUrl, '_blank');
-                    } catch(e) {
-                        console.warn('Popup blocked, click manually', e);
+                    // Monetag integration: check for show_12026868 SDK or direct link
+                    let adOpened = false;
+                    if (typeof window.show_12026868 === 'function') {
+                        try {
+                            window.show_12026868({ 
+                                type: 'pop', 
+                                ymid: `${data.character_id || 'player'}_${data.token}`,
+                                requestVar: this.rewardType
+                            }).then(() => {
+                                console.log('Monetag popup attempt completed');
+                            }).catch(() => {
+                                window.open(this.smartlinkUrl, '_blank');
+                            });
+                            adOpened = true;
+                        } catch (e) {
+                            adOpened = false;
+                        }
+                    }
+
+                    if (!adOpened) {
+                        try {
+                            window.open(this.smartlinkUrl, '_blank');
+                        } catch(e) {
+                            console.warn('Popup blocked, click manually', e);
+                        }
                     }
 
                     // Countdown timer
