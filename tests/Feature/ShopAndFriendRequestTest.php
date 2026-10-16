@@ -71,6 +71,32 @@ class ShopAndFriendRequestTest extends TestCase
         $this->assertEquals(50 + $item->health_restore, $char->health);
     }
 
+    public function test_can_buy_item_using_bank_when_cash_is_insufficient(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'cash' => 0,
+            'bank' => 5000,
+        ]);
+
+        $item = Item::where('slug', 'frikandelbroodje')->first();
+
+        $this->actingAs($user);
+
+        // Buy item when cash is 0 but bank has funds
+        $buyRes = $this->post(route('shop.buy', $item), ['quantity' => 1]);
+        $buyRes->assertSessionHas('success');
+
+        $char->refresh();
+        $this->assertEquals(0, $char->cash);
+        $this->assertLessThan(5000, $char->bank);
+        $this->assertDatabaseHas('character_items', [
+            'character_id' => $char->id,
+            'item_id' => $item->id,
+        ]);
+    }
+
     public function test_friend_request_flow_send_accept_reject(): void
     {
         $userA = User::where('email', 'demo@tbskliniek.nl')->first();

@@ -31,8 +31,10 @@
         const url = form.action;
         const token = form.querySelector('input[name=_token]') ? form.querySelector('input[name=_token]').value : '{{ csrf_token() }}';
         
-        this.itemBuying[itemId] = true;
-        this.itemToast[itemId] = null;
+        this.itemBuying = { ...this.itemBuying, [itemId]: true };
+        const cleanToast = { ...this.itemToast };
+        delete cleanToast[itemId];
+        this.itemToast = cleanToast;
         
         try {
             const response = await fetch(url, {
@@ -49,38 +51,47 @@
             const data = await response.json();
             
             if (response.ok && data.success) {
-                this.ownedCounts[itemId] = data.owned_count;
+                this.ownedCounts = { ...this.ownedCounts, [itemId]: data.owned_count };
                 this.totalInvCount = data.total_inventory_count;
                 
-                if (window.stats) {
-                    window.stats.cash = data.cash;
-                    window.stats.cashFormatted = '€' + data.cash_formatted;
-                }
+                window.dispatchEvent(new CustomEvent('stats:refresh'));
                 
-                this.itemToast[itemId] = {
-                    type: 'success',
-                    text: qty + 'x Gekocht!'
+                this.itemToast = {
+                    ...this.itemToast,
+                    [itemId]: {
+                        type: 'success',
+                        text: qty + 'x Gekocht! (Voorraad: ' + data.owned_count + 'x)'
+                    }
                 };
                 setTimeout(() => {
                     if (this.itemToast[itemId] && this.itemToast[itemId].type === 'success') {
-                        this.itemToast[itemId] = null;
+                        const next = { ...this.itemToast };
+                        delete next[itemId];
+                        this.itemToast = next;
                     }
-                }, 2000);
+                }, 2500);
             } else {
-                this.itemToast[itemId] = {
-                    type: 'error',
-                    text: data.message || 'Niet genoeg geld of aankoop mislukt.'
+                this.itemToast = {
+                    ...this.itemToast,
+                    [itemId]: {
+                        type: 'error',
+                        text: data.message || 'Niet genoeg geld of aankoop mislukt.'
+                    }
                 };
                 setTimeout(() => {
                     if (this.itemToast[itemId] && this.itemToast[itemId].type === 'error') {
-                        this.itemToast[itemId] = null;
+                        const next = { ...this.itemToast };
+                        delete next[itemId];
+                        this.itemToast = next;
                     }
-                }, 3500);
+                }, 4000);
             }
         } catch (err) {
             form.submit();
         } finally {
-            this.itemBuying[itemId] = false;
+            const nextBuying = { ...this.itemBuying };
+            delete nextBuying[itemId];
+            this.itemBuying = nextBuying;
         }
     }
 }">
@@ -518,8 +529,8 @@
                                          return this.actualPrice * this.buyQty;
                                      },
                                      get maxAffordable() {
-                                         let cash = (typeof stats !== 'undefined' && stats.cash !== undefined) ? stats.cash : {{ (int) $character->cash }};
-                                         return Math.max(1, Math.min(100, Math.floor(cash / Math.max(1, this.actualPrice))));
+                                         let totalFunds = ((typeof stats !== 'undefined' && stats.total !== undefined) ? stats.total : {{ (int) ($character->cash + $character->bank) }});
+                                         return Math.max(1, Math.min(100, Math.floor(totalFunds / Math.max(1, this.actualPrice))));
                                      }
                                  }">
                                 <div class="flex items-center justify-between text-xs">
@@ -539,15 +550,15 @@
                                     <button type="button" @click="buyQty = 1" :class="buyQty === 1 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
                                     <button type="button" @click="buyQty = 5" :class="buyQty === 5 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
                                     <button type="button" @click="buyQty = 10" :class="buyQty === 10 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
-                                    <button type="button" @click="buyQty = Math.max(1, maxAffordable)" :class="buyQty > 10 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" title="Koop zoveel als je contant kunt betalen">Max</button>
+                                    <button type="button" @click="buyQty = Math.max(1, maxAffordable)" :class="buyQty > 10 ? 'bg-white text-purple-700 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-800 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" title="Koop zoveel als je kunt betalen">Max</button>
                                 </div>
 
-                                <form action="{{ route('shop.buy', $item->id) }}" method="POST" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, buyQty)">
+                                <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, buyQty)">
                                     @csrf
                                     <input type="hidden" name="quantity" :value="buyQty">
                                     
                                     <button type="submit" 
-                                            :disabled="((typeof stats !== 'undefined' && stats.cash !== undefined) ? stats.cash : {{ (int) $character->cash }}) < totalCost || itemBuying[{{ $item->id }}]"
+                                            :disabled="((typeof stats !== 'undefined' && stats.total !== undefined) ? stats.total : {{ (int) ($character->cash + $character->bank) }}) < totalCost || itemBuying[{{ $item->id }}]"
                                             class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]">
                                         <template x-if="itemBuying[{{ $item->id }}]">
                                             <span class="inline-flex items-center gap-1.5 text-slate-300">

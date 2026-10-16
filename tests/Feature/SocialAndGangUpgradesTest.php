@@ -115,11 +115,43 @@ class SocialAndGangUpgradesTest extends TestCase
         $this->assertNotNull($post);
         $this->assertEquals('Rookruimte is geopend vandaag! Wie heeft er aanstekers?', $post->content);
 
-        // 3. Like post
-        $likeRes = $this->post(route('timeline.like', $post));
+        // 3. Like post with emoji
+        $likeRes = $this->post(route('timeline.like', $post), ['emoji' => '🔥']);
         $likeRes->assertSessionHas('success');
         $post->refresh();
         $this->assertEquals(1, $post->likes_count);
+        $this->assertEquals('🔥', $post->likedEmojiBy($character));
+
+        // 3b. Toggle unlike
+        $unlikeRes = $this->post(route('timeline.like', $post), ['emoji' => '🔥']);
+        $unlikeRes->assertSessionHas('success');
+        $post->refresh();
+        $this->assertEquals(0, $post->likes_count);
+        $this->assertFalse($post->isLikedBy($character));
+
+        // 3c. Like again with heart
+        $this->post(route('timeline.like', $post), ['emoji' => '❤️']);
+        $post->refresh();
+        $this->assertEquals(1, $post->likes_count);
+
+        // 3d. Add a comment / reply
+        $commentRes = $this->post(route('timeline.comment', $post), [
+            'content' => 'Ik heb nog wel een aansteker liggen bij cel 12! 🔥',
+        ]);
+        $commentRes->assertSessionHas('success');
+        $this->assertDatabaseHas('timeline_comments', [
+            'timeline_post_id' => $post->id,
+            'character_id' => $character->id,
+            'content' => 'Ik heb nog wel een aansteker liggen bij cel 12! 🔥',
+        ]);
+
+        $comment = $post->comments()->first();
+        $this->assertNotNull($comment);
+
+        // 3e. Delete comment
+        $delCommentRes = $this->delete(route('timeline.comment.destroy', $comment));
+        $delCommentRes->assertSessionHas('success');
+        $this->assertDatabaseMissing('timeline_comments', ['id' => $comment->id]);
 
         // 4. Delete post
         $delRes = $this->delete(route('timeline.destroy', $post));

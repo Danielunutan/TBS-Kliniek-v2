@@ -130,9 +130,11 @@ class ShopController extends Controller
         $unitPrice = $discountPct > 0 ? (int) round($item->price_kc * (1 - ($discountPct / 100))) : $item->price_kc;
         $totalCost = $unitPrice * $quantity;
 
-        if ($character->cash < $totalCost) {
+        $totalAvailable = (int) ($character->cash + $character->bank);
+
+        if ($totalAvailable < $totalCost) {
             $formatted = number_format($totalCost, 0, ',', '.');
-            $errorMsg = "Niet genoeg contant geld! {$quantity}x {$item->name} kost €{$formatted}.";
+            $errorMsg = "Niet genoeg geld! {$quantity}x {$item->name} kost €{$formatted}.";
 
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -146,17 +148,16 @@ class ShopController extends Controller
                 ->with('error', $errorMsg);
         }
 
-        if (! $this->economyService->deductCash($character, $totalCost)) {
-            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Betaling mislukt.',
-                ], 422);
+        // Pay from cash first; if cash is insufficient, cover difference from bank
+        if ($character->cash >= $totalCost) {
+            $this->economyService->deductCash($character, $totalCost);
+        } else {
+            $remaining = $totalCost - $character->cash;
+            if ($character->cash > 0) {
+                $this->economyService->deductCash($character, $character->cash);
             }
-
-            return back()
-                ->with('shop_tab', 'items')
-                ->with('error', 'Betaling mislukt.');
+            $character->bank = max(0, $character->bank - $remaining);
+            $character->save();
         }
 
         $inv = CharacterItem::firstOrNew([
@@ -182,6 +183,10 @@ class ShopController extends Controller
                 'owned_count' => (int) $inv->quantity,
                 'cash' => (int) $character->cash,
                 'cash_formatted' => number_format($character->cash, 0, ',', '.'),
+                'bank' => (int) $character->bank,
+                'bank_formatted' => number_format($character->bank, 0, ',', '.'),
+                'total' => (int) ($character->cash + $character->bank),
+                'total_formatted' => number_format($character->cash + $character->bank, 0, ',', '.'),
                 'total_inventory_count' => (int) CharacterItem::where('character_id', $character->id)->sum('quantity'),
             ]);
         }
