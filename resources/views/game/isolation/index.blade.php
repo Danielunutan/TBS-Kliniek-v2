@@ -138,7 +138,7 @@
                         <button type="submit" 
                                 {{ ! $canAffordStars ? 'disabled' : '' }}
                                 title="Betaal met sterren ({{ $pkg['cost_stars'] }} Sterren)"
-                                class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canAffordStars ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:brightness-110 text-white cursor-pointer shadow-xs active:scale-[0.98]' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canAffordStars ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer shadow-xs active:scale-[0.98]' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' }}">
                             <i class="fa-solid fa-star text-amber-200"></i>
                             <span>{{ $pkg['cost_stars'] }} Sterren</span>
                         </button>

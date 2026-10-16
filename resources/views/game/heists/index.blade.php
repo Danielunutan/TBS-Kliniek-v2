@@ -10,7 +10,7 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-700 via-indigo-700 to-slate-900 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
                     <i class="fa-solid fa-masks-theater"></i>
                 </div>
                 <div>
@@ -210,7 +210,7 @@
                         @csrf
                         <button type="submit" 
                                 onclick="return confirm('Weet je zeker dat je de {{ $heist->name }} wilt starten? Bij mislukking riskeer je de isoleercel!')"
-                                class="w-full py-3 rounded-xl bg-gradient-to-r from-rose-600 via-purple-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                                class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-bomb text-xs"></i>
                             <span>Start Heist Operatie</span>
                         </button>

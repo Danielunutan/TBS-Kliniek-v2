@@ -119,7 +119,7 @@
 
             <div class="mt-4 pt-4 border-t border-slate-100">
                 @if($canMassMessage)
-                <button type="button" @click="massMessageOpen = true" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-extrabold text-xs transition shadow-sm flex items-center justify-center gap-2">
+                <button type="button" @click="massMessageOpen = true" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition shadow-sm flex items-center justify-center gap-2">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>Massa Bericht Verzenden</span>
                 </button>
@@ -331,7 +331,7 @@
                                 @if($canRespect)
                                 <button type="button" 
                                         @click="selectedFriendForRespect = { id: {{ $f->id }}, name: '{{ $f->friend->name }}', is_bff: {{ $f->is_bff ? 'true' : 'false' }} }"
-                                        class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-[11px] transition shadow-2xs flex items-center gap-1.5">
+                                        class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-[11px] transition shadow-2xs flex items-center gap-1.5">
                                     <i class="fa-solid fa-award text-amber-300"></i>
                                     <span>Geef Respect</span>
                                 </button>
@@ -438,7 +438,7 @@
                         <button type="button" @click="selectedFriendForRespect = null" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
                             Annuleren
                         </button>
-                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl transition shadow-sm inline-flex items-center gap-1.5">
+                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition shadow-sm inline-flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-fire text-amber-300"></i>
                             <span>Respect Bevestigen</span>
                         </button>

@@ -185,9 +185,20 @@
             color: #f59e0b !important;
         }
         html.dark .bg-purple-50,
-        html.dark .bg-purple-100 {
-            background-color: rgba(168, 85, 247, 0.16) !important;
-            border-color: rgba(168, 85, 247, 0.3) !important;
+        html.dark .bg-purple-100,
+        html.dark [class*="bg-purple-50/"],
+        html.dark [class*="bg-purple-100/"] {
+            background-color: rgba(168, 85, 247, 0.12) !important;
+            border-color: rgba(168, 85, 247, 0.25) !important;
+        }
+        /* Remove ugly gradient buttons and banner bars in dark mode */
+        html.dark button[class*="bg-gradient-to-"],
+        html.dark a[class*="bg-gradient-to-"]:not([class*="rounded-full"]) {
+            background-image: none !important;
+        }
+        html.dark div[class*="bg-gradient-to-r"]:not([class*="rounded-full"]),
+        html.dark div[class*="bg-gradient-to-br"]:not([class*="rounded-full"]) {
+            background-image: none !important;
         }
         html.dark .bg-amber-50,
         html.dark .bg-amber-100,
@@ -1496,7 +1507,7 @@
 
             <!-- Flash messages -->
             @if(session('evening_drop_awarded'))
-            <div class="mb-6 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-indigo-500/10 border-2 border-amber-400 p-4 sm:p-5 rounded-2xl shadow-md flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div class="mb-6 bg-amber-500/10 dark:bg-slate-900 border-2 border-amber-400 dark:border-amber-500/60 p-4 sm:p-5 rounded-2xl shadow-md flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
                 <div class="flex items-center gap-3.5">
                     <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl font-black shrink-0 shadow-sm animate-bounce">
                         
@@ -2400,7 +2411,7 @@
                     <p class="text-xs text-slate-600 font-medium" x-text="statusMessage"></p>
 
                     <button type="button" @click="claim()"
-                            class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition transform hover:scale-102 active:scale-98 cursor-pointer flex items-center justify-center gap-2">
+                            class="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition transform hover:scale-102 active:scale-98 cursor-pointer flex items-center justify-center gap-2">
                         <i class="fa-solid fa-gift text-base"></i>
                         <span>Claim Beloning & Terug naar Spel</span>
                     </button>

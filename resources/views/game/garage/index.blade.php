@@ -10,7 +10,7 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
                     <i class="fa-solid fa-warehouse"></i>
                 </div>
                 <div>
@@ -26,7 +26,7 @@
 
             <div class="flex items-center gap-2 shrink-0">
                 <a href="{{ route('heists.index') }}" 
-                   class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 active:scale-95">
+                   class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 active:scale-95">
                     <i class="fa-solid fa-mask text-xs"></i>
                     <span>Naar Grote Heists</span>
                 </a>
@@ -52,8 +52,7 @@
 
     <!-- ACTIVE GETAWAY VEHICLE STATUS (IF OWNED) -->
     @if($activeVehicle)
-    <div class="rounded-2xl p-6 text-white shadow-lg border border-purple-800/60 relative overflow-hidden bg-slate-900"
-         style="background: linear-gradient(135deg, #0b0f19 0%, #1e1136 50%, #0f172a 100%) !important;">
+    <div class="rounded-2xl p-6 text-white shadow-lg border border-purple-800/60 relative overflow-hidden bg-slate-900">
         <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl text-white pointer-events-none">
             <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
         </div>

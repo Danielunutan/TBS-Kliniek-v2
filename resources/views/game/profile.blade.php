@@ -186,7 +186,7 @@
                             <form action="{{ route('friends.add') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="friend_name" value="{{ $profileCharacter->name }}">
-                                <button type="submit" class="px-3.5 py-2 text-xs font-black bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
+                                <button type="submit" class="px-3.5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer">
                                     <i class="fa-solid fa-user-plus text-amber-300"></i>
                                     <span>Vriend Toevoegen</span>
                                 </button>
@@ -330,14 +330,14 @@
 
         @if(Auth::id() === $profileCharacter->user_id)
         <!-- Discord Koppeling & Beloningen Banner -->
-        <div class="md:col-span-2 bg-gradient-to-r from-[#5865F2]/10 via-purple-500/10 to-amber-500/10 border border-[#5865F2]/30 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="md:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-2xl bg-[#5865F2] text-white flex items-center justify-center text-2xl shadow-sm shrink-0">
                     <i class="fa-brands fa-discord"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="text-sm font-black text-slate-900 font-['Outfit']">Discord Koppeling & Server Rollen</span>
+                        <span class="text-sm font-black text-slate-900 dark:text-white font-['Outfit']">Discord Koppeling & Server Rollen</span>
                         @if(Auth::user()->discord_id)
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
                                 <i class="fa-solid fa-check text-[9px]"></i> Gekoppeld
@@ -348,9 +348,9 @@
                             </span>
                         @endif
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         @if(Auth::user()->discord_id)
-                            Je account is verbonden met Discord ID: <code class="font-mono text-purple-700 bg-purple-50 px-1 py-0.5 rounded">{{ Auth::user()->discord_id }}</code>. Jouw spelersrol en VIP-status worden automatisch gesynchroniseerd.
+                            Je account is verbonden met Discord ID: <code class="font-mono text-purple-700 bg-purple-50 dark:bg-purple-950/60 dark:text-purple-300 px-1 py-0.5 rounded">{{ Auth::user()->discord_id }}</code>. Jouw spelersrol en VIP-status worden automatisch gesynchroniseerd.
                         @else
                             Koppel je Discord en ontvang direct <strong>€2.500 zakgeld</strong>, <strong>3 dagen gratis VIP</strong> én de <strong>TBS-Kliniek.nl</strong> rol in de Discord server!
                         @endif
@@ -368,7 +368,7 @@
                         </button>
                     </form>
                 @else
-                    <a href="{{ route('discord.redirect') }}" class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs py-2.5 px-5 rounded-xl transition shadow-xs cursor-pointer">
+                    <a href="{{ route('discord.redirect') }}" class="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs py-2.5 px-5 rounded-xl transition shadow-xs cursor-pointer">
                         <i class="fa-solid fa-gift"></i>
                         <span>Koppel Discord & Claim Bonus</span>
                     </a>

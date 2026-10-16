@@ -79,7 +79,7 @@
                 <div class="flex items-center gap-2">
                     <button type="submit" 
                             :disabled="text.trim().length === 0" 
-                            class="px-5 py-2 text-xs font-black bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 disabled:opacity-40 text-white rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95">
+                            class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95">
                         <i class="fa-solid fa-paper-plane text-amber-300"></i>
                         <span>Plaatsen</span>
                     </button>
