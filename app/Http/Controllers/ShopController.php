@@ -130,6 +130,21 @@ class ShopController extends Controller
         $unitPrice = $discountPct > 0 ? (int) round($item->price_kc * (1 - ($discountPct / 100))) : $item->price_kc;
         $totalCost = $unitPrice * $quantity;
 
+        if (! $character->canAddStorageItem($quantity)) {
+            $errorMsg = "Je opbergplaats zit vol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop of gebruik spullen in je Depot, level up of word VIP voor +50 extra voorraadplekken.";
+
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMsg,
+                ], 422);
+            }
+
+            return back()
+                ->with('shop_tab', 'items')
+                ->with('error', $errorMsg);
+        }
+
         $totalAvailable = (int) ($character->cash + $character->bank);
 
         if ($totalAvailable < $totalCost) {

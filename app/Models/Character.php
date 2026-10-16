@@ -1538,4 +1538,123 @@ class Character extends Model
     {
         return $this->hasOne(CharacterArmWrestleStat::class);
     }
+
+    /**
+     * @return HasMany<CharacterVehicle, $this>
+     */
+    public function vehicles(): HasMany
+    {
+        return $this->hasMany(CharacterVehicle::class);
+    }
+
+    /**
+     * @return HasMany<CharacterItem, $this>
+     */
+    public function characterItems(): HasMany
+    {
+        return $this->hasMany(CharacterItem::class);
+    }
+
+    /**
+     * Check if the character currently has active VIP privileges.
+     */
+    public function isVip(): bool
+    {
+        if (! $this->is_vip) {
+            return false;
+        }
+
+        if ($this->vip_expires_at && $this->vip_expires_at->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Maximum number of vehicles allowed in personal garage based on level and VIP status.
+     */
+    public function getGarageCapacity(): int
+    {
+        $lvl = $this->level ?? 1;
+
+        if ($lvl >= 50) {
+            $cap = 6;
+        } elseif ($lvl >= 30) {
+            $cap = 5;
+        } elseif ($lvl >= 20) {
+            $cap = 4;
+        } elseif ($lvl >= 10) {
+            $cap = 3;
+        } else {
+            $cap = 2;
+        }
+
+        if ($this->isVip()) {
+            $cap += 3;
+        }
+
+        return $cap;
+    }
+
+    /**
+     * Maximum item storage units allowed in personal storage based on level and VIP status.
+     */
+    public function getStorageCapacity(): int
+    {
+        $lvl = $this->level ?? 1;
+
+        if ($lvl >= 50) {
+            $cap = 150;
+        } elseif ($lvl >= 30) {
+            $cap = 100;
+        } elseif ($lvl >= 20) {
+            $cap = 75;
+        } elseif ($lvl >= 10) {
+            $cap = 50;
+        } else {
+            $cap = 30;
+        }
+
+        if ($this->isVip()) {
+            $cap += 50;
+        }
+
+        return $cap;
+    }
+
+    /**
+     * Count currently owned vehicles in personal garage.
+     */
+    public function getGarageUsed(): int
+    {
+        return (int) CharacterVehicle::where('character_id', $this->id)->count();
+    }
+
+    /**
+     * Count currently occupied storage places (items quantity + masks).
+     */
+    public function getStorageUsed(): int
+    {
+        $itemsTotal = (int) CharacterItem::where('character_id', $this->id)->sum('quantity');
+        $masks = (int) ($this->masks ?? 0);
+
+        return $itemsTotal + $masks;
+    }
+
+    /**
+     * Check if a new vehicle can be added to the personal garage.
+     */
+    public function canAddVehicle(): bool
+    {
+        return $this->getGarageUsed() < $this->getGarageCapacity();
+    }
+
+    /**
+     * Check if items can be added to personal storage.
+     */
+    public function canAddStorageItem(int $amount = 1): bool
+    {
+        return ($this->getStorageUsed() + $amount) <= $this->getStorageCapacity();
+    }
 }

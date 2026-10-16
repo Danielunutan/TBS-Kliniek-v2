@@ -66,6 +66,10 @@ class GarageController extends Controller
             return back()->with('error', "Je moet minimaal Level {$vehicle->min_level} zijn om de {$vehicle->name} te besturen!");
         }
 
+        if (! $character->canAddVehicle()) {
+            return back()->with('error', "Je persoonlijke garage zit vol ({$character->getGarageUsed()}/{$character->getGarageCapacity()} plaatsen)! Bereik een hoger level of activeer VIP voor +3 extra garageplekken.");
+        }
+
         $paymentMethod = $request->input('payment', 'cash');
 
         if ($paymentMethod === 'stars' && $vehicle->price_stars > 0) {

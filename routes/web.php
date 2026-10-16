@@ -16,6 +16,7 @@ use App\Http\Controllers\DailyBattleController;
 use App\Http\Controllers\DailyRewardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DaycareController;
+use App\Http\Controllers\DepotController;
 use App\Http\Controllers\DiscordShieldAdminController;
 use App\Http\Controllers\DiscordShieldController;
 use App\Http\Controllers\DroppingController;
@@ -351,6 +352,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/winkel/sterren-kopen', [ShopController::class, 'buyStarItem'])->name('shop.buy-star-item');
     Route::post('/winkel/bundel-kopen', [ShopController::class, 'buyBundle'])->name('shop.buy-bundle');
     Route::post('/inventaris/{characterItem}/gebruiken', [ShopController::class, 'consume'])->name('shop.consume');
+
+    // Persoonlijk Depot (Garage, Opbergplaats & Event Varia)
+    Route::get('/depot', [DepotController::class, 'index'])->name('depot.index');
+    Route::post('/depot/verkopen/{characterItem}', [DepotController::class, 'sellItem'])->name('depot.sell-item');
 
     // Smokkel Garage & Wagenpark
     Route::get('/garage', [GarageController::class, 'index'])->name('garage.index');
