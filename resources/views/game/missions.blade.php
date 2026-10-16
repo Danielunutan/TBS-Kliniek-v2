@@ -265,9 +265,9 @@
                                 <span class="text-[9px] font-black uppercase text-purple-900 block tracking-wider">Kies tactische actie:</span>
                                 <div class="grid grid-cols-1 gap-1">
                                     @foreach($scenario['choices'] as $optKey => $optText)
-                                    <label class="flex items-start gap-2 p-1.5 rounded-md bg-slate-50 border border-slate-200 hover:border-purple-400 hover:bg-purple-50/50 cursor-pointer text-[11px] font-medium text-slate-800 transition">
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-600 hover:bg-purple-50/50 dark:hover:bg-purple-950/40 has-[:checked]:border-purple-600 dark:has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50/80 dark:has-[:checked]:bg-purple-950/60 cursor-pointer text-[11px] font-medium text-slate-800 dark:text-slate-200 transition">
                                         <input type="radio" name="choice" value="{{ $optKey }}" required class="text-purple-600 focus:ring-purple-500 mt-0.5 shrink-0">
-                                        <span class="leading-tight"><strong class="text-purple-700">{{ $optKey }}:</strong> {{ $optText }}</span>
+                                        <span class="leading-tight"><strong class="text-purple-700 dark:text-purple-400">{{ $optKey }}:</strong> {{ $optText }}</span>
                                     </label>
                                     @endforeach
                                 </div>
@@ -275,8 +275,8 @@
                             @endif
 
                             <button type="submit"
-                                class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs py-2 px-3 rounded-lg transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]">
-                                <span>Missie Uitvoeren ( {{ $m->energy_cost }})</span>
+                                class="w-full bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span>Missie Uitvoeren (⚡ {{ $m->energy_cost }})</span>
                                 <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </button>
                         </form>

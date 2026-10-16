@@ -1,25 +1,27 @@
 @extends('layouts.app')
 
+@section('title', 'Hosselen & Klussen - TBS Kliniek')
+
 @section('content')
 <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
     
     <!-- Left column: Hosselen -->
     <div class="xl:col-span-8 space-y-6">
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 overflow-hidden">
             
             <!-- Clean TBS Kliniek Title Banner -->
-            <div class="p-6 sm:p-7 text-slate-900 border-b border-slate-100 bg-white">
+            <div class="p-6 sm:p-7 text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-xl text-purple-600 shadow-2xs shrink-0">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center text-xl text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                             <i class="fa-solid fa-comments-dollar"></i>
                         </div>
                         <div>
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">TBS Kliniek Illegaal</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800/60">TBS Kliniek Illegaal</span>
                             </div>
-                            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Hosselen & Klussen</h1>
-                            <p class="text-xs text-slate-500 mt-0.5">Scharrel wat bij tussen de corridors van de kliniek voor directe zakcenten en respect.</p>
+                            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Hosselen & Klussen</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Scharrel wat bij tussen de corridors van de kliniek voor directe zakcenten en respect.</p>
                         </div>
                     </div>
                 </div>
@@ -30,14 +32,14 @@
             @endphp
 
             @if($hustleCooldown > 0)
-                <div class="m-6 p-4 rounded-xl bg-amber-500/10 border border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="m-6 p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
                             <i class="fa-solid fa-clock"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-black text-amber-950">Hossel Cooldown Actief</h4>
-                            <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $hustleCooldown) }}</strong> voordat je opnieuw kunt klussen in de gangen.</p>
+                            <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Hossel Cooldown Actief</h4>
+                            <p class="text-[11px] text-amber-800 dark:text-amber-300">Wacht nog <strong>{{ gmdate('i:s', $hustleCooldown) }}</strong> voordat je opnieuw kunt klussen in de gangen.</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
@@ -62,28 +64,28 @@
                     @csrf
                     <div class="space-y-3 mb-6">
                         @foreach($hustles as $h)
-                        <label class="flex items-center gap-4 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition group {{ $hustleCooldown > 0 ? 'opacity-60 cursor-not-allowed' : '' }}">
-                            <input type="radio" name="hustle_id" value="{{ $h['id'] }}" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300" {{ $loop->first ? 'checked' : '' }} {{ $hustleCooldown > 0 ? 'disabled' : '' }} required>
+                        <label class="flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition group border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800/80 has-[:checked]:border-purple-600 dark:has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50/70 dark:has-[:checked]:bg-purple-950/50 has-[:checked]:ring-2 has-[:checked]:ring-purple-500/20 {{ $hustleCooldown > 0 ? 'opacity-60 cursor-not-allowed' : '' }}">
+                            <input type="radio" name="hustle_id" value="{{ $h['id'] }}" class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0" {{ $loop->first ? 'checked' : '' }} {{ $hustleCooldown > 0 ? 'disabled' : '' }} required>
                             <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
-                                    <span class="font-bold text-xs text-slate-800 group-hover:text-slate-900 block">{{ $h['name'] }}</span>
-                                    <span class="text-[11px] text-slate-500">{{ $h['description'] }}</span>
+                                    <span class="font-bold text-xs text-slate-800 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 block transition">{{ $h['name'] }}</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">{{ $h['description'] }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">{{ $h['cost'] }} Energie</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">€{{ $h['cash_min'] }}-€{{ $h['cash_max'] }}</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-700">{{ $h['rate'] }}% kans</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $h['cost'] }} Energie</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">€{{ $h['cash_min'] }}-€{{ $h['cash_max'] }}</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">{{ $h['rate'] }}% kans</span>
                                 </div>
                             </div>
                         </label>
                         @endforeach
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                        <span class="text-[11px] font-bold text-slate-400 inline-flex items-center gap-1.5"><i class="fa-solid fa-stopwatch text-amber-500"></i> Elke hosselbeurt activeert een cooldown van 3 minuten.</span>
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><i class="fa-solid fa-stopwatch text-amber-500"></i> Elke hosselbeurt activeert een cooldown van 3 minuten.</span>
                         <button type="submit" 
                                 {{ $hustleCooldown > 0 ? 'disabled' : '' }}
-                                class="bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs px-8 py-3 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs px-8 py-3 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
                             <span>Actie Uitvoeren</span>
                             <i class="fa-solid fa-arrow-right text-[10px]"></i>
                         </button>
@@ -95,23 +97,23 @@
     
     <!-- Right Sidebar -->
     <div class="xl:col-span-4 space-y-6">
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex items-center gap-3">
-                <i class="fa-solid fa-chart-line text-indigo-600 text-sm"></i>
-                <h2 class="text-slate-900 font-bold text-sm">Jouw Hosselstatus</h2>
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-chart-line text-purple-600 dark:text-purple-400 text-sm"></i>
+                <h2 class="text-slate-900 dark:text-white font-bold text-sm">Jouw Hosselstatus</h2>
             </div>
-            <div class="divide-y divide-slate-100 text-xs">
-                <div class="flex justify-between items-center p-4 hover:bg-slate-50 transition">
-                    <span class="font-semibold text-slate-500">Huidige Energie</span>
-                    <span class="font-extrabold text-emerald-700">{{ $character->energy }} / {{ $character->max_energy }}</span>
+            <div class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                <div class="flex justify-between items-center p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    <span class="font-semibold text-slate-500 dark:text-slate-400">Huidige Energie</span>
+                    <span class="font-extrabold text-emerald-700 dark:text-emerald-400">{{ $character->energy }} / {{ $character->max_energy }}</span>
                 </div>
-                <div class="flex justify-between items-center p-4 hover:bg-slate-50 transition">
-                    <span class="font-semibold text-slate-500">Contant op Zak</span>
-                    <span class="font-extrabold text-amber-600">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                <div class="flex justify-between items-center p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    <span class="font-semibold text-slate-500 dark:text-slate-400">Contant op Zak</span>
+                    <span class="font-extrabold text-amber-600 dark:text-amber-400">€{{ number_format($character->cash, 0, ',', '.') }}</span>
                 </div>
-                <div class="flex justify-between items-center p-4 hover:bg-slate-50 transition">
-                    <span class="font-semibold text-slate-500">Huidig Respect</span>
-                    <span class="font-extrabold text-indigo-700">{{ number_format($character->respect, 0, ',', '.') }}</span>
+                <div class="flex justify-between items-center p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    <span class="font-semibold text-slate-500 dark:text-slate-400">Huidig Respect</span>
+                    <span class="font-extrabold text-purple-700 dark:text-purple-400">{{ number_format($character->respect, 0, ',', '.') }}</span>
                 </div>
             </div>
         </div>

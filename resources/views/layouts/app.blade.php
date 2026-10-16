@@ -234,6 +234,41 @@
             border-color: #1e293b !important;
             color: #f8fafc !important;
         }
+
+        /* Active selectors & Radio cards in Dark Mode (No more ugly white background!) */
+        html.dark label:has(input[type="radio"]:checked),
+        html.dark label:has(input[type="checkbox"]:checked) {
+            background-color: rgba(147, 51, 234, 0.18) !important;
+            border-color: #a855f7 !important;
+            box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.4) !important;
+        }
+        html.dark label:has(input[type="radio"]:checked) span,
+        html.dark label:has(input[type="checkbox"]:checked) span {
+            color: #f8fafc !important;
+        }
+
+        /* Prevent ugly white flashes when hovering labels or cards in dark mode */
+        html.dark label:hover,
+        html.dark .hover\:bg-slate-50:hover,
+        html.dark [class*="hover:bg-slate-50"]:hover,
+        html.dark [class*="hover:bg-slate-100"]:hover,
+        html.dark [class*="hover:bg-white"]:hover {
+            background-color: rgba(30, 41, 59, 0.75) !important;
+        }
+
+        /* Vibrant Action Buttons in Dark Mode (Eliminates dead colorless slate-900 buttons) */
+        html.dark button.bg-slate-900,
+        html.dark a.bg-slate-900:not([href*="tiktok"]):not([class*="dark:bg-"]),
+        html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]) {
+            background-color: #9333ea !important;
+            color: #ffffff !important;
+        }
+        html.dark button.bg-slate-900:hover,
+        html.dark a.bg-slate-900:hover:not([href*="tiktok"]):not([class*="dark:bg-"]),
+        html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]):hover {
+            background-color: #7e22ce !important;
+            color: #ffffff !important;
+        }
     </style>
 
     @php
