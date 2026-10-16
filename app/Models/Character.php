@@ -1556,22 +1556,6 @@ class Character extends Model
     }
 
     /**
-     * Check if the character currently has active VIP privileges.
-     */
-    public function isVip(): bool
-    {
-        if (! $this->is_vip) {
-            return false;
-        }
-
-        if ($this->vip_expires_at && $this->vip_expires_at->isPast()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Maximum number of vehicles allowed in personal garage based on level and VIP status.
      */
     public function getGarageCapacity(): int
