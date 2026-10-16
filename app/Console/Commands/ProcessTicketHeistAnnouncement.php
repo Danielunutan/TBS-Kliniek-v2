@@ -49,29 +49,31 @@ class ProcessTicketHeistAnnouncement extends Command
         if ($ticket) {
             $this->info("Ticket gevonden: #{$ticket->ticket_number} - {$ticket->subject}");
 
-            $alreadyReplied = $ticket->messages()->where('is_staff', true)->where('message', 'like', '%Beste Rainbow%')->exists();
+            $neatMessage = "Beste Rainbow,\n\nOntzettend bedankt voor je uitgebreide en creatieve suggestie!\n\nIk heb je idee samen met het team grondig geanalyseerd en we waren er zó enthousiast over dat we het zojuist per direct LIVE hebben gebouwd in TBS Kliniek! 🚀\n\nHieronder vind je een duidelijk overzicht van alle nieuwe systemen:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏎️ 1. DE SMOKKEL GARAGE (Economie & Gokken)\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nIn de garage staat nu een wagenpark van 8 unieke voertuigen klaar voor aankoop met contant geld of sterren:\n\n• Scooter Zip (45 km/u) - Snel & wendbaar\n• Golf GTI (120 km/u) - Betrouwbare getaway\n• Snelle Speedboot (140 km/u) - Voor waterroutes\n• BMW M5 F90 (190 km/u) - Razendsnel vluchtmonster\n• Gepantserde G63 AMG (160 km/u) - Maximale bescherming\n• Geldtransportbus (110 km/u) - Onopvallende dekmantel\n• Robinson R44 Helikopter (220 km/u) - Luchtescape\n• Cessna Smokkelvliegtuig (260 km/u) - Het ultieme smokkeltoestel\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🛠️ 2. VOERTUIG CONDITIE & ONDERHOUD\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nElk voertuig beschikt over Topsnelheid en Conditie (0% tot 100%):\n\n• Tijdens heists lopen voertuigen slijtage en schade op door achtervolgingen.\n• Naarmate de conditie daalt, neemt de effectieve topsnelheid en je slaagkans af.\n• In de werkplaats van de garage kun je je wagen direct laten oplappen tegen contant geld om maximale prestaties te behouden.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🎭 3. GROTE HEISTS (Illegale Acties)\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nHigh-stakes overvallen met gigantische buitbedragen:\n\n• Medicijn Transport - Buit: €12.500 tot €25.000 (Min. Level 3)\n• Juwelier Ramkraak - Buit: €35.000 tot €65.000 (Min. Level 5)\n• Casino Buitkraak - Buit: €85.000 tot €160.000 (Min. Level 7)\n• Haven Container Smokkel - Buit: €150.000 tot €280.000 (Min. Level 10)\n• Centrale Bank Goudkluis - Buit: €300.000 tot €600.000 (Min. Level 12)\n\nVereisten & Risico's:\n• Een actief vluchtvoertuig met voldoende snelheid en conditie.\n• Maskers (bivakmutsen) tegen herkenning door bewaking.\n• Naast megabuit en veel XP maak je kans op zeldzame kluiscodes voor de Centrale Medicijnkluis!\n• Let op: Bij een mislukte overval vlieg je direct voor langere tijd de isoleercel in.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🤝 4. BENDE HEISTS (Roadmap)\n━━━━━━━━━━━━━━━━━━━━━━━━━━\nJe idee voor gezamenlijke Heists met bendeleden en een automatische buitverdeling naar de bendekluis is geweldig! We hebben dit direct als prioriteit #1 genoteerd voor de aankomende Gang Update.\n\nNogmaals hartelijk dank voor het meedenken en je scherpe feedback! Neem snel een kijkje in de Smokkel Garage en heel veel succes met je eerste Heist! 🔥\n\nMet vriendelijke groet,\n\nDaniel\nTBS Kliniek Staff & Beheer";
 
-            if (! $alreadyReplied) {
+            $existingMsg = $ticket->messages()->where('is_staff', true)->where('message', 'like', '%Beste Rainbow%')->first();
+
+            if ($existingMsg) {
+                $existingMsg->update(['message' => $neatMessage]);
+                $this->info("Bestaand bericht in ticket #{$ticket->ticket_number} succesvol bijgewerkt met nette indeling.");
+            } else {
                 SupportTicketMessage::create([
                     'support_ticket_id' => $ticket->id,
                     'user_id' => $adminUser->id,
                     'character_id' => $adminCharacter?->id,
                     'is_staff' => true,
-                    'message' => "Beste Rainbow,\n\nOntzettend bedankt voor je uitgebreide en creatieve suggestie! Ik heb je idee samen met het team direct grondig geanalyseerd en we waren er zó enthousiast over dat we het zojuist per direct LIVE hebben gebouwd in TBS Kliniek!\n\nWat staat er nu live voor jou en alle andere spelers:\n🏎️ De Smokkel Garage (onder Economie & Gokken):\nHier staat een wagenpark van 8 verschillende voertuigen voor je klaar (o.a. Scooter Zip, Golf GTI, snelle Speedboot, BMW M5 F90, Gepantserde G63, Robinson Helikopter en Cessna Smokkelvliegtuig).\n🛠️ Conditie & Reparaties:\nWagens hebben een eigen Topsnelheid en Conditie (0-100%). Tijdens zware achtervolgingen lopen voertuigen schade op, waardoor de effectieve snelheid daalt. In de werkplaats van de garage kun je je wagen altijd weer laten oplappen tegen contant geld!\n🎭 Grote Heists (onder Illegale Acties):\nZware overvallen met hoge inzetten en mega buit! Denk aan het Medicijn Transport, Juwelierskraak, Casino Kraak, Haven Container Heist en de Centrale Bank Goudkluis. Om een heist te starten heb je een actief vluchtvoertuig én maskers (bivakmutsen) nodig. Naast enorme geldbedragen en XP maak je ook kans op zeldzame kluiscodes voor de Centrale Medicijnkluis!\n🤝 Gang Heists (Bende Heists):\nJe idee voor gezamenlijke bende-heists met een buitverdeling naar de bendekluis is geweldig en staat direct als topprioriteit op onze roadmap voor de volgende grote bende-update.\n\nNogmaals hartelijk dank voor het meedenken en je scherpe feedback! Neem snel een kijkje in de Smokkel Garage en veel succes met je eerste Heist!\n\nMet vriendelijke groet,\nDaniel\nTBS Kliniek Staff & Beheer",
+                    'message' => $neatMessage,
                 ]);
-
-                $ticket->update([
-                    'status' => 'beantwoord',
-                    'last_reply_at' => now(),
-                    'last_reply_by_staff' => true,
-                ]);
-
-                $this->info("Ticket #{$ticket->ticket_number} succesvol beantwoord en status gewijzigd naar 'beantwoord'.");
-            } else {
-                $this->info("Ticket #{$ticket->ticket_number} was al voorzien van antwoord van Daniel.");
+                $this->info("Nieuw net bericht geplaatst in ticket #{$ticket->ticket_number}.");
             }
+
+            $ticket->update([
+                'status' => 'beantwoord',
+                'last_reply_at' => now(),
+                'last_reply_by_staff' => true,
+            ]);
         } else {
-            $this->warn('Ticket TBS-YON-008 niet lokaal gevonden (wordt uitgevoerd op productie server).');
+            $this->warn('Ticket niet lokaal gevonden (wordt uitgevoerd op productie server).');
         }
 
         // 2. Posten op Tijdlijn (Chat)
