@@ -38,10 +38,12 @@ class ReplyTicketCommand extends Command
             return Command::FAILURE;
         }
 
-        // Vind het account van Daniel (admin)
-        $danielUser = User::where('name', 'like', '%daniel%')
+        // Vind het account van Daniel (admin/owner)
+        $danielUser = User::where('email', 'danielunutan@icloud.com')
             ->orWhere('email', 'like', '%daniel%')
-            ->orWhere('is_admin', true)
+            ->orWhere('role', 'owner')
+            ->orWhere('role', 'admin')
+            ->orWhere('is_staff', true)
             ->first();
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
