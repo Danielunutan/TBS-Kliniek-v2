@@ -21,20 +21,8 @@
                  alt="TBS Kliniek - Het #1 Misdaad Spel van Nederland" 
                  class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none">
             
-            <!-- Subtle Vignette Gradients for Legibility without Obscuring Characters -->
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-transparent to-slate-950/40 pointer-events-none"></div>
-
-            <!-- Top Floating Live Status Bar -->
-            <div class="relative z-10 flex items-center justify-between gap-3">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/80 border border-purple-400/40 text-purple-200 text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>{{ number_format($totalPlayers, 0, ',', '.') }} Patiënten Geregistreerd</span>
-                </div>
-                <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
-                    <i class="fa-solid fa-coins text-amber-400"></i>
-                    <span>€{{ number_format($totalCash, 0, ',', '.') }} Buit</span>
-                </div>
-            </div>
+            <!-- Subtle Vignette Gradients for Legibility at Bottom without Obscuring Characters -->
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent pointer-events-none"></div>
 
             <!-- Bottom Flavor Quote & Branding Tagline -->
             <div class="relative z-10 pt-4 mt-auto border-t border-purple-400/25 flex items-start gap-3 backdrop-blur-xs">
