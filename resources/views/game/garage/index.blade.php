@@ -7,7 +7,7 @@
 <div class="space-y-6" x-data="{ tab: 'showroom' }">
 
     <!-- HERO HEADER -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 text-white flex items-center justify-center text-xl shadow-md shrink-0">
@@ -15,10 +15,10 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h2 class="text-lg font-black text-slate-900 tracking-tight">Smokkel Garage & Hangar</h2>
-                        <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-black text-[10px] uppercase tracking-wider">Nieuw</span>
+                        <h2 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Smokkel Garage & Hangar</h2>
+                        <span class="px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-black text-[10px] uppercase tracking-wider">Nieuw</span>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5">
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Gerund door corrupte monteurs bij de expeditiepoort. Schaf vluchtwagens, boten en helikopters aan voor Grote Heists.
                     </p>
                 </div>
@@ -34,15 +34,15 @@
         </div>
 
         <!-- QUICK TAB TOGGLE -->
-        <div class="flex items-center gap-2 pt-6 border-t border-slate-100 mt-6 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-2 pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 overflow-x-auto no-scrollbar">
             <button type="button" @click="tab = 'showroom'" 
-                    :class="tab === 'showroom' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                    :class="tab === 'showroom' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-car-side"></i>
                 <span>Showroom & Kopen ({{ count($showroomVehicles) }})</span>
             </button>
             <button type="button" @click="tab = 'garage'" 
-                    :class="tab === 'garage' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
+                    :class="tab === 'garage' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-key"></i>
                 <span>Mijn Wagenpark ({{ count($ownedVehicles) }})</span>
@@ -52,14 +52,15 @@
 
     <!-- ACTIVE GETAWAY VEHICLE STATUS (IF OWNED) -->
     @if($activeVehicle)
-    <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 rounded-2xl p-6 text-white shadow-md border border-purple-800/40 relative overflow-hidden">
+    <div class="rounded-2xl p-6 text-white shadow-lg border border-purple-800/60 relative overflow-hidden bg-slate-900"
+         style="background: linear-gradient(135deg, #0b0f19 0%, #1e1136 50%, #0f172a 100%) !important;">
         <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl text-white pointer-events-none">
             <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
         </div>
 
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div class="flex items-start gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-600/30 border border-purple-400/30 text-purple-300 flex items-center justify-center text-2xl shrink-0 backdrop-blur-md shadow-inner">
+                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/40 text-purple-300 flex items-center justify-center text-2xl shrink-0 backdrop-blur-md shadow-inner">
                     <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
                 </div>
                 <div class="space-y-1">
@@ -77,7 +78,7 @@
             <!-- GAUGE METRICS & REPAIR BUTTON -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
                 <!-- Snelheid Meter -->
-                <div class="bg-slate-950/60 border border-purple-400/20 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 backdrop-blur-sm">
+                <div class="bg-slate-950/70 border border-purple-400/20 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 backdrop-blur-sm">
                     <div class="text-[10px] uppercase font-bold tracking-wider text-purple-300 flex items-center justify-center gap-1">
                         <i class="fa-solid fa-gauge-high text-amber-400"></i> Snelheid
                     </div>
@@ -88,7 +89,7 @@
                 </div>
 
                 <!-- Conditie Meter -->
-                <div class="bg-slate-950/60 border border-purple-400/20 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 backdrop-blur-sm">
+                <div class="bg-slate-950/70 border border-purple-400/20 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 backdrop-blur-sm">
                     <div class="text-[10px] uppercase font-bold tracking-wider text-purple-300 flex items-center justify-center gap-1">
                         <i class="fa-solid fa-wrench text-emerald-400"></i> Conditie
                     </div>
@@ -123,43 +124,43 @@
             @php
                 $isOwned = $ownedVehicles->firstWhere('vehicle_id', $veh->id);
             @endphp
-            <div class="bg-white border {{ $isOwned ? 'border-purple-300 ring-2 ring-purple-400/20' : 'border-slate-200' }} hover:border-purple-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4 transition group">
+            <div class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-purple-300 dark:border-purple-600 ring-2 ring-purple-400/20' : 'border-slate-200 dark:border-slate-800' }} hover:border-purple-400 dark:hover:border-purple-500 rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4 transition group">
                 <div class="space-y-3">
                     <div class="flex items-start justify-between gap-2">
-                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform shadow-2xs">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform shadow-2xs">
                             <i class="fa-solid {{ $veh->icon }}"></i>
                         </div>
                         <div class="text-right">
-                            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-wider">
+                            <span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-black uppercase tracking-wider">
                                 Lvl {{ $veh->min_level }}+
                             </span>
-                            <span class="block text-[11px] text-slate-400 font-bold mt-0.5">{{ $veh->type_label }}</span>
+                            <span class="block text-[11px] text-slate-400 dark:text-slate-500 font-bold mt-0.5">{{ $veh->type_label }}</span>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="text-sm font-black text-slate-900">{{ $veh->name }}</h4>
-                        <p class="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-relaxed">{{ $veh->description }}</p>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">{{ $veh->name }}</h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">{{ $veh->description }}</p>
                     </div>
 
                     <!-- Specs: Snelheid & Betrouwbaarheid -->
-                    <div class="space-y-2 pt-2 border-t border-slate-100">
+                    <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                         <div class="space-y-1">
                             <div class="flex items-center justify-between text-[11px] font-bold">
-                                <span class="text-slate-500 flex items-center gap-1"><i class="fa-solid fa-gauge text-amber-500 text-[10px]"></i> Snelheid</span>
-                                <span class="text-slate-900 font-mono">{{ $veh->speed_pct }}%</span>
+                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1"><i class="fa-solid fa-gauge text-amber-500 text-[10px]"></i> Snelheid</span>
+                                <span class="text-slate-900 dark:text-slate-100 font-mono">{{ $veh->speed_pct }}%</span>
                             </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                                 <div class="bg-amber-500 h-full rounded-full" style="width: {{ $veh->speed_pct }}%"></div>
                             </div>
                         </div>
 
                         <div class="space-y-1">
                             <div class="flex items-center justify-between text-[11px] font-bold">
-                                <span class="text-slate-500 flex items-center gap-1"><i class="fa-solid fa-shield text-emerald-500 text-[10px]"></i> Betrouwbaarheid</span>
-                                <span class="text-slate-900 font-mono">{{ $veh->reliability_pct }}%</span>
+                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1"><i class="fa-solid fa-shield text-emerald-500 text-[10px]"></i> Betrouwbaarheid</span>
+                                <span class="text-slate-900 dark:text-slate-100 font-mono">{{ $veh->reliability_pct }}%</span>
                             </div>
-                            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                                 <div class="bg-emerald-500 h-full rounded-full" style="width: {{ $veh->reliability_pct }}%"></div>
                             </div>
                         </div>
@@ -167,19 +168,19 @@
                 </div>
 
                 <!-- Prijs & Aankoop Knop -->
-                <div class="pt-3 border-t border-slate-100 space-y-2">
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs text-slate-400 font-medium">Prijs:</span>
-                        <span class="text-xs font-black text-emerald-700 font-mono">{{ $veh->formatted_price }}</span>
+                        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Prijs:</span>
+                        <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">{{ $veh->formatted_price }}</span>
                     </div>
 
                     @if($isOwned)
-                        <div class="w-full py-2.5 rounded-xl bg-purple-50 text-purple-700 font-black text-xs text-center border border-purple-200">
+                        <div class="w-full py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black text-xs text-center border border-purple-200 dark:border-purple-800/60">
                             <i class="fa-solid fa-check mr-1"></i> In Bezit
                         </div>
                     @else
                         @if($character->level < $veh->min_level)
-                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 text-slate-400 font-bold text-xs cursor-not-allowed text-center">
+                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
                                 Vereist Level {{ $veh->min_level }}
                             </button>
                         @else
@@ -202,36 +203,36 @@
     <!-- TAB 2: MIJN WAGENPARK -->
     <div x-show="tab === 'garage'" class="space-y-4">
         @if($ownedVehicles->isEmpty())
-            <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3">
-                <div class="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl mx-auto shadow-xs">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-12 text-center space-y-3">
+                <div class="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl mx-auto shadow-xs">
                     <i class="fa-solid fa-warehouse"></i>
                 </div>
-                <h4 class="text-sm font-black text-slate-900">Je garage is momenteel nog leeg</h4>
-                <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                <h4 class="text-sm font-black text-slate-900 dark:text-white">Je garage is momenteel nog leeg</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                     Koop een vluchtwagen in de showroom om Grote Heists te kunnen starten en met volle snelheid de politie af te schudden!
                 </p>
-                <button type="button" @click="tab = 'showroom'" class="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs cursor-pointer">
+                <button type="button" @click="tab = 'showroom'" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs cursor-pointer">
                     Showroom Bekijken
                 </button>
             </div>
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($ownedVehicles as $ov)
-                <div class="bg-white border {{ $ov->is_active ? 'border-emerald-400 ring-2 ring-emerald-400/20' : 'border-slate-200' }} rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4">
+                <div class="bg-white dark:bg-slate-900 border {{ $ov->is_active ? 'border-emerald-400 dark:border-emerald-500 ring-2 ring-emerald-400/20' : 'border-slate-200 dark:border-slate-800' }} rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4">
                     <div class="space-y-3">
                         <div class="flex items-start justify-between gap-2">
-                            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl shrink-0">
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xl shrink-0">
                                 <i class="fa-solid {{ $ov->vehicle->icon }}"></i>
                             </div>
                             <div>
                                 @if($ov->is_active)
-                                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider">
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[10px] font-black uppercase tracking-wider">
                                         Actief Vluchtvoertuig
                                     </span>
                                 @else
                                     <form action="{{ route('garage.set-active', $ov->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] transition cursor-pointer">
+                                        <button type="submit" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-[10px] transition cursor-pointer">
                                             Kies als Actief
                                         </button>
                                     </form>
@@ -240,31 +241,31 @@
                         </div>
 
                         <div>
-                            <h4 class="text-sm font-black text-slate-900">{{ $ov->vehicle->name }}</h4>
-                            <p class="text-xs text-slate-500 mt-0.5">{{ $ov->vehicle->brand }} &bull; {{ $ov->total_heists_done }} heists voltooid</p>
+                            <h4 class="text-sm font-black text-slate-900 dark:text-white">{{ $ov->vehicle->name }}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ $ov->vehicle->brand }} &bull; {{ $ov->total_heists_done }} heists voltooid</p>
                         </div>
 
                         <!-- Conditie & Snelheid -->
-                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                             <div class="space-y-1">
                                 <div class="flex items-center justify-between text-[11px] font-bold">
-                                    <span class="text-slate-500">Conditie (Slijtage)</span>
-                                    <span class="{{ $ov->current_condition < 50 ? 'text-rose-600' : 'text-emerald-700' }} font-mono font-black">{{ $ov->current_condition }}%</span>
+                                    <span class="text-slate-500 dark:text-slate-400">Conditie (Slijtage)</span>
+                                    <span class="{{ $ov->current_condition < 50 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400' }} font-mono font-black">{{ $ov->current_condition }}%</span>
                                 </div>
-                                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
                                     <div class="{{ $ov->current_condition < 50 ? 'bg-rose-500' : 'bg-emerald-500' }} h-full rounded-full transition-all" style="width: {{ $ov->current_condition }}%"></div>
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-between text-xs pt-1 text-slate-600">
+                            <div class="flex items-center justify-between text-xs pt-1 text-slate-600 dark:text-slate-400">
                                 <span class="font-bold">Huidige Topsnelheid:</span>
-                                <span class="font-mono font-black text-slate-900">{{ $ov->effective_speed }}%</span>
+                                <span class="font-mono font-black text-slate-900 dark:text-white">{{ $ov->effective_speed }}%</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Reparatie Optie -->
-                    <div class="pt-3 border-t border-slate-100">
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
                         @if($ov->current_condition < 100)
                             <form action="{{ route('garage.repair', $ov->id) }}" method="POST">
                                 @csrf
@@ -275,7 +276,7 @@
                                 </button>
                             </form>
                         @else
-                            <div class="text-center py-2 text-xs font-bold text-emerald-700 flex items-center justify-center gap-1">
+                            <div class="text-center py-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center justify-center gap-1">
                                 <i class="fa-solid fa-circle-check"></i> In Topconditie (100%)
                             </div>
                         @endif
