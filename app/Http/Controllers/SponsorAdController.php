@@ -18,6 +18,8 @@ use Illuminate\View\View;
 
 class SponsorAdController extends Controller
 {
+    public const ADS_ENABLED = false;
+
     public const DEFAULT_SMARTLINK = 'https://www.mobilerewards.link/wall/8Pq0S';
 
     public const DAILY_LIMIT = 500;
@@ -34,8 +36,12 @@ class SponsorAdController extends Controller
     /**
      * Show the Sponsorkamer dashboard.
      */
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
+        if (! self::ADS_ENABLED) {
+            return redirect()->route('dashboard')->with('info', 'Sponsor-advertenties zijn momenteel tijdelijk uitgeschakeld.');
+        }
+
         /** @var Character $character */
         $character = Auth::user()->character;
         $this->energy->refresh($character);
@@ -66,6 +72,13 @@ class SponsorAdController extends Controller
      */
     public function start(Request $request): JsonResponse
     {
+        if (! self::ADS_ENABLED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Advertenties zijn momenteel tijdelijk uitgeschakeld.',
+            ], 403);
+        }
+
         /** @var Character $character */
         $character = Auth::user()->character;
 
@@ -107,6 +120,10 @@ class SponsorAdController extends Controller
      */
     public function redirect(Request $request): RedirectResponse
     {
+        if (! self::ADS_ENABLED) {
+            return redirect()->route('dashboard')->with('info', 'Sponsor-advertenties zijn momenteel tijdelijk uitgeschakeld.');
+        }
+
         $character = Auth::user()?->character;
         $subid = $character ? $character->id : 'guest';
         $subid2 = session()->get('tbs_ad_session.reward_type', 'cash');

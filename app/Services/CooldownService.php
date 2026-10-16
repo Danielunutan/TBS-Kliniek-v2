@@ -49,19 +49,19 @@ class CooldownService
      * Costs in Stars ⭐ to skip cooldown instantly.
      */
     public const SKIP_COSTS = [
-        'produce_sigaretten' => 1,
-        'produce_ritalin' => 2,
-        'produce_telefoon' => 3,
+        'produce_sigaretten' => 3,
+        'produce_ritalin' => 5,
+        'produce_telefoon' => 8,
 
-        'hustle' => 1,
-        'pickpocket' => 1,
-        'locker' => 1,
-        'package' => 1,
-        'extort' => 2,
-        'treatment_session' => 2,
-        'dropping_tennisball' => 1,
-        'dropping_drone' => 2,
-        'tunnel_dig' => 1,
+        'hustle' => 3,
+        'pickpocket' => 3,
+        'locker' => 3,
+        'package' => 3,
+        'extort' => 5,
+        'treatment_session' => 5,
+        'dropping_tennisball' => 3,
+        'dropping_drone' => 5,
+        'tunnel_dig' => 3,
     ];
 
     public function getDuration(string $action): int
@@ -71,7 +71,7 @@ class CooldownService
 
     public function getSkipCost(string $action): int
     {
-        return self::SKIP_COSTS[$action] ?? 1;
+        return self::SKIP_COSTS[$action] ?? 3;
     }
 
     public function getRemainingSeconds(Character $character, string $action): int

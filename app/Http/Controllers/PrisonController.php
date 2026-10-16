@@ -157,39 +157,19 @@ class PrisonController extends Controller
             return back()->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
-        $method = $request->input('method', 'cash');
-
-        if ($method === 'stars') {
-            $cost = 2;
-            if (($character->stars ?? 0) < $cost) {
-                return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf vrij te kopen (je hebt er {$character->stars}). Je kunt ook Borgtocht betalen met contant geld/bank!");
-            }
-            $character->stars -= $cost;
-            $paidWith = "{$cost} Sterren ⭐";
-        } else {
-            // Cash / Borgtocht buyout (€250)
-            $bailCost = 250;
-            $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
-            if ($totalFunds < $bailCost) {
-                return back()->with('error', 'Je hebt minimaal €'.number_format($bailCost, 0, ',', '.').' aan zakgeld of bank nodig voor borgtocht (je hebt in totaal €'.number_format($totalFunds, 0, ',', '.').'). Kijk een sponsor-ad om direct gratis vrij te komen!');
-            }
-
-            if (($character->cash ?? 0) >= $bailCost) {
-                $character->cash -= $bailCost;
-            } else {
-                $diff = $bailCost - $character->cash;
-                $character->cash = 0;
-                $character->bank -= $diff;
-            }
-            $paidWith = '€'.number_format($bailCost, 0, ',', '.').' Borgtocht';
+        // Vrijkopen uit de gevangenis kost altijd Sterren ⭐ (geen cash geld)
+        $cost = 5;
+        if (($character->stars ?? 0) < $cost) {
+            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf direct vrij te kopen (je hebt er momenteel {$character->stars}). Binnenkort kun je ook sponsor-ads bekijken om gratis vrij te komen!");
         }
 
+        $character->stars -= $cost;
         $character->is_in_prison = false;
         $character->prison_until = null;
         $character->prison_reason = null;
         $character->save();
 
-        return back()->with('success', "🔓 Vrijgekocht voor {$paidWith}! De celdeur is ontgrendeld en je bent weer op vrije voeten!");
+        return back()->with('success', "🔓 Vrijgekocht voor {$cost} Sterren ⭐! De celdeur is ontgrendeld en je bent weer op vrije voeten!");
     }
 
     /**

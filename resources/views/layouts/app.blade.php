@@ -1340,23 +1340,13 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
-                    <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
-                        @csrf
-                        <input type="hidden" name="method" value="cash">
-                        <button type="submit" 
-                                class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-money-bill-wave text-white"></i>
-                            <span>Borgtocht (€250)</span>
-                        </button>
-                    </form>
                     <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
                         @csrf
                         <input type="hidden" name="method" value="stars">
                         <button type="submit" 
-                                class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-star text-white"></i>
-                            <span>2 Sterren</span>
+                            <span>Vrijkoop (5 Sterren ⭐)</span>
                         </button>
                     </form>
                     <a href="{{ route('prison') }}" class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5">
@@ -2093,21 +2083,9 @@
         },
         init() {
             window.tbsOpenSponsorAd = async (rewardType = 'cash', callback = null) => {
-                this.rewardType = rewardType;
-                this.callback = callback;
-                this.secondsLeft = 15;
-                this.totalSeconds = 15;
-                this.status = 'loading';
-                this.statusMessage = 'Sponsor advertentie initialiseren...';
-                this.isOpen = true;
-
-                // Check for adblocker
-                const hasAdblock = await this.checkAdblock();
-                if (hasAdblock) {
-                    this.status = 'adblock_detected';
-                    this.statusMessage = 'Adblocker gedetecteerd! Schakel je adblocker uit voor TBS Kliniek of whitelist de website om de sponsor te bekijken en gratis beloningen te verdienen.';
-                    return;
-                }
+                alert('Advertenties zijn momenteel tijdelijk uitgeschakeld.');
+                return;
+            };
 
                 if (rewardType === 'prison') {
                     this.rewardTitle = '-15 Min Isoleercel Straf';

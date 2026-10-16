@@ -5,123 +5,54 @@
 @section('meta_keywords', 'TBS Kliniek, boeven spel, gevangenis browsergame, misdaad rpg nederland, tekstbased rpg, gratis browsergame spelen')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6" x-data="{ 
+<div class="max-w-6xl xl:max-w-7xl mx-auto space-y-6" x-data="{ 
     tab: '{{ request()->routeIs('register') || request('tab') === 'register' || $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') || request()->has('ref') || session()->has('referral_name') ? 'register' : 'login' }}', 
     regGender: '{{ old('gender', 'male') }}', 
     regAvatar: '{{ old('avatar', 'assets/characters/avatar_male_1.jpg') }}' 
 }">
 
-    <!-- HERO SHOWCASE BANNER (OFFICIAL TBS CREW LINEUP & 3D LOGO) -->
-    <div class="relative rounded-2xl overflow-hidden border border-purple-500/30 shadow-xl bg-slate-950 group">
-        <div class="relative aspect-[16/9] w-full overflow-hidden">
-            <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}?v={{ file_exists(public_path('assets/illustrations/tbs_crew_lineup.jpg')) ? filemtime(public_path('assets/illustrations/tbs_crew_lineup.jpg')) : '3' }}" 
-                 alt="TBS Kliniek - Het #1 Misdaad Spel van Nederland" 
-                 class="w-full h-full object-cover object-center transform group-hover:scale-[1.01] transition-transform duration-700">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-transparent pointer-events-none"></div>
-            
-            <!-- Floating Quick Status & CTA Bar -->
-            <div class="absolute bottom-3 sm:bottom-4 left-4 sm:left-6 right-4 sm:right-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/80 border border-purple-400/40 text-purple-200 text-[10px] sm:text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        {{ number_format($totalPlayers, 0, ',', '.') }} Patiënten Geregistreerd
-                    </span>
-                    <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-950/80 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
-                        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
-                        €{{ number_format($totalCash, 0, ',', '.') }} Buit
-                    </span>
-                    <span class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-900/60 border border-purple-500/30 text-purple-200 text-xs font-black uppercase tracking-wider backdrop-blur-md">
-                        <i class="fa-solid fa-crown text-amber-400 text-xs"></i>
-                        Vrijheid Moet Je Bevechten
-                    </span>
-                </div>
-                <div>
-                    <button type="button" @click="tab = 'register'; const el = document.getElementById('auth-form-card'); if(el) el.scrollIntoView({behavior: 'smooth'})"
-                            class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-purple-900/50 transition active:scale-95 cursor-pointer flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-user-plus text-xs"></i>
-                        <span>Start Direct (Gratis)</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN LOGIN / REGISTER CARD (MATCHES WEBSITE DESIGN) -->
+    <!-- MAIN LOGIN / REGISTER CARD (EXPANSIVE CLEAN SHOWCASE) -->
     <div id="auth-form-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
         
-        <!-- LEFT HERO COLUMN (VIBRANT PURPLE TBS KLINIEK ARTWORK & MODERN GAMING BRANDING) -->
-        <div class="lg:col-span-6 bg-[#18042a] text-white relative p-7 sm:p-10 flex flex-col justify-between overflow-hidden shadow-inner min-h-[580px]">
-            <!-- Vibrant Purple Key Art Image (Crisp, High Quality, No Dark Smudge) -->
-            <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}?v={{ file_exists(public_path('assets/illustrations/tbs_crew_lineup.jpg')) ? filemtime(public_path('assets/illustrations/tbs_crew_lineup.jpg')) : '3' }}" alt="TBS Kliniek" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none">
+        <!-- LEFT HERO COLUMN (WIDE CLEAN TBS KLINIEK ARTWORK & CHARACTERS) -->
+        <div class="lg:col-span-7 xl:col-span-7 bg-slate-950 text-white relative p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-inner min-h-[500px] lg:min-h-[620px]">
+            <!-- Crisp High Quality Illustration Lineup (All 5 Characters Fully Visible) -->
+            <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}?v={{ file_exists(public_path('assets/illustrations/tbs_crew_lineup.jpg')) ? filemtime(public_path('assets/illustrations/tbs_crew_lineup.jpg')) : '3' }}" 
+                 alt="TBS Kliniek - Het #1 Misdaad Spel van Nederland" 
+                 class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none">
             
-            <!-- Cinematic Purple Gradient Overlays for High Legibility and Rich Atmosphere -->
-            <div class="absolute inset-0 bg-gradient-to-t from-[#120224] via-[#120224]/75 to-purple-950/20 pointer-events-none"></div>
-            <div class="absolute inset-0 bg-gradient-to-r from-[#120224]/50 via-transparent to-transparent pointer-events-none"></div>
+            <!-- Subtle Vignette Gradients for Legibility without Obscuring Characters -->
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-transparent to-slate-950/40 pointer-events-none"></div>
 
-            <div class="relative z-10 space-y-5">
-                <!-- Branding Header with Official New Logo Emblem -->
-                <div class="flex items-center gap-4">
-                    <div class="w-18 h-18 sm:w-22 sm:h-22 shrink-0 drop-shadow-2xl">
-                        <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
-                    </div>
-                    <div>
-                        <h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white leading-tight drop-shadow-lg">
-                            TBS <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400">Kliniek</span>
-                        </h1>
-                        <p class="mt-1 text-xs text-purple-100 font-medium leading-relaxed max-w-sm drop-shadow">
-                            Overleef de afdeling, leid je bende en heers over de kliniek.
-                        </p>
-                    </div>
+            <!-- Top Floating Live Status Bar -->
+            <div class="relative z-10 flex items-center justify-between gap-3">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/80 border border-purple-400/40 text-purple-200 text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>{{ number_format($totalPlayers, 0, ',', '.') }} Patiënten Geregistreerd</span>
                 </div>
-
-                <!-- Modern Glowing Purple Glass Feature Cards -->
-                <div class="space-y-2.5 pt-2">
-                    <div class="flex items-center gap-3 bg-purple-950/80 border border-purple-400/35 rounded-xl px-4 py-2.5 backdrop-blur-md hover:border-purple-300/60 hover:bg-purple-900/80 transition-all shadow-md">
-                        <div class="w-8 h-8 rounded-lg bg-amber-400/25 border border-amber-400/40 text-amber-300 flex items-center justify-center shrink-0 text-xs shadow-xs">
-                            <i class="fa-solid fa-hand-holding-dollar"></i>
-                        </div>
-                        <div class="text-xs">
-                            <span class="font-extrabold text-white">Hosselen & Kraken:</span>
-                            <span class="text-purple-100 ml-1">Steel cash en buit in de kantine</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3 bg-purple-950/80 border border-purple-400/35 rounded-xl px-4 py-2.5 backdrop-blur-md hover:border-purple-300/60 hover:bg-purple-900/80 transition-all shadow-md">
-                        <div class="w-8 h-8 rounded-lg bg-teal-400/25 border border-teal-400/40 text-teal-300 flex items-center justify-center shrink-0 text-xs shadow-xs">
-                            <i class="fa-solid fa-capsules"></i>
-                        </div>
-                        <div class="text-xs">
-                            <span class="font-extrabold text-white">Dealen & Smokkel:</span>
-                            <span class="text-purple-100 ml-1">Zwarte markt met corrupte cipiers</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3 bg-purple-950/80 border border-purple-400/35 rounded-xl px-4 py-2.5 backdrop-blur-md hover:border-purple-300/60 hover:bg-purple-900/80 transition-all shadow-md">
-                        <div class="w-8 h-8 rounded-lg bg-rose-400/25 border border-rose-400/40 text-rose-300 flex items-center justify-center shrink-0 text-xs shadow-xs">
-                            <i class="fa-solid fa-hand-fist"></i>
-                        </div>
-                        <div class="text-xs">
-                            <span class="font-extrabold text-white">Luchtplaats PvP:</span>
-                            <span class="text-purple-100 ml-1">Vecht om respect en sticht je gang</span>
-                        </div>
-                    </div>
+                <div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-950/80 border border-amber-400/40 text-amber-300 text-xs font-black uppercase tracking-wider backdrop-blur-md shadow-md">
+                    <i class="fa-solid fa-coins text-amber-400"></i>
+                    <span>€{{ number_format($totalCash, 0, ',', '.') }} Buit</span>
                 </div>
             </div>
 
-            <!-- Bottom Flavor Quote -->
-            <div class="relative z-10 pt-4 mt-6 border-t border-purple-400/25 flex items-start gap-3">
-                <i class="fa-solid fa-quote-left text-amber-400/70 text-base shrink-0 mt-0.5"></i>
-                <div>
-                    <p class="text-xs text-purple-100 italic leading-relaxed">
+            <!-- Bottom Flavor Quote & Branding Tagline -->
+            <div class="relative z-10 pt-4 mt-auto border-t border-purple-400/25 flex items-start gap-3 backdrop-blur-xs">
+                <i class="fa-solid fa-quote-left text-amber-400/80 text-base shrink-0 mt-0.5"></i>
+                <div class="w-full">
+                    <p class="text-xs sm:text-sm text-purple-100 italic leading-relaxed drop-shadow">
                         "In de kliniek draait alles om macht, aanzien en wie de sleutel heeft van de warmhoudkast."
                     </p>
-                    <span class="text-[11px] font-extrabold text-amber-300 uppercase tracking-wider block mt-1">&mdash; Henkie de Frikandelkoning</span>
+                    <div class="flex items-center justify-between gap-2 mt-1">
+                        <span class="text-[11px] font-black text-amber-300 uppercase tracking-wider drop-shadow">&mdash; Henkie de Frikandelkoning</span>
+                        <span class="text-[11px] font-bold text-purple-200/80 uppercase tracking-wider">TBS Kliniek #1 RPG</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- RIGHT FORM COLUMN (CLEAN WHITE TO MATCH THE WEBSITE) -->
-        <div class="lg:col-span-6 p-6 sm:p-10 flex flex-col justify-center bg-white">
+        <div class="lg:col-span-5 xl:col-span-5 p-6 sm:p-10 flex flex-col justify-center bg-white">
             <div class="w-full max-w-md mx-auto space-y-5">
                 
                 <!-- Header -->

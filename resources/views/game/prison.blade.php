@@ -77,41 +77,21 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <!-- Borgtocht betalen (€250 uit zakgeld of bank) -->
+            <!-- Buy self out for 5 stars -->
             <form action="{{ route('prison.buyout') }}" method="POST" class="flex-1 md:flex-initial">
                 @csrf
-                <input type="hidden" name="method" value="cash">
                 <button type="submit" 
-                        class="w-full px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-money-bill-wave text-white"></i>
-                    <span>Betaal Borg (€250)</span>
-                </button>
-            </form>
-
-            <!-- Buy self out for 2 stars -->
-            <form action="{{ route('prison.buyout') }}" method="POST" class="flex-1 md:flex-initial">
-                @csrf
-                <input type="hidden" name="method" value="stars">
-                <button type="submit" 
-                        class="w-full px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                        class="w-full px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-star text-white"></i>
-                    <span>2 Sterren ⭐</span>
+                    <span>Vrijkoop (5 Sterren ⭐)</span>
                 </button>
             </form>
-
-            <!-- Watch ad for instant release -->
-            <button type="button" 
-                    onclick="window.tbsOpenSponsorAd('prison')"
-                    class="flex-1 md:flex-initial px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-tv text-white"></i>
-                <span>Kijk Ad (Direct Vrij)</span>
-            </button>
 
             <!-- Regular escape attempt -->
             <form action="{{ route('prison.escape') }}" method="POST" class="flex-1 md:flex-initial">
                 @csrf
                 <button type="submit" 
-                        class="w-full px-4 py-2 rounded-lg bg-white hover:bg-rose-100/60 border border-rose-300 text-rose-900 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
+                        class="w-full px-4 py-2.5 rounded-xl bg-white hover:bg-rose-100/60 border border-rose-300 text-rose-900 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
                     <i class="fa-solid fa-person-running text-rose-600"></i>
                     <span>Ontsnappingspoging</span>
                 </button>
