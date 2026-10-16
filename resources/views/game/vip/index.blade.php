@@ -52,7 +52,7 @@
                         class="w-full flex items-center justify-between p-3.5 rounded-xl border transition cursor-pointer">
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-crown text-amber-500 text-sm"></i>
-                        <span>VIP Worden (€7,50 / mnd)</span>
+                        <span>VIP Status (Binnenkort Gratis via Ads)</span>
                     </span>
                     <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
                 </button>
@@ -87,43 +87,43 @@
         <!-- Right Content Column -->
         <div class="lg:col-span-8">
             
-            <!-- TAB 1: VIP KOPEN VIA DISCORD -->
+            <!-- TAB 1: VIP VIA ADVERTENTIES (BINNENKORT GRATIS) -->
             <div x-show="activeTab === 'kopen'" class="space-y-6">
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
                     <div class="border-b border-slate-100 pb-4">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-wider mb-2">
-                            VIP Lidmaatschap
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-wider mb-2">
+                            100% Gratis via Sponsor Ads
                         </span>
-                        <h2 class="text-xl font-black text-slate-900">Word VIP voor €7,50 per Maand</h2>
+                        <h2 class="text-xl font-black text-slate-900">VIP Worden — Binnenkort Gratis via Ads!</h2>
                         <p class="text-xs text-slate-500 mt-1">
-                            Steun de doorontwikkeling van TBS Kliniek en ontvang exclusieve voordelen, uurbeloningen en aanzien in de hele inrichting!
+                            Je hoeft geen echt geld te betalen! VIP status en alle exclusieve privileges ontgrendel je straks eenvoudig en volledig gratis door het bekijken van sponsor-advertenties in de Sponsorkamer.
                         </p>
                     </div>
 
-                    <!-- Steps to Purchase -->
+                    <!-- Steps to Unlock via Ads -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
                             <div class="w-8 h-8 mx-auto rounded-full bg-purple-600 text-white flex items-center justify-center font-black text-xs">
                                 1
                             </div>
-                            <h4 class="font-extrabold text-xs text-slate-900">Join Discord</h4>
-                            <p class="text-[11px] text-slate-500">Ga naar <a href="https://discord.gg/tbs" target="_blank" class="text-[#5865F2] font-bold underline">discord.gg/tbs</a> en sluit je aan bij de community.</p>
+                            <h4 class="font-extrabold text-xs text-slate-900">Kijk Sponsor Ads</h4>
+                            <p class="text-[11px] text-slate-500">Ga naar de <a href="{{ route('sponsor.index') }}" class="text-purple-600 font-bold underline">Sponsorkamer</a> en bekijk korte advertenties.</p>
                         </div>
 
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
                             <div class="w-8 h-8 mx-auto rounded-full bg-purple-600 text-white flex items-center justify-center font-black text-xs">
                                 2
                             </div>
-                            <h4 class="font-extrabold text-xs text-slate-900">Maak een Ticket</h4>
-                            <p class="text-[11px] text-slate-500">Open een ticket in het kanaal <strong>#vip-tickets</strong> of <strong>#support</strong>.</p>
+                            <h4 class="font-extrabold text-xs text-slate-900">Ontgrendel Gratis VIP</h4>
+                            <p class="text-[11px] text-slate-500">Bij elke milestone activeert het systeem automatisch <strong>24 uur gratis VIP status</strong> op jouw account.</p>
                         </div>
 
                         <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
                             <div class="w-8 h-8 mx-auto rounded-full bg-purple-600 text-white flex items-center justify-center font-black text-xs">
                                 3
                             </div>
-                            <h4 class="font-extrabold text-xs text-slate-900">Betaal €7,50 & Speel</h4>
-                            <p class="text-[11px] text-slate-500">Rond de betaling af via een betaalverzoek en ontvang direct je VIP status & uurbeloning!</p>
+                            <h4 class="font-extrabold text-xs text-slate-900">Geniet van Voordelen</h4>
+                            <p class="text-[11px] text-slate-500">Ontvang elk uur +5 VIP punten, gouden dossiers en exclusieve shops zónder een cent te betalen!</p>
                         </div>
                     </div>
 
@@ -148,16 +148,16 @@
                             </div>
                             <div class="flex items-start gap-2.5 text-slate-700">
                                 <i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i>
-                                <span>Voorrang bij support en inspraak op updates in de Discord lounge.</span>
+                                <span>Dubbele dagelijkse spins en voorrang bij community updates in Discord.</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="text-center pt-2">
-                        <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" 
+                        <a href="{{ route('sponsor.index') }}" 
                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider shadow-sm transition active:scale-[0.99]">
-                            <i class="fa-brands fa-discord text-sm"></i>
-                            <span>Ticket Aanmaken op discord.gg/tbs (€7,50 pm)</span>
+                            <i class="fa-solid fa-tv text-sm"></i>
+                            <span>Naar de Sponsorkamer (Kijk Nu al Ads voor Beloningen)</span>
                         </a>
                     </div>
                 </div>

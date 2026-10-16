@@ -443,11 +443,12 @@ class FaqController extends Controller
                 ],
             ],
             [
-                'title' => ' VIP Lidmaatschap (€7,50 pm)',
-                'keywords' => ['vip', 'doneren', 'kopen', 'discord', 'ticket', '7,50', 'vip punten', 'gouden naam', 'voordelen'],
-                'answer' => "VIP kost €7,50 per maand via onze officiële Discord (discord.gg/tbs). Als VIP ontvang je:\n• 5 VIP Punten per speeluur (inwisselbaar in de VIP Shop voor zeldzame spullen).\n• 2x Dagelijks draaien aan het Rad van Fortuin.\n• 50% Korting op alle reiskosten.\n• Gouden VIP-badge en exclusieve rangtitels.",
+                'title' => '⭐ VIP Lidmaatschap (Binnenkort Gratis via Ads)',
+                'keywords' => ['vip', 'gratis', 'ads', 'advertenties', 'sponsorkamer', 'vip punten', 'gouden naam', 'voordelen'],
+                'answer' => "VIP lidmaatschap wordt binnenkort volledig gratis beschikbaar via het bekijken van sponsor-advertenties in de Sponsorkamer! Als VIP ontvang je:\n• 5 VIP Punten per speeluur (inwisselbaar in de VIP Shop voor zeldzame spullen).\n• 2x Dagelijks draaien aan het Rad van Fortuin.\n• 50% Korting op alle reiskosten.\n• Gouden VIP-badge en exclusieve rangtitels.",
                 'links' => [
-                    ['text' => 'VIP Shop', 'url' => route('vip.index')],
+                    ['text' => 'VIP Informatie', 'url' => route('vip.index')],
+                    ['text' => 'Sponsorkamer', 'url' => route('sponsor.index')],
                 ],
             ],
             [

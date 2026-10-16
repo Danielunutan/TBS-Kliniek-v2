@@ -33,10 +33,6 @@ class PrisonController extends Controller
         $character = $user->character;
         $this->energyService->refresh($character);
 
-        $isImprisoned = $character->isImprisoned();
-        $remainingMinutes = $character->remainingPrisonMinutes();
-        $remainingSeconds = $character->remainingPrisonSeconds();
-
         // Auto-release any characters whose prison time has expired
         Character::where('is_in_prison', true)
             ->where(function ($q) {
@@ -48,6 +44,11 @@ class PrisonController extends Controller
                 'prison_until' => null,
                 'prison_reason' => null,
             ]);
+
+        $character->refresh();
+        $isImprisoned = $character->isImprisoned();
+        $remainingMinutes = $character->remainingPrisonMinutes();
+        $remainingSeconds = $character->remainingPrisonSeconds();
 
         // Real prisoners currently locked up with active time
         $realPrisoners = Character::where('is_in_prison', true)
@@ -144,7 +145,7 @@ class PrisonController extends Controller
     }
 
     /**
-     * Buy self out of prison using Stars.
+     * Buy self out of prison using Borgtocht (Cash/Bank) or Stars.
      */
     public function buyout(Request $request): RedirectResponse
     {
@@ -156,18 +157,39 @@ class PrisonController extends Controller
             return back()->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
-        $cost = 2;
-        if (($character->stars ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf vrij te kopen (je hebt er {$character->stars}). Koop ze in de Shop of op de Marktplaats!");
+        $method = $request->input('method', 'cash');
+
+        if ($method === 'stars') {
+            $cost = 2;
+            if (($character->stars ?? 0) < $cost) {
+                return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf vrij te kopen (je hebt er {$character->stars}). Je kunt ook Borgtocht betalen met contant geld/bank!");
+            }
+            $character->stars -= $cost;
+            $paidWith = "{$cost} Sterren ⭐";
+        } else {
+            // Cash / Borgtocht buyout (€250)
+            $bailCost = 250;
+            $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
+            if ($totalFunds < $bailCost) {
+                return back()->with('error', 'Je hebt minimaal €'.number_format($bailCost, 0, ',', '.').' aan zakgeld of bank nodig voor borgtocht (je hebt in totaal €'.number_format($totalFunds, 0, ',', '.').'). Kijk een sponsor-ad om direct gratis vrij te komen!');
+            }
+
+            if (($character->cash ?? 0) >= $bailCost) {
+                $character->cash -= $bailCost;
+            } else {
+                $diff = $bailCost - $character->cash;
+                $character->cash = 0;
+                $character->bank -= $diff;
+            }
+            $paidWith = '€'.number_format($bailCost, 0, ',', '.').' Borgtocht';
         }
 
-        $character->stars -= $cost;
         $character->is_in_prison = false;
         $character->prison_until = null;
         $character->prison_reason = null;
         $character->save();
 
-        return back()->with('success', "🔓 Vrijgekocht voor {$cost} Sterren ⭐! Je celdeur is ontgrendeld en je bent weer op vrije voeten!");
+        return back()->with('success', "🔓 Vrijgekocht voor {$paidWith}! De celdeur is ontgrendeld en je bent weer op vrije voeten!");
     }
 
     /**
@@ -254,6 +276,6 @@ class PrisonController extends Controller
         $jailSeconds = random_int(120, 180);
         $this->prisonService->jailSeconds($character, $jailSeconds, "Betrapt bij uitbraakpoging van {$targetName} in de isoleercel.");
 
-        return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Betrapt door beveiliging)");
+        return redirect()->route('prison')->with('error', "Poging mislukt! Je zit {$jailSeconds} sec vast in isolatie (betrapt door cipiers). Betaal borg (€250) of gebruik 2 Sterren om direct vrij te komen!");
     }
 }

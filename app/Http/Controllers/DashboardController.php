@@ -219,6 +219,7 @@ class DashboardController extends Controller
         return response()->json([
             'cash' => (int) $character->cash,
             'bank' => (int) $character->bank,
+            'total' => (int) ($character->cash + $character->bank),
             'total_money' => (int) ($character->cash + $character->bank),
             'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),
             'cashFormatted' => '€'.number_format($character->cash, 0, ',', '.'),

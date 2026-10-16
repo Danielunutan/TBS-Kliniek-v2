@@ -363,20 +363,20 @@
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer">
                         Alle Deals
                     </button>
-                    <button type="button" @click="bundleFilter = 'moord'" 
-                            :class="bundleFilter === 'moord' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                    <button type="button" @click="bundleFilter = 'smokkel'" 
+                            :class="bundleFilter === 'smokkel' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-gun text-xs text-rose-500"></i> Moord
+                        <i class="fa-solid fa-box text-xs text-indigo-500"></i> Smokkel
                     </button>
-                    <button type="button" @click="bundleFilter = 'slay'" 
-                            :class="bundleFilter === 'slay' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                    <button type="button" @click="bundleFilter = 'kluisbuit'" 
+                            :class="bundleFilter === 'kluisbuit' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-fire text-xs text-amber-500"></i> Slay
+                        <i class="fa-solid fa-vault text-xs text-amber-500"></i> Kluisbuit
                     </button>
-                    <button type="button" @click="bundleFilter = 'mystery'" 
-                            :class="bundleFilter === 'mystery' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                    <button type="button" @click="bundleFilter = 'syndicaat'" 
+                            :class="bundleFilter === 'syndicaat' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
                             class="px-5 py-2 rounded-lg text-xs font-extrabold uppercase transition cursor-pointer flex items-center gap-1.5">
-                        <i class="fa-solid fa-wand-magic-sparkles text-xs text-purple-600"></i> Mystery
+                        <i class="fa-solid fa-crown text-xs text-purple-600"></i> Syndicaat
                     </button>
                 </div>
 
@@ -529,8 +529,9 @@
                                          return this.actualPrice * this.buyQty;
                                      },
                                      get maxAffordable() {
-                                         let totalFunds = ((typeof stats !== 'undefined' && stats.total !== undefined) ? stats.total : {{ (int) ($character->cash + $character->bank) }});
-                                         return Math.max(1, Math.min(100, Math.floor(totalFunds / Math.max(1, this.actualPrice))));
+                                         let cash = (typeof stats !== 'undefined' && stats.cash !== undefined) ? stats.cash : {{ (int) $character->cash }};
+                                         let bank = (typeof stats !== 'undefined' && stats.bank !== undefined) ? stats.bank : {{ (int) $character->bank }};
+                                         return Math.max(1, Math.min(100, Math.floor((cash + bank) / Math.max(1, this.actualPrice))));
                                      }
                                  }">
                                 <div class="flex items-center justify-between text-xs">
@@ -558,10 +559,10 @@
                                     <input type="hidden" name="quantity" :value="buyQty">
                                     
                                     <button type="submit" 
-                                            :disabled="((typeof stats !== 'undefined' && stats.total !== undefined) ? stats.total : {{ (int) ($character->cash + $character->bank) }}) < totalCost || itemBuying[{{ $item->id }}]"
-                                            class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]">
+                                            :disabled="itemBuying[{{ $item->id }}]"
+                                            class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-50 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
                                         <template x-if="itemBuying[{{ $item->id }}]">
-                                            <span class="inline-flex items-center gap-1.5 text-slate-300">
+                                            <span class="inline-flex items-center gap-1.5 text-purple-200">
                                                 <i class="fa-solid fa-spinner fa-spin text-xs"></i>
                                                 <span>Inpakken...</span>
                                             </span>
@@ -573,7 +574,7 @@
                                             </span>
                                         </template>
                                         <template x-if="!itemBuying[{{ $item->id }}] && itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'success'">
-                                            <span class="inline-flex items-center gap-1.5 text-emerald-400 font-black">
+                                            <span class="inline-flex items-center gap-1.5 text-emerald-300 font-black">
                                                 <i class="fa-solid fa-circle-check text-xs"></i>
                                                 <span x-text="itemToast[{{ $item->id }}].text"></span>
                                             </span>

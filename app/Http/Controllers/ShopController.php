@@ -22,8 +22,8 @@ class ShopController extends Controller
     public const BUNDLES = [
         'deluluknaller' => [
             'id' => 'deluluknaller',
-            'name' => 'Deluluknaller MEGA DEAL 🤑',
-            'category' => 'mystery',
+            'name' => 'Kliniek Starterspakket 🏥',
+            'category' => 'smokkel',
             'cost_stars' => 75,
             'codes' => 10,
             'koffers' => 3,
@@ -32,8 +32,8 @@ class ShopController extends Controller
         ],
         'snel_schaamteloos' => [
             'id' => 'snel_schaamteloos',
-            'name' => 'Snel & Schaamteloos',
-            'category' => 'slay',
+            'name' => 'Smokkel & Buitkoffer Pack 📦',
+            'category' => 'smokkel',
             'cost_stars' => 150,
             'codes' => 15,
             'koffers' => 6,
@@ -42,8 +42,8 @@ class ShopController extends Controller
         ],
         'big_bucks' => [
             'id' => 'big_bucks',
-            'name' => 'Big Bucks Bundle',
-            'category' => 'slay',
+            'name' => 'Afdelingsbaas Buitdeal 💼',
+            'category' => 'kluisbuit',
             'cost_stars' => 250,
             'codes' => 25,
             'koffers' => 10,
@@ -52,8 +52,8 @@ class ShopController extends Controller
         ],
         'sprinkle_sprinkle' => [
             'id' => 'sprinkle_sprinkle',
-            'name' => 'Sprinkle Sprinkle MEGA DEAL 🤑',
-            'category' => 'mystery',
+            'name' => 'Kliniek Maffia Syndicaat Pack 👑',
+            'category' => 'syndicaat',
             'cost_stars' => 500,
             'codes' => 50,
             'koffers' => 25,
@@ -62,8 +62,8 @@ class ShopController extends Controller
         ],
         'koffer_booster_xl' => [
             'id' => 'koffer_booster_xl',
-            'name' => 'Koffer Booster XL',
-            'category' => 'moord',
+            'name' => 'Zwarte Markt Imperium XL 💉',
+            'category' => 'kluisbuit',
             'cost_stars' => 1000,
             'codes' => 120,
             'koffers' => 60,
@@ -72,8 +72,8 @@ class ShopController extends Controller
         ],
         'rijk_roekeloos_xxl' => [
             'id' => 'rijk_roekeloos_xxl',
-            'name' => 'Rijk & Roekeloos XXL MEGA DEAL 🤑',
-            'category' => 'slay',
+            'name' => 'TBS Kliniek Eindbaas Kluis XXL 🏆',
+            'category' => 'syndicaat',
             'cost_stars' => 2500,
             'codes' => 350,
             'koffers' => 150,

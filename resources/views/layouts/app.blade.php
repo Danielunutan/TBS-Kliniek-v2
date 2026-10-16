@@ -19,8 +19,8 @@
     <title>@yield('title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Browsergame van Nederland')</title>
     
     <!-- PRIMARY SEO META TAGS -->
-    <meta name="description" content="@yield('meta_description', 'Speel gratis TBS Kliniek, hét toonaangevende Nederlandse misdaad- en gevangenis RPG browsergame. Hét moderne alternatief voor Boef.nl, Baddie.nl en Kech.nl: vecht op de luchtplaats, kraak medicijnkluizen, richt gangs op en heers over de kliniek!')">
-    <meta name="keywords" content="@yield('meta_keywords', 'TBS Kliniek, TBS game, misdaad browser game, boef.nl, boef nl alternatief, boef spel, baddie.nl, baddie game, kech.nl, kech spel, online rpg nederland, gevangenis spel, boevenbende, tekstbased rpg, maffia game, misdaadspel online, gratis online spelen, browsergame nederland 2026')">
+    <meta name="description" content="@yield('meta_description', 'Speel gratis TBS Kliniek, hét toonaangevende Nederlandse misdaad- en gevangenis RPG browsergame. Vecht op de luchtplaats, kraak medicijnkluizen, richt gangs op en heers over de kliniek!')">
+    <meta name="keywords" content="@yield('meta_keywords', 'TBS Kliniek, TBS game, misdaad browser game, online rpg nederland, gevangenis spel, boevenbende, tekstbased rpg, maffia game, misdaadspel online, gratis online spelen, browsergame nederland 2026')">
     <meta name="author" content="TBS Kliniek">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="{{ url()->current() }}">
@@ -31,8 +31,8 @@
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:site_name" content="TBS Kliniek">
     <meta property="og:title" content="@yield('og_title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Browsergame van Nederland')">
-    <meta property="og:description" content="@yield('og_description', 'Hét moderne misdaadspel en alternatief voor Boef.nl en Baddie.nl. Kraak kluizen, vecht op de afdeling, leid je gang en heers over de TBS kliniek!')">
-    <meta property="og:image" content="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}">
+    <meta property="og:description" content="@yield('og_description', 'Hét toonaangevende Nederlandse misdaadspel en gevangenis RPG. Kraak kluizen, vecht op de afdeling, leid je gang en heers over de TBS kliniek!')">
+    <meta property="og:image" content="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
 
@@ -41,7 +41,7 @@
     <meta name="twitter:url" content="{{ url()->current() }}">
     <meta name="twitter:title" content="TBS Kliniek - Het #1 Nederlandse Gevangenis & Misdaad RPG">
     <meta name="twitter:description" content="Dé moderne Nederlandse tekstbased misdaad game. Gratis online speelbaar!">
-    <meta name="twitter:image" content="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}">
+    <meta name="twitter:image" content="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}">
 
     <!-- STRUCTURED DATA (SCHEMA.ORG JSON-LD) -->
     <script type="application/ld+json">
@@ -53,7 +53,7 @@
                 '@id' => url('/') . '#website',
                 'url' => url('/'),
                 'name' => 'TBS Kliniek',
-                'description' => 'Hét populairste Nederlandse misdaad browsergame en gevangenis RPG. Modern alternatief voor boef.nl, baddie.nl en kech.nl.',
+                'description' => 'Hét populairste Nederlandse misdaad browsergame en gevangenis RPG. Kraak kluizen, vecht op de afdeling en heers over de kliniek.',
                 'inLanguage' => 'nl-NL',
             ],
             [
@@ -66,7 +66,7 @@
                 'applicationCategory' => 'GameApplication',
                 'operatingSystem' => 'Any web browser',
                 'description' => 'TBS Kliniek is een Nederlands online tekstbased RPG waarin je overleeft in een forensische instelling, bendes opricht, kluizen kraakt en vecht voor respect en buit.',
-                'keywords' => 'TBS Kliniek, boef.nl alternatief, baddie.nl alternatief, kech.nl, misdaad browser game, tekst rpg nederland, gevangenis spel',
+                'keywords' => 'TBS Kliniek, misdaad browser game, tekst rpg nederland, gevangenis spel, boevenbende',
                 'offers' => [
                     '@type' => 'Offer',
                     'price' => '0',
@@ -1266,7 +1266,12 @@
                         </span>
                     </button>
 
-                    <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs sm:text-sm font-extrabold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
+                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
+                        <i class="fa-brands fa-tiktok text-sm"></i>
+                        <span>TikTok</span>
+                    </a>
+
+                    <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs sm:text-sm font-extrabold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-discord text-sm"></i>
                         <span>Word lid van onze Discord</span>
                     </a>
@@ -1335,13 +1340,23 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
                     <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
                         @csrf
+                        <input type="hidden" name="method" value="cash">
                         <button type="submit" 
-                                class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-money-bill-wave text-white"></i>
+                            <span>Borgtocht (€250)</span>
+                        </button>
+                    </form>
+                    <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
+                        @csrf
+                        <input type="hidden" name="method" value="stars">
+                        <button type="submit" 
+                                class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-star text-white"></i>
-                            <span>Koop Vrij (2 Sterren)</span>
+                            <span>2 Sterren</span>
                         </button>
                     </form>
                     <a href="{{ route('prison') }}" class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5">
@@ -1435,7 +1450,7 @@
                             <li><a href="{{ route('sponsor.index') }}" class="hover:text-purple-600 transition font-bold text-purple-700 flex items-center gap-1.5">
                                 <i class="fa-solid fa-tv text-purple-600 text-[10px]"></i> Sponsorkamer (Gratis VIP)
                             </a></li>
-                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 transition">VIP Lidmaatschap (€7,50 pm)</a></li>
+                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 transition">VIP Lidmaatschap (Binnenkort Gratis via Ads)</a></li>
                             <li><a href="{{ route('roadmap.index') }}" class="hover:text-purple-600 transition">Roadmap & Updates</a></li>
                         </ul>
                     </div>
@@ -1448,8 +1463,11 @@
                             <li><a href="{{ route('help.tickets.index') }}" class="hover:text-purple-600 transition">Support Ticketsysteem</a></li>
                             <li><a href="{{ route('help.tickets.create') }}" class="hover:text-purple-600 transition">Nieuw Ticket Openen</a></li>
                             <li><a href="{{ route('settings.account') }}" class="hover:text-purple-600 transition">Account & Beveiliging</a></li>
-                            <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1">
+                            <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5">
                                 <i class="fa-brands fa-discord text-indigo-500"></i> Officiële Discord
+                            </a></li>
+                            <li><a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800">
+                                <i class="fa-brands fa-tiktok text-slate-900 text-xs"></i> TikTok @tbsklinieknl
                             </a></li>
                         </ul>
                     </div>
@@ -1480,23 +1498,6 @@
                     </div>
                 </div>
 
-                <!-- SEO Genre & Competitor Alternatives Anchor Bar -->
-                <div class="pt-3 border-t border-slate-100 text-[10px] text-slate-400 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
-                    <span class="font-bold text-slate-500">Populaire thema's & spellen:</span>
-                    <a href="{{ route('login') }}" class="hover:text-purple-600 transition">Boef.nl Alternatief</a>
-                    <span>•</span>
-                    <a href="{{ route('login') }}" class="hover:text-purple-600 transition">Baddie.nl Alternatief</a>
-                    <span>•</span>
-                    <a href="{{ route('login') }}" class="hover:text-purple-600 transition">Kech.nl Browsergame</a>
-                    <span>•</span>
-                    <a href="{{ route('members.index') }}" class="hover:text-purple-600 transition">Nederlands Misdaadspel</a>
-                    <span>•</span>
-                    <a href="{{ route('faq.index') }}" class="hover:text-purple-600 transition">Gevangenis Simulator</a>
-                    <span>•</span>
-                    <a href="{{ route('leaderboard.index') }}" class="hover:text-purple-600 transition">Tekstbased RPG 2026</a>
-                    <span>•</span>
-                    <a href="{{ route('gangs.index') }}" class="hover:text-purple-600 transition">Boevenbende & Gang Wars</a>
-                </div>
 
                 <!-- Copyright Bar -->
                 <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
