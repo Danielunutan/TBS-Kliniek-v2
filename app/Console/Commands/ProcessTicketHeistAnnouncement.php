@@ -49,21 +49,27 @@ class ProcessTicketHeistAnnouncement extends Command
         if ($ticket) {
             $this->info("Ticket gevonden: #{$ticket->ticket_number} - {$ticket->subject}");
 
-            SupportTicketMessage::create([
-                'support_ticket_id' => $ticket->id,
-                'user_id' => $adminUser->id,
-                'character_id' => $adminCharacter?->id,
-                'is_staff' => true,
-                'message' => "Beste Rainbow,\n\nOntzettend bedankt voor je uitgebreide en creatieve suggestie! Ik heb je idee samen met het team direct grondig geanalyseerd en we waren er zó enthousiast over dat we het zojuist per direct LIVE hebben gebouwd in TBS Kliniek!\n\nWat staat er nu live voor jou en alle andere spelers:\n🏎️ De Smokkel Garage (onder Economie & Gokken):\nHier staat een wagenpark van 8 verschillende voertuigen voor je klaar (o.a. Scooter Zip, Golf GTI, snelle Speedboot, BMW M5 F90, Gepantserde G63, Robinson Helikopter en Cessna Smokkelvliegtuig).\n🛠️ Conditie & Reparaties:\nWagens hebben een eigen Topsnelheid en Conditie (0-100%). Tijdens zware achtervolgingen lopen voertuigen schade op, waardoor de effectieve snelheid daalt. In de werkplaats van de garage kun je je wagen altijd weer laten oplappen tegen contant geld!\n🎭 Grote Heists (onder Illegale Acties):\nZware overvallen met hoge inzetten en mega buit! Denk aan het Medicijn Transport, Juwelierskraak, Casino Kraak, Haven Container Heist en de Centrale Bank Goudkluis. Om een heist te starten heb je een actief vluchtvoertuig én maskers (bivakmutsen) nodig. Naast enorme geldbedragen en XP maak je ook kans op zeldzame kluiscodes voor de Centrale Medicijnkluis!\n🤝 Gang Heists (Bende Heists):\nJe idee voor gezamenlijke bende-heists met een buitverdeling naar de bendekluis is geweldig en staat direct als topprioriteit op onze roadmap voor de volgende grote bende-update.\n\nNogmaals hartelijk dank voor het meedenken en je scherpe feedback! Neem snel een kijkje in de Smokkel Garage en veel succes met je eerste Heist!\n\nMet vriendelijke groet,\nDaniel\nTBS Kliniek Staff & Beheer",
-            ]);
+            $alreadyReplied = $ticket->messages()->where('is_staff', true)->where('message', 'like', '%Beste Rainbow%')->exists();
 
-            $ticket->update([
-                'status' => 'beantwoord',
-                'last_reply_at' => now(),
-                'last_reply_by_staff' => true,
-            ]);
+            if (! $alreadyReplied) {
+                SupportTicketMessage::create([
+                    'support_ticket_id' => $ticket->id,
+                    'user_id' => $adminUser->id,
+                    'character_id' => $adminCharacter?->id,
+                    'is_staff' => true,
+                    'message' => "Beste Rainbow,\n\nOntzettend bedankt voor je uitgebreide en creatieve suggestie! Ik heb je idee samen met het team direct grondig geanalyseerd en we waren er zó enthousiast over dat we het zojuist per direct LIVE hebben gebouwd in TBS Kliniek!\n\nWat staat er nu live voor jou en alle andere spelers:\n🏎️ De Smokkel Garage (onder Economie & Gokken):\nHier staat een wagenpark van 8 verschillende voertuigen voor je klaar (o.a. Scooter Zip, Golf GTI, snelle Speedboot, BMW M5 F90, Gepantserde G63, Robinson Helikopter en Cessna Smokkelvliegtuig).\n🛠️ Conditie & Reparaties:\nWagens hebben een eigen Topsnelheid en Conditie (0-100%). Tijdens zware achtervolgingen lopen voertuigen schade op, waardoor de effectieve snelheid daalt. In de werkplaats van de garage kun je je wagen altijd weer laten oplappen tegen contant geld!\n🎭 Grote Heists (onder Illegale Acties):\nZware overvallen met hoge inzetten en mega buit! Denk aan het Medicijn Transport, Juwelierskraak, Casino Kraak, Haven Container Heist en de Centrale Bank Goudkluis. Om een heist te starten heb je een actief vluchtvoertuig én maskers (bivakmutsen) nodig. Naast enorme geldbedragen en XP maak je ook kans op zeldzame kluiscodes voor de Centrale Medicijnkluis!\n🤝 Gang Heists (Bende Heists):\nJe idee voor gezamenlijke bende-heists met een buitverdeling naar de bendekluis is geweldig en staat direct als topprioriteit op onze roadmap voor de volgende grote bende-update.\n\nNogmaals hartelijk dank voor het meedenken en je scherpe feedback! Neem snel een kijkje in de Smokkel Garage en veel succes met je eerste Heist!\n\nMet vriendelijke groet,\nDaniel\nTBS Kliniek Staff & Beheer",
+                ]);
 
-            $this->info("Ticket #{$ticket->ticket_number} succesvol beantwoord en status gewijzigd naar 'beantwoord'.");
+                $ticket->update([
+                    'status' => 'beantwoord',
+                    'last_reply_at' => now(),
+                    'last_reply_by_staff' => true,
+                ]);
+
+                $this->info("Ticket #{$ticket->ticket_number} succesvol beantwoord en status gewijzigd naar 'beantwoord'.");
+            } else {
+                $this->info("Ticket #{$ticket->ticket_number} was al voorzien van antwoord van Daniel.");
+            }
         } else {
             $this->warn('Ticket TBS-YON-008 niet lokaal gevonden (wordt uitgevoerd op productie server).');
         }
@@ -72,7 +78,7 @@ class ProcessTicketHeistAnnouncement extends Command
         if ($adminCharacter) {
             TimelinePost::create([
                 'character_id' => $adminCharacter->id,
-                'content' => "🚨 UPDATE LIVE: SMOKKEL GARAGE & GROTE HEISTS! 🏎️💥\n\nPatiënten, de onderwereld van de TBS Kliniek is zojuist uitgebreid! Bezoek de gloednieuwe Smokkel Garage voor snelle vluchtwagens, speedboten en smokkelvliegtuigen. Rust jezelf uit met maskers en plan levensgevaarlijke overvallen bij Grote Heists voor gigantische cashbeloningen en zeldzame kluiscodes! Met dank aan Rainbow voor de vette suggestie! 🚀🔥",
+                'content' => '🚨 UPDATE LIVE: Smokkel Garage & Grote Heists staan nu online! Scoor vluchtwagens, zet maskers op en overval kluizen voor megabuit! Shoutout naar Rainbow voor het idee! 🏎️💥',
                 'likes_count' => 3,
             ]);
             $this->info('Aankondiging succesvol geplaatst op de Tijdlijn.');
