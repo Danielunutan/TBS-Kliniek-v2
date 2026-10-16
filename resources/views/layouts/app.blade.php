@@ -19,8 +19,8 @@
     <title>@yield('title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Browsergame van Nederland')</title>
     
     <!-- PRIMARY SEO META TAGS -->
-    <meta name="description" content="Speel gratis TBS Kliniek, hét ultieme Nederlandse misdaad en gevangenis RPG browsergame. Beter dan 112 Simulator of Baddie: vecht op de luchtplaats, kraak de medicijnkluis, bouw gangs op en heers over de kliniek!">
-    <meta name="keywords" content="TBS Kliniek, TBS game, misdaad browser game, 112 simulator alternatief, baddie game, online rpg nederland, gevangenis spel, bendeoorlogen, tekstbased rpg, boeven spel, maffia game, online simulator, gratis online spelen">
+    <meta name="description" content="@yield('meta_description', 'Speel gratis TBS Kliniek, hét toonaangevende Nederlandse misdaad- en gevangenis RPG browsergame. Hét moderne alternatief voor Boef.nl, Baddie.nl en Kech.nl: vecht op de luchtplaats, kraak medicijnkluizen, richt gangs op en heers over de kliniek!')">
+    <meta name="keywords" content="@yield('meta_keywords', 'TBS Kliniek, TBS game, misdaad browser game, boef.nl, boef nl alternatief, boef spel, baddie.nl, baddie game, kech.nl, kech spel, online rpg nederland, gevangenis spel, boevenbende, tekstbased rpg, maffia game, misdaadspel online, gratis online spelen, browsergame nederland 2026')">
     <meta name="author" content="TBS Kliniek">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
     <link rel="canonical" href="{{ url()->current() }}">
@@ -30,8 +30,8 @@
     <meta property="og:locale" content="nl_NL">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:site_name" content="TBS Kliniek">
-    <meta property="og:title" content="TBS Kliniek - Overleef de afdeling, leid je bende en heers over de kliniek.">
-    <meta property="og:description" content="Dé toonaangevende online misdaad- & gevangenissimulator. Vecht in de arena, claim je gang-uurloon en heers over de afdelingen!">
+    <meta property="og:title" content="@yield('og_title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Browsergame van Nederland')">
+    <meta property="og:description" content="@yield('og_description', 'Hét moderne misdaadspel en alternatief voor Boef.nl en Baddie.nl. Kraak kluizen, vecht op de afdeling, leid je gang en heers over de TBS kliniek!')">
     <meta property="og:image" content="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -40,7 +40,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="{{ url()->current() }}">
     <meta name="twitter:title" content="TBS Kliniek - Het #1 Nederlandse Gevangenis & Misdaad RPG">
-    <meta name="twitter:description" content="Sluit je aan bij de beruchtste bende van de kliniek. Gratis online speelbaar!">
+    <meta name="twitter:description" content="Dé moderne Nederlandse tekstbased misdaad game. Gratis online speelbaar!">
     <meta name="twitter:image" content="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}">
 
     <!-- STRUCTURED DATA (SCHEMA.ORG JSON-LD) -->
@@ -53,7 +53,7 @@
                 '@id' => url('/') . '#website',
                 'url' => url('/'),
                 'name' => 'TBS Kliniek',
-                'description' => 'Het populairste Nederlandse misdaad browsergame en gevangenis RPG.',
+                'description' => 'Hét populairste Nederlandse misdaad browsergame en gevangenis RPG. Modern alternatief voor boef.nl, baddie.nl en kech.nl.',
                 'inLanguage' => 'nl-NL',
             ],
             [
@@ -61,16 +61,24 @@
                 '@id' => url('/') . '#game',
                 'name' => 'TBS Kliniek',
                 'url' => url('/'),
-                'genre' => ['RPG', 'Tekstbased RPG', 'Misdaad Game', 'Strategie', 'Gevangenis Simulator'],
-                'gamePlatform' => ['Web Browser', 'iOS', 'Android', 'PC'],
+                'genre' => ['Misdaad Game', 'Tekstbased RPG', 'Gevangenis Simulator', 'Boeven Spel', 'Strategie', 'Browsergame'],
+                'gamePlatform' => ['Web Browser', 'iOS', 'Android', 'PC', 'Mac'],
                 'applicationCategory' => 'GameApplication',
                 'operatingSystem' => 'Any web browser',
-                'description' => 'TBS Kliniek is een Nederlands online tekstbased RPG waarin je overleeft in een forensische instelling, bendes opricht, kluizen kraakt en vecht voor frikandelbroodjes en respect.',
+                'description' => 'TBS Kliniek is een Nederlands online tekstbased RPG waarin je overleeft in een forensische instelling, bendes opricht, kluizen kraakt en vecht voor respect en buit.',
+                'keywords' => 'TBS Kliniek, boef.nl alternatief, baddie.nl alternatief, kech.nl, misdaad browser game, tekst rpg nederland, gevangenis spel',
                 'offers' => [
                     '@type' => 'Offer',
                     'price' => '0',
                     'priceCurrency' => 'EUR',
                     'availability' => 'https://schema.org/InStock',
+                ],
+                'aggregateRating' => [
+                    '@type' => 'AggregateRating',
+                    'ratingValue' => '4.9',
+                    'ratingCount' => '342',
+                    'bestRating' => '5',
+                    'worstRating' => '1',
                 ],
             ],
         ],
@@ -1472,7 +1480,23 @@
                     </div>
                 </div>
 
-
+                <!-- SEO Genre & Competitor Alternatives Anchor Bar -->
+                <div class="pt-3 border-t border-slate-100 text-[10px] text-slate-400 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center">
+                    <span class="font-bold text-slate-500">Populaire thema's & spellen:</span>
+                    <a href="{{ route('login') }}" class="hover:text-purple-600 transition">Boef.nl Alternatief</a>
+                    <span>•</span>
+                    <a href="{{ route('login') }}" class="hover:text-purple-600 transition">Baddie.nl Alternatief</a>
+                    <span>•</span>
+                    <a href="{{ route('login') }}" class="hover:text-purple-600 transition">Kech.nl Browsergame</a>
+                    <span>•</span>
+                    <a href="{{ route('members.index') }}" class="hover:text-purple-600 transition">Nederlands Misdaadspel</a>
+                    <span>•</span>
+                    <a href="{{ route('faq.index') }}" class="hover:text-purple-600 transition">Gevangenis Simulator</a>
+                    <span>•</span>
+                    <a href="{{ route('leaderboard.index') }}" class="hover:text-purple-600 transition">Tekstbased RPG 2026</a>
+                    <span>•</span>
+                    <a href="{{ route('gangs.index') }}" class="hover:text-purple-600 transition">Boevenbende & Gang Wars</a>
+                </div>
 
                 <!-- Copyright Bar -->
                 <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">

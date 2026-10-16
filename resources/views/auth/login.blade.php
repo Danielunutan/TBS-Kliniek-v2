@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Spel van Nederland')
+@section('title', 'TBS Kliniek - Het #1 Misdaad & Gevangenis Spel van Nederland (Beste Boef & Baddie Alternatief)')
+@section('meta_description', 'Meld je gratis aan bij TBS Kliniek: hét populairste Nederlandse misdaad en gevangenis RPG browsergame van 2026. Hét moderne alternatief voor Boef.nl, Baddie.nl en Kech.nl! Kraak medicijnkluizen, leid je gang en overleef de afdeling.')
+@section('meta_keywords', 'TBS Kliniek, boef.nl, boef nl alternatief, baddie.nl, baddie game, kech.nl, boeven spel, gevangenis browsergame, misdaad rpg nederland, tekstbased rpg, gratis browsergame spelen')
 
 @section('content')
 <div class="max-w-5xl mx-auto space-y-6" x-data="{ 
