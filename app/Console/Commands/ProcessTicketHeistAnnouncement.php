@@ -20,10 +20,12 @@ class ProcessTicketHeistAnnouncement extends Command
     {
         $this->info('Zoeken naar Daniel / Staff beheerder...');
 
-        // Zoek Daniel op basis van naam of admin status
-        $adminUser = User::where('name', 'like', '%daniel%')
+        // Zoek Daniel op basis van e-mail, naam of staff status
+        $adminUser = User::where('email', 'danielunutan@icloud.com')
+            ->orWhere('name', 'like', '%daniel%')
             ->orWhere('email', 'like', '%daniel%')
-            ->orWhere('is_admin', true)
+            ->orWhere('is_staff', true)
+            ->orWhereIn('role', ['admin', 'owner'])
             ->first();
 
         if (! $adminUser) {
