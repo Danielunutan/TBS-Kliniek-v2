@@ -14,7 +14,7 @@
     <!-- HERO SHOWCASE BANNER (OFFICIAL TBS CREW LINEUP & 3D LOGO) -->
     <div class="relative rounded-2xl overflow-hidden border border-purple-500/30 shadow-xl bg-slate-950 group">
         <div class="relative aspect-[16/9] w-full overflow-hidden">
-            <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}" 
+            <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}?v={{ file_exists(public_path('assets/illustrations/tbs_crew_lineup.jpg')) ? filemtime(public_path('assets/illustrations/tbs_crew_lineup.jpg')) : '3' }}" 
                  alt="TBS Kliniek - Het #1 Misdaad Spel van Nederland" 
                  class="w-full h-full object-cover object-center transform group-hover:scale-[1.01] transition-transform duration-700">
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-transparent to-transparent pointer-events-none"></div>
@@ -52,7 +52,7 @@
         <!-- LEFT HERO COLUMN (VIBRANT PURPLE TBS KLINIEK ARTWORK & MODERN GAMING BRANDING) -->
         <div class="lg:col-span-6 bg-[#18042a] text-white relative p-7 sm:p-10 flex flex-col justify-between overflow-hidden shadow-inner min-h-[580px]">
             <!-- Vibrant Purple Key Art Image (Crisp, High Quality, No Dark Smudge) -->
-            <img src="{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}" alt="TBS Kliniek" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none">
+            <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}?v={{ file_exists(public_path('assets/illustrations/tbs_crew_lineup.jpg')) ? filemtime(public_path('assets/illustrations/tbs_crew_lineup.jpg')) : '3' }}" alt="TBS Kliniek" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none">
             
             <!-- Cinematic Purple Gradient Overlays for High Legibility and Rich Atmosphere -->
             <div class="absolute inset-0 bg-gradient-to-t from-[#120224] via-[#120224]/75 to-purple-950/20 pointer-events-none"></div>
