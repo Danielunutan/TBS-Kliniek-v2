@@ -693,7 +693,7 @@
 
             <a href="{{ route('profile.me') }}" class="flex items-center gap-1.5 bg-slate-100 dark:bg-purple-950/60 hover:bg-slate-200 dark:hover:bg-purple-900/60 px-2 py-1 rounded-xl transition border border-transparent dark:border-purple-800/40">
                 <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-6 h-6 rounded-full object-cover">
-                <span class="text-[10px] font-extrabold text-slate-700 dark:text-purple-200 max-w-[70px] truncate">{{ $character->name }}</span>
+                <span class="text-[10px] font-extrabold text-slate-700 dark:text-purple-200 max-w-[70px] truncate leading-normal py-0.5">{{ $character->name }}</span>
             </a>
 
             @if(Auth::check() && Auth::user()->isStaff())
@@ -1063,7 +1063,7 @@
                     </a>
                     <div class="flex flex-col gap-1 min-w-0">
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('profile.me') }}" class="font-black text-slate-900 dark:text-white text-sm hover:text-indigo-600 dark:hover:text-purple-400 transition leading-none truncate max-w-[140px]">
+                            <a href="{{ route('profile.me') }}" class="font-black text-slate-900 dark:text-white text-sm hover:text-indigo-600 dark:hover:text-purple-400 transition leading-tight py-0.5 truncate max-w-[140px]">
                                 {{ $character->name }}
                             </a>
                             <span class="bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 border border-slate-200/80 dark:border-purple-800/40 font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider shadow-2xs shrink-0">
@@ -1073,11 +1073,17 @@
                         <div class="w-36 sm:w-44 bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
                             <div class="bg-indigo-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.xp_pct + '%'" style="width: {{ $pctXp }}%"></div>
                         </div>
-                        <div class="flex items-center justify-between text-[10px] leading-none pt-0.5">
-                            <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[90px]">
-                                {{ $character->gang ? $character->gang->name : ($character->title ?? '#TBS-'.$character->id) }}
-                            </span>
-                            <span class="font-medium text-slate-400 dark:text-purple-300/70 font-mono" x-text="stats.xpFormatted">
+                        <div class="flex items-center justify-between text-[10px] leading-normal pt-0.5">
+                            @if($character->gang)
+                                <a href="{{ route('gangs.index') }}" class="text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-extrabold truncate max-w-[105px] py-0.5 block hover:underline" title="{{ $character->gang->name }}">
+                                    {{ $character->gang->name }}
+                                </a>
+                            @else
+                                <span class="text-indigo-600 dark:text-purple-400 font-extrabold truncate max-w-[105px] py-0.5 block" title="{{ $character->title ?? '#TBS-'.$character->id }}">
+                                    {{ $character->title ?? '#TBS-'.$character->id }}
+                                </span>
+                            @endif
+                            <span class="font-medium text-slate-400 dark:text-purple-300/70 font-mono py-0.5 shrink-0 whitespace-nowrap" x-text="stats.xpFormatted">
                                 {{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP
                             </span>
                         </div>
