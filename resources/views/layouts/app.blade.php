@@ -170,9 +170,19 @@
         html.dark .text-purple-900 {
             color: #e9d5ff !important;
         }
-        html.dark .text-amber-700,
+        html.dark .text-amber-900,
+        html.dark .text-amber-950 {
+            color: #fef3c7 !important;
+        }
         html.dark .text-amber-800 {
+            color: #fde68a !important;
+        }
+        html.dark .text-amber-700 {
             color: #fbbf24 !important;
+        }
+        html.dark .text-amber-600,
+        html.dark .text-amber-500 {
+            color: #f59e0b !important;
         }
         html.dark .bg-purple-50,
         html.dark .bg-purple-100 {
@@ -180,9 +190,31 @@
             border-color: rgba(168, 85, 247, 0.3) !important;
         }
         html.dark .bg-amber-50,
-        html.dark .bg-amber-100 {
-            background-color: rgba(245, 158, 11, 0.16) !important;
-            border-color: rgba(245, 158, 11, 0.3) !important;
+        html.dark .bg-amber-100,
+        html.dark [class*="bg-amber-50/"],
+        html.dark [class*="bg-amber-100/"] {
+            background-color: rgba(245, 158, 11, 0.14) !important;
+            border-color: rgba(245, 158, 11, 0.35) !important;
+        }
+        html.dark .border-amber-100,
+        html.dark .border-amber-200,
+        html.dark [class*="border-amber-100/"],
+        html.dark [class*="border-amber-200/"] {
+            border-color: rgba(245, 158, 11, 0.35) !important;
+        }
+        html.dark .text-yellow-900,
+        html.dark .text-yellow-950 {
+            color: #fef9c3 !important;
+        }
+        html.dark .text-yellow-800 {
+            color: #fef08a !important;
+        }
+        html.dark .bg-yellow-50,
+        html.dark .bg-yellow-100,
+        html.dark [class*="bg-yellow-50/"],
+        html.dark [class*="bg-yellow-100/"] {
+            background-color: rgba(234, 179, 8, 0.14) !important;
+            border-color: rgba(234, 179, 8, 0.35) !important;
         }
         html.dark input:not([type="checkbox"]):not([type="radio"]),
         html.dark select,
