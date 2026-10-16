@@ -90,12 +90,12 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="font-extrabold text-sm text-purple-900">TBS Kliniek Support Team</span>
+                            <span class="font-extrabold text-sm text-purple-900">{{ $msg->user?->name ? ucfirst($msg->user->name) : 'Daniel' }}</span>
                             <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-black uppercase tracking-wider border border-purple-200">
                                 MEDEWERKER
                             </span>
                         </div>
-                        <span class="text-[11px] text-purple-600 font-medium">Officiële reactie van het team</span>
+                        <span class="text-[11px] text-purple-600 font-medium">Officiële reactie van TBS Kliniek</span>
                     </div>
                     @else
                     <img src="{{ $msg->character?->avatar_url ?? asset('assets/logo.png') }}" 
