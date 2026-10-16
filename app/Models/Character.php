@@ -679,6 +679,31 @@ class Character extends Model
     }
 
     /**
+     * Get vehicles owned by this character.
+     */
+    public function characterVehicles(): HasMany
+    {
+        return $this->hasMany(CharacterVehicle::class);
+    }
+
+    /**
+     * Get currently active getaway vehicle.
+     */
+    public function activeVehicle(): ?CharacterVehicle
+    {
+        return $this->characterVehicles()->where('is_active', true)->with('vehicle')->first()
+            ?? $this->characterVehicles()->with('vehicle')->first();
+    }
+
+    /**
+     * Get heist history for this character.
+     */
+    public function heistLogs(): HasMany
+    {
+        return $this->hasMany(HeistLog::class);
+    }
+
+    /**
      * Check if this character is accepted friends with another character.
      */
     public function isFriendWith(Character|int $other): bool

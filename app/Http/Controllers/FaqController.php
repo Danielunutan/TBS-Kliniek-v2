@@ -271,6 +271,28 @@ class FaqController extends Controller
                     ],
                 ],
             ],
+            'garage_heists' => [
+                'title' => '🏎️ Smokkel Garage, Voertuigen & Grote Heists',
+                'icon' => 'fa-masks-theater',
+                'questions' => [
+                    [
+                        'q' => 'Hoe werkt de Smokkel Garage en welke voertuigen kan ik kopen?',
+                        'a' => "In de Smokkel Garage ('Economie & Gokken > Smokkel Garage') kun je snelle vluchtwagens, boten, helikopters en smokkelvliegtuigen kopen met contant geld of sterren! Denk aan een Scooter Zip, Golf GTI, snelle Speedboot, BMW M5 F90, Gepantserde G63 AMG, Robinson Helikopter of Cessna Vliegtuig. Elk voertuig heeft een eigen Topsnelheid en Conditie.",
+                    ],
+                    [
+                        'q' => 'Waarom heeft een voertuig Conditie en hoe repareer ik schade?',
+                        'a' => 'Wanneer je een voertuig gebruikt tijdens Grote Heists ontstaat er slijtage door vluchtachtervolgingen en kogelinslagen. Naarmate de conditie daalt, neemt de effectieve topsnelheid af, waardoor je slaagkans bij heists vermindert! In de Smokkel Garage kun je je voertuig altijd laten repareren tegen een eerlijk tarief.',
+                    ],
+                    [
+                        'q' => 'Hoe voer ik een Grote Heist uit en wat heb ik nodig?',
+                        'a' => "Onder 'Illegale Acties > Grote Heists' vind je high-stakes overvallen zoals het Medicijn Transport, Juwelierskraak, Casino Overval, Haven Container Heist en de Centrale Bank Goudkluis. Om te starten heb je een actief vluchtvoertuig nodig (met voldoende snelheid en conditie) én maskers (bivakmutsen) tegen herkenning.",
+                    ],
+                    [
+                        'q' => 'Wat levert een geslaagde Heist op en wat is het risico?',
+                        'a' => "Een geslaagde heist levert gigantische buitbedragen op (tot honderdduizenden euro's), flinke XP en zeldzame kluiscodes voor de Centrale Medicijnkluis! Mislukt de heist? Dan vlieg je direct de zwaar beveiligde isoleercel in voor langdurige hechtenis.",
+                    ],
+                ],
+            ],
             'account' => [
                 'title' => '️ Account, Profiel & Beveiliging',
                 'icon' => 'fa-gear',
@@ -500,6 +522,24 @@ class FaqController extends Controller
                 'links' => [
                     ['text' => 'Nieuw Ticket Maken', 'url' => route('help.tickets.create')],
                     ['text' => 'Mijn Tickets', 'url' => route('help.tickets.index')],
+                ],
+            ],
+            [
+                'title' => '🏎️ Smokkel Garage & Voertuigen',
+                'keywords' => ['garage', 'voertuig', 'auto', 'wagen', 'vluchtwagen', 'scooter', 'motor', 'bmw', 'gti', 'vliegtuig', 'helikopter', 'speedboot', 'repareren', 'conditie', 'snelheid', 'wagenpark'],
+                'answer' => 'In de Smokkel Garage koop je snelle vluchtvoertuigen zoals de Golf GTI, BMW M5, Speedboot of Helikopter. Elk voertuig heeft topsnelheid en conditie. Let op: heists veroorzaken schade! Repareer je wagen in de garage om maximale snelheid en slaagkansen te behouden.',
+                'links' => [
+                    ['text' => 'Naar Smokkel Garage', 'url' => route('garage.index')],
+                    ['text' => 'Naar Grote Heists', 'url' => route('heists.index')],
+                ],
+            ],
+            [
+                'title' => ' Grote Heists & Overvallen',
+                'keywords' => ['heist', 'heists', 'overval', 'kraak', 'bank', 'juwelier', 'casino', 'vlucht', 'vluchtwagen', 'ramkraak', 'goudkluis', 'container', 'buit', 'heistlog'],
+                'answer' => 'Grote Heists zijn zware, strategische overvallen met mega buit! Je hebt een minimaal level, voldoende maskers (bivakmutsen) en een snel vluchtvoertuig in goede conditie nodig. Geslaagde heists leveren enorme bedragen en kluiscodes op. Bij een mislukking beland je in de isoleercel!',
+                'links' => [
+                    ['text' => 'Naar Grote Heists', 'url' => route('heists.index')],
+                    ['text' => 'Smokkel Garage', 'url' => route('garage.index')],
                 ],
             ],
         ];

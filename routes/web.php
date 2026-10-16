@@ -24,6 +24,8 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FightController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GangController;
+use App\Http\Controllers\GarageController;
+use App\Http\Controllers\HeistController;
 use App\Http\Controllers\HighLowController;
 use App\Http\Controllers\HitmanController;
 use App\Http\Controllers\HustleController;
@@ -228,6 +230,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/ontsnappingstunnel/zand-dumpen', [TunnelController::class, 'dumpSand'])->name('tunnel.dump');
     Route::post('/ontsnappingstunnel/uitbreken', [TunnelController::class, 'escape'])->name('tunnel.escape');
 
+    // Grote Heists & Kraak Missies
+    Route::get('/heists', [HeistController::class, 'index'])->name('heists.index');
+    Route::post('/heists/start/{heist}', [HeistController::class, 'launch'])->name('heists.launch');
+
     // Extort (Afpersen)
     Route::get('/afpersen', [ExtortController::class, 'index'])->name('extort.index');
     Route::post('/afpersen/uitvoeren', [ExtortController::class, 'extort'])->name('extort.extort');
@@ -345,6 +351,12 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/winkel/sterren-kopen', [ShopController::class, 'buyStarItem'])->name('shop.buy-star-item');
     Route::post('/winkel/bundel-kopen', [ShopController::class, 'buyBundle'])->name('shop.buy-bundle');
     Route::post('/inventaris/{characterItem}/gebruiken', [ShopController::class, 'consume'])->name('shop.consume');
+
+    // Smokkel Garage & Wagenpark
+    Route::get('/garage', [GarageController::class, 'index'])->name('garage.index');
+    Route::post('/garage/kopen/{vehicle}', [GarageController::class, 'buy'])->name('garage.buy');
+    Route::post('/garage/actief/{characterVehicle}', [GarageController::class, 'setActive'])->name('garage.set-active');
+    Route::post('/garage/repareren/{characterVehicle}', [GarageController::class, 'repair'])->name('garage.repair');
 
     // Prison / Isoleercel
     Route::get('/gevangenis', [PrisonController::class, 'index'])->name('prison');

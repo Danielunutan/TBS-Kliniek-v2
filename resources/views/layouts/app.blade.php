@@ -470,6 +470,15 @@
                             Tunnel
                         </span>
                     </a>
+                    <a href="{{ route('heists.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('heists.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-masks-theater w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                            <span>Grote Heists</span>
+                        </div>
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                            Nieuw
+                        </span>
+                    </a>
                 </div>
             </div>
 
@@ -592,6 +601,15 @@
                     <a href="{{ route('shop.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-cart-shopping w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Kliniek Winkel</span>
+                    </a>
+                    <a href="{{ route('garage.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('garage.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-warehouse w-4 text-center text-cyan-500 dark:text-cyan-400"></i>
+                            <span>Smokkel Garage</span>
+                        </div>
+                        <span class="bg-cyan-100 dark:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Wagens
+                        </span>
                     </a>
                     <a href="{{ route('marketplace.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('marketplace.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-shop w-4 text-center text-purple-600 dark:text-purple-400"></i>
@@ -915,6 +933,10 @@
                         <span class="flex items-center gap-2.5"><i class="fa-solid fa-person-digging w-4 text-amber-500 dark:text-amber-400"></i> Uitbraaktunnel</span>
                         <span class="bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Tunnel</span>
                     </a>
+                    <a href="{{ route('heists.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('heists.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-masks-theater w-4 text-rose-500 dark:text-rose-400"></i> Grote Heists</span>
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">Nieuw</span>
+                    </a>
                 </div>
 
                 <!-- 4. Bonus & Kluizen -->
@@ -991,6 +1013,10 @@
                     </a>
                     <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('shop.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <i class="fa-solid fa-cart-shopping w-4 text-amber-500 dark:text-amber-400"></i> Kliniek Winkel
+                    </a>
+                    <a href="{{ route('garage.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('garage.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-warehouse w-4 text-cyan-500 dark:text-cyan-400"></i> Smokkel Garage</span>
+                        <span class="bg-cyan-100 dark:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Wagens</span>
                     </a>
                     <a href="{{ route('marketplace.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('marketplace.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <i class="fa-solid fa-shop w-4 text-purple-600 dark:text-purple-400"></i> Marktplaats

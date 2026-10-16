@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\VaultCode;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -340,8 +341,8 @@ class AdminController extends Controller
         }
 
         try {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            $output = \Illuminate\Support\Facades\Artisan::output();
+            Artisan::call('migrate', ['--force' => true]);
+            $output = Artisan::output();
 
             return back()->with('success', 'Database migraties succesvol uitgevoerd: '.trim($output));
         } catch (\Throwable $e) {
