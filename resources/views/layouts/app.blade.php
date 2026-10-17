@@ -1459,7 +1459,7 @@
                     </button>
 
                     <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-[#f36f21] hover:bg-[#d95d16] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS Kliniek op Hyves">
-                        <i class="fa-solid fa-face-smile text-sm"></i>
+                        <span class="w-4 h-4 rounded bg-white text-[#f36f21] flex items-center justify-center font-black text-[10px] leading-none shrink-0 shadow-2xs">H</span>
                         <span>Hyves</span>
                     </a>
 
@@ -1663,11 +1663,11 @@
         <footer class="mt-auto border-t border-slate-200 bg-white pt-10 pb-20 lg:pb-10 text-xs text-slate-500">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
                 
-                <!-- Main Footer Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Main Footer Grid (5 Balanced Columns) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
                     
                     <!-- Col 1: Branding & Intro -->
-                    <div class="space-y-3 md:col-span-1">
+                    <div class="space-y-3 sm:col-span-2 lg:col-span-1">
                         <div class="flex items-center gap-2.5">
                             <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek" class="w-8 h-8 object-contain drop-shadow-xs">
                             <span class="font-black text-slate-900 text-base">TBS <span class="text-purple-600">Kliniek</span></span>
@@ -1708,8 +1708,17 @@
                             <li><a href="{{ route('help.tickets.index') }}" class="hover:text-purple-600 transition">Support Ticketsysteem</a></li>
                             <li><a href="{{ route('help.tickets.create') }}" class="hover:text-purple-600 transition">Nieuw Ticket Openen</a></li>
                             <li><a href="{{ route('settings.account') }}" class="hover:text-purple-600 transition">Account & Beveiliging</a></li>
-                            <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5">
-                                <i class="fa-brands fa-discord text-indigo-500"></i> Officiële Discord
+                        </ul>
+                    </div>
+
+                    <!-- Col 4: Socials & Community (Apart Kopje) -->
+                    <div class="space-y-2.5">
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                            <i class="fa-solid fa-users text-purple-600 text-[11px]"></i> Socials & Community
+                        </h4>
+                        <ul class="space-y-1.5 text-xs text-slate-600">
+                            <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400">
+                                <i class="fa-brands fa-discord text-indigo-500 text-xs"></i> Officiële Discord
                             </a></li>
                             <li><a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-red-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-brands fa-youtube text-red-600 text-xs"></i> YouTube @tbsklinieknl
@@ -1717,19 +1726,20 @@
                             <li><a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-brands fa-tiktok text-slate-900 dark:text-white text-xs"></i> TikTok @tbsklinieknl
                             </a></li>
-                            <li><a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                            <li><a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="hover:text-pink-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-brands fa-instagram text-pink-600 text-xs"></i> Instagram @tbsklinieknl
                             </a></li>
                             <li><a href="https://x.com/tbskliniek" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-brands fa-x-twitter text-slate-900 dark:text-white text-xs"></i> Twitter / X @tbskliniek
                             </a></li>
                             <li><a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener" class="hover:text-orange-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                                <i class="fa-solid fa-face-smile text-orange-500 text-xs"></i> Hyves (TBS Kliniek)
+                                <span class="w-3.5 h-3.5 rounded bg-[#f36f21] text-white flex items-center justify-center font-black text-[9px] leading-none shrink-0 shadow-2xs">H</span>
+                                <span>Hyves (TBS Kliniek)</span>
                             </a></li>
                         </ul>
                     </div>
 
-                    <!-- Col 4: Juridisch & Privacy (NL / EU) -->
+                    <!-- Col 5: Juridisch & Privacy (NL / EU) -->
                     <div class="space-y-2.5">
                         <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900">Juridisch & Privacy</h4>
                         <ul class="space-y-1.5 text-xs text-slate-600">
