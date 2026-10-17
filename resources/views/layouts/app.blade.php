@@ -2257,8 +2257,16 @@
                 if (rewardType === 'prison') {
                     this.rewardTitle = '-15 Min Isoleercel Straf';
                     this.rewardIcon = 'fa-hourglass-half';
-                } else if (rewardType === 'cooldown') {
-                    this.rewardTitle = '⚡ Reset Alle Cooldowns';
+                } else if (rewardType === 'cooldown' || rewardType.startsWith('cooldown:')) {
+                    if (rewardType === 'cooldown:produce_sigaretten') {
+                        this.rewardTitle = '⚡ Reset Sigaretten Cooldown';
+                    } else if (rewardType === 'cooldown:produce_ritalin') {
+                        this.rewardTitle = '⚡ Reset Ritalin Cooldown';
+                    } else if (rewardType === 'cooldown:produce_telefoon' || rewardType === 'cooldown:produce_phone') {
+                        this.rewardTitle = '⚡ Reset Telefoon Cooldown';
+                    } else {
+                        this.rewardTitle = '⚡ Reset Cooldown';
+                    }
                     this.rewardIcon = 'fa-bolt';
                 } else if (rewardType === 'mask') {
                     this.rewardTitle = '+1 Bivakmuts / Masker';

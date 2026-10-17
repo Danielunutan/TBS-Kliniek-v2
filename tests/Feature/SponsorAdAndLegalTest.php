@@ -231,6 +231,54 @@ class SponsorAdAndLegalTest extends TestCase
         $this->assertEquals(0, $character->cooldownRemaining('pickpocket'));
     }
 
+    public function test_claim_ad_cooldown_for_specific_produce_action_only_clears_that_action(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user);
+
+        CharacterCooldown::create([
+            'character_id' => $character->id,
+            'action' => 'produce_sigaretten',
+            'cooldown_until' => now()->addMinutes(5),
+        ]);
+        CharacterCooldown::create([
+            'character_id' => $character->id,
+            'action' => 'produce_ritalin',
+            'cooldown_until' => now()->addMinutes(15),
+        ]);
+        CharacterCooldown::create([
+            'character_id' => $character->id,
+            'action' => 'produce_telefoon',
+            'cooldown_until' => now()->addMinutes(30),
+        ]);
+
+        $this->assertGreaterThan(0, $character->cooldownRemaining('produce_sigaretten'));
+        $this->assertGreaterThan(0, $character->cooldownRemaining('produce_ritalin'));
+        $this->assertGreaterThan(0, $character->cooldownRemaining('produce_telefoon'));
+
+        $token = 'sig_produce_cooldown_token';
+        $this->actingAs($user)->withSession([
+            'tbs_ad_session' => [
+                'token' => $token,
+                'started_at' => now()->subSeconds(16)->timestamp,
+                'character_id' => $character->id,
+                'reward_type' => 'cooldown:produce_sigaretten',
+            ],
+        ]);
+
+        $response = $this->postJson(route('sponsor.claim'), [
+            'token' => $token,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        // Only sigaretten should be cleared!
+        $this->assertEquals(0, $character->cooldownRemaining('produce_sigaretten'));
+        $this->assertGreaterThan(0, $character->cooldownRemaining('produce_ritalin'));
+        $this->assertGreaterThan(0, $character->cooldownRemaining('produce_telefoon'));
+    }
+
     public function test_watching_50_ads_unlocks_24h_vip(): void
     {
         $user = User::factory()->create();

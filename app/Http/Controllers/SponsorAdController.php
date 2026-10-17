@@ -93,7 +93,8 @@ class SponsorAdController extends Controller
 
         $rewardType = $request->input('reward_type', 'cash');
         $validTypes = ['cash', 'prison', 'mask', 'token', 'star', 'cooldown'];
-        if (! in_array($rewardType, $validTypes, true)) {
+        $isSpecificCooldown = is_string($rewardType) && str_starts_with($rewardType, 'cooldown:');
+        if (! in_array($rewardType, $validTypes, true) && ! $isSpecificCooldown) {
             $rewardType = 'cash';
         }
 
@@ -295,52 +296,75 @@ class SponsorAdController extends Controller
         $rewardDetails = '';
 
         // Process reward
-        switch ($rewardType) {
-            case 'prison':
-                if ($character->isImprisoned() && $character->prison_until) {
-                    $newUntil = $character->prison_until->subMinutes(15);
-                    if ($newUntil->isPast()) {
-                        $character->is_in_prison = false;
-                        $character->prison_until = null;
-                        $character->prison_reason = null;
-                        $rewardDetails = '🎉 Je straftijd is met 15 minuten verminderd en je bent DIRECT VRIJGELATEN uit de isoleercel!';
+        if (str_starts_with($rewardType, 'cooldown:')) {
+            $targetAction = substr($rewardType, 9);
+            $actions = [$targetAction];
+            if ($targetAction === 'produce_telefoon') {
+                $actions[] = 'produce_phone';
+            } elseif ($targetAction === 'produce_phone') {
+                $actions[] = 'produce_telefoon';
+            }
+
+            CharacterCooldown::where('character_id', $character->id)
+                ->whereIn('action', $actions)
+                ->delete();
+
+            $actionLabels = [
+                'produce_sigaretten' => 'Sigaretten produceren',
+                'produce_ritalin' => 'Ritalin onderscheppen',
+                'produce_telefoon' => 'Telefoon binnensmokkelen',
+                'produce_phone' => 'Telefoon binnensmokkelen',
+            ];
+            $label = $actionLabels[$targetAction] ?? $targetAction;
+            $rewardDetails = "⚡ Cooldown voor {$label} is direct gewist!";
+        } else {
+            switch ($rewardType) {
+                case 'prison':
+                    if ($character->isImprisoned() && $character->prison_until) {
+                        $newUntil = $character->prison_until->subMinutes(15);
+                        if ($newUntil->isPast()) {
+                            $character->is_in_prison = false;
+                            $character->prison_until = null;
+                            $character->prison_reason = null;
+                            $rewardDetails = '🎉 Je straftijd is met 15 minuten verminderd en je bent DIRECT VRIJGELATEN uit de isoleercel!';
+                        } else {
+                            $character->prison_until = $newUntil;
+                            $diffMin = max(1, (int) ceil(now()->diffInSeconds($newUntil) / 60));
+                            $rewardDetails = "⏱️ Je straftijd is met 15 minuten verminderd! Nog {$diffMin} minuten te gaan.";
+                        }
                     } else {
-                        $character->prison_until = $newUntil;
-                        $diffMin = max(1, (int) ceil(now()->diffInSeconds($newUntil) / 60));
-                        $rewardDetails = "⏱️ Je straftijd is met 15 minuten verminderd! Nog {$diffMin} minuten te gaan.";
+                        // Fallback to cash if not in prison
+                        $this->economy->addCash($character, 2500, 'sponsor_ad');
+                        $rewardDetails = '💵 Je zat niet vast, dus je hebt € 2.500 zakgeld ontvangen!';
                     }
-                } else {
-                    // Fallback to cash if not in prison
+                    break;
+
+                case 'mask':
+                    $character->masks = ($character->masks ?? 0) + 1;
+                    $rewardDetails = '🎭 +1 Masker toegevoegd aan je voorraad (klaar voor zakkenrollen)!';
+                    break;
+
+                case 'token':
+                    $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
+                    $rewardDetails = '🪙 +1 Kluismunt toegevoegd (te besteden op de MedicijnKluis)!';
+                    break;
+
+                case 'star':
+                    $character->stars = ($character->stars ?? 0) + 1;
+                    $rewardDetails = '⭐ +1 Gratis Ster toegevoegd aan je profiel!';
+                    break;
+
+                case 'cooldown':
+                    CharacterCooldown::where('character_id', $character->id)->delete();
+                    $rewardDetails = '⚡ Alle actieve cooldowns (Hosselen, Zakkenrollen, Kluisjes, Smokkelen, etc.) zijn direct gewist!';
+                    break;
+
+                case 'cash':
+                default:
                     $this->economy->addCash($character, 2500, 'sponsor_ad');
-                    $rewardDetails = '💵 Je zat niet vast, dus je hebt € 2.500 zakgeld ontvangen!';
-                }
-                break;
-
-            case 'mask':
-                $character->masks = ($character->masks ?? 0) + 1;
-                $rewardDetails = '🎭 +1 Masker toegevoegd aan je voorraad (klaar voor zakkenrollen)!';
-                break;
-
-            case 'token':
-                $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
-                $rewardDetails = '🪙 +1 Kluismunt toegevoegd (te besteden op de MedicijnKluis)!';
-                break;
-
-            case 'star':
-                $character->stars = ($character->stars ?? 0) + 1;
-                $rewardDetails = '⭐ +1 Gratis Ster toegevoegd aan je profiel!';
-                break;
-
-            case 'cooldown':
-                CharacterCooldown::where('character_id', $character->id)->delete();
-                $rewardDetails = '⚡ Alle actieve cooldowns (Hosselen, Zakkenrollen, Kluisjes, Smokkelen, etc.) zijn direct gewist!';
-                break;
-
-            case 'cash':
-            default:
-                $this->economy->addCash($character, 2500, 'sponsor_ad');
-                $rewardDetails = '💵 € 2.500 contant geld ontvangen!';
-                break;
+                    $rewardDetails = '💵 € 2.500 contant geld ontvangen!';
+                    break;
+            }
         }
 
         // Check 10-ad milestone bonus: Dispatch a secret VaultCode to player inbox

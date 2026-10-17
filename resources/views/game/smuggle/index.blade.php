@@ -99,7 +99,7 @@
                                     <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
                                         <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $sigCooldown) }}
                                     </span>
-                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" title="Kijk Ad (Reset Alle Cooldowns)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_sigaretten')" title="Kijk Ad (Reset Sigaretten Cooldown)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
                                         <i class="fa-solid fa-tv text-[10px]"></i>
                                         <span>Ad</span>
                                     </button>
@@ -150,7 +150,7 @@
                                     <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
                                         <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $ritCooldown) }}
                                     </span>
-                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" title="Kijk Ad (Reset Alle Cooldowns)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_ritalin')" title="Kijk Ad (Reset Ritalin Cooldown)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
                                         <i class="fa-solid fa-tv text-[10px]"></i>
                                         <span>Ad</span>
                                     </button>
@@ -201,7 +201,7 @@
                                     <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
                                         <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $phoneCooldown) }}
                                     </span>
-                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" title="Kijk Ad (Reset Alle Cooldowns)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
+                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_telefoon')" title="Kijk Ad (Reset Telefoon Cooldown)" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
                                         <i class="fa-solid fa-tv text-[10px]"></i>
                                         <span>Ad</span>
                                     </button>
