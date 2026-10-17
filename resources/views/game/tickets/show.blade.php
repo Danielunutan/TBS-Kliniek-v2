@@ -15,7 +15,12 @@
 
         <div class="flex items-center gap-2">
             @if($ticket->isOpen())
-            <form action="{{ route('help.tickets.close', $ticket) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je dit ticket wilt sluiten?');">
+            <form action="{{ route('help.tickets.close', $ticket) }}" method="POST"
+                  data-confirm="Weet je zeker dat je dit ticket wilt sluiten?"
+                  data-confirm-title="Ticket Sluiten"
+                  data-confirm-btn="Ja, Sluiten"
+                  data-confirm-type="warning"
+                  data-confirm-icon="fa-lock">
                 @csrf
                 <button type="submit" 
                         class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200 hover:border-rose-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">

@@ -315,7 +315,12 @@
                                                 <p class="font-bold text-rose-900">Actieve ban tot: <span class="font-normal">{{ $player->user->banned_until ? $player->user->banned_until->diffForHumans() : 'Permanent' }}</span></p>
                                                 <p class="text-[11px] text-slate-600 italic">"{{ $player->user->ban_reason }}"</p>
                                             </div>
-                                            <form action="{{ route('admin.moderation.unban', $player->user) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je de ban wilt opheffen?');">
+                                            <form action="{{ route('admin.moderation.unban', $player->user) }}" method="POST"
+                                                  data-confirm="Weet je zeker dat je de ban van {{ $player->name }} wilt opheffen?"
+                                                  data-confirm-title="Verbanning Opheffen"
+                                                  data-confirm-btn="Ja, Ban Opheffen"
+                                                  data-confirm-type="warning"
+                                                  data-confirm-icon="fa-lock-open">
                                                 @csrf
                                                 <button type="submit" class="w-full px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
                                                     <i class="fa-solid fa-lock-open"></i>
@@ -324,7 +329,12 @@
                                             </form>
                                         </div>
                                     @else
-                                        <form action="{{ route('admin.moderation.ban', $player->user) }}" method="POST" class="space-y-2" onsubmit="return confirm('Weet je zeker dat je deze speler wilt verbannen?');">
+                                        <form action="{{ route('admin.moderation.ban', $player->user) }}" method="POST" class="space-y-2"
+                                              data-confirm="Weet je zeker dat je deze speler ({{ $player->name }}) wilt verbannen?"
+                                              data-confirm-title="Speler Verbannen"
+                                              data-confirm-btn="Ja, Verbannen"
+                                              data-confirm-type="danger"
+                                              data-confirm-icon="fa-gavel">
                                             @csrf
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                 <div>

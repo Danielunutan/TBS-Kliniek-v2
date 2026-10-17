@@ -220,7 +220,11 @@
                         <form action="{{ route('heists.launch', $heist->id) }}" method="POST">
                             @csrf
                             <button type="submit" 
-                                    onclick="return confirm('Weet je zeker dat je de {{ $heist->name }} wilt starten? Bij mislukking riskeer je de isoleercel!')"
+                                    data-confirm="Weet je zeker dat je de {{ $heist->name }} wilt starten? Bij mislukking riskeer je de isoleercel!"
+                                    data-confirm-title="Solo Heist Starten"
+                                    data-confirm-btn="Ja, Start Heist!"
+                                    data-confirm-type="attack"
+                                    data-confirm-icon="fa-bomb"
                                     class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-bomb text-xs"></i>
                                 <span>Start Solo Heist</span>
@@ -451,7 +455,11 @@
                             <form action="{{ route('heists.launch', $heist->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" 
-                                        onclick="return confirm('Weet je zeker dat je de Bende Heist {{ $heist->name }} wilt starten namens je gang?')"
+                                        data-confirm="Weet je zeker dat je de Bende Heist {{ $heist->name }} wilt starten namens je gang?"
+                                        data-confirm-title="Bende Heist Starten"
+                                        data-confirm-btn="Ja, Lanceer Heist!"
+                                        data-confirm-type="attack"
+                                        data-confirm-icon="fa-bomb"
                                         class="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-bomb text-xs"></i>
                                     <span>Lanceer Bende Heist Operatie</span>

@@ -172,7 +172,12 @@
                                     </form>
                                     @endif
 
-                                    <form method="POST" action="{{ route('admin.discord_shield.ban') }}" onsubmit="return confirm('Weet je zeker dat je dit Discord ID en de hardware-vingerafdruk wilt bannen?')">
+                                    <form method="POST" action="{{ route('admin.discord_shield.ban') }}"
+                                          data-confirm="Weet je zeker dat je dit Discord ID en de hardware-vingerafdruk wilt bannen?"
+                                          data-confirm-title="Discord ID Bannen"
+                                          data-confirm-btn="Ja, Bannen"
+                                          data-confirm-type="danger"
+                                          data-confirm-icon="fa-gavel">
                                         @csrf
                                         <input type="hidden" name="type" value="discord_id">
                                         <input type="hidden" name="value" value="{{ $v->discord_id }}">
@@ -320,7 +325,12 @@
                             <td class="py-3 px-4 font-bold text-purple-700">{{ $ban->banned_by ?? 'Systeem' }}</td>
                             <td class="py-3 px-4 font-mono text-slate-500 text-[11px]">{{ $ban->created_at->format('d-m-Y H:i') }}</td>
                             <td class="py-3 px-4 text-right">
-                                <form method="POST" action="{{ route('admin.discord_shield.unban', $ban->id) }}" onsubmit="return confirm('Weet je zeker dat je deze ban wilt opheffen?')">
+                                <form method="POST" action="{{ route('admin.discord_shield.unban', $ban->id) }}"
+                                      data-confirm="Weet je zeker dat je deze ban wilt opheffen?"
+                                      data-confirm-title="Ban Opheffen"
+                                      data-confirm-btn="Ja, Opheffen"
+                                      data-confirm-type="warning"
+                                      data-confirm-icon="fa-lock-open">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-extrabold transition">

@@ -148,8 +148,12 @@
                             <td class="py-3 px-3 text-slate-500 text-[11px] font-mono">
                                 {{ $bannedUser->banned_at ? $bannedUser->banned_at->isoFormat('D MMM YYYY [om] HH:mm') : '-' }}
                             </td>
-                            <td class="py-3 px-4 text-right">
-                                <form action="{{ route('admin.moderation.unban', $bannedUser) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je de ban van {{ $bannedUser->character?->name ?? $bannedUser->name }} wilt opheffen?');">
+                                <form action="{{ route('admin.moderation.unban', $bannedUser) }}" method="POST"
+                                      data-confirm="Weet je zeker dat je de ban van {{ $bannedUser->character?->name ?? $bannedUser->name }} wilt opheffen?"
+                                      data-confirm-title="Verbanning Opheffen"
+                                      data-confirm-btn="Ja, Ban Opheffen"
+                                      data-confirm-type="warning"
+                                      data-confirm-icon="fa-lock-open">
                                     @csrf
                                     <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold transition cursor-pointer shadow-2xs">
                                         <i class="fa-solid fa-lock-open mr-1"></i> Ban Opheffen
@@ -241,7 +245,12 @@
                                 {{ $warning->created_at->isoFormat('D MMM YYYY [om] HH:mm') }}
                             </td>
                             <td class="py-3 px-4 text-right">
-                                <form action="{{ route('admin.moderation.warning.destroy', $warning) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je deze waarschuwing uit het dossier wilt wissen?');">
+                                <form action="{{ route('admin.moderation.warning.destroy', $warning) }}" method="POST"
+                                      data-confirm="Weet je zeker dat je deze waarschuwing uit het dossier wilt wissen?"
+                                      data-confirm-title="Waarschuwing Wissen"
+                                      data-confirm-btn="Ja, Wissen"
+                                      data-confirm-type="danger"
+                                      data-confirm-icon="fa-trash">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-bold transition cursor-pointer shadow-2xs" title="Wis waarschuwing">

@@ -1943,9 +1943,10 @@
         @endif
     </div>
 
-    <!-- GLOBAL TBS CONFIRMATION MODAL (Eigen CSS & Alpine.js) -->
+    <!-- GLOBAL TBS CONFIRMATION & ALERT MODAL (Eigen TBS Kliniek CSS & Alpine.js) -->
     <div x-data="{
         isOpen: false,
+        isAlert: false,
         title: 'Weet je het zeker?',
         message: '',
         confirmBtn: 'Ja, doorgaan',
@@ -1955,12 +1956,25 @@
         callback: null,
         init() {
             window.tbsConfirm = (opts) => {
+                this.isAlert = false;
                 this.title = opts.title || 'Weet je het zeker?';
                 this.message = opts.message || 'Weet je zeker dat je deze actie wilt uitvoeren?';
                 this.confirmBtn = opts.confirmBtn || 'Ja, uitvoeren';
                 this.cancelBtn = opts.cancelBtn || 'Annuleren';
                 this.type = opts.type || 'danger';
-                this.icon = opts.icon || (this.type === 'attack' ? 'fa-crosshairs' : (this.type === 'logout' ? 'fa-right-from-bracket' : (this.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-trash-can')));
+                this.icon = opts.icon || (this.type === 'attack' ? 'fa-bomb' : (this.type === 'logout' ? 'fa-right-from-bracket' : (this.type === 'warning' ? 'fa-triangle-exclamation' : 'fa-trash-can')));
+                this.callback = opts.onConfirm || null;
+                this.isOpen = true;
+            };
+
+            window.tbsAlert = (opts) => {
+                if (typeof opts === 'string') opts = { message: opts };
+                this.isAlert = true;
+                this.title = opts.title || 'Melding';
+                this.message = opts.message || '';
+                this.confirmBtn = opts.confirmBtn || 'Begrepen';
+                this.type = opts.type || 'info';
+                this.icon = opts.icon || (this.type === 'success' ? 'fa-circle-check' : (this.type === 'danger' ? 'fa-circle-xmark' : 'fa-circle-info'));
                 this.callback = opts.onConfirm || null;
                 this.isOpen = true;
             };
@@ -1985,7 +1999,7 @@
     class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         
         <!-- Backdrop with Blur -->
-        <div class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs transition-opacity" 
+        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity" 
              x-show="isOpen"
              x-transition:enter="ease-out duration-200"
              x-transition:enter-start="opacity-0"
@@ -1995,8 +2009,8 @@
              x-transition:leave-end="opacity-0"
              @click="cancel()"></div>
 
-        <!-- Modal Dialog -->
-        <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden transform transition-all z-10"
+        <!-- Modal Dialog (Clean Light/Dark TBS Kliniek Styling) -->
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transform transition-all z-10"
              x-show="isOpen"
              x-transition:enter="ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95 translate-y-2"
@@ -2009,48 +2023,52 @@
             <div class="h-1.5 w-full"
                  :class="{
                      'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600': type === 'attack' || type === 'danger',
-                     'bg-gradient-to-r from-purple-800 via-indigo-700 to-slate-900': type === 'logout',
+                     'bg-gradient-to-r from-purple-800 via-indigo-700 to-slate-900 dark:from-purple-600 dark:to-indigo-600': type === 'logout',
                      'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500': type === 'warning',
+                     'bg-gradient-to-r from-emerald-500 to-teal-500': type === 'success',
                      'bg-gradient-to-r from-purple-600 to-indigo-600': type === 'info'
                  }"></div>
 
             <!-- Modal Content -->
             <div class="p-6 sm:p-7 text-center">
                 <!-- Close Button (X) -->
-                <button type="button" @click="cancel()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+                <button type="button" @click="cancel()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center cursor-pointer">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
 
                 <!-- Icon Halo -->
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner border transition-transform"
                      :class="{
-                         'bg-rose-50 text-rose-600 border-rose-200 ring-8 ring-rose-50/60': type === 'attack' || type === 'danger',
-                         'bg-purple-50 text-purple-700 border-purple-200 ring-8 ring-purple-50/60': type === 'logout',
-                         'bg-amber-50 text-amber-600 border-amber-200 ring-8 ring-amber-50/60': type === 'warning',
-                         'bg-indigo-50 text-indigo-600 border-indigo-200 ring-8 ring-indigo-50/60': type === 'info'
+                         'bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/60 ring-8 ring-rose-50/60 dark:ring-rose-950/30': type === 'attack' || type === 'danger',
+                         'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/60 ring-8 ring-purple-50/60 dark:ring-purple-950/30': type === 'logout',
+                         'bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 ring-8 ring-amber-50/60 dark:ring-amber-950/30': type === 'warning',
+                         'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60 ring-8 ring-emerald-50/60 dark:ring-emerald-950/30': type === 'success',
+                         'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-indigo-900/60 ring-8 ring-indigo-50/60 dark:ring-indigo-950/30': type === 'info'
                      }">
                     <i class="fa-solid" :class="icon"></i>
                 </div>
 
                 <!-- Title & Message -->
-                <h3 class="text-base sm:text-lg font-black text-slate-900 mt-4 tracking-tight" x-text="title"></h3>
-                <p class="text-xs text-slate-600 mt-2 leading-relaxed px-2 font-medium" x-text="message"></p>
+                <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white mt-4 tracking-tight" x-text="title"></h3>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed px-2 font-medium" x-text="message"></p>
 
                 <!-- Action Buttons -->
                 <div class="mt-6 flex items-center gap-3">
                     <button type="button" 
+                            x-show="!isAlert"
                             @click="cancel()" 
-                            class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer"
+                            class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer"
                             x-text="cancelBtn">
                     </button>
                     <button type="button" 
                             @click="confirm()" 
                             class="flex-1 py-2.5 px-4 rounded-xl text-white font-black text-xs uppercase tracking-wider transition shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-1.5"
                             :class="{
-                                'bg-rose-600 hover:bg-rose-700 shadow-rose-200': type === 'attack' || type === 'danger',
-                                'bg-slate-900 hover:bg-slate-800 shadow-slate-200': type === 'logout',
-                                'bg-amber-600 hover:bg-amber-700 shadow-amber-200': type === 'warning',
-                                'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200': type === 'info'
+                                'bg-rose-600 hover:bg-rose-700 shadow-rose-200 dark:shadow-none': type === 'attack' || type === 'danger',
+                                'bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 shadow-slate-200 dark:shadow-none': type === 'logout',
+                                'bg-amber-600 hover:bg-amber-700 shadow-amber-200 dark:shadow-none': type === 'warning',
+                                'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200 dark:shadow-none': type === 'success',
+                                'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200 dark:shadow-none': type === 'info'
                             }">
                         <i class="fa-solid" :class="icon"></i>
                         <span x-text="confirmBtn"></span>
@@ -2060,10 +2078,134 @@
         </div>
     </div>
 
-    <!-- GLOBAL SCRIPT FOR CONFIRM INTERCEPTION -->
+    <!-- GLOBAL SCRIPT FOR CONFIRM & ALERT INTERCEPTION -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Intercept form submissions with data-confirm or legacy onsubmit="return confirm(...)"
+        (function() {
+            function parseConfirmOptions(msg, el) {
+                let type = (el && el.dataset && el.dataset.confirmType) || 'danger';
+                let icon = (el && el.dataset && el.dataset.confirmIcon) || 'fa-triangle-exclamation';
+                let btn = (el && el.dataset && el.dataset.confirmBtn) || 'Ja, doorgaan';
+                let title = (el && el.dataset && el.dataset.confirmTitle) || 'Bevestiging Vereist';
+
+                const lower = (msg || '').toLowerCase();
+                if (lower.includes('heist') || lower.includes('onderschepping') || lower.includes('overval')) {
+                    type = el?.dataset?.confirmType || 'attack';
+                    icon = el?.dataset?.confirmIcon || 'fa-bomb';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Start Heist!';
+                    title = el?.dataset?.confirmTitle || 'Heist Operatie Starten';
+                } else if (lower.includes('aanvallen') || lower.includes('oorlog') || lower.includes('vecht')) {
+                    type = el?.dataset?.confirmType || 'attack';
+                    icon = el?.dataset?.confirmIcon || 'fa-crosshairs';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Aanvallen!';
+                    title = el?.dataset?.confirmTitle || 'Aanval Bevestigen';
+                } else if (lower.includes('verwijderen') || lower.includes('opheffen') || lower.includes('wissen')) {
+                    type = el?.dataset?.confirmType || 'danger';
+                    icon = el?.dataset?.confirmIcon || 'fa-trash-can';
+                    btn = el?.dataset?.confirmBtn || 'Verwijderen';
+                    title = el?.dataset?.confirmTitle || 'Verwijderen Bevestigen';
+                } else if (lower.includes('uitloggen')) {
+                    type = el?.dataset?.confirmType || 'logout';
+                    icon = el?.dataset?.confirmIcon || 'fa-right-from-bracket';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Uitloggen';
+                    title = el?.dataset?.confirmTitle || 'Veilig Uitloggen';
+                } else if (lower.includes('sluiten')) {
+                    type = el?.dataset?.confirmType || 'warning';
+                    icon = el?.dataset?.confirmIcon || 'fa-lock';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Sluiten';
+                    title = el?.dataset?.confirmTitle || 'Ticket Sluiten';
+                } else if (lower.includes('verlaten')) {
+                    type = el?.dataset?.confirmType || 'warning';
+                    icon = el?.dataset?.confirmIcon || 'fa-right-from-bracket';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Bende Verlaten';
+                    title = el?.dataset?.confirmTitle || 'Bende Verlaten';
+                } else if (lower.includes('verbannen') || lower.includes('ban')) {
+                    type = el?.dataset?.confirmType || 'danger';
+                    icon = el?.dataset?.confirmIcon || 'fa-gavel';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Verbannen';
+                    title = el?.dataset?.confirmTitle || 'Speler Verbannen';
+                } else if (lower.includes('goedkeuren') || lower.includes('bonus')) {
+                    type = el?.dataset?.confirmType || 'warning';
+                    icon = el?.dataset?.confirmIcon || 'fa-circle-check';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Goedkeuren';
+                    title = el?.dataset?.confirmTitle || 'Bonus Goedkeuren';
+                }
+
+                return { type, icon, btn, title };
+            }
+
+            function extractConfirmMessage(str) {
+                if (!str) return null;
+                const match = str.match(/confirm\s*\(\s*(['"`])(.*?)\1\s*\)/s);
+                return match ? match[2] : null;
+            }
+
+            // 1. Intercept CLICKS in capture phase before inline onclick runs
+            document.addEventListener('click', function(e) {
+                const trigger = e.target.closest('[data-confirm], button, a, input[type="submit"], input[type="button"]');
+                if (!trigger) return;
+
+                if (trigger.dataset.tbsConfirmed === 'true') {
+                    delete trigger.dataset.tbsConfirmed;
+                    return;
+                }
+
+                const onclickAttr = trigger.getAttribute('onclick');
+                let confirmMsg = null;
+                let isLegacyOnclick = false;
+
+                if (trigger.dataset && trigger.dataset.confirm) {
+                    confirmMsg = trigger.dataset.confirm;
+                } else if (onclickAttr && onclickAttr.includes('confirm(')) {
+                    confirmMsg = extractConfirmMessage(onclickAttr) || trigger.getAttribute('data-confirm');
+                    isLegacyOnclick = true;
+                }
+
+                if (!confirmMsg) return;
+
+                // Stop native inline onclick and browser confirm dialog!
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                const form = trigger.closest('form');
+                const parsed = parseConfirmOptions(confirmMsg, trigger);
+
+                if (window.tbsConfirm) {
+                    window.tbsConfirm({
+                        title: parsed.title,
+                        message: confirmMsg,
+                        confirmBtn: parsed.btn,
+                        cancelBtn: trigger.dataset.confirmCancel || 'Annuleren',
+                        type: parsed.type,
+                        icon: parsed.icon,
+                        onConfirm: function() {
+                            trigger.dataset.tbsConfirmed = 'true';
+                            if (form && (trigger.type === 'submit' || trigger.tagName === 'BUTTON' || trigger.tagName === 'INPUT')) {
+                                form.dataset.tbsConfirmed = 'true';
+                                if (isLegacyOnclick) {
+                                    trigger.removeAttribute('onclick');
+                                    form.requestSubmit ? form.requestSubmit(trigger) : form.submit();
+                                    setTimeout(() => trigger.setAttribute('onclick', onclickAttr), 150);
+                                } else {
+                                    form.requestSubmit ? form.requestSubmit(trigger) : form.submit();
+                                }
+                            } else if (trigger.tagName === 'A' && trigger.href) {
+                                window.location.href = trigger.href;
+                            } else {
+                                if (isLegacyOnclick) {
+                                    trigger.removeAttribute('onclick');
+                                    trigger.click();
+                                    setTimeout(() => trigger.setAttribute('onclick', onclickAttr), 150);
+                                } else {
+                                    trigger.click();
+                                }
+                            }
+                        }
+                    });
+                }
+            }, true);
+
+            // 2. Intercept FORM SUBMITS (e.g. onsubmit="return confirm(...)") in capture phase
             document.addEventListener('submit', function(e) {
                 const form = e.target;
                 if (!form || form.dataset.tbsConfirmed === 'true') {
@@ -2074,114 +2216,69 @@
                 const submitter = e.submitter || (document.activeElement && form.contains(document.activeElement) ? document.activeElement : null);
                 const confirmSource = (submitter && submitter.dataset && submitter.dataset.confirm) ? submitter : form;
 
-                // 1. Explicit data-confirm attribute on form or submit button
-                if (confirmSource.dataset && confirmSource.dataset.confirm) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    if (window.tbsConfirm) {
-                        window.tbsConfirm({
-                            title: confirmSource.dataset.confirmTitle || 'Weet je het zeker?',
-                            message: confirmSource.dataset.confirm,
-                            confirmBtn: confirmSource.dataset.confirmBtn || 'Ja, doorgaan',
-                            cancelBtn: confirmSource.dataset.confirmCancel || 'Annuleren',
-                            type: confirmSource.dataset.confirmType || 'danger',
-                            icon: confirmSource.dataset.confirmIcon,
-                            onConfirm: function() {
-                                form.dataset.tbsConfirmed = 'true';
-                                form.submit();
-                            }
-                        });
-                    } else if (confirm(confirmSource.dataset.confirm)) {
-                        form.dataset.tbsConfirmed = 'true';
-                        form.submit();
-                    }
-                    return;
-                }
-
-                // 2. Legacy onsubmit attribute with confirm(...)
+                let confirmMsg = null;
+                let isLegacyOnsubmit = false;
                 const onsubmitAttr = form.getAttribute('onsubmit');
-                if (onsubmitAttr && onsubmitAttr.includes('confirm(')) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                    const match = onsubmitAttr.match(/confirm\s*\(\s*(['"])(.*?)\1\s*\)/);
-                    const msg = match ? match[2] : 'Weet je zeker dat je wilt doorgaan?';
 
-                    let type = 'danger';
-                    let icon = 'fa-triangle-exclamation';
-                    let btn = 'Ja, doorgaan';
-                    let title = 'Bevestiging vereist';
-
-                    const lower = msg.toLowerCase();
-                    if (lower.includes('aanvallen') || lower.includes('oorlog') || lower.includes('overval')) {
-                        type = 'attack';
-                        icon = 'fa-crosshairs';
-                        btn = 'Ja, Aanvallen!';
-                        title = 'Bende Oorlog Aanval';
-                    } else if (lower.includes('verwijderen') || lower.includes('opheffen') || lower.includes('weigeren') || lower.includes('annuleren')) {
-                        type = 'danger';
-                        icon = 'fa-trash-can';
-                        btn = 'Verwijderen';
-                        title = 'Verwijderen Bevestigen';
-                    } else if (lower.includes('uitloggen')) {
-                        type = 'logout';
-                        icon = 'fa-right-from-bracket';
-                        btn = 'Ja, Uitloggen';
-                        title = 'Veilig Uitloggen';
-                    }
-
-                    if (window.tbsConfirm) {
-                        window.tbsConfirm({
-                            title: title,
-                            message: msg,
-                            confirmBtn: btn,
-                            cancelBtn: 'Annuleren',
-                            type: type,
-                            icon: icon,
-                            onConfirm: function() {
-                                form.removeAttribute('onsubmit');
-                                form.dataset.tbsConfirmed = 'true';
-                                form.submit();
-                                form.setAttribute('onsubmit', onsubmitAttr);
-                            }
-                        });
-                    } else if (confirm(msg)) {
-                        form.dataset.tbsConfirmed = 'true';
-                        form.submit();
-                    }
+                if (confirmSource.dataset && confirmSource.dataset.confirm) {
+                    confirmMsg = confirmSource.dataset.confirm;
+                } else if (onsubmitAttr && onsubmitAttr.includes('confirm(')) {
+                    confirmMsg = extractConfirmMessage(onsubmitAttr);
+                    isLegacyOnsubmit = true;
                 }
-            }, true);
 
-            // Intercept click on links / buttons with data-confirm
-            document.addEventListener('click', function(e) {
-                const el = e.target.closest('a[data-confirm], button[data-confirm]:not([type="submit"])');
-                if (!el || el.dataset.tbsConfirmed === 'true') {
-                    if (el) delete el.dataset.tbsConfirmed;
-                    return;
-                }
+                if (!confirmMsg) return;
 
                 e.preventDefault();
+                e.stopPropagation();
                 e.stopImmediatePropagation();
+
+                const parsed = parseConfirmOptions(confirmMsg, confirmSource);
 
                 if (window.tbsConfirm) {
                     window.tbsConfirm({
-                        title: el.dataset.confirmTitle || 'Weet je het zeker?',
-                        message: el.dataset.confirm,
-                        confirmBtn: el.dataset.confirmBtn || 'Ja, doorgaan',
-                        cancelBtn: el.dataset.confirmCancel || 'Annuleren',
-                        type: el.dataset.confirmType || 'danger',
-                        icon: el.dataset.confirmIcon,
+                        title: parsed.title,
+                        message: confirmMsg,
+                        confirmBtn: parsed.btn,
+                        cancelBtn: confirmSource.dataset.confirmCancel || 'Annuleren',
+                        type: parsed.type,
+                        icon: parsed.icon,
                         onConfirm: function() {
-                            el.dataset.tbsConfirmed = 'true';
-                            if (el.tagName === 'A') {
-                                window.location.href = el.href;
+                            form.dataset.tbsConfirmed = 'true';
+                            if (isLegacyOnsubmit) {
+                                form.removeAttribute('onsubmit');
+                                form.submit();
+                                setTimeout(() => form.setAttribute('onsubmit', onsubmitAttr), 150);
                             } else {
-                                el.click();
+                                form.submit();
                             }
                         }
                     });
                 }
             }, true);
-        });
+
+            // 3. Fallback: override window.confirm & window.alert so native browser popups are never used
+            window.confirm = function(msg) {
+                if (window.tbsConfirm) {
+                    const parsed = parseConfirmOptions(msg, null);
+                    window.tbsConfirm({
+                        title: parsed.title,
+                        message: msg,
+                        confirmBtn: parsed.btn,
+                        cancelBtn: 'Annuleren',
+                        type: parsed.type,
+                        icon: parsed.icon
+                    });
+                }
+                return false;
+            };
+
+            window.alert = function(msg) {
+                if (window.tbsAlert) {
+                    window.tbsAlert({ message: msg });
+                }
+            };
+        })();
     </script>
 
     <!-- FLOATING KENNISBANK CHAT ASSISTANT WIDGET (TBS Kliniek Styling) - ALLEEN VOOR INGELOGDE SPELERS -->
