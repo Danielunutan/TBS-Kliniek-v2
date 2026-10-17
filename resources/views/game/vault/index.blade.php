@@ -175,18 +175,18 @@
                 @endif
 
                 <!-- Optional Compact Manual Code Input (for promo codes) -->
-                <details class="group pt-2">
+                <details class="group pt-2" {{ !empty($prefillCode) ? 'open' : '' }}>
                     <summary class="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer flex items-center gap-1.5 list-none select-none">
                         <i class="fa-solid fa-chevron-right text-[10px] group-open:rotate-90 transition-transform"></i>
-                        <span>Heb je een externe / promotie kluiscode? Typ hem hier in</span>
+                        <span>Heb je een externe / voucher kluiscode? Typ hem hier in</span>
                     </summary>
                     <form action="{{ route('vault.redeem') }}" method="POST" class="mt-3 flex gap-2">
                         @csrf
-                        <input type="text" name="code" placeholder="Bijv. PROMO-1234 of KLUIS-X" 
+                        <input type="text" name="code" value="{{ old('code', $prefillCode ?? '') }}" placeholder="Bijv. SPONSOR-1234 of KLUIS-X" 
                                class="flex-1 bg-white border border-slate-300 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
                         <button type="submit" 
-                                class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer">
-                            Kraak
+                                class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer">
+                            Inwisselen
                         </button>
                     </form>
                 </details>

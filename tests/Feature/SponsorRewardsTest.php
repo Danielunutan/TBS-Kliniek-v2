@@ -159,17 +159,18 @@ class SponsorRewardsTest extends TestCase
         $res->assertStatus(200);
         $character->refresh();
         $this->assertFalse($character->isImprisoned());
-        $this->assertTrue($character->getAdDailyData()['prison_released']);
 
-        // Second attempt on the same day fails
+        // Subsequent ad on the same day also succeeds (unlimited per player request)
         $character->update([
             'is_in_prison' => true,
             'prison_until' => now()->addMinutes(30),
         ]);
+        $user->unsetRelation('character');
 
-        $startRes = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'prison']);
-        $startRes->assertStatus(422);
-        $startRes->assertJsonFragment(['success' => false]);
+        $res2 = $this->simulateAdWatch($user, $character, 'prison');
+        $res2->assertStatus(200);
+        $character->refresh();
+        $this->assertFalse($character->isImprisoned());
     }
 
     public function test_daily_xp_reward_requires_three_ads_and_grants_50_xp(): void

@@ -193,6 +193,12 @@
                             </form>
                         @endif
 
+                        <!-- Live Direct Chat -->
+                        <a href="{{ route('chat.index', ['tab' => 'direct', 'recipient' => $profileCharacter->id]) }}" class="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer" title="Start live chat gesprek">
+                            <i class="fa-solid fa-comments"></i>
+                            <span>Live Chat</span>
+                        </a>
+
                         <!-- Send Private Letter (Friends only) -->
                         @if($character->isFriendWith($profileCharacter))
                         <a href="{{ route('messages.index', ['recipient' => $profileCharacter->name]) }}" class="px-3.5 py-2 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-2xs">

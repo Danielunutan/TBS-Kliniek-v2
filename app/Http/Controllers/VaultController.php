@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\VaultCode;
+use App\Services\ChatBotService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -35,7 +36,7 @@ class VaultController extends Controller
         protected PrisonService $prison,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $character = Auth::user()->character;
         $this->energy->refresh($character);
@@ -56,6 +57,13 @@ class VaultController extends Controller
                     'character_id' => $character->id,
                     'is_redeemed' => false,
                 ]);
+
+                app(ChatBotService::class)->sendVaultCode(
+                    $character,
+                    $uniqueCode,
+                    "Level {$lvl} Mijlpaal: {$rew['name']}",
+                    '€'.number_format($rew['cash'], 0, ',', '.')." bankgeld + {$rew['stars']} Sterren ⭐"
+                );
 
                 GameMessage::create([
                     'recipient_id' => $character->id,
@@ -94,6 +102,7 @@ class VaultController extends Controller
             ->get();
 
         $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $prefillCode = $request->query('code', '');
 
         return view('game.vault.index', compact(
             'character',
@@ -104,7 +113,8 @@ class VaultController extends Controller
             'levelRewards',
             'claimedLevels',
             'myCodes',
-            'topRankings'
+            'topRankings',
+            'prefillCode'
         ));
     }
 

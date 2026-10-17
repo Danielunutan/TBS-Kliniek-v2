@@ -58,12 +58,18 @@ class LevelService
         $character->save();
 
         if ($leveledUp) {
+            app(ChatBotService::class)->sendLevelUp($character, $character->level, [
+                '€'.number_format($totalCashReward, 0, ',', '.').' Contant Bonus',
+                '+5 Respect',
+                'Volledige Energie & HP Refill',
+            ]);
+
             GameNotification::create([
                 'character_id' => $character->id,
                 'type' => 'level_up',
                 'icon' => 'fa-trophy',
                 'title' => "Gefeliciteerd! Level {$character->level} bereikt!",
-                'message' => "Je bent gestegen naar Level {$character->level}! Je energie en gezondheid zijn volledig hersteld en je hebt €".number_format($totalCashReward, 0, ',', '.').' bonus + KluisMunten ontvangen.',
+                'message' => "Je bent gestegen naar Level {$character->level}! Je energie en gezondheid zijn volledig hersteld en je hebt €".number_format($totalCashReward, 0, ',', '.').' bonus ontvangen.',
             ]);
 
             GameMessage::create([

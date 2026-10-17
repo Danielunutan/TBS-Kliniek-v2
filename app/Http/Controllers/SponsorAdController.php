@@ -7,6 +7,7 @@ use App\Models\CharacterCooldown;
 use App\Models\GameMessage;
 use App\Models\GameSetting;
 use App\Models\VaultCode;
+use App\Services\ChatBotService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -508,27 +509,34 @@ class SponsorAdController extends Controller
             }
         }
 
-        // Check 10-ad milestone bonus: Dispatch a secret VaultCode to player inbox
+        // Check 10-ad milestone bonus: Dispatch a secret VaultCode to player chat & inbox
         if ($totalAds % 10 === 0) {
             $bonusCode = 'SPONSOR-'.strtoupper(Str::random(6));
             VaultCode::create([
                 'code' => $bonusCode,
-                'reward_cash' => 5000,
-                'reward_stars' => 2,
-                'reward_tokens' => 2,
+                'reward_cash' => 15000,
+                'reward_stars' => 3,
+                'reward_tokens' => 0,
                 'character_id' => $character->id,
                 'is_redeemed' => false,
             ]);
+
+            app(ChatBotService::class)->sendVaultCode(
+                $character,
+                $bonusCode,
+                "{$totalAds} Sponsor Ads Mijlpaal",
+                '€ 15.000 bankgeld en 3 Sterren ⭐'
+            );
 
             GameMessage::create([
                 'recipient_id' => $character->id,
                 'sender_name' => 'TBS Sponsor Directie',
                 'subject' => "🎁 Mijlpaal Bonus: {$totalAds} Advertenties Bekeken!",
-                'content' => "Beste {$character->name},\n\nBedankt voor je trouwe support aan de TBS Kliniek! Omdat je zojuist je {$totalAds}e advertentie hebt bekeken, ontvang je een gratis Geheime Kluiscode voucher:\n\n👉 **{$bonusCode}**\n\nWissel hem direct in op de MedicijnKluis voor €5.000 bankgeld, 2 sterren en 2 kluismunten!\n\nBlijf kijken: bij 250 advertenties ontgrendel je 24 UUR GRATIS VIP!",
+                'content' => "Beste {$character->name},\n\nBedankt voor je trouwe support aan de TBS Kliniek! Omdat je zojuist je {$totalAds}e advertentie hebt bekeken, ontvang je een gratis Geheime Kluiscode voucher:\n\n👉 **{$bonusCode}**\n\nWissel hem direct in op de MedicijnKluis voor €15.000 bankgeld en 3 sterren ⭐!\n\nBlijf kijken: bij 250 advertenties ontgrendel je 24 UUR GRATIS VIP!",
                 'type' => 'reward',
             ]);
 
-            $rewardDetails .= " 🎁 + BONUS: Geheime kluiscode voucher gestuurd naar je inbox ({$bonusCode})!";
+            $rewardDetails .= " 🎁 + BONUS: Geheime kluiscode voucher gestuurd naar je chat en inbox ({$bonusCode})!";
         }
 
         // Check 250-ad VIP milestone

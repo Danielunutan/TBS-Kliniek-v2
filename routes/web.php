@@ -10,6 +10,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\BountyController;
 use App\Http\Controllers\CasinoController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CombatTrainingController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\CooldownController;
@@ -156,6 +157,15 @@ Route::middleware('auth')->group(function (): void {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Live Openbare Chat & Privé Messenger (Nieuw)
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/openbaar/berichten', [ChatController::class, 'publicMessages'])->name('chat.public.messages');
+    Route::post('/chat/openbaar/verzenden', [ChatController::class, 'sendPublic'])->name('chat.public.send');
+    Route::get('/chat/gesprekken', [ChatController::class, 'conversations'])->name('chat.conversations');
+    Route::get('/chat/prive/{partnerId}', [ChatController::class, 'directMessages'])->name('chat.direct.messages');
+    Route::post('/chat/prive/{partnerId}/verzenden', [ChatController::class, 'sendDirect'])->name('chat.direct.send');
+    Route::get('/chat/ongelezen-teller', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
 
     // Berichten (Messages & Post)
     Route::get('/berichten', [MessageController::class, 'index'])->name('messages.index');
