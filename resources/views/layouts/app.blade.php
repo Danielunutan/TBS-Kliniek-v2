@@ -1468,6 +1468,11 @@
                         <span>Instagram</span>
                     </a>
 
+                    <a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-[#FF0000] hover:bg-[#cc0000] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS-Kliniek op YouTube (@tbsklinieknl)">
+                        <i class="fa-brands fa-youtube text-sm"></i>
+                        <span>YouTube</span>
+                    </a>
+
                     <a href="https://x.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98] border border-white/10" title="Twitter / X @tbskliniek">
                         <i class="fa-brands fa-x-twitter text-sm"></i>
                         <span>Twitter</span>
@@ -1705,6 +1710,9 @@
                             <li><a href="{{ route('settings.account') }}" class="hover:text-purple-600 transition">Account & Beveiliging</a></li>
                             <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5">
                                 <i class="fa-brands fa-discord text-indigo-500"></i> Officiële Discord
+                            </a></li>
+                            <li><a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-red-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                                <i class="fa-brands fa-youtube text-red-600 text-xs"></i> YouTube @tbsklinieknl
                             </a></li>
                             <li><a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-brands fa-tiktok text-slate-900 dark:text-white text-xs"></i> TikTok @tbsklinieknl
