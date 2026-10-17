@@ -392,19 +392,6 @@
         </div>
     </div>
 
-    <!-- Sponsor Ads Status Banner -->
-    <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-2xl p-5 shadow-xs flex items-center gap-3.5 text-xs text-purple-900 dark:text-purple-200">
-        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
-            <i class="fa-solid fa-circle-check"></i>
-        </div>
-        <div class="space-y-0.5">
-            <h4 class="font-extrabold text-purple-950 dark:text-purple-100 text-sm">Robins Ads Beloningen Actief</h4>
-            <p class="text-purple-800 dark:text-purple-300 leading-relaxed">
-                De beloningen zijn gekoppeld aan het officiële Robins Ads advertentienetwerk. Bekijk de sponsor in de popup en claim direct jouw zakgeld, sterren, maskers of strafvermindering!
-            </p>
-        </div>
-    </div>
-
     <!-- Extra Information Banner: 10-ad bonus code vouchers -->
     <div class="bg-indigo-50/70 dark:bg-slate-900 border border-indigo-200 dark:border-indigo-900/60 rounded-2xl p-5 flex items-start gap-3.5 text-xs text-indigo-900 dark:text-indigo-200">
         <div class="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center text-base shrink-0 font-bold">
@@ -413,7 +400,7 @@
         <div class="space-y-1">
             <h4 class="font-extrabold text-indigo-950 dark:text-indigo-100 text-sm">Elke 10 Ads: Exclusieve Geheime Kluiscode Voucher in je Inbox!</h4>
             <p class="text-indigo-800 dark:text-indigo-300 leading-relaxed">
-                Als extra beloning ontvang je bij elke 10 bekeken advertenties automatisch een unieke kluiscode voucher in je in-game berichtenbox. Wissel deze code in op de MedicijnKluis voor <strong>€ 5.000 bankgeld, 2 Sterren ⭐ en 2 Kluismunten</strong>!
+                Als extra beloning ontvang je bij elke 10 bekeken advertenties automatisch een unieke kluiscode voucher in je in-game berichtenbox. Wissel deze code in op de MedicijnKluis voor <strong>€ 15.000 bankgeld en 3 Sterren ⭐</strong>!
             </p>
         </div>
     </div>
