@@ -132,6 +132,7 @@ class Character extends Model
         'ads_watched_total' => 'integer',
         'ad_mask_progress' => 'integer',
         'ad_vault_progress' => 'integer',
+        'ad_lottery_progress' => 'integer',
         'ad_daily_data' => 'array',
         'perks' => 'array',
         'last_ad_watched_at' => 'datetime',

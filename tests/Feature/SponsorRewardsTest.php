@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\LotteryRound;
+use App\Models\LotteryTicket;
 use App\Models\User;
 use App\Models\VaultCode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -276,5 +278,61 @@ class SponsorRewardsTest extends TestCase
         $response->assertSee('+50 XP Boost');
         $response->assertSee('Direct Vrijkomen');
         $response->assertDontSee('+1 Kluismunt');
+        $response->assertSee('14-Daagse Loterij Ticket');
+        $response->assertSee('15 Ads per Lot');
+    }
+
+    public function test_lottery_ticket_reward_requires_fifteen_ads_and_grants_ticket(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $round = LotteryRound::current();
+        $initialJackpot = $round->jackpot;
+        $initialTicketsCount = LotteryTicket::where('character_id', $character->id)->count();
+
+        $this->assertEquals(0, $character->ad_lottery_progress);
+
+        // Watch 14 ads: progress advances, no ticket created yet
+        for ($i = 1; $i <= 14; $i++) {
+            $res = $this->simulateAdWatch($user, $character, 'lottery_ticket');
+            $res->assertStatus(200);
+            $res->assertJson(['success' => true]);
+            $character->refresh();
+            $this->assertEquals($i, $character->ad_lottery_progress);
+            $this->assertEquals($initialTicketsCount, LotteryTicket::where('character_id', $character->id)->count());
+        }
+
+        // 15th ad: grants ticket, resets progress to 0, boosts round jackpot & tickets sold
+        $res15 = $this->simulateAdWatch($user, $character, 'lottery_ticket');
+        $res15->assertStatus(200);
+        $res15->assertJson(['success' => true]);
+
+        $character->refresh();
+        $round->refresh();
+
+        $this->assertEquals(0, $character->ad_lottery_progress);
+        $this->assertEquals($initialTicketsCount + 1, LotteryTicket::where('character_id', $character->id)->count());
+        $this->assertEquals($initialJackpot + 8000, $round->jackpot);
+
+        $newTicket = LotteryTicket::where('character_id', $character->id)->latest('id')->first();
+        $this->assertNotNull($newTicket);
+        $this->assertEquals('ads', $newTicket->currency);
+        $this->assertEquals(15, $newTicket->price_paid);
+        $this->assertStringStartsWith('ADS-', $newTicket->ticket_number);
+
+        // Can immediately start watching again (unlimited!)
+        $startRes = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'lottery_ticket']);
+        $startRes->assertStatus(200);
+    }
+
+    public function test_lottery_index_shows_free_ads_tab_and_progress(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $character->update(['ad_lottery_progress' => 7]);
+
+        $response = $this->actingAs($user)->get(route('lottery.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Gratis Loten via Sponsor Advertenties (15 Ads = 1 Lot)');
+        $response->assertSee('7 / 15 Ads Bekeken');
+        $response->assertSee('Onbeperkt Herhaalbaar');
     }
 }

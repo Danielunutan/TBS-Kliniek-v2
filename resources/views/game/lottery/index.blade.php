@@ -178,6 +178,54 @@
                     </button>
                 </form>
             </div>
+
+            <!-- TAB 3: Gratis Loten via Sponsor Advertenties (15 Ads = 1 Lot) -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-purple-500/10 via-indigo-500/5 to-transparent border-2 border-purple-300 dark:border-purple-700/60 space-y-3 relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs font-bold shadow-2xs">
+                            <i class="fa-solid fa-rectangle-ad"></i>
+                        </span>
+                        <div>
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                <span>Gratis Loterij Ticket</span>
+                                <span class="px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase">Onbeperkt Herhaalbaar</span>
+                            </h3>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold text-purple-700 dark:text-purple-300">15 Ads = 1 Gratis Lot</span>
+                </div>
+
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Bekijk 15 korte sponsor video's (15 sec) en ontvang direct een officieel Loterij Ticket voor de 14-daagse trekking. Je mag dit zo vaak herhalen als je wilt!
+                </p>
+
+                <!-- Progress Bar -->
+                <div class="space-y-1.5 pt-1">
+                    <div class="flex items-center justify-between text-xs font-extrabold">
+                        <span class="text-slate-500 dark:text-slate-400">Jouw Voortgang:</span>
+                        <span class="text-purple-600 dark:text-purple-400 font-mono">
+                            {{ $character->ad_lottery_progress ?? 0 }} / 15 Ads Bekeken
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden p-0.5 border border-slate-300 dark:border-slate-600">
+                        <div class="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full transition-all duration-300 shadow-xs" 
+                             style="width: {{ min(100, max(2, (($character->ad_lottery_progress ?? 0) / 15) * 100)) }}%;"></div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="button" 
+                            onclick="if(window.tbsOpenSponsorAd) { window.tbsOpenSponsorAd('lottery_ticket', () => window.location.reload()); } else { window.location.href = '{{ route('sponsor.index') }}'; }" 
+                            class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-purple-900/20 flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Kijk Sponsor Ad (+1/15) &raquo;</span>
+                        @if(($character->ad_lottery_progress ?? 0) >= 14)
+                            <span class="ml-1 px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 text-[10px] font-black animate-pulse">Claim Lot!</span>
+                        @endif
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Right: My Active Tickets & Win Chance (5 Cols) -->
@@ -214,8 +262,8 @@
                             <i class="fa-solid fa-ticket text-purple-500 text-[10px]"></i>
                             <span>{{ $ticket->ticket_number }}</span>
                         </span>
-                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full {{ $ticket->currency === 'stars' ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300' }}">
-                            {{ $ticket->currency }}
+                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full {{ $ticket->currency === 'stars' ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300' : ($ticket->currency === 'ads' ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300') }}">
+                            {{ $ticket->currency === 'stars' ? '★ VIP' : ($ticket->currency === 'ads' ? '📺 GRATIS AD' : '€ CASH') }}
                         </span>
                     </div>
                 @empty

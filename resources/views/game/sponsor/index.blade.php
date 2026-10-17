@@ -271,7 +271,7 @@
             <i class="fa-solid fa-infinity text-purple-600 dark:text-purple-400"></i> Doorlopende Beloningen:
         </h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
 
             <!-- Card 1: Respect +1 🔥 -->
             <div class="bg-white dark:bg-slate-900 border border-orange-200 dark:border-orange-800/60 hover:border-orange-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
@@ -296,7 +296,42 @@
                 </div>
             </div>
 
-            <!-- Card 2: Masker +1 (3 Ads vereist) -->
+            <!-- Card 2: 14-Daagse Loterij Ticket (15 Ads vereist) -->
+            <div class="bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/60 hover:border-amber-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-ticket"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded font-extrabold">15 Ads per Lot • Onbeperkt</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition">14-Daagse Loterij Ticket</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Bekijk 15 sponsor ads en ontvang direct 1 gratis lot voor de actieve 14-daagse loterijtrekking met gigantische jackpot!
+                    </p>
+
+                    <!-- Voortgangsbalk (0/15 t/m 14/15) -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-amber-600 dark:text-amber-400 font-extrabold">{{ $character->ad_lottery_progress ?? 0 }} / 15 Ads</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-gradient-to-r from-amber-500 to-yellow-500 h-full rounded-full transition-all duration-300" 
+                                 style="width: {{ min(100, (($character->ad_lottery_progress ?? 0) / 15) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('lottery_ticket')" 
+                            class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-ticket text-xs"></i>
+                        <span>Kijk Ad voor Lot ({{ ($character->ad_lottery_progress ?? 0) + 1 }}/15{{ ($character->ad_lottery_progress ?? 0) === 14 ? ' - Claim Lot!' : '' }})</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 3: Masker +1 (3 Ads vereist) -->
             <div class="bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800/60 hover:border-purple-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
@@ -331,7 +366,7 @@
                 </div>
             </div>
 
-            <!-- Card 3: Geheime Kluiscode Voucher (3 Ads vereist) -->
+            <!-- Card 4: Geheime Kluiscode Voucher (3 Ads vereist) -->
             <div class="bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800/60 hover:border-indigo-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
@@ -366,7 +401,7 @@
                 </div>
             </div>
 
-            <!-- Card 4: Cash €2.500 -->
+            <!-- Card 5: Cash €2.500 -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">

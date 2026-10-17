@@ -2429,6 +2429,9 @@
                 } else if (rewardType === 'daily_stars') {
                     this.rewardTitle = '5 Sterren ⭐ (Dagelijks - 2 Ads)';
                     this.rewardIcon = 'fa-star';
+                } else if (rewardType === 'lottery_ticket') {
+                    this.rewardTitle = 'Gratis Loterij Ticket (15 Ads)';
+                    this.rewardIcon = 'fa-ticket';
                 } else if (rewardType === 'star') {
                     this.rewardTitle = '+1 Gratis Ster ⭐';
                     this.rewardIcon = 'fa-star';

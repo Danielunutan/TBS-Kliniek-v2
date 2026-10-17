@@ -6,6 +6,8 @@ use App\Models\Character;
 use App\Models\CharacterCooldown;
 use App\Models\GameMessage;
 use App\Models\GameSetting;
+use App\Models\LotteryRound;
+use App\Models\LotteryTicket;
 use App\Models\VaultCode;
 use App\Services\ChatBotService;
 use App\Services\EconomyService;
@@ -97,7 +99,7 @@ class SponsorAdController extends Controller
         }
 
         $rewardType = $request->input('reward_type', 'cash');
-        $validTypes = ['cash', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars'];
+        $validTypes = ['cash', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars', 'lottery_ticket'];
         $isSpecificCooldown = is_string($rewardType) && str_starts_with($rewardType, 'cooldown:');
         if (! in_array($rewardType, $validTypes, true) && ! $isSpecificCooldown) {
             $rewardType = 'cash';
@@ -463,6 +465,33 @@ class SponsorAdController extends Controller
                         $character->ad_mask_progress = $currentProgress;
                         $left = 3 - $currentProgress;
                         $rewardDetails = "🎭 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw gratis Masker.';
+                    }
+                    break;
+
+                case 'lottery_ticket':
+                    $currentProgress = ($character->ad_lottery_progress ?? 0) + 1;
+                    if ($currentProgress >= 15) {
+                        $character->ad_lottery_progress = 0;
+
+                        $round = LotteryRound::current();
+                        $round->increment('total_tickets_sold', 1);
+                        $round->increment('jackpot', 8000);
+
+                        $ticketNumber = 'ADS-'.str_pad((string) rand(10000, 99999), 5, '0', STR_PAD_LEFT);
+
+                        LotteryTicket::create([
+                            'lottery_round_id' => $round->id,
+                            'character_id' => $character->id,
+                            'ticket_number' => $ticketNumber,
+                            'currency' => 'ads',
+                            'price_paid' => 15,
+                        ]);
+
+                        $rewardDetails = "🎟️ [15/15 Ads] GEFELICITEERD: +1 Loterij Ticket ontvangen ({$ticketNumber}) voor de 14-daagse trekking! Je maakt nu kans op de jackpot!";
+                    } else {
+                        $character->ad_lottery_progress = $currentProgress;
+                        $left = 15 - $currentProgress;
+                        $rewardDetails = "🎟️ [{$currentProgress}/15 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor een gratis Loterij Ticket.';
                     }
                     break;
 
