@@ -1698,37 +1698,40 @@
                     }
                  }" 
                  x-show="sec > 0"
-                 class="mb-6 bg-white border border-rose-200/90 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3.5 w-full sm:w-auto">
-                    <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-lg shrink-0">
+                 class="mb-6 bg-white dark:bg-slate-900 border-2 border-rose-400 dark:border-rose-600/80 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 relative z-20">
+                <div class="flex items-center gap-3.5 w-full md:w-auto">
+                    <div class="w-11 h-11 rounded-xl bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-700 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0 shadow-xs">
                         <i class="fa-solid fa-lock"></i>
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-black text-rose-700 uppercase tracking-wide flex items-center gap-1.5">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-black text-rose-700 dark:text-rose-400 uppercase tracking-wide flex items-center gap-1.5">
                                 <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
                                 Vast in de isoleercel
                             </span>
-                            <span class="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-mono font-extrabold" x-text="formatTime(sec)">
+                            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-xs font-mono font-black border border-rose-300 dark:border-rose-800" x-text="formatTime(sec)">
                                 {{ gmdate('i:s', $character->remainingPrisonSeconds()) }}
                             </span>
                         </div>
-                        <p class="text-xs text-slate-600 mt-1 font-medium">
-                            Resterende straftijd: <strong class="text-slate-900 font-mono" x-text="formatTime(sec) + ' (' + sec + 's)'">{{ gmdate('i:s', $character->remainingPrisonSeconds()) }} ({{ $character->remainingPrisonSeconds() }}s)</strong>.
-                            Reden: <span class="text-rose-700 font-semibold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
+                            Resterende straftijd: <strong class="text-slate-900 dark:text-white font-mono" x-text="formatTime(sec) + ' (' + sec + 's)'">{{ gmdate('i:s', $character->remainingPrisonSeconds()) }} ({{ $character->remainingPrisonSeconds() }}s)</strong>.
+                            Reden: <span class="text-rose-700 dark:text-rose-400 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
                         </p>
                     </div>
+                </div>
+                <div class="flex items-center gap-2 w-full md:w-auto justify-end shrink-0">
                     <button type="button" 
                             onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                            class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                            class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-tv text-white text-[11px]"></i>
                         <span>Kijk Ad (Direct Vrij)</span>
                     </button>
-                    <a href="{{ route('prison') }}" class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5">
+                    <a href="{{ route('prison') }}" class="flex-1 md:flex-initial px-3.5 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-building-shield"></i>
                         <span>Gevangenis</span>
                     </a>
                 </div>
+            </div>
             @endif
 
             <!-- Flash messages -->
