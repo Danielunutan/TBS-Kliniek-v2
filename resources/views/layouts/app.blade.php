@@ -1548,7 +1548,6 @@
                         <span>Gevangenis</span>
                     </a>
                 </div>
-            </div>
             @endif
 
             <!-- Flash messages -->
@@ -1703,25 +1702,25 @@
         </footer>
 
         @if(isset($character))
-        <!-- MOBILE BOTTOM DOCK NAV -->
-        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 z-50 flex items-center justify-around py-2.5 px-3 shadow-lg">
-            <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('dashboard') ? 'text-indigo-600' : 'text-slate-400' }}">
+        <!-- MOBILE BOTTOM DOCK NAV (Native Mobile/Tablet Navigation) -->
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-purple-900/50 z-30 flex items-center justify-around py-2 px-3 shadow-lg select-none">
+            <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
                 <i class="fa-solid fa-house text-base"></i>
                 <span>Home</span>
             </a>
-            <a href="{{ route('hustle.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('hustle.*') ? 'text-indigo-600' : 'text-slate-400' }}">
+            <a href="{{ route('hustle.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('hustle.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
                 <i class="fa-solid fa-hand-holding-dollar text-base"></i>
                 <span>Hosselen</span>
             </a>
-            <a href="{{ route('fight.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('fight.*') ? 'text-indigo-600' : 'text-slate-400' }}">
+            <a href="{{ route('fight.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('fight.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
                 <i class="fa-solid fa-hand-fist text-base"></i>
                 <span>Luchtplaats</span>
             </a>
-            <a href="{{ route('gangs.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('gangs.*') ? 'text-indigo-600' : 'text-slate-400' }}">
+            <a href="{{ route('gangs.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
                 <i class="fa-solid fa-users text-base"></i>
                 <span>Bendes</span>
             </a>
-            <a href="{{ route('profile.me') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('profile.*') ? 'text-indigo-600' : 'text-slate-400' }}">
+            <a href="{{ route('profile.me') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('profile.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
                 <i class="fa-solid fa-user text-base"></i>
                 <span>Profiel</span>
             </a>
@@ -2092,7 +2091,7 @@
             }
         })();
     </script>
-    <div x-data="tbsHelpbot" class="hidden md:block fixed bottom-5 right-5 z-50">
+    <div x-data="tbsHelpbot" class="hidden md:block fixed bottom-20 right-4 lg:bottom-5 lg:right-5 z-40">
 
         <!-- CHAT WINDOW POPUP (Website Style: Clean Light Card with Royal Purple Accents) -->
         <div x-show="isOpen" x-cloak style="display: none;"
@@ -2102,7 +2101,7 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
              x-transition:leave-end="opacity-0 translate-y-6 scale-95"
-             class="fixed bottom-20 right-5 w-[90vw] sm:w-96 max-h-[520px] bg-white border border-slate-200/90 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 z-50">
+             class="fixed bottom-36 right-4 lg:bottom-20 lg:right-5 w-[90vw] sm:w-96 max-h-[520px] bg-white dark:bg-[#110726] border border-slate-200/90 dark:border-purple-900/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 z-50">
             
             <!-- Header -->
             <div class="bg-purple-700 p-3.5 border-b border-purple-800 flex items-center justify-between text-white shadow-xs">
@@ -2210,41 +2209,6 @@
         </button>
     </div>
     @endauth
-
-    @if(isset($character) && $character)
-    <!-- MOBILE BOTTOM NAVIGATION DOCK (Native App Feel) -->
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] px-2 py-1.5 flex items-center justify-around select-none">
-        <!-- 1. Dashboard -->
-        <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('dashboard') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
-            <i class="fa-solid fa-house text-base"></i>
-            <span class="text-[10px] mt-0.5">Home</span>
-        </a>
-
-        <!-- 2. Missies -->
-        <a href="{{ route('missions.index') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('missions.*') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
-            <i class="fa-solid fa-list-check text-base"></i>
-            <span class="text-[10px] mt-0.5">Missies</span>
-        </a>
-
-        <!-- 3. Luchtplaats / Vechten -->
-        <a href="{{ route('fight.index') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('fight.*') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
-            <i class="fa-solid fa-hand-fist text-base"></i>
-            <span class="text-[10px] mt-0.5">Vechten</span>
-        </a>
-
-        <!-- 4. Bank -->
-        <a href="{{ route('bank.index') }}" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition {{ request()->routeIs('bank.*') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-800 font-semibold' }}">
-            <i class="fa-solid fa-building-columns text-base"></i>
-            <span class="text-[10px] mt-0.5">Bank</span>
-        </a>
-
-        <!-- 5. Menu -->
-        <button type="button" @click="mobileMenuOpen = true" class="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-800 font-semibold transition cursor-pointer">
-            <i class="fa-solid fa-bars text-base"></i>
-            <span class="text-[10px] mt-0.5">Menu</span>
-        </button>
-    </nav>
-    @endif
     <!-- GLOBAL REWARDED SPONSOR AD WATCH MODAL (Adsterra Smartlink & Anti-abuse Validation) -->
     <div x-data="{
         isOpen: false,
