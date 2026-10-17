@@ -2224,8 +2224,11 @@
         </button>
     </div>
     @endauth
+
     <!-- GLOBAL REWARDED SPONSOR AD WATCH MODAL (Adsterra Smartlink & Anti-abuse Validation) -->
-    <div x-data="{
+    <script>
+    function tbsSponsorAdModal() {
+        return {
         isOpen: false,
         isStarting: false,
         rewardType: 'cash',
@@ -2448,10 +2451,14 @@
             this.isOpen = false;
             this.isStarting = false;
         }
-    }"
-    x-show="isOpen"
-    x-cloak
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs select-none">
+    };
+}
+</script>
+
+<div x-data="tbsSponsorAdModal()"
+     x-show="isOpen"
+     x-cloak
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs select-none">
         
         <div @click.away="if(status !== 'watching_interstitial' && status !== 'watching_inscreen') closeModal()"
              :class="(popupUrl && (status === 'watching_inscreen' || status === 'ready_to_claim')) ? 'max-w-xl' : 'max-w-md'"
