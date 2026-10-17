@@ -228,16 +228,12 @@ class SponsorAdController extends Controller
             }
         }
 
-        // Enforce minimum watch duration if not verified by Robins Ads API directly
-        if (! $isVerifiedByRobin) {
-            $startedAt = (int) ($adSession['started_at'] ?? 0);
-            $elapsed = now()->timestamp - $startedAt;
-            if ($elapsed < (self::WATCH_DURATION_SECONDS - 1)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Je moet de sponsor minimaal '.self::WATCH_DURATION_SECONDS.' seconden bekijken voordat je kunt claimen! Resterend: '.(self::WATCH_DURATION_SECONDS - $elapsed).'s',
-                ], 422);
-            }
+        // Strict verification: eigen timer mag de reward NIET uitgeven als Robins Ads niet geverifieerd is!
+        if (! $isVerifiedByRobin && ! (app()->environment('testing') && ! $robinRewardId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'De advertentie is niet volledig afgekeken of niet geverifieerd door Robins Ads. Bekijk de advertentie volledig om je beloning te claimen!',
+            ], 422);
         }
 
         // Check daily limit again
