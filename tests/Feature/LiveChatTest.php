@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\Report;
 use App\Models\User;
 use App\Services\ChatBotService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -182,15 +183,113 @@ class LiveChatTest extends TestCase
         $vaultResponse->assertSee('TEST-VAULT-777');
     }
 
-    public function test_player_cannot_send_direct_message_to_bot(): void
+    public function test_player_can_search_other_players_for_chat(): void
     {
-        [$user, $character] = $this->createInmate();
+        [$user, $character] = $this->createInmate(['name' => 'SearcherBob']);
+        $this->createInmate(['name' => 'DraculaVampire']);
+        $this->createInmate(['name' => 'ScarfaceTony']);
 
-        $response = $this->actingAs($user)->postJson(route('chat.direct.send', 0), [
-            'message' => 'Hallo directie!',
+        $response = $this->actingAs($user)->getJson(route('chat.search-players', ['q' => 'Dracula']));
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'players');
+        $response->assertJsonFragment(['name' => 'DraculaVampire']);
+    }
+
+    public function test_public_messages_include_respect_avatar_and_staff_badges(): void
+    {
+        $ownerUser = User::factory()->create(['role' => 'owner']);
+        $ownerChar = Character::create([
+            'user_id' => $ownerUser->id,
+            'name' => 'DirecteurMax',
+            'cash' => 1000,
+            'bank' => 5000,
+            'stars' => 50,
+            'level' => 10,
+            'xp' => 1000,
+            'health' => 100,
+            'max_health' => 100,
+            'energy' => 100,
+            'max_energy' => 100,
+            'respect' => 777,
         ]);
 
-        $response->assertStatus(422);
-        $response->assertJsonFragment(['message' => 'Je kunt niet antwoorden op officiële berichten van de Kliniek Directie.']);
+        $this->actingAs($ownerUser)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Orde op het plein a.u.b.!',
+        ])->assertOk();
+
+        $fetchResponse = $this->actingAs($ownerUser)->getJson(route('chat.public.messages', ['channel' => 'global']));
+        $fetchResponse->assertOk();
+        $fetchResponse->assertJsonFragment([
+            'name' => 'DirecteurMax',
+            'respect' => 777,
+            'is_owner' => true,
+            'staff_role' => 'Eigenaar',
+        ]);
+    }
+
+    public function test_player_can_report_inmate_and_chat_message(): void
+    {
+        [$reporterUser, $reporterChar] = $this->createInmate(['name' => 'GoodCitizen']);
+        [$badGuyUser, $badGuyChar] = $this->createInmate(['name' => 'BadInmate']);
+
+        $reportCharResponse = $this->actingAs($reporterUser)->postJson(route('report.store'), [
+            'reported_type' => 'character',
+            'reported_id' => $badGuyChar->id,
+            'reason' => 'harassment',
+            'details' => 'Deze speler scheldt iedereen uit.',
+        ]);
+
+        $reportCharResponse->assertOk();
+        $reportCharResponse->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('reports', [
+            'reporter_id' => $reporterChar->id,
+            'reported_type' => 'character',
+            'reported_id' => $badGuyChar->id,
+            'reported_name' => 'BadInmate',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_moderator_can_resolve_report(): void
+    {
+        $modUser = User::factory()->create(['role' => 'moderator']);
+        $modChar = Character::create([
+            'user_id' => $modUser->id,
+            'name' => 'ZaalwachtBram',
+            'cash' => 1000,
+            'bank' => 5000,
+            'stars' => 50,
+            'level' => 5,
+            'xp' => 500,
+            'health' => 100,
+            'max_health' => 100,
+            'energy' => 100,
+            'max_energy' => 100,
+            'respect' => 50,
+        ]);
+
+        [$victimUser, $victimChar] = $this->createInmate(['name' => 'Slachtoffer']);
+
+        $report = Report::create([
+            'reporter_id' => $victimChar->id,
+            'reported_type' => 'character',
+            'reported_id' => 999,
+            'reported_name' => 'TrollPlayer',
+            'reason' => 'cheating',
+            'details' => 'Gebruikt macros of speedhacks',
+            'status' => 'pending',
+        ]);
+
+        $resolveResponse = $this->actingAs($modUser)->post(route('admin.moderation.report.resolve', $report));
+        $resolveResponse->assertRedirect();
+
+        $this->assertDatabaseHas('reports', [
+            'id' => $report->id,
+            'status' => 'resolved',
+            'handled_by' => $modChar->id,
+        ]);
     }
 }

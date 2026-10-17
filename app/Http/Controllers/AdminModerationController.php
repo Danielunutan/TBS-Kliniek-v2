@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
 use App\Models\User;
 use App\Models\UserWarning;
 use Carbon\Carbon;
@@ -13,7 +14,7 @@ use Illuminate\View\View;
 class AdminModerationController extends Controller
 {
     /**
-     * Show moderation overview with active bans and recent warnings.
+     * Show moderation overview with active bans, recent warnings, and incoming reports.
      */
     public function index(Request $request): View
     {
@@ -24,6 +25,9 @@ class AdminModerationController extends Controller
             ->latest('banned_at');
 
         $warningsQuery = UserWarning::with(['user.character', 'issuer'])
+            ->latest();
+
+        $reportsQuery = Report::with(['reporter', 'handler'])
             ->latest();
 
         if ($search) {
@@ -45,21 +49,36 @@ class AdminModerationController extends Controller
                             });
                     });
             });
+
+            $reportsQuery->where(function ($q) use ($search) {
+                $q->where('reported_name', 'like', "%{$search}%")
+                    ->orWhere('reason', 'like', "%{$search}%")
+                    ->orWhere('details', 'like', "%{$search}%")
+                    ->orWhereHas('reporter', function ($rq) use ($search) {
+                        $rq->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
 
         $activeBans = $activeBansQuery->paginate(10, ['*'], 'bans_page')->withQueryString();
         $recentWarnings = $warningsQuery->paginate(15, ['*'], 'warnings_page')->withQueryString();
+        $reports = $reportsQuery->paginate(15, ['*'], 'reports_page')->withQueryString();
 
         $totalBannedCount = User::where('is_banned', true)->count();
         $totalWarningsCount = UserWarning::count();
         $unackedWarningsCount = UserWarning::whereNull('acknowledged_at')->count();
+        $pendingReportsCount = Report::where('status', 'pending')->count();
+        $totalReportsCount = Report::count();
 
         return view('admin.moderation', compact(
             'activeBans',
             'recentWarnings',
+            'reports',
             'totalBannedCount',
             'totalWarningsCount',
             'unackedWarningsCount',
+            'pendingReportsCount',
+            'totalReportsCount',
             'search'
         ));
     }
@@ -159,5 +178,45 @@ class AdminModerationController extends Controller
         $warning->delete();
 
         return back()->with('success', 'Waarschuwing is verwijderd uit het dossier.');
+    }
+
+    /**
+     * Mark a user report as resolved.
+     */
+    public function resolveReport(Request $request, Report $report): RedirectResponse
+    {
+        $report->update([
+            'status' => 'resolved',
+            'handled_by' => Auth::id(),
+            'handled_at' => now(),
+            'mod_notes' => $request->input('notes'),
+        ]);
+
+        return back()->with('success', 'Melding gemarkeerd als opgelost / afgehandeld.');
+    }
+
+    /**
+     * Dismiss a user report as invalid or rejected.
+     */
+    public function dismissReport(Request $request, Report $report): RedirectResponse
+    {
+        $report->update([
+            'status' => 'dismissed',
+            'handled_by' => Auth::id(),
+            'handled_at' => now(),
+            'mod_notes' => $request->input('notes', 'Verworpen door moderatie.'),
+        ]);
+
+        return back()->with('info', 'Melding is verworpen en gearchiveerd.');
+    }
+
+    /**
+     * Delete a report completely.
+     */
+    public function deleteReport(Report $report): RedirectResponse
+    {
+        $report->delete();
+
+        return back()->with('success', 'Melding definitief verwijderd.');
     }
 }

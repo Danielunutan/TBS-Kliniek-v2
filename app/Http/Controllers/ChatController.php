@@ -92,14 +92,26 @@ class ChatController extends Controller
             $user = $char?->user;
             $gang = $char?->gang;
 
+            $isOwner = (bool) ($user?->isOwner());
+            $isAdmin = (bool) ($user?->isAdmin());
+            $isMod = (bool) ($user?->isModerator() || $user?->canModerate());
+
+            $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
+            $staffBadgeColor = $isOwner ? 'amber' : ($isAdmin ? 'purple' : ($isMod ? 'blue' : null));
+
             return [
                 'id' => $msg->id,
                 'character_id' => $msg->character_id,
                 'name' => $char?->name ?? 'Onbekende Inmate',
-                'avatar' => $char?->avatar ?? 'avatar-1.png',
+                'avatar' => $char?->avatar_url ?? asset('characters/avatar-default.png'),
                 'level' => $char?->level ?? 1,
-                'is_staff' => (bool) ($user?->is_admin || $user?->is_moderator),
-                'staff_role' => $user?->is_admin ? 'Directeur' : ($user?->is_moderator ? 'Bewaker' : null),
+                'respect' => $char?->respect ?? 0,
+                'is_owner' => $isOwner,
+                'is_admin' => $isAdmin,
+                'is_moderator' => $isMod,
+                'is_staff' => (bool) ($user?->isStaff() || $isMod),
+                'staff_role' => $staffRole,
+                'staff_badge_color' => $staffBadgeColor,
                 'gang_tag' => $gang?->tag ?? null,
                 'gang_color' => $gang?->color ?? 'purple',
                 'message' => $msg->message,
@@ -455,5 +467,57 @@ class ChatController extends Controller
             ->count();
 
         return response()->json(['unread' => $count]);
+    }
+
+    /**
+     * Search players dynamically to quickly start a new private chat.
+     */
+    public function searchPlayers(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false, 'players' => []], 403);
+        }
+
+        $query = trim((string) $request->query('q', ''));
+        if (mb_strlen($query) < 2) {
+            return response()->json(['success' => true, 'players' => []]);
+        }
+
+        $players = Character::with(['gang', 'user'])
+            ->where('id', '!=', $character->id)
+            ->where('name', 'like', "%{$query}%")
+            ->orderBy('level', 'desc')
+            ->take(12)
+            ->get();
+
+        $formatted = $players->map(function (Character $p) {
+            $user = $p->user;
+            $isOwner = (bool) ($user?->isOwner());
+            $isAdmin = (bool) ($user?->isAdmin());
+            $isMod = (bool) ($user?->isModerator() || $user?->canModerate());
+            $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
+
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'avatar' => $p->avatar_url,
+                'level' => $p->level,
+                'respect' => $p->respect,
+                'is_online' => $p->isOnline(),
+                'is_staff' => (bool) ($user?->isStaff() || $isMod),
+                'staff_role' => $staffRole,
+                'gang_tag' => $p->gang?->tag,
+                'gang_color' => $p->gang?->color ?? 'purple',
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'players' => $formatted,
+        ]);
     }
 }

@@ -255,6 +255,15 @@
                                 </button>
                             </form>
                         </div>
+
+                        <!-- Report Profile Button -->
+                        <button type="button" 
+                                @click="window.tbsOpenReportModal({ type: 'character', id: {{ $profileCharacter->id }}, name: '{{ addslashes($profileCharacter->name) }}' })"
+                                class="px-3.5 py-2 text-xs font-bold bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600 rounded-xl border border-slate-200 hover:border-rose-300 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                title="Rapporteer deze speler bij de moderatie">
+                            <i class="fa-solid fa-flag text-rose-500"></i>
+                            <span>Rapporteer</span>
+                        </button>
                     </div>
                     @endif
                 </div>

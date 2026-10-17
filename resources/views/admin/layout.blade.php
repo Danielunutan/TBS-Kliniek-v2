@@ -80,11 +80,11 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.moderation.*') ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-gavel text-rose-500 {{ request()->routeIs('admin.moderation.*') ? 'text-white' : '' }}"></i> Moderatie & Sancties
                 @php
-                    $bannedCountBadge = \App\Models\User::where('is_banned', true)->count();
+                    $pendingReportsBadge = \App\Models\Report::where('status', 'pending')->count();
                 @endphp
-                @if($bannedCountBadge > 0)
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.moderation.*') ? 'bg-white text-rose-700' : 'bg-rose-500 text-white' }}">
-                    {{ $bannedCountBadge }}
+                @if($pendingReportsBadge > 0)
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.moderation.*') ? 'bg-white text-rose-700' : 'bg-rose-500 text-white animate-pulse' }}">
+                    {{ $pendingReportsBadge }} nieuw
                 </span>
                 @endif
             </a>

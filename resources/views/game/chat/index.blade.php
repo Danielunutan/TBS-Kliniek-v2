@@ -153,7 +153,53 @@
 
                 <!-- 2. DIRECT CONVERSATIONS (WHEN TAB IS DIRECT) -->
                 <template x-if="activeTab === 'direct'">
-                    <div class="space-y-1">
+                    <div class="space-y-2">
+                        <!-- QUICK SEARCH & INITIATE CHAT WITH ANY INMATE -->
+                        <div class="relative" x-data="{ searchResults: [], isSearching: false, inmateQuery: '' }">
+                            <div class="relative">
+                                <input type="text" 
+                                       x-model="inmateQuery" 
+                                       @input.debounce.300ms="
+                                           if(inmateQuery.trim().length >= 2) {
+                                               isSearching = true;
+                                               fetch('{{ route('chat.search-players') }}?q=' + encodeURIComponent(inmateQuery.trim()))
+                                                   .then(r => r.json())
+                                                   .then(d => { searchResults = d.players || []; isSearching = false; })
+                                                   .catch(() => { isSearching = false; });
+                                           } else {
+                                               searchResults = [];
+                                           }
+                                       "
+                                       placeholder="🔍 Zoek patiënt om te chatten..." 
+                                       class="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30">
+                                <template x-if="isSearching">
+                                    <i class="fa-solid fa-spinner fa-spin absolute right-3 top-2.5 text-xs text-purple-500"></i>
+                                </template>
+                            </div>
+
+                            <!-- Live Inmates Search Dropdown -->
+                            <template x-if="searchResults.length > 0">
+                                <div class="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-[#160b33] border border-slate-200 dark:border-purple-800/60 rounded-xl shadow-xl z-50 max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-purple-900/30 p-1">
+                                    <template x-for="p in searchResults" :key="p.id">
+                                        <button type="button" 
+                                                @click="selectPartner(p.id, p.name); searchResults = []; inmateQuery = '';"
+                                                class="w-full p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/40 flex items-center justify-between text-left transition cursor-pointer">
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <img :src="p.avatar" class="w-7 h-7 rounded-lg object-cover">
+                                                <div class="min-w-0 truncate">
+                                                    <span class="font-extrabold text-xs text-slate-900 dark:text-white truncate block" x-text="p.name"></span>
+                                                    <span class="text-[10px] text-slate-400">Lvl <span x-text="p.level"></span> &bull; 🔥 <span x-text="p.respect"></span></span>
+                                                </div>
+                                            </div>
+                                            <span class="px-2 py-1 rounded bg-purple-600 text-white text-[10px] font-black shrink-0">
+                                                Chat &raquo;
+                                            </span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+
                         <!-- LOADING SKELETON -->
                         <template x-if="loadingConversations">
                             <div class="p-4 text-center text-xs text-slate-400 space-y-2">
@@ -314,22 +360,58 @@
                                         @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }"
                                         class="shrink-0 cursor-pointer transition hover:scale-105"
                                         :title="!msg.is_me ? 'Klik om privé te chatten met ' + msg.name : ''">
-                                    <img :src="'/images/' + msg.avatar" 
-                                         class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs"
-                                         onerror="this.src='/images/avatar-1.png'">
+                                    <img :src="msg.avatar || '/characters/avatar-default.png'" 
+                                         class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/60 shadow-2xs"
+                                         onerror="this.src='/characters/avatar-default.png'">
                                 </button>
 
                                 <!-- MESSAGE BUBBLE -->
                                 <div class="max-w-[85%] sm:max-w-md space-y-1" :class="msg.is_me ? 'text-right' : 'text-left'">
                                     <!-- SENDER HEADER -->
-                                    <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="msg.is_me ? 'justify-end' : ''">
-                                        <span class="text-slate-900 dark:text-white font-black hover:underline cursor-pointer"
-                                              @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }"
-                                              x-text="msg.name"></span>
+                                    <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap" :class="msg.is_me ? 'justify-end' : ''">
+                                        <!-- EIGENAAR STYLING -->
+                                        <template x-if="msg.is_owner">
+                                            <span class="text-amber-500 dark:text-amber-400 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                  @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }">
+                                                <i class="fa-solid fa-crown text-[10px] text-amber-500 animate-bounce"></i>
+                                                <span x-text="msg.name"></span>
+                                            </span>
+                                        </template>
+
+                                        <!-- DIRECTIE / ADMIN STYLING -->
+                                        <template x-if="msg.is_admin && !msg.is_owner">
+                                            <span class="text-purple-600 dark:text-purple-300 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                  @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }">
+                                                <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                                                <span x-text="msg.name"></span>
+                                            </span>
+                                        </template>
+
+                                        <!-- MODERATOR STYLING -->
+                                        <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
+                                            <span class="text-cyan-600 dark:text-cyan-400 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                  @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }">
+                                                <i class="fa-solid fa-gavel text-[10px]"></i>
+                                                <span x-text="msg.name"></span>
+                                            </span>
+                                        </template>
+
+                                        <!-- REGULAR INMATE -->
+                                        <template x-if="!msg.is_owner && !msg.is_admin && !msg.is_moderator">
+                                            <span class="text-slate-900 dark:text-white font-black hover:underline cursor-pointer"
+                                                  @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }"
+                                                  x-text="msg.name"></span>
+                                        </template>
                                         
                                         <!-- LEVEL BADGE -->
-                                        <span class="px-1.5 py-0.2 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[9px] font-black">
-                                            L<span x-text="msg.level"></span>
+                                        <span class="px-1.5 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] font-black">
+                                            Lvl <span x-text="msg.level"></span>
+                                        </span>
+
+                                        <!-- RESPECT BADGE -->
+                                        <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] font-black flex items-center gap-0.5" title="Respect Score">
+                                            <i class="fa-solid fa-fire text-amber-500 text-[8px]"></i>
+                                            <span x-text="msg.respect"></span>
                                         </span>
 
                                         <!-- GANG TAG -->
@@ -338,18 +420,45 @@
                                                   x-text="'[' + msg.gang_tag + ']'"></span>
                                         </template>
 
-                                        <!-- STAFF BADGE -->
-                                        <template x-if="msg.is_staff">
-                                            <span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[9px] font-black uppercase tracking-wider"
-                                                  x-text="msg.staff_role"></span>
+                                        <!-- DISTINCT STAFF ROLES -->
+                                        <template x-if="msg.is_owner">
+                                            <span class="px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 text-[9px] font-black uppercase tracking-wider shadow-2xs">
+                                                👑 Eigenaar
+                                            </span>
+                                        </template>
+                                        <template x-if="msg.is_admin && !msg.is_owner">
+                                            <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[9px] font-black uppercase tracking-wider">
+                                                🏛️ Directie
+                                            </span>
+                                        </template>
+                                        <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
+                                            <span class="px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[9px] font-black uppercase tracking-wider">
+                                                🛡️ Moderator
+                                            </span>
                                         </template>
 
-                                        <span class="text-[10px] text-slate-400 font-normal ml-1" x-text="msg.time"></span>
+                                        <span class="text-[10px] text-slate-400 font-normal ml-0.5" x-text="msg.time"></span>
+
+                                        <!-- REPORT MESSAGE BUTTON -->
+                                        <template x-if="!msg.is_me">
+                                            <button type="button" 
+                                                    @click="window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message })" 
+                                                    class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-1 text-[10px] cursor-pointer" 
+                                                    title="Rapporteer dit bericht bij de moderatie">
+                                                <i class="fa-solid fa-flag"></i>
+                                            </button>
+                                        </template>
                                     </div>
 
                                     <!-- BUBBLE -->
                                     <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed shadow-2xs break-words"
-                                         :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700'">
+                                         :class="msg.is_me 
+                                            ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
+                                            : (msg.is_owner 
+                                                ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs'
+                                                : (msg.is_admin || msg.is_moderator
+                                                    ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700'))">
                                         <span x-text="msg.message"></span>
                                     </div>
                                 </div>
@@ -469,8 +578,8 @@
 
             </div>
 
-            <!-- CHAT INPUT BAR (PINNED BOTTOM) -->
-            <div class="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shrink-0">
+            <!-- CHAT INPUT BAR (PINNED BOTTOM WITH QUICK SMILEYS) -->
+            <div class="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shrink-0 space-y-2">
                 <template x-if="activeTab === 'direct' && activePartner.is_bot">
                     <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-center text-xs text-slate-500 font-bold">
                         <i class="fa-solid fa-lock text-slate-400 mr-1.5"></i>
@@ -479,21 +588,34 @@
                 </template>
 
                 <template x-if="activeTab === 'global' || !activePartner.is_bot">
-                    <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
-                        <input type="text" 
-                               x-model="messageInput"
-                               @keydown.enter.prevent="if(!event.shiftKey) sendMessage()"
-                               :placeholder="activeTab === 'global' ? 'Typ een bericht aan de afdeling... (Enter om te verzenden)' : 'Stuur een privébericht...'"
-                               maxlength="350"
-                               class="flex-1 bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
-                        
-                        <button type="submit" 
-                                :disabled="isSending || messageInput.trim() === ''"
-                                class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
-                            <span class="hidden sm:inline">Verstuur</span>
-                        </button>
-                    </form>
+                    <div>
+                        <!-- QUICK SMILEYS ROW -->
+                        <div class="flex items-center gap-1 pb-2 overflow-x-auto no-scrollbar">
+                            <span class="text-[10px] font-black uppercase text-slate-400 mr-1 shrink-0"><i class="fa-regular fa-face-smile text-amber-500"></i></span>
+                            <template x-for="s in ['😀', '😂', '💀', '🔥', '💰', '💉', '🚓', '🚬', '👍', '🖕', '❤️', '👑', '😎', '🤫', '⚡', '🍻', '🎉']" :key="s">
+                                <button type="button" @click="addEmoji(s)" class="w-7 h-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-sm flex items-center justify-center transition cursor-pointer shrink-0" :title="s">
+                                    <span x-text="s"></span>
+                                </button>
+                            </template>
+                        </div>
+
+                        <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
+                            <input type="text" 
+                                   x-model="messageInput"
+                                   x-ref="messageInputField"
+                                   @keydown.enter.prevent="if(!event.shiftKey) sendMessage()"
+                                   :placeholder="activeTab === 'global' ? 'Typ een bericht aan de afdeling... (Enter om te verzenden)' : 'Stuur een privébericht...'"
+                                   maxlength="350"
+                                   class="flex-1 bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                            
+                            <button type="submit" 
+                                    :disabled="isSending || messageInput.trim() === ''"
+                                    class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
+                                <span class="hidden sm:inline">Verstuur</span>
+                            </button>
+                        </form>
+                    </div>
                 </template>
             </div>
 
@@ -545,6 +667,15 @@ function tbsLiveMessenger(config) {
             }
             const q = this.searchQuery.toLowerCase();
             return this.conversationsList.filter(c => c.name.toLowerCase().includes(q));
+        },
+
+        addEmoji(emoji) {
+            this.messageInput += emoji;
+            this.$nextTick(() => {
+                if (this.$refs.messageInputField) {
+                    this.$refs.messageInputField.focus();
+                }
+            });
         },
 
         initMessenger() {

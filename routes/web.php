@@ -55,6 +55,7 @@ use App\Http\Controllers\PickpocketController;
 use App\Http\Controllers\PrisonController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RadioController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoadmapController;
 use App\Http\Controllers\RouletteController;
 use App\Http\Controllers\RpsController;
@@ -162,10 +163,14 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/openbaar/berichten', [ChatController::class, 'publicMessages'])->name('chat.public.messages');
     Route::post('/chat/openbaar/verzenden', [ChatController::class, 'sendPublic'])->name('chat.public.send');
+    Route::get('/chat/zoek-spelers', [ChatController::class, 'searchPlayers'])->name('chat.search-players');
     Route::get('/chat/gesprekken', [ChatController::class, 'conversations'])->name('chat.conversations');
     Route::get('/chat/prive/{partnerId}', [ChatController::class, 'directMessages'])->name('chat.direct.messages');
     Route::post('/chat/prive/{partnerId}/verzenden', [ChatController::class, 'sendDirect'])->name('chat.direct.send');
     Route::get('/chat/ongelezen-teller', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
+
+    // Meldingen & Rapporteren (Speler, Bende of Chat)
+    Route::post('/rapporteren', [ReportController::class, 'store'])->name('report.store');
 
     // Berichten (Messages & Post)
     Route::get('/berichten', [MessageController::class, 'index'])->name('messages.index');
@@ -501,12 +506,15 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('/discord-shield/ban/{id}', [DiscordShieldAdminController::class, 'unban'])->name('discord_shield.unban');
         Route::post('/discord-shield/approve/{id}', [DiscordShieldAdminController::class, 'approve'])->name('discord_shield.approve');
 
-        // Spelers Moderatie & Sancties (Bans & Waarschuwingen)
+        // Spelers Moderatie & Sancties (Bans, Waarschuwingen & Meldingen)
         Route::get('/moderatie', [AdminModerationController::class, 'index'])->name('moderation.index');
         Route::post('/moderatie/spelers/{user}/verbannen', [AdminModerationController::class, 'banUser'])->name('moderation.ban');
         Route::post('/moderatie/spelers/{user}/opheffen', [AdminModerationController::class, 'unbanUser'])->name('moderation.unban');
         Route::post('/moderatie/spelers/{user}/waarschuwen', [AdminModerationController::class, 'warnUser'])->name('moderation.warn');
         Route::delete('/moderatie/waarschuwingen/{warning}', [AdminModerationController::class, 'deleteWarning'])->name('moderation.warning.destroy');
+        Route::post('/moderatie/meldingen/{report}/oplossen', [AdminModerationController::class, 'resolveReport'])->name('moderation.report.resolve');
+        Route::post('/moderatie/meldingen/{report}/verwerpen', [AdminModerationController::class, 'dismissReport'])->name('moderation.report.dismiss');
+        Route::delete('/moderatie/meldingen/{report}', [AdminModerationController::class, 'deleteReport'])->name('moderation.report.destroy');
     });
 
     // Officiële Waarschuwingen Bevestigen door Speler

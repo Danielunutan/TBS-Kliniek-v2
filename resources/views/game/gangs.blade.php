@@ -262,8 +262,11 @@
                     <div class="h-40 sm:h-48 w-full overflow-hidden relative bg-purple-950">
                         <img src="{{ $myGang->banner_url }}" alt="Gang Header" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
-                        <button type="button" class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/50 hover:bg-black/70 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Rapporteer
+                        <button type="button" 
+                                @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $myGang->id }}, name: '{{ addslashes($myGang->name) }}' })"
+                                class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/50 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
+                                title="Rapporteer deze bende bij moderatie">
+                            <i class="fa-solid fa-flag text-rose-400"></i> Rapporteer Bende
                         </button>
                     </div>
 

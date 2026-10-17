@@ -1784,4 +1784,12 @@ class Character extends Model
     {
         return ($this->getStorageUsed() + $amount) <= $this->getStorageCapacity();
     }
+
+    /**
+     * Check if character belongs to a staff member.
+     */
+    public function isStaff(): bool
+    {
+        return (bool) ($this->user?->isStaff());
+    }
 }
