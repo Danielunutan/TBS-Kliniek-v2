@@ -29,12 +29,12 @@ class LockerController extends Controller
         $this->energy->refresh($character);
 
         $lockers = [
-            ['id' => 1, 'name' => 'Roestig Kluisje (Kantine)', 'desc' => 'Oud slot, simpel te kraken met een paperclip.', 'energy' => 5, 'min' => 100, 'max' => 400, 'rate' => 50, 'xp' => 30, 'icon' => 'fa-lock-open'],
-            ['id' => 2, 'name' => 'Personeelskluisje (Wachthok)', 'desc' => 'Iets beter slot. Meer inhoud ook.', 'energy' => 10, 'min' => 300, 'max' => 900, 'rate' => 38, 'xp' => 65, 'icon' => 'fa-key'],
-            ['id' => 3, 'name' => 'Beveiligd Kluisje (Verpleging)', 'desc' => 'Digitaal slot. Vereist wat techniek.', 'energy' => 15, 'min' => 700, 'max' => 2000, 'rate' => 28, 'xp' => 115, 'icon' => 'fa-microchip'],
-            ['id' => 4, 'name' => 'Kluisje Directeur (Kantoor)', 'desc' => 'Zwaarst beveiligd. Meeste geld, flink risico.', 'energy' => 20, 'min' => 1500, 'max' => 4500, 'rate' => 18, 'xp' => 210, 'icon' => 'fa-briefcase'],
-            ['id' => 5, 'name' => 'Behandelkamer Medicijnkluis', 'desc' => 'Gepantserd slot vol verdovende middelen en cash.', 'energy' => 24, 'min' => 2500, 'max' => 6500, 'rate' => 14, 'xp' => 280, 'icon' => 'fa-capsules'],
-            ['id' => 6, 'name' => 'Centrale Geldkluis (Administratie)', 'desc' => 'Kliniek hoofdkas. Extreem bewaakt en gecodeerd.', 'energy' => 28, 'min' => 4500, 'max' => 12500, 'rate' => 10, 'xp' => 400, 'icon' => 'fa-vault'],
+            ['id' => 1, 'name' => 'Roestig Kluisje (Kantine)', 'desc' => 'Oud slot, simpel te kraken met een paperclip.', 'energy' => 5, 'min' => 100, 'max' => 400, 'rate' => 50, 'cooldown' => $this->cooldownService->calculateBySuccessRate(50), 'xp' => 30, 'icon' => 'fa-lock-open'],
+            ['id' => 2, 'name' => 'Personeelskluisje (Wachthok)', 'desc' => 'Iets beter slot. Meer inhoud ook.', 'energy' => 10, 'min' => 300, 'max' => 900, 'rate' => 38, 'cooldown' => $this->cooldownService->calculateBySuccessRate(38), 'xp' => 65, 'icon' => 'fa-key'],
+            ['id' => 3, 'name' => 'Beveiligd Kluisje (Verpleging)', 'desc' => 'Digitaal slot. Vereist wat techniek.', 'energy' => 15, 'min' => 700, 'max' => 2000, 'rate' => 28, 'cooldown' => $this->cooldownService->calculateBySuccessRate(28), 'xp' => 115, 'icon' => 'fa-microchip'],
+            ['id' => 4, 'name' => 'Kluisje Directeur (Kantoor)', 'desc' => 'Zwaarst beveiligd. Meeste geld, flink risico.', 'energy' => 20, 'min' => 1500, 'max' => 4500, 'rate' => 18, 'cooldown' => $this->cooldownService->calculateBySuccessRate(18), 'xp' => 210, 'icon' => 'fa-briefcase'],
+            ['id' => 5, 'name' => 'Behandelkamer Medicijnkluis', 'desc' => 'Gepantserd slot vol verdovende middelen en cash.', 'energy' => 24, 'min' => 2500, 'max' => 6500, 'rate' => 14, 'cooldown' => $this->cooldownService->calculateBySuccessRate(14), 'xp' => 280, 'icon' => 'fa-capsules'],
+            ['id' => 6, 'name' => 'Centrale Geldkluis (Administratie)', 'desc' => 'Kliniek hoofdkas. Extreem bewaakt en gecodeerd.', 'energy' => 28, 'min' => 4500, 'max' => 12500, 'rate' => 10, 'cooldown' => $this->cooldownService->calculateBySuccessRate(10), 'xp' => 400, 'icon' => 'fa-vault'],
         ];
 
         return view('game.lockers.index', compact('character', 'lockers'));
@@ -51,8 +51,9 @@ class LockerController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'locker')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'locker');
             $mins = ceil($remaining / 60);
+            $skipCost = $this->cooldownService->getSkipCost('locker');
 
-            return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met 1 Ster ⭐.");
+            return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
         }
 
         $validated = $request->validate([
@@ -74,8 +75,9 @@ class LockerController extends Controller
             return back()->with('error', "Je hebt minimaal {$locker['energy']} energie nodig om dit kluisje te kraken!");
         }
 
-        // Set 3 min cooldown (180s)
-        $this->cooldownService->setCooldown($character, 'locker', 180);
+        // Dynamic cooldown duration based on success rate
+        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($locker['rate']);
+        $this->cooldownService->setCooldown($character, 'locker', $cooldownSeconds);
 
         $roll = rand(1, 100);
         if ($roll <= $locker['rate']) {

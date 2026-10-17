@@ -29,6 +29,7 @@
 
             @php
                 $hustleCooldown = $character->cooldownRemaining('hustle');
+                $hustleSkipCost = app(\App\Services\CooldownService::class)->getSkipCost('hustle');
             @endphp
 
             @if($hustleCooldown > 0)
@@ -52,7 +53,7 @@
                             <input type="hidden" name="action" value="hustle">
                             <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-star text-white text-[11px]"></i>
-                                <span>1 Ster ⭐</span>
+                                <span>{{ $hustleSkipCost }} Sterren ⭐</span>
                             </button>
                         </form>
                     </div>
@@ -75,6 +76,7 @@
                                     <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{{ $h['cost'] }} Energie</span>
                                     <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">€{{ $h['cash_min'] }}-€{{ $h['cash_max'] }}</span>
                                     <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">{{ $h['rate'] }}% kans</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300" title="Cooldown wachttijd na uitvoering">⏳ {{ gmdate('i:s', $h['cooldown']) }}</span>
                                 </div>
                             </div>
                         </label>
@@ -82,7 +84,7 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><i class="fa-solid fa-stopwatch text-amber-500"></i> Elke hosselbeurt activeert een cooldown van 3 minuten.</span>
+                        <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><i class="fa-solid fa-stopwatch text-amber-500"></i> Cooldown wachttijd is afhankelijk van de slagingskans (1 tot 6 minuten).</span>
                         <button type="submit" 
                                 {{ $hustleCooldown > 0 ? 'disabled' : '' }}
                                 class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs px-8 py-3 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">

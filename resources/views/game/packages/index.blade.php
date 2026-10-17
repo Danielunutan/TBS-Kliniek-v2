@@ -244,7 +244,7 @@
                         <input type="hidden" name="action" value="package">
                         <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center gap-1">
                             <i class="fa-solid fa-star text-white text-[10px]"></i>
-                            <span>1 Ster ⭐</span>
+                            <span>{{ $packageSkipCost }} Sterren ⭐</span>
                         </button>
                     </form>
                 </div>
@@ -274,6 +274,14 @@
                     <div class="flex justify-between">
                         <span>Buit:</span>
                         <span class="font-bold text-emerald-700">€{{ number_format($pkg['min'], 0, ',', '.') }}–€{{ number_format($pkg['max'], 0, ',', '.') }} contant</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Kans op slagen:</span>
+                        <span class="font-bold text-slate-800">{{ $pkg['rate'] }}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Cooldown:</span>
+                        <span class="font-bold text-amber-600"><i class="fa-solid fa-clock text-[10px] mr-1"></i>{{ gmdate('i:s', $pkg['cooldown'] ?? 180) }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span>Koffer Drop:</span>

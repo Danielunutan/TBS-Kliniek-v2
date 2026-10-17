@@ -168,8 +168,8 @@
                         <input type="hidden" name="action" value="treatment_session">
                         <button type="submit" 
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold transition shadow-xs cursor-pointer">
-                            <i class="fa-solid fa-bolt text-amber-500"></i>
-                            <span>Sla Over voor 2 Sterren ⭐</span>
+                            <i class="fa-solid fa-star text-amber-500"></i>
+                            <span>Sla Over voor {{ $treatmentSkipCost }} Sterren ⭐</span>
                         </button>
                     </form>
                 </div>

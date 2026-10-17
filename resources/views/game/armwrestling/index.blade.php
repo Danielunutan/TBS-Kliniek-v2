@@ -74,14 +74,15 @@
                     <i class="fa-solid fa-dumbbell text-purple-600 dark:text-purple-400"></i>
                     <h2 class="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">Afdelingskampioenen Uitdagen</h2>
                 </div>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Kosten: 5 Energie per duel</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Kosten: 5 Energie &bull; Inzet via contant of bank</span>
             </div>
 
             <!-- NPC Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @foreach($npcs as $npcKey => $npc)
                 @php
-                    $canAfford = $character->cash >= $npc['bet'];
+                    $totalFunds = (int) ($character->cash + $character->bank);
+                    $canAfford = $totalFunds >= $npc['bet'];
                     $meetsStrength = $character->strength >= $npc['min_strength'];
                     $hasEnergy = $character->energy >= 5;
                     $canPlay = $canAfford && $meetsStrength && $hasEnergy;
@@ -136,7 +137,7 @@
                             </button>
                         @elseif(!$canAfford)
                             <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
-                                Onvoldoende Contanten (€ {{ number_format($npc['bet'], 0, ',', '.') }})
+                                Onvoldoende Saldo (€ {{ number_format($npc['bet'], 0, ',', '.') }})
                             </button>
                         @elseif(!$hasEnergy)
                             <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
@@ -192,7 +193,7 @@
                     @csrf
                     <div>
                         <h4 class="text-xs font-black text-slate-900 dark:text-white">Zet Jouw Geld op de Tafel</h4>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Kies een inzetbedrag en wacht tot een tegenstander de handschoen oppakt.</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Kies een inzetbedrag (automatisch verrekend via contant of bank) en wacht tot een tegenstander de handschoen oppakt.</p>
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
                         <select name="bet_amount" class="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500">
@@ -559,6 +560,7 @@ function tbsArmWrestleArena() {
                     won: won,
                     clicks: this.clicks,
                     duration_seconds: durationSec,
+                    duration_ms: durationSec * 1000,
                 })
             })
             .then(res => res.json())

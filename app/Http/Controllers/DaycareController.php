@@ -102,8 +102,9 @@ class DaycareController extends Controller
         ];
 
         $activeCooldown = $this->cooldownService->getRemainingSeconds($character, 'dagbesteding');
+        $daycareSkipCost = $this->cooldownService->getSkipCost('dagbesteding');
 
-        return view('game.daycare.index', compact('character', 'jobs', 'activeCooldown'));
+        return view('game.daycare.index', compact('character', 'jobs', 'activeCooldown', 'daycareSkipCost'));
     }
 
     /**
@@ -121,8 +122,9 @@ class DaycareController extends Controller
 
         if ($this->cooldownService->isOnCooldown($character, 'dagbesteding')) {
             $seconds = $this->cooldownService->getRemainingSeconds($character, 'dagbesteding');
+            $skipCost = $this->cooldownService->getSkipCost('dagbesteding');
 
-            return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s.");
+            return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s of sla over met {$skipCost} Sterren ⭐.");
         }
 
         $jobId = (int) $request->input('job_id');

@@ -34,6 +34,7 @@
 
     @php
         $lockerCooldown = $character->cooldownRemaining('locker');
+        $lockerSkipCost = app(\App\Services\CooldownService::class)->getSkipCost('locker');
     @endphp
 
     @if($lockerCooldown > 0)
@@ -44,7 +45,7 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-black text-amber-950">Kluisjes Cooldown Actief</h4>
-                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $lockerCooldown) }}</strong> of sla direct over met 1 Ster.</p>
+                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $lockerCooldown) }}</strong> of sla direct over met {{ $lockerSkipCost }} Sterren ⭐.</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -57,7 +58,7 @@
                     <input type="hidden" name="action" value="locker">
                     <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-star text-white text-[11px]"></i>
-                        <span>1 Ster ⭐</span>
+                        <span>{{ $lockerSkipCost }} Sterren ⭐</span>
                     </button>
                 </form>
             </div>
@@ -89,6 +90,10 @@
                     <div class="flex items-center gap-3 text-xs">
                         <span class="text-slate-400 w-20 font-semibold">Slagingskans:</span>
                         <span class="font-bold text-indigo-600">{{ $locker['rate'] }}%</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="text-slate-400 w-20 font-semibold">Cooldown:</span>
+                        <span class="font-bold text-amber-700">⏳ {{ gmdate('i:s', $locker['cooldown']) }}</span>
                     </div>
                 </div>
                 <form action="{{ route('lockers.crack') }}" method="POST">

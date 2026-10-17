@@ -188,7 +188,8 @@ class ArmWrestleController extends Controller
             'npc_key' => ['required', 'string', 'in:sjonnie,karel,bennie,mike'],
             'won' => ['required', 'boolean'],
             'clicks' => ['required', 'integer', 'min:0'],
-            'duration_ms' => ['required', 'integer', 'min:1000'],
+            'duration_ms' => ['nullable', 'integer'],
+            'duration_seconds' => ['nullable', 'integer'],
         ]);
 
         $npcs = self::getNpcOpponents();
@@ -208,17 +209,29 @@ class ArmWrestleController extends Controller
             ], 422);
         }
 
-        if ($character->cash < $npc['bet']) {
+        $bet = (int) $npc['bet'];
+        $totalAvailable = (int) ($character->cash + $character->bank);
+
+        if ($totalAvailable < $bet) {
             return response()->json([
                 'success' => false,
-                'message' => 'Je hebt onvoldoende contant geld op zak voor deze inzet (€'.number_format($npc['bet'], 0, ',', '.').')!',
+                'message' => 'Je hebt onvoldoende saldo (contant + bank) op zak voor deze inzet (€'.number_format($bet, 0, ',', '.').')!',
             ], 422);
         }
 
-        return DB::transaction(function () use ($character, $npc, $validated) {
-            // Deduct energy & inzet
+        $durationMs = (int) ($validated['duration_ms'] ?? (($validated['duration_seconds'] ?? 1) * 1000));
+
+        return DB::transaction(function () use ($character, $npc, $validated, $bet, $durationMs) {
+            // Deduct energy & inzet (pay from cash first, cover remaining from bank)
             $character->decrement('energy', 5);
-            $character->decrement('cash', $npc['bet']);
+            if ($character->cash >= $bet) {
+                $character->decrement('cash', $bet);
+            } else {
+                $diff = $bet - $character->cash;
+                $character->cash = 0;
+                $character->save();
+                $character->decrement('bank', $diff);
+            }
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $character->id]);
@@ -250,7 +263,7 @@ class ArmWrestleController extends Controller
                     'xp_earned' => $npc['xp'],
                     'respect_earned' => $npc['respect'],
                     'challenger_clicks' => $validated['clicks'],
-                    'match_duration_ms' => $validated['duration_ms'],
+                    'match_duration_ms' => $durationMs,
                 ]);
 
                 return response()->json([
@@ -281,7 +294,7 @@ class ArmWrestleController extends Controller
                 'xp_earned' => 5,
                 'respect_earned' => 0,
                 'challenger_clicks' => $validated['clicks'],
-                'match_duration_ms' => $validated['duration_ms'],
+                'match_duration_ms' => $durationMs,
             ]);
 
             // Give consolation 5 XP
@@ -327,13 +340,21 @@ class ArmWrestleController extends Controller
         ]);
 
         $bet = (int) $validated['bet_amount'];
+        $totalAvailable = (int) ($character->cash + $character->bank);
 
-        if ($character->cash < $bet) {
-            return back()->with('error', 'Je hebt onvoldoende contant geld om deze uitdaging op tafel te leggen (€'.number_format($bet, 0, ',', '.').').');
+        if ($totalAvailable < $bet) {
+            return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging op tafel te leggen (€'.number_format($bet, 0, ',', '.').').');
         }
 
         DB::transaction(function () use ($character, $bet) {
-            $character->decrement('cash', $bet);
+            if ($character->cash >= $bet) {
+                $character->decrement('cash', $bet);
+            } else {
+                $diff = $bet - $character->cash;
+                $character->cash = 0;
+                $character->save();
+                $character->decrement('bank', $diff);
+            }
 
             ArmWrestleMatch::create([
                 'challenger_id' => $character->id,
@@ -401,16 +422,26 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Je kunt je eigen uitdaging niet accepteren!');
         }
 
-        if ($opponent->cash < $match->bet_amount) {
-            return back()->with('error', 'Je hebt onvoldoende contant geld om deze uitdaging aan te gaan (€'.number_format($match->bet_amount, 0, ',', '.').').');
+        $totalAvailable = (int) ($opponent->cash + $opponent->bank);
+        $bet = (int) $match->bet_amount;
+
+        if ($totalAvailable < $bet) {
+            return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
         }
 
         $challenger = $match->challenger;
         $pot = $match->bet_amount * 2;
 
-        return DB::transaction(function () use ($opponent, $challenger, $match, $pot) {
+        return DB::transaction(function () use ($opponent, $challenger, $match, $pot, $bet) {
             $opponent->decrement('energy', 5);
-            $opponent->decrement('cash', $match->bet_amount);
+            if ($opponent->cash >= $bet) {
+                $opponent->decrement('cash', $bet);
+            } else {
+                $diff = $bet - $opponent->cash;
+                $opponent->cash = 0;
+                $opponent->save();
+                $opponent->decrement('bank', $diff);
+            }
 
             // Calculate battle scores: Strength (70%) + Speed (15%) + Stamina (15%) + RNG variance
             $challengerScore = ($challenger->strength * 1.4) + ($challenger->speed * 0.4) + ($challenger->stamina * 0.4) + rand(1, 20);

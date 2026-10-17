@@ -1373,7 +1373,7 @@
                     </a>
 
                     <!-- RESPECT -->
-                    <div class="flex flex-col items-center gap-1 cursor-default select-none" title="Respect">
+                    <div class="flex flex-col items-center gap-1 cursor-default select-none" title="Respect: {{ $character->formatted_respect }} (Vandaag: +{{ $character->formatted_today_respect }})">
                         <span class="text-[8px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-indigo-800/40">
                             RESPECT
                         </span>
@@ -1381,6 +1381,7 @@
                             <i class="fa-solid fa-fire text-amber-500 text-xs"></i>
                             <span x-text="stats.respect">{{ $character->formatted_respect }}</span>
                         </div>
+                        <span class="sr-only">Respect: {{ $character->formatted_respect }} Vandaag: {{ $character->formatted_today_respect }}</span>
                     </div>
                 </div>
 
@@ -1528,7 +1529,12 @@
                             Reden: <span class="text-rose-700 font-semibold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
                         </p>
                     </div>
-                </div>
+                    <button type="button" 
+                            onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
+                            class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-tv text-white text-[11px]"></i>
+                        <span>Kijk Ad (Direct Vrij)</span>
+                    </button>
                     <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
                         @csrf
                         <input type="hidden" name="method" value="stars">
@@ -2251,6 +2257,32 @@
                 return false;
             }
         },
+        ensureRobinAdsSdk() {
+            if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
+                return Promise.resolve(window.RobinAds);
+            }
+            return new Promise((resolve) => {
+                let script = document.querySelector('script[src*="robinsads.com/ads.js"]');
+                if (!script) {
+                    script = document.createElement('script');
+                    script.src = 'https://robinsads.com/ads.js';
+                    script.async = true;
+                    // Do NOT add data-website-id on script tag, to prevent automatic site-wide banners!
+                    document.head.appendChild(script);
+                }
+                let count = 0;
+                const interval = setInterval(() => {
+                    count++;
+                    if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
+                        clearInterval(interval);
+                        resolve(window.RobinAds);
+                    } else if (count >= 20) {
+                        clearInterval(interval);
+                        resolve(window.RobinAds || null);
+                    }
+                }, 100);
+            });
+        },
         init() {
             window.tbsOpenSponsorAd = async (rewardType = 'cash', callback = null) => {
                 if (this.isStarting) return;
@@ -2259,7 +2291,7 @@
                 this.rewardType = rewardType;
                 this.callback = callback;
                 this.status = 'loading';
-                this.statusMessage = 'Sponsoropdracht initialiseren...';
+                this.statusMessage = 'Sponsor video-advertentie in het scherm laden...';
                 this.secondsLeft = 15;
                 this.totalSeconds = 15;
 
@@ -2291,17 +2323,18 @@
                     this.rewardIcon = 'fa-money-bill-wave';
                 }
 
-                fetch('{{ route('sponsor.start') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ reward_type: this.rewardType })
-                })
-                .then(res => res.json())
-                .then(data => {
+                try {
+                    const res = await fetch('{{ route('sponsor.start') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ reward_type: this.rewardType })
+                    });
+                    const data = await res.json();
+
                     if (!data.success) {
                         this.status = 'error';
                         this.statusMessage = data.message || 'Kon advertentie niet starten.';
@@ -2315,70 +2348,60 @@
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
 
-                    // 1. First priority: Robins Ads official in-app interstitial (fullscreen video inside site)
-                    if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
-                        this.status = 'watching';
-                        this.statusMessage = 'Robins Ads video-advertentie wordt geladen...';
-                        window.RobinAds.showInterstitial({ websiteId: '6ad2b8e95f70fee0a42a5496' }).then((result) => {
+                    // 1. First priority: In-Screen Rewarded Interstitial Video via Robins Ads
+                    const robinSdk = await this.ensureRobinAdsSdk();
+                    if (robinSdk && typeof robinSdk.showInterstitial === 'function') {
+                        this.status = 'watching_interstitial';
+                        this.statusMessage = 'Video-advertentie wordt afgespeeld in het scherm...';
+
+                        try {
+                            const result = await robinSdk.showInterstitial({ websiteId: '6ad2b8e95f70fee0a42a5496' });
                             if (result && result.rewardGranted) {
-                                // Full watch verified by Robins Ads!
+                                // Full watch confirmed by Robins Ads server!
                                 this.claim(result.token, result.rewardId, data.token);
+                                return;
                             } else {
                                 this.status = 'error';
-                                this.statusMessage = 'De advertentie is voortijdig gesloten. Bekijk de video volledig om je beloning te ontvangen.';
+                                this.statusMessage = 'De advertentie is voortijdig gesloten. Bekijk de video volledig tot het einde om je beloning te ontvangen.';
+                                return;
                             }
-                        }).catch((err) => {
-                            console.warn('RobinAds interstitial unavailable or blocked, falling back to popup:', err);
-                            this.startFallbackCountdown(data);
-                        });
+                        } catch (interstitialErr) {
+                            console.warn('RobinAds in-screen interstitial error or blocked, falling back to in-screen modal frame:', interstitialErr);
+                            this.startInScreenFallback(data);
+                        }
                     } else {
-                        // 2. Fallback to Robins Ads hosted popup or smartlink with timer
-                        this.startFallbackCountdown(data);
+                        // 2. Fallback: In-screen embedded modal frame (no external popup window!)
+                        this.startInScreenFallback(data);
                     }
-                })
-                .catch(err => {
+                } catch (err) {
                     this.status = 'error';
                     this.statusMessage = 'Er is een netwerkfout opgetreden bij het laden van de sponsor.';
-                })
-                .finally(() => {
+                } finally {
                     this.isStarting = false;
-                });
+                }
             };
         },
-        startFallbackCountdown(data) {
-            this.status = 'watching';
-            this.statusMessage = 'De sponsor advertentie is geopend. Bekijk deze tijdens de afteltimer om je beloning te claimen!';
-
-            try {
-                if (data.popup_url) {
-                    window.open(data.popup_url, 'tbs_ad_reward', 'width=480,height=640');
-                } else if (this.smartlinkUrl) {
-                    window.open(this.smartlinkUrl, '_blank');
-                }
-            } catch(e) {
-                console.warn('Popup blocked, click manually', e);
-            }
+        startInScreenFallback(data) {
+            this.status = 'watching_inscreen';
+            this.statusMessage = 'Bekijk de sponsoradvertentie hieronder in het scherm. De beloning wordt vrijgegeven zodra de advertentie volledig is bekeken.';
+            this.secondsLeft = data.duration || 15;
+            this.totalSeconds = data.duration || 15;
 
             if (this.countdownTimer) clearInterval(this.countdownTimer);
             this.countdownTimer = setInterval(() => {
-                this.secondsLeft--;
+                if (this.secondsLeft > 0) {
+                    this.secondsLeft--;
+                }
                 if (this.secondsLeft <= 0) {
                     clearInterval(this.countdownTimer);
                     this.status = 'ready_to_claim';
-                    this.statusMessage = 'Gefeliciteerd! De kijktijd is voltooid. Klik hieronder om jouw beloning direct te claimen!';
+                    this.statusMessage = 'Kijktijd voltooid! Klik hieronder om je advertentieweergave te verifiëren en de beloning direct te claimen.';
                 }
             }, 1000);
         },
-        openAdTabAgain() {
-            if (this.popupUrl) {
-                window.open(this.popupUrl, 'tbs_ad_reward', 'width=480,height=640');
-            } else if (this.smartlinkUrl) {
-                window.open(this.smartlinkUrl, '_blank');
-            }
-        },
         claim(robinToken = null, robinRewardId = null, fallbackToken = null) {
             this.status = 'claiming';
-            this.statusMessage = 'Beloning verifiëren en verwerken...';
+            this.statusMessage = 'Volledige advertentieweergave verifiëren bij de sponsor...';
             const activeToken = this.token || fallbackToken || '';
 
             fetch('{{ route('sponsor.claim') }}', {
@@ -2398,7 +2421,7 @@
             .then(data => {
                 if (!data.success) {
                     this.status = 'error';
-                    this.statusMessage = data.message || 'Kon beloning niet claimen.';
+                    this.statusMessage = data.message || 'Kon beloning niet verifiëren. Bekijk de advertentie volledig.';
                     return;
                 }
 
@@ -2421,20 +2444,23 @@
             });
         },
         closeModal() {
+            if (this.countdownTimer) clearInterval(this.countdownTimer);
             this.isOpen = false;
+            this.isStarting = false;
         }
     }"
     x-show="isOpen"
     x-cloak
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs select-none">
         
-        <div @click.away="if(status !== 'watching') closeModal()"
-             class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden text-center space-y-5">
+        <div @click.away="if(status !== 'watching_interstitial' && status !== 'watching_inscreen') closeModal()"
+             :class="(popupUrl && (status === 'watching_inscreen' || status === 'ready_to_claim')) ? 'max-w-xl' : 'max-w-md'"
+             class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 w-full shadow-2xl relative overflow-hidden text-center space-y-5 transition-all">
             
             <!-- Top Badges -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-[11px] font-black border border-purple-200">
-                    <i class="fa-solid fa-tv text-purple-600"></i> TBS Sponsorkamer
+                    <i class="fa-solid fa-tv text-purple-600"></i> TBS Sponsorkamer (In-Scherm)
                 </div>
                 <button type="button" @click="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg transition cursor-pointer p-1">
                     &times;
@@ -2452,13 +2478,32 @@
                 </div>
             </div>
 
-            <!-- WATCHING PROGRESS & TIMER -->
-            <template x-if="status === 'watching'">
+            <!-- LOADING SPINNER -->
+            <template x-if="status === 'loading'">
+                <div class="py-6 space-y-3">
+                    <div class="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto"></div>
+                    <p class="text-xs text-slate-600 font-bold" x-text="statusMessage"></p>
+                </div>
+            </template>
+
+            <!-- WATCHING INTERSTITIAL NOTICE -->
+            <template x-if="status === 'watching_interstitial'">
+                <div class="py-4 space-y-3">
+                    <div class="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl animate-pulse">
+                        <i class="fa-solid fa-play"></i>
+                    </div>
+                    <p class="text-xs text-slate-700 font-bold leading-relaxed" x-text="statusMessage"></p>
+                    <span class="text-[11px] text-slate-400 block">Kijk de video volledig tot het einde om je beloning te ontgrendelen.</span>
+                </div>
+            </template>
+
+            <!-- IN-SCREEN EMBEDDED MODAL WATCHING -->
+            <template x-if="status === 'watching_inscreen'">
                 <div class="space-y-4">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-                            <span>Sponsor bekijken...</span>
-                            <span class="font-mono text-purple-700 text-sm" x-text="secondsLeft + 's resterend'">15s</span>
+                            <span>Sponsor bekijken in scherm...</span>
+                            <span class="font-mono text-purple-700 text-sm font-black" x-text="secondsLeft + 's resterend'">15s</span>
                         </div>
                         <div class="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
                             <div class="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full transition-all duration-1000 shadow-xs"
@@ -2466,19 +2511,25 @@
                         </div>
                     </div>
 
+                    <template x-if="popupUrl">
+                        <div class="w-full h-72 sm:h-80 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-inner relative my-2">
+                            <iframe :src="popupUrl" class="w-full h-full border-0" allow="autoplay; fullscreen; encrypted-media"></iframe>
+                        </div>
+                    </template>
+
                     <p class="text-xs text-slate-500 leading-relaxed" x-text="statusMessage"></p>
-
-
-
-                    <button type="button" @click="openAdTabAgain()" class="text-xs text-purple-600 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Advertentietabblad opnieuw openen
-                    </button>
                 </div>
             </template>
 
-            <!-- READY TO CLAIM BUTTON (Pulsing Green) -->
+            <!-- READY TO CLAIM BUTTON -->
             <template x-if="status === 'ready_to_claim'">
                 <div class="space-y-4 animate-fade-in">
+                    <template x-if="popupUrl">
+                        <div class="w-full h-64 sm:h-72 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-inner relative mb-2">
+                            <iframe :src="popupUrl" class="w-full h-full border-0" allow="autoplay; fullscreen; encrypted-media"></iframe>
+                        </div>
+                    </template>
+
                     <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shadow-xs">
                         <i class="fa-solid fa-check"></i>
                     </div>
@@ -2487,7 +2538,7 @@
                     <button type="button" @click="claim()"
                             class="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition transform hover:scale-102 active:scale-98 cursor-pointer flex items-center justify-center gap-2">
                         <i class="fa-solid fa-gift text-base"></i>
-                        <span>Claim Beloning & Terug naar Spel</span>
+                        <span>Verifieer & Claim Beloning</span>
                     </button>
                 </div>
             </template>
@@ -2544,9 +2595,14 @@
                         <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                     <p class="text-xs text-rose-700 font-bold" x-text="statusMessage"></p>
-                    <button type="button" @click="closeModal()" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
-                        Sluiten
-                    </button>
+                    <div class="flex gap-2">
+                        <button type="button" @click="window.tbsOpenSponsorAd(rewardType, callback)" class="flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition">
+                            Opnieuw Proberen
+                        </button>
+                        <button type="button" @click="closeModal()" class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                            Sluiten
+                        </button>
+                    </div>
                 </div>
             </template>
 

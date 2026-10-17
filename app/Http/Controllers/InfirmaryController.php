@@ -44,6 +44,8 @@ class InfirmaryController extends Controller
         // Calculate palm success chance based on discipline & charisma
         $statBonus = min(35, (int) floor(($character->getEffectiveDiscipline() * 1.5 + $character->getEffectiveCharisma()) / 10));
         $palmSuccessRate = min(85, max(30, 50 + $statBonus));
+        $palmCooldownSeconds = $this->cooldownService->calculateBySuccessRate($palmSuccessRate);
+        $infirmarySkipCost = $this->cooldownService->getSkipCost('infirmary_palm');
 
         // Player's currently owned medication items
         $ownedPills = CharacterItem::with('item')
@@ -57,6 +59,8 @@ class InfirmaryController extends Controller
             'palmCooldown',
             'pills',
             'palmSuccessRate',
+            'palmCooldownSeconds',
+            'infirmarySkipCost',
             'ownedPills'
         ));
     }
@@ -111,8 +115,9 @@ class InfirmaryController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'infirmary_palm')) {
             $seconds = $this->cooldownService->getRemainingSeconds($character, 'infirmary_palm');
             $mins = ceil($seconds / 60);
+            $skipCost = $this->cooldownService->getSkipCost('infirmary_palm');
 
-            return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of sla over met 1 Ster ⭐.");
+            return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of sla over met {$skipCost} Sterren ⭐.");
         }
 
         $energyCost = 10;
@@ -120,11 +125,10 @@ class InfirmaryController extends Controller
             return back()->with('error', "Niet genoeg energie! Je hebt minstens {$energyCost} energie nodig om vliegensvlug te goochelen.");
         }
 
-        // Set 5 minute cooldown
-        $this->cooldownService->setCooldown($character, 'infirmary_palm', 300);
-
         $statBonus = min(35, (int) floor(($character->getEffectiveDiscipline() * 1.5 + $character->getEffectiveCharisma()) / 10));
         $palmSuccessRate = min(85, max(30, 50 + $statBonus));
+        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($palmSuccessRate);
+        $this->cooldownService->setCooldown($character, 'infirmary_palm', $cooldownSeconds);
 
         $roll = rand(1, 100);
 

@@ -225,14 +225,13 @@ class SponsorAdController extends Controller
         $robinRewardId = $request->input('robin_reward_id') ?? ($adSession['robin_reward_id'] ?? null);
 
         // Verification logic:
-        // 1. If Robins Ads granted completion token on client side, view is completed!
-        // 2. OR elapsed watch duration is >= 8 seconds since started_at (fallback timer)
+        // 1. If Robins Ads granted completion token on client side (in-screen interstitial full watch), view is completed!
         $isVerified = false;
 
         if ($robinToken) {
             $isVerified = true;
 
-            // Optional non-blocking verification ping if API is reachable
+            // Optional non-blocking verification ping to register impression on Robins Ads
             if ($apiKey && $robinRewardId) {
                 try {
                     Http::withoutVerifying()->withToken($apiKey)->timeout(3)->post('https://robinsads.com/api/ads/reward/verify', [
@@ -244,11 +243,22 @@ class SponsorAdController extends Controller
             }
         }
 
-        if (! $isVerified) {
+        // 2. If a Robins Ads reward ID exists, strictly verify with Robins Ads server whether the ad has been fully watched
+        if (! $isVerified && $apiKey && $robinRewardId) {
+            try {
+                $statusRes = Http::withoutVerifying()->withToken($apiKey)->timeout(4)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
+                if ($statusRes->successful() && $statusRes->json('status') === 'verified') {
+                    $isVerified = true;
+                }
+            } catch (\Throwable $e) {
+            }
+        }
+
+        // 3. Fallback verification only when no active Robins Ads tracking ID exists (e.g. testing / offline)
+        if (! $isVerified && empty($robinRewardId)) {
             $startedAt = (int) ($adSession['started_at'] ?? 0);
             $elapsedSeconds = now()->timestamp - $startedAt;
-            // Allow claim if watched for at least 8 seconds (allows for countdown timer completion with network latency)
-            if ($elapsedSeconds >= 8) {
+            if ($elapsedSeconds >= self::WATCH_DURATION_SECONDS) {
                 $isVerified = true;
             }
         }
@@ -256,7 +266,7 @@ class SponsorAdController extends Controller
         if (! $isVerified) {
             return response()->json([
                 'success' => false,
-                'message' => 'De advertentie is nog niet lang genoeg bekeken. Bekijk de sponsor volledig om je beloning te claimen!',
+                'message' => 'De advertentie is nog niet volledig uitgekeken of bevestigd door de sponsor. Bekijk de video helemaal tot het einde om je beloning te claimen!',
             ], 422);
         }
 
@@ -320,18 +330,11 @@ class SponsorAdController extends Controller
         } else {
             switch ($rewardType) {
                 case 'prison':
-                    if ($character->isImprisoned() && $character->prison_until) {
-                        $newUntil = $character->prison_until->subMinutes(15);
-                        if ($newUntil->isPast()) {
-                            $character->is_in_prison = false;
-                            $character->prison_until = null;
-                            $character->prison_reason = null;
-                            $rewardDetails = '🎉 Je straftijd is met 15 minuten verminderd en je bent DIRECT VRIJGELATEN uit de isoleercel!';
-                        } else {
-                            $character->prison_until = $newUntil;
-                            $diffMin = max(1, (int) ceil(now()->diffInSeconds($newUntil) / 60));
-                            $rewardDetails = "⏱️ Je straftijd is met 15 minuten verminderd! Nog {$diffMin} minuten te gaan.";
-                        }
+                    if ($character->isImprisoned()) {
+                        $character->is_in_prison = false;
+                        $character->prison_until = null;
+                        $character->prison_reason = null;
+                        $rewardDetails = '🎉 Je hebt de sponsor ad bekeken en bent DIRECT VRIJGELATEN uit de isoleercel!';
                     } else {
                         // Fallback to cash if not in prison
                         $this->economy->addCash($character, 2500, 'sponsor_ad');

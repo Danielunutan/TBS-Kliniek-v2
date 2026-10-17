@@ -145,20 +145,29 @@
                         <span class="text-slate-500 dark:text-slate-400 font-bold">Bonus Invloed:</span>
                         <span class="font-bold text-slate-700 dark:text-slate-200">Discipline & Charisma verhogen kans</span>
                     </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 dark:text-slate-400 font-bold">Cooldown:</span>
+                        <span class="font-bold text-amber-600"><i class="fa-solid fa-clock text-[10px] mr-1"></i>{{ gmdate('i:s', $palmCooldownSeconds ?? 180) }}</span>
+                    </div>
                 </div>
 
                 @if($palmCooldown > 0)
-                <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 flex items-center justify-between gap-3 text-xs">
+                <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 flex flex-wrap items-center justify-between gap-3 text-xs">
                     <span class="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
                         <i class="fa-solid fa-eye text-amber-500"></i> Ingrid let scherp op: wacht nog {{ $palmCooldown }}s
                     </span>
-                    <form action="{{ route('cooldown.skip') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="action" value="infirmary_palm">
-                        <button type="submit" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] transition shrink-0 cursor-pointer shadow-xs">
-                            1 Ster ⭐
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-[11px] transition shrink-0 cursor-pointer">
+                            Reset via Ad
                         </button>
-                    </form>
+                        <form action="{{ route('cooldown.skip') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="action" value="infirmary_palm">
+                            <button type="submit" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black text-[11px] transition shrink-0 cursor-pointer shadow-xs">
+                                {{ $infirmarySkipCost }} Sterren ⭐
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 @endif
             </div>

@@ -128,6 +128,7 @@ Route::middleware('auth')->group(function (): void {
     // Sponsorkamer & Rewarded Ads
     Route::get('/sponsorkamer', [SponsorAdController::class, 'index'])->name('sponsor.index');
     Route::post('/sponsorkamer/start', [SponsorAdController::class, 'start'])->name('sponsor.start');
+    Route::get('/sponsorkamer/status', [SponsorAdController::class, 'status'])->name('sponsor.status');
     Route::post('/sponsorkamer/claim', [SponsorAdController::class, 'claim'])->name('sponsor.claim');
 
     // E-mail Bevestiging

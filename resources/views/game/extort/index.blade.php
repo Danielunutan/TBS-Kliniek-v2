@@ -44,17 +44,23 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-black text-amber-950">Afpersen Cooldown Actief</h4>
-                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $extortCooldown) }}</strong> of sla direct over met 2 Sterren.</p>
+                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $extortCooldown) }}</strong> of sla direct over met {{ $extortSkipCost }} Sterren.</p>
                 </div>
             </div>
-            <form action="{{ route('cooldown.skip') }}" method="POST">
-                @csrf
-                <input type="hidden" name="action" value="extort">
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-star text-white text-[11px]"></i>
-                    <span>Cooldown Overslaan (2 Sterren)</span>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-tv text-white text-[11px]"></i>
+                    <span>Kijk Ad (Reset Cooldown)</span>
                 </button>
-            </form>
+                <form action="{{ route('cooldown.skip') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="action" value="extort">
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-star text-white text-[11px]"></i>
+                        <span>{{ $extortSkipCost }} Sterren ⭐</span>
+                    </button>
+                </form>
+            </div>
         </div>
     @endif
 
@@ -84,6 +90,10 @@
                     <div class="flex items-center gap-3 text-xs">
                         <span class="text-slate-400 w-20 font-semibold">Slagingskans:</span>
                         <span class="font-bold text-indigo-600">{{ $target['rate'] }}%</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="text-slate-400 w-20 font-semibold">Cooldown:</span>
+                        <span class="font-bold text-amber-600"><i class="fa-solid fa-clock text-[10px] mr-1"></i>{{ gmdate('i:s', $target['cooldown'] ?? 180) }}</span>
                     </div>
                 </div>
                 <form action="{{ route('extort.extort') }}" method="POST">

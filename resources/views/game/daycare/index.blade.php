@@ -56,7 +56,7 @@
             <div>
                 <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Koffiepauze Actief</h4>
                 <p class="text-[11px] text-amber-800 dark:text-amber-300">
-                    De zaalwacht laat je even bijkomen. Wacht nog <strong>{{ $activeCooldown }} seconden</strong> voordat je weer aan de slag kunt.
+                    De zaalwacht laat je even bijkomen. Wacht nog <strong>{{ $activeCooldown }} seconden</strong> of sla direct over met {{ $daycareSkipCost }} Sterren.
                 </p>
             </div>
         </div>
@@ -68,9 +68,9 @@
             <form action="{{ route('cooldown.skip') }}" method="POST">
                 @csrf
                 <input type="hidden" name="action" value="dagbesteding">
-                <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-star text-slate-950 text-[11px]"></i>
-                    <span>1 Ster ⭐</span>
+                <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-xs px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-star text-white text-[11px]"></i>
+                    <span>{{ $daycareSkipCost }} Sterren ⭐</span>
                 </button>
             </form>
         </div>

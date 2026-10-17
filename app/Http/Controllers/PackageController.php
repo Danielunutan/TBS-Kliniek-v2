@@ -31,16 +31,17 @@ class PackageController extends Controller
         $this->energy->refresh($character);
 
         $packages = [
-            ['id' => 1, 'name' => 'Postpakket in de gang', 'desc' => 'Klein pakketje, waarschijnlijk een brief of wat snoepjes.', 'energy' => 5, 'token_cost' => 0, 'min' => 80, 'max' => 280, 'rate' => 55, 'xp' => 28, 'token_chance' => 15, 'icon' => 'fa-envelope'],
-            ['id' => 2, 'name' => 'Leveranciersdoos (Keuken)', 'desc' => 'Grotere doos van een buitenlevering. Bevat cash of voorraden.', 'energy' => 10, 'token_cost' => 0, 'min' => 220, 'max' => 750, 'rate' => 45, 'xp' => 60, 'token_chance' => 25, 'icon' => 'fa-box-open'],
-            ['id' => 3, 'name' => 'Medisch pakket (Apotheek)', 'desc' => 'Medicijnen of waardevolle goederen. Bewaking houdt toezicht.', 'energy' => 14, 'token_cost' => 0, 'min' => 500, 'max' => 1800, 'rate' => 35, 'xp' => 110, 'token_chance' => 35, 'icon' => 'fa-kit-medical'],
-            ['id' => 4, 'name' => 'Gepantserde Geldkoffer (Directie)', 'desc' => 'Zwaar beveiligd transport van directiegelden en kluiscodes.', 'energy' => 20, 'token_cost' => 0, 'min' => 1100, 'max' => 3600, 'rate' => 25, 'xp' => 195, 'token_chance' => 50, 'icon' => 'fa-truck-fast'],
-            ['id' => 5, 'name' => 'Geheime Masterkoffer (Exclusief)', 'desc' => 'Zwaar slot! Vereist 3 KluisMunten. Garandeert exclusieve buit en prestige.', 'energy' => 15, 'token_cost' => 3, 'min' => 2500, 'max' => 6500, 'rate' => 42, 'xp' => 320, 'token_chance' => 80, 'icon' => 'fa-briefcase'],
+            ['id' => 1, 'name' => 'Postpakket in de gang', 'desc' => 'Klein pakketje, waarschijnlijk een brief of wat snoepjes.', 'energy' => 5, 'token_cost' => 0, 'min' => 80, 'max' => 280, 'rate' => 55, 'cooldown' => $this->cooldownService->calculateBySuccessRate(55), 'xp' => 28, 'token_chance' => 15, 'icon' => 'fa-envelope'],
+            ['id' => 2, 'name' => 'Leveranciersdoos (Keuken)', 'desc' => 'Grotere doos van een buitenlevering. Bevat cash of voorraden.', 'energy' => 10, 'token_cost' => 0, 'min' => 220, 'max' => 750, 'rate' => 45, 'cooldown' => $this->cooldownService->calculateBySuccessRate(45), 'xp' => 60, 'token_chance' => 25, 'icon' => 'fa-box-open'],
+            ['id' => 3, 'name' => 'Medisch pakket (Apotheek)', 'desc' => 'Medicijnen of waardevolle goederen. Bewaking houdt toezicht.', 'energy' => 14, 'token_cost' => 0, 'min' => 500, 'max' => 1800, 'rate' => 35, 'cooldown' => $this->cooldownService->calculateBySuccessRate(35), 'xp' => 110, 'token_chance' => 35, 'icon' => 'fa-kit-medical'],
+            ['id' => 4, 'name' => 'Gepantserde Geldkoffer (Directie)', 'desc' => 'Zwaar beveiligd transport van directiegelden en kluiscodes.', 'energy' => 20, 'token_cost' => 0, 'min' => 1100, 'max' => 3600, 'rate' => 25, 'cooldown' => $this->cooldownService->calculateBySuccessRate(25), 'xp' => 195, 'token_chance' => 50, 'icon' => 'fa-truck-fast'],
+            ['id' => 5, 'name' => 'Geheime Masterkoffer (Exclusief)', 'desc' => 'Zwaar slot! Vereist 3 KluisMunten. Garandeert exclusieve buit en prestige.', 'energy' => 15, 'token_cost' => 3, 'min' => 2500, 'max' => 6500, 'rate' => 42, 'cooldown' => $this->cooldownService->calculateBySuccessRate(42), 'xp' => 320, 'token_chance' => 80, 'icon' => 'fa-briefcase'],
         ];
 
         $kofferLogs = KofferLog::where('character_id', $character->id)->latest()->take(8)->get();
+        $packageSkipCost = $this->cooldownService->getSkipCost('package');
 
-        return view('game.packages.index', compact('character', 'packages', 'kofferLogs'));
+        return view('game.packages.index', compact('character', 'packages', 'kofferLogs', 'packageSkipCost'));
     }
 
     /**
@@ -57,8 +58,9 @@ class PackageController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'package')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'package');
             $mins = ceil($remaining / 60);
+            $skipCost = $this->cooldownService->getSkipCost('package');
 
-            return back()->with('error', "⏳ Koffers onderscheppen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met 1 Ster ⭐.");
+            return back()->with('error', "⏳ Koffers onderscheppen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
         }
 
         $validated = $request->validate([
@@ -83,8 +85,8 @@ class PackageController extends Controller
             return back()->with('error', "Je hebt minimaal {$pkg['energy']} energie nodig om deze actie uit te voeren!");
         }
 
-        // Set 3 min cooldown (180s)
-        $this->cooldownService->setCooldown($character, 'package', 180);
+        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($pkg['rate']);
+        $this->cooldownService->setCooldown($character, 'package', $cooldownSeconds);
 
         if ($pkg['token_cost'] > 0) {
             $character->vault_tokens -= $pkg['token_cost'];

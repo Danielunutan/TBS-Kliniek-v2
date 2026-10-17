@@ -138,18 +138,18 @@ class NewFeaturesTest extends TestCase
         $char->update([
             'is_in_prison' => true,
             'prison_until' => now()->addMinutes(15),
-            'stars' => 5,
+            'stars' => 30,
         ]);
 
         $this->actingAs($user);
 
-        // Buy self out with 2 stars
+        // Buy self out with 25 stars
         $buyoutResponse = $this->post(route('prison.buyout'));
         $buyoutResponse->assertSessionHas('success');
 
         $char->refresh();
         $this->assertFalse($char->isImprisoned());
-        $this->assertEquals(3, $char->stars); // 5 - 2
+        $this->assertEquals(5, $char->stars); // 30 - 25
     }
 
     public function test_production_and_hustle_cooldowns_and_stars_skip(): void
@@ -159,7 +159,7 @@ class NewFeaturesTest extends TestCase
         $char->update([
             'is_in_prison' => false,
             'energy' => 100,
-            'stars' => 10,
+            'stars' => 50,
         ]);
 
         $this->actingAs($user);
@@ -172,12 +172,12 @@ class NewFeaturesTest extends TestCase
         $res2 = $this->post(route('hustle.attempt'), ['hustle_id' => 1]);
         $res2->assertSessionHas('error');
 
-        // 3. Skip hustle cooldown with 1 star
+        // 3. Skip hustle cooldown with stars (costs 10 stars)
         $skipRes = $this->post(route('cooldown.skip'), ['action' => 'hustle']);
         $skipRes->assertSessionHas('success');
         $char->refresh();
         $this->assertFalse($char->isOnCooldown('hustle'));
-        $this->assertEquals(9, $char->stars); // 10 - 1
+        $this->assertEquals(40, $char->stars); // 50 - 10
 
         // 4. Production cooldown (produce sigaretten -> 5 min cooldown)
         $prodRes1 = $this->post(route('smuggle.produce'), ['type' => 'sigaretten']);
@@ -188,12 +188,12 @@ class NewFeaturesTest extends TestCase
         $prodRes2 = $this->post(route('smuggle.produce'), ['type' => 'sigaretten']);
         $prodRes2->assertSessionHas('error');
 
-        // Skip production cooldown with 1 star
+        // Skip production cooldown with stars (costs 20 stars)
         $skipProdRes = $this->post(route('cooldown.skip'), ['action' => 'produce_sigaretten']);
         $skipProdRes->assertSessionHas('success');
         $char->refresh();
         $this->assertFalse($char->isOnCooldown('produce_sigaretten'));
-        $this->assertEquals(8, $char->stars); // 9 - 1
+        $this->assertEquals(20, $char->stars); // 40 - 20
     }
 
     public function test_medicijn_kluis_batch_redemption(): void

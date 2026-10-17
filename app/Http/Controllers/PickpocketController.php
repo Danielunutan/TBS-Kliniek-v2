@@ -29,15 +29,17 @@ class PickpocketController extends Controller
         $this->energy->refresh($character);
 
         $actions = [
-            ['id' => 1, 'name' => 'Bezoeker in de wachtkamer', 'desc' => 'Snel een portemonnee of smartphone meegrissen in de drukte.', 'energy' => 6, 'min' => 80, 'max' => 350, 'rate' => 52, 'xp' => 35, 'icon' => 'fa-person-walking'],
-            ['id' => 2, 'name' => 'Verpleegster bij medicijnenuitgifte', 'desc' => 'Piepklein momentje als ze niet kijkt naar haar sleutelbos.', 'energy' => 10, 'min' => 200, 'max' => 800, 'rate' => 40, 'xp' => 70, 'icon' => 'fa-user-nurse'],
-            ['id' => 3, 'name' => 'Medewerker bij de kantinekassa', 'desc' => 'Snelle greep uit de kassalade tijdens het wisselen.', 'energy' => 14, 'min' => 500, 'max' => 1800, 'rate' => 28, 'xp' => 115, 'icon' => 'fa-cash-register'],
-            ['id' => 4, 'name' => 'Kliniekconsulent in de gang', 'desc' => 'Luxe lederen aktetas leeghalen van een externe inspecteur.', 'energy' => 18, 'min' => 1000, 'max' => 3500, 'rate' => 18, 'xp' => 200, 'icon' => 'fa-vault'],
-            ['id' => 5, 'name' => 'Advocaat op bezoek', 'desc' => 'Dure portemonnee en contante voorschotten uit de binnenzak rollen.', 'energy' => 22, 'min' => 2000, 'max' => 5500, 'rate' => 14, 'xp' => 260, 'icon' => 'fa-briefcase'],
-            ['id' => 6, 'name' => 'Hoofdbehandelaar tijdens ronde', 'desc' => 'Uiterst riskante zakkenrollerij op de hoogste afdelingschef.', 'energy' => 26, 'min' => 3500, 'max' => 9000, 'rate' => 10, 'xp' => 360, 'icon' => 'fa-stethoscope'],
+            ['id' => 1, 'name' => 'Bezoeker in de wachtkamer', 'desc' => 'Snel een portemonnee of smartphone meegrissen in de drukte.', 'energy' => 6, 'min' => 80, 'max' => 350, 'rate' => 52, 'cooldown' => $this->cooldownService->calculateBySuccessRate(52), 'xp' => 35, 'icon' => 'fa-person-walking'],
+            ['id' => 2, 'name' => 'Verpleegster bij medicijnenuitgifte', 'desc' => 'Piepklein momentje als ze niet kijkt naar haar sleutelbos.', 'energy' => 10, 'min' => 200, 'max' => 800, 'rate' => 40, 'cooldown' => $this->cooldownService->calculateBySuccessRate(40), 'xp' => 70, 'icon' => 'fa-user-nurse'],
+            ['id' => 3, 'name' => 'Medewerker bij de kantinekassa', 'desc' => 'Snelle greep uit de kassalade tijdens het wisselen.', 'energy' => 14, 'min' => 500, 'max' => 1800, 'rate' => 28, 'cooldown' => $this->cooldownService->calculateBySuccessRate(28), 'xp' => 115, 'icon' => 'fa-cash-register'],
+            ['id' => 4, 'name' => 'Kliniekconsulent in de gang', 'desc' => 'Luxe lederen aktetas leeghalen van een externe inspecteur.', 'energy' => 18, 'min' => 1000, 'max' => 3500, 'rate' => 18, 'cooldown' => $this->cooldownService->calculateBySuccessRate(18), 'xp' => 200, 'icon' => 'fa-vault'],
+            ['id' => 5, 'name' => 'Advocaat op bezoek', 'desc' => 'Dure portemonnee en contante voorschotten uit de binnenzak rollen.', 'energy' => 22, 'min' => 2000, 'max' => 5500, 'rate' => 14, 'cooldown' => $this->cooldownService->calculateBySuccessRate(14), 'xp' => 260, 'icon' => 'fa-briefcase'],
+            ['id' => 6, 'name' => 'Hoofdbehandelaar tijdens ronde', 'desc' => 'Uiterst riskante zakkenrollerij op de hoogste afdelingschef.', 'energy' => 26, 'min' => 3500, 'max' => 9000, 'rate' => 10, 'cooldown' => $this->cooldownService->calculateBySuccessRate(10), 'xp' => 360, 'icon' => 'fa-stethoscope'],
         ];
 
-        return view('game.pickpocket.index', compact('character', 'actions'));
+        $ppSkipCost = $this->cooldownService->getSkipCost('pickpocket');
+
+        return view('game.pickpocket.index', compact('character', 'actions', 'ppSkipCost'));
     }
 
     public function steal(Request $request): RedirectResponse
@@ -51,8 +53,9 @@ class PickpocketController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'pickpocket')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'pickpocket');
             $mins = ceil($remaining / 60);
+            $skipCost = $this->cooldownService->getSkipCost('pickpocket');
 
-            return back()->with('error', "⏳ Zakkenrollen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met 1 Ster ⭐.");
+            return back()->with('error', "⏳ Zakkenrollen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
         }
 
         $validated = $request->validate([
@@ -82,8 +85,9 @@ class PickpocketController extends Controller
         $character->masks -= 1;
         $character->save();
 
-        // Set 2 min cooldown (120s)
-        $this->cooldownService->setCooldown($character, 'pickpocket', 120);
+        // Dynamic cooldown duration based on success rate
+        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($action['rate']);
+        $this->cooldownService->setCooldown($character, 'pickpocket', $cooldownSeconds);
 
         $roll = rand(1, 100);
         if ($roll <= $action['rate']) {

@@ -24,9 +24,9 @@ class RoadmapTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Toekomst &amp; Roadmap', false);
-        $response->assertSee('De Grote Medicijnkluis Overval');
-        $response->assertSee('Het Behandelaarsgesprek');
-        $response->assertSee('De Grijze Tabaksmarkt');
+        $response->assertSee('De Celinspectie &amp; Onverwachte Razzia', false);
+        $response->assertSee('De Magnetron-Chef &amp; Kantine Keuken', false);
+        $response->assertSee('Het Corrupte Bewakers Netwerk', false);
     }
 
     public function test_user_can_vote_for_a_feature(): void

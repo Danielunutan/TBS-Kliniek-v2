@@ -62,7 +62,7 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-extrabold text-amber-950">Zakkenrollen Cooldown Actief</h4>
-                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $ppCooldown) }}</strong> of sla direct over met 1 Ster.</p>
+                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $ppCooldown) }}</strong> of sla direct over met {{ $ppSkipCost }} Sterren.</p>
                 </div>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -75,7 +75,7 @@
                     <input type="hidden" name="action" value="pickpocket">
                     <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-star text-white text-[11px]"></i>
-                        <span>1 Ster ⭐</span>
+                        <span>{{ $ppSkipCost }} Sterren ⭐</span>
                     </button>
                 </form>
             </div>
@@ -112,7 +112,14 @@
                         <span class="font-bold text-slate-800">{{ $action['rate'] }}%</span>
                     </div>
                     <div class="flex justify-between">
+                        <span class="text-slate-400 font-semibold">Cooldown:</span>
+                        <span class="font-bold text-amber-600"><i class="fa-solid fa-clock text-[10px] mr-1"></i>{{ gmdate('i:s', $action['cooldown'] ?? 180) }}</span>
+                    </div>
+                    <div class="flex justify-between">
                         <span class="text-slate-400 font-semibold">Energie & Maskers:</span>
+                        <span class="font-bold text-purple-600">{{ $action['energy'] }} EP &bull; 1 Masker</span>
+                    </div>
+                </div>
                         <span class="font-bold text-purple-600">{{ $action['energy'] }} EP &bull; 1 Masker</span>
                     </div>
                 </div>

@@ -39,6 +39,7 @@ class HustleController extends Controller
                 'description' => 'Maak een praatje over voetbal om wat kleingeld of sigaretten te bietsen.',
                 'cost' => 5,
                 'rate' => 55,
+                'cooldown' => $this->cooldownService->calculateBySuccessRate(55),
                 'cash_min' => 350,
                 'cash_max' => 950,
                 'xp' => 40,
@@ -51,6 +52,7 @@ class HustleController extends Controller
                 'description' => 'Ritsel versgebakken snacks die je direct kan doorverkopen.',
                 'cost' => 10,
                 'rate' => 45,
+                'cooldown' => $this->cooldownService->calculateBySuccessRate(45),
                 'cash_min' => 1000,
                 'cash_max' => 2500,
                 'xp' => 80,
@@ -63,6 +65,7 @@ class HustleController extends Controller
                 'description' => 'Grijp snel een doordrukstrip uit het mandje als zuster Ingrid wegkijkt.',
                 'cost' => 15,
                 'rate' => 35,
+                'cooldown' => $this->cooldownService->calculateBySuccessRate(35),
                 'cash_min' => 2800,
                 'cash_max' => 6500,
                 'xp' => 140,
@@ -75,6 +78,7 @@ class HustleController extends Controller
                 'description' => 'Laat medegevangenen wedden op pingpong en pak het huisvoordeel.',
                 'cost' => 20,
                 'rate' => 25,
+                'cooldown' => $this->cooldownService->calculateBySuccessRate(25),
                 'cash_min' => 6000,
                 'cash_max' => 14000,
                 'xp' => 220,
@@ -87,6 +91,7 @@ class HustleController extends Controller
                 'description' => 'Controleer de aanvoer van zware shag en vapes over alle drie de afdelingen.',
                 'cost' => 24,
                 'rate' => 18,
+                'cooldown' => $this->cooldownService->calculateBySuccessRate(18),
                 'cash_min' => 12000,
                 'cash_max' => 28000,
                 'xp' => 320,
@@ -99,6 +104,7 @@ class HustleController extends Controller
                 'description' => 'Verhuur een binnengesmokkelde prepaid telefoon voor 15 minuten per belbeurt.',
                 'cost' => 28,
                 'rate' => 14,
+                'cooldown' => $this->cooldownService->calculateBySuccessRate(14),
                 'cash_min' => 22000,
                 'cash_max' => 55000,
                 'xp' => 450,
@@ -123,8 +129,9 @@ class HustleController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'hustle')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'hustle');
             $mins = ceil($remaining / 60);
+            $skipCost = $this->cooldownService->getSkipCost('hustle');
 
-            return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla de wachttijd over met 1 Ster ⭐.");
+            return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla de wachttijd over met {$skipCost} Sterren ⭐.");
         }
 
         $validated = $request->validate([
@@ -146,8 +153,9 @@ class HustleController extends Controller
             return back()->with('error', 'Niet genoeg energie! Je hebt minstens '.$hustle['cost'].' energie nodig.');
         }
 
-        // Set 3 minute cooldown (180s)
-        $this->cooldownService->setCooldown($character, 'hustle', 180);
+        // Dynamic cooldown duration based on success rate (55% = 75s, 14% = 360s)
+        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($hustle['rate']);
+        $this->cooldownService->setCooldown($character, 'hustle', $cooldownSeconds);
 
         // Stat bonus: Charisma & Intelligence boost hustle success rate
         $statBonus = min(20, (int) floor(($character->getEffectiveCharisma() * 1.5 + $character->getEffectiveIntelligence()) / 15));

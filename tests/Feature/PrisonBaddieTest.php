@@ -62,7 +62,7 @@ class PrisonBaddieTest extends TestCase
             'is_in_prison' => true,
             'prison_until' => now()->addSeconds(126),
             'prison_reason' => 'Test straf',
-            'stars' => 10,
+            'stars' => 30,
         ]);
 
         $this->actingAs($user);
@@ -73,7 +73,7 @@ class PrisonBaddieTest extends TestCase
 
         $char->refresh();
         $this->assertFalse($char->isImprisoned());
-        $this->assertEquals(8, $char->stars); // 10 - 2
+        $this->assertEquals(5, $char->stars); // 30 - 25
     }
 
     public function test_prison_service_jail_seconds(): void

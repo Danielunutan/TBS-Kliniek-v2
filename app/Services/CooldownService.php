@@ -49,20 +49,45 @@ class CooldownService
      * Costs in Stars ⭐ to skip cooldown instantly.
      */
     public const SKIP_COSTS = [
-        'produce_sigaretten' => 5,
-        'produce_ritalin' => 10,
-        'produce_telefoon' => 15,
-
-        'hustle' => 5,
-        'pickpocket' => 5,
-        'locker' => 5,
-        'package' => 5,
-        'extort' => 10,
-        'treatment_session' => 10,
-        'dropping_tennisball' => 5,
-        'dropping_drone' => 10,
-        'tunnel_dig' => 5,
+        'hustle' => 10,
+        'pickpocket' => 10,
+        'locker' => 10,
+        'package' => 10,
+        'dagbesteding' => 10,
+        'infirmary_palm' => 10,
+        'tunnel_dig' => 15,
+        'dropping_tennisball' => 15,
+        'extort' => 20,
+        'produce_sigaretten' => 20,
+        'produce_ritalin' => 35,
+        'treatment_session' => 35,
+        'dropping_drone' => 40,
+        'produce_telefoon' => 50,
     ];
+
+    /**
+     * Calculate dynamic cooldown duration in seconds based on success rate (slagingskans in percentage 1-100).
+     * High success rate (low risk, small hustle) -> short cooldown.
+     * Low success rate (high risk, big cash/respect) -> longer cooldown.
+     */
+    public function calculateBySuccessRate(int $ratePercentage): int
+    {
+        $rate = max(1, min(100, $ratePercentage));
+
+        if ($rate >= 50) {
+            return 75; // 1m 15s (makkelijk, snel weer proberen)
+        } elseif ($rate >= 40) {
+            return 120; // 2m 00s
+        } elseif ($rate >= 30) {
+            return 180; // 3m 00s
+        } elseif ($rate >= 20) {
+            return 240; // 4m 00s
+        } elseif ($rate >= 15) {
+            return 300; // 5m 00s
+        } else {
+            return 360; // 6m 00s (uiterst zwaar, hoogste beloning)
+        }
+    }
 
     public function getDuration(string $action): int
     {
@@ -71,7 +96,7 @@ class CooldownService
 
     public function getSkipCost(string $action): int
     {
-        return self::SKIP_COSTS[$action] ?? 3;
+        return self::SKIP_COSTS[$action] ?? 10;
     }
 
     public function getRemainingSeconds(Character $character, string $action): int
