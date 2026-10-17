@@ -2,17 +2,19 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_id', 'banned_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -128,6 +130,111 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Warnings issued to this user.
+     */
+    public function warnings(): HasMany
+    {
+        return $this->hasMany(UserWarning::class)->latest();
+    }
+
+    /**
+     * Active unacknowledged warnings.
+     */
+    public function unacknowledgedWarnings(): HasMany
+    {
+        return $this->hasMany(UserWarning::class)->whereNull('acknowledged_at')->latest();
+    }
+
+    /**
+     * Ban history for this user.
+     */
+    public function bans(): HasMany
+    {
+        return $this->hasMany(UserBan::class)->latest();
+    }
+
+    /**
+     * Staff member who banned this user.
+     */
+    public function bannedBy(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'banned_by_id');
+    }
+
+    /**
+     * Check if user is currently banned.
+     */
+    public function isBanned(): bool
+    {
+        if (! $this->is_banned) {
+            return false;
+        }
+
+        // Auto-unban if temporary ban has expired
+        if ($this->banned_until !== null && now()->greaterThanOrEqualTo($this->banned_until)) {
+            $this->unban();
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Ban this user.
+     */
+    public function ban(string $reason, ?CarbonInterface $until = null, ?self $bannedBy = null): UserBan
+    {
+        $this->is_banned = true;
+        $this->banned_until = $until;
+        $this->ban_reason = $reason;
+        $this->banned_by_id = $bannedBy?->id;
+        $this->banned_at = now();
+        $this->save();
+
+        return UserBan::create([
+            'user_id' => $this->id,
+            'banned_by_id' => $bannedBy?->id,
+            'reason' => $reason,
+            'banned_until' => $until,
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Unban this user.
+     */
+    public function unban(?self $unbannedBy = null): void
+    {
+        $this->is_banned = false;
+        $this->banned_until = null;
+        $this->ban_reason = null;
+        $this->banned_by_id = null;
+        $this->banned_at = null;
+        $this->save();
+
+        UserBan::where('user_id', $this->id)
+            ->where('is_active', true)
+            ->update([
+                'is_active' => false,
+                'unbanned_by_id' => $unbannedBy?->id,
+                'unbanned_at' => now(),
+            ]);
+    }
+
+    /**
+     * Issue an official warning to this user.
+     */
+    public function warn(string $reason, ?self $issuer = null): UserWarning
+    {
+        return UserWarning::create([
+            'user_id' => $this->id,
+            'issuer_id' => $issuer?->id,
+            'reason' => $reason,
+        ]);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -141,6 +248,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_enabled' => 'boolean',
             'is_onboarded' => 'boolean',
             'birthdate' => 'date',
+            'is_banned' => 'boolean',
+            'banned_until' => 'datetime',
+            'banned_at' => 'datetime',
         ];
     }
 }

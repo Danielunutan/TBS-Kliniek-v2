@@ -76,6 +76,18 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.discord_shield.*') ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-brands fa-discord text-indigo-400"></i> Discord Shield
             </a>
+            <a href="{{ route('admin.moderation.index') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.moderation.*') ? 'bg-rose-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-solid fa-gavel text-rose-500 {{ request()->routeIs('admin.moderation.*') ? 'text-white' : '' }}"></i> Moderatie & Sancties
+                @php
+                    $bannedCountBadge = \App\Models\User::where('is_banned', true)->count();
+                @endphp
+                @if($bannedCountBadge > 0)
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.moderation.*') ? 'bg-white text-rose-700' : 'bg-rose-500 text-white' }}">
+                    {{ $bannedCountBadge }}
+                </span>
+                @endif
+            </a>
         </div>
     </div>
 

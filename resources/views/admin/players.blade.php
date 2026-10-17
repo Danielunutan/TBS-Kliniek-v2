@@ -38,6 +38,14 @@
                class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ request('filter') === 'prison' ? 'bg-rose-100 text-rose-800 font-extrabold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                 <i class="fa-solid fa-lock text-rose-500 mr-1"></i> Isoleercel
             </a>
+            <a href="{{ route('admin.players', ['filter' => 'banned']) }}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ request('filter') === 'banned' ? 'bg-red-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                <i class="fa-solid fa-ban text-red-500 mr-1 {{ request('filter') === 'banned' ? 'text-white' : '' }}"></i> Verbannen
+            </a>
+            <a href="{{ route('admin.players', ['filter' => 'warned']) }}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ request('filter') === 'warned' ? 'bg-amber-100 text-amber-900 font-extrabold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Gewaarschuwd
+            </a>
         </div>
     </div>
 
@@ -56,6 +64,7 @@
                         <th class="py-3 px-3 text-right">VIP PUNTEN</th>
                         <th class="py-3 px-3 text-center">VIP STATUS</th>
                         <th class="py-3 px-3 text-center">CEL STATUS</th>
+                        <th class="py-3 px-3 text-center">SANCTIES</th>
                         <th class="py-3 px-4 text-right">ACTIE</th>
                     </tr>
                 </thead>
@@ -114,6 +123,19 @@
                                 <span class="text-emerald-600 text-[10px] font-bold">Vrij</span>
                             @endif
                         </td>
+                        <td class="py-3.5 px-3 text-center">
+                            @if($player->user?->is_banned)
+                                <span class="bg-rose-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-ban text-[8px]"></i> Verbannen
+                                </span>
+                            @elseif($player->user && $player->user->warnings->count() > 0)
+                                <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-600 text-[8px]"></i> {{ $player->user->warnings->count() }}x
+                                </span>
+                            @else
+                                <span class="text-slate-300 text-[10px]">&mdash;</span>
+                            @endif
+                        </td>
                         <td class="py-3.5 px-4 text-right">
                             <button @click="editingId = editingId === {{ $player->id }} ? null : {{ $player->id }}"
                                     class="px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-600 hover:text-white text-purple-700 text-xs font-bold transition cursor-pointer">
@@ -124,7 +146,7 @@
 
                     <!-- Expandable Edit Form Drawer -->
                     <tr x-show="editingId === {{ $player->id }}" x-cloak class="bg-purple-50/50">
-                        <td colspan="10" class="p-6 border-y border-purple-200">
+                        <td colspan="11" class="p-6 border-y border-purple-200">
                             <form action="{{ route('admin.player.update', $player) }}" method="POST" class="space-y-4">
                                 @csrf
                                 <div class="flex items-center justify-between border-b border-purple-200 pb-2">
@@ -245,11 +267,101 @@
                                     </button>
                                 </div>
                             </form>
+
+                            <!-- Moderatie & Sancties Sectie (Waarschuwing & Verbanning) -->
+                            @if($player->user)
+                            <div class="mt-6 pt-5 border-t border-purple-200/80 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                
+                                <!-- Waarschuwing Uitdelen -->
+                                <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-4 space-y-3">
+                                    <div class="flex items-center justify-between border-b border-amber-200 pb-2">
+                                        <h5 class="font-black text-amber-950 uppercase tracking-wide flex items-center gap-1.5">
+                                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Officiële Waarschuwing Geven
+                                        </h5>
+                                        <span class="text-[10px] font-bold text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded-full">
+                                            {{ $player->user->warnings->count() }} eerdere waarschuwingen
+                                        </span>
+                                    </div>
+                                    <form action="{{ route('admin.moderation.warn', $player->user) }}" method="POST" class="space-y-2">
+                                        @csrf
+                                        <div>
+                                            <label class="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Reden van de berisping:</label>
+                                            <input type="text" name="reason" required placeholder="bijv. Ongepast taalgebruik op profiel of valsspelen..." 
+                                                   class="w-full bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:ring-1 focus:ring-amber-500 mt-1">
+                                        </div>
+                                        <button type="submit" class="w-full px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                            <i class="fa-solid fa-paper-plane"></i>
+                                            <span>Waarschuwing Versturen naar Patiënt</span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Verbannen / Deactiveren -->
+                                <div class="bg-rose-50/80 border border-rose-200 rounded-xl p-4 space-y-3">
+                                    <div class="flex items-center justify-between border-b border-rose-200 pb-2">
+                                        <h5 class="font-black text-rose-950 uppercase tracking-wide flex items-center gap-1.5">
+                                            <i class="fa-solid fa-ban text-rose-600"></i> Speler Verbannen (Ban)
+                                        </h5>
+                                        @if($player->user->is_banned)
+                                            <span class="text-[10px] font-black uppercase text-white bg-rose-600 px-2 py-0.5 rounded-full">
+                                                NU VERBANNEN
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    @if($player->user->is_banned)
+                                        <div class="space-y-2">
+                                            <div class="p-2.5 bg-white rounded-lg border border-rose-200 text-xs">
+                                                <p class="font-bold text-rose-900">Actieve ban tot: <span class="font-normal">{{ $player->user->banned_until ? $player->user->banned_until->diffForHumans() : 'Permanent' }}</span></p>
+                                                <p class="text-[11px] text-slate-600 italic">"{{ $player->user->ban_reason }}"</p>
+                                            </div>
+                                            <form action="{{ route('admin.moderation.unban', $player->user) }}" method="POST" onsubmit="return confirm('Weet je zeker dat je de ban wilt opheffen?');">
+                                                @csrf
+                                                <button type="submit" class="w-full px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                                    <i class="fa-solid fa-lock-open"></i>
+                                                    <span>Verbanning Opheffen (Unban)</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <form action="{{ route('admin.moderation.ban', $player->user) }}" method="POST" class="space-y-2" onsubmit="return confirm('Weet je zeker dat je deze speler wilt verbannen?');">
+                                            @csrf
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <div>
+                                                    <label class="text-[10px] font-bold text-rose-900 uppercase tracking-wider block">Duur van ban:</label>
+                                                    <select name="duration" class="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800 focus:ring-1 focus:ring-rose-500 mt-1">
+                                                        <option value="1_hour">1 Uur</option>
+                                                        <option value="6_hours">6 Uur</option>
+                                                        <option value="12_hours">12 Uur</option>
+                                                        <option value="1_day" selected>1 Dag (24 uur)</option>
+                                                        <option value="3_days">3 Dagen</option>
+                                                        <option value="7_days">7 Dagen (1 week)</option>
+                                                        <option value="14_days">14 Dagen</option>
+                                                        <option value="30_days">30 Dagen (1 maand)</option>
+                                                        <option value="permanent">🚨 Permanent (Levenslang)</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="text-[10px] font-bold text-rose-900 uppercase tracking-wider block">Reden van ban:</label>
+                                                    <input type="text" name="reason" required placeholder="bijv. Herhaaldelijke overtredingen..." 
+                                                           class="w-full bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:ring-1 focus:ring-rose-500 mt-1">
+                                                </div>
+                                            </div>
+                                            <button type="submit" class="w-full px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                                <i class="fa-solid fa-gavel"></i>
+                                                <span>Speler Verbannen van Website</span>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+
+                            </div>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="10" class="py-8 text-center text-slate-400 text-xs">Geen spelers gevonden voor deze zoekopdracht.</td>
+                        <td colspan="11" class="py-8 text-center text-slate-400 text-xs">Geen spelers gevonden voor deze zoekopdracht.</td>
                     </tr>
                     @endforelse
                 </tbody>

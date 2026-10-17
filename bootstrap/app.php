@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Middleware\EnsureUserIsOnboarded;
 use App\Http\Middleware\UpdateUserOnlineStatus;
 use Illuminate\Foundation\Application;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             UpdateUserOnlineStatus::class,
+            EnsureUserIsNotBanned::class,
             EnsureUserIsOnboarded::class,
         ]);
     })

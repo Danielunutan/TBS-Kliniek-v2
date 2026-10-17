@@ -1489,6 +1489,45 @@
 
         <!-- MAIN CONTENT CONTAINER (pt-4 sm:pt-8, pb-28 zodat mobiele bottom dock niets overlapt) -->
         <main class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-28 lg:pb-12">
+            <!-- Active Warning Notification Alert Banner for User -->
+            @if(Auth::check() && Auth::user()->unacknowledgedWarnings->isNotEmpty())
+            @foreach(Auth::user()->unacknowledgedWarnings as $unackedWarning)
+            <div class="mb-6 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-rose-500/10 dark:from-amber-950/40 dark:to-rose-950/40 border-2 border-amber-400 dark:border-amber-600 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl shrink-0 shadow-sm mt-0.5">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">
+                                    Officiële Waarschuwing
+                                </span>
+                                <span class="text-[11px] text-slate-400 dark:text-slate-500">
+                                    {{ $unackedWarning->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">
+                                Let op: Je hebt een officiële berisping ontvangen van de Zaalwacht / Directie
+                            </h3>
+                            <div class="text-xs text-slate-700 dark:text-slate-300 bg-white/70 dark:bg-slate-900/60 p-3 rounded-xl border border-amber-200 dark:border-amber-800/60 leading-relaxed font-medium">
+                                "{{ $unackedWarning->reason }}"
+                            </div>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('warning.acknowledge', $unackedWarning) }}" method="POST" class="shrink-0 w-full md:w-auto">
+                        @csrf
+                        <button type="submit" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-[0.98] text-slate-950 font-black text-xs transition shadow flex items-center justify-center gap-2 cursor-pointer">
+                            <i class="fa-solid fa-check-double"></i>
+                            <span>Begrepen, ik houd me aan de regels</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @endforeach
+            @endif
+
             <!-- Active Prison / Isoleercel Alert Banner with Live Seconds Ticker & Star Buyout -->
             @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
             <div x-data="{ 

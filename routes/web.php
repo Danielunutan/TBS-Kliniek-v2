@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminModerationController;
 use App\Http\Controllers\AdminNewsController;
 use App\Http\Controllers\AdminTicketController;
 use App\Http\Controllers\ArmWrestleController;
@@ -67,6 +68,7 @@ use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\TunnelController;
 use App\Http\Controllers\VaultController;
 use App\Http\Controllers\VipController;
+use App\Http\Controllers\WarningController;
 use App\Http\Middleware\EnsureUserIsStaff;
 use Illuminate\Support\Facades\Route;
 
@@ -476,5 +478,15 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/discord-shield/ban', [DiscordShieldAdminController::class, 'ban'])->name('discord_shield.ban');
         Route::delete('/discord-shield/ban/{id}', [DiscordShieldAdminController::class, 'unban'])->name('discord_shield.unban');
         Route::post('/discord-shield/approve/{id}', [DiscordShieldAdminController::class, 'approve'])->name('discord_shield.approve');
+
+        // Spelers Moderatie & Sancties (Bans & Waarschuwingen)
+        Route::get('/moderatie', [AdminModerationController::class, 'index'])->name('moderation.index');
+        Route::post('/moderatie/spelers/{user}/verbannen', [AdminModerationController::class, 'banUser'])->name('moderation.ban');
+        Route::post('/moderatie/spelers/{user}/opheffen', [AdminModerationController::class, 'unbanUser'])->name('moderation.unban');
+        Route::post('/moderatie/spelers/{user}/waarschuwen', [AdminModerationController::class, 'warnUser'])->name('moderation.warn');
+        Route::delete('/moderatie/waarschuwingen/{warning}', [AdminModerationController::class, 'deleteWarning'])->name('moderation.warning.destroy');
     });
+
+    // Officiële Waarschuwingen Bevestigen door Speler
+    Route::post('/waarschuwingen/{warning}/bevestigen', [WarningController::class, 'acknowledge'])->name('warning.acknowledge');
 });

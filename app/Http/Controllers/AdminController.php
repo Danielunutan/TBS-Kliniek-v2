@@ -50,13 +50,14 @@ class AdminController extends Controller
      */
     public function players(Request $request): View
     {
-        $query = Character::with(['user', 'gang']);
+        $query = Character::with(['user.warnings', 'user.bannedBy', 'gang']);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('email', 'like', "%{$search}%");
+                        $uq->where('email', 'like', "%{$search}%")
+                            ->orWhere('name', 'like', "%{$search}%");
                     });
             });
         }
@@ -71,6 +72,12 @@ class AdminController extends Controller
                     $uq->whereIn('role', ['owner', 'admin', 'moderator'])
                         ->orWhere('is_staff', true);
                 });
+            } elseif ($request->input('filter') === 'banned') {
+                $query->whereHas('user', function ($uq) {
+                    $uq->where('is_banned', true);
+                });
+            } elseif ($request->input('filter') === 'warned') {
+                $query->whereHas('user.warnings');
             }
         }
 
