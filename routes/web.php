@@ -11,6 +11,7 @@ use App\Http\Controllers\BankController;
 use App\Http\Controllers\BountyController;
 use App\Http\Controllers\CasinoController;
 use App\Http\Controllers\CombatTrainingController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\CooldownController;
 use App\Http\Controllers\CpaleadPostbackController;
 use App\Http\Controllers\DailyBattleController;
@@ -117,9 +118,15 @@ Route::match(['GET', 'POST'], '/discord/koppel', [DiscordShieldController::class
 Route::match(['GET', 'POST'], '/discord/sync-roles', [DiscordShieldController::class, 'syncRoles'])->name('discord.sync_roles');
 Route::get('/discord/widget-data', [DiscordShieldController::class, 'widgetData'])->name('discord.widget_data');
 
+// Community Hub & Social Follow Rewards
+Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
+
 // Authenticated Game Routes
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    // Community Follow Reward Claim
+    Route::post('/community/claim/{platform}', [CommunityController::class, 'claim'])->name('community.claim');
 
     // Onboarding Wizard (Nieuwe spelers & Discord)
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');

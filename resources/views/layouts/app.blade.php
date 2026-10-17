@@ -1469,6 +1469,10 @@
                         </a>
                     @endauth
 
+                    <a href="{{ route('community.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-gift text-amber-500 text-xs"></i>
+                        <span>Community 🎁</span>
+                    </a>
                     <a href="{{ route('faq.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-circle-question text-amber-500 text-xs"></i>
                         <span>Kennisbank</span>
@@ -1571,6 +1575,10 @@
                     </a>
                 @endauth
 
+                <a href="{{ route('community.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-purple-950/60 transition">
+                    <i class="fa-solid fa-gift text-amber-500 w-5 text-center"></i>
+                    <span>Community Hub &amp; Beloningen 🎁</span>
+                </a>
                 <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
                     <i class="fa-solid fa-circle-question text-amber-500 w-5 text-center"></i>
                     <span>Kennisbank & FAQ</span>
@@ -1824,6 +1832,13 @@
                                     <span class="w-4 h-4 rounded bg-[#f36f21] group-hover:bg-white text-white group-hover:text-[#f36f21] flex items-center justify-center font-black text-[10px] leading-none shrink-0 shadow-2xs transition-colors">H</span>
                                 </a>
                             </div>
+
+                            <div class="pt-1">
+                                <a href="{{ route('community.index') }}" class="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-purple-600 dark:text-purple-400 hover:underline">
+                                    <i class="fa-solid fa-gift text-amber-500"></i>
+                                    <span>Community Hub &amp; Beloningen &raquo;</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -1834,6 +1849,9 @@
                             <li><a href="{{ route('dashboard') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Dashboard & Profiel</a></li>
                             <li><a href="{{ route('fight.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">De Luchtplaats (Vechten)</a></li>
                             <li><a href="{{ route('vault.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">MedicijnKluis & Codes</a></li>
+                            <li><a href="{{ route('community.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-gift text-amber-500 text-[10px]"></i> Community Beloningen
+                            </a></li>
                             <li><a href="{{ route('sponsor.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
                                 <i class="fa-solid fa-tv text-purple-600 dark:text-purple-400 text-[10px]"></i> Sponsorkamer (Gratis VIP)
                             </a></li>
@@ -1867,16 +1885,6 @@
                                 </button>
                             </li>
                         </ul>
-
-                        <!-- Subtle Compliance Badges -->
-                        <div class="pt-2 flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
-                                <i class="fa-solid fa-lock text-[9px]"></i> SSL 256-bit
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-200 dark:border-purple-800/60 shadow-2xs">
-                                <i class="fa-solid fa-shield-halved text-[9px]"></i> AVG / GDPR
-                            </span>
-                        </div>
                     </div>
 
                 </div>
