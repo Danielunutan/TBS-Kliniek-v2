@@ -83,8 +83,8 @@
                 @php
                     $totalFunds = (int) ($character->cash + $character->bank);
                     $canAfford = $totalFunds >= $npc['bet'];
-                    $meetsStrength = $character->strength >= $npc['min_strength'];
-                    $hasEnergy = $character->energy >= 5;
+                    $meetsStrength = (int) ($character->strength ?? 10) >= $npc['min_strength'];
+                    $hasEnergy = (int) ($character->energy ?? 0) >= 5;
                     $canPlay = $canAfford && $meetsStrength && $hasEnergy;
                 @endphp
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-600 transition flex flex-col justify-between p-5 space-y-4">
@@ -123,7 +123,7 @@
                                 <span class="text-[9px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Beloning & Eis</span>
                                 <span class="font-extrabold text-purple-700 dark:text-purple-400">+{{ $npc['xp'] }} XP &bull; +{{ $npc['respect'] }} Respect</span>
                                 <span class="text-[10px] font-bold block {{ $meetsStrength ? 'text-slate-500 dark:text-slate-400' : 'text-rose-600 dark:text-rose-400' }}">
-                                    Min. {{ $npc['min_strength'] }} Kracht (Jij: {{ $character->strength }})
+                                    Min. {{ $npc['min_strength'] }} Kracht (Jij: {{ (int) ($character->strength ?? 10) }})
                                 </span>
                             </div>
                         </div>
@@ -324,7 +324,7 @@
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs select-none">
         
         <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden"
-             @keydown.space.window.prevent="pushArm()">
+             @keydown.space.window="if (isMatchActive && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) { $event.preventDefault(); pushArm(); }">
             
             <!-- Top Match Status Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -334,6 +334,9 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800" x-text="timeLeft + 's resterend'"></span>
+                    <button type="button" @click="cancelMatch()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-1 ml-1 cursor-pointer" title="Sluiten / Opgeven">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
             </div>
 
@@ -345,12 +348,12 @@
                         Jij
                     </div>
                     <span class="text-xs font-black text-slate-900 dark:text-white block truncate max-w-[100px]">{{ $character->name }}</span>
-                    <span class="text-[10px] font-bold text-purple-700 dark:text-purple-400 block">Kracht: {{ $character->strength }}</span>
+                    <span class="text-[10px] font-bold text-purple-700 dark:text-purple-400 block">Kracht: {{ (int) ($character->strength ?? 10) }}</span>
                 </div>
 
                 <!-- VS Badge -->
                 <div class="text-center">
-                    <span class="w-9 h-9 rounded-full bg-slate-900 dark:bg-purple-600 text-amber-300 text-white flex items-center justify-center text-xs font-black shadow-xs mx-auto">
+                    <span class="w-9 h-9 rounded-full bg-slate-900 dark:bg-purple-600 text-amber-300 flex items-center justify-center text-xs font-black shadow-xs mx-auto">
                         VS
                     </span>
                     <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 block">Tafelkraker</span>
@@ -450,9 +453,9 @@ function tbsArmWrestleArena() {
         matchStartTime: 0,
         matchResult: null,
         npcsData: @json($npcs),
-        playerStrength: {{ $character->strength }},
-        playerSpeed: {{ $character->speed }},
-        playerStamina: {{ $character->stamina }},
+        playerStrength: {{ (int) ($character->strength ?? 10) }},
+        playerSpeed: {{ (int) ($character->speed ?? 10) }},
+        playerStamina: {{ (int) ($character->stamina ?? 10) }},
         gameLoopInterval: null,
         sweetSpotInterval: null,
         timerInterval: null,
@@ -468,6 +471,14 @@ function tbsArmWrestleArena() {
             this.matchStartTime = Date.now();
 
             this.startGameLoops();
+        },
+
+        cancelMatch() {
+            clearInterval(this.gameLoopInterval);
+            clearInterval(this.sweetSpotInterval);
+            clearInterval(this.timerInterval);
+            this.isMatchActive = false;
+            this.matchResult = null;
         },
 
         startGameLoops() {

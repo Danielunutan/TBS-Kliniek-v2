@@ -93,4 +93,24 @@ class ArmWrestleTest extends TestCase
         $this->assertEquals(0, $character->cash);
         $this->assertEquals(10500, $character->bank);
     }
+
+    public function test_arm_wrestling_page_renders_cleanly_when_attributes_are_null(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'cash' => 0,
+            'bank' => 25000,
+            'strength' => 50,
+        ]);
+        // Explicitly simulate missing or null speed attribute (like on production)
+        unset($character->speed);
+
+        $response = $this->actingAs($user)->get(route('armwrestling.index'));
+        $response->assertStatus(200);
+        // Verify valid JavaScript without empty playerSpeed: ,
+        $response->assertDontSee('playerSpeed: ,');
+        $response->assertSee('playerSpeed: 10,');
+        $response->assertSee('Tafelduel Aangaan');
+    }
 }
