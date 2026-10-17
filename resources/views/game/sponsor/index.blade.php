@@ -218,42 +218,34 @@
                 </div>
             </div>
 
-            <!-- Daily Card 4: Directe Vrijlating (1 Ad) -->
+            <!-- Daily Card 4: Directe Vrijlating (1 Ad, Onbeperkt) -->
             <div class="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/60 hover:border-rose-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
                 <div class="relative z-10">
                     <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
                         <i class="fa-solid fa-unlock-keyhole"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2 py-0.5 rounded font-extrabold">1x per dag • 1 Ad</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2 py-0.5 rounded font-extrabold">Onbeperkt • 1 Ad per vrijlating</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">Direct Vrijkomen</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Zit je vast in de isoleercel? Bekijk 1 sponsor video en kom per direct eenmalig vrij uit je straf!
+                        Zit je vast in de isoleercel? Bekijk 1 sponsor video en kom per direct vrij! Dit mag zo vaak als je wilt.
                     </p>
 
                     <!-- Status Indicator -->
                     <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
                         <div class="flex items-center justify-between text-[11px] font-bold">
                             <span class="text-slate-500 dark:text-slate-400">Status:</span>
-                            @if(!empty($adDailyData['prison_released']))
-                                <span class="text-slate-500 font-extrabold">Vandaag Benut (1/1)</span>
-                            @elseif($character->isImprisoned())
+                            @if($character->isImprisoned())
                                 <span class="text-rose-600 dark:text-rose-400 font-extrabold animate-pulse">Vast in Isoleercel!</span>
                             @else
-                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">Klaar voor gebruik</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">Altijd Beschikbaar</span>
                             @endif
                         </div>
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
-                    @if(!empty($adDailyData['prison_released']))
-                        <button type="button" disabled 
-                                class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
-                            <i class="fa-solid fa-check text-xs text-emerald-500"></i>
-                            <span>Vandaag Al Benut</span>
-                        </button>
-                    @elseif(!$character->isImprisoned())
+                    @if(!$character->isImprisoned())
                         <button type="button" disabled 
                                 title="Je kunt deze actie alleen gebruiken wanneer je daadwerkelijk vastzit in de isoleercel."
                                 class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">

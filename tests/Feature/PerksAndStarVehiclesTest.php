@@ -8,6 +8,7 @@ use App\Models\Vehicle;
 use App\Services\PrisonService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class PerksAndStarVehiclesTest extends TestCase
@@ -163,5 +164,58 @@ class PerksAndStarVehiclesTest extends TestCase
         $response->assertSessionHas('info');
         $character->refresh();
         $this->assertEquals(10, $character->stars);
+    }
+
+    public function test_prison_release_via_sponsor_ad_is_unlimited(): void
+    {
+        [$user, $character] = $this->createInmate();
+
+        // 1st time in prison
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(10),
+            'prison_reason' => 'First violation',
+        ]);
+
+        $startRes1 = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'prison']);
+        $startRes1->assertStatus(200);
+        $token1 = $startRes1->json('token');
+
+        // Fast-forward session watch duration for fallback
+        Cache::put("tbs_ad_token_{$token1}", [
+            'character_id' => $character->id,
+            'reward_type' => 'prison',
+            'token' => $token1,
+            'started_at' => now()->subSeconds(20)->timestamp,
+        ], 300);
+
+        $claimRes1 = $this->actingAs($user)->postJson(route('sponsor.claim'), ['token' => $token1]);
+        $claimRes1->assertStatus(200);
+        $character->refresh();
+        $this->assertFalse($character->isImprisoned());
+
+        // 2nd time in prison on the same day!
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(15),
+            'prison_reason' => 'Second violation',
+        ]);
+        $user->refresh();
+
+        $startRes2 = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'prison']);
+        $startRes2->assertStatus(200);
+        $token2 = $startRes2->json('token');
+
+        Cache::put("tbs_ad_token_{$token2}", [
+            'character_id' => $character->id,
+            'reward_type' => 'prison',
+            'token' => $token2,
+            'started_at' => now()->subSeconds(20)->timestamp,
+        ], 300);
+
+        $claimRes2 = $this->actingAs($user)->postJson(route('sponsor.claim'), ['token' => $token2]);
+        $claimRes2->assertStatus(200);
+        $character->refresh();
+        $this->assertFalse($character->isImprisoned());
     }
 }

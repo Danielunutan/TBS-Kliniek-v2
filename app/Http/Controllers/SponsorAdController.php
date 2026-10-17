@@ -111,12 +111,6 @@ class SponsorAdController extends Controller
                     'message' => 'Je zit momenteel niet vast in de isoleercel.',
                 ], 422);
             }
-            if (! empty($dailyData['prison_released'])) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Je hebt je eenmalige gratis vrijlating voor vandaag al gebruikt! Morgen om 00:00 uur kun je weer eenmalig vrijkomen via een sponsor ad.',
-                ], 422);
-            }
         } elseif ($rewardType === 'daily_xp') {
             if (! empty($dailyData['xp_claimed'])) {
                 return response()->json([
@@ -377,20 +371,11 @@ class SponsorAdController extends Controller
                     break;
 
                 case 'prison':
-                    $dailyData = $character->getAdDailyData();
-                    if (! empty($dailyData['prison_released'])) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Je hebt je eenmalige gratis vrijlating voor vandaag al gebruikt!',
-                        ], 422);
-                    }
                     if ($character->isImprisoned()) {
                         $character->is_in_prison = false;
                         $character->prison_until = null;
                         $character->prison_reason = null;
-                        $dailyData['prison_released'] = true;
-                        $character->ad_daily_data = $dailyData;
-                        $rewardDetails = '🎉 Je hebt de sponsor ad bekeken en bent EENMALIG DIRECT VRIJGELATEN uit de isoleercel!';
+                        $rewardDetails = '🎉 Je hebt de sponsor ad bekeken en bent DIRECT VRIJGELATEN uit de isoleercel!';
                     } else {
                         // Fallback to cash if not in prison
                         $this->economy->addCash($character, 2500, 'sponsor_ad');
