@@ -147,6 +147,9 @@
                 </div>
 
                 <div class="flex items-center gap-1">
+                    <button type="button" @click="toggleSound()" :title="isSoundMuted ? 'Geluid aanzetten' : 'Geluid dempen'" class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 text-xs transition cursor-pointer">
+                        <i :class="isSoundMuted ? 'fa-solid fa-volume-xmark text-rose-300' : 'fa-solid fa-volume-high text-white'"></i>
+                    </button>
                     <a href="{{ route('chat.index') }}" title="Volledig scherm openen" class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 text-xs transition">
                         <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
                     </a>
@@ -646,8 +649,9 @@
             isSending: false,
             unreadDmsCount: 0,
             toastNotification: null,
-            audioCtx: null,
             lastDirectDmId: 0,
+            isSoundMuted: localStorage.getItem('tbs_chat_muted') === '1',
+            lastChimeTime: 0,
 
             // Direct Messages in mini chat
             directConversations: [],
@@ -678,27 +682,53 @@
                 this.pollLoop();
             },
 
+            toggleSound() {
+                this.isSoundMuted = !this.isSoundMuted;
+                localStorage.setItem('tbs_chat_muted', this.isSoundMuted ? '1' : '0');
+            },
+
             playChime() {
+                if (this.isSoundMuted) return;
+                const now = Date.now();
+                if (now - this.lastChimeTime < 3000) return; // Prevent rapid-fire chime triggers
+                this.lastChimeTime = now;
+
                 try {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
                     if (!AudioCtx) return;
-                    if (!this.audioCtx) {
-                        this.audioCtx = new AudioCtx();
+
+                    const ctx = new AudioCtx();
+                    if (ctx.state === 'suspended') {
+                        ctx.resume().catch(() => {});
                     }
-                    if (this.audioCtx.state === 'suspended') {
-                        this.audioCtx.resume();
-                    }
-                    const osc = this.audioCtx.createOscillator();
-                    const gain = this.audioCtx.createGain();
+
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(587.33, this.audioCtx.currentTime); // D5
-                    osc.frequency.exponentialRampToValueAtTime(880, this.audioCtx.currentTime + 0.12); // A5
-                    gain.gain.setValueAtTime(0.15, this.audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.35);
+                    const startTime = ctx.currentTime;
+                    osc.frequency.setValueAtTime(587.33, startTime); // D5
+                    osc.frequency.linearRampToValueAtTime(880, startTime + 0.10); // A5
+
+                    // Linear fade prevents audio param math domain errors
+                    gain.gain.setValueAtTime(0.12, startTime);
+                    gain.gain.linearRampToValueAtTime(0.0001, startTime + 0.25);
+
                     osc.connect(gain);
-                    gain.connect(this.audioCtx.destination);
-                    osc.start();
-                    osc.stop(this.audioCtx.currentTime + 0.35);
+                    gain.connect(ctx.destination);
+
+                    osc.start(startTime);
+                    try {
+                        osc.stop(startTime + 0.26);
+                    } catch(e) {}
+
+                    // Hard safety timeout: unconditionally close context & disconnect nodes
+                    setTimeout(() => {
+                        try { osc.stop(); } catch(e) {}
+                        try { osc.disconnect(); } catch(e) {}
+                        try { gain.disconnect(); } catch(e) {}
+                        try { ctx.close(); } catch(e) {}
+                    }, 300);
                 } catch (e) {}
             },
 

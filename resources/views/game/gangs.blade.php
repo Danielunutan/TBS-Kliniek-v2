@@ -882,7 +882,7 @@
                                     <span>Smokkelkiosken (Kantine Kiosk)</span>
                                 </h3>
                                 <p class="text-xs text-slate-500 mt-0.5">
-                                    Verhoogt het uurloon met +€50/uur per kiosk. Prijs: <strong class="text-slate-900">€50.000</strong>
+                                    Verhoogt het uurloon met +€100/uur per kiosk. Prijs: <strong class="text-slate-900">€50.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
                                     Uit Gangpot: <strong class="text-purple-700 font-extrabold">{{ number_format($possibleBlingShops, 0, ',', '.') }}x</strong>
                                 </p>

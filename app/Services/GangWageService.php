@@ -21,7 +21,7 @@ class GangWageService
     /**
      * Extra hourly wage added per Bling Bling Shop owned by the gang.
      */
-    public const SHOP_BONUS_WAGE = 50;
+    public const SHOP_BONUS_WAGE = 100;
 
     /**
      * Calculate hourly wage for a given gang.
