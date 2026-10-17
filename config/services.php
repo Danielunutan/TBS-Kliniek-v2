@@ -55,4 +55,9 @@ return [
     'brevo' => [
         'api_key' => env('BREVO_API_KEY'),
     ],
+
+    'robinads' => [
+        'api_key' => env('ROBINADS_API_KEY', 'rbads_live_7c596edc4ee5a05b9ca3a7e17a060143aa5c2a67'),
+        'website_id' => env('ROBINADS_WEBSITE_ID', '6ad2b8e95f70fee0a42a5496'),
+    ],
 ];

@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -97,20 +98,49 @@ class SponsorAdController extends Controller
 
         // Store anti-abuse verification timestamp in session
         $token = Str::random(32);
+        $popupUrl = null;
+        $robinRewardId = null;
+
+        $apiKey = config('services.robinads.api_key', 'rbads_live_7c596edc4ee5a05b9ca3a7e17a060143aa5c2a67');
+        $websiteId = config('services.robinads.website_id', '6ad2b8e95f70fee0a42a5496');
+
+        if ($apiKey && $websiteId) {
+            try {
+                $response = Http::withToken($apiKey)->timeout(3)->post('https://robinsads.com/api/v1/rewards', [
+                    'website_id' => $websiteId,
+                    'metadata' => [
+                        'character_id' => (string) $character->id,
+                        'reward_type' => $rewardType,
+                        'token' => $token,
+                    ],
+                ]);
+
+                if ($response->successful()) {
+                    $popupUrl = $response->json('popup_url');
+                    $robinRewardId = $response->json('id');
+                }
+            } catch (\Throwable $e) {
+                // Silently fallback if network times out
+            }
+        }
+
         session()->put('tbs_ad_session', [
             'token' => $token,
             'started_at' => now()->timestamp,
             'character_id' => $character->id,
             'reward_type' => $rewardType,
+            'robin_reward_id' => $robinRewardId,
         ]);
 
-        $smartlinkUrl = route('sponsor.redirect');
+        $smartlinkUrl = $popupUrl ?? route('sponsor.redirect');
 
         return response()->json([
             'success' => true,
             'token' => $token,
             'character_id' => $character->id,
             'smartlink_url' => $smartlinkUrl,
+            'popup_url' => $popupUrl,
+            'robin_reward_id' => $robinRewardId,
             'duration' => self::WATCH_DURATION_SECONDS,
             'message' => 'Sponsoropdracht gestart. Voltooi de opdracht om je beloning direct te ontvangen!',
         ]);
@@ -170,14 +200,44 @@ class SponsorAdController extends Controller
             ], 403);
         }
 
-        // Enforce minimum watch duration (14 seconds to tolerate minor network lag)
-        $startedAt = (int) ($adSession['started_at'] ?? 0);
-        $elapsed = now()->timestamp - $startedAt;
-        if ($elapsed < (self::WATCH_DURATION_SECONDS - 1)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Je moet de sponsor minimaal '.self::WATCH_DURATION_SECONDS.' seconden bekijken voordat je kunt claimen! Resterend: '.(self::WATCH_DURATION_SECONDS - $elapsed).'s',
-            ], 422);
+        $apiKey = config('services.robinads.api_key', 'rbads_live_7c596edc4ee5a05b9ca3a7e17a060143aa5c2a67');
+        $robinToken = $request->input('robin_token');
+        $robinRewardId = $request->input('robin_reward_id') ?? ($adSession['robin_reward_id'] ?? null);
+        $isVerifiedByRobin = false;
+
+        if ($apiKey && $robinRewardId && $robinToken) {
+            try {
+                $verifyRes = Http::withToken($apiKey)->timeout(3)->post('https://robinsads.com/api/ads/reward/verify', [
+                    'impressionId' => $robinRewardId,
+                    'token' => $robinToken,
+                ]);
+                if ($verifyRes->successful() && $verifyRes->json('verified') === true) {
+                    $isVerifiedByRobin = true;
+                }
+            } catch (\Throwable $e) {
+            }
+        }
+
+        if (! $isVerifiedByRobin && $apiKey && $robinRewardId) {
+            try {
+                $statusRes = Http::withToken($apiKey)->timeout(3)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
+                if ($statusRes->successful() && $statusRes->json('status') === 'verified') {
+                    $isVerifiedByRobin = true;
+                }
+            } catch (\Throwable $e) {
+            }
+        }
+
+        // Enforce minimum watch duration if not verified by Robins Ads API directly
+        if (! $isVerifiedByRobin) {
+            $startedAt = (int) ($adSession['started_at'] ?? 0);
+            $elapsed = now()->timestamp - $startedAt;
+            if ($elapsed < (self::WATCH_DURATION_SECONDS - 1)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je moet de sponsor minimaal '.self::WATCH_DURATION_SECONDS.' seconden bekijken voordat je kunt claimen! Resterend: '.(self::WATCH_DURATION_SECONDS - $elapsed).'s',
+                ], 422);
+            }
         }
 
         // Check daily limit again

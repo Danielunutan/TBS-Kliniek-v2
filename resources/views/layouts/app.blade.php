@@ -100,6 +100,8 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2509357892188070"
          crossorigin="anonymous"></script>
     --}}
+    <!-- Robins Ads Network (Rewarded Ads & Interstitials) -->
+    <script src="https://robinsads.com/ads.js" data-website-id="6ad2b8e95f70fee0a42a5496" async></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -2322,47 +2324,31 @@
 
                     this.token = data.token;
                     this.smartlinkUrl = data.smartlink_url;
+                    this.popupUrl = data.popup_url;
+                    this.robinRewardId = data.robin_reward_id;
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
-                    this.status = 'watching';
-                    this.statusMessage = 'De sponsor advertentie is geopend in een nieuw venster. Bekijk deze tijdens de afteltimer om je beloning te claimen!';
 
-                    // Monetag integration: check for show_12026868 SDK or direct link
-                    let adOpened = false;
-                    if (typeof window.show_12026868 === 'function') {
-                        try {
-                            window.show_12026868({ 
-                                type: 'pop', 
-                                ymid: `${data.character_id || 'player'}_${data.token}`,
-                                requestVar: this.rewardType
-                            }).then(() => {
-                                console.log('Monetag popup attempt completed');
-                            }).catch(() => {
-                                window.open(this.smartlinkUrl, '_blank');
-                            });
-                            adOpened = true;
-                        } catch (e) {
-                            adOpened = false;
-                        }
+                    // 1. First priority: Robins Ads official in-app interstitial (fullscreen video)
+                    if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
+                        this.status = 'watching';
+                        this.statusMessage = 'Robins Ads video-advertentie wordt geladen...';
+                        window.RobinAds.showInterstitial().then((result) => {
+                            if (result && result.rewardGranted) {
+                                // Full watch verified by Robins Ads server!
+                                this.claim(result.token, result.rewardId);
+                            } else {
+                                this.status = 'error';
+                                this.statusMessage = 'De advertentie is voortijdig gesloten. Bekijk de video volledig om je beloning te ontvangen.';
+                            }
+                        }).catch((err) => {
+                            console.warn('RobinAds interstitial unavailable or blocked, falling back to popup:', err);
+                            this.startFallbackCountdown(data);
+                        });
+                    } else {
+                        // 2. Fallback to Robins Ads hosted popup or smartlink with timer
+                        this.startFallbackCountdown(data);
                     }
-
-                    if (!adOpened) {
-                        try {
-                            window.open(this.smartlinkUrl, '_blank');
-                        } catch(e) {
-                            console.warn('Popup blocked, click manually', e);
-                        }
-                    }
-
-                    // Countdown timer
-                    const timer = setInterval(() => {
-                        this.secondsLeft--;
-                        if (this.secondsLeft <= 0) {
-                            clearInterval(timer);
-                            this.status = 'ready_to_claim';
-                            this.statusMessage = 'Gefeliciteerd! De kijktijd is voltooid. Klik hieronder om jouw beloning direct te claimen!';
-                        }
-                    }, 1000);
                 })
                 .catch(err => {
                     this.status = 'error';
@@ -2370,14 +2356,40 @@
                 });
             };
         },
+        startFallbackCountdown(data) {
+            this.status = 'watching';
+            this.statusMessage = 'De sponsor advertentie is geopend. Bekijk deze tijdens de afteltimer om je beloning te claimen!';
+
+            try {
+                if (data.popup_url) {
+                    window.open(data.popup_url, 'robinads_reward', 'width=480,height=640');
+                } else if (this.smartlinkUrl) {
+                    window.open(this.smartlinkUrl, '_blank');
+                }
+            } catch(e) {
+                console.warn('Popup blocked, click manually', e);
+            }
+
+            if (this.countdownTimer) clearInterval(this.countdownTimer);
+            this.countdownTimer = setInterval(() => {
+                this.secondsLeft--;
+                if (this.secondsLeft <= 0) {
+                    clearInterval(this.countdownTimer);
+                    this.status = 'ready_to_claim';
+                    this.statusMessage = 'Gefeliciteerd! De kijktijd is voltooid. Klik hieronder om jouw beloning direct te claimen!';
+                }
+            }, 1000);
+        },
         openAdTabAgain() {
-            if (this.smartlinkUrl) {
+            if (this.popupUrl) {
+                window.open(this.popupUrl, 'robinads_reward', 'width=480,height=640');
+            } else if (this.smartlinkUrl) {
                 window.open(this.smartlinkUrl, '_blank');
             }
         },
-        claim() {
+        claim(robinToken = null, robinRewardId = null) {
             this.status = 'claiming';
-            this.statusMessage = 'Beloning verifiëren en verwerken...';
+            this.statusMessage = 'Beloning verifiëren en verwerken via Robins Ads...';
 
             fetch('{{ route('sponsor.claim') }}', {
                 method: 'POST',
@@ -2386,7 +2398,11 @@
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ token: this.token })
+                body: JSON.stringify({ 
+                    token: this.token,
+                    robin_token: robinToken,
+                    robin_reward_id: robinRewardId || this.robinRewardId
+                })
             })
             .then(res => res.json())
             .then(data => {
