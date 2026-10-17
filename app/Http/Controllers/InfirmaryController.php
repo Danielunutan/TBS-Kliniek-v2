@@ -115,9 +115,8 @@ class InfirmaryController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'infirmary_palm')) {
             $seconds = $this->cooldownService->getRemainingSeconds($character, 'infirmary_palm');
             $mins = ceil($seconds / 60);
-            $skipCost = $this->cooldownService->getSkipCost('infirmary_palm');
 
-            return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of sla over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Zuster Ingrid houdt je scherp in de gaten! Wacht nog {$seconds}s (~{$mins} min) voor een nieuwe poging of reset direct via een sponsor advertentie.");
         }
 
         $energyCost = 10;

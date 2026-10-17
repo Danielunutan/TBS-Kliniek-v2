@@ -157,16 +157,9 @@
                         <i class="fa-solid fa-eye text-amber-500"></i> Ingrid let scherp op: wacht nog {{ $palmCooldown }}s
                     </span>
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-[11px] transition shrink-0 cursor-pointer">
-                            Reset via Ad
+                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-xs transition shrink-0 cursor-pointer shadow-xs">
+                            Kijk Ad (Reset Cooldown)
                         </button>
-                        <form action="{{ route('cooldown.skip') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="action" value="infirmary_palm">
-                            <button type="submit" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black text-[11px] transition shrink-0 cursor-pointer shadow-xs">
-                                {{ $infirmarySkipCost }} Sterren ⭐
-                            </button>
-                        </form>
                     </div>
                 </div>
                 @endif

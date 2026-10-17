@@ -44,18 +44,10 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                             <i class="fa-solid fa-tv text-[11px]"></i>
                             <span>Kijk Ad (Reset Cooldown)</span>
                         </button>
-                        <form action="{{ route('cooldown.skip') }}" method="POST" class="m-0 p-0 inline-flex">
-                            @csrf
-                            <input type="hidden" name="action" value="hustle">
-                            <button type="submit" class="h-9 px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                                <i class="fa-solid fa-star text-[11px]"></i>
-                                <span>{{ $hustleSkipCost }} Sterren ⭐</span>
-                            </button>
-                        </form>
                     </div>
                 </div>
             @endif

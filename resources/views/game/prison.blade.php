@@ -98,15 +98,6 @@
                 </button>
             @endif
 
-            <!-- Buy self out for 25 stars -->
-            <form action="{{ route('prison.buyout') }}" method="POST" class="flex-1 md:flex-initial">
-                @csrf
-                <button type="submit" 
-                        class="w-full px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-star text-white"></i>
-                    <span>Vrijkoop (25 Sterren ⭐)</span>
-                </button>
-            </form>
 
             <!-- Regular escape attempt -->
             <form action="{{ route('prison.escape') }}" method="POST" class="flex-1 md:flex-initial">

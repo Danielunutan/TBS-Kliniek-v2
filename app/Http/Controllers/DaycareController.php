@@ -122,9 +122,8 @@ class DaycareController extends Controller
 
         if ($this->cooldownService->isOnCooldown($character, 'dagbesteding')) {
             $seconds = $this->cooldownService->getRemainingSeconds($character, 'dagbesteding');
-            $skipCost = $this->cooldownService->getSkipCost('dagbesteding');
 
-            return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s of sla over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Werkpauze actief! De zaalwacht stuurt je even terug naar de koffietafel. Wacht nog {$seconds}s of reset direct via een sponsor advertentie.");
         }
 
         $jobId = (int) $request->input('job_id');

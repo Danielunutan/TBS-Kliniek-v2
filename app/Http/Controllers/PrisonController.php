@@ -144,32 +144,9 @@ class PrisonController extends Controller
         return back()->with('error', $result['message']);
     }
 
-    /**
-     * Buy self out of prison using Borgtocht (Cash/Bank) or Stars.
-     */
     public function buyout(Request $request): RedirectResponse
     {
-        /** @var User $user */
-        $user = Auth::user();
-        $character = $user->character;
-
-        if (! $character->isImprisoned()) {
-            return back()->with('info', 'Je zit momenteel niet in de isoleercel!');
-        }
-
-        // Vrijkopen uit de gevangenis kost altijd Sterren ⭐ (geen cash geld)
-        $cost = 25;
-        if (($character->stars ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf direct vrij te kopen (je hebt er momenteel {$character->stars}).");
-        }
-
-        $character->stars -= $cost;
-        $character->is_in_prison = false;
-        $character->prison_until = null;
-        $character->prison_reason = null;
-        $character->save();
-
-        return back()->with('success', "🔓 Vrijgekocht voor {$cost} Sterren ⭐! De celdeur is ontgrendeld en je bent weer op vrije voeten!");
+        return back()->with('info', 'De isoleercel kan niet meer met Sterren worden afgekocht. Je kunt 1x per dag direct vrijkomen via een sponsor advertentie of een ontsnappingspoging wagen!');
     }
 
     /**

@@ -52,9 +52,8 @@ class ExtortController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'extort')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'extort');
             $mins = ceil($remaining / 60);
-            $skipCost = $this->cooldownService->getSkipCost('extort');
 
-            return back()->with('error', "⏳ Afpersen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Afpersen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
         }
 
         $validated = $request->validate([

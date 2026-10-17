@@ -49,6 +49,7 @@ use App\Http\Controllers\NewspaperController;
 use App\Http\Controllers\NumberGameController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\PerkController;
 use App\Http\Controllers\PickpocketController;
 use App\Http\Controllers\PrisonController;
 use App\Http\Controllers\ProfileController;
@@ -362,6 +363,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/winkel/sterren-kopen', [ShopController::class, 'buyStarItem'])->name('shop.buy-star-item');
     Route::post('/winkel/bundel-kopen', [ShopController::class, 'buyBundle'])->name('shop.buy-bundle');
     Route::post('/inventaris/{characterItem}/gebruiken', [ShopController::class, 'consume'])->name('shop.consume');
+
+    // Permanente Karakter Perks (Sterren ⭐)
+    Route::get('/perks', [PerkController::class, 'index'])->name('perks.index');
+    Route::post('/perks/kopen/{perk}', [PerkController::class, 'buy'])->name('perks.buy');
 
     // Persoonlijk Depot (Garage, Opbergplaats & Event Varia)
     Route::get('/depot', [DepotController::class, 'index'])->name('depot.index');

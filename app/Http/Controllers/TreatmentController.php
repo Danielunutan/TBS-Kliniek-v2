@@ -316,9 +316,8 @@ class TreatmentController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'treatment_session')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'treatment_session');
             $mins = ceil($remaining / 60);
-            $skipCost = $this->cooldownService->getSkipCost('treatment_session');
 
-            return back()->with('error', "⏳ Je hebt vandaag al gesproken met je behandelaar! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Je hebt vandaag al gesproken met je behandelaar! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
         }
 
         $validated = $request->validate([

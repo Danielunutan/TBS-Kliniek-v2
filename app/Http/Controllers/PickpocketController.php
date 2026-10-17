@@ -53,9 +53,8 @@ class PickpocketController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'pickpocket')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'pickpocket');
             $mins = ceil($remaining / 60);
-            $skipCost = $this->cooldownService->getSkipCost('pickpocket');
 
-            return back()->with('error', "⏳ Zakkenrollen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Zakkenrollen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
         }
 
         $validated = $request->validate([
@@ -92,6 +91,9 @@ class PickpocketController extends Controller
         $roll = rand(1, 100);
         if ($roll <= $action['rate']) {
             $cash = rand($action['min'], $action['max']);
+            if ($character->hasPerk('grotere_broekzakken')) {
+                $cash = (int) round($cash * 1.10);
+            }
             // Zwart geld contant!
             $this->economy->addCash($character, $cash);
             $this->level->addXp($character, $action['xp']);

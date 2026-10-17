@@ -133,6 +133,7 @@ class Character extends Model
         'ad_mask_progress' => 'integer',
         'ad_vault_progress' => 'integer',
         'ad_daily_data' => 'array',
+        'perks' => 'array',
         'last_ad_watched_at' => 'datetime',
         'last_ad_date' => 'string',
         'birthdate' => 'date',
@@ -164,6 +165,26 @@ class Character extends Model
         }
 
         return array_merge($default, $data);
+    }
+
+    /**
+     * Check if character has a permanent prestige perk unlocked.
+     */
+    public function hasPerk(string $perk): bool
+    {
+        return in_array($perk, $this->perks ?? [], true);
+    }
+
+    /**
+     * Unlock a permanent prestige perk for the character.
+     */
+    public function addPerk(string $perk): void
+    {
+        $perks = $this->perks ?? [];
+        if (! in_array($perk, $perks, true)) {
+            $perks[] = $perk;
+            $this->perks = $perks;
+        }
     }
 
     /**
@@ -1720,6 +1741,10 @@ class Character extends Model
 
         if ($this->isVip()) {
             $cap += 50;
+        }
+
+        if ($this->hasPerk('kluis_uitbreiding')) {
+            $cap += 25;
         }
 
         return $cap;

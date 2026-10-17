@@ -778,6 +778,15 @@
                             Wagens
                         </span>
                     </a>
+                    <a href="{{ route('perks.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('perks.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-award w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <span>Karakter Perks</span>
+                        </div>
+                        <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            ⭐ Perks
+                        </span>
+                    </a>
                     <a href="{{ route('marketplace.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('marketplace.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-shop w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Marktplaats</span>
@@ -1183,6 +1192,10 @@
                     <a href="{{ route('garage.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('garage.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <span class="flex items-center gap-2.5"><i class="fa-solid fa-warehouse w-4 text-cyan-500 dark:text-cyan-400"></i> Smokkel Garage</span>
                         <span class="bg-cyan-100 dark:bg-cyan-900/60 text-cyan-700 dark:text-cyan-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Wagens</span>
+                    </a>
+                    <a href="{{ route('perks.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('perks.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-award w-4 text-amber-500 dark:text-amber-400"></i> Karakter Perks</span>
+                        <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">⭐ Perks</span>
                     </a>
                     <a href="{{ route('marketplace.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('marketplace.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <i class="fa-solid fa-shop w-4 text-purple-600 dark:text-purple-400"></i> Marktplaats
@@ -1717,15 +1730,6 @@
                             <span>Kijk Ad (1x Dagelijks Vrij)</span>
                         </button>
                     @endif
-                    <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
-                        @csrf
-                        <input type="hidden" name="method" value="stars">
-                        <button type="submit" 
-                                class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-star text-white"></i>
-                            <span>Vrijkoop (25 Sterren ⭐)</span>
-                        </button>
-                    </form>
                     <a href="{{ route('prison') }}" class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-building-shield"></i>
                         <span>Gevangenis</span>

@@ -155,23 +155,14 @@
                     </div>
                 </div>
 
-                <!-- Cooldown Skip via Ad or Stars -->
+                <!-- Cooldown Reset via Ad -->
                 <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
                     <button type="button" 
                             onclick="window.tbsOpenSponsorAd('cooldown')" 
-                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs cursor-pointer">
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs cursor-pointer">
                         <i class="fa-solid fa-tv text-white"></i>
                         <span>Kijk Ad (Reset Wachttijd)</span>
                     </button>
-                    <form action="{{ route('cooldown.skip') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="action" value="treatment_session">
-                        <button type="submit" 
-                                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold transition shadow-xs cursor-pointer">
-                            <i class="fa-solid fa-star text-amber-500"></i>
-                            <span>Sla Over voor {{ $treatmentSkipCost }} Sterren ⭐</span>
-                        </button>
-                    </form>
                 </div>
             </div>
             @else

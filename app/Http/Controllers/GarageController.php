@@ -38,7 +38,7 @@ class GarageController extends Controller
         $cacheKey = "garage_showroom_rotation_{$slot}";
 
         $listings = Cache::remember($cacheKey, $secondsLeft + 5, function () use ($slot) {
-            $allVehicles = Vehicle::where('is_available', true)->get();
+            $allVehicles = Vehicle::where('is_available', true)->where('price_cash', '>', 0)->get();
             if ($allVehicles->isEmpty()) {
                 return [];
             }
@@ -159,13 +159,20 @@ class GarageController extends Controller
 
         $topRankings = Character::orderByDesc('respect')->take(10)->get();
 
+        $starVehicles = Vehicle::where('is_available', true)
+            ->where('price_cash', 0)
+            ->where('price_stars', '>', 0)
+            ->orderBy('price_stars')
+            ->get();
+
         return view('game.garage.index', compact(
             'character',
             'ownedVehicles',
             'activeVehicle',
             'rotatingListings',
             'secondsUntilRotation',
-            'topRankings'
+            'topRankings',
+            'starVehicles'
         ));
     }
 
@@ -198,10 +205,15 @@ class GarageController extends Controller
 
         $paymentMethod = $request->input('payment', 'cash');
 
-        if ($paymentMethod === 'stars' && $finalPriceStars > 0) {
+        if ($vehicle->price_cash === 0 || $paymentMethod === 'stars') {
+            if ($finalPriceStars <= 0) {
+                return back()->with('error', 'Dit voertuig kan niet met sterren gekocht worden.');
+            }
+
             if (($character->stars ?? 0) < $finalPriceStars) {
                 return back()->with('error', "Je hebt minimaal {$finalPriceStars} Sterren ⭐ nodig (je hebt er {$character->stars}).");
             }
+
             $character->stars -= $finalPriceStars;
             $character->save();
         } else {

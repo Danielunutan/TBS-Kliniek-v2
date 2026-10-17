@@ -58,9 +58,8 @@ class PackageController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'package')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'package');
             $mins = ceil($remaining / 60);
-            $skipCost = $this->cooldownService->getSkipCost('package');
 
-            return back()->with('error', "⏳ Koffers onderscheppen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Koffers onderscheppen cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
         }
 
         $validated = $request->validate([

@@ -51,9 +51,8 @@ class LockerController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'locker')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'locker');
             $mins = ceil($remaining / 60);
-            $skipCost = $this->cooldownService->getSkipCost('locker');
 
-            return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Kluisjes cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
         }
 
         $validated = $request->validate([

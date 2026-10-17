@@ -129,9 +129,8 @@ class HustleController extends Controller
         if ($this->cooldownService->isOnCooldown($character, 'hustle')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'hustle');
             $mins = ceil($remaining / 60);
-            $skipCost = $this->cooldownService->getSkipCost('hustle');
 
-            return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of sla de wachttijd over met {$skipCost} Sterren ⭐.");
+            return back()->with('error', "⏳ Hossel cooldown actief! Wacht nog {$remaining}s (~{$mins} min) of reset direct via een sponsor advertentie.");
         }
 
         $validated = $request->validate([
@@ -167,6 +166,10 @@ class HustleController extends Controller
             // Charisma bonus on cash reward
             $cashMultiplier = 1 + min(0.30, ($character->getEffectiveCharisma() * 0.005));
             $cash = (int) round(rand($hustle['cash_min'], $hustle['cash_max']) * $cashMultiplier);
+
+            if ($character->hasPerk('grotere_broekzakken')) {
+                $cash = (int) round($cash * 1.10);
+            }
 
             // Zwart geld contant!
             $this->economy->addCash($character, $cash);

@@ -41,6 +41,12 @@
                 <i class="fa-solid fa-arrows-rotate"></i>
                 <span>Roterende Showroom ({{ count($rotatingListings) }})</span>
             </button>
+            <button type="button" @click="tab = 'stars'" 
+                    :class="tab === 'stars' ? 'bg-amber-500 text-slate-950 shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
+                    class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-star text-amber-500 dark:text-amber-400"></i>
+                <span>Sterren Showroom ⭐ ({{ count($starVehicles) }})</span>
+            </button>
             <button type="button" @click="tab = 'garage'" 
                     :class="tab === 'garage' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
@@ -309,6 +315,119 @@
                                 </button>
                             </form>
                         @endif
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- TAB: EXCLUSIEVE STERREN SHOWROOM -->
+    <div x-show="tab === 'stars'" class="space-y-4">
+        <!-- VIP PRESTIGE HEADER -->
+        <div class="rounded-2xl p-6 text-slate-900 dark:text-white border border-amber-400/50 shadow-lg relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center gap-1 shadow-xs">
+                            <i class="fa-solid fa-crown text-[10px]"></i> Prestige Showroom
+                        </span>
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-bold">Uitsluitend voor Sterren ⭐</span>
+                    </div>
+                    <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">Exclusieve Exotische Vluchtvoertuigen</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 max-w-2xl">
+                        Deze unieke high-tier voertuigen zijn niet met contant geld te koop. Ze bieden extreme prestaties, titanium bepantsering en ongeëvenaarde heist-bonussen.
+                    </p>
+                </div>
+                <div class="bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/40 rounded-xl px-4 py-3 shrink-0 shadow-sm text-center">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Jouw Sterrensaldo</div>
+                    <div class="text-xl font-black text-amber-500 font-mono flex items-center justify-center gap-1.5 mt-0.5">
+                        <i class="fa-solid fa-star text-base"></i>
+                        <span>{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAR VEHICLES GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @php
+                $ownedVehicleIds = $ownedVehicles->pluck('vehicle_id')->toArray();
+            @endphp
+            @foreach($starVehicles as $sVeh)
+            @php
+                $isStarOwned = in_array($sVeh->id, $ownedVehicleIds);
+                $hasEnoughStars = ($character->stars ?? 0) >= $sVeh->price_stars;
+            @endphp
+            <div class="bg-white dark:bg-slate-900 border border-amber-300/60 dark:border-amber-500/30 hover:border-amber-400 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between gap-4 relative overflow-hidden group">
+                <div class="space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="w-13 h-13 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-amber-500 flex items-center justify-center text-2xl shrink-0 group-hover:scale-105 transition">
+                            <i class="fa-solid {{ $sVeh->icon }}"></i>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/50 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-star text-[9px]"></i> {{ $sVeh->price_stars }} Sterren
+                            </span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold">{{ $sVeh->brand }}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-base font-black text-slate-900 dark:text-white tracking-tight">{{ $sVeh->name }}</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{{ $sVeh->description }}</p>
+                    </div>
+
+                    <!-- STATS -->
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 space-y-1">
+                            <div class="flex items-center justify-between text-[11px] font-bold">
+                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-gauge-high text-amber-500 text-[10px]"></i> Snelheid
+                                </span>
+                                <span class="text-slate-900 dark:text-white font-mono font-black">{{ $sVeh->speed_pct }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-amber-500 h-full rounded-full" style="width: {{ $sVeh->speed_pct }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 space-y-1">
+                            <div class="flex items-center justify-between text-[11px] font-bold">
+                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-shield-halved text-emerald-500 text-[10px]"></i> Betrouwbaarheid
+                                </span>
+                                <span class="text-slate-900 dark:text-white font-mono font-black">{{ $sVeh->reliability_pct }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-emerald-500 h-full rounded-full" style="width: {{ $sVeh->reliability_pct }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AANKOOP / STATUS -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    @if($isStarOwned)
+                        <div class="w-full py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-black text-xs text-center border border-purple-200 dark:border-purple-800/60 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>In Je Wagenpark</span>
+                        </div>
+                    @else
+                        <form action="{{ route('garage.buy', $sVeh->id) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="payment" value="stars">
+                            <button type="submit" 
+                                    @if(! $hasEnoughStars) disabled @endif
+                                    class="w-full py-2.5 px-4 rounded-xl {{ $hasEnoughStars ? 'bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black cursor-pointer shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold cursor-not-allowed' }} text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-star"></i>
+                                @if($hasEnoughStars)
+                                    <span>Koop voor {{ $sVeh->price_stars }} Sterren</span>
+                                @else
+                                    <span>Onvoldoende Sterren ({{ $character->stars ?? 0 }}/{{ $sVeh->price_stars }} ⭐)</span>
+                                @endif
+                            </button>
+                        </form>
                     @endif
                 </div>
             </div>

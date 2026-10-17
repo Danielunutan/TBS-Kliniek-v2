@@ -21,6 +21,10 @@ class PrisonService
      */
     public function jailSeconds(Character $character, int $seconds, string $reason): void
     {
+        if ($character->hasPerk('goede_advocaat')) {
+            $seconds = (int) max(15, round($seconds * 0.75));
+        }
+
         $character->update([
             'is_in_prison' => true,
             'prison_until' => now()->addSeconds($seconds),
