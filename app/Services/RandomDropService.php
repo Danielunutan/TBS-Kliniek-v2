@@ -25,7 +25,9 @@ class RandomDropService
 
         // 6% chance to drop a secret MedicijnKluis code via GameMessage
         if ($roll >= 94) {
-            $uniqueCode = 'DROP-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+            do {
+                $uniqueCode = 'DROP-'.strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+            } while (VaultCode::where('code', $uniqueCode)->exists());
 
             VaultCode::create([
                 'code' => $uniqueCode,

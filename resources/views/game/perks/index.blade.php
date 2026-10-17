@@ -124,8 +124,9 @@
                     Cooldowns en de isoleercel kun je nu gratis skippen via een sponsor advertentie. Hierdoor zijn Sterren een pure verzamel- en prestige-valuta geworden! Verdien dagelijks <strong>5 gratis Sterren</strong> via de sponsor-ads in de header, behaal prestaties, heists en open speciale kisten.
                 </p>
             </div>
-            <a href="{{ route('sponsor.daily-stars') }}" 
-               class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-2 shrink-0">
+            <a href="{{ route('sponsor.index') }}" 
+               onclick="if(window.tbsOpenSponsorAd){ window.tbsOpenSponsorAd('stars'); return false; }"
+               class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-2 shrink-0 cursor-pointer">
                 <i class="fa-solid fa-star"></i>
                 <span>Claim Dagelijkse Sterren</span>
             </a>

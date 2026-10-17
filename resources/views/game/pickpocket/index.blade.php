@@ -112,9 +112,6 @@
                         <span class="font-bold text-purple-600">{{ $action['energy'] }} EP &bull; 1 Masker</span>
                     </div>
                 </div>
-                        <span class="font-bold text-purple-600">{{ $action['energy'] }} EP &bull; 1 Masker</span>
-                    </div>
-                </div>
 
                 <form action="{{ route('pickpocket.steal') }}" method="POST">
                     @csrf
