@@ -1429,20 +1429,58 @@
         </header>
         @else
         <!-- TOP MODERN GUEST HEADER BAR -->
-        <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
-                <a href="{{ route('login') }}" data-turbo="false" data-turbo-prefetch="false" class="flex items-center gap-3 group">
+        <header x-data="{ guestMenuOpen: false }" class="bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-b border-slate-200 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-3">
+                <!-- Logo & Title -->
+                <a href="{{ Auth::check() ? route('dashboard') : route('login') }}" data-turbo="false" data-turbo-prefetch="false" class="flex items-center gap-3 group shrink-0">
                     <div class="w-11 h-11 shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
                         <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek" class="w-full h-full object-contain drop-shadow-md">
                     </div>
                     <div>
-                        <span class="block text-base font-extrabold tracking-tight text-slate-900 uppercase leading-none">
-                            TBS <span class="text-indigo-600">KLINIEK</span>
+                        <span class="block text-base font-extrabold tracking-tight text-slate-900 dark:text-white uppercase leading-none">
+                            TBS <span class="text-indigo-600 dark:text-purple-400">KLINIEK</span>
                         </span>
                     </div>
                 </a>
 
-                <div class="flex items-center gap-3">
+                <!-- Desktop / Tablet Navigation Menu -->
+                <nav class="hidden md:flex items-center gap-1 lg:gap-2">
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-house text-purple-600 dark:text-purple-400 text-xs"></i>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="{{ route('fight.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-fist text-rose-500 text-xs"></i>
+                            <span>Luchtplaats</span>
+                        </a>
+                        <a href="{{ route('leaderboard.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-trophy text-amber-500 text-xs"></i>
+                            <span>Ranglijsten</span>
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-right-to-bracket text-purple-600 dark:text-purple-400 text-xs"></i>
+                            <span>Inloggen</span>
+                        </a>
+                        <a href="{{ route('register') }}" class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-purple-600 hover:bg-purple-700 transition shadow-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-plus text-xs"></i>
+                            <span>Registreren</span>
+                        </a>
+                    @endauth
+
+                    <a href="{{ route('faq.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-question text-amber-500 text-xs"></i>
+                        <span>Kennisbank</span>
+                    </a>
+                    <a href="{{ route('help.tickets.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-headset text-indigo-500 text-xs"></i>
+                        <span>Support</span>
+                    </a>
+                </nav>
+
+                <!-- Right Side: Theme Switch + Socials + Mobile Button -->
+                <div class="flex items-center gap-2 sm:gap-3">
                     <!-- Guest Dark Mode Animated Switch -->
                     <button type="button" onclick="window.tbsToggleTheme()" 
                             class="relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-300 dark:bg-purple-950/80 transition-colors duration-200 ease-in-out focus:outline-none shadow-inner overflow-hidden" 
@@ -1458,34 +1496,96 @@
                         </span>
                     </button>
 
-                    <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-[#f36f21] hover:bg-[#d95d16] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS Kliniek op Hyves">
+                    <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-[#f36f21] hover:bg-[#d95d16] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS Kliniek op Hyves">
                         <span class="w-4 h-4 rounded bg-white text-[#f36f21] flex items-center justify-center font-black text-[10px] leading-none shrink-0 shadow-2xs">H</span>
                         <span>Hyves</span>
                     </a>
 
-                    <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener noreferrer" class="hidden lg:inline-flex items-center gap-1.5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-90 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="Instagram @tbsklinieknl">
+                    <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-90 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="Instagram @tbsklinieknl">
                         <i class="fa-brands fa-instagram text-sm"></i>
                         <span>Instagram</span>
                     </a>
 
-                    <a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-[#FF0000] hover:bg-[#cc0000] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS-Kliniek op YouTube (@tbsklinieknl)">
+                    <a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-[#FF0000] hover:bg-[#cc0000] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS-Kliniek op YouTube (@tbsklinieknl)">
                         <i class="fa-brands fa-youtube text-sm"></i>
                         <span>YouTube</span>
                     </a>
 
-                    <a href="https://x.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98] border border-white/10" title="Twitter / X @tbskliniek">
+                    <a href="https://x.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98] border border-white/10" title="Twitter / X @tbskliniek">
                         <i class="fa-brands fa-x-twitter text-sm"></i>
                         <span>Twitter</span>
                     </a>
 
-                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
+                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-tiktok text-sm"></i>
                         <span>TikTok</span>
                     </a>
 
-                    <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs sm:text-sm font-extrabold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
+                    <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs sm:text-sm font-extrabold px-3.5 sm:px-4 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-discord text-sm"></i>
-                        <span>Word lid van onze Discord</span>
+                        <span>Discord</span>
+                    </a>
+
+                    <!-- Mobile Hamburger Toggle Button -->
+                    <button type="button" @click="guestMenuOpen = !guestMenuOpen" 
+                            class="md:hidden w-10 h-10 rounded-xl bg-slate-100 dark:bg-purple-950/60 border border-slate-200 dark:border-purple-900/40 text-slate-700 dark:text-purple-200 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-purple-900/60 transition"
+                            aria-label="Open Menu">
+                        <i class="fa-solid fa-bars text-base" x-show="!guestMenuOpen"></i>
+                        <i class="fa-solid fa-xmark text-base" x-show="guestMenuOpen" style="display: none;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Collapsible Menu Dropdown -->
+            <div x-show="guestMenuOpen" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 -translate-y-2"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 -translate-y-2"
+                 class="md:hidden border-t border-slate-200 dark:border-purple-900/40 bg-white/98 dark:bg-[#110726]/98 px-4 pt-3 pb-5 space-y-2 shadow-lg"
+                 style="display: none;">
+                
+                @auth
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                        <i class="fa-solid fa-house text-purple-600 dark:text-purple-400 w-5 text-center"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                        <i class="fa-solid fa-hand-fist text-rose-500 w-5 text-center"></i>
+                        <span>De Luchtplaats</span>
+                    </a>
+                    <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                        <i class="fa-solid fa-trophy text-amber-500 w-5 text-center"></i>
+                        <span>Ranglijsten</span>
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                        <i class="fa-solid fa-right-to-bracket text-purple-600 dark:text-purple-400 w-5 text-center"></i>
+                        <span>Inloggen</span>
+                    </a>
+                    <a href="{{ route('register') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-extrabold text-white bg-purple-600 hover:bg-purple-700 transition">
+                        <i class="fa-solid fa-user-plus w-5 text-center"></i>
+                        <span>Nieuw Account Registreren</span>
+                    </a>
+                @endauth
+
+                <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                    <i class="fa-solid fa-circle-question text-amber-500 w-5 text-center"></i>
+                    <span>Kennisbank & FAQ</span>
+                </a>
+                <a href="{{ route('help.tickets.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
+                    <i class="fa-solid fa-headset text-indigo-500 w-5 text-center"></i>
+                    <span>Support Ticket Systeem</span>
+                </a>
+
+                <div class="pt-2 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between gap-2">
+                    <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-[#5865F2] text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                        <i class="fa-brands fa-discord"></i> Discord
+                    </a>
+                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
+                        <i class="fa-brands fa-tiktok"></i> TikTok
                     </a>
                 </div>
             </div>

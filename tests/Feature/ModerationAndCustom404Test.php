@@ -71,6 +71,9 @@ class ModerationAndCustom404Test extends TestCase
         $response->assertSee('Verdwaald in de Beveiligde Vleugel');
         $response->assertSee('Code 404');
         $response->assertSee('Hé boef! Deze cel, gang of pagina bestaat niet');
+        $response->assertSee('Kliniek Snelmenu');
+        $response->assertSee('Kennisbank');
+        $response->assertSee('Support');
     }
 
     public function test_staff_can_issue_warning_and_player_can_acknowledge(): void
