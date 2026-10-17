@@ -223,9 +223,9 @@
                                         </div>
                                     </template>
                                     <template x-if="!conv.is_bot">
-                                        <img :src="'/images/' + conv.avatar" 
+                                        <img :src="conv.avatar" 
                                              class="w-11 h-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs"
-                                             onerror="this.src='/images/avatar-1.png'">
+                                             onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                     </template>
                                     <template x-if="conv.is_online">
                                         <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" title="Online"></span>
@@ -308,9 +308,9 @@
                                 </div>
                             </template>
                             <template x-if="!activePartner.is_bot">
-                                <img :src="'/images/' + (activePartner.avatar || 'avatar-1.png')" 
+                                <img :src="activePartner.avatar" 
                                      class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs"
-                                     onerror="this.src='/images/avatar-1.png'">
+                                     onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                             </template>
                             <div>
                                 <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
@@ -360,9 +360,9 @@
                                         @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }"
                                         class="shrink-0 cursor-pointer transition hover:scale-105"
                                         :title="!msg.is_me ? 'Klik om privé te chatten met ' + msg.name : ''">
-                                    <img :src="msg.avatar || '/characters/avatar-default.png'" 
+                                    <img :src="msg.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
                                          class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/60 shadow-2xs"
-                                         onerror="this.src='/characters/avatar-default.png'">
+                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                 </button>
 
                                 <!-- MESSAGE BUBBLE -->
@@ -758,12 +758,33 @@ function tbsLiveMessenger(config) {
             } catch(e) {}
         },
 
+        playChime() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.35);
+            } catch(e) {}
+        },
+
         async pollUpdates() {
             if (this.activeTab === 'global') {
                 try {
                     const res = await fetch(`{{ route("chat.public.messages") }}?channel=global&after_id=${this.lastPublicId}`);
                     const data = await res.json();
                     if (data.success && data.messages.length > 0) {
+                        const newOthers = data.messages.filter(m => !m.is_me);
+                        if (newOthers.length > 0) this.playChime();
                         this.publicMessagesList = this.publicMessagesList.concat(data.messages);
                         this.lastPublicId = data.last_id;
                         this.scrollToBottom();
@@ -775,7 +796,10 @@ function tbsLiveMessenger(config) {
                     const res = await fetch(`/chat/prive/${this.activePartnerId}`);
                     const data = await res.json();
                     if (data.success) {
-                        if (data.messages.length !== this.directMessagesList.length) {
+                        if (data.messages.length > this.directMessagesList.length) {
+                            const newCount = data.messages.length - this.directMessagesList.length;
+                            const latestNew = data.messages.slice(-newCount);
+                            if (latestNew.some(m => !m.is_me)) this.playChime();
                             this.directMessagesList = data.messages;
                             this.scrollToBottom();
                         }

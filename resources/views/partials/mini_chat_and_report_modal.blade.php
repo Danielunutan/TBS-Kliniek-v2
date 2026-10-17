@@ -165,37 +165,46 @@
             <div x-ref="miniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
                 <template x-for="msg in publicMessages" :key="msg.id">
                     <div class="flex items-start gap-2 group" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                        <img :src="msg.avatar || '/characters/avatar-default.png'" 
-                             class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60 shrink-0"
-                             onerror="this.src='/characters/avatar-default.png'">
+                        <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
+                                class="shrink-0 cursor-pointer transition hover:scale-105"
+                                :title="!msg.is_me ? 'Chat privé met ' + msg.name : ''">
+                            <img :src="msg.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                 class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60 shrink-0"
+                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                        </button>
 
                         <div class="max-w-[82%] space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
                             <!-- Sender Meta -->
                             <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap" :class="msg.is_me ? 'justify-end' : ''">
                                 <!-- EIGENAAR -->
                                 <template x-if="msg.is_owner">
-                                    <span class="text-amber-500 dark:text-amber-400 font-black flex items-center gap-0.5">
+                                    <span class="text-amber-500 dark:text-amber-400 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
+                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)">
                                         <i class="fa-solid fa-crown text-[9px] text-amber-500"></i>
                                         <span x-text="msg.name"></span>
                                     </span>
                                 </template>
                                 <!-- ADMIN / DIRECTIE -->
                                 <template x-if="msg.is_admin && !msg.is_owner">
-                                    <span class="text-purple-600 dark:text-purple-300 font-black flex items-center gap-0.5">
+                                    <span class="text-purple-600 dark:text-purple-300 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
+                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)">
                                         <i class="fa-solid fa-shield-halved text-[9px]"></i>
                                         <span x-text="msg.name"></span>
                                     </span>
                                 </template>
                                 <!-- MODERATOR -->
                                 <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
-                                    <span class="text-cyan-600 dark:text-cyan-400 font-black flex items-center gap-0.5">
+                                    <span class="text-cyan-600 dark:text-cyan-400 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
+                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)">
                                         <i class="fa-solid fa-gavel text-[9px]"></i>
                                         <span x-text="msg.name"></span>
                                     </span>
                                 </template>
                                 <!-- REGULAR -->
                                 <template x-if="!msg.is_owner && !msg.is_admin && !msg.is_moderator">
-                                    <span class="text-slate-900 dark:text-white font-extrabold" x-text="msg.name"></span>
+                                    <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
+                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
+                                          x-text="msg.name"></span>
                                 </template>
 
                                 <!-- LEVEL -->
@@ -273,60 +282,196 @@
         </div>
 
         <!-- 2. TAB: PRIVÉ CHAT & CONTACTEN -->
-        <div x-show="activeTab === 'direct'" class="flex-1 flex flex-col min-h-0 p-3 overflow-y-auto space-y-3 bg-slate-50/70 dark:bg-[#0d041e]/50">
-            <!-- QUICK INMATE SEARCH -->
-            <div class="relative" x-data="{ searchResults: [], isSearching: false, q: '' }">
-                <input type="text" x-model="q" 
-                       @input.debounce.300ms="
-                           if(q.trim().length >= 2) {
-                               isSearching = true;
-                               fetch('{{ route('chat.search-players') }}?q=' + encodeURIComponent(q.trim()))
-                                   .then(r => r.json())
-                                   .then(d => { searchResults = d.players || []; isSearching = false; })
-                                   .catch(() => { isSearching = false; });
-                           } else {
-                               searchResults = [];
-                           }
-                       "
-                       placeholder="🔍 Zoek patiënt om te chatten..." 
-                       class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                
-                <template x-if="searchResults.length > 0">
-                    <div class="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#160b33] border border-slate-200 dark:border-purple-800/60 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto p-1 divide-y divide-slate-100 dark:divide-purple-900/30">
-                        <template x-for="p in searchResults" :key="p.id">
-                            <a :href="'/chat?tab=direct&recipient=' + p.id" class="w-full p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/40 flex items-center justify-between transition">
-                                <div class="flex items-center gap-2 truncate">
-                                    <img :src="p.avatar" class="w-6 h-6 rounded-md object-cover">
-                                    <span class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="p.name"></span>
+        <div x-show="activeTab === 'direct'" class="flex-1 flex flex-col min-h-0 bg-slate-50/70 dark:bg-[#0d041e]/50">
+            <!-- VIEW A: OVERVIEW / CONVERSATIONS LIST -->
+            <template x-if="!activeDirectPartner">
+                <div class="flex-1 flex flex-col min-h-0 p-3 overflow-y-auto space-y-2.5">
+                    <!-- QUICK INMATE SEARCH -->
+                    <div class="relative" x-data="{ searchResults: [], isSearching: false, q: '' }">
+                        <input type="text" x-model="q" 
+                               @input.debounce.300ms="
+                                   if(q.trim().length >= 2) {
+                                       isSearching = true;
+                                       fetch('{{ route('chat.search-players') }}?q=' + encodeURIComponent(q.trim()))
+                                           .then(r => r.json())
+                                           .then(d => { searchResults = d.players || []; isSearching = false; })
+                                           .catch(() => { isSearching = false; });
+                                   } else {
+                                       searchResults = [];
+                                   }
+                               "
+                               placeholder="🔍 Zoek patiënt om te chatten..." 
+                               class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                        
+                        <template x-if="searchResults.length > 0">
+                            <div class="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#160b33] border border-slate-200 dark:border-purple-800/60 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto p-1 divide-y divide-slate-100 dark:divide-purple-900/30">
+                                <template x-for="p in searchResults" :key="p.id">
+                                    <button type="button" @click="openDirectChatWithPlayer(p.id, p.name, p.avatar); searchResults = []; q = '';" 
+                                            class="w-full p-2 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/40 flex items-center justify-between transition cursor-pointer text-left">
+                                        <div class="flex items-center gap-2 truncate">
+                                            <img :src="p.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-6 h-6 rounded-md object-cover" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                            <span class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="p.name"></span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded bg-purple-600 text-white text-[10px] font-black shrink-0">Chat &raquo;</span>
+                                    </button>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- CONVERSATIONS LIST -->
+                    <div class="space-y-1.5 flex-1">
+                        <template x-for="conv in directConversations" :key="conv.partner_id">
+                            <button type="button" @click="openDirectChat(conv)"
+                                    class="w-full p-2.5 rounded-xl border border-slate-200/80 dark:border-purple-900/40 bg-white dark:bg-purple-950/30 hover:border-purple-400 dark:hover:border-purple-600/60 text-left transition flex items-center justify-between gap-2.5 cursor-pointer shadow-2xs group">
+                                <div class="flex items-center gap-2.5 truncate">
+                                    <div class="relative shrink-0">
+                                        <template x-if="conv.is_bot">
+                                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-sm font-black">
+                                                <i class="fa-solid fa-building-shield"></i>
+                                            </div>
+                                        </template>
+                                        <template x-if="!conv.is_bot">
+                                            <img :src="conv.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                        </template>
+                                        <template x-if="conv.is_online && !conv.is_bot">
+                                            <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-slate-900"></span>
+                                        </template>
+                                    </div>
+                                    <div class="min-w-0 truncate">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-xs font-black truncate" :class="conv.is_bot ? 'text-amber-500' : 'text-slate-900 dark:text-white'" x-text="conv.name"></span>
+                                            <span class="text-[9px] text-slate-400 shrink-0 font-medium" x-text="conv.last_time"></span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="conv.last_message"></p>
+                                    </div>
                                 </div>
-                                <span class="px-2 py-0.5 rounded bg-purple-600 text-white text-[10px] font-black shrink-0">Chat &raquo;</span>
+                                <div class="shrink-0 flex items-center gap-1">
+                                    <template x-if="conv.unread_count > 0">
+                                        <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black" x-text="conv.unread_count"></span>
+                                    </template>
+                                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:text-purple-500 transition"></i>
+                                </div>
+                            </button>
+                        </template>
+
+                        <template x-if="!isLoadingConversations && directConversations.length === 0">
+                            <div class="py-8 text-center text-xs text-slate-400 space-y-1">
+                                <i class="fa-solid fa-comment-slash text-xl text-slate-300 dark:text-slate-600"></i>
+                                <p>Nog geen privégesprekken.</p>
+                                <p class="text-[10px]">Zoek een patiënt hierboven om te starten.</p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="pt-1 text-center">
+                        <a href="{{ route('chat.index', ['tab' => 'direct']) }}" class="text-[11px] font-black text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1">
+                            <span>Open Grote Messenger</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </a>
+                    </div>
+                </div>
+            </template>
+
+            <!-- VIEW B: ACTIVE DIRECT CONVERSATION THREAD -->
+            <template x-if="activeDirectPartner">
+                <div class="flex-1 flex flex-col min-h-0">
+                    <!-- Partner Sub-Header -->
+                    <div class="p-2 bg-white dark:bg-[#150a30] border-b border-slate-200 dark:border-purple-900/40 flex items-center justify-between shrink-0 shadow-2xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <button type="button" @click="closeDirectChat()" class="p-1 text-slate-400 hover:text-purple-600 transition cursor-pointer text-xs" title="Terug naar overzicht">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <img :src="activeDirectPartner.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-6 h-6 rounded-md object-cover border border-slate-200 dark:border-purple-800" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                            <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="activeDirectPartner.name"></span>
+                        </div>
+                        <template x-if="!activeDirectPartner.is_bot && (activeDirectPartner.partner_id || activeDirectPartner.id) > 0">
+                            <a :href="'/speler/' + encodeURIComponent(activeDirectPartner.name)" target="_blank" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-purple-300 hover:text-purple-500 text-[10px] font-bold transition">
+                                Dossier &raquo;
                             </a>
                         </template>
                     </div>
-                </template>
-            </div>
 
-            <!-- PINNED DIRECTIE BOT -->
-            <a href="{{ route('chat.index', ['tab' => 'direct', 'recipient' => 0]) }}" class="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 flex items-center justify-between transition hover:border-amber-400">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-600 flex items-center justify-center text-sm font-black">
-                        <i class="fa-solid fa-building-shield"></i>
+                    <!-- Direct Messages Stream -->
+                    <div x-ref="miniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-2.5 text-xs">
+                        <template x-for="dm in activeDirectMessages" :key="dm.id">
+                            <div class="space-y-1">
+                                <!-- Kluiscode Card -->
+                                <template x-if="dm.type === 'kluiscode'">
+                                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400 dark:border-amber-600/60 space-y-1.5 text-slate-900 dark:text-amber-100">
+                                        <div class="flex items-center justify-between text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">
+                                            <span>🔐 Exclusieve Kluiscode</span>
+                                            <span x-text="dm.time"></span>
+                                        </div>
+                                        <div class="p-1.5 bg-white dark:bg-slate-900 rounded font-mono font-black text-xs text-amber-600 text-center select-all" x-text="dm.metadata?.code"></div>
+                                        <a :href="'/kluis-kraak?code=' + encodeURIComponent(dm.metadata?.code)" class="block text-center py-1 rounded bg-purple-600 text-white font-black text-[10px]">
+                                            Direct Inwisselen &raquo;
+                                        </a>
+                                    </div>
+                                </template>
+
+                                <!-- Level Up Card -->
+                                <template x-if="dm.type === 'level_up'">
+                                    <div class="p-2.5 rounded-xl bg-purple-600/10 border border-purple-400 dark:border-purple-600/60 space-y-1 text-slate-900 dark:text-purple-100">
+                                        <div class="flex items-center gap-1.5 text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase">
+                                            <i class="fa-solid fa-award"></i>
+                                            <span x-text="'Level ' + dm.metadata?.level + ' Bereikt!'"></span>
+                                        </div>
+                                        <p class="text-[11px]" x-text="dm.message"></p>
+                                    </div>
+                                </template>
+
+                                <!-- Standard Bubbles -->
+                                <template x-if="dm.type === 'chat' || dm.type === 'system'">
+                                    <div class="flex items-start gap-1.5" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                        <div class="max-w-[85%] space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                            <div class="inline-block p-2 rounded-xl text-xs break-words"
+                                                 :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
+                                                <span x-text="dm.message"></span>
+                                            </div>
+                                            <div class="text-[9px] text-slate-400 font-mono" x-text="dm.time"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template x-if="activeDirectMessages.length === 0">
+                            <div class="py-8 text-center text-slate-400 text-xs">
+                                Nog geen berichten in dit gesprek. Stuur een bericht om te starten!
+                            </div>
+                        </template>
                     </div>
-                    <div>
-                        <div class="text-xs font-black text-amber-900 dark:text-amber-300">🏥 Kliniek Directie</div>
-                        <div class="text-[10px] text-amber-700/80 dark:text-amber-400/80">Kluiscodes & Level-Up Beloningen</div>
-                    </div>
+
+                    <!-- Direct Message Input Bar -->
+                    <template x-if="activeDirectPartner.is_bot">
+                        <div class="p-2 bg-slate-100 dark:bg-purple-950/30 text-center text-[10px] font-bold text-slate-400 shrink-0 border-t border-slate-200 dark:border-purple-900/40">
+                            <i class="fa-solid fa-lock text-slate-400 mr-1"></i>
+                            Officiële directieberichten (geen antwoord mogelijk).
+                        </div>
+                    </template>
+
+                    <template x-if="!activeDirectPartner.is_bot">
+                        <div class="p-2 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1">
+                            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
+                                <template x-for="s in ['😀', '😂', '💀', '🔥', '💰', '💉', '🚓', '🚬', '👍', '🖕', '❤️', '👑', '😎', '⚡', '🎉']" :key="s">
+                                    <button type="button" @click="directInput += s" class="w-6 h-6 rounded hover:bg-slate-100 dark:hover:bg-purple-900/40 text-xs flex items-center justify-center transition cursor-pointer shrink-0">
+                                        <span x-text="s"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <form @submit.prevent="sendDirectMessage()" class="flex items-center gap-1.5">
+                                <input type="text" x-model="directInput" placeholder="Typ een privébericht... (Enter)" maxlength="500"
+                                       class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                <button type="submit" :disabled="isSendingDirect || !directInput.trim()" class="w-7 h-7 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
+                                    <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </template>
                 </div>
-                <i class="fa-solid fa-chevron-right text-xs text-amber-500"></i>
-            </a>
-
-            <div class="pt-2 text-center space-y-2">
-                <p class="text-xs text-slate-500 dark:text-slate-400">Open de complete messenger voor al je 1-op-1 gesprekken en geschiedenis.</p>
-                <a href="{{ route('chat.index', ['tab' => 'direct']) }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black transition shadow-xs">
-                    <i class="fa-solid fa-comments"></i>
-                    <span>Naar Messenger Inbox</span>
-                </a>
-            </div>
+            </template>
         </div>
 
         <!-- 3. TAB: AI KENNISBANK & HELPBOT -->
@@ -437,7 +582,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
                             'Accept': 'application/json',
                         },
                         body: JSON.stringify({
@@ -480,6 +625,14 @@
             toastNotification: null,
             audioCtx: null,
 
+            // Direct Messages in mini chat
+            directConversations: [],
+            isLoadingConversations: false,
+            activeDirectPartner: null,
+            activeDirectMessages: [],
+            directInput: '',
+            isSendingDirect: false,
+
             // Helpbot state
             helpInput: '',
             helpMessages: [
@@ -491,15 +644,22 @@
             ],
             faqKnowledge: {!! json_encode(\App\Http\Controllers\FaqController::getBotKnowledge()) !!},
 
+            getCsrf() {
+                return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            },
+
             init() {
                 this.loadPublicMessages(true);
+                this.loadConversations();
                 this.pollLoop();
             },
 
             playChime() {
                 try {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (!AudioCtx) return;
                     if (!this.audioCtx) {
-                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        this.audioCtx = new AudioCtx();
                     }
                     if (this.audioCtx.state === 'suspended') {
                         this.audioCtx.resume();
@@ -522,6 +682,11 @@
                 this.activeTab = tab;
                 if (tab === 'global') {
                     this.scrollChatBottom();
+                } else if (tab === 'direct') {
+                    this.loadConversations();
+                    if (this.activeDirectPartner) {
+                        this.scrollDirectBottom();
+                    }
                 }
             },
 
@@ -529,6 +694,14 @@
                 this.$nextTick(() => {
                     if (this.$refs.miniChatScroll) {
                         this.$refs.miniChatScroll.scrollTop = this.$refs.miniChatScroll.scrollHeight;
+                    }
+                });
+            },
+
+            scrollDirectBottom() {
+                this.$nextTick(() => {
+                    if (this.$refs.miniDirectScroll) {
+                        this.$refs.miniDirectScroll.scrollTop = this.$refs.miniDirectScroll.scrollHeight;
                     }
                 });
             },
@@ -544,7 +717,6 @@
                             this.publicMessages = data.messages;
                             this.scrollChatBottom();
                         } else if (data.messages.length > 0) {
-                            // Incoming new messages
                             const newIncoming = data.messages.filter(m => !m.is_me);
                             if (newIncoming.length > 0) {
                                 const latest = newIncoming[newIncoming.length - 1];
@@ -577,7 +749,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'X-CSRF-TOKEN': this.getCsrf(),
                             'Accept': 'application/json',
                         },
                         body: JSON.stringify({ channel: 'global', message: text })
@@ -592,8 +764,83 @@
                         alert(data.message);
                     }
                 } catch (e) {
+                    alert('Kon bericht niet verzenden.');
                 } finally {
                     this.isSending = false;
+                }
+            },
+
+            async loadConversations() {
+                this.isLoadingConversations = true;
+                try {
+                    const res = await fetch('{{ route('chat.conversations') }}', { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (data.success && data.conversations) {
+                        this.directConversations = data.conversations;
+                        this.unreadDmsCount = data.conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0);
+                    }
+                } catch(e) {} finally {
+                    this.isLoadingConversations = false;
+                }
+            },
+
+            async openDirectChat(partner) {
+                this.activeDirectPartner = partner;
+                this.activeTab = 'direct';
+                this.activeDirectMessages = [];
+                const pId = partner.partner_id !== undefined ? partner.partner_id : partner.id;
+                try {
+                    const res = await fetch(`/chat/prive/${pId}`, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.activeDirectMessages = data.messages || [];
+                        this.scrollDirectBottom();
+                        const conv = this.directConversations.find(c => c.partner_id === pId);
+                        if (conv) conv.unread_count = 0;
+                    }
+                } catch(e) {}
+            },
+
+            openDirectChatWithPlayer(id, name, avatar) {
+                this.isOpen = true;
+                this.openDirectChat({ id: id, partner_id: id, name: name, avatar: avatar, is_bot: false });
+            },
+
+            closeDirectChat() {
+                this.activeDirectPartner = null;
+                this.activeDirectMessages = [];
+                this.loadConversations();
+            },
+
+            async sendDirectMessage() {
+                if (!this.activeDirectPartner) return;
+                const text = this.directInput.trim();
+                if (!text || this.isSendingDirect) return;
+                const pId = this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id;
+                this.isSendingDirect = true;
+                try {
+                    const res = await fetch(`/chat/prive/${pId}/verzenden`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ message: text })
+                    });
+                    const data = await res.json();
+                    if (data.success && data.message) {
+                        this.directInput = '';
+                        this.activeDirectMessages.push(data.message);
+                        this.scrollDirectBottom();
+                        this.loadConversations();
+                    } else if (data.message) {
+                        alert(data.message);
+                    }
+                } catch(e) {
+                    alert('Kon privébericht niet verzenden.');
+                } finally {
+                    this.isSendingDirect = false;
                 }
             },
 
@@ -626,6 +873,23 @@
             pollLoop() {
                 setInterval(() => {
                     this.loadPublicMessages();
+                    if (this.activeTab === 'direct' && this.activeDirectPartner) {
+                        const pId = this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id;
+                        fetch(`/chat/prive/${pId}`, { headers: { 'Accept': 'application/json' } })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success && data.messages) {
+                                    if (data.messages.length > this.activeDirectMessages.length) {
+                                        const newCount = data.messages.length - this.activeDirectMessages.length;
+                                        const latestNew = data.messages.slice(-newCount);
+                                        if (latestNew.some(m => !m.is_me)) this.playChime();
+                                        this.activeDirectMessages = data.messages;
+                                        this.scrollDirectBottom();
+                                    }
+                                }
+                            })
+                            .catch(() => {});
+                    }
                 }, 2500);
             }
         };

@@ -180,16 +180,28 @@ class ChatController extends Controller
 
         $gang = $character->gang;
 
+        $isOwner = (bool) ($user->isOwner());
+        $isAdmin = (bool) ($user->isAdmin());
+        $isMod = (bool) ($user->isModerator() || $user->canModerate());
+
+        $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
+        $staffBadgeColor = $isOwner ? 'amber' : ($isAdmin ? 'purple' : ($isMod ? 'blue' : null));
+
         return response()->json([
             'success' => true,
             'message' => [
                 'id' => $chatMsg->id,
                 'character_id' => $character->id,
                 'name' => $character->name,
-                'avatar' => $character->avatar ?? 'avatar-1.png',
+                'avatar' => $character->avatar_url,
                 'level' => $character->level,
-                'is_staff' => (bool) ($user->is_admin || $user->is_moderator),
-                'staff_role' => $user->is_admin ? 'Directeur' : ($user->is_moderator ? 'Bewaker' : null),
+                'respect' => $character->respect ?? 0,
+                'is_owner' => $isOwner,
+                'is_admin' => $isAdmin,
+                'is_moderator' => $isMod,
+                'is_staff' => (bool) ($user->isStaff() || $isMod),
+                'staff_role' => $staffRole,
+                'staff_badge_color' => $staffBadgeColor,
                 'gang_tag' => $gang?->tag ?? null,
                 'gang_color' => $gang?->color ?? 'purple',
                 'message' => $chatMsg->message,
@@ -274,7 +286,7 @@ class ChatController extends Controller
                 $conversations[] = [
                     'partner_id' => $partner->id,
                     'name' => $partner->name,
-                    'avatar' => $partner->avatar ?? 'avatar-1.png',
+                    'avatar' => $partner->avatar_url,
                     'is_bot' => false,
                     'is_online' => (bool) $isOnline,
                     'level' => $partner->level,
@@ -354,7 +366,7 @@ class ChatController extends Controller
             $partnerData = [
                 'id' => $partner->id,
                 'name' => $partner->name,
-                'avatar' => $partner->avatar ?? 'avatar-1.png',
+                'avatar' => $partner->avatar_url,
                 'is_bot' => false,
                 'is_online' => (bool) $isOnline,
                 'level' => $partner->level,

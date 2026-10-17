@@ -211,16 +211,24 @@ class Character extends Model
         if (! empty($this->avatar_custom)) {
             $customPath = ltrim((string) $this->avatar_custom, '/');
 
-            return asset($customPath);
+            return str_starts_with($customPath, 'http') ? $customPath : asset($customPath);
         }
 
-        if (empty($this->avatar)) {
+        if (empty($this->avatar) || str_contains($this->avatar, 'avatar-default')) {
             return asset('assets/characters/avatar_male_1.jpg');
         }
 
         $path = ltrim((string) $this->avatar, '/');
+        if (str_starts_with($path, 'http')) {
+            return $path;
+        }
+
         if (! str_starts_with($path, 'assets/') && ! str_starts_with($path, 'uploads/')) {
-            $path = 'assets/'.$path;
+            if (str_starts_with($path, 'characters/')) {
+                $path = 'assets/'.$path;
+            } else {
+                $path = 'assets/characters/'.$path;
+            }
         }
 
         return asset($path);
