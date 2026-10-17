@@ -80,36 +80,106 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-            <!-- Card 1: Cooldown Reset ⚡ -->
-            <div class="bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800/60 hover:border-purple-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
+            <!-- Card 1: Respect +1 🔥 (Nieuw) -->
+            <div class="bg-white dark:bg-slate-900 border border-orange-200 dark:border-orange-800/60 hover:border-orange-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
                 <div class="relative z-10">
-                    <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-bolt"></i>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/60 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
+                        <i class="fa-solid fa-fire text-orange-500"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-2 py-0.5 rounded">Populair</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/80 px-2 py-0.5 rounded font-extrabold">Directe Beloning</span>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition">Reset Alle Cooldowns</h3>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-orange-600 transition">+1 Respect 🔥</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Wis direct alle wachttijden op Hosselen, Zakkenrollen, Kluisjes, Smokkelen en Behandeling!
+                        Verhoog direct jouw aanzien en klim in de algemene ranglijst van de kliniek. 1 ad = direct +1 Respect!
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-bolt text-xs"></i>
-                        <span>Kijk Ad (Reset Cooldowns)</span>
+                    <button type="button" onclick="window.tbsOpenSponsorAd('respect')" 
+                            class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-fire text-xs"></i>
+                        <span>Kijk Ad voor +1 Respect</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Card 2: Cash €2.500 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
+            <!-- Card 2: Masker +1 (3 Ads vereist) -->
+            <div class="bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800/60 hover:border-purple-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-masks-theater"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-2 py-0.5 rounded font-extrabold">3 Ads per Masker</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition">+1 Bivakmuts / Masker</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Bekijk 3 korte sponsor ads en ontvang een gratis masker voor zakkenrollen en solo/bende heists.
+                    </p>
+
+                    <!-- Voortgangsbalk (0/3, 1/3, 2/3) -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-purple-600 dark:text-purple-400 font-extrabold">{{ $character->ad_mask_progress ?? 0 }} / 3 Ads</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-purple-600 h-full rounded-full transition-all duration-300" 
+                                 style="width: {{ min(100, (($character->ad_mask_progress ?? 0) / 3) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('mask')" 
+                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-masks-theater text-xs"></i>
+                        <span>Kijk Ad voor Masker ({{ ($character->ad_mask_progress ?? 0) + 1 }}/3{{ ($character->ad_mask_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 3: Geheime Kluiscode Voucher (3 Ads vereist) -->
+            <div class="bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800/60 hover:border-indigo-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 px-2 py-0.5 rounded font-extrabold">3 Ads per Code</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">Geheime Kluiscode Voucher</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Bekijk 3 sponsor ads en ontvang een voucher in je inbox t.w.v. <strong>€5.000, 2 Sterren ⭐ en 2 Kluismunten</strong>!
+                    </p>
+
+                    <!-- Voortgangsbalk (0/3, 1/3, 2/3) -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-indigo-600 dark:text-indigo-400 font-extrabold">{{ $character->ad_vault_progress ?? 0 }} / 3 Ads</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-indigo-600 h-full rounded-full transition-all duration-300" 
+                                 style="width: {{ min(100, (($character->ad_vault_progress ?? 0) / 3) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('vault_code')" 
+                            class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-key text-xs"></i>
+                        <span>Kijk Ad voor Kluiscode ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 4: Cash €2.500 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
                         <i class="fa-solid fa-money-bill-wave"></i>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition">€ 2.500 Zakgeld</h3>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">€ 2.500 Zakgeld</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Direct contant zakgeld op zak om frikandelbroodjes, energie-shakes of wapens te kopen.
                     </p>
@@ -123,13 +193,13 @@
                 </div>
             </div>
 
-            <!-- Card 3: Strafvermindering -15 Min -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
+            <!-- Card 5: Strafvermindering -15 Min -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-rose-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
                 <div>
                     <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
                         <i class="fa-solid fa-hourglass-half"></i>
                     </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition">-15 Min Isoleercel</h3>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">-15 Min Isoleercel</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Zit je vast in de isoleercel? Scheer 15 minuten van je straftijd af of kom direct vervroegd vrij!
                     </p>
@@ -139,46 +209,6 @@
                             class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-lock-open text-xs"></i>
                         <span>Kijk Ad voor -15 Min</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 4: Masker +1 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-masks-theater"></i>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition">+1 Bivakmuts / Masker</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Onmisbaar om ongemerkt te zakkenrollen op de binnenplaats en wakers te ontwijken.
-                    </p>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('mask')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-mask text-xs"></i>
-                        <span>Kijk Ad voor Masker</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 5: Kluismunt +1 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-coins"></i>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition">+1 Kluismunt</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Verzamel kluismunten om hints te kopen bij de MedicijnKluis of vouchers te claimen.
-                    </p>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('token')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-key text-xs"></i>
-                        <span>Kijk Ad voor Munt</span>
                     </button>
                 </div>
             </div>
@@ -199,6 +229,26 @@
                             class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-star text-xs"></i>
                         <span>Kijk Ad voor Ster ⭐</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 7: Kluismunt +1 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-coins"></i>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 transition">+1 Kluismunt</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Verzamel losse kluismunten om hints te kopen bij de MedicijnKluis of kluisjes te kraken.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('token')" 
+                            class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-key text-xs"></i>
+                        <span>Kijk Ad voor Munt</span>
                     </button>
                 </div>
             </div>

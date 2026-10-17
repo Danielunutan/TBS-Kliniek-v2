@@ -2612,6 +2612,12 @@
                 if (rewardType === 'prison') {
                     this.rewardTitle = '-15 Min Isoleercel Straf';
                     this.rewardIcon = 'fa-hourglass-half';
+                } else if (rewardType === 'respect') {
+                    this.rewardTitle = '+1 Respect 🔥';
+                    this.rewardIcon = 'fa-fire';
+                } else if (rewardType === 'vault_code') {
+                    this.rewardTitle = 'Geheime Kluiscode Voucher';
+                    this.rewardIcon = 'fa-key';
                 } else if (rewardType === 'cooldown' || rewardType.startsWith('cooldown:')) {
                     if (rewardType === 'cooldown:produce_sigaretten') {
                         this.rewardTitle = '⚡ Reset Sigaretten Cooldown';
@@ -2624,7 +2630,7 @@
                     }
                     this.rewardIcon = 'fa-bolt';
                 } else if (rewardType === 'mask') {
-                    this.rewardTitle = '+1 Bivakmuts / Masker';
+                    this.rewardTitle = 'Bivakmuts / Masker (3 Ads)';
                     this.rewardIcon = 'fa-masks-theater';
                 } else if (rewardType === 'token') {
                     this.rewardTitle = '+1 Kluismunt';

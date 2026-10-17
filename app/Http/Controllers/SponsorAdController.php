@@ -92,7 +92,7 @@ class SponsorAdController extends Controller
         }
 
         $rewardType = $request->input('reward_type', 'cash');
-        $validTypes = ['cash', 'prison', 'mask', 'token', 'star', 'cooldown'];
+        $validTypes = ['cash', 'prison', 'mask', 'token', 'star', 'respect', 'vault_code', 'cooldown'];
         $isSpecificCooldown = is_string($rewardType) && str_starts_with($rewardType, 'cooldown:');
         if (! in_array($rewardType, $validTypes, true) && ! $isSpecificCooldown) {
             $rewardType = 'cash';
@@ -329,6 +329,11 @@ class SponsorAdController extends Controller
             $rewardDetails = "⚡ Cooldown voor {$label} is direct gewist!";
         } else {
             switch ($rewardType) {
+                case 'respect':
+                    $character->respect = ($character->respect ?? 0) + 1;
+                    $rewardDetails = '🔥 +1 Respect verdiend! Je respect score is direct verhoogd!';
+                    break;
+
                 case 'prison':
                     if ($character->isImprisoned()) {
                         $character->is_in_prison = false;
@@ -343,8 +348,46 @@ class SponsorAdController extends Controller
                     break;
 
                 case 'mask':
-                    $character->masks = ($character->masks ?? 0) + 1;
-                    $rewardDetails = '🎭 +1 Masker toegevoegd aan je voorraad (klaar voor zakkenrollen)!';
+                    $currentProgress = ($character->ad_mask_progress ?? 0) + 1;
+                    if ($currentProgress >= 3) {
+                        $character->ad_mask_progress = 0;
+                        $character->masks = ($character->masks ?? 0) + 1;
+                        $rewardDetails = '🎭 [3/3 Ads] GEFELICITEERD: +1 Bivakmuts / Masker toegevoegd aan je voorraad!';
+                    } else {
+                        $character->ad_mask_progress = $currentProgress;
+                        $left = 3 - $currentProgress;
+                        $rewardDetails = "🎭 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw gratis Masker.';
+                    }
+                    break;
+
+                case 'vault_code':
+                    $currentProgress = ($character->ad_vault_progress ?? 0) + 1;
+                    if ($currentProgress >= 3) {
+                        $character->ad_vault_progress = 0;
+                        $bonusCode = 'SPONSOR-'.strtoupper(Str::random(6));
+                        VaultCode::create([
+                            'code' => $bonusCode,
+                            'reward_cash' => 5000,
+                            'reward_stars' => 2,
+                            'reward_tokens' => 2,
+                            'character_id' => $character->id,
+                            'is_redeemed' => false,
+                        ]);
+
+                        GameMessage::create([
+                            'recipient_id' => $character->id,
+                            'sender_name' => 'TBS Sponsor Directie',
+                            'subject' => '🎁 Geheime Kluiscode Voucher (3/3 Ads)',
+                            'content' => "Beste {$character->name},\n\nGefeliciteerd! Omdat je 3 sponsor advertenties hebt bekeken, ontvang je hierbij jouw unieke Geheime Kluiscode voucher:\n\n👉 **{$bonusCode}**\n\nWissel hem direct in op de MedicijnKluis voor €5.000 bankgeld, 2 sterren en 2 kluismunten!",
+                            'type' => 'reward',
+                        ]);
+
+                        $rewardDetails = "🔐 [3/3 Ads] GEFELICITEERD: Geheime Kluiscode voucher ontvangen: **{$bonusCode}** (ook bewaard in je inbox)!";
+                    } else {
+                        $character->ad_vault_progress = $currentProgress;
+                        $left = 3 - $currentProgress;
+                        $rewardDetails = "🔐 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw Geheime Kluiscode voucher.';
+                    }
                     break;
 
                 case 'token':

@@ -130,6 +130,8 @@ class Character extends Model
         'treatment_history' => 'array',
         'ads_watched_today' => 'integer',
         'ads_watched_total' => 'integer',
+        'ad_mask_progress' => 'integer',
+        'ad_vault_progress' => 'integer',
         'last_ad_watched_at' => 'datetime',
         'last_ad_date' => 'string',
         'birthdate' => 'date',
