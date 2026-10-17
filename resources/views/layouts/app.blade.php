@@ -2256,6 +2256,8 @@
         totalSeconds: 15,
         token: null,
         smartlinkUrl: '',
+        popupUrl: '',
+        robinRewardId: null,
         callback: null,
         async checkAdblock() {
             try {
@@ -2324,6 +2326,7 @@
                     this.token = data.token;
                     this.smartlinkUrl = data.smartlink_url;
                     this.popupUrl = data.popup_url;
+                    this.robinRewardId = data.robin_reward_id;
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
 

@@ -207,14 +207,14 @@
     </div>
 
     <!-- Sponsor Ads Status Banner -->
-    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-5 shadow-xs flex items-center gap-3.5 text-xs text-amber-900 dark:text-amber-200">
-        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-lg shrink-0">
-            <i class="fa-solid fa-triangle-exclamation"></i>
+    <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-2xl p-5 shadow-xs flex items-center gap-3.5 text-xs text-purple-900 dark:text-purple-200">
+        <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-circle-check"></i>
         </div>
         <div class="space-y-0.5">
-            <h4 class="font-extrabold text-amber-950 dark:text-amber-100 text-sm">Sponsorkamer Tijdelijk Beperkt</h4>
-            <p class="text-amber-800 dark:text-amber-300 leading-relaxed">
-                De sponsorkamer is momenteel beschikbaar maar advertentienetzwerkbeloningen worden nog geconfigureerd. Bekijk een sponsor en claim je beloning zoals gebruikelijk via de afteltimer.
+            <h4 class="font-extrabold text-purple-950 dark:text-purple-100 text-sm">Robins Ads Beloningen Actief</h4>
+            <p class="text-purple-800 dark:text-purple-300 leading-relaxed">
+                De beloningen zijn gekoppeld aan het officiële Robins Ads advertentienetwerk. Bekijk de sponsor in de popup en claim direct jouw zakgeld, sterren, maskers of strafvermindering!
             </p>
         </div>
     </div>

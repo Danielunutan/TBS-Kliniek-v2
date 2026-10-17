@@ -19,7 +19,7 @@ use Illuminate\View\View;
 
 class SponsorAdController extends Controller
 {
-    public const ADS_ENABLED = false;
+    public const ADS_ENABLED = true;
 
     public const DEFAULT_SMARTLINK = 'https://uplcm.com/4/12026868';
 
@@ -106,7 +106,7 @@ class SponsorAdController extends Controller
 
         if ($apiKey && $websiteId) {
             try {
-                $response = Http::withToken($apiKey)->timeout(3)->post('https://robinsads.com/api/v1/rewards', [
+                $response = Http::withoutVerifying()->withToken($apiKey)->timeout(5)->post('https://robinsads.com/api/v1/rewards', [
                     'website_id' => $websiteId,
                     'metadata' => [
                         'character_id' => (string) $character->id,
@@ -207,7 +207,7 @@ class SponsorAdController extends Controller
 
         if ($apiKey && $robinRewardId && $robinToken) {
             try {
-                $verifyRes = Http::withToken($apiKey)->timeout(3)->post('https://robinsads.com/api/ads/reward/verify', [
+                $verifyRes = Http::withoutVerifying()->withToken($apiKey)->timeout(4)->post('https://robinsads.com/api/ads/reward/verify', [
                     'impressionId' => $robinRewardId,
                     'token' => $robinToken,
                 ]);
@@ -220,7 +220,7 @@ class SponsorAdController extends Controller
 
         if (! $isVerifiedByRobin && $apiKey && $robinRewardId) {
             try {
-                $statusRes = Http::withToken($apiKey)->timeout(3)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
+                $statusRes = Http::withoutVerifying()->withToken($apiKey)->timeout(4)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
                 if ($statusRes->successful() && $statusRes->json('status') === 'verified') {
                     $isVerifiedByRobin = true;
                 }
