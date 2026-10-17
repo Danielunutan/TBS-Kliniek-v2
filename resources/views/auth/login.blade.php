@@ -317,24 +317,44 @@
     </div>
 
     <!-- EXCLUSIVE GANG OVERSTAP BONUS BANNER (HOMEPAGE PROMOTION) -->
-    <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white shadow-md border border-purple-500/30 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div class="relative z-10 space-y-2 max-w-2xl">
+    <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-purple-50 via-indigo-50/60 to-amber-50/40 dark:from-[#180a33] dark:via-[#130b2c] dark:to-[#0f172a] bg-purple-50/60 dark:bg-[#130b2c] border-2 border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-white shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <!-- Ambient Decorative Glows -->
+        <div class="absolute -top-16 -left-16 w-44 h-44 bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -right-16 w-44 h-44 bg-amber-500/10 dark:bg-amber-600/15 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="relative z-10 space-y-2.5 max-w-2xl">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-xs">
                 <i class="fa-solid fa-crown text-slate-950"></i>
                 <span>Exclusieve Overstap Bonus</span>
             </div>
-            <h3 class="text-base sm:text-lg font-black text-white tracking-tight">
+            
+            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
                 Speel je met je bende op een andere game? Stap nu over naar TBS Kliniek!
             </h3>
-            <p class="text-xs text-purple-200/90 leading-relaxed">
-                Neem je vrienden of clan mee en meld je aan via ons ticket-systeem. Ontvang direct een <strong>Gratis Bende</strong>, <strong>€ 5.000.000 startkapitaal</strong> in jullie gangpot én <strong>31 dagen gratis VIP</strong> voor al je leden!
+            
+            <p class="text-xs text-slate-600 dark:text-purple-200/90 leading-relaxed">
+                Neem je vrienden of clan mee en meld je aan via ons ticket-systeem. Ontvang direct een <strong class="text-purple-700 dark:text-amber-300 font-black">Gratis Bende</strong>, <strong class="text-purple-700 dark:text-amber-300 font-black">€ 5.000.000 startkapitaal</strong> in jullie gangpot én <strong class="text-purple-700 dark:text-amber-300 font-black">31 dagen gratis VIP</strong> voor al je leden!
             </p>
+
+            <!-- 3 Quick Spotlight Badges -->
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/90 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-[11px] font-bold text-slate-800 dark:text-purple-200 shadow-2xs">
+                    <i class="fa-solid fa-shield-halved text-amber-500 text-xs"></i> Gratis Bende
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/90 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-[11px] font-bold text-slate-800 dark:text-purple-200 shadow-2xs">
+                    <i class="fa-solid fa-vault text-emerald-500 text-xs"></i> € 5.000.000 Kluisgeld
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/90 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-[11px] font-bold text-slate-800 dark:text-purple-200 shadow-2xs">
+                    <i class="fa-solid fa-star text-purple-500 dark:text-purple-400 text-xs"></i> 31 Dagen Gratis VIP
+                </span>
+            </div>
         </div>
+
         <div class="relative z-10 shrink-0 flex items-center gap-2.5">
-            <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs transition border border-white/20">
+            <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-200 font-extrabold text-xs transition border border-slate-200 dark:border-purple-800/60 shadow-2xs">
                 Uitleg in FAQ
             </a>
-            <button type="button" @click="tab = 'register'; document.getElementById('auth-form-card').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer">
+            <button type="button" @click="tab = 'register'; document.getElementById('auth-form-card').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer">
                 <span>Meld Je Bende Aan</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
@@ -343,33 +363,33 @@
 
     <!-- 3 SUBTLE CLEAN FEATURE CARDS (MATCHES DASHBOARD / SITE CLEANLINESS) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base shrink-0">
+        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/40 flex items-center justify-center text-base shrink-0">
                 <i class="fa-solid fa-hand-holding-dollar"></i>
             </div>
             <div>
-                <h3 class="text-xs font-extrabold text-slate-900">Hosselen & Kraken</h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">Steel frikandelbroodjes en kraak kluisjes voor cash.</p>
+                <h3 class="text-xs font-extrabold text-slate-900 dark:text-white">Hosselen & Kraken</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Steel frikandelbroodjes en kraak kluisjes voor cash.</p>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-base shrink-0">
+        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/40 flex items-center justify-center text-base shrink-0">
                 <i class="fa-solid fa-hand-fist"></i>
             </div>
             <div>
-                <h3 class="text-xs font-extrabold text-slate-900">Luchtplaats PvP</h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">Vecht tegen rivalen om respect en sticht je eigen bende.</p>
+                <h3 class="text-xs font-extrabold text-slate-900 dark:text-white">Luchtplaats PvP</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Vecht tegen rivalen om respect en sticht je eigen bende.</p>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3.5">
-            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-base shrink-0">
+        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 border border-purple-200/50 dark:border-purple-800/40 flex items-center justify-center text-base shrink-0">
                 <i class="fa-solid fa-dice"></i>
             </div>
             <div>
-                <h3 class="text-xs font-extrabold text-slate-900">Ondergronds Casino</h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">Roulette, fruitautomaten en nummerspel met hoge jackpots.</p>
+                <h3 class="text-xs font-extrabold text-slate-900 dark:text-white">Ondergronds Casino</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Roulette, fruitautomaten en nummerspel met hoge jackpots.</p>
             </div>
         </div>
     </div>
