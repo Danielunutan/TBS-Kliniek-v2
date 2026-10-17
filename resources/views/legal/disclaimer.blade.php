@@ -59,6 +59,7 @@
                 <p><strong>Discord Community:</strong> <a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">discord.gg/tbs</a></p>
                 <p><strong>TikTok:</strong> <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbsklinieknl</a></p>
                 <p><strong>Instagram:</strong> <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbsklinieknl</a></p>
+                <p><strong>Twitter / X:</strong> <a href="https://x.com/tbskliniek" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbskliniek</a></p>
                 <p><strong>Hyves:</strong> <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener" class="text-orange-600 font-bold underline">TBS Kliniek op Hyves</a></p>
             </div>
         </section>

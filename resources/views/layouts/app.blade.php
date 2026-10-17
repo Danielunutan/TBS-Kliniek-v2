@@ -38,6 +38,8 @@
 
     <!-- TWITTER / X CARDS -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@tbskliniek">
+    <meta name="twitter:creator" content="@tbskliniek">
     <meta name="twitter:url" content="{{ url()->current() }}">
     <meta name="twitter:title" content="TBS Kliniek - Het #1 Nederlandse Gevangenis & Misdaad RPG">
     <meta name="twitter:description" content="Dé moderne Nederlandse tekstbased misdaad game. Gratis online speelbaar!">
@@ -1466,6 +1468,11 @@
                         <span>Instagram</span>
                     </a>
 
+                    <a href="https://x.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98] border border-white/10" title="Twitter / X @tbskliniek">
+                        <i class="fa-brands fa-x-twitter text-sm"></i>
+                        <span>Twitter</span>
+                    </a>
+
                     <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-tiktok text-sm"></i>
                         <span>TikTok</span>
@@ -1665,6 +1672,9 @@
                             </a></li>
                             <li><a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-brands fa-instagram text-pink-600 text-xs"></i> Instagram @tbsklinieknl
+                            </a></li>
+                            <li><a href="https://x.com/tbskliniek" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                                <i class="fa-brands fa-x-twitter text-slate-900 dark:text-white text-xs"></i> Twitter / X @tbskliniek
                             </a></li>
                             <li><a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener" class="hover:text-orange-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
                                 <i class="fa-solid fa-face-smile text-orange-500 text-xs"></i> Hyves (TBS Kliniek)
