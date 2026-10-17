@@ -1725,15 +1725,15 @@
             <div class="mb-6 bg-amber-500/10 dark:bg-slate-900 border-2 border-amber-400 dark:border-amber-500/60 p-4 sm:p-5 rounded-2xl shadow-md flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
                 <div class="flex items-center gap-3.5">
                     <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl font-black shrink-0 shadow-sm animate-bounce">
-                        
+                        🎁
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                            <span>22:00 AVONDRONDE BELONING!</span>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>22:00 - 22:30 INLOG BONUS!</span>
                             <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">3x Kluiscodes</span>
                         </h4>
-                        <p class="text-xs text-slate-600 mt-0.5">
-                            Omdat je aanwezig bent in de TBS Kliniek heb je <strong>3 gratis geheime kluiscodes</strong> ontvangen in je dossier en postvak!
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                            Omdat je tussen 22:00 en 22:30 bent ingelogd in de TBS Kliniek heb je jouw dagelijkse inlogbonus ontvangen: <strong>3 gratis geheime kluiscodes</strong> in je kluis en postvak!
                         </p>
                     </div>
                 </div>

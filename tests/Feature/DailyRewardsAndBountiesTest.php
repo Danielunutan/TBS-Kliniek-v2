@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Bounty;
 use App\Models\Character;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -259,5 +260,66 @@ class DailyRewardsAndBountiesTest extends TestCase
         $this->assertEquals($hunter->id, $bounty->claimed_by_character_id);
         // Hunter receives initial 5000 + 25000 bounty = 30000
         $this->assertGreaterThanOrEqual(30000, $hunter->cash);
+    }
+
+    public function test_inlog_bonus_window_detection(): void
+    {
+        $tz = 'Europe/Amsterdam';
+
+        // 21:59:59 -> inactive
+        $this->assertFalse(Character::isLoginBonusWindowActive(Carbon::parse('2026-10-17 21:59:59', $tz)));
+
+        // 22:00:00 -> active
+        $this->assertTrue(Character::isLoginBonusWindowActive(Carbon::parse('2026-10-17 22:00:00', $tz)));
+
+        // 22:15:00 -> active
+        $this->assertTrue(Character::isLoginBonusWindowActive(Carbon::parse('2026-10-17 22:15:00', $tz)));
+
+        // 22:30:00 -> active
+        $this->assertTrue(Character::isLoginBonusWindowActive(Carbon::parse('2026-10-17 22:30:00', $tz)));
+
+        // 22:30:01 -> inactive
+        $this->assertFalse(Character::isLoginBonusWindowActive(Carbon::parse('2026-10-17 22:30:01', $tz)));
+    }
+
+    public function test_inlog_bonus_timers_and_countdown_seconds(): void
+    {
+        $tz = 'Europe/Amsterdam';
+
+        // At 21:50:00 (10 minutes before start)
+        $at2150 = Carbon::parse('2026-10-17 21:50:00', $tz);
+        $this->assertEquals(600, Character::secondsUntilNextLoginBonus($at2150));
+        $this->assertEquals(0, Character::secondsRemainingInLoginBonus($at2150));
+
+        // At 22:10:00 (inside 30m window, 20m remaining)
+        $at2210 = Carbon::parse('2026-10-17 22:10:00', $tz);
+        $this->assertEquals(0, Character::secondsUntilNextLoginBonus($at2210));
+        $this->assertEquals(1200, Character::secondsRemainingInLoginBonus($at2210));
+    }
+
+    public function test_character_can_claim_streak_respects_time_window(): void
+    {
+        $tz = 'Europe/Amsterdam';
+        $character = $this->createCharacter('BonusTester', [
+            'last_streak_claim_at' => null,
+            'streak_days' => 0,
+        ]);
+
+        $outside = Carbon::parse('2026-10-17 15:00:00', $tz);
+        $inside = Carbon::parse('2026-10-17 22:15:00', $tz);
+
+        $this->assertFalse(Character::isLoginBonusWindowActive($outside));
+        $this->assertTrue(Character::isLoginBonusWindowActive($inside));
+
+        // In window, can claim
+        $this->assertTrue($character->canClaimStreak($inside));
+
+        // Mark claimed today
+        $character->last_streak_claim_at = $inside;
+        $character->save();
+
+        // Cannot claim again even inside window
+        $this->assertFalse($character->canClaimStreak($inside));
+        $this->assertTrue($character->hasClaimedStreakToday());
     }
 }

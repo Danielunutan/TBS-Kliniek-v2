@@ -12,10 +12,10 @@
                 </div>
                 <div>
                     <div class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-amber-200 mb-1">
-                        Dagelijkse Beloningen & Streaks
+                        Dagelijkse Beloningen & 22:00 Inlog Bonus
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                        Rad van Fortuin & Login Kalender
+                        Rad van Fortuin & Inlog Bonus Kalender
                     </h1>
                     <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                         Draai elke dag gratis aan het rad voor kluiscodes, maskers, koffers en contanten!
@@ -142,7 +142,47 @@
         </div>
 
         <!-- Right: 7-Day Login Streak Calendar (5 cols) -->
-        <div class="lg:col-span-5 space-y-4">
+        <div class="lg:col-span-5 space-y-4"
+             x-data="{
+                 active: {{ $isLoginBonusActive ? 'true' : 'false' }},
+                 claimed: {{ $hasClaimedStreakToday ? 'true' : 'false' }},
+                 canClaim: {{ $canClaimStreak ? 'true' : 'false' }},
+                 secUntilStart: {{ $secondsUntilLoginBonus }},
+                 secRemaining: {{ $secondsRemainingInLoginBonus }},
+                 formatTimer(s) {
+                     if (s <= 0) return '00:00';
+                     const h = Math.floor(s / 3600);
+                     const m = Math.floor((s % 3600) / 60);
+                     const sec = s % 60;
+                     if (h > 0) {
+                         return `${h}u ${m < 10 ? '0' : ''}${m}m`;
+                     }
+                     return `${m < 10 ? '0' : ''}${m}:${sec < 10 ? '0' : ''}${sec}`;
+                 },
+                 init() {
+                     setInterval(() => {
+                         if (this.active) {
+                             if (this.secRemaining > 0) {
+                                 this.secRemaining--;
+                             } else {
+                                 this.active = false;
+                                 this.canClaim = false;
+                                 this.secUntilStart = 86400 - 1800;
+                             }
+                         } else {
+                             if (this.secUntilStart > 0) {
+                                 this.secUntilStart--;
+                             } else {
+                                 this.active = true;
+                                 this.secRemaining = 1800;
+                                 if (!this.claimed) {
+                                     this.canClaim = true;
+                                 }
+                             }
+                         }
+                     }, 1000);
+                 }
+             }">
             <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
@@ -150,9 +190,14 @@
                             <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs font-bold border border-amber-200">
                                 <i class="fa-solid fa-calendar-days"></i>
                             </span>
-                            <h2 class="text-sm sm:text-base font-black text-slate-900">
-                                7-Dagen Login Kalender
-                            </h2>
+                            <div>
+                                <h2 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                                    7-Dagen Login Kalender & Inlog Bonus
+                                </h2>
+                                <span class="text-[10px] font-bold text-amber-600">
+                                    Elke avond 22:00 - 22:30
+                                </span>
+                            </div>
                         </div>
                         <span class="text-xs font-bold text-slate-400">
                             Dag {{ $nextStreakDay }} van 7
@@ -198,7 +243,7 @@
                                                 </span>
                                             @elseif($isCurrent)
                                                 <span class="text-[9px] font-black uppercase text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded border border-purple-200 animate-pulse">
-                                                    Klaar!
+                                                    Nu Claimbaar!
                                                 </span>
                                             @endif
                                         </div>
@@ -218,21 +263,44 @@
                     </div>
                 </div>
 
-                <!-- Claim Button (Solid color, NO gradient) -->
-                <div class="mt-6 pt-4 border-t border-slate-100">
+                <!-- Claim Button & Window Status -->
+                <div class="mt-6 pt-4 border-t border-slate-100 space-y-3">
                     @if($canClaimStreak)
                     <form action="{{ route('daily.claim-streak') }}" method="POST">
                         @csrf
                         <button type="submit" 
                                 class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-gift"></i> Claim Dag {{ $nextStreakDay }} Beloning!
+                            <i class="fa-solid fa-gift"></i> Claim Dag {{ $nextStreakDay }} Inlog Bonus!
                         </button>
                     </form>
-                    @else
-                    <div class="w-full py-3 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 text-xs font-bold text-center flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                        Vandaag al geclaimd! Kom morgen terug voor Dag {{ $nextStreakDay === 7 ? 1 : $nextStreakDay + 1 }}.
+                    <div class="text-center text-[11px] font-bold text-amber-600 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-fire text-amber-500 animate-pulse"></i>
+                        <span>Inlog bonus is geopend tot 22:30! (Nog <strong x-text="formatTimer(secRemaining)"></strong>)</span>
                     </div>
+                    @elseif($hasClaimedStreakToday)
+                    <div class="w-full py-3 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                        <span>Vandaag al geclaimd! Kom morgen tussen 22:00 en 22:30 terug voor Dag {{ $nextStreakDay === 7 ? 1 : $nextStreakDay + 1 }}.</span>
+                    </div>
+                    @else
+                    <div class="w-full p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-center space-y-2">
+                        <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-amber-900">
+                            <i class="fa-regular fa-clock text-amber-600"></i>
+                            <span>Inlog Bonus Venster: Elke avond van 22:00 tot 22:30</span>
+                        </div>
+                        <p class="text-[11px] text-amber-800">
+                            De inlog bonus kan alleen worden geclaimd tijdens het avondvenster tussen 22:00 en 22:30.
+                        </p>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-amber-300 text-xs font-black text-slate-900 shadow-xs">
+                            <span class="text-amber-600">Opent over:</span>
+                            <span x-text="formatTimer(secUntilStart)"></span>
+                        </div>
+                    </div>
+                    <button type="button" disabled
+                            class="w-full py-3 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-lock text-slate-400"></i>
+                        <span>Beschikbaar tussen 22:00 en 22:30</span>
+                    </button>
                     @endif
                 </div>
             </div>

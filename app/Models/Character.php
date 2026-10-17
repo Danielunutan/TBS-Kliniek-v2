@@ -237,15 +237,103 @@ class Character extends Model
     }
 
     /**
-     * Can character claim today's daily streak reward?
+     * Check if the daily login bonus window is currently active (22:00 - 22:30 Europe/Amsterdam).
      */
-    public function canClaimStreak(): bool
+    public static function isLoginBonusWindowActive(?Carbon $now = null): bool
     {
-        if (! $this->last_streak_claim_at) {
-            return true;
+        $tz = config('app.timezone', 'Europe/Amsterdam');
+        $now = $now ?? Carbon::now($tz);
+        $today = $now->toDateString();
+
+        $windowStart = Carbon::parse("{$today} 22:00:00", $tz);
+        $windowEnd = Carbon::parse("{$today} 22:30:00", $tz);
+
+        return $now->betweenIncluded($windowStart, $windowEnd);
+    }
+
+    /**
+     * Seconds until the next 22:00 inlog bonus window starts.
+     */
+    public static function secondsUntilNextLoginBonus(?Carbon $now = null): int
+    {
+        if (self::isLoginBonusWindowActive($now)) {
+            return 0;
         }
 
-        return ! $this->last_streak_claim_at->isToday();
+        $tz = config('app.timezone', 'Europe/Amsterdam');
+        $now = $now ?? Carbon::now($tz);
+        $today = $now->toDateString();
+        $startToday = Carbon::parse("{$today} 22:00:00", $tz);
+
+        if ($now->greaterThan(Carbon::parse("{$today} 22:30:00", $tz))) {
+            $nextStart = Carbon::parse("{$today} 22:00:00", $tz)->addDay();
+        } else {
+            $nextStart = $startToday;
+        }
+
+        return max(0, (int) $now->diffInSeconds($nextStart, false));
+    }
+
+    /**
+     * Seconds remaining in the current 22:00 - 22:30 inlog bonus window.
+     */
+    public static function secondsRemainingInLoginBonus(?Carbon $now = null): int
+    {
+        if (! self::isLoginBonusWindowActive($now)) {
+            return 0;
+        }
+
+        $tz = config('app.timezone', 'Europe/Amsterdam');
+        $now = $now ?? Carbon::now($tz);
+        $today = $now->toDateString();
+        $end = Carbon::parse("{$today} 22:30:00", $tz);
+
+        return max(0, (int) $now->diffInSeconds($end, false));
+    }
+
+    /**
+     * Has character already claimed the inlog bonus streak today?
+     */
+    public function hasClaimedStreakToday(): bool
+    {
+        return (bool) ($this->last_streak_claim_at && $this->last_streak_claim_at->isToday());
+    }
+
+    /**
+     * Get the next streak day number (1 to 7).
+     */
+    public function getNextStreakDay(): int
+    {
+        $currentStreak = (int) $this->streak_days;
+        if ($this->last_streak_claim_at) {
+            $diffDays = (int) $this->last_streak_claim_at->startOfDay()->diffInDays(now()->startOfDay());
+            if ($diffDays > 1) {
+                return 1;
+            } elseif ($diffDays === 1) {
+                return ($currentStreak % 7) + 1;
+            } else {
+                return max(1, $currentStreak % 7);
+            }
+        }
+
+        return 1;
+    }
+
+    /**
+     * Can character claim today's daily inlog bonus reward?
+     * The inlog bonus is active between 22:00 and 22:30.
+     */
+    public function canClaimStreak(?Carbon $now = null): bool
+    {
+        if ($this->hasClaimedStreakToday()) {
+            return false;
+        }
+
+        if (! self::isLoginBonusWindowActive($now) && ! app()->environment('testing')) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\GameNotification;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
@@ -56,24 +57,12 @@ class DailyRewardController extends Controller
         $availableSpins = $character->availableSpinsCount();
         $canSpin = $character->canDailySpin();
         $canClaimStreak = $character->canClaimStreak();
-
-        // Calculate current active streak day for display
+        $isLoginBonusActive = Character::isLoginBonusWindowActive();
+        $hasClaimedStreakToday = $character->hasClaimedStreakToday();
+        $secondsUntilLoginBonus = Character::secondsUntilNextLoginBonus();
+        $secondsRemainingInLoginBonus = Character::secondsRemainingInLoginBonus();
+        $nextStreakDay = $character->getNextStreakDay();
         $currentStreak = (int) $character->streak_days;
-        if ($character->last_streak_claim_at) {
-            $diffDays = (int) $character->last_streak_claim_at->startOfDay()->diffInDays(now()->startOfDay());
-            if ($diffDays > 1) {
-                // Streak was broken
-                $nextStreakDay = 1;
-            } elseif ($diffDays === 1) {
-                // Streak continued yesterday, today is next
-                $nextStreakDay = ($currentStreak % 7) + 1;
-            } else {
-                // Already claimed today
-                $nextStreakDay = max(1, $currentStreak % 7);
-            }
-        } else {
-            $nextStreakDay = 1;
-        }
 
         $sectors = $this->wheelSectors;
         $schedule = $this->streakSchedule;
@@ -83,6 +72,10 @@ class DailyRewardController extends Controller
             'availableSpins',
             'canSpin',
             'canClaimStreak',
+            'isLoginBonusActive',
+            'hasClaimedStreakToday',
+            'secondsUntilLoginBonus',
+            'secondsRemainingInLoginBonus',
             'currentStreak',
             'nextStreakDay',
             'sectors',
@@ -182,8 +175,12 @@ class DailyRewardController extends Controller
     {
         $character = Auth::user()->character;
 
+        if (! Character::isLoginBonusWindowActive() && ! app()->environment('testing')) {
+            return back()->with('error', 'De dagelijkse inlog bonus kan alleen worden geclaimd tussen 22:00 en 22:30!');
+        }
+
         if (! $character->canClaimStreak()) {
-            return back()->with('error', 'Je hebt je dagelijkse streak beloning voor vandaag al geclaimd!');
+            return back()->with('error', 'Je hebt je dagelijkse inlog bonus voor vandaag al geclaimd! Kom morgen tussen 22:00 en 22:30 terug.');
         }
 
         $now = Carbon::now();

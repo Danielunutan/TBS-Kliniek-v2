@@ -15,14 +15,7 @@ class EveningVaultDropService
      */
     public function isDropWindowActive(?Carbon $now = null): bool
     {
-        $tz = config('app.timezone', 'Europe/Amsterdam');
-        $now = $now ?? Carbon::now($tz);
-        $today = $now->toDateString();
-
-        $windowStart = Carbon::parse("{$today} 22:00:00", $tz);
-        $windowEnd = Carbon::parse("{$today} 22:30:00", $tz);
-
-        return $now->betweenIncluded($windowStart, $windowEnd);
+        return Character::isLoginBonusWindowActive($now);
     }
 
     /**
@@ -74,8 +67,8 @@ class EveningVaultDropService
         GameMessage::create([
             'recipient_id' => $character->id,
             'sender_name' => 'Directie TBS Kluisbeheer',
-            'subject' => '🎁 22:00 Avondronde: 3 Gratis Kluiscodes Ontvangen!',
-            'content' => "Patiënt {$character->name},\n\nOmdat je vanavond tussen 22:00 en 22:30 aanwezig bent in de TBS Kliniek, heeft de directie 3 gratis geheime MedicijnKluis vouchers toegekend!\n\nJouw 3 persoonlijke kluiscodes:\n• 🔑 **{$codes[0]->code}**\n• 🔑 **{$codes[1]->code}**\n• 🔑 **{$codes[2]->code}**\n\nDeze codes staan direct in jouw dossier. Wissel ze in bij de MedicijnKluis voor contant geld, sterren en kluismunten, of verkoop ze voor winst op de Marktplaats!\n\nVeel succes vanavond in de kliniek!",
+            'subject' => '🎁 22:00 Avondronde Inlog Bonus: 3 Gratis Kluiscodes Ontvangen!',
+            'content' => "Patiënt {$character->name},\n\nOmdat je vanavond tijdens de inlog bonus ronde tussen 22:00 en 22:30 aanwezig en ingelogd bent in de TBS Kliniek, heeft de directie 3 gratis geheime MedicijnKluis vouchers toegekend!\n\nJouw 3 persoonlijke kluiscodes:\n• 🔑 **{$codes[0]->code}**\n• 🔑 **{$codes[1]->code}**\n• 🔑 **{$codes[2]->code}**\n\nDeze codes staan direct in jouw dossier. Wissel ze in bij de MedicijnKluis voor contant geld, sterren en kluismunten, of verkoop ze voor winst op de Marktplaats!\n\nVeel succes vanavond in de kliniek!",
             'type' => 'reward',
         ]);
 

@@ -177,6 +177,12 @@ class DashboardController extends Controller
         $referralStats = $this->referralService->getStats($character);
         $lotteryRound = LotteryRound::current();
 
+        $isLoginBonusActive = Character::isLoginBonusWindowActive();
+        $hasClaimedStreakToday = $character->hasClaimedStreakToday();
+        $secondsUntilLoginBonus = Character::secondsUntilNextLoginBonus();
+        $secondsRemainingInLoginBonus = Character::secondsRemainingInLoginBonus();
+        $nextStreakDay = $character->getNextStreakDay();
+
         return view('game.dashboard', compact(
             'character',
             'nextLevelXp',
@@ -189,7 +195,12 @@ class DashboardController extends Controller
             'latestNews',
             'recentActivities',
             'referralStats',
-            'lotteryRound'
+            'lotteryRound',
+            'isLoginBonusActive',
+            'hasClaimedStreakToday',
+            'secondsUntilLoginBonus',
+            'secondsRemainingInLoginBonus',
+            'nextStreakDay'
         ));
     }
 

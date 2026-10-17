@@ -150,8 +150,8 @@ class FaqController extends Controller
                 'icon' => 'fa-vault',
                 'questions' => [
                     [
-                        'q' => 'Hoe werkt het Rad van Fortuin en wat zijn Inlogstreaks?',
-                        'a' => 'Elke 24 uur mag je gratis draaien aan het Rad van Fortuin voor contant geld, gratis sterren, energie of koffers. Door elke dag achter elkaar in te loggen bouw je een dagelijkse streak op: hoe langer je streak, hoe gigantischer de bonusuitkeringen worden!',
+                        'q' => 'Wat is de Dagelijkse Inlog Bonus (22:00 - 22:30) en hoe werken Streaks?',
+                        'a' => 'Elke avond tussen 22:00 en 22:30 is het Inlog Bonus venster geopend! Log je in tijdens dit halfuur, dan ontvang je automatisch 3 gratis kluiscodes én kun je jouw 7-daagse login streak beloning claimen voor contant geld, koffers, maskers en kluismunten. Daarnaast mag je elke 24 uur gratis draaien aan het Rad van Fortuin!',
                     ],
                     [
                         'q' => 'Hoe kraak ik de Centrale Medicijnkluis?',

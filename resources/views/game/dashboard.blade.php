@@ -347,6 +347,124 @@
             </div>
         </div>
 
+        <!-- Dagelijkse Inlog Bonus (22:00 - 22:30) Banner -->
+        <div class="rounded-xl p-4 shadow-xs text-slate-900 dark:text-white border-2 transition
+            @if($isLoginBonusActive && !$hasClaimedStreakToday)
+                bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-emerald-500/10 dark:bg-slate-900 border-amber-400 dark:border-amber-500/60
+            @elseif($isLoginBonusActive && $hasClaimedStreakToday)
+                bg-white dark:bg-slate-900 border-emerald-300 dark:border-emerald-700/60
+            @else
+                bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800
+            @endif"
+            x-data="{
+                active: {{ $isLoginBonusActive ? 'true' : 'false' }},
+                claimed: {{ $hasClaimedStreakToday ? 'true' : 'false' }},
+                secUntilStart: {{ $secondsUntilLoginBonus }},
+                secRemaining: {{ $secondsRemainingInLoginBonus }},
+                formatTimer(s) {
+                    if (s <= 0) return '00:00';
+                    const h = Math.floor(s / 3600);
+                    const m = Math.floor((s % 3600) / 60);
+                    const sec = s % 60;
+                    if (h > 0) {
+                        return `${h}u ${m < 10 ? '0' : ''}${m}m`;
+                    }
+                    return `${m < 10 ? '0' : ''}${m}:${sec < 10 ? '0' : ''}${sec}`;
+                },
+                init() {
+                    setInterval(() => {
+                        if (this.active) {
+                            if (this.secRemaining > 0) {
+                                this.secRemaining--;
+                            } else {
+                                this.active = false;
+                                this.secUntilStart = 86400 - 1800;
+                            }
+                        } else {
+                            if (this.secUntilStart > 0) {
+                                this.secUntilStart--;
+                            } else {
+                                this.active = true;
+                                this.secRemaining = 1800;
+                            }
+                        }
+                    }, 1000);
+                }
+            }">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-xl shadow-xs
+                        @if($isLoginBonusActive && !$hasClaimedStreakToday)
+                            bg-amber-400 text-slate-950 animate-bounce
+                        @elseif($isLoginBonusActive && $hasClaimedStreakToday)
+                            bg-emerald-600 text-white
+                        @else
+                            bg-slate-800 dark:bg-slate-700 text-amber-400
+                        @endif">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h3 class="text-sm font-black text-slate-900 dark:text-white">
+                                Dagelijkse Inlog Bonus (22:00 - 22:30)
+                            </h3>
+                            <template x-if="active && !claimed">
+                                <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-400 text-slate-950 animate-pulse">
+                                    🔥 Nu Actief (tot 22:30)
+                                </span>
+                            </template>
+                            <template x-if="active && claimed">
+                                <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300">
+                                    Vandaag Geclaimd
+                                </span>
+                            </template>
+                            <template x-if="!active">
+                                <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    Elke avond 22:00 - 22:30
+                                </span>
+                            </template>
+                        </div>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                            <template x-if="active && !claimed">
+                                <span>Grijp nu jouw Dag {{ $nextStreakDay }} streak beloning + 3 gratis kluiscodes! Nog <strong class="text-amber-600 dark:text-amber-400 font-extrabold" x-text="formatTimer(secRemaining)"></strong> resterend.</span>
+                            </template>
+                            <template x-if="active && claimed">
+                                <span>Je hebt jouw inlogbonus voor vanavond al succesvol binnengehaald. Kom morgen om 22:00 terug voor Dag {{ $nextStreakDay === 7 ? 1 : $nextStreakDay + 1 }}!</span>
+                            </template>
+                            <template x-if="!active">
+                                <span>Log elke avond tussen 22:00 en 22:30 in voor 3 gratis kluiscodes én jouw dagelijkse login streak beloning.</span>
+                            </template>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="shrink-0 flex items-center gap-2 self-end sm:self-center">
+                    <template x-if="active && !claimed">
+                        <form action="{{ route('daily.claim-streak') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-xs transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-gift"></i>
+                                <span>Nu Claimen (Dag {{ $nextStreakDay }})</span>
+                            </button>
+                        </form>
+                    </template>
+                    <template x-if="!active || claimed">
+                        <div class="flex items-center gap-2">
+                            <template x-if="!active">
+                                <div class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                                    <i class="fa-regular fa-clock text-amber-500"></i>
+                                    <span>Nog <strong class="text-slate-900 dark:text-white" x-text="formatTimer(secUntilStart)"></strong></span>
+                                </div>
+                            </template>
+                            <a href="{{ route('daily.index') }}" class="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-black text-xs uppercase tracking-wider shadow-xs transition">
+                                Kalender
+                            </a>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
         <!-- Rad van Fortuin Daily Notification Banner -->
         @if($character->canDailySpin())
             <div class="bg-white border-2 border-purple-200 rounded-xl p-4 shadow-xs text-slate-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
