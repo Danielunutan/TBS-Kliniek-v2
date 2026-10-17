@@ -1760,125 +1760,148 @@
         </main>
 
         <!-- SITE-WIDE JURIDISCHE & COMPLIANCE FOOTER (Nederland & Europa AVG/GDPR) -->
-        <footer class="mt-auto border-t border-slate-200 bg-white pt-10 pb-20 lg:pb-10 text-xs text-slate-500">
+        <footer class="mt-auto border-t border-slate-200 dark:border-purple-900/40 bg-white dark:bg-[#0c061a] pt-10 pb-20 lg:pb-10 text-xs text-slate-500 dark:text-slate-400">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
                 
-                <!-- Main Footer Grid (5 Balanced Columns) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
+                <!-- Main Footer Grid (4 Perfectly Balanced Columns) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     
-                    <!-- Col 1: Branding & Intro -->
-                    <div class="space-y-3 sm:col-span-2 lg:col-span-1">
+                    <!-- Col 1: Branding, Intro & Social Icons -->
+                    <div class="space-y-3.5">
                         <div class="flex items-center gap-2.5">
                             <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek" class="w-8 h-8 object-contain drop-shadow-xs">
-                            <span class="font-black text-slate-900 text-base">TBS <span class="text-purple-600">Kliniek</span></span>
+                            <span class="font-black text-slate-900 dark:text-white text-base">TBS <span class="text-purple-600 dark:text-purple-400">Kliniek</span></span>
                         </div>
-                        <p class="text-xs text-slate-500 leading-relaxed">
-                            Het #1 Nederlandse misdaad- & gevangenis browsergame. Overleef de afdeling, leid je bende en heers over de kliniek.
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Het #1 Nederlandse misdaad- &amp; gevangenis browsergame. Overleef de afdeling, leid je bende en heers over de kliniek.
                         </p>
-                        <div class="flex items-center gap-2 pt-1">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-                                <i class="fa-solid fa-lock text-[9px]"></i> SSL Beveiligd
+
+                        <!-- Sleek Social Media Icon Buttons -->
+                        <div class="space-y-1.5 pt-1">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-purple-300/70 block">
+                                Volg Onze Socials
                             </span>
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 text-[10px] font-bold border border-purple-200">
-                                <i class="fa-solid fa-shield-halved text-[9px]"></i> AVG Compliant
-                            </span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <!-- Discord -->
+                                <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-[#5865F2] hover:text-white text-[#5865F2] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   title="Officiële Discord">
+                                    <i class="fa-brands fa-discord group-hover:scale-110 transition-transform"></i>
+                                </a>
+
+                                <!-- YouTube -->
+                                <a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-[#FF0000] hover:text-white text-[#FF0000] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   title="YouTube @tbsklinieknl">
+                                    <i class="fa-brands fa-youtube group-hover:scale-110 transition-transform"></i>
+                                </a>
+
+                                <!-- TikTok -->
+                                <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-slate-900 hover:text-white text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   title="TikTok @tbsklinieknl">
+                                    <i class="fa-brands fa-tiktok group-hover:scale-110 transition-transform"></i>
+                                </a>
+
+                                <!-- Instagram -->
+                                <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener noreferrer" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-gradient-to-tr hover:from-[#fd1d1d] hover:to-[#833ab4] hover:text-white text-[#e1306c] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-sm transition shadow-2xs group" 
+                                   title="Instagram @tbsklinieknl">
+                                    <i class="fa-brands fa-instagram group-hover:scale-110 transition-transform"></i>
+                                </a>
+
+                                <!-- Twitter / X -->
+                                <a href="https://x.com/tbskliniek" target="_blank" rel="noopener noreferrer" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-black hover:text-white text-slate-900 dark:text-white border border-slate-200 dark:border-purple-900/40 flex items-center justify-center text-xs transition shadow-2xs group" 
+                                   title="Twitter / X @tbskliniek">
+                                    <i class="fa-brands fa-x-twitter group-hover:scale-110 transition-transform"></i>
+                                </a>
+
+                                <!-- Hyves -->
+                                <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener noreferrer" 
+                                   class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-purple-950/60 hover:bg-[#f36f21] hover:text-white text-[#f36f21] border border-slate-200 dark:border-purple-900/40 flex items-center justify-center transition shadow-2xs group" 
+                                   title="Hyves (TBS Kliniek)">
+                                    <span class="w-4 h-4 rounded bg-[#f36f21] group-hover:bg-white text-white group-hover:text-[#f36f21] flex items-center justify-center font-black text-[10px] leading-none shrink-0 shadow-2xs transition-colors">H</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Col 2: Spel & Actie -->
                     <div class="space-y-2.5">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900">Spel & Features</h4>
-                        <ul class="space-y-1.5 text-xs text-slate-600">
-                            <li><a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">Dashboard & Profiel</a></li>
-                            <li><a href="{{ route('fight.index') }}" class="hover:text-purple-600 transition">De Luchtplaats (Vechten)</a></li>
-                            <li><a href="{{ route('vault.index') }}" class="hover:text-purple-600 transition">MedicijnKluis & Codes</a></li>
-                            <li><a href="{{ route('sponsor.index') }}" class="hover:text-purple-600 transition font-bold text-purple-700 flex items-center gap-1.5">
-                                <i class="fa-solid fa-tv text-purple-600 text-[10px]"></i> Sponsorkamer (Gratis VIP)
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Spel & Features</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <li><a href="{{ route('dashboard') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Dashboard & Profiel</a></li>
+                            <li><a href="{{ route('fight.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">De Luchtplaats (Vechten)</a></li>
+                            <li><a href="{{ route('vault.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">MedicijnKluis & Codes</a></li>
+                            <li><a href="{{ route('sponsor.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-tv text-purple-600 dark:text-purple-400 text-[10px]"></i> Sponsorkamer (Gratis VIP)
                             </a></li>
-                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 transition">VIP Lidmaatschap (Binnenkort Gratis via Ads)</a></li>
-                            <li><a href="{{ route('roadmap.index') }}" class="hover:text-purple-600 transition">Roadmap & Updates</a></li>
+                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">VIP Lidmaatschap (Gratis via Ads)</a></li>
+                            <li><a href="{{ route('roadmap.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Roadmap & Updates</a></li>
                         </ul>
                     </div>
 
                     <!-- Col 3: Hulp & Ondersteuning -->
                     <div class="space-y-2.5">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900">Ondersteuning</h4>
-                        <ul class="space-y-1.5 text-xs text-slate-600">
-                            <li><a href="{{ route('faq.index') }}" class="hover:text-purple-600 transition">Kennisbank & FAQ</a></li>
-                            <li><a href="{{ route('help.tickets.index') }}" class="hover:text-purple-600 transition">Support Ticketsysteem</a></li>
-                            <li><a href="{{ route('help.tickets.create') }}" class="hover:text-purple-600 transition">Nieuw Ticket Openen</a></li>
-                            <li><a href="{{ route('settings.account') }}" class="hover:text-purple-600 transition">Account & Beveiliging</a></li>
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Ondersteuning</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <li><a href="{{ route('faq.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Kennisbank & FAQ</a></li>
+                            <li><a href="{{ route('help.tickets.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Support Ticketsysteem</a></li>
+                            <li><a href="{{ route('help.tickets.create') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Nieuw Ticket Openen</a></li>
+                            <li><a href="{{ route('settings.account') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Account & Beveiliging</a></li>
                         </ul>
                     </div>
 
-                    <!-- Col 4: Socials & Community (Apart Kopje) -->
+                    <!-- Col 4: Juridisch & Privacy (NL / EU) -->
                     <div class="space-y-2.5">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                            <i class="fa-solid fa-users text-purple-600 text-[11px]"></i> Socials & Community
-                        </h4>
-                        <ul class="space-y-1.5 text-xs text-slate-600">
-                            <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-indigo-600 dark:text-indigo-400">
-                                <i class="fa-brands fa-discord text-indigo-500 text-xs"></i> Officiële Discord
-                            </a></li>
-                            <li><a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-red-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                                <i class="fa-brands fa-youtube text-red-600 text-xs"></i> YouTube @tbsklinieknl
-                            </a></li>
-                            <li><a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                                <i class="fa-brands fa-tiktok text-slate-900 dark:text-white text-xs"></i> TikTok @tbsklinieknl
-                            </a></li>
-                            <li><a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="hover:text-pink-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                                <i class="fa-brands fa-instagram text-pink-600 text-xs"></i> Instagram @tbsklinieknl
-                            </a></li>
-                            <li><a href="https://x.com/tbskliniek" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                                <i class="fa-brands fa-x-twitter text-slate-900 dark:text-white text-xs"></i> Twitter / X @tbskliniek
-                            </a></li>
-                            <li><a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener" class="hover:text-orange-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
-                                <span class="w-3.5 h-3.5 rounded bg-[#f36f21] text-white flex items-center justify-center font-black text-[9px] leading-none shrink-0 shadow-2xs">H</span>
-                                <span>Hyves (TBS Kliniek)</span>
-                            </a></li>
-                        </ul>
-                    </div>
-
-                    <!-- Col 5: Juridisch & Privacy (NL / EU) -->
-                    <div class="space-y-2.5">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900">Juridisch & Privacy</h4>
-                        <ul class="space-y-1.5 text-xs text-slate-600">
-                            <li><a href="{{ route('legal.terms') }}" class="hover:text-purple-600 transition">Algemene Voorwaarden</a></li>
-                            <li><a href="{{ route('legal.privacy') }}" class="hover:text-purple-600 transition">Privacybeleid (AVG / GDPR)</a></li>
-                            <li><a href="{{ route('legal.cookies') }}" class="hover:text-purple-600 transition">Cookiebeleid</a></li>
-                            <li><a href="{{ route('legal.disclaimer') }}" class="hover:text-purple-600 transition">Disclaimer & Colofon</a></li>
+                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Juridisch & Privacy</h4>
+                        <ul class="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <li><a href="{{ route('legal.terms') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Algemene Voorwaarden</a></li>
+                            <li><a href="{{ route('legal.privacy') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Privacybeleid (AVG / GDPR)</a></li>
+                            <li><a href="{{ route('legal.cookies') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Cookiebeleid</a></li>
+                            <li><a href="{{ route('legal.disclaimer') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Disclaimer & Colofon</a></li>
                             <li>
-                                <button type="button" onclick="window.tbsOpenCookieSettings()" class="hover:text-purple-600 transition text-left cursor-pointer flex items-center gap-1.5 text-purple-700 font-bold">
+                                <button type="button" onclick="window.tbsOpenCookieSettings()" class="hover:text-purple-600 dark:hover:text-purple-400 transition text-left cursor-pointer flex items-center gap-1.5 text-purple-700 dark:text-purple-400 font-bold">
                                     <i class="fa-solid fa-cookie-bite text-amber-600 text-[10px]"></i> Cookie-instellingen Beheren
                                 </button>
                             </li>
                         </ul>
+
+                        <!-- Subtle Compliance Badges -->
+                        <div class="pt-2 flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                                <i class="fa-solid fa-lock text-[9px]"></i> SSL 256-bit
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[10px] font-bold border border-purple-200 dark:border-purple-800/60 shadow-2xs">
+                                <i class="fa-solid fa-shield-halved text-[9px]"></i> AVG / GDPR
+                            </span>
+                        </div>
                     </div>
 
                 </div>
 
                 <!-- Satire / Fictief Verklaring Bar -->
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-relaxed flex items-start gap-3">
-                    <i class="fa-solid fa-circle-info text-purple-600 text-sm mt-0.5 shrink-0"></i>
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-900/40 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed flex items-start gap-3">
+                    <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400 text-sm mt-0.5 shrink-0"></i>
                     <div>
-                        <strong class="text-slate-800 font-bold">Fictief Rollenspel Verklaring:</strong> TBS Kliniek is een 100% fictief online browsergame (RPG / satire) ter recreatief vermaak. Deze website is op geen enkele wijze gelieerd aan het Ministerie van Justitie en Veiligheid, de Dienst Justitiële Inrichtingen (DJI) of bestaande forensische psychiatrische centra. In-game valuta en items hebben geen reële economische waarde.
+                        <strong class="text-slate-800 dark:text-slate-200 font-bold">Fictief Rollenspel Verklaring:</strong> TBS Kliniek is een 100% fictief online browsergame (RPG / satire) ter recreatief vermaak. Deze website is op geen enkele wijze gelieerd aan het Ministerie van Justitie en Veiligheid, de Dienst Justitiële Inrichtingen (DJI) of bestaande forensische psychiatrische centra. In-game valuta en items hebben geen reële economische waarde.
                     </div>
                 </div>
 
-
                 <!-- Copyright Bar -->
-                <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+                <div class="pt-4 border-t border-slate-100 dark:border-purple-900/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400 dark:text-slate-500">
                     <div>
                         &copy; {{ date('Y') }} TBS Kliniek (tbs-kliniek.nl). Alle rechten voorbehouden.
                     </div>
                     <div class="flex items-center gap-4">
-                        <a href="{{ route('legal.terms') }}" class="hover:underline">Voorwaarden</a>
+                        <a href="{{ route('legal.terms') }}" class="hover:underline hover:text-purple-600 dark:hover:text-purple-400">Voorwaarden</a>
                         <span>•</span>
-                        <a href="{{ route('legal.privacy') }}" class="hover:underline">Privacy</a>
+                        <a href="{{ route('legal.privacy') }}" class="hover:underline hover:text-purple-600 dark:hover:text-purple-400">Privacy</a>
                         <span>•</span>
-                        <a href="{{ route('legal.cookies') }}" class="hover:underline">Cookies</a>
+                        <a href="{{ route('legal.cookies') }}" class="hover:underline hover:text-purple-600 dark:hover:text-purple-400">Cookies</a>
                         <span>•</span>
-                        <a href="{{ route('legal.disclaimer') }}" class="hover:underline">Colofon</a>
+                        <a href="{{ route('legal.disclaimer') }}" class="hover:underline hover:text-purple-600 dark:hover:text-purple-400">Colofon</a>
                     </div>
                 </div>
 
