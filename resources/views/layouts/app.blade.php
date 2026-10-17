@@ -2091,20 +2091,33 @@
             }
         })();
     </script>
-    <div x-data="tbsHelpbot" class="hidden md:block fixed bottom-20 right-4 lg:bottom-5 lg:right-5 z-40">
+    <style>
+        /* Mobile Helpbot Disable: Strictly desktop only */
+        @media (max-width: 1023px) {
+            #tbs-desktop-helpbot {
+                display: none !important;
+            }
+        }
+        @media (min-width: 1024px) {
+            #tbs-desktop-helpbot {
+                display: block !important;
+            }
+        }
+    </style>
+    <div id="tbs-desktop-helpbot" x-data="tbsHelpbot" class="hidden lg:block">
 
-        <!-- CHAT WINDOW POPUP (Website Style: Clean Light Card with Royal Purple Accents) -->
-        <div x-show="isOpen" x-cloak style="display: none;"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+        <!-- CHAT WINDOW POPUP (Desktop Only, Positioned Firmly Above Launcher Button) -->
+        <div x-show="isOpen" x-cloak style="display: none; position: fixed; bottom: 74px; right: 20px; width: 384px; max-width: calc(100vw - 40px); height: 520px; max-height: calc(100vh - 94px); z-index: 9999;"
+             x-transition:enter="transition ease-out duration-250"
+             x-transition:enter-start="opacity-0 translate-y-3 scale-98"
              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-             x-transition:leave-end="opacity-0 translate-y-6 scale-95"
-             class="fixed bottom-36 right-4 lg:bottom-20 lg:right-5 w-[90vw] sm:w-96 max-h-[520px] bg-white dark:bg-[#110726] border border-slate-200/90 dark:border-purple-900/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 z-50">
+             x-transition:leave-end="opacity-0 translate-y-3 scale-98"
+             class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100">
             
             <!-- Header -->
-            <div class="bg-purple-700 p-3.5 border-b border-purple-800 flex items-center justify-between text-white shadow-xs">
+            <div class="bg-purple-700 p-3.5 border-b border-purple-800 flex items-center justify-between text-white shadow-xs shrink-0">
                 <div class="flex items-center gap-3">
                     <div class="relative">
                         <div class="w-9 h-9 rounded-xl bg-white/20 border border-white/30 backdrop-blur-xs flex items-center justify-center p-1 shadow-xs overflow-hidden">
@@ -2125,25 +2138,25 @@
                     <a href="{{ route('faq') }}" title="Volledige FAQ Pagina" class="text-white/80 hover:text-white text-xs transition p-1">
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </a>
-                    <button @click="isOpen = false" class="text-white/80 hover:text-white text-base transition cursor-pointer p-1">
+                    <button type="button" @click="isOpen = false" class="text-white/80 hover:text-white text-base transition cursor-pointer p-1">
                         &times;
                     </button>
                 </div>
             </div>
 
             <!-- Messages Thread -->
-            <div x-ref="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3 max-h-80 text-xs bg-slate-50/70">
+            <div x-ref="chatBox" class="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
                 <template x-for="(msg, i) in messages" :key="i">
                     <div :class="msg.from === 'bot' ? 'flex flex-col items-start' : 'flex flex-col items-end'">
-                        <div :class="msg.from === 'bot' ? 'bg-white border border-slate-200 text-slate-800' : 'bg-purple-600 text-white font-medium'"
+                        <div :class="msg.from === 'bot' ? 'bg-white dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 text-slate-800 dark:text-purple-100' : 'bg-purple-600 text-white font-medium'"
                              class="rounded-2xl p-3 max-w-[85%] space-y-2 shadow-2xs">
                             <p class="whitespace-pre-line leading-relaxed" x-text="msg.text"></p>
                             
                             <!-- Links if available -->
                             <template x-if="msg.links && msg.links.length > 0">
-                                <div class="pt-1.5 flex flex-wrap gap-1.5 border-t border-slate-100">
+                                <div class="pt-1.5 flex flex-wrap gap-1.5 border-t border-slate-100 dark:border-purple-800/30">
                                     <template x-for="lnk in msg.links">
-                                        <a :href="lnk.url" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 hover:text-purple-800 text-[10px] font-extrabold border border-purple-200 transition">
+                                        <a :href="lnk.url" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-900/50 hover:bg-purple-100 text-purple-700 dark:text-purple-200 text-[10px] font-extrabold border border-purple-200 dark:border-purple-700/50 transition">
                                             <span x-text="lnk.text"></span> &raquo;
                                         </a>
                                     </template>
@@ -2157,55 +2170,56 @@
                 <div class="pt-2">
                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">Snel Onderwerp Kiezen:</span>
                     <div class="flex flex-wrap gap-1.5">
-                        <button type="button" @click="sendQuery('Eerste stappen gids')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-graduation-cap text-purple-600 text-[10px]"></i> Eerste Stappen Gids
+                        <button type="button" @click="sendQuery('Eerste stappen gids')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-graduation-cap text-purple-600 dark:text-purple-300 text-[10px]"></i> Eerste Stappen Gids
                         </button>
-                        <button type="button" @click="sendQuery('Hoe krijg ik energie?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                        <button type="button" @click="sendQuery('Hoe krijg ik energie?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
                             <i class="fa-solid fa-bolt text-emerald-500 text-[10px]"></i> Energie Herstel
                         </button>
-                        <button type="button" @click="sendQuery('Waarom moet ik geld op de bank zetten?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-building-columns text-emerald-600 text-[10px]"></i> Geld op de Bank
+                        <button type="button" @click="sendQuery('Waarom moet ik geld op de bank zetten?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-building-columns text-emerald-600 dark:text-emerald-400 text-[10px]"></i> Geld op de Bank
                         </button>
-                        <button type="button" @click="sendQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                        <button type="button" @click="sendQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
                             <i class="fa-solid fa-dungeon text-rose-500 text-[10px]"></i> Isoleercel Ontsnappen
                         </button>
-                        <button type="button" @click="sendQuery('Hoe werkt de Respectlijst?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-hand-fist text-purple-600 text-[10px]"></i> Respectlijst Vechten
+                        <button type="button" @click="sendQuery('Hoe werkt de Respectlijst?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-hand-fist text-purple-600 dark:text-purple-300 text-[10px]"></i> Respectlijst Vechten
                         </button>
-                        <button type="button" @click="sendQuery('Wat is veilige dagbesteding?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                        <button type="button" @click="sendQuery('Wat is veilige dagbesteding?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
                             <i class="fa-solid fa-person-digging text-amber-500 text-[10px]"></i> Veilige Dagbesteding
                         </button>
-                        <button type="button" @click="sendQuery('Hoe kraak ik de kluis?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                        <button type="button" @click="sendQuery('Hoe kraak ik de kluis?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
                             <i class="fa-solid fa-key text-amber-500 text-[10px]"></i> Medicijnkluis Kraken
                         </button>
-                        <button type="button" @click="sendQuery('Hoe verdien ik gratis VIP?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-tv text-purple-600 text-[10px]"></i> 24u Gratis VIP
+                        <button type="button" @click="sendQuery('Hoe verdien ik gratis VIP?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-tv text-purple-600 dark:text-purple-300 text-[10px]"></i> 24u Gratis VIP
                         </button>
-                        <button type="button" @click="sendQuery('Hoe werkt het Behandelaarsgesprek en verlof?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 text-slate-700 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-user-doctor text-teal-600 text-[10px]"></i> Verlof & Psychiater
+                        <button type="button" @click="sendQuery('Hoe werkt het Behandelaarsgesprek en verlof?')" class="px-2.5 py-1 rounded-full bg-white dark:bg-purple-950/40 hover:bg-purple-600 hover:text-white hover:border-purple-600 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition cursor-pointer shadow-2xs inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-doctor text-teal-600 dark:text-teal-400 text-[10px]"></i> Verlof & Psychiater
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Input Bar -->
-            <form @submit.prevent="sendQuery()" class="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+            <form @submit.prevent="sendQuery()" class="p-3 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-2 shrink-0">
                 <input type="text" x-model="inputQuery" placeholder="Stel een vraag aan de kennisbank..." 
-                       class="flex-1 bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white rounded-xl px-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
-                <button type="submit" class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-sm">
+                       class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900/90 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500 transition">
+                <button type="submit" class="w-9 h-9 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
             </form>
         </div>
 
-        <!-- FLOATING LAUNCHER BUTTON -->
+        <!-- FLOATING LAUNCHER BUTTON (Desktop Only) -->
         <button type="button" @click="isOpen = !isOpen"
-                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/20 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-500">
+                style="position: fixed; bottom: 20px; right: 20px; z-index: 9998;"
+                class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/25 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-400">
             <div class="relative w-5 h-5 shrink-0 flex items-center justify-center">
                 <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Helpbot" class="w-full h-full object-contain">
                 <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-purple-600"></span>
             </div>
-            <span class="tracking-wide">Kliniek Helpbot</span>
+            <span class="tracking-wide" x-text="isOpen ? 'Sluit Helpbot' : 'Kliniek Helpbot'">Kliniek Helpbot</span>
         </button>
     </div>
     @endauth
