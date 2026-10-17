@@ -158,9 +158,9 @@ class PrisonController extends Controller
         }
 
         // Vrijkopen uit de gevangenis kost altijd Sterren ⭐ (geen cash geld)
-        $cost = 5;
+        $cost = 25;
         if (($character->stars ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf direct vrij te kopen (je hebt er momenteel {$character->stars}). Binnenkort kun je ook sponsor-ads bekijken om gratis vrij te komen!");
+            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf direct vrij te kopen (je hebt er momenteel {$character->stars}).");
         }
 
         $character->stars -= $cost;

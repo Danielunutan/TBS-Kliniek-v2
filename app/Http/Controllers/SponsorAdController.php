@@ -383,16 +383,16 @@ class SponsorAdController extends Controller
                 'recipient_id' => $character->id,
                 'sender_name' => 'TBS Sponsor Directie',
                 'subject' => "🎁 Mijlpaal Bonus: {$totalAds} Advertenties Bekeken!",
-                'content' => "Beste {$character->name},\n\nBedankt voor je trouwe support aan de TBS Kliniek! Omdat je zojuist je {$totalAds}e advertentie hebt bekeken, ontvang je een gratis Geheime Kluiscode voucher:\n\n👉 **{$bonusCode}**\n\nWissel hem direct in op de MedicijnKluis voor €5.000 bankgeld, 2 sterren en 2 kluismunten!\n\nBlijf kijken: bij 50 advertenties ontgrendel je 24 UUR GRATIS VIP!",
+                'content' => "Beste {$character->name},\n\nBedankt voor je trouwe support aan de TBS Kliniek! Omdat je zojuist je {$totalAds}e advertentie hebt bekeken, ontvang je een gratis Geheime Kluiscode voucher:\n\n👉 **{$bonusCode}**\n\nWissel hem direct in op de MedicijnKluis voor €5.000 bankgeld, 2 sterren en 2 kluismunten!\n\nBlijf kijken: bij 250 advertenties ontgrendel je 24 UUR GRATIS VIP!",
                 'type' => 'reward',
             ]);
 
             $rewardDetails .= " 🎁 + BONUS: Geheime kluiscode voucher gestuurd naar je inbox ({$bonusCode})!";
         }
 
-        // Check 50-ad VIP milestone
+        // Check 250-ad VIP milestone
         $vipUnlocked = false;
-        if ($totalAds % 50 === 0) {
+        if ($totalAds % 250 === 0) {
             $vipUnlocked = true;
             $character->is_vip = true;
             $character->vip_expires_at = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
@@ -407,7 +407,7 @@ class SponsorAdController extends Controller
                 'type' => 'vip',
             ]);
 
-            $rewardDetails .= ' 👑 BOOM! 50 ADS MIJLPAAL: 24 UUR GRATIS VIP IS GEACTIVEERD!';
+            $rewardDetails .= ' 👑 BOOM! 250 ADS MIJLPAAL: 24 UUR GRATIS VIP IS GEACTIVEERD!';
         }
 
         $character->save();

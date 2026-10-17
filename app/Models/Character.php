@@ -285,23 +285,23 @@ class Character extends Model
     }
 
     /**
-     * Progress percentage toward next 50-ad 24h VIP milestone.
+     * Progress percentage toward next 250-ad 24h VIP milestone.
      */
     public function getVipAdMilestoneProgress(): float
     {
-        $currentInTier = $this->ads_watched_total % 50;
+        $currentInTier = $this->ads_watched_total % 250;
 
-        return min(100.0, round(($currentInTier / 50) * 100, 1));
+        return min(100.0, round(($currentInTier / 250) * 100, 1));
     }
 
     /**
-     * How many ads left until the next 50-ad 24h VIP unlock.
+     * How many ads left until the next 250-ad 24h VIP unlock.
      */
     public function getAdsUntilNextVip(): int
     {
-        $currentInTier = $this->ads_watched_total % 50;
+        $currentInTier = $this->ads_watched_total % 250;
 
-        return 50 - $currentInTier;
+        return 250 - $currentInTier;
     }
 
     /**

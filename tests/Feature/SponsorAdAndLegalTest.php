@@ -279,11 +279,11 @@ class SponsorAdAndLegalTest extends TestCase
         $this->assertGreaterThan(0, $character->cooldownRemaining('produce_telefoon'));
     }
 
-    public function test_watching_50_ads_unlocks_24h_vip(): void
+    public function test_watching_250_ads_unlocks_24h_vip(): void
     {
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
-            'ads_watched_total' => 49,
+            'ads_watched_total' => 249,
             'is_vip' => false,
             'vip_expires_at' => null,
         ]);
@@ -306,7 +306,7 @@ class SponsorAdAndLegalTest extends TestCase
         $response->assertJson(['vip_unlocked' => true]);
 
         $character->refresh();
-        $this->assertEquals(50, $character->ads_watched_total);
+        $this->assertEquals(250, $character->ads_watched_total);
         $this->assertTrue((bool) $character->is_vip);
         $this->assertNotNull($character->vip_expires_at);
         $this->assertTrue($character->vip_expires_at->isFuture());

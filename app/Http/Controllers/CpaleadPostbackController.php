@@ -103,9 +103,9 @@ class CpaleadPostbackController extends Controller
             $character->ads_watched_total = ($character->ads_watched_total ?? 0) + 1;
             $character->last_ad_watched_at = now();
 
-            // Check 50-ad milestone for 24h Free VIP
+            // Check 250-ad milestone for 24h Free VIP
             $vipNotice = '';
-            if ($character->ads_watched_total >= 50 && (! $character->is_vip || ($character->vip_expires_at && $character->vip_expires_at->isPast()))) {
+            if ($character->ads_watched_total >= 250 && (! $character->is_vip || ($character->vip_expires_at && $character->vip_expires_at->isPast()))) {
                 $character->is_vip = true;
                 $character->vip_expires_at = now()->addHours(24);
                 $vipNotice = ' 🌟 24 UUR GRATIS VIP ONTGRENDELD!';

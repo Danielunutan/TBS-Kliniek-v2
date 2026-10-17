@@ -100,9 +100,6 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2509357892188070"
          crossorigin="anonymous"></script>
     --}}
-    <!-- Robins Ads Network (Loaded strictly on-demand for rewarded video ads, automatic banners disabled) -->
-    <script src="https://robinsads.com/ads.js" data-automatic="false" data-popunder="false" data-interstitial="false" async></script>
-
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         [x-cloak] {
@@ -817,7 +814,6 @@
                         <i class="fa-solid fa-crown w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span class="font-extrabold">VIP Shop & Punten</span>
                     </div>
-                    <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-2xs">€7,50</span>
                 </a>
                 <a href="{{ route('sponsor.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
                     <div class="flex items-center gap-3">
@@ -1213,7 +1209,6 @@
                     </a>
                     <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('vip.*') ? 'bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : '' }}">
                         <span class="flex items-center gap-2.5"><i class="fa-solid fa-crown w-4 text-amber-500 dark:text-amber-400"></i> VIP Shop & Punten</span>
-                        <span class="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.5 rounded shadow-2xs">€7,50</span>
                     </a>
                     <a href="{{ route('sponsor.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-purple-700 dark:text-purple-300 {{ request()->routeIs('sponsor.*') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : '' }}">
                         <span class="flex items-center gap-2.5"><i class="fa-solid fa-tv w-4 text-purple-600 dark:text-purple-400"></i> Sponsorkamer</span>
@@ -1540,7 +1535,7 @@
                         <button type="submit" 
                                 class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-star text-white"></i>
-                            <span>Vrijkoop (5 Sterren ⭐)</span>
+                            <span>Vrijkoop (25 Sterren ⭐)</span>
                         </button>
                     </form>
                     <a href="{{ route('prison') }}" class="w-full sm:w-auto px-3.5 py-2.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5">

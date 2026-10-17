@@ -42,7 +42,7 @@ class PrisonService
             'recipient_id' => $character->id,
             'sender_name' => 'Hoofdbeveiliging & Cipiers',
             'subject' => '🚨 Arrestatierapport: Isoleercel Straf',
-            'content' => "Patiënt {$character->name},\n\nJe bent zojuist overmeesterd door het beveiligingsteam en overgebracht naar de gesloten isoleercel voor {$timeLabel}.\n\nOfficiële reden:\n\"{$reason}\"\n\nJe kunt je op elk moment direct vrijkopen met 2 Sterren ⭐ of je straftijd uitzitten.",
+            'content' => "Patiënt {$character->name},\n\nJe bent zojuist overmeesterd door het beveiligingsteam en overgebracht naar de gesloten isoleercel voor {$timeLabel}.\n\nOfficiële reden:\n\"{$reason}\"\n\nJe kunt je op elk moment direct vrijkopen met 25 Sterren ⭐ of je straftijd uitzitten.",
             'type' => 'jail',
         ]);
     }

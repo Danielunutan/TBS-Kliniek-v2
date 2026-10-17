@@ -14,7 +14,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Kijk & Verdien</h1>
                 <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl leading-relaxed">
-                    Help mee de TBS Kliniek gratis online te houden! Bekijk korte sponsor advertenties van 15 seconden en ontvang direct zakgeld, maskers, strafvermindering en ontgrendel bij 50 views <strong>24 uur gratis VIP status</strong>!
+                    Help mee de TBS Kliniek gratis online te houden! Bekijk korte sponsor advertenties van 15 seconden en ontvang direct zakgeld, maskers, strafvermindering en ontgrendel bij 250 views <strong>24 uur gratis VIP status</strong>!
                 </p>
             </div>
 
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <!-- VIP MILESTONE PROGRESS BAR (50 Ads = 24h VIP) -->
+    <!-- VIP MILESTONE PROGRESS BAR (250 Ads = 24h VIP) -->
     <div class="bg-white dark:bg-slate-900 border border-purple-200/90 dark:border-purple-800/60 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
             <div class="flex items-center gap-3">
@@ -43,11 +43,11 @@
                     <h3 class="text-base font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                         <span>24 Uur Gratis VIP Voortgang</span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
-                            {{ $totalAds % 50 }} / 50 Ads
+                            {{ $totalAds % 250 }} / 250 Ads
                         </span>
                     </h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Bekijk in totaal 50 advertenties en ontvang automatisch een <strong>volledige 24-uurs VIP status</strong> (incl. 5 VIP punten/uur & extra spins)!
+                        Bekijk in totaal 250 advertenties en ontvang automatisch een <strong>volledige 24-uurs VIP status</strong> (incl. 5 VIP punten/uur & extra spins)!
                     </p>
                 </div>
             </div>
@@ -67,7 +67,7 @@
         @if($character->isVip())
         <div class="mt-3 text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl px-3 py-2 flex items-center gap-2">
             <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i>
-            <span>Jouw VIP status is momenteel actief tot <strong>{{ $character->vip_expires_at?->format('d-m-Y H:i') ?? 'Onbeperkt' }}</strong>! Extra 50 ads verlengen jouw VIP met +24 uur.</span>
+            <span>Jouw VIP status is momenteel actief tot <strong>{{ $character->vip_expires_at?->format('d-m-Y H:i') ?? 'Onbeperkt' }}</strong>! Extra 250 ads verlengen jouw VIP met +24 uur.</span>
         </div>
         @endif
     </div>

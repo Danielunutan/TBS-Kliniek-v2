@@ -107,9 +107,9 @@
                                         @csrf
                                         <input type="hidden" name="action" value="produce_sigaretten">
                                         <button type="submit" 
-                                                title="Sla cooldown over voor 1 Ster" 
+                                                title="Sla cooldown over voor 5 Sterren" 
                                                 class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
-                                            <span>1</span> <i class="fa-solid fa-star text-[10px]"></i>
+                                            <span>5</span> <i class="fa-solid fa-star text-[10px]"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -158,9 +158,9 @@
                                         @csrf
                                         <input type="hidden" name="action" value="produce_ritalin">
                                         <button type="submit" 
-                                                title="Sla cooldown over voor 2 Sterren" 
+                                                title="Sla cooldown over voor 10 Sterren" 
                                                 class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
-                                            <span>2</span> <i class="fa-solid fa-star text-[10px]"></i>
+                                            <span>10</span> <i class="fa-solid fa-star text-[10px]"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -209,9 +209,9 @@
                                         @csrf
                                         <input type="hidden" name="action" value="produce_telefoon">
                                         <button type="submit" 
-                                                title="Sla cooldown over voor 3 Sterren" 
+                                                title="Sla cooldown over voor 15 Sterren" 
                                                 class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1">
-                                            <span>3</span> <i class="fa-solid fa-star text-[10px]"></i>
+                                            <span>15</span> <i class="fa-solid fa-star text-[10px]"></i>
                                         </button>
                                     </form>
                                 </div>
