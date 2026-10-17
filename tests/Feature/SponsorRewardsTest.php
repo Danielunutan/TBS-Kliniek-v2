@@ -33,6 +33,7 @@ class SponsorRewardsTest extends TestCase
             'health' => 100,
             'max_health' => 100,
             'cash' => 1000,
+            'stars' => 5,
             'respect' => 10,
             'masks' => 2,
             'ad_mask_progress' => 0,
@@ -140,5 +141,139 @@ class SponsorRewardsTest extends TestCase
 
         $vaultCode = VaultCode::where('character_id', $character->id)->first();
         $this->assertStringStartsWith('SPONSOR-', $vaultCode->code);
+    }
+
+    public function test_prison_release_once_per_day_via_ad(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(30),
+            'prison_reason' => 'Vast in isolatie',
+        ]);
+
+        $this->assertTrue($character->isImprisoned());
+
+        // First ad releases character
+        $res = $this->simulateAdWatch($user, $character, 'prison');
+        $res->assertStatus(200);
+        $character->refresh();
+        $this->assertFalse($character->isImprisoned());
+        $this->assertTrue($character->getAdDailyData()['prison_released']);
+
+        // Second attempt on the same day fails
+        $character->update([
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(30),
+        ]);
+
+        $startRes = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'prison']);
+        $startRes->assertStatus(422);
+        $startRes->assertJsonFragment(['success' => false]);
+    }
+
+    public function test_daily_xp_reward_requires_three_ads_and_grants_50_xp(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $initialXp = $character->xp;
+
+        // Ad 1
+        $res1 = $this->simulateAdWatch($user, $character, 'daily_xp');
+        $res1->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(1, $character->getAdDailyData()['xp_progress']);
+        $this->assertFalse($character->getAdDailyData()['xp_claimed']);
+        $this->assertEquals($initialXp, $character->xp);
+
+        // Ad 2
+        $res2 = $this->simulateAdWatch($user, $character, 'daily_xp');
+        $res2->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(2, $character->getAdDailyData()['xp_progress']);
+        $this->assertFalse($character->getAdDailyData()['xp_claimed']);
+
+        // Ad 3 -> Grants +50 XP and marks claimed
+        $res3 = $this->simulateAdWatch($user, $character, 'daily_xp');
+        $res3->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(3, $character->getAdDailyData()['xp_progress']);
+        $this->assertTrue($character->getAdDailyData()['xp_claimed']);
+        $this->assertEquals($initialXp + 50, $character->xp);
+
+        // Cannot start again today
+        $res4 = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'daily_xp']);
+        $res4->assertStatus(422);
+    }
+
+    public function test_daily_cash_reward_requires_three_ads_and_grants_50k_cash(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $initialCash = $character->cash;
+
+        // Ad 1
+        $res1 = $this->simulateAdWatch($user, $character, 'daily_cash');
+        $res1->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(1, $character->getAdDailyData()['cash_progress']);
+        $this->assertFalse($character->getAdDailyData()['cash_claimed']);
+        $this->assertEquals($initialCash, $character->cash);
+
+        // Ad 2
+        $res2 = $this->simulateAdWatch($user, $character, 'daily_cash');
+        $res2->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(2, $character->getAdDailyData()['cash_progress']);
+
+        // Ad 3 -> Grants +50,000 cash and marks claimed
+        $res3 = $this->simulateAdWatch($user, $character, 'daily_cash');
+        $res3->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(3, $character->getAdDailyData()['cash_progress']);
+        $this->assertTrue($character->getAdDailyData()['cash_claimed']);
+        $this->assertEquals($initialCash + 50000, $character->cash);
+
+        // Cannot start again today
+        $res4 = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'daily_cash']);
+        $res4->assertStatus(422);
+    }
+
+    public function test_daily_stars_reward_requires_two_ads_and_grants_5_stars(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $initialStars = $character->stars ?? 0;
+
+        // Ad 1
+        $res1 = $this->simulateAdWatch($user, $character, 'daily_stars');
+        $res1->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(1, $character->getAdDailyData()['stars_progress']);
+        $this->assertFalse($character->getAdDailyData()['stars_claimed']);
+        $this->assertEquals($initialStars, $character->stars ?? 0);
+
+        // Ad 2 -> Grants +5 stars and marks claimed
+        $res2 = $this->simulateAdWatch($user, $character, 'daily_stars');
+        $res2->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(2, $character->getAdDailyData()['stars_progress']);
+        $this->assertTrue($character->getAdDailyData()['stars_claimed']);
+        $this->assertEquals($initialStars + 5, $character->stars);
+
+        // Cannot start again today
+        $res3 = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'daily_stars']);
+        $res3->assertStatus(422);
+    }
+
+    public function test_sponsor_index_shows_daily_rewards_and_no_kluismunt_card(): void
+    {
+        [$user, $character] = $this->createTestUser();
+
+        $response = $this->actingAs($user)->get(route('sponsor.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('5 Sterren ⭐');
+        $response->assertSee('€ 50.000 Cash');
+        $response->assertSee('+50 XP Boost');
+        $response->assertSee('Direct Vrijkomen');
+        $response->assertDontSee('+1 Kluismunt');
     }
 }

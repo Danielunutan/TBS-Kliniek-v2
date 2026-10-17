@@ -132,11 +132,39 @@ class Character extends Model
         'ads_watched_total' => 'integer',
         'ad_mask_progress' => 'integer',
         'ad_vault_progress' => 'integer',
+        'ad_daily_data' => 'array',
         'last_ad_watched_at' => 'datetime',
         'last_ad_date' => 'string',
         'birthdate' => 'date',
         'is_onboarded' => 'boolean',
     ];
+
+    /**
+     * Get active daily ad bonus progress & claim status for today.
+     *
+     * @return array{date: string, prison_released: bool, xp_progress: int, xp_claimed: bool, cash_progress: int, cash_claimed: bool, stars_progress: int, stars_claimed: bool}
+     */
+    public function getAdDailyData(): array
+    {
+        $data = $this->ad_daily_data ?? [];
+        $today = now()->toDateString();
+        $default = [
+            'date' => $today,
+            'prison_released' => false,
+            'xp_progress' => 0,
+            'xp_claimed' => false,
+            'cash_progress' => 0,
+            'cash_claimed' => false,
+            'stars_progress' => 0,
+            'stars_claimed' => false,
+        ];
+
+        if (($data['date'] ?? null) !== $today) {
+            return $default;
+        }
+
+        return array_merge($default, $data);
+    }
 
     /**
      * Get display name, falling back to name.

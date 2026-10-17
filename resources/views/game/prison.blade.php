@@ -77,13 +77,26 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <!-- Watch Ad to be instantly released from isolation -->
-            <button type="button" 
-                    onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                    class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2">
-                <i class="fa-solid fa-tv text-white text-[11px]"></i>
-                <span>Kijk Ad (Direct Vrij)</span>
-            </button>
+            <!-- Watch Ad to be instantly released from isolation (1x per day) -->
+            @php
+                $adDaily = $character->getAdDailyData();
+            @endphp
+            @if(!empty($adDaily['prison_released']))
+                <button type="button" 
+                        disabled
+                        title="Je hebt je eenmalige gratis vrijlating voor vandaag al gebruikt."
+                        class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-wider transition shadow-2xs cursor-not-allowed flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check text-[11px]"></i>
+                    <span>Ad Vrijlating Benut</span>
+                </button>
+            @else
+                <button type="button" 
+                        onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
+                        class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-tv text-white text-[11px]"></i>
+                    <span>Kijk Ad (1x Dagelijks Vrij)</span>
+                </button>
+            @endif
 
             <!-- Buy self out for 25 stars -->
             <form action="{{ route('prison.buyout') }}" method="POST" class="flex-1 md:flex-initial">

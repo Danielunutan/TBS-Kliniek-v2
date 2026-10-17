@@ -9,6 +9,7 @@ use App\Models\GameSetting;
 use App\Models\VaultCode;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\LevelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ class SponsorAdController extends Controller
     public function __construct(
         protected EconomyService $economy,
         protected EnergyService $energy,
+        protected LevelService $levelService,
     ) {}
 
     /**
@@ -54,6 +56,7 @@ class SponsorAdController extends Controller
         $totalAds = $character->ads_watched_total;
         $vipProgress = $character->getVipAdMilestoneProgress();
         $adsUntilVip = $character->getAdsUntilNextVip();
+        $adDailyData = $character->getAdDailyData();
 
         $smartlinkUrl = route('sponsor.redirect');
 
@@ -65,6 +68,7 @@ class SponsorAdController extends Controller
             'totalAds',
             'vipProgress',
             'adsUntilVip',
+            'adDailyData',
             'smartlinkUrl'
         ));
     }
@@ -92,10 +96,48 @@ class SponsorAdController extends Controller
         }
 
         $rewardType = $request->input('reward_type', 'cash');
-        $validTypes = ['cash', 'prison', 'mask', 'token', 'star', 'respect', 'vault_code', 'cooldown'];
+        $validTypes = ['cash', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars'];
         $isSpecificCooldown = is_string($rewardType) && str_starts_with($rewardType, 'cooldown:');
         if (! in_array($rewardType, $validTypes, true) && ! $isSpecificCooldown) {
             $rewardType = 'cash';
+        }
+
+        $dailyData = $character->getAdDailyData();
+
+        if ($rewardType === 'prison') {
+            if (! $character->isImprisoned()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je zit momenteel niet vast in de isoleercel.',
+                ], 422);
+            }
+            if (! empty($dailyData['prison_released'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt je eenmalige gratis vrijlating voor vandaag al gebruikt! Morgen om 00:00 uur kun je weer eenmalig vrijkomen via een sponsor ad.',
+                ], 422);
+            }
+        } elseif ($rewardType === 'daily_xp') {
+            if (! empty($dailyData['xp_claimed'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt de dagelijkse +50 XP bonus voor vandaag al geclaimd! Morgen om 00:00 uur staat er een nieuwe klaar.',
+                ], 422);
+            }
+        } elseif ($rewardType === 'daily_cash') {
+            if (! empty($dailyData['cash_claimed'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt de dagelijkse € 50.000 cash bonus voor vandaag al geclaimd! Morgen om 00:00 uur staat er een nieuwe klaar.',
+                ], 422);
+            }
+        } elseif ($rewardType === 'daily_stars') {
+            if (! empty($dailyData['stars_claimed'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt de dagelijkse 5 Sterren bonus voor vandaag al geclaimd! Morgen om 00:00 uur staat er een nieuwe klaar.',
+                ], 422);
+            }
         }
 
         // Store anti-abuse verification timestamp in session
@@ -335,15 +377,93 @@ class SponsorAdController extends Controller
                     break;
 
                 case 'prison':
+                    $dailyData = $character->getAdDailyData();
+                    if (! empty($dailyData['prison_released'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Je hebt je eenmalige gratis vrijlating voor vandaag al gebruikt!',
+                        ], 422);
+                    }
                     if ($character->isImprisoned()) {
                         $character->is_in_prison = false;
                         $character->prison_until = null;
                         $character->prison_reason = null;
-                        $rewardDetails = '🎉 Je hebt de sponsor ad bekeken en bent DIRECT VRIJGELATEN uit de isoleercel!';
+                        $dailyData['prison_released'] = true;
+                        $character->ad_daily_data = $dailyData;
+                        $rewardDetails = '🎉 Je hebt de sponsor ad bekeken en bent EENMALIG DIRECT VRIJGELATEN uit de isoleercel!';
                     } else {
                         // Fallback to cash if not in prison
                         $this->economy->addCash($character, 2500, 'sponsor_ad');
                         $rewardDetails = '💵 Je zat niet vast, dus je hebt € 2.500 zakgeld ontvangen!';
+                    }
+                    break;
+
+                case 'daily_xp':
+                    $dailyData = $character->getAdDailyData();
+                    if (! empty($dailyData['xp_claimed'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Je hebt de dagelijkse +50 XP bonus voor vandaag al geclaimd!',
+                        ], 422);
+                    }
+                    $current = ($dailyData['xp_progress'] ?? 0) + 1;
+                    if ($current >= 3) {
+                        $dailyData['xp_progress'] = 3;
+                        $dailyData['xp_claimed'] = true;
+                        $character->ad_daily_data = $dailyData;
+                        $this->levelService->addXp($character, 50);
+                        $rewardDetails = '⚡ [3/3 Ads] GEFELICITEERD: +50 XP ontvangen! Je dagelijkse XP beloning is geclaimd.';
+                    } else {
+                        $dailyData['xp_progress'] = $current;
+                        $character->ad_daily_data = $dailyData;
+                        $left = 3 - $current;
+                        $rewardDetails = "⚡ [{$current}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw dagelijkse +50 XP bonus.';
+                    }
+                    break;
+
+                case 'daily_cash':
+                    $dailyData = $character->getAdDailyData();
+                    if (! empty($dailyData['cash_claimed'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Je hebt de dagelijkse € 50.000 cash bonus voor vandaag al geclaimd!',
+                        ], 422);
+                    }
+                    $current = ($dailyData['cash_progress'] ?? 0) + 1;
+                    if ($current >= 3) {
+                        $dailyData['cash_progress'] = 3;
+                        $dailyData['cash_claimed'] = true;
+                        $character->ad_daily_data = $dailyData;
+                        $this->economy->addCash($character, 50000, 'sponsor_ad');
+                        $rewardDetails = '💶 [3/3 Ads] GEFELICITEERD: € 50.000 contant geld ontvangen! Je dagelijkse cash beloning is geclaimd.';
+                    } else {
+                        $dailyData['cash_progress'] = $current;
+                        $character->ad_daily_data = $dailyData;
+                        $left = 3 - $current;
+                        $rewardDetails = "💶 [{$current}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw dagelijkse € 50.000 bonus.';
+                    }
+                    break;
+
+                case 'daily_stars':
+                    $dailyData = $character->getAdDailyData();
+                    if (! empty($dailyData['stars_claimed'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Je hebt de dagelijkse 5 Sterren bonus voor vandaag al geclaimd!',
+                        ], 422);
+                    }
+                    $current = ($dailyData['stars_progress'] ?? 0) + 1;
+                    if ($current >= 2) {
+                        $dailyData['stars_progress'] = 2;
+                        $dailyData['stars_claimed'] = true;
+                        $character->ad_daily_data = $dailyData;
+                        $character->stars = ($character->stars ?? 0) + 5;
+                        $rewardDetails = '⭐ [2/2 Ads] GEFELICITEERD: +5 Sterren toegevoegd aan je profiel! Je dagelijkse sterren bonus is geclaimd.';
+                    } else {
+                        $dailyData['stars_progress'] = $current;
+                        $character->ad_daily_data = $dailyData;
+                        $left = 2 - $current;
+                        $rewardDetails = "⭐ [{$current}/2 Ads] Voortgang opgeslagen! Bekijk nog {$left} advertentie voor jouw dagelijkse 5 Sterren bonus.";
                     }
                     break;
 
@@ -388,16 +508,6 @@ class SponsorAdController extends Controller
                         $left = 3 - $currentProgress;
                         $rewardDetails = "🔐 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw Geheime Kluiscode voucher.';
                     }
-                    break;
-
-                case 'token':
-                    $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
-                    $rewardDetails = '🪙 +1 Kluismunt toegevoegd (te besteden op de MedicijnKluis)!';
-                    break;
-
-                case 'star':
-                    $character->stars = ($character->stars ?? 0) + 1;
-                    $rewardDetails = '⭐ +1 Gratis Ster toegevoegd aan je profiel!';
                     break;
 
                 case 'cooldown':

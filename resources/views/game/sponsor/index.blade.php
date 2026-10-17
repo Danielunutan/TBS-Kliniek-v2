@@ -72,15 +72,216 @@
         @endif
     </div>
 
-    <!-- REWARD SELECTION GRID -->
-    <div>
-        <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-gift text-purple-600 dark:text-purple-400"></i> Kies jouw directe beloning per advertentie:
+    <!-- DAILY SPONSOR REWARDS (1x PER DAG) -->
+    <div class="space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-purple-600 dark:text-purple-400"></i> Exclusieve Dagelijkse Beloningen (1x per dag):
+            </h2>
+            <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500">Reset elke nacht om 00:00 uur</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- Daily Card 1: 5 Sterren (2 Ads) -->
+            <div class="bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/60 hover:border-amber-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
+                        <i class="fa-solid fa-star text-amber-500"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded font-extrabold">1x per dag • 2 Ads</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 transition">5 Sterren ⭐</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Spaar dagelijks 5 gratis Sterren bij elkaar door slechts 2 sponsor video's te bekijken.
+                    </p>
+
+                    <!-- Voortgangsbalk (0/2, 1/2, 2/2) -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-amber-600 dark:text-amber-400 font-extrabold">
+                                {{ !empty($adDailyData['stars_claimed']) ? '2 / 2' : ($adDailyData['stars_progress'] ?? 0).' / 2' }} Ads
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-gradient-to-r from-amber-400 to-yellow-500 h-full rounded-full transition-all duration-300" 
+                                 style="width: {{ !empty($adDailyData['stars_claimed']) ? 100 : min(100, (($adDailyData['stars_progress'] ?? 0) / 2) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
+                    @if(!empty($adDailyData['stars_claimed']))
+                        <button type="button" disabled 
+                                class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+                            <i class="fa-solid fa-check text-xs text-emerald-500"></i>
+                            <span>Vandaag Al Geclaimd</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="window.tbsOpenSponsorAd('daily_stars')" 
+                                class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-star text-xs"></i>
+                            <span>Kijk Ad voor 5 Sterren ({{ ($adDailyData['stars_progress'] ?? 0) + 1 }}/2{{ ($adDailyData['stars_progress'] ?? 0) === 1 ? ' - Claim!' : '' }})</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Daily Card 2: € 50.000 Cash (3 Ads) -->
+            <div class="bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800/60 hover:border-emerald-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
+                        <i class="fa-solid fa-sack-dollar text-emerald-500"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded font-extrabold">1x per dag • 3 Ads</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">€ 50.000 Cash</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Grote dagelijkse geldinjectie van € 50.000 contant geld op zak door 3 sponsor ads te kijken.
+                    </p>
+
+                    <!-- Voortgangsbalk (0/3, 1/3, 2/3, 3/3) -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">
+                                {{ !empty($adDailyData['cash_claimed']) ? '3 / 3' : ($adDailyData['cash_progress'] ?? 0).' / 3' }} Ads
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-full rounded-full transition-all duration-300" 
+                                 style="width: {{ !empty($adDailyData['cash_claimed']) ? 100 : min(100, (($adDailyData['cash_progress'] ?? 0) / 3) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
+                    @if(!empty($adDailyData['cash_claimed']))
+                        <button type="button" disabled 
+                                class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+                            <i class="fa-solid fa-check text-xs text-emerald-500"></i>
+                            <span>Vandaag Al Geclaimd</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="window.tbsOpenSponsorAd('daily_cash')" 
+                                class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-sack-dollar text-xs"></i>
+                            <span>Kijk Ad voor €50.000 ({{ ($adDailyData['cash_progress'] ?? 0) + 1 }}/3{{ ($adDailyData['cash_progress'] ?? 0) === 2 ? ' - Claim!' : '' }})</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Daily Card 3: +50 XP Boost (3 Ads) -->
+            <div class="bg-white dark:bg-slate-900 border border-cyan-200 dark:border-cyan-800/60 hover:border-cyan-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800/60 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
+                        <i class="fa-solid fa-bolt text-cyan-500"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-cyan-800 dark:text-cyan-300 bg-cyan-100 dark:bg-cyan-950/80 px-2 py-0.5 rounded font-extrabold">1x per dag • 3 Ads</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-600 transition">+50 XP Boost</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Geef je karakter dagelijks een fikse level-up boost van +50 XP met 3 sponsor advertenties.
+                    </p>
+
+                    <!-- Voortgangsbalk (0/3, 1/3, 2/3, 3/3) -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                            <span class="text-slate-500 dark:text-slate-400">Voortgang:</span>
+                            <span class="text-cyan-600 dark:text-cyan-400 font-extrabold">
+                                {{ !empty($adDailyData['xp_claimed']) ? '3 / 3' : ($adDailyData['xp_progress'] ?? 0).' / 3' }} Ads
+                            </span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <div class="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full transition-all duration-300" 
+                                 style="width: {{ !empty($adDailyData['xp_claimed']) ? 100 : min(100, (($adDailyData['xp_progress'] ?? 0) / 3) * 100) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
+                    @if(!empty($adDailyData['xp_claimed']))
+                        <button type="button" disabled 
+                                class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+                            <i class="fa-solid fa-check text-xs text-emerald-500"></i>
+                            <span>Vandaag Al Geclaimd</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="window.tbsOpenSponsorAd('daily_xp')" 
+                                class="w-full py-2.5 px-4 rounded-xl bg-cyan-600 hover:bg-cyan-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-bolt text-xs"></i>
+                            <span>Kijk Ad voor +50 XP ({{ ($adDailyData['xp_progress'] ?? 0) + 1 }}/3{{ ($adDailyData['xp_progress'] ?? 0) === 2 ? ' - Claim!' : '' }})</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Daily Card 4: Directe Vrijlating (1 Ad) -->
+            <div class="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/60 hover:border-rose-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
+                        <i class="fa-solid fa-unlock-keyhole"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2 py-0.5 rounded font-extrabold">1x per dag • 1 Ad</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">Direct Vrijkomen</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Zit je vast in de isoleercel? Bekijk 1 sponsor video en kom per direct eenmalig vrij uit je straf!
+                    </p>
+
+                    <!-- Status Indicator -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between text-[11px] font-bold">
+                            <span class="text-slate-500 dark:text-slate-400">Status:</span>
+                            @if(!empty($adDailyData['prison_released']))
+                                <span class="text-slate-500 font-extrabold">Vandaag Benut (1/1)</span>
+                            @elseif($character->isImprisoned())
+                                <span class="text-rose-600 dark:text-rose-400 font-extrabold animate-pulse">Vast in Isoleercel!</span>
+                            @else
+                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">Klaar voor gebruik</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
+                    @if(!empty($adDailyData['prison_released']))
+                        <button type="button" disabled 
+                                class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+                            <i class="fa-solid fa-check text-xs text-emerald-500"></i>
+                            <span>Vandaag Al Benut</span>
+                        </button>
+                    @elseif(!$character->isImprisoned())
+                        <button type="button" disabled 
+                                title="Je kunt deze actie alleen gebruiken wanneer je daadwerkelijk vastzit in de isoleercel."
+                                class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed">
+                            <i class="fa-solid fa-shield-halved text-xs"></i>
+                            <span>Alleen bij Isoleercel Straf</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="window.tbsOpenSponsorAd('prison')" 
+                                class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-unlock text-xs"></i>
+                            <span>Kijk Ad voor Direct Vrij</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ONGOING SPONSOR REWARDS (HERHAALBAAR) -->
+    <div class="space-y-3">
+        <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-infinity text-purple-600 dark:text-purple-400"></i> Doorlopende Beloningen:
         </h2>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <!-- Card 1: Respect +1 🔥 (Nieuw) -->
+            <!-- Card 1: Respect +1 🔥 -->
             <div class="bg-white dark:bg-slate-900 border border-orange-200 dark:border-orange-800/60 hover:border-orange-400 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group relative overflow-hidden">
                 <div class="relative z-10">
                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-800/60 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
@@ -114,7 +315,7 @@
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-purple-700 dark:group-hover:text-purple-400 transition">+1 Bivakmuts / Masker</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Bekijk 3 korte sponsor ads en ontvang een gratis masker voor zakkenrollen en solo/bende heists.
+                        Bekijk 3 sponsor ads en ontvang een gratis masker voor zakkenrollen en solo/bende heists.
                     </p>
 
                     <!-- Voortgangsbalk (0/3, 1/3, 2/3) -->
@@ -179,6 +380,9 @@
                     <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
                         <i class="fa-solid fa-money-bill-wave"></i>
                     </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded font-extrabold">Directe Beloning</span>
+                    </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">€ 2.500 Zakgeld</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                         Direct contant zakgeld op zak om frikandelbroodjes, energie-shakes of wapens te kopen.
@@ -189,66 +393,6 @@
                             class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-play text-xs"></i>
                         <span>Kijk Ad voor €2.500</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 5: Strafvermindering -15 Min -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-rose-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">-15 Min Isoleercel</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Zit je vast in de isoleercel? Scheer 15 minuten van je straftijd af of kom direct vervroegd vrij!
-                    </p>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('prison')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-lock-open text-xs"></i>
-                        <span>Kijk Ad voor -15 Min</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 6: Ster +1 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-star"></i>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 transition">+1 Gratis Ster ⭐</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Verdien gratis Sterren om premium functies te ontgrendelen of direct vrij te kopen.
-                    </p>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('star')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-star text-xs"></i>
-                        <span>Kijk Ad voor Ster ⭐</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card 7: Kluismunt +1 -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-300 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition group">
-                <div>
-                    <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
-                        <i class="fa-solid fa-coins"></i>
-                    </div>
-                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-amber-600 transition">+1 Kluismunt</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Verzamel losse kluismunten om hints te kopen bij de MedicijnKluis of kluisjes te kraken.
-                    </p>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('token')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-key text-xs"></i>
-                        <span>Kijk Ad voor Munt</span>
                     </button>
                 </div>
             </div>

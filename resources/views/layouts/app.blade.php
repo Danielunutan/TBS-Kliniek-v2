@@ -1698,12 +1698,25 @@
                             Reden: <span class="text-rose-700 font-semibold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
                         </p>
                     </div>
-                    <button type="button" 
-                            onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                            class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-tv text-white text-[11px]"></i>
-                        <span>Kijk Ad (Direct Vrij)</span>
-                    </button>
+                    @php
+                        $adDaily = $character->getAdDailyData();
+                    @endphp
+                    @if(!empty($adDaily['prison_released']))
+                        <button type="button" 
+                                disabled
+                                title="Je hebt je eenmalige gratis vrijlating voor vandaag al gebruikt."
+                                class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 font-black text-xs uppercase tracking-wider transition shadow-2xs cursor-not-allowed flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-check text-[11px]"></i>
+                            <span>Ad Vrijlating Gebruikt</span>
+                        </button>
+                    @else
+                        <button type="button" 
+                                onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
+                                class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-tv text-white text-[11px]"></i>
+                            <span>Kijk Ad (1x Dagelijks Vrij)</span>
+                        </button>
+                    @endif
                     <form action="{{ route('prison.buyout') }}" method="POST" class="w-full sm:w-auto">
                         @csrf
                         <input type="hidden" name="method" value="stars">
@@ -2610,8 +2623,8 @@
                 this.totalSeconds = 15;
 
                 if (rewardType === 'prison') {
-                    this.rewardTitle = '-15 Min Isoleercel Straf';
-                    this.rewardIcon = 'fa-hourglass-half';
+                    this.rewardTitle = 'Directe Vrijlating Isoleercel (1x per dag)';
+                    this.rewardIcon = 'fa-unlock-keyhole';
                 } else if (rewardType === 'respect') {
                     this.rewardTitle = '+1 Respect 🔥';
                     this.rewardIcon = 'fa-fire';
@@ -2632,9 +2645,15 @@
                 } else if (rewardType === 'mask') {
                     this.rewardTitle = 'Bivakmuts / Masker (3 Ads)';
                     this.rewardIcon = 'fa-masks-theater';
-                } else if (rewardType === 'token') {
-                    this.rewardTitle = '+1 Kluismunt';
-                    this.rewardIcon = 'fa-coins';
+                } else if (rewardType === 'daily_xp') {
+                    this.rewardTitle = '+50 XP (Dagelijks - 3 Ads)';
+                    this.rewardIcon = 'fa-bolt';
+                } else if (rewardType === 'daily_cash') {
+                    this.rewardTitle = '€ 50.000 Cash (Dagelijks - 3 Ads)';
+                    this.rewardIcon = 'fa-sack-dollar';
+                } else if (rewardType === 'daily_stars') {
+                    this.rewardTitle = '5 Sterren ⭐ (Dagelijks - 2 Ads)';
+                    this.rewardIcon = 'fa-star';
                 } else if (rewardType === 'star') {
                     this.rewardTitle = '+1 Gratis Ster ⭐';
                     this.rewardIcon = 'fa-star';

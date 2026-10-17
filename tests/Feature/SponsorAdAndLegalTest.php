@@ -317,6 +317,7 @@ class SponsorAdAndLegalTest extends TestCase
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
             'ads_watched_total' => 9,
+            'ad_mask_progress' => 2,
         ]);
 
         $token = 'code_milestone_token';
