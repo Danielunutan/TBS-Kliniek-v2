@@ -43,16 +43,16 @@
                             <p class="text-[11px] text-amber-800 dark:text-amber-300">Wacht nog <strong>{{ gmdate('i:s', $hustleCooldown) }}</strong> voordat je opnieuw kunt klussen in de gangen.</p>
                         </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black px-4 py-2 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-tv text-white text-[11px]"></i>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                            <i class="fa-solid fa-tv text-[11px]"></i>
                             <span>Kijk Ad (Reset Cooldown)</span>
                         </button>
-                        <form action="{{ route('cooldown.skip') }}" method="POST">
+                        <form action="{{ route('cooldown.skip') }}" method="POST" class="m-0 p-0 inline-flex">
                             @csrf
                             <input type="hidden" name="action" value="hustle">
-                            <button type="submit" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-star text-white text-[11px]"></i>
+                            <button type="submit" class="h-9 px-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                <i class="fa-solid fa-star text-[11px]"></i>
                                 <span>{{ $hustleSkipCost }} Sterren ⭐</span>
                             </button>
                         </form>

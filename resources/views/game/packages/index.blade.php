@@ -234,15 +234,15 @@
                 <span class="text-xs font-bold text-amber-900">
                     <i class="fa-solid fa-clock mr-1 text-amber-600"></i> Cooldown actief: nog <strong>{{ gmdate('i:s', $pkgCooldown) }}</strong>
                 </span>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-8 px-3 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-[11px] font-black transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-tv text-white text-[10px]"></i>
                         <span>Kijk Ad (Reset)</span>
                     </button>
-                    <form action="{{ route('cooldown.skip') }}" method="POST">
+                    <form action="{{ route('cooldown.skip') }}" method="POST" class="m-0 p-0 inline-flex">
                         @csrf
                         <input type="hidden" name="action" value="package">
-                        <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer inline-flex items-center gap-1">
+                        <button type="submit" class="h-8 px-3 rounded-lg bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-[11px] font-black transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-1 whitespace-nowrap">
                             <i class="fa-solid fa-star text-white text-[10px]"></i>
                             <span>{{ $packageSkipCost }} Sterren ⭐</span>
                         </button>

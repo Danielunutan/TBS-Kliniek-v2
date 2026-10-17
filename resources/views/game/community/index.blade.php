@@ -180,23 +180,23 @@
     </div>
 
     <!-- Extra Community Bonus & Discord Perks Information -->
-    <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white shadow-md border border-purple-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50/70 to-amber-50/40 dark:bg-gradient-to-r dark:from-purple-950/70 dark:via-indigo-950/80 dark:to-slate-900 border border-purple-200 dark:border-purple-800/50 text-slate-800 dark:text-white shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
-            <div class="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl shrink-0 shadow-sm">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 border border-amber-300 dark:bg-amber-400 dark:text-slate-950 dark:border-transparent flex items-center justify-center text-xl shrink-0 shadow-2xs">
                 <i class="fa-solid fa-trophy"></i>
             </div>
             <div>
-                <h4 class="text-sm font-black text-white">
+                <h4 class="text-sm font-black text-slate-900 dark:text-white">
                     TBS Kliniek Ambassadeur Bonus
                 </h4>
-                <p class="text-xs text-purple-200/90 leading-relaxed">
+                <p class="text-xs text-slate-600 dark:text-purple-200/90 leading-relaxed">
                     Volg je ons op alle 6 platforms? Dan maak je automatisch kans op de maandelijkse trekking van <strong>100 VIP Punten</strong> en exclusieve in-game titels!
                 </p>
             </div>
         </div>
 
-        <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-black text-xs transition shrink-0 flex items-center gap-2 shadow-xs">
-            <i class="fa-brands fa-discord text-indigo-600"></i>
+        <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 font-black text-xs transition shrink-0 flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+            <i class="fa-brands fa-discord text-white dark:text-indigo-600"></i>
             <span>Praat Mee op Discord</span>
         </a>
     </div>
