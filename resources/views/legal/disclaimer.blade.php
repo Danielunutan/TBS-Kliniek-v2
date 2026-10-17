@@ -57,6 +57,9 @@
                 <p><strong>E-mail voor privacy & AVG:</strong> <em>privacy@tbs-kliniek.nl</em></p>
                 <p><strong>Spelondersteuning:</strong> Maak een ticket aan via <a href="{{ route('help.tickets.index') }}" class="text-purple-600 font-bold underline">Help & Support Tickets</a> of praat met de Zaalwacht AI.</p>
                 <p><strong>Discord Community:</strong> <a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">discord.gg/tbs</a></p>
+                <p><strong>TikTok:</strong> <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbsklinieknl</a></p>
+                <p><strong>Instagram:</strong> <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbsklinieknl</a></p>
+                <p><strong>Hyves:</strong> <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener" class="text-orange-600 font-bold underline">TBS Kliniek op Hyves</a></p>
             </div>
         </section>
 

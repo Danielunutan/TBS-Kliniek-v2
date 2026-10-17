@@ -156,9 +156,9 @@ class SponsorAdAndLegalTest extends TestCase
         $response->assertStatus(200);
         $character->refresh();
 
-        // 30 min reduced by 15 min -> ~15 min remaining
-        $this->assertTrue($character->is_in_prison);
-        $this->assertLessThanOrEqual(16 * 60, now()->diffInSeconds($character->prison_until));
+        // Player is directly freed from prison by watching ad
+        $this->assertFalse($character->is_in_prison);
+        $this->assertNull($character->prison_until);
     }
 
     public function test_claim_ad_frees_prisoner_if_under_15_minutes(): void

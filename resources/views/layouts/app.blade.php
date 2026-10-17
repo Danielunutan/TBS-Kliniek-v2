@@ -1456,6 +1456,16 @@
                         </span>
                     </button>
 
+                    <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-[#f36f21] hover:bg-[#d95d16] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS Kliniek op Hyves">
+                        <i class="fa-solid fa-face-smile text-sm"></i>
+                        <span>Hyves</span>
+                    </a>
+
+                    <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener noreferrer" class="hidden lg:inline-flex items-center gap-1.5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-90 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="Instagram @tbsklinieknl">
+                        <i class="fa-brands fa-instagram text-sm"></i>
+                        <span>Instagram</span>
+                    </a>
+
                     <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-tiktok text-sm"></i>
                         <span>TikTok</span>
@@ -1650,8 +1660,14 @@
                             <li><a href="https://discord.gg/tbs" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5">
                                 <i class="fa-brands fa-discord text-indigo-500"></i> Officiële Discord
                             </a></li>
-                            <li><a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800">
-                                <i class="fa-brands fa-tiktok text-slate-900 text-xs"></i> TikTok @tbsklinieknl
+                            <li><a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                                <i class="fa-brands fa-tiktok text-slate-900 dark:text-white text-xs"></i> TikTok @tbsklinieknl
+                            </a></li>
+                            <li><a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="hover:text-purple-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                                <i class="fa-brands fa-instagram text-pink-600 text-xs"></i> Instagram @tbsklinieknl
+                            </a></li>
+                            <li><a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener" class="hover:text-orange-600 transition flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                                <i class="fa-solid fa-face-smile text-orange-500 text-xs"></i> Hyves (TBS Kliniek)
                             </a></li>
                         </ul>
                     </div>
