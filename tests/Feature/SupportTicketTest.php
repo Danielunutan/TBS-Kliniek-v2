@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\Gang;
 use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -217,5 +218,103 @@ class SupportTicketTest extends TestCase
         $response->assertSee('Open Beta Testfase');
         $response->assertSee('TBS Kliniek de Game is momenteel in Open Beta!');
         $response->assertSee(route('help.tickets.create'));
+    }
+
+    public function test_user_can_submit_gang_transfer_bonus_ticket(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $char = $this->createCharacter($user);
+
+        $response = $this->actingAs($user)->post(route('help.tickets.store'), [
+            'category' => 'gang_overstap',
+            'gang_name' => 'Peaky Blinders',
+            'gang_tag' => 'PB',
+            'external_gang_link' => 'https://www.barribob.nl/gang/peaky-blinders',
+            'member_names' => 'Arthur, Thomas, John',
+            'proof_details' => 'Wij zijn al 2 jaar actief op Barribob en willen overstappen.',
+            'priority' => 'hoog',
+        ]);
+
+        $ticket = SupportTicket::latest('id')->first();
+        $this->assertNotNull($ticket);
+        $this->assertEquals('gang_overstap', $ticket->category);
+        $this->assertEquals('Gang Overstap Bonus: Peaky Blinders [PB]', $ticket->subject);
+        $this->assertEquals('Peaky Blinders', $ticket->metadata['gang_name']);
+        $this->assertEquals('PB', $ticket->metadata['gang_tag']);
+        $this->assertEquals('https://www.barribob.nl/gang/peaky-blinders', $ticket->metadata['external_gang_link']);
+        $this->assertStringContainsString('Arthur, Thomas, John', $ticket->metadata['member_names']);
+        $response->assertRedirect(route('help.tickets.show', $ticket));
+    }
+
+    public function test_staff_can_approve_gang_transfer_bonus_and_auto_create_gang_with_treasury_and_vip(): void
+    {
+        /** @var User $leaderUser */
+        $leaderUser = User::factory()->create();
+        $leader = $this->createCharacter($leaderUser, ['name' => 'TommyShelby']);
+
+        /** @var User $memberUser */
+        $memberUser = User::factory()->create();
+        $member = $this->createCharacter($memberUser, ['name' => 'ArthurShelby']);
+
+        /** @var User $admin */
+        $admin = User::factory()->create(['is_staff' => true, 'name' => 'Daniel']);
+        $this->createCharacter($admin, ['name' => 'AdminDaniel']);
+
+        // Create ticket
+        $ticket = SupportTicket::create([
+            'user_id' => $leaderUser->id,
+            'character_id' => $leader->id,
+            'ticket_number' => 'TBS-GNG-777',
+            'subject' => 'Gang Overstap Bonus: Peaky Blinders [PB]',
+            'category' => 'gang_overstap',
+            'priority' => 'hoog',
+            'status' => 'open',
+            'metadata' => [
+                'gang_name' => 'Peaky Blinders',
+                'gang_tag' => 'PB',
+                'external_gang_link' => 'https://www.barribob.nl/gang/peaky-blinders',
+                'member_names' => 'ArthurShelby',
+                'proof_details' => 'Top 3 gang op Barribob',
+            ],
+        ]);
+
+        // Staff approves gang transfer
+        $approveResponse = $this->actingAs($admin)->post(route('admin.tickets.approve_gang', $ticket), [
+            'gang_name' => 'Peaky Blinders',
+            'gang_tag' => 'PB',
+            'bonus_cash' => 5000000,
+            'vip_days' => 31,
+        ]);
+
+        $approveResponse->assertSessionHas('success');
+
+        // Verify Gang created
+        $gang = Gang::where('name', 'Peaky Blinders')->first();
+        $this->assertNotNull($gang);
+        $this->assertEquals('PB', $gang->tag);
+        $this->assertEquals(5000000, $gang->treasury);
+        $this->assertEquals($leader->id, $gang->leader_character_id);
+        $this->assertTrue($gang->hasActiveVipBoost());
+
+        // Verify Leader assigned and has VIP
+        $leader->refresh();
+        $this->assertEquals($gang->id, $leader->gang_id);
+        $this->assertEquals('leader', $leader->gang_role);
+        $this->assertTrue($leader->isVip());
+
+        // Verify Member received VIP and joined gang
+        $member->refresh();
+        $this->assertEquals($gang->id, $member->gang_id);
+        $this->assertTrue($member->isVip());
+
+        // Verify ticket marked approved and replied to
+        $ticket->refresh();
+        $this->assertEquals('beantwoord', $ticket->status);
+        $this->assertTrue($ticket->isGangTransferApproved());
+        $this->assertCount(1, $ticket->messages);
+        $this->assertTrue($ticket->messages->first()->is_staff);
+        $this->assertStringContainsString('€ 5.000.000', $ticket->messages->first()->message);
+        $this->assertStringContainsString('31 dagen', $ticket->messages->first()->message);
     }
 }

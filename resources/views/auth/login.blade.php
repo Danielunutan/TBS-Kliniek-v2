@@ -316,6 +316,31 @@
 
     </div>
 
+    <!-- EXCLUSIVE GANG OVERSTAP BONUS BANNER (HOMEPAGE PROMOTION) -->
+    <div class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 text-white shadow-md border border-purple-500/30 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div class="relative z-10 space-y-2 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-xs">
+                <i class="fa-solid fa-crown text-slate-950"></i>
+                <span>Exclusieve Overstap Bonus</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-black text-white tracking-tight">
+                Speel je met je bende op een andere game? Stap nu over naar TBS Kliniek!
+            </h3>
+            <p class="text-xs text-purple-200/90 leading-relaxed">
+                Neem je vrienden of clan mee en meld je aan via ons ticket-systeem. Ontvang direct een <strong>Gratis Bende</strong>, <strong>€ 5.000.000 startkapitaal</strong> in jullie gangpot én <strong>31 dagen gratis VIP</strong> voor al je leden!
+            </p>
+        </div>
+        <div class="relative z-10 shrink-0 flex items-center gap-2.5">
+            <a href="{{ route('faq.index') }}" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs transition border border-white/20">
+                Uitleg in FAQ
+            </a>
+            <button type="button" @click="tab = 'register'; document.getElementById('auth-form-card').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs transition shadow-md flex items-center gap-1.5 cursor-pointer">
+                <span>Meld Je Bende Aan</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- 3 SUBTLE CLEAN FEATURE CARDS (MATCHES DASHBOARD / SITE CLEANLINESS) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
         <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3.5">

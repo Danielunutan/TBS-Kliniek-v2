@@ -22,7 +22,7 @@ class FaqController extends Controller
                         'a' => "Welkom in de kliniek, patiënt! Volg dit stappenplan om direct een vliegende start te maken zonder risico:\n\n1.  Ga naar 'Voortgang > Missies & Opdrachten'. Voltooi de eerste missies voor makkelijk contant geld en veel ervaringspunten (XP).\n2.  Ga naar 'Voortgang > Ziekenboeg'. Laat je behandelen door Zuster Brenda om je Gezondheid (HP) direct gratis naar 100% te brengen.\n3. ️ Ga naar 'Voortgang > Dagbesteding'. Werk veilig in de wasserette of werkplaats met Werkmeester Henk. Dit levert gegarandeerd eerlijk geld op en je loopt 0% risico op de isoleercel!\n4.  Ga naar 'Bonus & Kluizen > Rad van Fortuin'. Draai 1x gratis aan het rad voor extra contant geld, sterren of energie.\n5.  HEEL BELANGRIJK: Ga direct naar 'Economie > De Bank' en stort al je contante geld op je rekening! Als je contant geld op zak houdt, kunnen andere spelers je beroven op de Respectlijst of via zakkenrollen.",
                     ],
                     [
-                        'q' => 'Wat is het uiteindelijke doel van TBS Kliniek?',
+                        'q' => 'Wat is het doel van TBS Kliniek?',
                         'a' => 'In TBS Kliniek bouw je je eigen reputatie op. Je klimt van binnengebrachte groentje op tot de onbetwiste Koning van de Luchtplaats! Je stijgt in level door XP te verzamelen, traint je vechtstatistieken, richt een bende (gang) op met vrienden, kraakt de centrale kluis en strijdt om de hoogste positie op de Respectlijst en de dagelijkse 24 Uur Battle.',
                     ],
                     [
@@ -207,6 +207,10 @@ class FaqController extends Controller
                 'title' => ' Bendes, Gangs & Bende-Uurloon',
                 'icon' => 'fa-users',
                 'questions' => [
+                    [
+                        'q' => 'Wat is de Gang Overstap Bonus en hoe claim ik €5.000.000 + 31 Dagen Gratis VIP?',
+                        'a' => "Speel jij met je bende of vriendengroep op een andere browser-game of misdaadspel (zoals Barribob, Boevenbende, OSG, etc.) en willen jullie overstappen naar TBS Kliniek? Dan belonen we jullie vorstelijk met de officiële Gang Overstap Bonus!\n\n👑 Wat jullie ontvangen bij goedkeuring:\n• 🛡️ Direct gratis oprichting van jullie eigen bende (geen level- of sterrenkosten)\n• 💰 € 5.000.000 kluisgeld direct gestort in jullie gezamenlijke bende-pot\n• ⭐ 31 DAGEN GRATIS VIP voor de leider én alle overstappende bendeleden!\n\n📋 Hoe vraag je het aan?\n1. Open een Support Ticket via 'Ondersteuning > Nieuw Ticket Aanmaken'.\n2. Selecteer de categorie '🔥 Gang Overstap Bonus'.\n3. Vul je gewenste bendenaam, tag en de link naar jullie gang op de andere website/game in.\n4. Zodra onze medewerkers je aanvraag controleren en goedkeuren, staat alles direct klaar in het spel!",
+                    ],
                     [
                         'q' => 'Hoe richt ik een gang op en wat heb ik nodig?',
                         'a' => 'Vanaf Level 3 kun je op de Gangs pagina je eigen bende oprichten. Als bendeleider kies je een eigen bendenaam, afkorting/tag en logo. Je kunt medespelers uitnodigen, rollen toekennen en de gezamenlijke bende-kluis beheren.',

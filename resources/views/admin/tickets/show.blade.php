@@ -62,6 +62,119 @@
                 </div>
             </div>
 
+            <!-- GANG OVERSTAP BONUS BEHEER PANEEL -->
+            @if($ticket->isGangTransfer())
+            <div class="rounded-2xl border-2 {{ $ticket->isGangTransferApproved() ? 'border-emerald-300 bg-emerald-50/50' : 'border-amber-300 bg-gradient-to-br from-amber-50/80 via-white to-purple-50/60' }} p-5 sm:p-6 shadow-sm space-y-4">
+                
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b {{ $ticket->isGangTransferApproved() ? 'border-emerald-200' : 'border-amber-200' }}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl {{ $ticket->isGangTransferApproved() ? 'bg-emerald-500 text-white' : 'bg-amber-400 text-slate-950' }} flex items-center justify-center text-lg font-black shadow-xs shrink-0">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-sm font-black text-slate-900">Gang Overstap Bonus Aanvraag</h3>
+                                @if($ticket->isGangTransferApproved())
+                                <span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] font-black uppercase">
+                                    Goedgekeurd & Actief
+                                </span>
+                                @else
+                                <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black uppercase animate-pulse">
+                                    Wacht op Goedkeuring
+                                </span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-slate-600">Automatische bende-aanmaak, kluisstorting en 31 dagen VIP activatie.</p>
+                        </div>
+                    </div>
+
+                    @if($ticket->isGangTransferApproved())
+                    <div class="text-xs text-emerald-800 font-bold bg-emerald-100/80 px-3 py-1.5 rounded-xl border border-emerald-300">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>
+                        Bende #{{ $ticket->metadata['created_gang_id'] ?? '' }} ({{ $ticket->metadata['created_gang_name'] ?? '' }} [{{ $ticket->metadata['created_gang_tag'] ?? '' }}])
+                    </div>
+                    @endif
+                </div>
+
+                <!-- Submitted Application Details -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="p-3 rounded-xl bg-white/90 border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Gewenste Bende & Tag</span>
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-slate-900 text-sm">{{ $ticket->metadata['gang_name'] ?? 'Onbekend' }}</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-900 text-amber-300 font-mono text-xs font-black">
+                                [{{ $ticket->metadata['gang_tag'] ?? '-' }}]
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-white/90 border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Link naar Externe Game/Gang</span>
+                        @if(!empty($ticket->metadata['external_gang_link']))
+                        <a href="{{ $ticket->metadata['external_gang_link'] }}" target="_blank" rel="noopener noreferrer" 
+                           class="font-bold text-purple-700 hover:text-purple-900 hover:underline flex items-center gap-1.5 truncate">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            <span class="truncate">{{ $ticket->metadata['external_gang_link'] }}</span>
+                        </a>
+                        @else
+                        <span class="text-slate-400 italic">Geen link opgegeven</span>
+                        @endif
+                    </div>
+
+                    @if(!empty($ticket->metadata['member_names']))
+                    <div class="sm:col-span-2 p-3 rounded-xl bg-white/90 border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Aangemelde Overstappende Leden</span>
+                        <p class="text-xs text-slate-700 whitespace-pre-line font-medium">{{ $ticket->metadata['member_names'] }}</p>
+                    </div>
+                    @endif
+
+                    @if(!empty($ticket->metadata['proof_details']))
+                    <div class="sm:col-span-2 p-3 rounded-xl bg-white/90 border border-slate-200 space-y-1">
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Toelichting / Bewijs</span>
+                        <p class="text-xs text-slate-700 whitespace-pre-line font-medium">{{ $ticket->metadata['proof_details'] }}</p>
+                    </div>
+                    @endif
+                </div>
+
+                @if(! $ticket->isGangTransferApproved())
+                <!-- APPROVAL ACTION FORM (1-CLICK EXECUTE) -->
+                <form action="{{ route('admin.tickets.approve_gang', $ticket) }}" method="POST" class="pt-3 border-t border-amber-200/80 space-y-4">
+                    @csrf
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="sm:col-span-1">
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-600 mb-1">Bendenaam Bevestigen</label>
+                            <input type="text" name="gang_name" value="{{ old('gang_name', $ticket->metadata['gang_name'] ?? '') }}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold text-xs text-slate-900 outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-600 mb-1">Tag (2-4 tekens)</label>
+                            <input type="text" name="gang_tag" maxlength="4" value="{{ old('gang_tag', $ticket->metadata['gang_tag'] ?? '') }}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-xs uppercase text-slate-900 outline-none focus:border-amber-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-600 mb-1">Kluisgeld Bonus (€)</label>
+                            <input type="number" name="bonus_cash" value="5000000" step="500000" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-mono font-bold text-xs text-emerald-700 outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <button type="submit" 
+                            onclick="return confirm('Weet je zeker dat je deze Gang Overstap Bonus wilt goedkeuren? Bende wordt direct opgericht met €5.000.000 kluisgeld en 31 dagen VIP voor de bende!');"
+                            class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 active:scale-[0.99] text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-pointer transition">
+                        <i class="fa-solid fa-crown text-amber-200 text-base"></i>
+                        <span>Gang Overstap Goedkeuren & Bende Direct Oprichten (€ 5.000.000 + 31 Dagen VIP)</span>
+                    </button>
+                </form>
+                @else
+                <div class="p-3 rounded-xl bg-emerald-100/70 border border-emerald-300 text-xs text-emerald-900 flex items-center gap-2">
+                    <i class="fa-solid fa-check-double text-emerald-600 text-base"></i>
+                    <span>Deze bonus is goedgekeurd door <strong>{{ $ticket->metadata['approved_by_name'] ?? 'Staff' }}</strong> op {{ \Carbon\Carbon::parse($ticket->metadata['bonus_approved_at'])->format('d-m-Y H:i') }}. Bende: <strong>{{ $ticket->metadata['created_gang_name'] ?? '' }} [{{ $ticket->metadata['created_gang_tag'] ?? '' }}]</strong>.</span>
+                </div>
+                @endif
+
+            </div>
+            @endif
+
             <!-- Messages Thread -->
             <div class="space-y-4">
                 @foreach($ticket->messages as $msg)

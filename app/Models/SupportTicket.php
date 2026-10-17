@@ -23,12 +23,14 @@ class SupportTicket extends Model
         'last_reply_at',
         'last_reply_by_staff',
         'closed_at',
+        'metadata',
     ];
 
     protected $casts = [
         'last_reply_at' => 'datetime',
         'closed_at' => 'datetime',
         'last_reply_by_staff' => 'boolean',
+        'metadata' => 'array',
     ];
 
     public function user(): BelongsTo
@@ -51,6 +53,16 @@ class SupportTicket extends Model
         return $this->hasOne(SupportTicketMessage::class)->latestOfMany();
     }
 
+    public function isGangTransfer(): bool
+    {
+        return $this->category === 'gang_overstap';
+    }
+
+    public function isGangTransferApproved(): bool
+    {
+        return ! empty($this->metadata['bonus_approved_at']);
+    }
+
     public function getCategoryLabelAttribute(): string
     {
         return match ($this->category) {
@@ -58,6 +70,7 @@ class SupportTicket extends Model
             'vraag' => 'Vraag over de Game',
             'feedback' => 'Feedback & Suggestie',
             'vip' => 'VIP & Donaties',
+            'gang_overstap' => 'Gang Overstap Bonus',
             default => 'Overige Vraag',
         };
     }
@@ -69,6 +82,7 @@ class SupportTicket extends Model
             'vraag' => 'fa-circle-question',
             'feedback' => 'fa-lightbulb',
             'vip' => 'fa-crown',
+            'gang_overstap' => 'fa-users-between-lines',
             default => 'fa-message',
         };
     }

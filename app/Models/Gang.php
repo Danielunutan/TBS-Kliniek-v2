@@ -43,9 +43,15 @@ class Gang extends Model
         'is_open' => 'boolean',
         'last_attack_at' => 'datetime',
         'shield_until' => 'datetime',
+        'vip_boost_until' => 'datetime',
         'leave_fee_multiplier' => 'integer',
         'min_respect' => 'integer',
     ];
+
+    public function hasActiveVipBoost(): bool
+    {
+        return $this->vip_boost_until !== null && $this->vip_boost_until->isFuture();
+    }
 
     public function getAvatarUrlAttribute(): string
     {

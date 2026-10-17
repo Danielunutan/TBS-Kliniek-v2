@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
+use App\Models\Gang;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
 use Illuminate\Http\RedirectResponse;
@@ -112,5 +114,118 @@ class AdminTicketController extends Controller
         ]);
 
         return back()->with('success', 'Ticket status gewijzigd naar: '.$ticket->status_label);
+    }
+
+    /**
+     * Approve Gang Transfer bonus: creates gang, injects €5,000,000 into treasury,
+     * assigns character as leader, gives 31 days VIP to leader & gang boost, and posts auto-reply.
+     */
+    public function approveGangTransfer(Request $request, SupportTicket $ticket): RedirectResponse
+    {
+        if (! $ticket->isGangTransfer()) {
+            return back()->with('error', 'Dit ticket is geen Gang Overstap Bonus aanvraag.');
+        }
+
+        if ($ticket->isGangTransferApproved()) {
+            return back()->with('error', 'Deze Gang Overstap Bonus is al goedgekeurd!');
+        }
+
+        $validated = $request->validate([
+            'gang_name' => ['required', 'string', 'min:3', 'max:25', 'unique:gangs,name'],
+            'gang_tag' => ['required', 'string', 'min:2', 'max:4'],
+            'bonus_cash' => ['nullable', 'integer', 'min:0'],
+            'vip_days' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'reply_message' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $gangName = strip_tags($validated['gang_name']);
+        $gangTag = strtoupper(strip_tags($validated['gang_tag']));
+        $bonusCash = (int) ($validated['bonus_cash'] ?? 5000000);
+        $vipDays = (int) ($validated['vip_days'] ?? 31);
+        $vipBoostUntil = now()->addDays($vipDays);
+
+        $character = $ticket->character;
+        if (! $character) {
+            return back()->with('error', 'Personage van indiener kon niet gevonden worden.');
+        }
+
+        // Leave existing gang if any
+        if ($character->gang_id) {
+            $character->gang_id = null;
+            $character->gang_role = 'member';
+            $character->save();
+        }
+
+        // Create the new Gang
+        $gang = Gang::create([
+            'name' => $gangName,
+            'tag' => $gangTag,
+            'leader_character_id' => $character->id,
+            'specialty' => 'Kantine Controle',
+            'description' => 'Officiële overstapbende in TBS Kliniek. Gestart met €'.number_format($bonusCash, 0, ',', '.').' overstapbonus!',
+            'treasury' => $bonusCash,
+            'emblem' => 'fa-crown',
+            'vip_boost_until' => $vipBoostUntil,
+        ]);
+
+        // Assign leader and grant personal VIP as well
+        $character->gang_id = $gang->id;
+        $character->gang_role = 'leader';
+        $character->last_gang_wage_at = now();
+        $character->is_vip = true;
+        $character->vip_expires_at = $vipBoostUntil;
+        $character->save();
+
+        // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
+        $memberNames = $ticket->metadata['member_names'] ?? null;
+        if (! empty($memberNames)) {
+            $names = array_filter(array_map('trim', explode(',', str_replace(["\n", "\r", ';'], ',', $memberNames))));
+            if (! empty($names)) {
+                $matchedChars = Character::whereIn('name', $names)->get();
+                foreach ($matchedChars as $mc) {
+                    $mc->is_vip = true;
+                    $mc->vip_expires_at = $vipBoostUntil;
+                    if (! $mc->gang_id) {
+                        $mc->gang_id = $gang->id;
+                        $mc->gang_role = 'member';
+                    }
+                    $mc->save();
+                }
+            }
+        }
+
+        // Format staff auto-reply message
+        $staffUser = Auth::user();
+        $staffName = $staffUser?->name ? ucfirst($staffUser->name) : 'Daniel';
+
+        $customReply = $validated['reply_message'] ?? null;
+        $autoReply = $customReply ?: "Gefeliciteerd! Jouw aanvraag voor de Gang Overstap Bonus is goedgekeurd door TBS Kliniek Staff!\n\nJe bende '{$gang->name}' [{$gang->tag}] is direct voor je opgericht en we hebben € ".number_format($bonusCash, 0, ',', '.')." startkapitaal in jullie kluis gestort. Daarnaast hebben jij en al je bendeleden {$vipDays} dagen gratis VIP geactiveerd gekregen!\n\nNodig al je leden uit via het Bendepaneel en veel succes met het veroveren van de kliniek!\n\nMet vriendelijke groet,\n{$staffName}\nTBS Kliniek Staff";
+
+        SupportTicketMessage::create([
+            'support_ticket_id' => $ticket->id,
+            'user_id' => Auth::id(),
+            'character_id' => Auth::user()?->character?->id,
+            'is_staff' => true,
+            'message' => $autoReply,
+        ]);
+
+        $metadata = $ticket->metadata ?? [];
+        $metadata['bonus_approved_at'] = now()->toIso8601String();
+        $metadata['approved_by_user_id'] = Auth::id();
+        $metadata['approved_by_name'] = $staffName;
+        $metadata['created_gang_id'] = $gang->id;
+        $metadata['created_gang_name'] = $gang->name;
+        $metadata['created_gang_tag'] = $gang->tag;
+        $metadata['bonus_cash'] = $bonusCash;
+        $metadata['vip_days'] = $vipDays;
+
+        $ticket->update([
+            'metadata' => $metadata,
+            'status' => 'beantwoord',
+            'last_reply_at' => now(),
+            'last_reply_by_staff' => true,
+        ]);
+
+        return back()->with('success', "Gang Overstap Bonus succesvol goedgekeurd! Bende '{$gang->name}' [{$gang->tag}] is aangemaakt met €".number_format($bonusCash, 0, ',', '.')." kluisgeld en {$vipDays} dagen VIP.");
     }
 }

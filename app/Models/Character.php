@@ -341,19 +341,19 @@ class Character extends Model
     }
 
     /**
-     * Check if character has active VIP status.
+     * Check if character has active VIP status (either personal VIP or through Gang Overstap VIP boost).
      */
     public function isVip(): bool
     {
-        if (! $this->is_vip) {
-            return false;
+        if ($this->is_vip && (! $this->vip_expires_at || $this->vip_expires_at->isFuture())) {
+            return true;
         }
 
-        if ($this->vip_expires_at && $this->vip_expires_at->isPast()) {
-            return false;
+        if ($this->gang && $this->gang->hasActiveVipBoost()) {
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**

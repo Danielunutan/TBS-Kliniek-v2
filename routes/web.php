@@ -458,6 +458,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
         Route::post('/tickets/{ticket}/reactie', [AdminTicketController::class, 'reply'])->name('tickets.reply');
         Route::post('/tickets/{ticket}/status', [AdminTicketController::class, 'updateStatus'])->name('tickets.status');
+        Route::post('/tickets/{ticket}/approve-gang-transfer', [AdminTicketController::class, 'approveGangTransfer'])->name('tickets.approve_gang');
 
         // Nieuws Beheer
         Route::get('/nieuws', [AdminNewsController::class, 'index'])->name('news.index');
