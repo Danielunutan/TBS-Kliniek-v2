@@ -108,6 +108,8 @@
 
             <script>
                 window.tbsTurnstileToken = '';
+                window.tbsTurnstileWidgetId = null;
+
                 function onTurnstileSuccess(token) {
                     window.tbsTurnstileToken = token;
                     document.querySelectorAll('input.turnstile-token-input').forEach(function(el) {
@@ -115,37 +117,122 @@
                     });
                     const banner = document.getElementById('turnstile-container-banner');
                     if (banner) {
-                        banner.classList.remove('bg-purple-50', 'border-purple-300');
-                        banner.classList.add('bg-emerald-50', 'border-emerald-300');
+                        banner.classList.remove('bg-purple-50', 'dark:bg-slate-900', 'border-purple-300', 'dark:border-purple-800');
+                        banner.classList.add('bg-emerald-50', 'dark:bg-emerald-950/40', 'border-emerald-300', 'dark:border-emerald-800');
                     }
                     const statusText = document.getElementById('turnstile-status-text');
                     if (statusText) {
-                        statusText.innerHTML = '<span class="text-xs font-bold text-emerald-700 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600"></i> Beveiliging gecontroleerd! Klik nu direct op \'Steel Geld\'.</span>';
+                        statusText.innerHTML = '<span class="text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-600"></i> Beveiliging gecontroleerd! Klik nu direct op \'Steel Geld\'.</span>';
+                    }
+                    const skeleton = document.getElementById('turnstile-skeleton');
+                    if (skeleton) skeleton.style.display = 'none';
+                }
+
+                function onTurnstileError() {
+                    const statusText = document.getElementById('turnstile-status-text');
+                    if (statusText) {
+                        statusText.innerHTML = '<span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> Verificatie laden duurde te lang. Klik op \'Ververs verificatie\'.</span>';
                     }
                 }
+
+                function onTurnstileExpired() {
+                    window.tbsTurnstileToken = '';
+                    document.querySelectorAll('input.turnstile-token-input').forEach(function(el) {
+                        el.value = '';
+                    });
+                    const statusText = document.getElementById('turnstile-status-text');
+                    if (statusText) {
+                        statusText.innerHTML = '<span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left"></i> Verificatie verlopen. Klik op het vakje om opnieuw te verifiëren.</span>';
+                    }
+                }
+
+                function renderTurnstileWidget() {
+                    const target = document.getElementById('turnstile-widget');
+                    const skeleton = document.getElementById('turnstile-skeleton');
+                    if (!target || !window.turnstile) return;
+
+                    try {
+                        if (window.tbsTurnstileWidgetId !== null) {
+                            window.turnstile.reset(window.tbsTurnstileWidgetId);
+                        } else {
+                            window.tbsTurnstileWidgetId = window.turnstile.render('#turnstile-widget', {
+                                sitekey: '{{ $turnstileSiteKey ?? "1x00000000000000000000AA" }}',
+                                callback: onTurnstileSuccess,
+                                'error-callback': onTurnstileError,
+                                'expired-callback': onTurnstileExpired,
+                                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                                appearance: 'always'
+                            });
+                        }
+                        if (skeleton) {
+                            setTimeout(() => { skeleton.style.display = 'none'; }, 200);
+                        }
+                    } catch (err) {
+                        console.warn('Turnstile render notice:', err);
+                    }
+                }
+
+                window.onTurnstileLoaded = function() {
+                    renderTurnstileWidget();
+                };
+
+                window.reloadTurnstileWidget = function() {
+                    const skeleton = document.getElementById('turnstile-skeleton');
+                    if (skeleton) {
+                        skeleton.style.display = 'flex';
+                        skeleton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i> <span>Verificatie opnieuw laden...</span>';
+                    }
+                    if (window.turnstile && window.tbsTurnstileWidgetId !== null) {
+                        window.turnstile.reset(window.tbsTurnstileWidgetId);
+                        setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, 400);
+                    } else {
+                        renderTurnstileWidget();
+                    }
+                };
+
                 window.onTurnstileSuccess = onTurnstileSuccess;
+
+                // If turnstile script was already cached/loaded, mount immediately
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    setTimeout(() => { if (window.turnstile) renderTurnstileWidget(); }, 100);
+                } else {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        setTimeout(() => { if (window.turnstile) renderTurnstileWidget(); }, 100);
+                    });
+                }
             </script>
 
             <!-- CLOUDFLARE TURNSTILE SECURITY BANNER IF REQUIRED -->
             @if($isCaptchaRequired)
-            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-            <div id="turnstile-container-banner" class="bg-purple-50 border-2 border-purple-300 rounded-xl p-4 shadow-xs space-y-3 transition-colors">
+            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoaded&render=explicit" async defer></script>
+            <div id="turnstile-container-banner" class="bg-purple-50 dark:bg-slate-900 border-2 border-purple-300 dark:border-purple-800/80 rounded-xl p-4 shadow-xs space-y-3 transition-colors">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-lg shrink-0">
+                    <div class="w-9 h-9 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
                     <div>
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-purple-900">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-purple-900 dark:text-white">
                             Cloudflare Turnstile Zaalwacht Controle
                         </h4>
-                        <p id="turnstile-status-text" class="text-xs text-purple-700 font-medium">
+                        <p id="turnstile-status-text" class="text-xs text-purple-700 dark:text-purple-300 font-medium">
                             Bevestig via de Turnstile verificatie dat je een echte speler bent om contanten te kunnen stelen op de luchtplaats.
                         </p>
                     </div>
                 </div>
 
-                <div class="bg-white p-3 rounded-lg border border-purple-200 inline-block shadow-xs">
-                    <div class="cf-turnstile" data-sitekey="{{ $turnstileSiteKey ?? '1x00000000000000000000AA' }}" data-callback="onTurnstileSuccess" data-theme="light"></div>
+                <div class="bg-white dark:bg-slate-950 p-3 rounded-lg border border-purple-200 dark:border-purple-800/60 inline-flex flex-col items-start gap-2 shadow-xs min-h-[85px] min-w-[310px] relative">
+                    <div id="turnstile-skeleton" class="flex items-center gap-2 text-xs text-slate-500 font-semibold py-2">
+                        <i class="fa-solid fa-circle-notch fa-spin text-purple-600"></i>
+                        <span>Beveiligingscontrole initialiseren...</span>
+                    </div>
+
+                    <div id="turnstile-widget"></div>
+
+                    <div class="flex items-center justify-between w-full pt-1 text-[11px] text-slate-400">
+                        <button type="button" onclick="reloadTurnstileWidget()" class="hover:text-purple-600 dark:hover:text-purple-400 underline font-bold cursor-pointer inline-flex items-center gap-1">
+                            <i class="fa-solid fa-rotate text-[10px]"></i> Ververs verificatie
+                        </button>
+                    </div>
                 </div>
             </div>
             @endif

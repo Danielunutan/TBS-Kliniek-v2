@@ -264,7 +264,7 @@
                             <span class="text-[9px] uppercase tracking-wider text-slate-400 font-extrabold block">Huidige Bendekas</span>
                             <span class="font-mono text-sm font-black text-emerald-400">€ {{ number_format($character->gang->treasury, 0, ',', '.') }}</span>
                         </div>
-                        <a href="{{ route('gangs.show', $character->gang) }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition">
+                        <a href="{{ route('gangs.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition">
                             Bendepagina
                         </a>
                     </div>
