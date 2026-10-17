@@ -100,7 +100,8 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2509357892188070"
          crossorigin="anonymous"></script>
     --}}
-    <!-- Ad network script placeholder (currently disabled pending approval) -->
+    <!-- Robins Ads Network (Loaded strictly on-demand for rewarded video ads, automatic banners disabled) -->
+    <script src="https://robinsads.com/ads.js" data-automatic="false" data-popunder="false" data-interstitial="false" async></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -2330,8 +2331,26 @@
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
 
-                    // Open sponsor popup / smartlink with timer
-                    this.startFallbackCountdown(data);
+                    // 1. First priority: Robins Ads official in-app interstitial (fullscreen video inside site)
+                    if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
+                        this.status = 'watching';
+                        this.statusMessage = 'Robins Ads video-advertentie wordt geladen...';
+                        window.RobinAds.showInterstitial({ websiteId: '6ad2b8e95f70fee0a42a5496' }).then((result) => {
+                            if (result && result.rewardGranted) {
+                                // Full watch verified by Robins Ads!
+                                this.claim(result.token, result.rewardId);
+                            } else {
+                                this.status = 'error';
+                                this.statusMessage = 'De advertentie is voortijdig gesloten. Bekijk de video volledig om je beloning te ontvangen.';
+                            }
+                        }).catch((err) => {
+                            console.warn('RobinAds interstitial unavailable or blocked, falling back to popup:', err);
+                            this.startFallbackCountdown(data);
+                        });
+                    } else {
+                        // 2. Fallback to Robins Ads hosted popup or smartlink with timer
+                        this.startFallbackCountdown(data);
+                    }
                 })
                 .catch(err => {
                     this.status = 'error';
