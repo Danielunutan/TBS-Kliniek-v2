@@ -168,6 +168,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/chat/prive/{partnerId}', [ChatController::class, 'directMessages'])->name('chat.direct.messages');
     Route::post('/chat/prive/{partnerId}/verzenden', [ChatController::class, 'sendDirect'])->name('chat.direct.send');
     Route::get('/chat/ongelezen-teller', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
+    Route::get('/chat/poll-inkomend', [ChatController::class, 'pollIncoming'])->name('chat.poll-incoming');
 
     // Meldingen & Rapporteren (Speler, Bende of Chat)
     Route::post('/rapporteren', [ReportController::class, 'store'])->name('report.store');
@@ -363,10 +364,13 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/luchtplaats/arena/{defender}', [FightController::class, 'arena'])->name('fight.arena');
     Route::post('/luchtplaats/attack', [FightController::class, 'attack'])->name('fight.attack');
 
-    // Bank
+    // Bank & Financieel Centrum
     Route::get('/bank', [BankController::class, 'index'])->name('bank.index');
     Route::post('/bank/storten', [BankController::class, 'deposit'])->name('bank.deposit');
     Route::post('/bank/opnemen', [BankController::class, 'withdraw'])->name('bank.withdraw');
+    Route::post('/bank/leningen/aanvragen', [BankController::class, 'requestLoan'])->name('bank.loans.request');
+    Route::post('/bank/leningen/{loan}/aflossen', [BankController::class, 'repayLoan'])->name('bank.loans.repay');
+    Route::post('/bank/leningen/{loan}/alles-aflossen', [BankController::class, 'repayLoanFull'])->name('bank.loans.repay-full');
 
     // Casino
     Route::get('/casino', [CasinoController::class, 'index'])->name('casino.index');

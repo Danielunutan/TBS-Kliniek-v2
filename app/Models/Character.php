@@ -586,6 +586,30 @@ class Character extends Model
     }
 
     /**
+     * Get loans taken by this character.
+     */
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class);
+    }
+
+    /**
+     * Get active loans taken by this character.
+     */
+    public function activeLoans(): HasMany
+    {
+        return $this->hasMany(Loan::class)->where('status', 'active');
+    }
+
+    /**
+     * Get bank and financial transactions of this character.
+     */
+    public function bankTransactions(): HasMany
+    {
+        return $this->hasMany(BankTransaction::class);
+    }
+
+    /**
      * Referrals invited by this character.
      */
     public function referrals(): HasMany

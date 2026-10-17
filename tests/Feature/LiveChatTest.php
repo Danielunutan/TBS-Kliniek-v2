@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Services\ChatBotService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class LiveChatTest extends TestCase
@@ -290,6 +291,74 @@ class LiveChatTest extends TestCase
             'id' => $report->id,
             'status' => 'resolved',
             'handled_by' => $modChar->id,
+        ]);
+    }
+
+    public function test_chat_anti_spam_blocks_duplicate_messages_and_flooding(): void
+    {
+        [$user, $character] = $this->createInmate();
+
+        // 1. Send first message -> succeeds
+        $res1 = $this->actingAs($user)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Eerste testbericht!',
+        ]);
+        $res1->assertOk();
+
+        // 2. Immediate send (cooldown) -> 429
+        $res2 = $this->actingAs($user)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Tweede bericht meteen',
+        ]);
+        $res2->assertStatus(429);
+        $res2->assertJson(['success' => false]);
+        $this->assertStringContainsString('Rustig aan', $res2->json('message'));
+
+        // Clear cooldown cache to test duplicate protection
+        Cache::forget("chat_cooldown_{$character->id}_public");
+
+        // 3. Duplicate message -> 422
+        $res3 = $this->actingAs($user)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Eerste testbericht!',
+        ]);
+        $res3->assertStatus(422);
+        $this->assertStringContainsString('Anti-spam', $res3->json('message'));
+
+        // Clear cache to test character flooding
+        Cache::forget("chat_cooldown_{$character->id}_public");
+
+        // 4. Repeated character flooding (e.g. 20 a's) -> 422
+        $res4 = $this->actingAs($user)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Hallo aaaaaaaaaaaaaaaaaaaaaaaa wat doe je',
+        ]);
+        $res4->assertStatus(422);
+        $this->assertStringContainsString('herhalende tekens', $res4->json('message'));
+    }
+
+    public function test_poll_incoming_endpoint_returns_unread_dms_and_newest_dm_info(): void
+    {
+        [$senderUser, $senderChar] = $this->createInmate(['name' => 'SecretSender']);
+        [$receiverUser, $receiverChar] = $this->createInmate(['name' => 'RecipientPlayer']);
+
+        // Send direct message
+        $sendRes = $this->actingAs($senderUser)->postJson(route('chat.direct.send', ['partnerId' => $receiverChar->id]), [
+            'message' => 'Hé kom je zo naar de werkplaats?',
+        ]);
+        $sendRes->assertOk();
+
+        // Recipient polls incoming notifications
+        $pollRes = $this->actingAs($receiverUser)->getJson(route('chat.poll-incoming'));
+        $pollRes->assertOk();
+        $pollRes->assertJson([
+            'success' => true,
+            'unread_dms' => 1,
+            'new_dm' => [
+                'sender_id' => $senderChar->id,
+                'sender_name' => 'SecretSender',
+                'message' => 'Hé kom je zo naar de werkplaats?',
+            ],
         ]);
     }
 }

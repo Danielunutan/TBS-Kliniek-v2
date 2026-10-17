@@ -82,18 +82,41 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
-             @click="isOpen = true; toastNotification = null;"
-             class="bg-white dark:bg-[#160a33] border-2 border-emerald-500/80 rounded-2xl p-3 shadow-2xl flex items-center gap-3 cursor-pointer max-w-xs transform hover:scale-102 transition">
-            <div class="relative w-9 h-9 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-purple-800">
+             @click="openToastDestination()"
+             :class="toastNotification.type === 'direct' 
+                ? 'border-purple-500 shadow-purple-900/30' 
+                : 'border-emerald-500 shadow-emerald-900/30'"
+             class="bg-white dark:bg-[#160a33] border-2 rounded-2xl p-3 shadow-2xl flex items-center gap-3 cursor-pointer max-w-sm transform hover:scale-102 transition border-solid">
+            <div class="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-purple-800">
                 <img :src="toastNotification.avatar || '/characters/avatar-default.png'" class="w-full h-full object-cover">
-                <span class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-ping"></span>
+                <span class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"
+                      :class="toastNotification.type === 'direct' ? 'bg-purple-500 ring-2 ring-white animate-ping' : 'bg-emerald-500 ring-2 ring-white animate-ping'"></span>
             </div>
             <div class="min-w-0 flex-1">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-1.5 mb-0.5">
                     <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="toastNotification.name"></span>
-                    <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-1 rounded">NIEUW</span>
+                    
+                    <!-- Clear distinction badge: PM vs Plein -->
+                    <template x-if="toastNotification.type === 'direct'">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950 px-1.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800 flex items-center gap-1 shrink-0">
+                            <i class="fa-solid fa-lock text-[8px]"></i>
+                            <span>PRIVÉ (PM)</span>
+                        </span>
+                    </template>
+                    <template x-if="toastNotification.type !== 'direct'">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 flex items-center gap-1 shrink-0">
+                            <i class="fa-solid fa-comments text-[8px]"></i>
+                            <span>PLEIN CHAT</span>
+                        </span>
+                    </template>
                 </div>
                 <p class="text-[11px] text-slate-600 dark:text-purple-200 truncate" x-text="toastNotification.text"></p>
+                <div class="text-[9px] font-bold text-slate-400 dark:text-purple-400/80 flex items-center justify-between mt-0.5">
+                    <span x-text="toastNotification.time || 'Zojuist'"></span>
+                    <span class="text-purple-600 dark:text-purple-400 font-extrabold flex items-center gap-0.5">
+                        <span>Klik om te openen</span> &rarr;
+                    </span>
+                </div>
             </div>
         </div>
     </template>
@@ -624,6 +647,7 @@
             unreadDmsCount: 0,
             toastNotification: null,
             audioCtx: null,
+            lastDirectDmId: 0,
 
             // Direct Messages in mini chat
             directConversations: [],
@@ -723,11 +747,13 @@
                                 this.playChime();
                                 if (!this.isOpen) {
                                     this.toastNotification = {
+                                        type: 'global',
                                         name: latest.name,
                                         text: latest.message,
                                         avatar: latest.avatar,
+                                        time: latest.time || 'Zojuist',
                                     };
-                                    setTimeout(() => { this.toastNotification = null; }, 5000);
+                                    setTimeout(() => { this.toastNotification = null; }, 6000);
                                 }
                             }
                             this.publicMessages = [...this.publicMessages, ...data.messages];
@@ -738,6 +764,24 @@
                         }
                     }
                 } catch (e) {}
+            },
+
+            openToastDestination() {
+                if (!this.toastNotification) return;
+                const note = this.toastNotification;
+                this.toastNotification = null;
+                this.isOpen = true;
+                if (note.type === 'direct' && note.partner_id !== undefined) {
+                    this.openDirectChat({
+                        id: note.partner_id,
+                        partner_id: note.partner_id,
+                        name: note.name,
+                        avatar: note.avatar,
+                        is_bot: note.is_bot || false,
+                    });
+                } else {
+                    this.setTab('global');
+                }
             },
 
             async sendPublicMessage() {
@@ -873,23 +917,67 @@
             pollLoop() {
                 setInterval(() => {
                     this.loadPublicMessages();
-                    if (this.activeTab === 'direct' && this.activeDirectPartner) {
-                        const pId = this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id;
-                        fetch(`/chat/prive/${pId}`, { headers: { 'Accept': 'application/json' } })
-                            .then(r => r.json())
-                            .then(data => {
-                                if (data.success && data.messages) {
-                                    if (data.messages.length > this.activeDirectMessages.length) {
-                                        const newCount = data.messages.length - this.activeDirectMessages.length;
-                                        const latestNew = data.messages.slice(-newCount);
-                                        if (latestNew.some(m => !m.is_me)) this.playChime();
-                                        this.activeDirectMessages = data.messages;
-                                        this.scrollDirectBottom();
+
+                    // Poll incoming direct messages & unread count
+                    const pollDmUrl = '{{ route('chat.poll-incoming') }}' + (this.lastDirectDmId > 0 ? ('?after_dm_id=' + this.lastDirectDmId) : '');
+                    fetch(pollDmUrl, { headers: { 'Accept': 'application/json' } })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (data.unread_dms !== undefined) {
+                                    this.unreadDmsCount = data.unread_dms;
+                                }
+
+                                if (data.new_dm && data.new_dm.id) {
+                                    const dm = data.new_dm;
+                                    const isNewer = dm.id > this.lastDirectDmId;
+                                    this.lastDirectDmId = dm.id;
+
+                                    if (isNewer) {
+                                        const isChattingWithSender = this.isOpen && 
+                                            this.activeTab === 'direct' && 
+                                            this.activeDirectPartner && 
+                                            (this.activeDirectPartner.id === dm.sender_id || this.activeDirectPartner.partner_id === dm.sender_id);
+
+                                        this.playChime();
+
+                                        if (isChattingWithSender) {
+                                            // Append to active conversation stream
+                                            if (!this.activeDirectMessages.some(m => m.id === dm.id)) {
+                                                this.activeDirectMessages.push({
+                                                    id: dm.id,
+                                                    sender_id: dm.sender_id,
+                                                    recipient_id: 0,
+                                                    message: dm.message,
+                                                    type: 'chat',
+                                                    metadata: null,
+                                                    time: dm.time,
+                                                    is_me: false,
+                                                });
+                                                this.scrollDirectBottom();
+                                            }
+                                        } else {
+                                            // Show distinct Privé (PM) toast notification
+                                            this.toastNotification = {
+                                                type: 'direct',
+                                                partner_id: dm.sender_id,
+                                                name: dm.sender_name,
+                                                text: dm.message,
+                                                avatar: dm.sender_avatar,
+                                                time: dm.time,
+                                                is_bot: dm.is_bot,
+                                            };
+                                            setTimeout(() => { 
+                                                if (this.toastNotification && this.toastNotification.type === 'direct') {
+                                                    this.toastNotification = null; 
+                                                }
+                                            }, 7000);
+                                        }
                                     }
                                 }
-                            })
-                            .catch(() => {});
-                    }
+                            }
+                        })
+                        .catch(() => {});
                 }, 2500);
             }
         };

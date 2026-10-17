@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\GameMessage;
 
@@ -64,6 +65,15 @@ class AllowanceService
         $character->bank += $totalPayout;
         $character->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
         $character->save();
+
+        BankTransaction::record(
+            $character,
+            'allowance',
+            'bank',
+            $totalPayout,
+            $character->bank,
+            'TBS Patiënten Uitkering ontvangen (+€'.number_format($totalPayout, 0, ',', '.').')'
+        );
 
         GameMessage::create([
             'recipient_id' => $character->id,

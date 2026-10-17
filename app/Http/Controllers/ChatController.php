@@ -128,6 +128,58 @@ class ChatController extends Controller
     }
 
     /**
+     * Anti-spam validation for chat and direct messages.
+     */
+    protected function validateChatSpam(Character $character, string $message, string $type = 'public'): ?JsonResponse
+    {
+        $charId = $character->id;
+
+        // 1. Rapid-fire cooldown (2 seconds between messages)
+        $cooldownKey = "chat_cooldown_{$charId}_{$type}";
+        if (Cache::has($cooldownKey)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Rustig aan! Wacht even 2 seconden voor je volgende bericht.',
+            ], 429);
+        }
+
+        // 2. Velocity burst limit: max 4 messages per 8 seconds
+        $velocityKey = "chat_velocity_{$charId}_{$type}";
+        $count = (int) Cache::get($velocityKey, 0);
+        if ($count >= 4) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anti-spam: Je stuurt te snel berichten achter elkaar. Wacht even 8 seconden.',
+            ], 429);
+        }
+
+        // 3. Duplicate message spam protection (exact same text within 30 seconds)
+        $lastMsgKey = "chat_last_msg_{$charId}_{$type}";
+        $lastMsg = Cache::get($lastMsgKey);
+        if ($lastMsg !== null && mb_strtolower(trim((string) $lastMsg)) === mb_strtolower(trim($message))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anti-spam: Je hebt dit identieke bericht zojuist al verstuurd. Niet spammen a.u.b.!',
+            ], 422);
+        }
+
+        // 4. Repeated character flooding (e.g. "aaaaaa..." or "?????...")
+        if (preg_match('/(\S)\1{12,}/u', $message)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anti-spam: Je bericht bevat te veel herhalende tekens achter elkaar.',
+            ], 422);
+        }
+
+        // Set cooldown and increment burst counter
+        Cache::put($cooldownKey, true, now()->addSeconds(2));
+        Cache::put($velocityKey, $count + 1, now()->addSeconds(8));
+        Cache::put($lastMsgKey, $message, now()->addSeconds(30));
+
+        return null;
+    }
+
+    /**
      * Send message to public chat.
      */
     public function sendPublic(Request $request): JsonResponse
@@ -141,14 +193,6 @@ class ChatController extends Controller
                 'success' => false,
                 'message' => 'Vanuit de isoleercel kun je niet meepraten in de recreatieruimte! Kijk een ad om direct vrij te komen.',
             ], 422);
-        }
-
-        $cacheKey = "chat_rate_limit_{$character->id}";
-        if (Cache::has($cacheKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Rustig aan! Wacht even 2 seconden voor je volgende bericht.',
-            ], 429);
         }
 
         $rawMessage = trim((string) $request->input('message', ''));
@@ -168,6 +212,10 @@ class ChatController extends Controller
             ], 422);
         }
 
+        if ($spamError = $this->validateChatSpam($character, $cleanMessage, 'public')) {
+            return $spamError;
+        }
+
         $channel = $request->input('channel', 'global');
 
         $chatMsg = ChatMessage::create([
@@ -175,8 +223,6 @@ class ChatController extends Controller
             'channel' => $channel,
             'message' => $cleanMessage,
         ]);
-
-        Cache::put($cacheKey, true, now()->addSeconds(2));
 
         $gang = $character->gang;
 
@@ -438,6 +484,10 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'message' => 'Bericht is te lang (maximaal 1000 tekens).'], 422);
         }
 
+        if ($spamError = $this->validateChatSpam($character, $cleanMessage, 'direct')) {
+            return $spamError;
+        }
+
         $msg = DirectMessage::create([
             'sender_id' => $character->id,
             'recipient_id' => $partner->id,
@@ -458,6 +508,58 @@ class ChatController extends Controller
                 'time' => $msg->created_at->format('H:i'),
                 'is_me' => true,
             ],
+        ]);
+    }
+
+    /**
+     * Poll incoming notifications for both DMs and unread count.
+     */
+    public function pollIncoming(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['success' => false], 403);
+        }
+
+        $afterDmId = (int) $request->query('after_dm_id', 0);
+
+        // Find latest unread DM for this character
+        $query = DirectMessage::with(['sender'])
+            ->where('recipient_id', $character->id)
+            ->where('is_read', false);
+
+        if ($afterDmId > 0) {
+            $query->where('id', '>', $afterDmId);
+        }
+
+        /** @var DirectMessage|null $latestDm */
+        $latestDm = $query->orderBy('id', 'desc')->first();
+
+        $unreadCount = DirectMessage::where('recipient_id', $character->id)
+            ->where('is_read', false)
+            ->count();
+
+        $dmData = null;
+        if ($latestDm) {
+            $sender = $latestDm->sender;
+            $dmData = [
+                'id' => $latestDm->id,
+                'sender_id' => $latestDm->sender_id ?? 0,
+                'sender_name' => $sender ? $sender->name : '🏥 Kliniek Directie',
+                'sender_avatar' => $sender ? $sender->avatar_url : asset('characters/avatar-default.png'),
+                'message' => Str::limit($latestDm->message, 80),
+                'time' => $latestDm->created_at->format('H:i'),
+                'is_bot' => $latestDm->sender_id === null,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'unread_dms' => $unreadCount,
+            'new_dm' => $dmData,
         ]);
     }
 

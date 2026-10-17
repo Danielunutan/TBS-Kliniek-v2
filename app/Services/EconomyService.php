@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BankTransaction;
 use App\Models\Character;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -32,6 +33,15 @@ class EconomyService
             $character->cash = $locked->cash;
             $character->bank = $locked->bank;
 
+            BankTransaction::record(
+                $locked,
+                'deposit',
+                'bank',
+                $amount,
+                $locked->bank,
+                'Contant gestort op bankrekening (+€'.number_format($amount, 0, ',', '.').')'
+            );
+
             return true;
         });
     }
@@ -60,6 +70,15 @@ class EconomyService
             $character->cash = $locked->cash;
             $character->bank = $locked->bank;
 
+            BankTransaction::record(
+                $locked,
+                'withdraw',
+                'bank',
+                -$amount,
+                $locked->bank,
+                'Contant opgenomen van bankrekening (-€'.number_format($amount, 0, ',', '.').')'
+            );
+
             return true;
         });
     }
@@ -73,7 +92,7 @@ class EconomyService
             return false;
         }
 
-        return DB::transaction(function () use ($character, $totalDebit, $netCashToAdd): bool {
+        return DB::transaction(function () use ($character, $totalDebit, $netCashToAdd, $taxAmount): bool {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
@@ -87,6 +106,15 @@ class EconomyService
 
             $character->cash = $locked->cash;
             $character->bank = $locked->bank;
+
+            BankTransaction::record(
+                $locked,
+                'withdraw',
+                'bank',
+                -$totalDebit,
+                $locked->bank,
+                'Contant opgenomen van bankrekening (-€'.number_format($totalDebit, 0, ',', '.').' incl. €'.number_format($taxAmount, 0, ',', '.').' tax)'
+            );
 
             return true;
         });
