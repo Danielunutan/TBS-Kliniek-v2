@@ -11,6 +11,7 @@ use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class GarageController extends Controller
@@ -19,6 +20,97 @@ class GarageController extends Controller
         protected EnergyService $energyService,
         protected EconomyService $economyService,
     ) {}
+
+    /**
+     * Get the current 30-minute rotating vehicle showroom listings.
+     * Rotates at :00 and :30 of every hour with 8 unique dynamic offers.
+     *
+     * @return array{slot: int, expires_at: int, seconds_left: int, listings: array}
+     */
+    public function getRotatingShowroom(): array
+    {
+        $slotDuration = 1800; // 30 minutes
+        $currentTimestamp = time();
+        $slot = (int) floor($currentTimestamp / $slotDuration);
+        $secondsLeft = $slotDuration - ($currentTimestamp % $slotDuration);
+        $expiresAt = ($slot + 1) * $slotDuration;
+
+        $cacheKey = "garage_showroom_rotation_{$slot}";
+
+        $listings = Cache::remember($cacheKey, $secondsLeft + 5, function () use ($slot) {
+            $allVehicles = Vehicle::where('is_available', true)->get();
+            if ($allVehicles->isEmpty()) {
+                return [];
+            }
+
+            // Deterministic pseudo-random seed based on 30-minute slot
+            // Every inmate sees the exact same exciting offers during this half hour!
+            mt_srand($slot * 31337);
+
+            // Group into 4 level tiers to guarantee rich variety for both new and veteran inmates
+            $t1 = $allVehicles->where('min_level', '<=', 3)->shuffle();
+            $t2 = $allVehicles->whereBetween('min_level', [4, 7])->shuffle();
+            $t3 = $allVehicles->whereBetween('min_level', [8, 12])->shuffle();
+            $t4 = $allVehicles->where('min_level', '>=', 13)->shuffle();
+
+            $selected = collect();
+            $selected = $selected->merge($t1->take(2));
+            $selected = $selected->merge($t2->take(2));
+            $selected = $selected->merge($t3->take(2));
+            $selected = $selected->merge($t4->take(2));
+
+            if ($selected->count() < 8) {
+                $remaining = $allVehicles->whereNotIn('id', $selected->pluck('id'))->shuffle();
+                $selected = $selected->merge($remaining->take(8 - $selected->count()));
+            }
+
+            $items = [];
+            foreach ($selected->values() as $index => $vehicle) {
+                // Dynamic condition: 52% to 100%
+                $condition = mt_rand(52, 100);
+
+                // Speed tuning variance: -3% to +8%
+                $speedVariance = mt_rand(-3, 8);
+                $tunedSpeed = max(25, min(100, $vehicle->speed_pct + $speedVariance));
+
+                // Price formula:
+                // Worn condition gives a steep bargain discount (up to 30% off!)
+                // Positive speed tuning adds a realistic street value premium
+                $conditionFactor = 0.70 + (($condition - 50) / 50) * 0.30;
+                $speedFactor = 1.0 + ($speedVariance * 0.015);
+                $priceMultiplier = max(0.65, min(1.25, $conditionFactor * $speedFactor));
+
+                $priceCash = (int) (round(($vehicle->price_cash * $priceMultiplier) / 50) * 50);
+                $priceStars = $vehicle->price_stars > 0 ? (int) max(1, round($vehicle->price_stars * $priceMultiplier)) : 0;
+
+                $token = substr(hash_hmac('sha256', "{$slot}_{$vehicle->id}_{$condition}_{$tunedSpeed}_{$priceCash}", config('app.key')), 0, 16);
+
+                $items[] = [
+                    'index' => $index,
+                    'token' => $token,
+                    'vehicle' => $vehicle,
+                    'condition' => $condition,
+                    'speed_variance' => $speedVariance,
+                    'tuned_speed' => $tunedSpeed,
+                    'price_cash' => $priceCash,
+                    'price_stars' => $priceStars,
+                    'original_price_cash' => $vehicle->price_cash,
+                    'original_speed' => $vehicle->speed_pct,
+                ];
+            }
+
+            mt_srand();
+
+            return $items;
+        });
+
+        return [
+            'slot' => $slot,
+            'expires_at' => $expiresAt,
+            'seconds_left' => $secondsLeft,
+            'listings' => $listings,
+        ];
+    }
 
     /**
      * Show the garage showroom and owned vehicles.
@@ -37,10 +129,10 @@ class GarageController extends Controller
 
         $activeVehicle = $ownedVehicles->firstWhere('is_active', true) ?? $ownedVehicles->first();
 
-        // Showroom available vehicles
-        $showroomVehicles = Vehicle::where('is_available', true)
-            ->orderBy('min_level')
-            ->get();
+        // 30-minute rotating showroom listings
+        $rotation = $this->getRotatingShowroom();
+        $rotatingListings = $rotation['listings'];
+        $secondsUntilRotation = $rotation['seconds_left'];
 
         $topRankings = Character::orderByDesc('respect')->take(10)->get();
 
@@ -48,7 +140,8 @@ class GarageController extends Controller
             'character',
             'ownedVehicles',
             'activeVehicle',
-            'showroomVehicles',
+            'rotatingListings',
+            'secondsUntilRotation',
             'topRankings'
         ));
     }
@@ -70,26 +163,36 @@ class GarageController extends Controller
             return back()->with('error', "Je persoonlijke garage zit vol ({$character->getGarageUsed()}/{$character->getGarageCapacity()} plaatsen)! Bereik een hoger level of activeer VIP voor +3 extra garageplekken.");
         }
 
+        // Check if buying from the active 30-minute rotating showroom
+        $listingToken = $request->input('listing_token');
+        $rotation = $this->getRotatingShowroom();
+        $matchedListing = collect($rotation['listings'])->firstWhere('token', $listingToken);
+
+        $finalPriceCash = $matchedListing ? $matchedListing['price_cash'] : $vehicle->price_cash;
+        $finalPriceStars = $matchedListing ? $matchedListing['price_stars'] : $vehicle->price_stars;
+        $initialCondition = $matchedListing ? $matchedListing['condition'] : 100;
+        $initialTunedSpeed = $matchedListing ? $matchedListing['tuned_speed'] : $vehicle->speed_pct;
+
         $paymentMethod = $request->input('payment', 'cash');
 
-        if ($paymentMethod === 'stars' && $vehicle->price_stars > 0) {
-            if (($character->stars ?? 0) < $vehicle->price_stars) {
-                return back()->with('error', "Je hebt minimaal {$vehicle->price_stars} Sterren ⭐ nodig (je hebt er {$character->stars}).");
+        if ($paymentMethod === 'stars' && $finalPriceStars > 0) {
+            if (($character->stars ?? 0) < $finalPriceStars) {
+                return back()->with('error', "Je hebt minimaal {$finalPriceStars} Sterren ⭐ nodig (je hebt er {$character->stars}).");
             }
-            $character->stars -= $vehicle->price_stars;
+            $character->stars -= $finalPriceStars;
             $character->save();
         } else {
             $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
-            if ($totalFunds < $vehicle->price_cash) {
-                $formattedCost = number_format($vehicle->price_cash, 0, ',', '.');
+            if ($totalFunds < $finalPriceCash) {
+                $formattedCost = number_format($finalPriceCash, 0, ',', '.');
 
-                return back()->with('error', "Niet genoeg saldo! De {$vehicle->name} kost €{$formattedCost}.");
+                return back()->with('error', "Niet genoeg saldo! Deze {$vehicle->name} kost momenteel €{$formattedCost}.");
             }
 
-            if (($character->cash ?? 0) >= $vehicle->price_cash) {
-                $character->cash -= $vehicle->price_cash;
+            if (($character->cash ?? 0) >= $finalPriceCash) {
+                $character->cash -= $finalPriceCash;
             } else {
-                $diff = $vehicle->price_cash - $character->cash;
+                $diff = $finalPriceCash - $character->cash;
                 $character->cash = 0;
                 $character->bank -= $diff;
             }
@@ -102,12 +205,15 @@ class GarageController extends Controller
         $charVehicle = CharacterVehicle::create([
             'character_id' => $character->id,
             'vehicle_id' => $vehicle->id,
-            'current_condition' => 100,
+            'current_condition' => $initialCondition,
+            'tuned_speed' => $initialTunedSpeed,
             'is_active' => ! $hasVehicles,
             'total_heists_done' => 0,
         ]);
 
-        return back()->with('success', "🏎️ Gefeliciteerd! De {$vehicle->name} staat nu in je garage met 100% conditie!");
+        $tuneMsg = ($initialTunedSpeed !== $vehicle->speed_pct) ? " (Tuned topsnelheid: {$initialTunedSpeed}%)" : '';
+
+        return back()->with('success', "🏎️ Gefeliciteerd! De {$vehicle->name} staat nu in je garage met {$initialCondition}% conditie{$tuneMsg}!");
     }
 
     /**

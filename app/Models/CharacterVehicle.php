@@ -15,6 +15,7 @@ class CharacterVehicle extends Model
 
     protected $casts = [
         'current_condition' => 'integer',
+        'tuned_speed' => 'integer',
         'is_active' => 'boolean',
         'total_heists_done' => 'integer',
     ];
@@ -36,7 +37,7 @@ class CharacterVehicle extends Model
 
     public function getEffectiveSpeedAttribute(): int
     {
-        $base = $this->vehicle?->speed_pct ?? 50;
+        $base = $this->tuned_speed ?? ($this->vehicle?->speed_pct ?? 50);
         // Condition affects actual performance: below 50% condition, vehicle gets slower
         if ($this->current_condition < 50) {
             $penalty = (int) round((50 - $this->current_condition) * 0.5);

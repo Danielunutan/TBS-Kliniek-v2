@@ -13,6 +13,10 @@ class Heist extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
+        'is_gang_heist' => 'boolean',
+        'min_gang_members' => 'integer',
+        'gang_respect_reward' => 'integer',
+        'gang_treasury_share_pct' => 'integer',
         'min_level' => 'integer',
         'energy_cost' => 'integer',
         'required_mask_count' => 'integer',

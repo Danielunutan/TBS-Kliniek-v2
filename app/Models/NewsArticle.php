@@ -128,6 +128,29 @@ class NewsArticle extends Model
             $text
         );
 
+        // Community Credit Box: [credit=Username]Message[/credit]
+        $text = preg_replace_callback('/\[credit=([a-zA-Z0-9_\-\s]+)\](.*?)\[\/credit\]/is', function ($m) {
+            $username = trim($m[1]);
+            $msg = trim($m[2]);
+            $profileUrl = "/speler/{$username}";
+
+            return '<div class="my-4 p-4 rounded-2xl bg-purple-50/70 dark:bg-slate-800 border border-purple-200 dark:border-purple-800/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                <div class="flex items-start sm:items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg shrink-0 shadow-xs">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">Community Idee & Eervolle Vermelding</div>
+                        <div class="text-xs text-slate-700 dark:text-slate-200 mt-0.5 leading-relaxed">'.$msg.'</div>
+                    </div>
+                </div>
+                <a href="'.$profileUrl.'" class="shrink-0 self-start sm:self-center px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-2xs inline-flex items-center gap-1.5">
+                    <span>Profiel '.htmlspecialchars($username).'</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>';
+        }, $text);
+
         // Horizontal Rule
         $text = preg_replace('/^---$/m', '<hr class="my-4 border-slate-200" />', $text);
 

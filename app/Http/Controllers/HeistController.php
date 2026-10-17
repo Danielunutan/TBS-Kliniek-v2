@@ -36,6 +36,9 @@ class HeistController extends Controller
         $this->energyService->refresh($character);
 
         $heists = Heist::orderBy('min_level')->get();
+        $soloHeists = $heists->where('is_gang_heist', false);
+        $gangHeists = $heists->where('is_gang_heist', true);
+        $myGang = $character->gang;
 
         $activeVehicle = CharacterVehicle::where('character_id', $character->id)
             ->where('is_active', true)
@@ -45,7 +48,7 @@ class HeistController extends Controller
         $ownedVehicles = CharacterVehicle::where('character_id', $character->id)->with('vehicle')->get();
 
         // Recent heists by all players
-        $recentLogs = HeistLog::with(['character', 'heist', 'vehicle'])
+        $recentLogs = HeistLog::with(['character', 'heist', 'vehicle', 'gang'])
             ->latest()
             ->take(8)
             ->get();
@@ -55,6 +58,9 @@ class HeistController extends Controller
         return view('game.heists.index', compact(
             'character',
             'heists',
+            'soloHeists',
+            'gangHeists',
+            'myGang',
             'activeVehicle',
             'ownedVehicles',
             'recentLogs',
@@ -77,6 +83,19 @@ class HeistController extends Controller
 
         if ($character->level < $heist->min_level) {
             return back()->with('error', "Voor deze Heist moet je minimaal Level {$heist->min_level} zijn!");
+        }
+
+        // Gang requirements for Bende Heists
+        if ($heist->is_gang_heist) {
+            if (! $character->gang_id || ! $character->gang) {
+                return back()->with('error', 'Deze operatie is een officiële Bende Heist! Sluit je eerst aan bij een gang of richt zelf een bende op om deel te nemen.');
+            }
+
+            $gang = $character->gang;
+            $memberCount = $gang->members()->count();
+            if ($memberCount < $heist->min_gang_members) {
+                return back()->with('error', "Onvoldoende bendeleden! Voor de {$heist->name} moet jouw bende minimaal {$heist->min_gang_members} actieve leden tellen (jouw bende heeft {$memberCount} leden).");
+            }
         }
 
         // Energy requirement
@@ -129,16 +148,43 @@ class HeistController extends Controller
         // 4. Character stats influence (Intelligence & Discipline for planning)
         $statBonus = min(15, (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveDiscipline()) / 30));
 
-        $finalChance = max(15, min(92, $baseChance + $speedBonus + $conditionBonus + $statBonus));
+        // 5. Gang synergy bonus for Bende Heists
+        $gangBonus = 0;
+        if ($heist->is_gang_heist && $character->gang) {
+            $gangBonus = min(12, $character->gang->members()->count() * 2);
+        }
+
+        $finalChance = max(15, min(92, $baseChance + $speedBonus + $conditionBonus + $statBonus + $gangBonus));
         $roll = mt_rand(1, 100);
         $success = ($roll <= $finalChance);
 
         if ($success) {
             // Calculate payout
-            $payout = mt_rand($heist->payout_min, $heist->payout_max);
-            $character->cash += $payout;
-            $character->respect += $heist->respect_reward;
-            $this->levelService->addXp($character, $heist->xp_reward);
+            $totalPayout = mt_rand($heist->payout_min, $heist->payout_max);
+            $gangPayout = 0;
+            $gangMsg = '';
+
+            if ($heist->is_gang_heist && $character->gang) {
+                $gang = $character->gang;
+                $gangSharePct = $heist->gang_treasury_share_pct ?? 50;
+                $gangPayout = (int) round(($totalPayout * $gangSharePct) / 100);
+                $playerPayout = $totalPayout - $gangPayout;
+
+                $gang->treasury += $gangPayout;
+                $gang->save();
+
+                $character->cash += $playerPayout;
+                $character->respect += $heist->respect_reward;
+                $this->levelService->addXp($character, $heist->xp_reward);
+
+                $formattedGangCash = number_format($gangPayout, 0, ',', '.');
+                $gangMsg = " Bende Buit: +€{$formattedGangCash} direct gestort in de bendekluis van [{$gang->name}]!";
+            } else {
+                $playerPayout = $totalPayout;
+                $character->cash += $playerPayout;
+                $character->respect += $heist->respect_reward;
+                $this->levelService->addXp($character, $heist->xp_reward);
+            }
 
             // Vehicle wear & tear (5% to 15% condition lost)
             $conditionLoss = mt_rand(6, 16);
@@ -165,8 +211,10 @@ class HeistController extends Controller
                 'character_id' => $character->id,
                 'heist_id' => $heist->id,
                 'vehicle_id' => $charVehicle->vehicle_id,
+                'gang_id' => $character->gang_id,
                 'success' => true,
-                'cash_earned' => $payout,
+                'cash_earned' => $playerPayout,
+                'gang_cash_earned' => $gangPayout,
                 'xp_earned' => $heist->xp_reward,
                 'respect_earned' => $heist->respect_reward,
                 'condition_loss' => $conditionLoss,
@@ -175,9 +223,9 @@ class HeistController extends Controller
 
             $character->save();
 
-            $formattedCash = number_format($payout, 0, ',', '.');
+            $formattedPlayerCash = number_format($playerPayout, 0, ',', '.');
 
-            return redirect()->route('heists.index')->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$charVehicle->vehicle->name}! Buit: +€{$formattedCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie).{$bonusMsg}");
+            return redirect()->route('heists.index')->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$charVehicle->vehicle->name}! Persoonlijke buit: +€{$formattedPlayerCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie).{$gangMsg}{$bonusMsg}");
         } else {
             // Failure: Heavy vehicle damage and isolation imprisonment
             $conditionLoss = mt_rand(20, 35);

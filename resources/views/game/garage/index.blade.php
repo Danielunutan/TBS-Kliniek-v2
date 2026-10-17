@@ -38,8 +38,8 @@
             <button type="button" @click="tab = 'showroom'" 
                     :class="tab === 'showroom' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
-                <i class="fa-solid fa-car-side"></i>
-                <span>Showroom & Kopen ({{ count($showroomVehicles) }})</span>
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Roterende Showroom ({{ count($rotatingListings) }})</span>
             </button>
             <button type="button" @click="tab = 'garage'" 
                     :class="tab === 'garage' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
@@ -52,7 +52,8 @@
 
     <!-- ACTIVE GETAWAY VEHICLE STATUS (IF OWNED) -->
     @if($activeVehicle)
-    <div class="rounded-2xl p-6 text-white shadow-lg border border-purple-800/60 relative overflow-hidden bg-slate-900">
+    <div class="rounded-2xl p-6 text-white shadow-lg border border-purple-800/60 relative overflow-hidden bg-slate-900"
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e1136 50%, #0f172a 100%) !important;">
         <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl text-white pointer-events-none">
             <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
         </div>
@@ -68,6 +69,11 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Actief Vluchtvoertuig
                         </span>
                         <span class="text-xs text-purple-300/80 font-bold">{{ $activeVehicle->vehicle->type_label }} &bull; {{ $activeVehicle->vehicle->brand }}</span>
+                        @if($activeVehicle->tuned_speed && $activeVehicle->tuned_speed !== $activeVehicle->vehicle->speed_pct)
+                            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                                ⚡ Tuned Engine ({{ $activeVehicle->tuned_speed }}%)
+                            </span>
+                        @endif
                     </div>
                     <h3 class="text-lg font-black text-white tracking-tight">{{ $activeVehicle->vehicle->name }}</h3>
                     <p class="text-xs text-purple-200/80 max-w-xl">{{ $activeVehicle->vehicle->description }}</p>
@@ -79,7 +85,7 @@
                 <!-- Snelheid Meter -->
                 <div class="bg-slate-950/70 border border-purple-400/20 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 backdrop-blur-sm">
                     <div class="text-[10px] uppercase font-bold tracking-wider text-purple-300 flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-gauge-high text-amber-400"></i> Snelheid
+                        <i class="fa-solid fa-gauge-high text-amber-400"></i> Effectieve Snelheid
                     </div>
                     <div class="text-xl font-black text-amber-300 font-mono">{{ $activeVehicle->effective_speed }}%</div>
                     <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -116,12 +122,72 @@
     </div>
     @endif
 
-    <!-- TAB 1: SHOWROOM CATALOGUS -->
+    <!-- TAB 1: 30-MINUTEN ROTERENDE SHOWROOM -->
     <div x-show="tab === 'showroom'" class="space-y-4">
+
+        <!-- ROTATIE HEADER BANNER MET LIVE COUNTDOWN -->
+        <div class="bg-gradient-to-r from-slate-900 via-purple-950/70 to-slate-900 border border-purple-500/30 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-white"
+             x-data="{
+                 secondsLeft: {{ $secondsUntilRotation }},
+                 formatTime(sec) {
+                     const m = Math.floor(sec / 60).toString().padStart(2, '0');
+                     const s = (sec % 60).toString().padStart(2, '0');
+                     return `${m}:${s}`;
+                 },
+                 init() {
+                     setInterval(() => {
+                         if (this.secondsLeft > 0) {
+                             this.secondsLeft--;
+                         } else {
+                             window.location.reload();
+                         }
+                     }, 1000);
+                 }
+             }">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-purple-600/30 border border-purple-400/30 text-purple-300 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-arrows-rotate animate-spin" style="animation-duration: 9s;"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-sm font-black text-white uppercase tracking-wider">30-Minuten Smokkelmarkt</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider">
+                            8 Unieke Deals Live
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                        Elk half uur levert de smokkelaar een nieuwe lading van 8 voertuigen af met wisselende condities, project-koopjes en zeldzame getunede snelheden!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Timer Badge -->
+            <div class="flex items-center gap-3 shrink-0 bg-slate-950/80 border border-purple-500/30 rounded-xl px-4 py-2.5">
+                <i class="fa-regular fa-clock text-purple-400 text-sm"></i>
+                <div>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 font-extrabold block">Volgende Lading Binnen</span>
+                    <span class="font-mono text-base font-black text-white" x-text="formatTime(secondsLeft)">--:--</span>
+                </div>
+                <button type="button" onclick="window.location.reload()" title="Aanbod herladen" class="ml-2 w-8 h-8 rounded-lg bg-purple-600/40 hover:bg-purple-600 text-purple-200 hover:text-white flex items-center justify-center text-xs transition cursor-pointer">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 8 DYNAMISCHE ROTERENDE AANBIEDINGEN -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            @foreach($showroomVehicles as $veh)
+            @foreach($rotatingListings as $item)
             @php
+                $veh = $item['vehicle'];
+                $cond = $item['condition'];
+                $tunedSpeed = $item['tuned_speed'];
+                $speedVar = $item['speed_variance'];
+                $priceCash = $item['price_cash'];
+                $priceStars = $item['price_stars'];
+                $token = $item['token'];
                 $isOwned = $ownedVehicles->firstWhere('vehicle_id', $veh->id);
+                $isDiscounted = $priceCash < $item['original_price_cash'];
+                $discountPct = $isDiscounted ? round((1 - ($priceCash / $item['original_price_cash'])) * 100) : 0;
             @endphp
             <div class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-purple-300 dark:border-purple-600 ring-2 ring-purple-400/20' : 'border-slate-200 dark:border-slate-800' }} hover:border-purple-400 dark:hover:border-purple-500 rounded-2xl p-5 shadow-xs flex flex-col justify-between gap-4 transition group">
                 <div class="space-y-3">
@@ -138,29 +204,64 @@
                     </div>
 
                     <div>
+                        <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                            <!-- Conditie Badge -->
+                            @if($cond >= 90)
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 text-[10px] font-black uppercase">
+                                    Topconditie {{ $cond }}%
+                                </span>
+                            @elseif($cond >= 70)
+                                <span class="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[10px] font-black uppercase">
+                                    Staat: {{ $cond }}%
+                                </span>
+                            @else
+                                <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[10px] font-black uppercase">
+                                    Koopje ({{ $cond }}% Conditie)
+                                </span>
+                            @endif
+
+                            <!-- Tuning Badge -->
+                            @if($speedVar > 0)
+                                <span class="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60 text-[10px] font-black uppercase">
+                                    ⚡ +{{ $speedVar }}% Getuned
+                                </span>
+                            @endif
+                        </div>
+
                         <h4 class="text-sm font-black text-slate-900 dark:text-white">{{ $veh->name }}</h4>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">{{ $veh->description }}</p>
                     </div>
 
-                    <!-- Specs: Snelheid & Betrouwbaarheid -->
+                    <!-- Specs: Snelheid & Conditie Meters -->
                     <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                         <div class="space-y-1">
                             <div class="flex items-center justify-between text-[11px] font-bold">
-                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1"><i class="fa-solid fa-gauge text-amber-500 text-[10px]"></i> Snelheid</span>
-                                <span class="text-slate-900 dark:text-slate-100 font-mono">{{ $veh->speed_pct }}%</span>
+                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-gauge text-amber-500 text-[10px]"></i> Snelheid (Topsnelheid)
+                                </span>
+                                <span class="text-slate-900 dark:text-slate-100 font-mono font-black">
+                                    {{ $tunedSpeed }}%
+                                    @if($speedVar > 0)
+                                        <span class="text-emerald-500 text-[10px]">(+{{ $speedVar }}%)</span>
+                                    @elseif($speedVar < 0)
+                                        <span class="text-rose-500 text-[10px]">({{ $speedVar }}%)</span>
+                                    @endif
+                                </span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                <div class="bg-amber-500 h-full rounded-full" style="width: {{ $veh->speed_pct }}%"></div>
+                                <div class="bg-amber-500 h-full rounded-full" style="width: {{ $tunedSpeed }}%"></div>
                             </div>
                         </div>
 
                         <div class="space-y-1">
                             <div class="flex items-center justify-between text-[11px] font-bold">
-                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1"><i class="fa-solid fa-shield text-emerald-500 text-[10px]"></i> Betrouwbaarheid</span>
-                                <span class="text-slate-900 dark:text-slate-100 font-mono">{{ $veh->reliability_pct }}%</span>
+                                <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-wrench text-emerald-500 text-[10px]"></i> Aanwezige Conditie
+                                </span>
+                                <span class="text-slate-900 dark:text-slate-100 font-mono font-black">{{ $cond }}%</span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                                <div class="bg-emerald-500 h-full rounded-full" style="width: {{ $veh->reliability_pct }}%"></div>
+                                <div class="{{ $cond < 70 ? 'bg-amber-500' : 'bg-emerald-500' }} h-full rounded-full" style="width: {{ $cond }}%"></div>
                             </div>
                         </div>
                     </div>
@@ -168,9 +269,24 @@
 
                 <!-- Prijs & Aankoop Knop -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Prijs:</span>
-                        <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">{{ $veh->formatted_price }}</span>
+                    <div class="flex items-center justify-between flex-wrap gap-1">
+                        <span class="text-xs text-slate-400 dark:text-slate-500 font-medium">Actuele Prijs:</span>
+                        <div class="text-right">
+                            @if($isDiscounted)
+                                <span class="text-[10px] text-slate-400 line-through mr-1">€{{ number_format($item['original_price_cash'], 0, ',', '.') }}</span>
+                                <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                                    €{{ number_format($priceCash, 0, ',', '.') }}
+                                </span>
+                                <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/70 px-1 py-0.2 rounded ml-1">-{{ $discountPct }}%</span>
+                            @else
+                                <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
+                                    €{{ number_format($priceCash, 0, ',', '.') }}
+                                    @if($priceStars > 0)
+                                        <span class="text-slate-400 font-normal">of</span> {{ $priceStars }} ⭐
+                                    @endif
+                                </span>
+                            @endif
+                        </div>
                     </div>
 
                     @if($isOwned)
@@ -185,10 +301,11 @@
                         @else
                             <form action="{{ route('garage.buy', $veh->id) }}" method="POST">
                                 @csrf
+                                <input type="hidden" name="listing_token" value="{{ $token }}">
                                 <button type="submit" 
-                                        class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                        class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-cart-shopping text-xs"></i>
-                                    <span>Voertuig Aanschaffen</span>
+                                    <span>Koop Deze Aanbieding</span>
                                 </button>
                             </form>
                         @endif
@@ -258,7 +375,12 @@
 
                             <div class="flex items-center justify-between text-xs pt-1 text-slate-600 dark:text-slate-400">
                                 <span class="font-bold">Huidige Topsnelheid:</span>
-                                <span class="font-mono font-black text-slate-900 dark:text-white">{{ $ov->effective_speed }}%</span>
+                                <span class="font-mono font-black text-slate-900 dark:text-white">
+                                    {{ $ov->effective_speed }}%
+                                    @if($ov->tuned_speed && $ov->tuned_speed > $ov->vehicle->speed_pct)
+                                        <span class="text-emerald-500 font-extrabold text-[10px]">(+{{ $ov->tuned_speed - $ov->vehicle->speed_pct }}% Getuned ⚡)</span>
+                                    @endif
+                                </span>
                             </div>
                         </div>
                     </div>

@@ -15,6 +15,7 @@ class HeistLog extends Model
     protected $casts = [
         'success' => 'boolean',
         'cash_earned' => 'integer',
+        'gang_cash_earned' => 'integer',
         'xp_earned' => 'integer',
         'respect_earned' => 'integer',
         'condition_loss' => 'integer',
@@ -33,5 +34,10 @@ class HeistLog extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function gang(): BelongsTo
+    {
+        return $this->belongsTo(Gang::class);
     }
 }
