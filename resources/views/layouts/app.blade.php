@@ -444,19 +444,6 @@
                     @else
                         <span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Live</span>
                     @endif
-                </a>
-                <a href="{{ route('messages.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('messages.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-envelope w-4 text-center text-blue-500 dark:text-blue-400"></i>
-                        <span>Berichten & Post</span>
-                    </div>
-                    @php
-                        $unreadMsgCount = $character ? \App\Models\GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count() : 0;
-                    @endphp
-                    @if($unreadMsgCount > 0)
-                        <span class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadMsgCount }}</span>
-                    @endif
-                </a>
             </div>
 
             <!-- 1. ALGEMEEN (Dropdown / Accordion) -->
@@ -899,19 +886,12 @@
         <div class="flex items-center gap-2">
             @php
                 $unreadChatCount = $character ? \App\Models\DirectMessage::where('recipient_id', $character->id)->where('is_read', false)->count() : 0;
-                $unreadMsgCount = $character ? \App\Models\GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count() : 0;
             @endphp
             <a href="{{ route('chat.index') }}" class="relative p-2 rounded-xl text-slate-500 dark:text-purple-300 hover:text-emerald-500 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition" title="Live Chat & DMs">
                 <i class="fa-solid fa-comments text-sm"></i>
                 @if($unreadChatCount > 0)
                     <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white animate-ping"></span>
                     <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
-                @endif
-            </a>
-            <a href="{{ route('messages.index') }}" class="relative p-2 rounded-xl text-slate-500 dark:text-purple-300 hover:text-purple-600 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition" title="Berichten">
-                <i class="fa-solid fa-envelope text-sm"></i>
-                @if($unreadMsgCount > 0)
-                    <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
                 @endif
             </a>
 
@@ -1030,23 +1010,16 @@
             </div>
 
             <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-semibold">
-                <div class="grid grid-cols-3 gap-1.5">
+                <div class="grid grid-cols-2 gap-1.5">
                     <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
                         <i class="fa-solid fa-gauge text-indigo-600 dark:text-indigo-400 mb-0.5 text-sm"></i>
                         <span class="text-[11px] truncate w-full">Overzicht</span>
                     </a>
                     <a href="{{ route('chat.index') }}" @click="mobileMenuOpen = false" class="relative flex flex-col items-center justify-center p-2 rounded-xl text-center transition {{ request()->routeIs('chat.*') ? 'bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
                         <i class="fa-solid fa-comments text-emerald-500 dark:text-emerald-400 mb-0.5 text-sm"></i>
-                        <span class="text-[11px] truncate w-full">Live Chat</span>
+                        <span class="text-[11px] truncate w-full">Live Chat & DMs</span>
                         @if($unreadChatCount > 0)
                             <span class="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-extrabold px-1 rounded-full animate-pulse">{{ $unreadChatCount }}</span>
-                        @endif
-                    </a>
-                    <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" class="relative flex flex-col items-center justify-center p-2 rounded-xl text-center transition {{ request()->routeIs('messages.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
-                        <i class="fa-solid fa-envelope text-blue-500 dark:text-blue-400 mb-0.5 text-sm"></i>
-                        <span class="text-[11px] truncate w-full">Post</span>
-                        @if($unreadMsgCount > 0)
-                            <span class="absolute top-1 right-1 bg-rose-500 text-white text-[9px] font-extrabold px-1 rounded-full">{{ $unreadMsgCount }}</span>
                         @endif
                     </a>
                 </div>

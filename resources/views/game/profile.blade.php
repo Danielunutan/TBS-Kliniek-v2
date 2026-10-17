@@ -193,24 +193,14 @@
                             </form>
                         @endif
 
-                        <!-- Live Direct Chat -->
-                        <a href="{{ route('chat.index', ['tab' => 'direct', 'recipient' => $profileCharacter->id]) }}" class="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer" title="Start live chat gesprek">
+                        <!-- Live Direct Chat / Privébericht -->
+                        <button type="button" 
+                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $profileCharacter->id }}, '{{ addslashes($profileCharacter->name) }}', '{{ $profileCharacter->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $profileCharacter->id]) }}'; }" 
+                                class="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer" 
+                                title="Start live chat of stuur privébericht">
                             <i class="fa-solid fa-comments"></i>
-                            <span>Live Chat</span>
-                        </a>
-
-                        <!-- Send Private Letter (Friends only) -->
-                        @if($character->isFriendWith($profileCharacter))
-                        <a href="{{ route('messages.index', ['recipient' => $profileCharacter->name]) }}" class="px-3.5 py-2 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl border border-slate-200 transition flex items-center gap-1.5 shadow-2xs">
-                            <i class="fa-solid fa-envelope text-indigo-600"></i>
-                            <span>Brief Sturen</span>
-                        </a>
-                        @else
-                        <span class="px-3.5 py-2 text-xs font-bold bg-slate-50 text-slate-400 rounded-xl border border-slate-200 flex items-center gap-1.5 cursor-not-allowed" title="Je kunt alleen brieven sturen naar vrienden. Voeg deze patiënt eerst toe als vriend!">
-                            <i class="fa-solid fa-lock text-slate-400"></i>
-                            <span>Brief (Vrienden)</span>
-                        </span>
-                        @endif
+                            <span>Privé Chat</span>
+                        </button>
 
                         <!-- Give Respect (+1 Sigaret) Button -->
                         @if(! $hasGivenRespectToday)
@@ -960,9 +950,11 @@
                         <i class="fa-solid fa-address-card text-slate-400"></i> Profiel
                     </a>
                     @if(Auth::user()->character->id !== $f->friend->id)
-                    <a href="{{ route('messages.index') }}" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 transition flex items-center gap-1">
-                        <i class="fa-solid fa-envelope text-indigo-400"></i> Brief Sturen
-                    </a>
+                    <button type="button" 
+                            onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $f->friend->id }}, '{{ addslashes($f->friend->name) }}', '{{ $f->friend->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $f->friend->id]) }}'; }" 
+                            class="text-[11px] font-bold text-emerald-600 hover:text-emerald-800 transition flex items-center gap-1 cursor-pointer">
+                        <i class="fa-solid fa-comments text-emerald-500"></i> Privé Chat
+                    </button>
                     @endif
                 </div>
             </div>

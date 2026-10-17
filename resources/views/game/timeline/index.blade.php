@@ -240,12 +240,14 @@
                         </button>
 
                         <!-- Privébericht Button -->
-                        <a href="{{ route('messages.index') }}" class="flex items-center gap-1.5 text-slate-500 hover:text-purple-600 transition font-bold group">
+                        <button type="button" 
+                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $post->character->id }}, '{{ addslashes($post->character->name) }}', '{{ $post->character->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $post->character->id]) }}'; }"
+                                class="flex items-center gap-1.5 text-slate-500 hover:text-purple-600 transition font-bold group cursor-pointer">
                             <span class="p-1 rounded-lg group-hover:bg-purple-50 transition">
                                 <i class="fa-regular fa-paper-plane group-hover:text-purple-600"></i>
                             </span>
                             <span class="text-[11px] hidden sm:inline">Privébericht</span>
-                        </a>
+                        </button>
                     </div>
 
                     <a href="{{ route('profile.show', $post->character->name) }}" class="text-[11px] font-bold text-slate-400 hover:text-slate-600 transition">

@@ -16,6 +16,31 @@ class GameMessage extends Model
         'is_read' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function (GameMessage $gameMsg) {
+            $isPlayerDm = $gameMsg->sender_id && $gameMsg->type === 'player';
+            $senderId = $isPlayerDm ? $gameMsg->sender_id : null;
+            $formattedMessage = (! empty($gameMsg->subject) && ! $isPlayerDm)
+                ? "📢 **{$gameMsg->subject}**\n\n{$gameMsg->content}"
+                : ($gameMsg->content ?? '');
+
+            DirectMessage::create([
+                'sender_id' => $senderId,
+                'recipient_id' => $gameMsg->recipient_id,
+                'type' => $gameMsg->type ?? ($isPlayerDm ? 'chat' : 'system'),
+                'message' => $formattedMessage,
+                'metadata' => [
+                    'source' => 'system_alert',
+                    'subject' => $gameMsg->subject,
+                    'original_sender' => $gameMsg->sender_name ?? 'Directie TBS Kliniek',
+                    'game_message_id' => $gameMsg->id,
+                ],
+                'is_read' => (bool) $gameMsg->is_read,
+            ]);
+        });
+    }
+
     public function recipient(): BelongsTo
     {
         return $this->belongsTo(Character::class, 'recipient_id');

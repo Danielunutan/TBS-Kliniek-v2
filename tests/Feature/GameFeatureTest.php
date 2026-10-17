@@ -231,8 +231,13 @@ class GameFeatureTest extends TestCase
 
         $this->actingAs($recipient);
         $inboxResponse = $this->get('/berichten');
-        $inboxResponse->assertStatus(200);
-        $inboxResponse->assertSee('Plannetje voor de luchtplaats');
+        $inboxResponse->assertRedirect(route('chat.index', ['tab' => 'direct']));
+
+        $this->assertDatabaseHas('direct_messages', [
+            'recipient_id' => $recipientChar->id,
+            'sender_id' => $sender->character->id,
+            'message' => 'Hey Willem, heb jij nog wat rookwaar liggen voor vanavond?',
+        ]);
 
         $message = GameMessage::where('recipient_id', $recipientChar->id)->first();
         $deleteResponse = $this->delete(route('messages.destroy', $message));

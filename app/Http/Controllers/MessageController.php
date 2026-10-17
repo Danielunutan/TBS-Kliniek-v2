@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
-use App\Models\Friend;
 use App\Models\GameMessage;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 
 class MessageController extends Controller
 {
@@ -18,43 +16,24 @@ class MessageController extends Controller
     ) {}
 
     /**
-     * Display messages inbox.
+     * Redirect legacy messages inbox to unified Live Chat & Direct Messages.
      */
-    public function index(Request $request): View
+    public function index(Request $request): RedirectResponse
     {
         $character = Auth::user()->character;
-        $this->energyService->refresh($character);
-
-        $filter = $request->query('filter', 'all');
-
-        $query = GameMessage::where('recipient_id', $character->id)->latest();
-
-        if ($filter === 'system') {
-            $query->whereIn('type', ['system', 'jail', 'level']);
-        } elseif ($filter === 'theft') {
-            $query->where('type', 'theft');
-        } elseif ($filter === 'player') {
-            $query->whereIn('type', ['player', 'friend_request']);
-        } elseif ($filter === 'unread') {
-            $query->where('is_read', false);
+        if ($character) {
+            $this->energyService->refresh($character);
         }
 
-        $messages = $query->paginate(12)->withQueryString();
-        $unreadCount = GameMessage::where('recipient_id', $character->id)->where('is_read', false)->count();
-        $totalCount = GameMessage::where('recipient_id', $character->id)->count();
+        $recipientName = $request->query('recipient');
+        if ($recipientName) {
+            $partner = Character::where('name', $recipientName)->first();
+            if ($partner) {
+                return redirect()->route('chat.index', ['tab' => 'direct', 'recipient' => $partner->id]);
+            }
+        }
 
-        // Only accepted friends can receive messages
-        $friendIds = Friend::where('character_id', $character->id)
-            ->where('status', 'accepted')
-            ->pluck('friend_id');
-
-        $otherPlayers = Character::whereIn('id', $friendIds)
-            ->orderBy('name')
-            ->get(['id', 'name', 'avatar', 'level']);
-
-        $initialRecipient = $request->query('recipient', '');
-
-        return view('game.messages', compact('character', 'messages', 'filter', 'unreadCount', 'totalCount', 'otherPlayers', 'initialRecipient'));
+        return redirect()->route('chat.index', ['tab' => 'direct']);
     }
 
     /**

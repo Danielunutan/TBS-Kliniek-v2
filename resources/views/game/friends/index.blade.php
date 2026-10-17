@@ -75,9 +75,11 @@
                         {{ $bff->friend->bio ?: 'Deze patiënt heeft nog geen biografie ingesteld in het kliniekdossier.' }}
                     </p>
                     <div class="pt-2 flex items-center justify-center sm:justify-start gap-2">
-                        <a href="{{ route('messages.index') }}" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-envelope text-blue-500"></i> Stuur Brief
-                        </a>
+                        <button type="button" 
+                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $bff->friend->id }}, '{{ addslashes($bff->friend->name) }}', '{{ $bff->friend->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $bff->friend->id]) }}'; }" 
+                                class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-comments text-emerald-600"></i> Privé Chat
+                        </button>
                         <form action="{{ route('friends.toggle-bff', $bff) }}" method="POST">
                             @csrf
                             <button type="submit" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition">
@@ -352,11 +354,12 @@
                                 </form>
 
                                 <!-- Send message link -->
-                                <a href="{{ route('messages.index', ['recipient' => $f->friend->name]) }}" 
-                                   title="Brief sturen naar {{ $f->friend->name }}"
-                                   class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 text-xs transition">
-                                    <i class="fa-solid fa-envelope"></i>
-                                </a>
+                                <button type="button" 
+                                        onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $f->friend->id }}, '{{ addslashes($f->friend->name) }}', '{{ $f->friend->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $f->friend->id]) }}'; }" 
+                                        title="Privé chat openen met {{ $f->friend->name }}"
+                                        class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 text-xs transition cursor-pointer">
+                                    <i class="fa-solid fa-comments"></i>
+                                </button>
 
                                 <!-- Delete Friend -->
                                 <form action="{{ route('friends.remove', $f) }}" method="POST"

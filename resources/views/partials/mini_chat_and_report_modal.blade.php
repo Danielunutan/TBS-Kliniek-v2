@@ -84,20 +84,33 @@
              x-transition:leave-end="opacity-0 scale-95"
              @click="openToastDestination()"
              :class="toastNotification.type === 'direct' 
-                ? 'border-purple-500 shadow-purple-900/30' 
+                ? (toastNotification.is_bot ? 'border-amber-500 shadow-amber-900/30 ring-1 ring-amber-400/40' : 'border-purple-500 shadow-purple-900/30') 
                 : 'border-emerald-500 shadow-emerald-900/30'"
              class="bg-white dark:bg-[#160a33] border-2 rounded-2xl p-3 shadow-2xl flex items-center gap-3 cursor-pointer max-w-sm transform hover:scale-102 transition border-solid">
             <div class="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-purple-800">
-                <img :src="toastNotification.avatar || '/characters/avatar-default.png'" class="w-full h-full object-cover">
+                <template x-if="toastNotification.is_bot">
+                    <div class="w-full h-full bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center text-sm font-black shadow-inner">
+                        <i class="fa-solid fa-hospital-user"></i>
+                    </div>
+                </template>
+                <template x-if="!toastNotification.is_bot">
+                    <img :src="toastNotification.avatar || '/characters/avatar-default.png'" class="w-full h-full object-cover">
+                </template>
                 <span class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"
-                      :class="toastNotification.type === 'direct' ? 'bg-purple-500 ring-2 ring-white animate-ping' : 'bg-emerald-500 ring-2 ring-white animate-ping'"></span>
+                      :class="toastNotification.type === 'direct' ? (toastNotification.is_bot ? 'bg-amber-500 ring-2 ring-white animate-ping' : 'bg-purple-500 ring-2 ring-white animate-ping') : 'bg-emerald-500 ring-2 ring-white animate-ping'"></span>
             </div>
             <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-1.5 mb-0.5">
                     <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="toastNotification.name"></span>
                     
-                    <!-- Clear distinction badge: PM vs Plein -->
-                    <template x-if="toastNotification.type === 'direct'">
+                    <!-- Clear distinction badge: Directie vs PM vs Plein -->
+                    <template x-if="toastNotification.type === 'direct' && toastNotification.is_bot">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950 px-1.5 py-0.5 rounded-md border border-amber-300 dark:border-amber-700 flex items-center gap-1 shrink-0 animate-pulse">
+                            <i class="fa-solid fa-bullhorn text-[8px] text-amber-600"></i>
+                            <span>DIRECTIE</span>
+                        </span>
+                    </template>
+                    <template x-if="toastNotification.type === 'direct' && !toastNotification.is_bot">
                         <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950 px-1.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800 flex items-center gap-1 shrink-0">
                             <i class="fa-solid fa-lock text-[8px]"></i>
                             <span>PRIVÉ (PM)</span>
@@ -113,7 +126,7 @@
                 <p class="text-[11px] text-slate-600 dark:text-purple-200 truncate" x-text="toastNotification.text"></p>
                 <div class="text-[9px] font-bold text-slate-400 dark:text-purple-400/80 flex items-center justify-between mt-0.5">
                     <span x-text="toastNotification.time || 'Zojuist'"></span>
-                    <span class="text-purple-600 dark:text-purple-400 font-extrabold flex items-center gap-0.5">
+                    <span :class="toastNotification.is_bot ? 'text-amber-600 dark:text-amber-400' : 'text-purple-600 dark:text-purple-400'" class="font-extrabold flex items-center gap-0.5">
                         <span>Klik om te openen</span> &rarr;
                     </span>
                 </div>
@@ -680,6 +693,16 @@
                 this.loadPublicMessages(true);
                 this.loadConversations();
                 this.pollLoop();
+
+                window.addEventListener('tbs-open-direct-chat', (e) => {
+                    if (e.detail && e.detail.id !== undefined) {
+                        this.openDirectChatWithPlayer(e.detail.id, e.detail.name || 'Inmate', e.detail.avatar || '/characters/avatar-default.png');
+                    }
+                });
+
+                window.openTBSDirectChat = (id, name, avatar) => {
+                    this.openDirectChatWithPlayer(id, name || 'Inmate', avatar || '/characters/avatar-default.png');
+                };
             },
 
             toggleSound() {
