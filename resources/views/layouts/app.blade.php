@@ -2212,6 +2212,7 @@
     <!-- GLOBAL REWARDED SPONSOR AD WATCH MODAL (Adsterra Smartlink & Anti-abuse Validation) -->
     <div x-data="{
         isOpen: false,
+        isStarting: false,
         rewardType: 'cash',
         rewardTitle: '€ 2.500 Zakgeld',
         rewardIcon: 'fa-money-bill-wave',
@@ -2243,6 +2244,8 @@
         },
         init() {
             window.tbsOpenSponsorAd = async (rewardType = 'cash', callback = null) => {
+                if (this.isStarting) return;
+                this.isStarting = true;
                 this.isOpen = true;
                 this.rewardType = rewardType;
                 this.callback = callback;
@@ -2302,7 +2305,7 @@
                         window.RobinAds.showInterstitial({ websiteId: '6ad2b8e95f70fee0a42a5496' }).then((result) => {
                             if (result && result.rewardGranted) {
                                 // Full watch verified by Robins Ads!
-                                this.claim(result.token, result.rewardId);
+                                this.claim(result.token, result.rewardId, data.token);
                             } else {
                                 this.status = 'error';
                                 this.statusMessage = 'De advertentie is voortijdig gesloten. Bekijk de video volledig om je beloning te ontvangen.';
@@ -2319,6 +2322,9 @@
                 .catch(err => {
                     this.status = 'error';
                     this.statusMessage = 'Er is een netwerkfout opgetreden bij het laden van de sponsor.';
+                })
+                .finally(() => {
+                    this.isStarting = false;
                 });
             };
         },
@@ -2353,9 +2359,10 @@
                 window.open(this.smartlinkUrl, '_blank');
             }
         },
-        claim(robinToken = null, robinRewardId = null) {
+        claim(robinToken = null, robinRewardId = null, fallbackToken = null) {
             this.status = 'claiming';
             this.statusMessage = 'Beloning verifiëren en verwerken...';
+            const activeToken = this.token || fallbackToken || '';
 
             fetch('{{ route('sponsor.claim') }}', {
                 method: 'POST',
@@ -2365,7 +2372,7 @@
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({ 
-                    token: this.token,
+                    token: activeToken,
                     robin_token: robinToken,
                     robin_reward_id: robinRewardId || this.robinRewardId
                 })

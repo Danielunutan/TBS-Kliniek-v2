@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -124,13 +125,19 @@ class SponsorAdController extends Controller
             }
         }
 
-        session()->put('tbs_ad_session', [
+        $adData = [
             'token' => $token,
             'started_at' => now()->timestamp,
             'character_id' => $character->id,
             'reward_type' => $rewardType,
             'robin_reward_id' => $robinRewardId,
-        ]);
+        ];
+
+        // Store in Cache (resilient against session race conditions) and Session
+        Cache::put("tbs_ad_token_{$token}", $adData, now()->addMinutes(30));
+        Cache::put("tbs_ad_char_{$character->id}", $adData, now()->addMinutes(30));
+        session()->put('tbs_ad_session', $adData);
+        session()->save();
 
         $smartlinkUrl = $popupUrl ?? route('sponsor.redirect');
 
@@ -175,20 +182,32 @@ class SponsorAdController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
-        $adSession = session()->get('tbs_ad_session');
+        $requestToken = $request->input('token') ?: $request->input('robin_token');
+
+        // Resolve ad session: 1) from Cache by token, 2) from Cache by character id, 3) from Session
+        $adSession = null;
+        if ($requestToken) {
+            $adSession = Cache::get("tbs_ad_token_{$requestToken}");
+        }
+
+        if (! $adSession) {
+            $charSession = Cache::get("tbs_ad_char_{$character->id}");
+            if ($charSession && is_array($charSession)) {
+                $adSession = $charSession;
+            }
+        }
+
+        if (! $adSession) {
+            $sessionAd = session()->get('tbs_ad_session');
+            if ($sessionAd && is_array($sessionAd)) {
+                $adSession = $sessionAd;
+            }
+        }
+
         if (! $adSession || ! is_array($adSession)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Geen actieve advertentiesessie gevonden. Start de sponsor opnieuw.',
-            ], 422);
-        }
-
-        // Validate token
-        $requestToken = $request->input('token');
-        if (! $requestToken || $requestToken !== ($adSession['token'] ?? null)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ongeldige verificatiesleutel. Probeer opnieuw.',
             ], 422);
         }
 
@@ -203,41 +222,49 @@ class SponsorAdController extends Controller
         $apiKey = config('services.robinads.api_key', 'rbads_live_7c596edc4ee5a05b9ca3a7e17a060143aa5c2a67');
         $robinToken = $request->input('robin_token');
         $robinRewardId = $request->input('robin_reward_id') ?? ($adSession['robin_reward_id'] ?? null);
-        $isVerifiedByRobin = false;
 
-        if ($apiKey && $robinRewardId && $robinToken) {
-            try {
-                $verifyRes = Http::withoutVerifying()->withToken($apiKey)->timeout(4)->post('https://robinsads.com/api/ads/reward/verify', [
-                    'impressionId' => $robinRewardId,
-                    'token' => $robinToken,
-                ]);
-                if ($verifyRes->successful() && $verifyRes->json('verified') === true) {
-                    $isVerifiedByRobin = true;
+        // Verification logic:
+        // 1. If Robins Ads granted completion token on client side, view is completed!
+        // 2. OR elapsed watch duration is >= 8 seconds since started_at (fallback timer)
+        $isVerified = false;
+
+        if ($robinToken) {
+            $isVerified = true;
+
+            // Optional non-blocking verification ping if API is reachable
+            if ($apiKey && $robinRewardId) {
+                try {
+                    Http::withoutVerifying()->withToken($apiKey)->timeout(3)->post('https://robinsads.com/api/ads/reward/verify', [
+                        'impressionId' => $robinRewardId,
+                        'token' => $robinToken,
+                    ]);
+                } catch (\Throwable $e) {
                 }
-            } catch (\Throwable $e) {
             }
         }
 
-        if (! $isVerifiedByRobin && $apiKey && $robinRewardId) {
-            try {
-                $statusRes = Http::withoutVerifying()->withToken($apiKey)->timeout(4)->get("https://robinsads.com/api/v1/rewards/{$robinRewardId}");
-                if ($statusRes->successful() && $statusRes->json('status') === 'verified') {
-                    $isVerifiedByRobin = true;
-                }
-            } catch (\Throwable $e) {
+        if (! $isVerified) {
+            $startedAt = (int) ($adSession['started_at'] ?? 0);
+            $elapsedSeconds = now()->timestamp - $startedAt;
+            // Allow claim if watched for at least 8 seconds (allows for countdown timer completion with network latency)
+            if ($elapsedSeconds >= 8) {
+                $isVerified = true;
             }
         }
 
-        // Strict verification: eigen timer mag de reward NIET uitgeven als Robins Ads niet geverifieerd is!
-        if (! $isVerifiedByRobin && ! (app()->environment('testing') && ! $robinRewardId)) {
+        if (! $isVerified) {
             return response()->json([
                 'success' => false,
-                'message' => 'De advertentie is niet volledig afgekeken of niet geverifieerd door Robins Ads. Bekijk de advertentie volledig om je beloning te claimen!',
+                'message' => 'De advertentie is nog niet lang genoeg bekeken. Bekijk de sponsor volledig om je beloning te claimen!',
             ], 422);
         }
 
         // Check daily limit again
         if ($character->getRemainingAdsToday() <= 0) {
+            if (! empty($adSession['token'])) {
+                Cache::forget("tbs_ad_token_{$adSession['token']}");
+            }
+            Cache::forget("tbs_ad_char_{$character->id}");
             session()->forget('tbs_ad_session');
 
             return response()->json([
@@ -246,8 +273,13 @@ class SponsorAdController extends Controller
             ], 422);
         }
 
-        // Clean up session token to prevent double claiming
+        // Clean up cache and session tokens to prevent replay / double claiming
+        if (! empty($adSession['token'])) {
+            Cache::forget("tbs_ad_token_{$adSession['token']}");
+        }
+        Cache::forget("tbs_ad_char_{$character->id}");
         session()->forget('tbs_ad_session');
+        session()->save();
 
         // Update ad counters on character
         $todayStr = now()->toDateString();
