@@ -206,15 +206,15 @@
         </div>
     </div>
 
-    <!-- Robins Ads Actief Banner -->
-    <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl p-5 shadow-xs flex items-center gap-3.5 text-xs text-emerald-900 dark:text-emerald-200">
-        <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center text-lg shrink-0">
-            <i class="fa-solid fa-circle-check"></i>
+    <!-- Sponsor Ads Status Banner -->
+    <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-5 shadow-xs flex items-center gap-3.5 text-xs text-amber-900 dark:text-amber-200">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-lg shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
         <div class="space-y-0.5">
-            <h4 class="font-extrabold text-emerald-950 dark:text-emerald-100 text-sm">Robins Ads Rewarded Network Actief</h4>
-            <p class="text-emerald-800 dark:text-emerald-300 leading-relaxed">
-                Advertenties zijn live gekoppeld via Robins Ads met server-geverifieerde beloningen en video interstitials. Bekijk advertenties en ontvang direct cooldown resets, contanten, kluismunten of spaar door voor 24 uur gratis VIP!
+            <h4 class="font-extrabold text-amber-950 dark:text-amber-100 text-sm">Sponsorkamer Tijdelijk Beperkt</h4>
+            <p class="text-amber-800 dark:text-amber-300 leading-relaxed">
+                De sponsorkamer is momenteel beschikbaar maar advertentienetzwerkbeloningen worden nog geconfigureerd. Bekijk een sponsor en claim je beloning zoals gebruikelijk via de afteltimer.
             </p>
         </div>
     </div>

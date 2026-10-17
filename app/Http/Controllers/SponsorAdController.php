@@ -19,7 +19,7 @@ use Illuminate\View\View;
 
 class SponsorAdController extends Controller
 {
-    public const ADS_ENABLED = true;
+    public const ADS_ENABLED = false;
 
     public const DEFAULT_SMARTLINK = 'https://uplcm.com/4/12026868';
 
@@ -147,7 +147,7 @@ class SponsorAdController extends Controller
     }
 
     /**
-     * Safe internal redirect to Monetag SmartLink (passes player ymid and tracking subids).
+     * Safe internal redirect to ad SmartLink (passes player tracking subids).
      */
     public function redirect(Request $request): RedirectResponse
     {

@@ -25,35 +25,31 @@
             </div>
 
             <!-- PLAYER HEIST INVENTORY BADGES -->
-            <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-3 flex-wrap shrink-0">
                 <!-- Maskers Voorraad -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-2xs">
-                    <div class="w-9 h-9 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-base shrink-0">
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-2.5 shadow-xs">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 flex items-center justify-center text-sm shrink-0">
                         <i class="fa-solid fa-mask"></i>
                     </div>
                     <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block tracking-wider">Voorraad Maskers</span>
-                        <span class="text-sm font-black text-slate-900 dark:text-white font-mono">{{ $character->masks ?? 0 }}x 🎭</span>
+                        <span class="text-[9px] uppercase font-extrabold text-slate-400 block tracking-wider leading-none mb-0.5">Maskers</span>
+                        <span class="text-sm font-black text-slate-900 dark:text-white font-mono leading-none">{{ $character->masks ?? 0 }}x</span>
                     </div>
-                    <a href="{{ route('shop.index', ['tab' => 'items']) }}" title="Koop meer maskers in de kliniekwinkel" class="ml-1 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-extrabold">
-                        + Koop
-                    </a>
+                    <a href="{{ route('shop.index', ['tab' => 'items']) }}" title="Koop meer maskers" class="ml-1 text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-extrabold whitespace-nowrap">+ Koop</a>
                 </div>
 
                 <!-- Actief Voertuig Badge -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-2xs">
-                    <div class="w-9 h-9 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base shrink-0">
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 flex items-center gap-2.5 shadow-xs">
+                    <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm shrink-0">
                         <i class="fa-solid {{ $activeVehicle ? $activeVehicle->vehicle->icon : 'fa-car' }}"></i>
                     </div>
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-400 block tracking-wider">Vluchtvoertuig</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white truncate max-w-[140px] block">
+                    <div class="min-w-0">
+                        <span class="text-[9px] uppercase font-extrabold text-slate-400 block tracking-wider leading-none mb-0.5">Voertuig</span>
+                        <span class="text-xs font-black text-slate-900 dark:text-white truncate max-w-[130px] block leading-none">
                             {{ $activeVehicle ? $activeVehicle->vehicle->name : 'Geen voertuig' }}
                         </span>
                     </div>
-                    <a href="{{ route('garage.index') }}" title="Beheer je garage" class="ml-1 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-extrabold">
-                        Garage
-                    </a>
+                    <a href="{{ route('garage.index') }}" title="Garage" class="ml-1 text-[10px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-extrabold whitespace-nowrap">Garage</a>
                 </div>
             </div>
         </div>

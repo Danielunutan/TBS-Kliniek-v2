@@ -100,8 +100,7 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2509357892188070"
          crossorigin="anonymous"></script>
     --}}
-    <!-- Robins Ads Network (Rewarded Ads & Interstitials) -->
-    <script src="https://robinsads.com/ads.js" data-website-id="6ad2b8e95f70fee0a42a5496" async></script>
+    <!-- Ad network script placeholder (currently disabled pending approval) -->
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -2325,30 +2324,11 @@
                     this.token = data.token;
                     this.smartlinkUrl = data.smartlink_url;
                     this.popupUrl = data.popup_url;
-                    this.robinRewardId = data.robin_reward_id;
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
 
-                    // 1. First priority: Robins Ads official in-app interstitial (fullscreen video)
-                    if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
-                        this.status = 'watching';
-                        this.statusMessage = 'Robins Ads video-advertentie wordt geladen...';
-                        window.RobinAds.showInterstitial().then((result) => {
-                            if (result && result.rewardGranted) {
-                                // Full watch verified by Robins Ads server!
-                                this.claim(result.token, result.rewardId);
-                            } else {
-                                this.status = 'error';
-                                this.statusMessage = 'De advertentie is voortijdig gesloten. Bekijk de video volledig om je beloning te ontvangen.';
-                            }
-                        }).catch((err) => {
-                            console.warn('RobinAds interstitial unavailable or blocked, falling back to popup:', err);
-                            this.startFallbackCountdown(data);
-                        });
-                    } else {
-                        // 2. Fallback to Robins Ads hosted popup or smartlink with timer
-                        this.startFallbackCountdown(data);
-                    }
+                    // Open sponsor popup / smartlink with timer
+                    this.startFallbackCountdown(data);
                 })
                 .catch(err => {
                     this.status = 'error';
@@ -2362,7 +2342,7 @@
 
             try {
                 if (data.popup_url) {
-                    window.open(data.popup_url, 'robinads_reward', 'width=480,height=640');
+                    window.open(data.popup_url, 'tbs_ad_reward', 'width=480,height=640');
                 } else if (this.smartlinkUrl) {
                     window.open(this.smartlinkUrl, '_blank');
                 }
@@ -2382,14 +2362,14 @@
         },
         openAdTabAgain() {
             if (this.popupUrl) {
-                window.open(this.popupUrl, 'robinads_reward', 'width=480,height=640');
+                window.open(this.popupUrl, 'tbs_ad_reward', 'width=480,height=640');
             } else if (this.smartlinkUrl) {
                 window.open(this.smartlinkUrl, '_blank');
             }
         },
         claim(robinToken = null, robinRewardId = null) {
             this.status = 'claiming';
-            this.statusMessage = 'Beloning verifiëren en verwerken via Robins Ads...';
+            this.statusMessage = 'Beloning verifiëren en verwerken...';
 
             fetch('{{ route('sponsor.claim') }}', {
                 method: 'POST',

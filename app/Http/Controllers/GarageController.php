@@ -85,10 +85,27 @@ class GarageController extends Controller
 
                 $token = substr(hash_hmac('sha256', "{$slot}_{$vehicle->id}_{$condition}_{$tunedSpeed}_{$priceCash}", config('app.key')), 0, 16);
 
+                // Store plain array data (not Eloquent model) to prevent cache deserialization errors
+                // after deployments or cache flushes that clear class definitions from OPcache.
                 $items[] = [
                     'index' => $index,
                     'token' => $token,
-                    'vehicle' => $vehicle,
+                    'vehicle' => [
+                        'id' => $vehicle->id,
+                        'name' => $vehicle->name,
+                        'slug' => $vehicle->slug,
+                        'type' => $vehicle->type,
+                        'brand' => $vehicle->brand,
+                        'icon' => $vehicle->icon,
+                        'badge_color' => $vehicle->badge_color,
+                        'speed_pct' => $vehicle->speed_pct,
+                        'reliability_pct' => $vehicle->reliability_pct,
+                        'min_level' => $vehicle->min_level,
+                        'description' => $vehicle->description,
+                        'price_cash' => $vehicle->price_cash,
+                        'price_stars' => $vehicle->price_stars,
+                        'type_label' => $vehicle->type_label,
+                    ],
                     'condition' => $condition,
                     'speed_variance' => $speedVariance,
                     'tuned_speed' => $tunedSpeed,
@@ -131,7 +148,13 @@ class GarageController extends Controller
 
         // 30-minute rotating showroom listings
         $rotation = $this->getRotatingShowroom();
-        $rotatingListings = $rotation['listings'];
+        // Convert the cached plain vehicle arrays back to stdClass objects so the view can use arrow notation ($veh->icon etc.)
+        // The cache intentionally stores plain arrays (no Eloquent models) to prevent "incomplete object" errors on deploys.
+        $rotatingListings = array_map(function (array $item) {
+            $item['vehicle'] = (object) $item['vehicle'];
+
+            return $item;
+        }, $rotation['listings'] ?? []);
         $secondsUntilRotation = $rotation['seconds_left'];
 
         $topRankings = Character::orderByDesc('respect')->take(10)->get();

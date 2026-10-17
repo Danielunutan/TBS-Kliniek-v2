@@ -65,7 +65,7 @@
                 </div>
                 <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
                     <h4 class="font-extrabold text-xs text-slate-900 mb-1">Jouw Toestemming</h4>
-                    <p class="text-xs text-slate-500">Voor het tonen van gerichte externe advertenties (o.a. Monetag / sponsoren) via de cookiebanner.</p>
+                    <p class="text-xs text-slate-500">Voor het tonen van gerichte externe advertenties (o.a. via externe advertentiepartners en sponsoren) via de cookiebanner.</p>
                 </div>
             </div>
         </section>
@@ -93,7 +93,7 @@
             <ul class="list-disc pl-5 space-y-1 text-slate-600">
                 <li><strong>Hosting & Serverinfrastructuur:</strong> Beveiligde servers in de Europese Unie (o.a. OVHcloud).</li>
                 <li><strong>DDoS & Botbescherming:</strong> Cloudflare (voor verificatie via Turnstile en netwerkbeveiliging).</li>
-                <li><strong>Advertentiepartners:</strong> Wanneer je advertenties bekijkt in de Sponsorkamer, kunnen externe netwerken (zoals Monetag / PropellerAds) cookies of identificatoren verwerken conform hun eigen privacybeleid en mits jij hiervoor toestemming hebt gegeven.</li>
+                <li><strong>Advertentiepartners:</strong> Wanneer je advertenties bekijkt in de Sponsorkamer, kunnen externe advertentienetwerken cookies of identificatoren verwerken conform hun eigen privacybeleid en mits jij hiervoor toestemming hebt gegeven.</li>
             </ul>
         </section>
 
