@@ -1007,56 +1007,199 @@
             </div>
 
             <!-- TAB 3: DONEREN -->
-            <div x-show="activeGangTab === 'doneren'" class="space-y-6">
-                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
-                    <div>
-                        <h2 class="text-lg font-extrabold text-slate-900 uppercase tracking-wide">Doneren aan Gang Kas</h2>
-                        <p class="text-xs text-slate-500 mt-1">
-                            Wanneer je geld doneert, kan de leiding items kopen wat jouw uurloon zal verhogen. Hoe meer je doneert, hoe meer extra uurloon er bijkomt.
-                        </p>
+            <div x-show="activeGangTab === 'doneren'" class="space-y-6" x-data="{ donationView: 'top', donateAmount: {{ $character->cash > 0 ? min($character->cash, 5000) : 500 }}, starAmount: 10 }">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+                    
+                    <!-- Section Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                                <i class="fa-solid fa-vault"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800/60 px-2 py-0.5 rounded-md">Bende Financiën</span>
+                                </div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Doneren aan Gang Kas</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Doneer contant geld om smokkelkiosken te financieren en het collectieve uurloon voor alle leden te verhogen!
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Stats Pill Highlights -->
+                        @if($myGang)
+                        <div class="flex items-center gap-2 shrink-0">
+                            <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Collectief Uurloon</span>
+                                <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono">+€{{ number_format($hourlyWage, 0, ',', '.') }}/u</span>
+                            </div>
+                            <div class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-xs text-purple-700 dark:text-purple-300 shadow-2xs">
+                                <span class="text-[10px] text-purple-400 uppercase tracking-wider block font-bold">Kiosken</span>
+                                <span class="font-black text-purple-900 dark:text-purple-200 font-mono">{{ $myGang->bling_shops ?? 0 }}</span>
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
                     @if($myGang)
-                    <!-- Cash Donation Form -->
-                    <div class="space-y-3">
-                        <span class="text-xs text-slate-600 font-medium">
-                            Je hebt momenteel <strong class="text-slate-900 font-bold">€{{ number_format($character->cash, 0, ',', '.') }}</strong> cash op zak
-                        </span>
-                        <form action="{{ route('gangs.donate') }}" method="POST" class="flex items-center gap-3">
+                    <!-- Cash Donation Box -->
+                    <div class="bg-gradient-to-br from-slate-50 to-purple-50/30 dark:from-slate-800/50 dark:to-purple-950/20 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-wallet text-purple-600 dark:text-purple-400"></i>
+                                <span>Contant op zak:</span>
+                                <strong class="text-emerald-600 dark:text-emerald-400 font-black font-mono">€{{ number_format($character->cash, 0, ',', '.') }}</strong>
+                            </span>
+
+                            <!-- Quick Amount Fill Buttons -->
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <button type="button" @click="donateAmount = Math.min({{ $character->cash }}, 10000)" 
+                                        class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-400 transition cursor-pointer">
+                                    +€10.000
+                                </button>
+                                <button type="button" @click="donateAmount = Math.min({{ $character->cash }}, 50000)" 
+                                        class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-400 transition cursor-pointer">
+                                    +€50.000
+                                </button>
+                                <button type="button" @click="donateAmount = {{ $character->cash }}" 
+                                        class="px-2.5 py-1 text-[11px] font-black rounded-lg bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-700 text-purple-800 dark:text-purple-300 hover:bg-purple-200 transition cursor-pointer">
+                                    Alles / Max
+                                </button>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('gangs.donate') }}" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                             @csrf
-                            <input type="number" name="amount" min="50" max="{{ $character->cash }}" value="{{ $character->cash > 0 ? $character->cash : 500 }}" required
-                                   class="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-600">
-                            <button type="submit" class="px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase cursor-pointer transition shadow-xs">
-                                Doneer
+                            <div class="relative flex-1">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-black text-sm">
+                                    €
+                                </div>
+                                <input type="number" 
+                                       name="amount" 
+                                       x-model.number="donateAmount"
+                                       min="50" 
+                                       max="{{ $character->cash }}" 
+                                       required
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-4 py-2.5 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 font-mono shadow-2xs">
+                            </div>
+                            <button type="submit" 
+                                    :disabled="donateAmount < 50 || donateAmount > {{ $character->cash }}"
+                                    class="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs shrink-0 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                                <span>Doneer Cash</span>
                             </button>
                         </form>
                     </div>
 
-                    <!-- Donaties van vandaag Table -->
-                    <div class="space-y-3 pt-3">
-                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 border-b border-slate-100 pb-2">Donaties van vandaag</h3>
-                        <div class="overflow-x-auto">
+                    <!-- Donaties van vandaag Section (Geen dubbele namen!) -->
+                    <div class="space-y-3.5 pt-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                                    Donaties van Vandaag
+                                </h3>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300">
+                                    {{ $todayDonations->count() }} Donateurs
+                                </span>
+                            </div>
+
+                            <!-- Toggle tussen Top Donateurs (Uniek) en Live Transactielog -->
+                            <div class="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-xs">
+                                <button type="button" 
+                                        @click="donationView = 'top'" 
+                                        :class="donationView === 'top' ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-900 font-bold'"
+                                        class="px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-trophy text-[10px]"></i>
+                                    <span>Top Donateurs</span>
+                                </button>
+                                <button type="button" 
+                                        @click="donationView = 'log'" 
+                                        :class="donationView === 'log' ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 hover:text-slate-900 font-bold'"
+                                        class="px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
+                                    <span>Live Log</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 1. TOP DONATEURS TAB (Geaggregeerd per lid: GEEN dubbele namen!) -->
+                        <div x-show="donationView === 'top'" class="overflow-x-auto">
                             <table class="w-full text-left border-collapse text-xs">
                                 <thead>
-                                    <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
+                                    <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800">
+                                        <th class="py-2.5 px-3">RANG</th>
                                         <th class="py-2.5 px-3">PATIËNT</th>
-                                        <th class="py-2.5 px-3 text-right">GEDONEERD</th>
+                                        <th class="py-2.5 px-3 text-center">AANTAL</th>
+                                        <th class="py-2.5 px-3 text-right">TOTAAL VANDAAG</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 font-medium">
-                                    @forelse($todayDonations as $d)
-                                    <tr>
-                                        <td class="py-2.5 px-3 font-bold text-purple-700">
-                                            {{ $d->character->name }}
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                                    @forelse($todayDonations as $index => $d)
+                                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                                        <!-- Rank Badge -->
+                                        <td class="py-3 px-3 w-14">
+                                            @if($index === 0)
+                                                <span class="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center justify-center shadow-2xs">
+                                                    🥇
+                                                </span>
+                                            @elseif($index === 1)
+                                                <span class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-black text-xs flex items-center justify-center shadow-2xs">
+                                                    🥈
+                                                </span>
+                                            @elseif($index === 2)
+                                                <span class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-950/70 border border-orange-300 dark:border-orange-700/80 text-orange-700 dark:text-orange-300 font-black text-xs flex items-center justify-center shadow-2xs">
+                                                    🥉
+                                                </span>
+                                            @else
+                                                <span class="text-slate-400 font-mono font-bold text-xs pl-1.5">
+                                                    #{{ $index + 1 }}
+                                                </span>
+                                            @endif
                                         </td>
-                                        <td class="py-2.5 px-3 text-right font-extrabold text-emerald-700 font-mono">
-                                            €{{ number_format($d->amount, 0, ',', '.') }}
+
+                                        <!-- Patient Info -->
+                                        <td class="py-3 px-3">
+                                            <div class="flex items-center gap-2.5">
+                                                <a href="{{ route('profile.show', $d->character->name) }}" class="font-black text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 hover:underline flex items-center gap-1.5">
+                                                    <span>{{ $d->character->name }}</span>
+                                                </a>
+                                                @if($d->character->gang_role === 'leader')
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                                                        Leider
+                                                    </span>
+                                                @elseif($d->character->gang_role === 'co_leader')
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
+                                                        Co-Leider
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
+
+                                        <!-- Donation Count -->
+                                        <td class="py-3 px-3 text-center">
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                                {{ $d->donation_count }}x
+                                            </span>
+                                        </td>
+
+                                        <!-- Total Amount Donated -->
+                                        <td class="py-3 px-3 text-right">
+                                            <div class="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-sm">
+                                                €{{ number_format($d->amount, 0, ',', '.') }}
+                                            </div>
+                                            @if($totalDonatedToday > 0)
+                                            <span class="text-[10px] text-slate-400 font-mono">
+                                                {{ round(($d->amount / $totalDonatedToday) * 100) }}% van dagtotaal
+                                            </span>
+                                            @endif
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="2" class="py-4 text-center text-xs text-slate-400">
-                                            Nog geen donaties vandaag.
+                                        <td colspan="4" class="py-8 text-center text-xs text-slate-400">
+                                            <i class="fa-solid fa-hand-holding-dollar text-2xl text-slate-300 dark:text-slate-700 mb-2 block"></i>
+                                            <span>Nog geen donaties vandaag. Wees de eerste donateur!</span>
                                         </td>
                                     </tr>
                                     @endforelse
@@ -1064,41 +1207,102 @@
                             </table>
                         </div>
 
-                        <div class="pt-2 text-xs space-y-1 text-slate-600 font-medium">
-                            <div class="flex items-center justify-between">
-                                <span>Totaal gedoneerd:</span>
-                                <strong class="text-slate-900 font-mono font-bold">€{{ number_format($totalDonatedToday, 0, ',', '.') }}</strong>
+                        <!-- 2. LIVE LOG TAB (Individuele transacties met tijd) -->
+                        <div x-show="donationView === 'log'" style="display: none;" class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800">
+                                        <th class="py-2.5 px-3">TIJD</th>
+                                        <th class="py-2.5 px-3">PATIËNT</th>
+                                        <th class="py-2.5 px-3 text-right">BEDRAG</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                                    @forelse($todayRecentLogs ?? [] as $log)
+                                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                                        <td class="py-2.5 px-3 font-mono text-[11px] text-slate-400">
+                                            {{ $log->created_at->format('H:i') }}
+                                        </td>
+                                        <td class="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">
+                                            <a href="{{ route('profile.show', $log->character->name) }}" class="text-purple-700 dark:text-purple-400 hover:underline">
+                                                {{ $log->character->name }}
+                                            </a>
+                                        </td>
+                                        <td class="py-2.5 px-3 text-right font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
+                                            +€{{ number_format($log->amount, 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="3" class="py-6 text-center text-xs text-slate-400">
+                                            Geen transacties gelogd voor vandaag.
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Summary Footer Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Totaal gedoneerd vandaag:</span>
+                                <strong class="text-sm font-black text-slate-900 dark:text-white font-mono">€{{ number_format($totalDonatedToday, 0, ',', '.') }}</strong>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span>Smokkelkiosken gekocht:</span>
-                                <strong class="text-purple-700 font-mono font-bold">{{ $myGang->bling_shops ?? 0 }}</strong>
+                            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Smokkelkiosken in bezit:</span>
+                                <strong class="text-sm font-black text-purple-700 dark:text-purple-400 font-mono">{{ $myGang->bling_shops ?? 0 }} kiosken</strong>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Diamanten doneren Card -->
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
+                    <!-- Sterren doneren Card -->
+                    <div class="bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-slate-800/70 dark:to-amber-950/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-5 space-y-3.5">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-gem text-amber-500"></i>
-                                <span>Sterren doneren aan bende</span>
-                            </h3>
-                            <button type="button" @click="setGangTab('beheer'); setBeheerTab('donaties')" class="px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200 cursor-pointer">
-                                Logs
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center text-sm shadow-2xs shrink-0">
+                                    <i class="fa-solid fa-star"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-black text-slate-900 dark:text-white">
+                                        Sterren doneren aan bende
+                                    </h3>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                        Doneer sterren om het maximale ledenaantal van je bende te vergroten.
+                                    </p>
+                                </div>
+                            </div>
+                            <button type="button" @click="setGangTab('beheer'); setBeheerTab('donaties')" class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 text-purple-700 dark:text-purple-300 text-xs font-extrabold border border-purple-200 dark:border-purple-800 shadow-2xs hover:bg-purple-50 transition cursor-pointer">
+                                <i class="fa-solid fa-list-check mr-1"></i> Logs
                             </button>
                         </div>
-                        <p class="text-xs text-slate-500">
-                            Doneer sterren en vergroot het maximale ledenaantal van je bende.
-                        </p>
-                        <form action="{{ route('gangs.donate-stars') }}" method="POST" class="flex items-center gap-3">
+
+                        <div class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                            <span>Jouw saldo: <strong class="text-amber-600 dark:text-amber-400 font-extrabold">{{ $character->stars ?? 0 }} Sterren ⭐</strong></span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" @click="starAmount = 5" class="px-2 py-0.5 text-[10px] font-bold rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-400 transition cursor-pointer">5 ⭐</button>
+                                <button type="button" @click="starAmount = 10" class="px-2 py-0.5 text-[10px] font-bold rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-400 transition cursor-pointer">10 ⭐</button>
+                                <button type="button" @click="starAmount = 25" class="px-2 py-0.5 text-[10px] font-bold rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-400 transition cursor-pointer">25 ⭐</button>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('gangs.donate-stars') }}" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                             @csrf
                             <div class="relative flex-1">
-                                <i class="fa-solid fa-star absolute left-3 top-3 text-amber-500 text-xs"></i>
-                                <input type="number" name="stars" min="1" max="{{ $character->stars ?? 0 }}" value="10" required
-                                       class="w-full bg-white border border-slate-300 rounded-lg pl-8 pr-4 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-600">
+                                <i class="fa-solid fa-star absolute left-3.5 top-3 text-amber-500 text-xs"></i>
+                                <input type="number" 
+                                       name="stars" 
+                                       x-model.number="starAmount"
+                                       min="1" 
+                                       max="{{ $character->stars ?? 0 }}" 
+                                       required
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-mono shadow-2xs">
                             </div>
-                            <button type="submit" class="px-6 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs uppercase cursor-pointer transition shadow-xs">
-                                Doneer
+                            <button type="submit" 
+                                    :disabled="starAmount < 1 || starAmount > {{ $character->stars ?? 0 }}"
+                                    class="py-2.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs shrink-0 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-gem"></i>
+                                <span>Doneer Sterren</span>
                             </button>
                         </form>
                     </div>

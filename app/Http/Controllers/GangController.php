@@ -103,8 +103,17 @@ class GangController extends Controller
         $wageDetails = $this->wageService->getWageDetails($character);
         $hourlyWage = $wageDetails['hourly_wage'];
         $dailyWage = $wageDetails['daily_wage'];
-        $todayDonations = $myGang ? GangDonation::where('gang_id', $myGang->id)->whereDate('created_at', today())->with('character')->latest()->get() : collect();
-        $totalDonatedToday = $todayDonations->sum('amount');
+
+        $todayRecentLogs = $myGang ? GangDonation::where('gang_id', $myGang->id)->whereDate('created_at', today())->with('character')->latest()->take(20)->get() : collect();
+        $totalDonatedToday = $myGang ? (int) GangDonation::where('gang_id', $myGang->id)->whereDate('created_at', today())->sum('amount') : 0;
+
+        $todayDonations = $myGang ? GangDonation::where('gang_id', $myGang->id)
+            ->whereDate('created_at', today())
+            ->with('character')
+            ->selectRaw('character_id, sum(amount) as amount, count(*) as donation_count, max(created_at) as latest_donation_at')
+            ->groupBy('character_id')
+            ->orderByDesc('amount')
+            ->get() : collect();
 
         $memberDonations = $myGang ? GangDonation::where('gang_id', $myGang->id)
             ->with('character')
@@ -141,7 +150,7 @@ class GangController extends Controller
         $defaultTab = $myGang ? 'mijn_gang' : 'ranglijst';
         $activeTab = $forceTab ?? $request->query('tab', session('active_gang_tab', $defaultTab));
 
-        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab'));
+        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab'));
     }
 
     /**
