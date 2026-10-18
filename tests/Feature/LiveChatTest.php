@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\DirectMessage;
+use App\Models\Gang;
 use App\Models\Report;
 use App\Models\User;
 use App\Services\ChatBotService;
@@ -360,5 +362,151 @@ class LiveChatTest extends TestCase
                 'message' => 'Hé kom je zo naar de werkplaats?',
             ],
         ]);
+    }
+
+    public function test_chat_blocks_external_links_except_discord_invites(): void
+    {
+        [$user, $character] = $this->createInmate();
+
+        // 1. External link like https://google.com should be rejected
+        $res1 = $this->actingAs($user)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Check deze site https://google.com eens!',
+        ]);
+        $res1->assertStatus(422);
+        $this->assertStringContainsString('niet toegestaan', $res1->json('message'));
+
+        Cache::flush();
+
+        // 2. Discord invite (discord.gg/...) should be permitted
+        $res2 = $this->actingAs($user)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Join onze discord op discord.gg/tbskliniekgame',
+        ]);
+        $res2->assertOk();
+        $res2->assertJson(['success' => true]);
+    }
+
+    public function test_chat_reply_stores_quote_information(): void
+    {
+        [$user1, $char1] = $this->createInmate(['name' => 'OriginalPoster']);
+        [$user2, $char2] = $this->createInmate(['name' => 'Replier']);
+
+        // User 1 sends message
+        $orig = $this->actingAs($user1)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Wie gaat er mee trainen in de gym?',
+        ]);
+        $origId = $orig->json('message.id');
+
+        Cache::flush();
+
+        // User 2 replies to User 1
+        $reply = $this->actingAs($user2)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Ik ga mee!',
+            'reply_to_id' => $origId,
+        ]);
+
+        $reply->assertOk();
+        $this->assertEquals($origId, $reply->json('message.reply_to_id'));
+        $this->assertEquals('OriginalPoster', $reply->json('message.reply_to_name'));
+        $this->assertEquals('Wie gaat er mee trainen in de gym?', $reply->json('message.reply_to_snippet'));
+    }
+
+    public function test_chat_toggle_purple_heart(): void
+    {
+        [$user1, $char1] = $this->createInmate();
+        [$user2, $char2] = $this->createInmate();
+
+        $msgRes = $this->actingAs($user1)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Lekker bezig!',
+        ]);
+        $msgId = $msgRes->json('message.id');
+
+        // User 2 hearts message
+        $heart1 = $this->actingAs($user2)->postJson(route('chat.public.heart', $msgId));
+        $heart1->assertOk();
+        $heart1->assertJson(['success' => true, 'hearts_count' => 1, 'has_hearted' => true]);
+
+        // User 2 unhearts message
+        $heart2 = $this->actingAs($user2)->postJson(route('chat.public.heart', $msgId));
+        $heart2->assertOk();
+        $heart2->assertJson(['success' => true, 'hearts_count' => 0, 'has_hearted' => false]);
+    }
+
+    public function test_moderator_can_delete_messages(): void
+    {
+        [$regularUser, $regChar] = $this->createInmate();
+        [$modUser, $modChar] = $this->createInmate();
+        $modUser->update(['role' => 'moderator']);
+
+        $msgRes = $this->actingAs($regularUser)->postJson(route('chat.public.send'), [
+            'channel' => 'global',
+            'message' => 'Ongepast berichtje',
+        ]);
+        $msgId = $msgRes->json('message.id');
+
+        // Regular user cannot delete
+        $delFail = $this->actingAs($regularUser)->deleteJson(route('chat.public.delete', $msgId));
+        $delFail->assertStatus(403);
+
+        // Moderator can delete
+        $delOk = $this->actingAs($modUser)->deleteJson(route('chat.public.delete', $msgId));
+        $delOk->assertOk();
+        $this->assertDatabaseMissing('chat_messages', ['id' => $msgId]);
+    }
+
+    public function test_gang_chat_channel_permissions(): void
+    {
+        [$user, $character] = $this->createInmate();
+        $gang = Gang::create([
+            'name' => 'The Kings',
+            'tag' => 'KNG',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $character->id,
+            'has_gang_chat' => false,
+        ]);
+        $character->update(['gang_id' => $gang->id]);
+
+        // Gang chat not yet unlocked
+        $resLocked = $this->actingAs($user)->getJson(route('chat.public.messages', ['channel' => 'gang_'.$gang->id]));
+        $resLocked->assertStatus(403);
+        $resLocked->assertJson(['locked' => true]);
+
+        // Unlock gang chat
+        $gang->update(['has_gang_chat' => true]);
+
+        // Now accessible
+        $resUnlocked = $this->actingAs($user)->getJson(route('chat.public.messages', ['channel' => 'gang_'.$gang->id]));
+        $resUnlocked->assertOk();
+    }
+
+    public function test_direct_messages_read_receipts(): void
+    {
+        [$user1, $char1] = $this->createInmate();
+        [$user2, $char2] = $this->createInmate();
+
+        $sendRes = $this->actingAs($user1)->postJson(route('chat.direct.send', $char2->id), [
+            'message' => 'Heb je de buit?',
+        ]);
+        $sendRes->assertOk();
+        $dmId = $sendRes->json('message.id');
+
+        $this->assertDatabaseHas('direct_messages', [
+            'id' => $dmId,
+            'is_read' => false,
+            'read_at' => null,
+        ]);
+
+        // User 2 opens conversation
+        $this->actingAs($user2)->getJson(route('chat.direct.messages', $char1->id))->assertOk();
+
+        $this->assertDatabaseHas('direct_messages', [
+            'id' => $dmId,
+            'is_read' => true,
+        ]);
+        $this->assertNotNull(DirectMessage::find($dmId)->read_at);
     }
 }

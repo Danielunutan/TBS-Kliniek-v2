@@ -12,8 +12,18 @@ class ChatMessage extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'hearts_users' => 'array',
+        'hearts_count' => 'integer',
+    ];
+
     public function character(): BelongsTo
     {
         return $this->belongsTo(Character::class);
+    }
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reply_to_id');
     }
 }

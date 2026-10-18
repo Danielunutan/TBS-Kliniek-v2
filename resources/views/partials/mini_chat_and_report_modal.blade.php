@@ -70,8 +70,35 @@
     </div>
 </div>
 
+@php
+    $authUser = auth()->user();
+    $authCharacter = $authUser?->character;
+    $authGang = $authCharacter?->gang;
+    $authCanModerate = (bool) ($authUser?->isStaff() || $authUser?->canModerate());
+    $myCharacterName = $authCharacter?->name ?? '';
+    $myCharacterId = $authCharacter?->id ?? 0;
+    $hasGang = (bool) ($authCharacter && $authCharacter->gang_id);
+    $gangHasChat = (bool) ($authGang && $authGang->has_gang_chat);
+    $gangId = $authCharacter?->gang_id ?? 0;
+    $gangName = $authGang?->name ?? 'Bende';
+    $gangTag = $authGang?->tag ?? '';
+    $gangStars = $authGang?->gang_stars ?? 0;
+    $characterStars = $authCharacter?->stars ?? 0;
+@endphp
+
 <!-- MINI LIVE CHAT & HELPBOT WIDGET (Docked Bottom Right) -->
-<div id="tbs-floating-mini-chat" x-data="tbsMiniLiveChat()" class="z-[9990]">
+<div id="tbs-floating-mini-chat" x-data="tbsMiniLiveChat({
+    myId: {{ $myCharacterId }},
+    myName: @js($myCharacterName),
+    canModerate: @js($authCanModerate),
+    hasGang: @js($hasGang),
+    gangId: {{ $gangId }},
+    gangName: @js($gangName),
+    gangTag: @js($gangTag),
+    gangHasChat: @js($gangHasChat),
+    characterStars: {{ $characterStars }},
+    gangStars: {{ $gangStars }},
+})" class="z-[9990]">
 
     <!-- FLOATING NEW MESSAGE TOAST BANNER -->
     <template x-if="toastNotification && !isOpen">
@@ -172,18 +199,27 @@
                 </div>
             </div>
 
-            <!-- TABS SWITCHER -->
-            <div class="grid grid-cols-3 gap-1 bg-black/20 p-1 rounded-xl text-[11px] font-extrabold text-center">
+            <!-- TABS SWITCHER (4 Tabs: Plein, Bende, Privé, Hulp AI) -->
+            <div class="grid grid-cols-4 gap-1 bg-black/20 p-1 rounded-xl text-[10px] font-extrabold text-center">
                 <button type="button" @click="setTab('global')" 
                         :class="activeTab === 'global' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
                         class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-bullhorn text-[10px]"></i>
+                    <i class="fa-solid fa-bullhorn text-[9px]"></i>
                     <span>Plein</span>
+                </button>
+                <button type="button" @click="setTab('gang')" 
+                        :class="activeTab === 'gang' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
+                        class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1 relative">
+                    <i class="fa-solid fa-users-viewfinder text-[9px]"></i>
+                    <span>Bende</span>
+                    <template x-if="!gangHasChat && hasGang">
+                        <i class="fa-solid fa-lock text-[8px] text-amber-300"></i>
+                    </template>
                 </button>
                 <button type="button" @click="setTab('direct')" 
                         :class="activeTab === 'direct' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
                         class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1 relative">
-                    <i class="fa-solid fa-envelope text-[10px]"></i>
+                    <i class="fa-solid fa-envelope text-[9px]"></i>
                     <span>Privé</span>
                     <template x-if="unreadDmsCount > 0">
                         <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
@@ -192,7 +228,7 @@
                 <button type="button" @click="setTab('help')" 
                         :class="activeTab === 'help' ? 'bg-white text-purple-900 shadow-xs' : 'text-purple-200 hover:text-white'"
                         class="py-1 rounded-lg transition cursor-pointer flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-robot text-[10px]"></i>
+                    <i class="fa-solid fa-robot text-[9px]"></i>
                     <span>Hulp AI</span>
                 </button>
             </div>
@@ -212,13 +248,13 @@
                                  onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                         </button>
 
-                        <div class="max-w-[82%] space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
+                        <div class="max-w-[84%] space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
                             <!-- Sender Meta -->
                             <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap" :class="msg.is_me ? 'justify-end' : ''">
                                 <!-- EIGENAAR -->
                                 <template x-if="msg.is_owner">
                                     <span class="text-amber-500 dark:text-amber-400 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
-                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)">
+                                          @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
                                         <i class="fa-solid fa-crown text-[9px] text-amber-500"></i>
                                         <span x-text="msg.name"></span>
                                     </span>
@@ -226,7 +262,7 @@
                                 <!-- ADMIN / DIRECTIE -->
                                 <template x-if="msg.is_admin && !msg.is_owner">
                                     <span class="text-purple-600 dark:text-purple-300 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
-                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)">
+                                          @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
                                         <i class="fa-solid fa-shield-halved text-[9px]"></i>
                                         <span x-text="msg.name"></span>
                                     </span>
@@ -234,7 +270,7 @@
                                 <!-- MODERATOR -->
                                 <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
                                     <span class="text-cyan-600 dark:text-cyan-400 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
-                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)">
+                                          @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
                                         <i class="fa-solid fa-gavel text-[9px]"></i>
                                         <span x-text="msg.name"></span>
                                     </span>
@@ -242,7 +278,7 @@
                                 <!-- REGULAR -->
                                 <template x-if="!msg.is_owner && !msg.is_admin && !msg.is_moderator">
                                     <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
-                                          @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
+                                          @click="tagPlayer(msg.name)" title="Klik om te taggen in chat"
                                           x-text="msg.name"></span>
                                 </template>
 
@@ -257,37 +293,64 @@
                                     <span x-text="msg.respect"></span>
                                 </span>
 
-                                <!-- STAFF BADGE -->
-                                <template x-if="msg.is_owner">
-                                    <span class="px-1 rounded bg-amber-500 text-slate-950 text-[8px] font-black">👑 EIGENAAR</span>
-                                </template>
-                                <template x-if="msg.is_admin && !msg.is_owner">
-                                    <span class="px-1 rounded bg-purple-600 text-white text-[8px] font-black">🏛️ DIRECTIE</span>
-                                </template>
-                                <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
-                                    <span class="px-1 rounded bg-cyan-600 text-white text-[8px] font-black">🛡️ MOD</span>
+                                <!-- GANG TAG -->
+                                <template x-if="msg.gang_tag">
+                                    <span class="px-1 py-0.2 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[8px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
                                 </template>
 
+                                <!-- TIME -->
                                 <span class="text-slate-400 text-[9px]" x-text="msg.time"></span>
+
+                                <!-- REAGEER KNOP -->
+                                <button type="button" @click="setReplyTo(msg)" title="Reageer op dit bericht" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                    <i class="fa-solid fa-reply"></i>
+                                </button>
+
+                                <!-- MODERATOR DELETE -->
+                                <template x-if="canModerate">
+                                    <button type="button" @click="deletePublicMessage(msg.id)" title="Verwijder bericht (Moderator)" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </template>
 
                                 <!-- REPORT -->
                                 <template x-if="!msg.is_me">
-                                    <button type="button" @click="window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message })" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[9px] cursor-pointer">
+                                    <button type="button" @click="window.tbsOpenReportModal({ type: 'chat_message', id: msg.id, name: msg.name, text: msg.message })" class="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition px-0.5 text-[9px] cursor-pointer" title="Rapporteer">
                                         <i class="fa-solid fa-flag"></i>
                                     </button>
                                 </template>
                             </div>
 
-                            <!-- Bubble -->
-                            <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-2xs"
-                                 :class="msg.is_me 
-                                    ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
-                                    : (msg.is_owner 
-                                        ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs'
-                                        : (msg.is_admin || msg.is_moderator 
-                                            ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs'
-                                            : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'))">
-                                <span x-text="msg.message"></span>
+                            <!-- Reply Quote Bubble (if replied) -->
+                            <template x-if="msg.reply_to_name">
+                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full">
+                                    <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
+                                    <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
+                                    <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
+                                </div>
+                            </template>
+
+                            <!-- Message Bubble & Heart Reaction -->
+                            <div class="flex items-center gap-1.5" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                                <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-2xs"
+                                     :class="msg.is_me 
+                                        ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
+                                        : (msg.is_owner 
+                                            ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs'
+                                            : (msg.is_admin || msg.is_moderator 
+                                                ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs'
+                                                : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'))">
+                                    <span x-text="msg.message"></span>
+                                </div>
+
+                                <!-- Paars Hartje Reactie Knop 💜 -->
+                                <button type="button" @click="togglePublicHeart(msg)" 
+                                        :title="msg.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
+                                        class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
+                                        :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
+                                    <span>💜</span>
+                                    <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -300,24 +363,283 @@
                 </template>
             </div>
 
-            <!-- SMILEYS & INPUT BAR -->
+            <!-- INPUT BAR & CLEAN EMOJI DRAWER -->
             <div class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1.5">
-                <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
-                    <template x-for="s in ['😀', '😂', '💀', '🔥', '💰', '💉', '🚓', '🚬', '👍', '🖕', '❤️', '👑', '😎', '⚡', '🎉']" :key="s">
-                        <button type="button" @click="inputMessage += s" class="w-6 h-6 rounded hover:bg-slate-100 dark:hover:bg-purple-900/40 text-xs flex items-center justify-center transition cursor-pointer shrink-0" :title="s">
-                            <span x-text="s"></span>
+                <!-- Reply Quoting Preview Banner -->
+                <template x-if="replyingTo">
+                    <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <i class="fa-solid fa-reply text-purple-500"></i>
+                            <span class="font-bold">Reageren op <span class="font-black text-purple-600 dark:text-purple-300" x-text="'@' + replyingTo.name"></span>:</span>
+                            <span class="truncate italic opacity-80" x-text="'\"' + replyingTo.text + '\"'"></span>
+                        </div>
+                        <button type="button" @click="cancelReply()" class="text-slate-400 hover:text-rose-500 ml-2 font-black cursor-pointer text-xs" title="Annuleren">
+                            &times;
                         </button>
-                    </template>
-                </div>
+                    </div>
+                </template>
 
-                <form @submit.prevent="sendPublicMessage()" class="flex items-center gap-1.5">
-                    <input type="text" x-model="inputMessage" placeholder="Typ een bericht... (Enter)" maxlength="350"
+                <form @submit.prevent="sendPublicMessage()" class="flex items-center gap-1.5 relative">
+                    <!-- Clean Emoji Picker Toggle Button -->
+                    <div class="relative">
+                        <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
+                            <i class="fa-regular fa-face-smile"></i>
+                        </button>
+
+                        <!-- Clean Emoji Drawer Popup -->
+                        <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
+                             class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
+                            <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys</span>
+                                <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
+                            </div>
+                            <div class="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Gezichten</span>
+                                    <div class="grid grid-cols-6 gap-1">
+                                        <template x-for="s in ['😀','😂','🤣','😎','😏','🤫','😡','💀','🤡','😈','😱','🥳']" :key="s">
+                                            <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 block mb-0.5">TBS & Misdaad</span>
+                                    <div class="grid grid-cols-6 gap-1">
+                                        <template x-for="s in ['🔥','💰','💉','🚓','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
+                                            <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Symbolen</span>
+                                    <div class="grid grid-cols-6 gap-1">
+                                        <template x-for="s in ['💜','❤️','👑','⭐','⚡','🎉','👍','👎','🖕','💯','🎯','👀']" :key="s">
+                                            <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="text" x-model="inputMessage" placeholder="Typ @naam of een bericht... (Enter)" maxlength="350"
                            class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                     <button type="submit" :disabled="isSending || !inputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </form>
             </div>
+        </div>
+
+        <!-- 1B. TAB: BENDE CHAT (BESLOTEN GANG KANAAL) -->
+        <div x-show="activeTab === 'gang'" class="flex-1 flex flex-col min-h-0">
+            <!-- SCENARIO A: NOT IN A GANG -->
+            <template x-if="!hasGang">
+                <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-2xl">
+                        <i class="fa-solid fa-users-slash"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen Bende Lidmaatschap</h4>
+                        <p class="text-xs text-slate-500 dark:text-purple-300/80">Sluit je aan bij een bende of richt je eigen factie op om de besloten bende chat te gebruiken.</p>
+                    </div>
+                    <a href="{{ route('gangs.index') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-black shadow-md transition">
+                        Bekijk Bendes &raquo;
+                    </a>
+                </div>
+            </template>
+
+            <!-- SCENARIO B: IN GANG, BUT CHAT NOT YET PURCHASED (500 STARS) -->
+            <template x-if="hasGang && !gangHasChat">
+                <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-3xl shadow-lg">
+                        <i class="fa-solid fa-walkie-talkie"></i>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider border border-amber-300 dark:border-amber-800">
+                            🔒 Exclusief Kanaal
+                        </span>
+                        <h4 class="text-base font-black text-slate-900 dark:text-white" x-text="gangName + ' Portofoon'"></h4>
+                        <p class="text-xs text-slate-600 dark:text-purple-200 max-w-xs mx-auto leading-relaxed">
+                            Jullie bende heeft de eigen besloten Gang Chat nog niet geactiveerd. Deze chat is exclusief voor leden van <span class="font-bold" x-text="gangName"></span>.
+                        </p>
+                    </div>
+
+                    <div class="p-3 bg-purple-50 dark:bg-purple-950/40 rounded-xl border border-purple-200 dark:border-purple-800/50 text-xs text-purple-900 dark:text-purple-200 w-full max-w-xs space-y-1">
+                        <div class="flex items-center justify-between font-bold">
+                            <span>Eenmalige Kosten:</span>
+                            <span class="text-amber-500 font-black">500 Sterren ⭐</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-purple-300/80">
+                            <span>Jouw saldo:</span>
+                            <span x-text="characterStars + ' ⭐'"></span>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('gangs.shop-buy') }}" method="POST" class="w-full max-w-xs">
+                        @csrf
+                        <input type="hidden" name="item_type" value="gang_chat">
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" :disabled="characterStars < 500 && gangStars < 500" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span>Koop Bende Chat (500 ⭐)</span>
+                        </button>
+                    </form>
+                </div>
+            </template>
+
+            <!-- SCENARIO C: IN GANG & CHAT UNLOCKED -->
+            <template x-if="hasGang && gangHasChat">
+                <div class="flex-1 flex flex-col min-h-0">
+                    <!-- Gang Header Sub-bar -->
+                    <div class="px-3 py-1.5 bg-purple-100/70 dark:bg-purple-950/80 border-b border-purple-200 dark:border-purple-900/40 flex items-center justify-between text-[11px] font-bold shrink-0">
+                        <div class="flex items-center gap-1.5 text-purple-900 dark:text-purple-200">
+                            <i class="fa-solid fa-walkie-talkie text-amber-500"></i>
+                            <span x-text="gangName + ' [Portofoon]'"></span>
+                        </div>
+                        <span class="text-[9px] px-2 py-0.2 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold border border-emerald-500/30">
+                            Besloten
+                        </span>
+                    </div>
+
+                    <!-- Gang Messages Stream -->
+                    <div x-ref="miniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
+                        <template x-for="msg in gangMessages" :key="msg.id">
+                            <div class="flex items-start gap-2 group" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                                <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
+                                        class="shrink-0 cursor-pointer transition hover:scale-105"
+                                        :title="!msg.is_me ? 'Chat privé met ' + msg.name : ''">
+                                    <img :src="msg.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                         class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60 shrink-0"
+                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                </button>
+
+                                <div class="max-w-[84%] space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
+                                    <!-- Sender Meta -->
+                                    <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap" :class="msg.is_me ? 'justify-end' : ''">
+                                        <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
+                                              @click="tagPlayer(msg.name)" title="Klik om te taggen"
+                                              x-text="msg.name"></span>
+
+                                        <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black">
+                                            L<span x-text="msg.level"></span>
+                                        </span>
+
+                                        <span class="text-slate-400 text-[9px]" x-text="msg.time"></span>
+
+                                        <!-- Reageer -->
+                                        <button type="button" @click="setReplyTo(msg)" title="Reageer" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                            <i class="fa-solid fa-reply"></i>
+                                        </button>
+
+                                        <!-- Moderator/Leader Delete -->
+                                        <template x-if="canModerate">
+                                            <button type="button" @click="deletePublicMessage(msg.id)" title="Verwijder bericht" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <!-- Reply Quote -->
+                                    <template x-if="msg.reply_to_name">
+                                        <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full">
+                                            <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
+                                            <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
+                                            <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
+                                        </div>
+                                    </template>
+
+                                    <!-- Bubble & Heart -->
+                                    <div class="flex items-center gap-1.5" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                                        <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-2xs"
+                                             :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
+                                            <span x-text="msg.message"></span>
+                                        </div>
+
+                                        <!-- Paars Hartje Reactie Knop 💜 -->
+                                        <button type="button" @click="togglePublicHeart(msg)" 
+                                                :title="msg.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
+                                                class="shrink-0 p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
+                                                :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
+                                            <span>💜</span>
+                                            <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="gangMessages.length === 0">
+                            <div class="py-12 text-center text-slate-400 text-xs">
+                                Nog geen berichten in de bende chat. Bespreek strategieën en overvallen met je maten!
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Gang Chat Input Bar -->
+                    <div class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1.5">
+                        <template x-if="replyingTo">
+                            <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    <i class="fa-solid fa-reply text-purple-500"></i>
+                                    <span class="font-bold">Reageren op <span class="font-black text-purple-600 dark:text-purple-300" x-text="'@' + replyingTo.name"></span>:</span>
+                                    <span class="truncate italic opacity-80" x-text="'\"' + replyingTo.text + '\"'"></span>
+                                </div>
+                                <button type="button" @click="cancelReply()" class="text-slate-400 hover:text-rose-500 ml-2 font-black cursor-pointer text-xs">&times;</button>
+                            </div>
+                        </template>
+
+                        <form @submit.prevent="sendGangMessage()" class="flex items-center gap-1.5 relative">
+                            <!-- Clean Emoji Picker Toggle -->
+                            <div class="relative">
+                                <button type="button" @click="showGangEmojiPicker = !showGangEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
+                                    <i class="fa-regular fa-face-smile"></i>
+                                </button>
+
+                                <div x-show="showGangEmojiPicker" @click.outside="showGangEmojiPicker = false" x-cloak
+                                     class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
+                                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys</span>
+                                        <button type="button" @click="showGangEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
+                                    </div>
+                                    <div class="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Gezichten</span>
+                                            <div class="grid grid-cols-6 gap-1">
+                                                <template x-for="s in ['😀','😂','🤣','😎','😏','🤫','😡','💀','🤡','😈','😱','🥳']" :key="s">
+                                                    <button type="button" @click="insertGangEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 block mb-0.5">TBS & Misdaad</span>
+                                            <div class="grid grid-cols-6 gap-1">
+                                                <template x-for="s in ['🔥','💰','💉','🚓','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
+                                                    <button type="button" @click="insertGangEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Symbolen</span>
+                                            <div class="grid grid-cols-6 gap-1">
+                                                <template x-for="s in ['💜','❤️','👑','⭐','⚡','🎉','👍','👎','🖕','💯','🎯','👀']" :key="s">
+                                                    <button type="button" @click="insertGangEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="text" x-model="gangInputMessage" placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="350"
+                                   class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                            <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </template>
         </div>
 
         <!-- 2. TAB: PRIVÉ CHAT & CONTACTEN -->
@@ -462,13 +784,67 @@
 
                                 <!-- Standard Bubbles -->
                                 <template x-if="dm.type === 'chat' || dm.type === 'system'">
-                                    <div class="flex items-start gap-1.5" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                    <div class="flex items-start gap-1.5 group" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                         <div class="max-w-[85%] space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                            <div class="inline-block p-2 rounded-xl text-xs break-words"
-                                                 :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
-                                                <span x-text="dm.message"></span>
+                                            <!-- Reply Quote if any -->
+                                            <template x-if="dm.reply_to_name">
+                                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full">
+                                                    <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
+                                                    <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + dm.reply_to_name"></span>
+                                                    <span class="truncate opacity-75 italic" x-text="dm.reply_to_snippet"></span>
+                                                </div>
+                                            </template>
+
+                                            <!-- Bubble & Reactions -->
+                                            <div class="flex items-center gap-1.5" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                                <div class="inline-block p-2.5 rounded-2xl text-xs break-words shadow-2xs leading-relaxed"
+                                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
+                                                    <span x-text="dm.message"></span>
+                                                </div>
+
+                                                <!-- Action Buttons: Heart, Reageer, Delete -->
+                                                <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">
+                                                    <!-- Paars Hartje Reactie 💜 -->
+                                                    <button type="button" @click="toggleDirectHeart(dm)" 
+                                                            :title="dm.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
+                                                            class="p-1 rounded-full text-xs transition cursor-pointer flex items-center gap-0.5"
+                                                            :class="dm.has_hearted ? 'text-purple-400 font-black' : 'text-slate-400/70 hover:text-purple-400'">
+                                                        <span>💜</span>
+                                                        <span x-show="dm.hearts_count > 0" x-text="dm.hearts_count" class="text-[9px] font-black font-mono"></span>
+                                                    </button>
+
+                                                    <!-- Reageer -->
+                                                    <button type="button" @click="setReplyTo(dm, 'direct')" title="Reageer" class="text-slate-400 hover:text-purple-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                        <i class="fa-solid fa-reply"></i>
+                                                    </button>
+
+                                                    <!-- Verwijder -->
+                                                    <template x-if="dm.is_me || canModerate">
+                                                        <button type="button" @click="deleteDirectMessage(dm.id)" title="Verwijder bericht" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </template>
+                                                </div>
                                             </div>
-                                            <div class="text-[9px] text-slate-400 font-mono" x-text="dm.time"></div>
+
+                                            <!-- Time & Read Receipt (Checkmarks) -->
+                                            <div class="flex items-center gap-1 text-[9px] text-slate-400 font-mono" :class="dm.is_me ? 'justify-end' : ''">
+                                                <span x-text="dm.time"></span>
+                                                <template x-if="dm.is_me">
+                                                    <span class="inline-flex items-center ml-0.5">
+                                                        <template x-if="dm.is_read">
+                                                            <span class="text-purple-400 font-bold flex items-center" :title="'Gelezen om ' + (dm.read_at || dm.time)">
+                                                                <i class="fa-solid fa-check-double text-[9px]"></i>
+                                                            </span>
+                                                        </template>
+                                                        <template x-if="!dm.is_read">
+                                                            <span class="text-slate-400" title="Verzonden">
+                                                                <i class="fa-solid fa-check text-[9px]"></i>
+                                                            </span>
+                                                        </template>
+                                                    </span>
+                                                </template>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
@@ -491,19 +867,64 @@
                     </template>
 
                     <template x-if="!activeDirectPartner.is_bot">
-                        <div class="p-2 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1">
-                            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
-                                <template x-for="s in ['😀', '😂', '💀', '🔥', '💰', '💉', '🚓', '🚬', '👍', '🖕', '❤️', '👑', '😎', '⚡', '🎉']" :key="s">
-                                    <button type="button" @click="directInput += s" class="w-6 h-6 rounded hover:bg-slate-100 dark:hover:bg-purple-900/40 text-xs flex items-center justify-center transition cursor-pointer shrink-0">
-                                        <span x-text="s"></span>
-                                    </button>
-                                </template>
-                            </div>
+                        <div class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-1.5">
+                            <!-- Direct Reply Preview -->
+                            <template x-if="directReplyingTo">
+                                <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-2.5 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
+                                    <div class="flex items-center gap-1.5 truncate">
+                                        <i class="fa-solid fa-reply text-purple-500"></i>
+                                        <span class="font-bold">Reageren op <span class="font-black text-purple-600 dark:text-purple-300" x-text="'@' + directReplyingTo.name"></span>:</span>
+                                        <span class="truncate italic opacity-80" x-text="'\"' + directReplyingTo.text + '\"'"></span>
+                                    </div>
+                                    <button type="button" @click="cancelDirectReply()" class="text-slate-400 hover:text-rose-500 ml-2 font-black cursor-pointer text-xs">&times;</button>
+                                </div>
+                            </template>
 
-                            <form @submit.prevent="sendDirectMessage()" class="flex items-center gap-1.5">
+                            <form @submit.prevent="sendDirectMessage()" class="flex items-center gap-1.5 relative">
+                                <!-- Clean Emoji Toggle -->
+                                <div class="relative">
+                                    <button type="button" @click="showDirectEmojiPicker = !showDirectEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
+                                        <i class="fa-regular fa-face-smile"></i>
+                                    </button>
+
+                                    <div x-show="showDirectEmojiPicker" @click.outside="showDirectEmojiPicker = false" x-cloak
+                                         class="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-2.5 shadow-2xl z-50 space-y-2">
+                                        <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys</span>
+                                            <button type="button" @click="showDirectEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
+                                        </div>
+                                        <div class="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                                            <div>
+                                                <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Gezichten</span>
+                                                <div class="grid grid-cols-6 gap-1">
+                                                    <template x-for="s in ['😀','😂','🤣','😎','😏','🤫','😡','💀','🤡','😈','😱','🥳']" :key="s">
+                                                        <button type="button" @click="insertDirectEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="text-[9px] font-bold text-slate-400 block mb-0.5">TBS & Misdaad</span>
+                                                <div class="grid grid-cols-6 gap-1">
+                                                    <template x-for="s in ['🔥','💰','💉','🚓','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
+                                                        <button type="button" @click="insertDirectEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Symbolen</span>
+                                                <div class="grid grid-cols-6 gap-1">
+                                                    <template x-for="s in ['💜','❤️','👑','⭐','⚡','🎉','👍','👎','🖕','💯','🎯','👀']" :key="s">
+                                                        <button type="button" @click="insertDirectEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <input type="text" x-model="directInput" placeholder="Typ een privébericht... (Enter)" maxlength="500"
                                        class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                                <button type="submit" :disabled="isSendingDirect || !directInput.trim()" class="w-7 h-7 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
+                                <button type="submit" :disabled="isSendingDirect || !directInput.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                                     <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                 </button>
                             </form>
@@ -564,7 +985,7 @@
     </div>
 
     <!-- FLOATING LAUNCHER BUTTON (Bottom Right Corner) -->
-    <button type="button" @click="isOpen = !isOpen"
+    <button type="button" @click="isOpen = !isOpen; if(isOpen) { $nextTick(() => { if(activeTab === 'global') scrollChatBottom(); else if(activeTab === 'gang') scrollGangBottom(); else if(activeTab === 'direct' && activeDirectPartner) scrollDirectBottom(); }); }"
             style="position: fixed; bottom: 20px; right: 20px; z-index: 9998;"
             class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/25 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-400">
         <div class="relative w-5 h-5 shrink-0 flex items-center justify-center">
@@ -652,19 +1073,39 @@
     }
 
     // Mini Live Chat Widget Handler with Synthesized Audio Ping & Notification Toasts
-    function tbsMiniLiveChat() {
+    function tbsMiniLiveChat(cfg = {}) {
         return {
+            myId: cfg.myId || 0,
+            myName: cfg.myName || '',
+            canModerate: cfg.canModerate || false,
+            hasGang: cfg.hasGang || false,
+            gangId: cfg.gangId || 0,
+            gangName: cfg.gangName || 'Bende',
+            gangTag: cfg.gangTag || '',
+            gangHasChat: cfg.gangHasChat || false,
+            characterStars: cfg.characterStars || 0,
+            gangStars: cfg.gangStars || 0,
+
             isOpen: false,
             activeTab: 'global',
+
+            // Plein chat state
             publicMessages: [],
             lastPublicId: 0,
             inputMessage: '',
             isSending: false,
-            unreadDmsCount: 0,
-            toastNotification: null,
-            lastDirectDmId: 0,
-            isSoundMuted: localStorage.getItem('tbs_chat_muted') === '1',
-            lastChimeTime: 0,
+            showEmojiPicker: false,
+
+            // Bende chat state
+            gangMessages: [],
+            lastGangId: 0,
+            gangInputMessage: '',
+            isSendingGang: false,
+            showGangEmojiPicker: false,
+
+            // Replies
+            replyingTo: null,
+            directReplyingTo: null,
 
             // Direct Messages in mini chat
             directConversations: [],
@@ -673,6 +1114,13 @@
             activeDirectMessages: [],
             directInput: '',
             isSendingDirect: false,
+            showDirectEmojiPicker: false,
+
+            unreadDmsCount: 0,
+            toastNotification: null,
+            lastDirectDmId: 0,
+            isSoundMuted: localStorage.getItem('tbs_chat_muted') === '1',
+            lastChimeTime: 0,
 
             // Helpbot state
             helpInput: '',
@@ -691,6 +1139,9 @@
 
             init() {
                 this.loadPublicMessages(true);
+                if (this.hasGang && this.gangHasChat) {
+                    this.loadGangMessages(true);
+                }
                 this.loadConversations();
                 this.pollLoop();
 
@@ -713,7 +1164,7 @@
             playChime() {
                 if (this.isSoundMuted) return;
                 const now = Date.now();
-                if (now - this.lastChimeTime < 3000) return; // Prevent rapid-fire chime triggers
+                if (now - this.lastChimeTime < 3000) return;
                 this.lastChimeTime = now;
 
                 try {
@@ -733,7 +1184,6 @@
                     osc.frequency.setValueAtTime(587.33, startTime); // D5
                     osc.frequency.linearRampToValueAtTime(880, startTime + 0.10); // A5
 
-                    // Linear fade prevents audio param math domain errors
                     gain.gain.setValueAtTime(0.12, startTime);
                     gain.gain.linearRampToValueAtTime(0.0001, startTime + 0.25);
 
@@ -745,7 +1195,6 @@
                         osc.stop(startTime + 0.26);
                     } catch(e) {}
 
-                    // Hard safety timeout: unconditionally close context & disconnect nodes
                     setTimeout(() => {
                         try { osc.stop(); } catch(e) {}
                         try { osc.disconnect(); } catch(e) {}
@@ -759,6 +1208,11 @@
                 this.activeTab = tab;
                 if (tab === 'global') {
                     this.scrollChatBottom();
+                } else if (tab === 'gang') {
+                    if (this.hasGang && this.gangHasChat) {
+                        this.loadGangMessages();
+                    }
+                    this.scrollGangBottom();
                 } else if (tab === 'direct') {
                     this.loadConversations();
                     if (this.activeDirectPartner) {
@@ -775,12 +1229,147 @@
                 });
             },
 
+            scrollGangBottom() {
+                this.$nextTick(() => {
+                    if (this.$refs.miniGangScroll) {
+                        this.$refs.miniGangScroll.scrollTop = this.$refs.miniGangScroll.scrollHeight;
+                    }
+                });
+            },
+
             scrollDirectBottom() {
                 this.$nextTick(() => {
                     if (this.$refs.miniDirectScroll) {
                         this.$refs.miniDirectScroll.scrollTop = this.$refs.miniDirectScroll.scrollHeight;
                     }
                 });
+            },
+
+            tagPlayer(name) {
+                if (!name) return;
+                const tag = '@' + name.trim() + ' ';
+                if (this.activeTab === 'gang') {
+                    if (!this.gangInputMessage.includes(tag)) {
+                        this.gangInputMessage = tag + this.gangInputMessage;
+                    }
+                } else {
+                    if (!this.inputMessage.includes(tag)) {
+                        this.inputMessage = tag + this.inputMessage;
+                    }
+                }
+            },
+
+            setReplyTo(msg, type = 'public') {
+                if (type === 'direct') {
+                    this.directReplyingTo = {
+                        id: msg.id,
+                        name: msg.is_me ? this.myName : (this.activeDirectPartner?.name || 'Inmate'),
+                        text: msg.message,
+                    };
+                } else {
+                    this.replyingTo = {
+                        id: msg.id,
+                        character_id: msg.character_id,
+                        name: msg.name,
+                        text: msg.message,
+                    };
+                }
+            },
+
+            cancelReply() {
+                this.replyingTo = null;
+            },
+
+            cancelDirectReply() {
+                this.directReplyingTo = null;
+            },
+
+            insertEmoji(emoji) {
+                this.inputMessage += emoji;
+                this.showEmojiPicker = false;
+            },
+
+            insertGangEmoji(emoji) {
+                this.gangInputMessage += emoji;
+                this.showGangEmojiPicker = false;
+            },
+
+            insertDirectEmoji(emoji) {
+                this.directInput += emoji;
+                this.showDirectEmojiPicker = false;
+            },
+
+            async togglePublicHeart(msg) {
+                try {
+                    const res = await fetch(`/chat/openbaar/${msg.id}/hartje`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        msg.hearts_count = data.hearts_count;
+                        msg.has_hearted = data.has_hearted;
+                    }
+                } catch(e) {}
+            },
+
+            async toggleDirectHeart(dm) {
+                try {
+                    const res = await fetch(`/chat/prive-bericht/${dm.id}/hartje`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        dm.hearts_count = data.hearts_count;
+                        dm.has_hearted = data.has_hearted;
+                    }
+                } catch(e) {}
+            },
+
+            async deletePublicMessage(msgId) {
+                if (!confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) return;
+                try {
+                    const res = await fetch(`/chat/openbaar/${msgId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.publicMessages = this.publicMessages.filter(m => m.id !== msgId);
+                        this.gangMessages = this.gangMessages.filter(m => m.id !== msgId);
+                    } else {
+                        alert(data.message || 'Kon bericht niet verwijderen.');
+                    }
+                } catch(e) {
+                    alert('Er is een fout opgetreden.');
+                }
+            },
+
+            async deleteDirectMessage(dmId) {
+                if (!confirm('Bericht verwijderen?')) return;
+                try {
+                    const res = await fetch(`/chat/prive-bericht/${dmId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.activeDirectMessages = this.activeDirectMessages.filter(m => m.id !== dmId);
+                    }
+                } catch(e) {}
             },
 
             async loadPublicMessages(isFirst = false) {
@@ -796,17 +1385,32 @@
                         } else if (data.messages.length > 0) {
                             const newIncoming = data.messages.filter(m => !m.is_me);
                             if (newIncoming.length > 0) {
-                                const latest = newIncoming[newIncoming.length - 1];
-                                this.playChime();
-                                if (!this.isOpen) {
-                                    this.toastNotification = {
-                                        type: 'global',
-                                        name: latest.name,
-                                        text: latest.message,
-                                        avatar: latest.avatar,
-                                        time: latest.time || 'Zojuist',
-                                    };
-                                    setTimeout(() => { this.toastNotification = null; }, 6000);
+                                const myNameLower = (this.myName || '').toLowerCase();
+                                
+                                // Only pop-up toast and sound chime if tagged (@MyName) or replied to!
+                                const notifyMsg = newIncoming.find(m => {
+                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
+                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
+                                    return isTagged || isReplied;
+                                });
+
+                                if (notifyMsg) {
+                                    this.playChime();
+                                    if (!this.isOpen) {
+                                        const isTagged = myNameLower && notifyMsg.message.toLowerCase().includes('@' + myNameLower);
+                                        this.toastNotification = {
+                                            type: 'global',
+                                            name: notifyMsg.name,
+                                            text: (isTagged ? '🔔 Je bent getagd: ' : '↩️ Reactie op jou: ') + notifyMsg.message,
+                                            avatar: notifyMsg.avatar,
+                                            time: notifyMsg.time || 'Zojuist',
+                                        };
+                                        setTimeout(() => { 
+                                            if (this.toastNotification && this.toastNotification.type === 'global') {
+                                                this.toastNotification = null; 
+                                            }
+                                        }, 7000);
+                                    }
                                 }
                             }
                             this.publicMessages = [...this.publicMessages, ...data.messages];
@@ -817,6 +1421,56 @@
                         }
                     }
                 } catch (e) {}
+            },
+
+            async loadGangMessages(isFirst = false) {
+                if (!this.hasGang || !this.gangHasChat || (document.visibilityState === 'hidden' && !isFirst)) return;
+                try {
+                    const channel = 'gang_' + this.gangId;
+                    const url = `{{ route('chat.public.messages') }}?channel=${channel}` + (this.lastGangId > 0 ? ('&after_id=' + this.lastGangId) : '');
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (data.success && data.messages) {
+                        if (this.lastGangId === 0) {
+                            this.gangMessages = data.messages;
+                            this.scrollGangBottom();
+                        } else if (data.messages.length > 0) {
+                            const newIncoming = data.messages.filter(m => !m.is_me);
+                            if (newIncoming.length > 0) {
+                                const myNameLower = (this.myName || '').toLowerCase();
+                                const notifyMsg = newIncoming.find(m => {
+                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
+                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
+                                    return isTagged || isReplied;
+                                });
+
+                                if (notifyMsg) {
+                                    this.playChime();
+                                    if (!this.isOpen) {
+                                        const isTagged = myNameLower && notifyMsg.message.toLowerCase().includes('@' + myNameLower);
+                                        this.toastNotification = {
+                                            type: 'gang',
+                                            name: `[${this.gangTag || 'Bende'}] ` + notifyMsg.name,
+                                            text: (isTagged ? '🔔 Bende tag: ' : '↩️ Bende reactie: ') + notifyMsg.message,
+                                            avatar: notifyMsg.avatar,
+                                            time: notifyMsg.time || 'Zojuist',
+                                        };
+                                        setTimeout(() => { 
+                                            if (this.toastNotification && this.toastNotification.type === 'gang') {
+                                                this.toastNotification = null; 
+                                            }
+                                        }, 7000);
+                                    }
+                                }
+                            }
+                            this.gangMessages = [...this.gangMessages, ...data.messages];
+                            this.scrollGangBottom();
+                        }
+                        if (data.last_id > this.lastGangId) {
+                            this.lastGangId = data.last_id;
+                        }
+                    }
+                } catch(e) {}
             },
 
             openToastDestination() {
@@ -832,6 +1486,8 @@
                         avatar: note.avatar,
                         is_bot: note.is_bot || false,
                     });
+                } else if (note.type === 'gang') {
+                    this.setTab('gang');
                 } else {
                     this.setTab('global');
                 }
@@ -841,6 +1497,7 @@
                 const text = this.inputMessage.trim();
                 if (!text || this.isSending) return;
                 this.isSending = true;
+                const replyId = this.replyingTo ? this.replyingTo.id : null;
                 try {
                     const res = await fetch('{{ route('chat.public.send') }}', {
                         method: 'POST',
@@ -849,11 +1506,16 @@
                             'X-CSRF-TOKEN': this.getCsrf(),
                             'Accept': 'application/json',
                         },
-                        body: JSON.stringify({ channel: 'global', message: text })
+                        body: JSON.stringify({ 
+                            channel: 'global', 
+                            message: text,
+                            reply_to_id: replyId,
+                        })
                     });
                     const data = await res.json();
                     if (data.success && data.message) {
                         this.inputMessage = '';
+                        this.cancelReply();
                         this.publicMessages.push(data.message);
                         this.lastPublicId = Math.max(this.lastPublicId, data.message.id);
                         this.scrollChatBottom();
@@ -864,6 +1526,42 @@
                     alert('Kon bericht niet verzenden.');
                 } finally {
                     this.isSending = false;
+                }
+            },
+
+            async sendGangMessage() {
+                const text = this.gangInputMessage.trim();
+                if (!text || this.isSendingGang) return;
+                this.isSendingGang = true;
+                const replyId = this.replyingTo ? this.replyingTo.id : null;
+                try {
+                    const res = await fetch('{{ route('chat.public.send') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrf(),
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            channel: 'gang_' + this.gangId, 
+                            message: text,
+                            reply_to_id: replyId,
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success && data.message) {
+                        this.gangInputMessage = '';
+                        this.cancelReply();
+                        this.gangMessages.push(data.message);
+                        this.lastGangId = Math.max(this.lastGangId, data.message.id);
+                        this.scrollGangBottom();
+                    } else if (data.message) {
+                        alert(data.message);
+                    }
+                } catch (e) {
+                    alert('Kon bendebericht niet verzenden.');
+                } finally {
+                    this.isSendingGang = false;
                 }
             },
 
@@ -906,6 +1604,7 @@
             closeDirectChat() {
                 this.activeDirectPartner = null;
                 this.activeDirectMessages = [];
+                this.cancelDirectReply();
                 this.loadConversations();
             },
 
@@ -915,6 +1614,7 @@
                 if (!text || this.isSendingDirect) return;
                 const pId = this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id;
                 this.isSendingDirect = true;
+                const replyId = this.directReplyingTo ? this.directReplyingTo.id : null;
                 try {
                     const res = await fetch(`/chat/prive/${pId}/verzenden`, {
                         method: 'POST',
@@ -923,11 +1623,15 @@
                             'X-CSRF-TOKEN': this.getCsrf(),
                             'Accept': 'application/json',
                         },
-                        body: JSON.stringify({ message: text })
+                        body: JSON.stringify({ 
+                            message: text,
+                            reply_to_id: replyId,
+                        })
                     });
                     const data = await res.json();
                     if (data.success && data.message) {
                         this.directInput = '';
+                        this.cancelDirectReply();
                         this.activeDirectMessages.push(data.message);
                         this.scrollDirectBottom();
                         this.loadConversations();
@@ -970,6 +1674,9 @@
             pollLoop() {
                 setInterval(() => {
                     this.loadPublicMessages();
+                    if (this.hasGang && this.gangHasChat) {
+                        this.loadGangMessages();
+                    }
 
                     // Poll incoming direct messages & unread count
                     const pollDmUrl = '{{ route('chat.poll-incoming') }}' + (this.lastDirectDmId > 0 ? ('?after_dm_id=' + this.lastDirectDmId) : '');
@@ -995,7 +1702,6 @@
                                         this.playChime();
 
                                         if (isChattingWithSender) {
-                                            // Append to active conversation stream
                                             if (!this.activeDirectMessages.some(m => m.id === dm.id)) {
                                                 this.activeDirectMessages.push({
                                                     id: dm.id,
@@ -1006,11 +1712,17 @@
                                                     metadata: null,
                                                     time: dm.time,
                                                     is_me: false,
+                                                    is_read: false,
+                                                    read_at: null,
+                                                    reply_to_id: dm.reply_to_id || null,
+                                                    reply_to_name: dm.reply_to_name || null,
+                                                    reply_to_snippet: dm.reply_to_snippet || null,
+                                                    hearts_count: 0,
+                                                    has_hearted: false,
                                                 });
                                                 this.scrollDirectBottom();
                                             }
                                         } else {
-                                            // Show distinct Privé (PM) toast notification
                                             this.toastNotification = {
                                                 type: 'direct',
                                                 partner_id: dm.sender_id,

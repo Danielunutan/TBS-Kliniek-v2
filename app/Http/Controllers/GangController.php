@@ -887,7 +887,7 @@ class GangController extends Controller
         }
 
         $validated = $request->validate([
-            'item_type' => ['required', 'string', 'in:bling_shops,protection,power,max_members'],
+            'item_type' => ['required', 'string', 'in:bling_shops,protection,power,max_members,gang_chat'],
             'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
         ], [
             'quantity.min' => 'Kies minimaal 1 om aan te schaffen.',
@@ -898,6 +898,27 @@ class GangController extends Controller
         $qty = (int) $validated['quantity'];
 
         switch ($itemType) {
+            case 'gang_chat':
+                if ($gang->has_gang_chat) {
+                    return back()->with('error', 'Jullie bende beschikt al over een eigen besloten Gang Chat!');
+                }
+
+                $chatPrice = 500;
+                if (($character->stars ?? 0) >= $chatPrice) {
+                    $character->stars -= $chatPrice;
+                    $character->save();
+                } elseif (($gang->gang_stars ?? 0) >= $chatPrice && $gang->isOfficer($character)) {
+                    $gang->gang_stars -= $chatPrice;
+                } else {
+                    return back()->with('error', 'Niet genoeg Sterren ⭐ om de Bende Chat te ontgrendelen (500 Sterren ⭐ vereist).');
+                }
+
+                $gang->has_gang_chat = true;
+                $gang->save();
+
+                return back()
+                    ->with('active_gang_tab', 'winkel')
+                    ->with('success', '🎉 Gefeliciteerd! De besloten Bende Chat is nu permanent ontgrendeld voor alle leden van de bende!');
             case 'bling_shops':
                 $unitPrice = 50000;
                 $totalCost = $unitPrice * $qty;

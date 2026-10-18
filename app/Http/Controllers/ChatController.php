@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\ChatMessage;
 use App\Models\DirectMessage;
 use App\Models\Friend;
+use App\Models\Gang;
 use App\Models\User;
 use App\Services\EnergyService;
 use Illuminate\Http\JsonResponse;
@@ -71,6 +72,24 @@ class ChatController extends Controller
         $channel = $request->query('channel', 'global');
         $afterId = (int) $request->query('after_id', 0);
 
+        if (str_starts_with($channel, 'gang_')) {
+            $gangId = (int) str_replace('gang_', '', $channel);
+            if (! $character->gang_id || (int) $character->gang_id !== $gangId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt geen toegang tot deze bende chat.',
+                ], 403);
+            }
+            $gang = Gang::find($gangId);
+            if (! $gang || ! $gang->has_gang_chat) {
+                return response()->json([
+                    'success' => false,
+                    'locked' => true,
+                    'message' => 'Deze bende heeft de Portofoon (Gang Chat) nog niet aangeschaft in de Bende Winkel.',
+                ], 403);
+            }
+        }
+
         $query = ChatMessage::with(['character.gang', 'character.user'])
             ->where('channel', $channel);
 
@@ -117,6 +136,11 @@ class ChatController extends Controller
                 'message' => $msg->message,
                 'time' => $msg->created_at->format('H:i'),
                 'is_me' => $msg->character_id === $character->id,
+                'reply_to_id' => $msg->reply_to_id,
+                'reply_to_name' => $msg->reply_to_name,
+                'reply_to_snippet' => $msg->reply_to_snippet,
+                'hearts_count' => (int) ($msg->hearts_count ?? 0),
+                'has_hearted' => in_array($character->id, $msg->hearts_users ?? [], true),
             ];
         });
 
@@ -125,6 +149,36 @@ class ChatController extends Controller
             'messages' => $formatted,
             'last_id' => $messages->last()?->id ?? $afterId,
         ]);
+    }
+
+    /**
+     * Validate that message does not contain disallowed links.
+     * Only discord invites (discord.gg/..., discord.com/invite/...) are permitted.
+     */
+    protected function validateChatLinks(string $message): ?JsonResponse
+    {
+        $hasUrlPattern = (bool) preg_match('/(?:https?:\/\/|www\.)[^\s]+/i', $message)
+            || (bool) preg_match('/\b[a-zA-Z0-9_\-]+\.(?:com|nl|be|net|org|io|gg|me|xyz|ru|co|de|info|online|site|app|link|top|tv)\b/i', $message);
+
+        if (! $hasUrlPattern) {
+            return null;
+        }
+
+        preg_match_all('/(?:https?:\/\/|www\.)?[a-zA-Z0-9_\-]+\.[a-zA-Z0-9_\-\.\/]+/i', $message, $matches);
+        $tokens = $matches[0] ?? [];
+
+        foreach ($tokens as $token) {
+            $cleanToken = trim(rtrim($token, '.,!?):;'));
+            $isDiscordInvite = (bool) preg_match('/^(?:https?:\/\/)?(?:www\.)?(?:discord\.gg|discord\.com\/invite)\/[a-zA-Z0-9_\-]+$/i', $cleanToken);
+            if (! $isDiscordInvite) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Het delen van externe links of websites is niet toegestaan, behalve officiële Discord invites!',
+                ], 422);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -212,16 +266,57 @@ class ChatController extends Controller
             ], 422);
         }
 
+        if ($linkError = $this->validateChatLinks($cleanMessage)) {
+            return $linkError;
+        }
+
         if ($spamError = $this->validateChatSpam($character, $cleanMessage, 'public')) {
             return $spamError;
         }
 
         $channel = $request->input('channel', 'global');
 
+        if (str_starts_with($channel, 'gang_')) {
+            $gangId = (int) str_replace('gang_', '', $channel);
+            if (! $character->gang_id || (int) $character->gang_id !== $gangId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je bent geen lid van deze bende!',
+                ], 403);
+            }
+            $gang = Gang::find($gangId);
+            if (! $gang || ! $gang->has_gang_chat) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jullie bende heeft de Besloten Gang Chat nog niet ontgrendeld voor 500 sterren.',
+                ], 422);
+            }
+        }
+
+        $replyToId = (int) $request->input('reply_to_id', 0);
+        $replyToName = null;
+        $replyToSnippet = null;
+        if ($replyToId > 0) {
+            $targetMsg = ChatMessage::with('character')->find($replyToId);
+            if ($targetMsg) {
+                $replyToName = $targetMsg->character?->name ?? 'Onbekend';
+                $replyToSnippet = Str::limit($targetMsg->message, 80);
+            } else {
+                $replyToId = null;
+            }
+        } else {
+            $replyToId = null;
+        }
+
         $chatMsg = ChatMessage::create([
             'character_id' => $character->id,
             'channel' => $channel,
             'message' => $cleanMessage,
+            'reply_to_id' => $replyToId,
+            'reply_to_name' => $replyToName,
+            'reply_to_snippet' => $replyToSnippet,
+            'hearts_count' => 0,
+            'hearts_users' => [],
         ]);
 
         $gang = $character->gang;
@@ -253,6 +348,11 @@ class ChatController extends Controller
                 'message' => $chatMsg->message,
                 'time' => $chatMsg->created_at->format('H:i'),
                 'is_me' => true,
+                'reply_to_id' => $chatMsg->reply_to_id,
+                'reply_to_name' => $chatMsg->reply_to_name,
+                'reply_to_snippet' => $chatMsg->reply_to_snippet,
+                'hearts_count' => 0,
+                'has_hearted' => false,
             ],
         ]);
     }
@@ -373,7 +473,7 @@ class ChatController extends Controller
             DirectMessage::whereNull('sender_id')
                 ->where('recipient_id', $character->id)
                 ->where('is_read', false)
-                ->update(['is_read' => true]);
+                ->update(['is_read' => true, 'read_at' => now()]);
 
             $partnerData = [
                 'id' => 0,
@@ -405,7 +505,7 @@ class ChatController extends Controller
             DirectMessage::where('sender_id', $partnerId)
                 ->where('recipient_id', $character->id)
                 ->where('is_read', false)
-                ->update(['is_read' => true]);
+                ->update(['is_read' => true, 'read_at' => now()]);
 
             $isOnline = $partner->last_active_at && $partner->last_active_at->diffInMinutes(now()) < 5;
 
@@ -431,6 +531,13 @@ class ChatController extends Controller
                 'time' => $msg->created_at->format('H:i'),
                 'date' => $msg->created_at->format('d-m-Y'),
                 'is_me' => $msg->sender_id === $character->id,
+                'is_read' => (bool) $msg->is_read,
+                'read_at' => $msg->read_at ? $msg->read_at->format('H:i') : null,
+                'reply_to_id' => $msg->reply_to_id,
+                'reply_to_name' => $msg->reply_to_name,
+                'reply_to_snippet' => $msg->reply_to_snippet,
+                'hearts_count' => (int) ($msg->hearts_count ?? 0),
+                'has_hearted' => in_array($character->id, $msg->hearts_users ?? [], true),
             ];
         });
 
@@ -484,8 +591,27 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'message' => 'Bericht is te lang (maximaal 1000 tekens).'], 422);
         }
 
+        if ($linkError = $this->validateChatLinks($cleanMessage)) {
+            return $linkError;
+        }
+
         if ($spamError = $this->validateChatSpam($character, $cleanMessage, 'direct')) {
             return $spamError;
+        }
+
+        $replyToId = (int) $request->input('reply_to_id', 0);
+        $replyToName = null;
+        $replyToSnippet = null;
+        if ($replyToId > 0) {
+            $targetDm = DirectMessage::with('sender')->find($replyToId);
+            if ($targetDm) {
+                $replyToName = $targetDm->sender?->name ?? 'Kliniek Directie';
+                $replyToSnippet = Str::limit($targetDm->message, 80);
+            } else {
+                $replyToId = null;
+            }
+        } else {
+            $replyToId = null;
         }
 
         $msg = DirectMessage::create([
@@ -494,6 +620,12 @@ class ChatController extends Controller
             'message' => $cleanMessage,
             'type' => 'chat',
             'is_read' => false,
+            'read_at' => null,
+            'reply_to_id' => $replyToId,
+            'reply_to_name' => $replyToName,
+            'reply_to_snippet' => $replyToSnippet,
+            'hearts_count' => 0,
+            'hearts_users' => [],
         ]);
 
         return response()->json([
@@ -507,6 +639,13 @@ class ChatController extends Controller
                 'metadata' => null,
                 'time' => $msg->created_at->format('H:i'),
                 'is_me' => true,
+                'is_read' => false,
+                'read_at' => null,
+                'reply_to_id' => $msg->reply_to_id,
+                'reply_to_name' => $msg->reply_to_name,
+                'reply_to_snippet' => $msg->reply_to_snippet,
+                'hearts_count' => 0,
+                'has_hearted' => false,
             ],
         ]);
     }
@@ -632,6 +771,128 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'players' => $formatted,
+        ]);
+    }
+
+    /**
+     * Toggle a purple heart (💜) on a public/gang chat message.
+     */
+    public function togglePublicHeart(Request $request, int $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $msg = ChatMessage::findOrFail($id);
+        $hearts = is_array($msg->hearts_users) ? $msg->hearts_users : [];
+
+        if (in_array($character->id, $hearts, true)) {
+            $hearts = array_values(array_filter($hearts, fn ($uid) => $uid !== $character->id));
+            $hasHearted = false;
+        } else {
+            $hearts[] = $character->id;
+            $hasHearted = true;
+        }
+
+        $msg->hearts_users = $hearts;
+        $msg->hearts_count = count($hearts);
+        $msg->save();
+
+        return response()->json([
+            'success' => true,
+            'hearts_count' => $msg->hearts_count,
+            'has_hearted' => $hasHearted,
+        ]);
+    }
+
+    /**
+     * Toggle a purple heart (💜) on a direct message.
+     */
+    public function toggleDirectHeart(Request $request, int $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $msg = DirectMessage::findOrFail($id);
+
+        if ($msg->sender_id !== $character->id && $msg->recipient_id !== $character->id) {
+            return response()->json(['success' => false, 'message' => 'Geen toegang.'], 403);
+        }
+
+        $hearts = is_array($msg->hearts_users) ? $msg->hearts_users : [];
+
+        if (in_array($character->id, $hearts, true)) {
+            $hearts = array_values(array_filter($hearts, fn ($uid) => $uid !== $character->id));
+            $hasHearted = false;
+        } else {
+            $hearts[] = $character->id;
+            $hasHearted = true;
+        }
+
+        $msg->hearts_users = $hearts;
+        $msg->hearts_count = count($hearts);
+        $msg->save();
+
+        return response()->json([
+            'success' => true,
+            'hearts_count' => $msg->hearts_count,
+            'has_hearted' => $hasHearted,
+        ]);
+    }
+
+    /**
+     * Delete a public/gang chat message (Moderators/Staff only).
+     */
+    public function deletePublicMessage(Request $request, int $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (! ($user->isStaff() || $user->canModerate())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alleen moderators kunnen chatberichten verwijderen.',
+            ], 403);
+        }
+
+        $msg = ChatMessage::findOrFail($id);
+        $msg->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bericht succesvol verwijderd.',
+        ]);
+    }
+
+    /**
+     * Delete a direct message (Sender, Recipient or Moderator).
+     */
+    public function deleteDirectMessage(Request $request, int $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $msg = DirectMessage::findOrFail($id);
+
+        $canDelete = ($msg->sender_id === $character->id)
+            || ($msg->recipient_id === $character->id)
+            || $user->isStaff()
+            || $user->canModerate();
+
+        if (! $canDelete) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geen bevoegdheid om dit bericht te verwijderen.',
+            ], 403);
+        }
+
+        $msg->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bericht verwijderd.',
         ]);
     }
 }

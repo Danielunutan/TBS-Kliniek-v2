@@ -46,6 +46,7 @@ class Gang extends Model
         'vip_boost_until' => 'datetime',
         'leave_fee_multiplier' => 'integer',
         'min_respect' => 'integer',
+        'has_gang_chat' => 'boolean',
     ];
 
     public function hasActiveVipBoost(): bool

@@ -163,10 +163,14 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/openbaar/berichten', [ChatController::class, 'publicMessages'])->name('chat.public.messages');
     Route::post('/chat/openbaar/verzenden', [ChatController::class, 'sendPublic'])->name('chat.public.send');
+    Route::post('/chat/openbaar/{id}/hartje', [ChatController::class, 'togglePublicHeart'])->name('chat.public.heart');
+    Route::delete('/chat/openbaar/{id}', [ChatController::class, 'deletePublicMessage'])->name('chat.public.delete');
     Route::get('/chat/zoek-spelers', [ChatController::class, 'searchPlayers'])->name('chat.search-players');
     Route::get('/chat/gesprekken', [ChatController::class, 'conversations'])->name('chat.conversations');
     Route::get('/chat/prive/{partnerId}', [ChatController::class, 'directMessages'])->name('chat.direct.messages');
     Route::post('/chat/prive/{partnerId}/verzenden', [ChatController::class, 'sendDirect'])->name('chat.direct.send');
+    Route::post('/chat/prive-bericht/{id}/hartje', [ChatController::class, 'toggleDirectHeart'])->name('chat.direct.heart');
+    Route::delete('/chat/prive-bericht/{id}', [ChatController::class, 'deleteDirectMessage'])->name('chat.direct.delete');
     Route::get('/chat/ongelezen-teller', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
     Route::get('/chat/poll-inkomend', [ChatController::class, 'pollIncoming'])->name('chat.poll-incoming');
 

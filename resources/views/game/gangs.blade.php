@@ -1005,6 +1005,52 @@
                             </form>
                         </div>
 
+                        <!-- Item 5: Bende Portofoon / Gang Chat -->
+                        <div class="bg-gradient-to-r {{ $myGang && $myGang->has_gang_chat ? 'from-emerald-50 to-emerald-100/50 border-emerald-300 dark:from-emerald-950/30 dark:to-emerald-900/20 dark:border-emerald-700/60' : 'from-purple-50 to-indigo-50/50 border-purple-200 dark:from-purple-950/30 dark:to-indigo-950/20 dark:border-purple-800/60' }} border-2 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-walkie-talkie text-purple-600 dark:text-purple-400"></i>
+                                        <span>Bende Portofoon (Besloten Gang Chat)</span>
+                                    </h3>
+                                    @if($myGang && $myGang->has_gang_chat)
+                                        <span class="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-black uppercase">Ontgrendeld ✓</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[9px] font-black uppercase">Exclusief ⭐</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+                                    Eenmalige aanschaf voor de hele bende. Ontgrendelt een privé en beveiligd communicatiekanaal in de live chat, uitsluitend toegankelijk voor ingeschreven leden van <strong>{{ $myGang->name ?? 'je bende' }}</strong>.
+                                </p>
+                                <span class="text-[11px] text-amber-600 dark:text-amber-400 font-extrabold inline-flex items-center gap-1 mt-1.5">
+                                    <i class="fa-solid fa-star text-amber-500"></i> Eenmalig 500 Sterren
+                                </span>
+                            </div>
+                            <div>
+                                @if($myGang && $myGang->has_gang_chat)
+                                    <a href="{{ route('chat.index', ['channel' => 'gang_' . $myGang->id]) }}" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wide transition shadow-xs flex items-center gap-2">
+                                        <i class="fa-solid fa-comments"></i>
+                                        <span>Open Bende Chat</span>
+                                    </a>
+                                @else
+                                    @php
+                                        $has500Stars = ($character->stars ?? 0) >= 500 || (($myGang->gang_stars ?? 0) >= 500 && $myGang->isOfficer($character));
+                                    @endphp
+                                    <form action="{{ route('gangs.shop-buy') }}" method="POST">
+                                        @csrf
+                                        <input type="hidden" name="item_type" value="gang_chat">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" 
+                                                @if(! $has500Stars) disabled @endif
+                                                class="px-5 py-2.5 rounded-xl {{ $has500Stars ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black cursor-pointer shadow-sm active:scale-95' : 'bg-slate-200 text-slate-400 cursor-not-allowed font-bold' }} text-xs uppercase tracking-wider transition flex items-center gap-2">
+                                            <i class="fa-solid fa-unlock-keyhole"></i>
+                                            <span>Koop Gang Chat (500 ⭐)</span>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

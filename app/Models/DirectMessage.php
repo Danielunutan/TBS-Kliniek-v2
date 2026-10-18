@@ -15,7 +15,15 @@ class DirectMessage extends Model
     protected $casts = [
         'metadata' => 'array',
         'is_read' => 'boolean',
+        'read_at' => 'datetime',
+        'hearts_users' => 'array',
+        'hearts_count' => 'integer',
     ];
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reply_to_id');
+    }
 
     public function sender(): BelongsTo
     {
