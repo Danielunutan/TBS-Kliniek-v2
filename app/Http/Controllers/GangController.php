@@ -178,6 +178,99 @@ class GangController extends Controller
     }
 
     /**
+     * Public Gang Profile page view.
+     */
+    public function show(Request $request, string $gang): View
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $this->energyService->refresh($character);
+
+        $gangModel = Gang::with([
+            'leader',
+            'members',
+            'personalShopper',
+            'moneyMagnet',
+            'alliances.allyGang',
+            'properties',
+        ])
+            ->where('id', $gang)
+            ->orWhere('tag', $gang)
+            ->orWhere('name', $gang)
+            ->firstOrFail();
+
+        $totalRespect = (float) $gangModel->members->sum('respect');
+        $hourlyWage = $this->wageService->calculateHourlyWage($gangModel);
+        $dailyWage = $this->wageService->calculateDailyWage($gangModel);
+
+        $isMyGang = (int) $character->gang_id === (int) $gangModel->id;
+        $isOfficer = $isMyGang && in_array($character->gang_role, ['leader', 'co_leader']);
+
+        $hasPendingRequest = false;
+        if (! $character->gang_id) {
+            $hasPendingRequest = GangRequest::where('gang_id', $gangModel->id)
+                ->where('character_id', $character->id)
+                ->where('status', 'pending')
+                ->exists();
+        }
+
+        $gangMembersData = $gangModel->members->sortByDesc('respect')->values()->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'name' => $m->name,
+                'avatar_url' => $m->avatar_url,
+                'level' => (int) $m->level,
+                'respect' => (float) $m->respect,
+                'respect_formatted' => number_format($m->respect, 0, ',', '.'),
+                'gang_role' => $m->gang_role,
+                'role_label' => $m->gang_role === 'leader' ? 'Boss / Leider' : ($m->gang_role === 'co_leader' ? 'Co-Leider' : 'Bendelid'),
+                'is_online' => $m->isOnline(),
+                'online_label' => $m->online_status_label,
+                'profile_url' => route('profile.show', $m->name),
+                'message_url' => route('messages.index', ['recipient' => $m->name]),
+                'last_active_at' => $m->last_active_at ? $m->last_active_at->diffForHumans() : 'Nooit',
+                'last_active_timestamp' => $m->last_active_at ? $m->last_active_at->timestamp : 0,
+            ];
+        })->values();
+
+        $onlineMembersCount = $gangModel->members->filter(fn ($m) => $m->isOnline())->count();
+
+        $recentAttacks = GangAttack::with(['attackerGang', 'targetGang', 'character'])
+            ->where(function ($q) use ($gangModel) {
+                $q->where('attacker_gang_id', $gangModel->id)
+                    ->orWhere('target_gang_id', $gangModel->id);
+            })
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $warsWon = GangAttack::where('attacker_gang_id', $gangModel->id)->where('won', true)->count()
+            + GangAttack::where('target_gang_id', $gangModel->id)->where('won', false)->count();
+
+        $warsLost = GangAttack::where('attacker_gang_id', $gangModel->id)->where('won', false)->count()
+            + GangAttack::where('target_gang_id', $gangModel->id)->where('won', true)->count();
+
+        $gang = $gangModel;
+
+        return view('game.gang_show', compact(
+            'character',
+            'gang',
+            'totalRespect',
+            'hourlyWage',
+            'dailyWage',
+            'isMyGang',
+            'isOfficer',
+            'hasPendingRequest',
+            'gangMembersData',
+            'onlineMembersCount',
+            'recentAttacks',
+            'warsWon',
+            'warsLost'
+        ));
+    }
+
+    /**
      * Create a new gang (costs 25 Stars).
      */
     public function create(Request $request): RedirectResponse

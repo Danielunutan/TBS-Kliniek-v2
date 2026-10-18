@@ -153,7 +153,14 @@
                             <span>&bull;</span>
                             <span>TBS Kliniek</span>
                             <span>&bull;</span>
-                            <span>{{ $profileCharacter->gang ? $profileCharacter->gang->name : 'Geen Bende' }}</span>
+                            @if($profileCharacter->gang)
+                                <a href="{{ route('gangs.show', $profileCharacter->gang->id) }}" class="text-purple-600 dark:text-purple-400 hover:underline font-bold flex items-center gap-1" title="Bekijk bende {{ $profileCharacter->gang->name }}">
+                                    <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                                    <span>{{ $profileCharacter->gang->name }} [{{ $profileCharacter->gang->tag }}]</span>
+                                </a>
+                            @else
+                                <span>Geen Bende</span>
+                            @endif
                             <span>&bull;</span>
                             <span class="inline-flex items-center gap-1 text-teal-600 dark:text-teal-400 font-bold lowercase first-letter:uppercase">
                                 <i class="fa-solid fa-map-location-dot text-[11px]"></i>
@@ -946,9 +953,9 @@
                                 Lvl {{ $f->friend->level }}
                             </span>
                             @if($f->friend->gang)
-                            <span class="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded border border-purple-100 truncate">
+                            <a href="{{ route('gangs.show', $f->friend->gang->id) }}" class="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded border border-purple-100 hover:bg-purple-100 transition truncate" title="Bekijk {{ $f->friend->gang->name }}">
                                 [{{ $f->friend->gang->tag }}]
-                            </span>
+                            </a>
                             @endif
                         </div>
                         <span class="text-[10px] text-purple-700 font-extrabold mt-1 block">

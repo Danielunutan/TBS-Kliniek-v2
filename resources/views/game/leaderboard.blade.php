@@ -111,10 +111,10 @@
 
                                 <td class="p-3.5">
                                     @if($player->gang)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                                        <a href="{{ route('gangs.show', $player->gang->id) }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 hover:text-purple-600 dark:text-slate-200 dark:hover:text-purple-300 border border-slate-200 dark:border-slate-700 transition" title="Bekijk {{ $player->gang->name }}">
                                             <i class="fa-solid fa-users text-[10px] text-slate-400"></i>
-                                            {{ $player->gang->name }}
-                                        </span>
+                                            <span>{{ $player->gang->name }}</span>
+                                        </a>
                                     @else
                                         <span class="text-slate-400 text-[11px] italic">Geen bende</span>
                                     @endif

@@ -427,6 +427,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/profiel/titel', [ProfileController::class, 'updateTitle'])->name('profile.title');
 
     // Gangs
+    Route::get('/bende/{gang}', [GangController::class, 'show'])->name('gangs.show');
+    Route::get('/gangs/bekijken/{gang}', [GangController::class, 'show']);
     Route::get('/gangs', [GangController::class, 'index'])->name('gangs.index');
     Route::get('/gangs/leden', [GangController::class, 'leden'])->name('gangs.leden');
     Route::get('/gangs/beheer', [GangController::class, 'beheer'])->name('gangs.beheer');

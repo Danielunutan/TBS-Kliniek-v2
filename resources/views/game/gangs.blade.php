@@ -1415,13 +1415,15 @@
                                     </td>
                                     <td class="py-3.5 px-3">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-base shrink-0 font-bold shadow-xs">
+                                            <a href="{{ route('gangs.show', $g['id']) }}" class="w-10 h-10 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-700 flex items-center justify-center text-base shrink-0 font-bold shadow-xs transition" title="Bekijk openbare bendepagina">
                                                 <i class="fa-solid {{ $g['icon'] }}"></i>
-                                            </div>
+                                            </a>
                                             <div>
                                                 <div class="font-extrabold text-slate-900 text-xs leading-tight flex items-center gap-1.5">
-                                                    <span>{{ $g['name'] }}</span>
-                                                    <span class="text-purple-600 font-mono text-[10px] font-bold">[{{ $g['tag'] }}]</span>
+                                                    <a href="{{ route('gangs.show', $g['id']) }}" class="hover:text-purple-600 transition flex items-center gap-1.5" title="Bekijk openbare bendepagina">
+                                                        <span>{{ $g['name'] }}</span>
+                                                        <span class="text-purple-600 font-mono text-[10px] font-bold">[{{ $g['tag'] }}]</span>
+                                                    </a>
                                                     @if($index < 3)
                                                         <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
                                                     @endif
@@ -1439,34 +1441,38 @@
                                         {{ $g['cash'] }}
                                     </td>
                                     <td class="py-3.5 px-3 text-right">
-                                        @if($myGang && $g['id'] === $myGang->id)
-                                            <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-extrabold text-[11px] inline-flex items-center gap-1 border border-purple-200">
-                                                <i class="fa-solid fa-check text-[10px]"></i> Jouw Gang
-                                            </span>
-                                        @elseif(! $character->gang_id)
-                                            @if($g['has_pending_request'])
-                                                <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-extrabold text-[11px] inline-flex items-center gap-1 border border-amber-200" title="Je hebt al een openstaande aanvraag ingediend">
-                                                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> In Behandeling
+                                        <div class="inline-flex items-center gap-1.5 justify-end">
+                                            <a href="{{ route('gangs.show', $g['id']) }}" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition inline-flex items-center gap-1" title="Bekijk openbare bendepagina & statistieken">
+                                                <i class="fa-solid fa-eye text-[10px]"></i>
+                                                <span class="hidden sm:inline">Bekijk</span>
+                                            </a>
+                                            @if($myGang && $g['id'] === $myGang->id)
+                                                <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-extrabold text-[11px] inline-flex items-center gap-1 border border-purple-200">
+                                                    <i class="fa-solid fa-check text-[10px]"></i> Jouw Gang
                                                 </span>
-                                            @elseif($g['is_open'])
-                                                <form action="{{ route('gangs.request-join', $g['model']) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
-                                                        <i class="fa-solid fa-user-plus text-[10px]"></i> Aanvragen
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-400 font-bold text-[11px] inline-flex items-center gap-1 border border-slate-200" title="Deze bende accepteert momenteel geen nieuwe lidmaatschapsverzoeken">
-                                                    <i class="fa-solid fa-lock text-[10px]"></i> Gesloten
-                                                </span>
+                                            @elseif(! $character->gang_id)
+                                                @if($g['has_pending_request'])
+                                                    <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 font-extrabold text-[11px] inline-flex items-center gap-1 border border-amber-200" title="Je hebt al een openstaande aanvraag ingediend">
+                                                        <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> In Behandeling
+                                                    </span>
+                                                @elseif($g['is_open'])
+                                                    <form action="{{ route('gangs.request-join', $g['model']) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                                                            <i class="fa-solid fa-user-plus text-[10px]"></i> Aanvragen
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-400 font-bold text-[11px] inline-flex items-center gap-1 border border-slate-200" title="Deze bende accepteert momenteel geen nieuwe lidmaatschapsverzoeken">
+                                                        <i class="fa-solid fa-lock text-[10px]"></i> Gesloten
+                                                    </span>
+                                                @endif
+                                            @elseif($myGang && $g['id'] !== $myGang->id && $myGang->isOfficer($character))
+                                                <button type="button" @click="setGangTab('oorlog')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] transition cursor-pointer inline-flex items-center gap-1 shadow-xs">
+                                                    <i class="fa-solid fa-crosshairs text-[10px]"></i> Aanvallen
+                                                </button>
                                             @endif
-                                        @elseif($myGang && $g['id'] !== $myGang->id && $myGang->isOfficer($character))
-                                            <button type="button" @click="setGangTab('oorlog')" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] transition cursor-pointer inline-flex items-center gap-1 shadow-xs">
-                                                <i class="fa-solid fa-crosshairs text-[10px]"></i> Aanvallen
-                                            </button>
-                                        @else
-                                            <span class="text-slate-400 text-xs font-mono">&bull;&bull;&bull;</span>
-                                        @endif
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
