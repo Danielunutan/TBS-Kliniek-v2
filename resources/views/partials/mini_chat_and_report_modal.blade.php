@@ -1072,6 +1072,59 @@
         };
     }
 
+    // Global crystal-clear notification chime synthesizer (no clicks, no distortion, anti-overlap)
+    window.playTBSChime = function() {
+        if (localStorage.getItem('tbs_chat_muted') === '1') return;
+        const now = Date.now();
+        if (window.__tbsLastChime && (now - window.__tbsLastChime < 2000)) return;
+        window.__tbsLastChime = now;
+
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            if (!window.__tbsAudioCtx || window.__tbsAudioCtx.state === 'closed') {
+                window.__tbsAudioCtx = new AudioCtx();
+            }
+            const ctx = window.__tbsAudioCtx;
+            if (ctx.state === 'suspended') {
+                ctx.resume().catch(() => {});
+            }
+
+            const t0 = ctx.currentTime;
+            
+            // Note 1: Warm soft bell (D5 - 587.33 Hz)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, t0);
+            
+            gain1.gain.setValueAtTime(0.0001, t0);
+            gain1.gain.exponentialRampToValueAtTime(0.08, t0 + 0.015);
+            gain1.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+            
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(t0);
+            osc1.stop(t0 + 0.24);
+
+            // Note 2: Harmonious high note (A5 - 880.00 Hz) starting 80ms later
+            const t1 = t0 + 0.08;
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880.00, t1);
+
+            gain2.gain.setValueAtTime(0.0001, t1);
+            gain2.gain.exponentialRampToValueAtTime(0.06, t1 + 0.015);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, t1 + 0.28);
+
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(t1);
+            osc2.stop(t1 + 0.30);
+        } catch (e) {}
+    };
+
     // Mini Live Chat Widget Handler with Synthesized Audio Ping & Notification Toasts
     function tbsMiniLiveChat(cfg = {}) {
         return {
@@ -1189,45 +1242,9 @@
 
             playChime() {
                 if (this.isSoundMuted) return;
-                const now = Date.now();
-                if (now - this.lastChimeTime < 3000) return;
-                this.lastChimeTime = now;
-
-                try {
-                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    if (!AudioCtx) return;
-
-                    const ctx = new AudioCtx();
-                    if (ctx.state === 'suspended') {
-                        ctx.resume().catch(() => {});
-                    }
-
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-
-                    osc.type = 'sine';
-                    const startTime = ctx.currentTime;
-                    osc.frequency.setValueAtTime(587.33, startTime); // D5
-                    osc.frequency.linearRampToValueAtTime(880, startTime + 0.10); // A5
-
-                    gain.gain.setValueAtTime(0.12, startTime);
-                    gain.gain.linearRampToValueAtTime(0.0001, startTime + 0.25);
-
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-
-                    osc.start(startTime);
-                    try {
-                        osc.stop(startTime + 0.26);
-                    } catch(e) {}
-
-                    setTimeout(() => {
-                        try { osc.stop(); } catch(e) {}
-                        try { osc.disconnect(); } catch(e) {}
-                        try { gain.disconnect(); } catch(e) {}
-                        try { ctx.close(); } catch(e) {}
-                    }, 300);
-                } catch (e) {}
+                if (window.playTBSChime) {
+                    window.playTBSChime();
+                }
             },
 
             setTab(tab) {
@@ -1765,7 +1782,7 @@
 
                                 if (data.new_dm && data.new_dm.id) {
                                     const dm = data.new_dm;
-                                    const isNewer = dm.id > this.lastDirectDmId;
+                                    const isNewer = this.lastDirectDmId > 0 && dm.id > this.lastDirectDmId;
                                     this.lastDirectDmId = dm.id;
 
                                     if (isNewer) {
