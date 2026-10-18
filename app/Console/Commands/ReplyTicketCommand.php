@@ -48,7 +48,24 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-565-167' || str_contains(strtolower($ticket->subject), 'panden')) {
+        if ($ticketNumber === 'TBS-U3M-955' || str_contains(strtolower($ticket->subject), 'halloween')) {
+            $replyMessage = "Beste Rainbow,\n\n"
+                ."Wat een geweldig idee! We zijn direct aan de slag gegaan en hebben het complete **Halloween Event** zojuist live gezet in de TBS Kliniek! 🎃🍬\n\n"
+                ."Dit is wat we voor jullie hebben geïmplementeerd:\n\n"
+                ."1. **Nieuwe EVENT Categorie in het Menu**:\n"
+                ."   - In het hoofdmenu en zijbalk vind je nu direct de speciale **🎃 EVENT** categorie (actief t/m 5 november 23:59).\n\n"
+                ."2. **Halloween Quests (Dagelijks & Wekelijks)**:\n"
+                ."   - **Dagelijkse Quests**: Zoals zakkenrollerijen / diefstallen, luchtplaats brawls, hossels en fitness trainingen om elke dag verse pitten te verdienen.\n"
+                ."   - **Wekelijkse Quests**: Grote uitdagingen zoals 'Griezelige Zakkenroller Meester', 'Het Grote Kliniek Bloedbad' (8 gevechten winnen), 'Het Grote Pompoen Fortuin' (€35.000 buit) en 'Heerser van de Onderwereld'.\n"
+                ."   - Alle quests belonen je met **Halloween Pompoenpitten 🎃**, extra XP en Respect!\n\n"
+                ."3. **Halloween Shop**:\n"
+                ."   - **Exclusieve Avatar Profielranden**: Pimp je avatar met *Spooky Pumpkin Glow*, *Vampire Blood*, *Phantom Mist* en *Gothic King* (inclusief neon glow effects op je profiel en header)!\n"
+                ."   - **Halloween Thema Hebbedingetjes & Collectibles**: Verzamel *Jack-O'-Lantern Pompoenen*, *Spookachtig Snoepgoed* en een *Vampier Vleermuis in Kooitje* voor je cel/inventaris.\n"
+                ."   - **Krachtige Halloween Boosts**: Scoor het *Groene Heksenbrouwsel* (volledig HP herstel + 75 Energie), een *Jack-O'-Lantern Masker Bundel* (5x ongemerkt zakkenrollen) en de *Magere Hein Zegening* (24 uur lang +15% Vecht- en Verdedigingskracht)!\n\n"
+                ."Heel erg bedankt voor het meedenken en je toffe suggestie om de sfeer in de kliniek nog spannender te maken! Heel veel succes en griezelplezier tijdens het evenement.\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-565-167' || str_contains(strtolower($ticket->subject), 'panden')) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wauw, wat een geweldige en waardevolle suggestie voor de bende-wereld! We hebben je idee zojuist direct uitgewerkt en zojuist volledig live geïmplementeerd in TBS Kliniek:\n\n"
                 ."1. **Nieuw Bende Panden & Vastgoed Systeem (/gangs/panden)**:\n"
