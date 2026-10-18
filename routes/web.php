@@ -30,6 +30,7 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GangController;
 use App\Http\Controllers\GangPropertyController;
 use App\Http\Controllers\GarageController;
+use App\Http\Controllers\HalloweenController;
 use App\Http\Controllers\HeistController;
 use App\Http\Controllers\HighLowController;
 use App\Http\Controllers\HitmanController;
@@ -159,6 +160,13 @@ Route::middleware('auth')->group(function (): void {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Halloween Event 🎃 (Quests & Shop) - Active until 5 November
+    Route::get('/event/quests', [HalloweenController::class, 'quests'])->name('halloween.quests');
+    Route::post('/event/quests/{questKey}/claim', [HalloweenController::class, 'claimQuest'])->name('halloween.claim-quest');
+    Route::get('/event/shop', [HalloweenController::class, 'shop'])->name('halloween.shop');
+    Route::post('/event/shop/buy', [HalloweenController::class, 'buy'])->name('halloween.buy');
+    Route::post('/event/shop/equip-border', [HalloweenController::class, 'equipBorder'])->name('halloween.equip-border');
 
     // Live Openbare Chat & Privé Messenger (Nieuw)
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');

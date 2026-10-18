@@ -101,9 +101,9 @@
 
         <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative">
             
-            <!-- Avatar with Dynamic Player Accent Ring -->
+            <!-- Avatar with Dynamic Player Accent Ring / Halloween Border -->
             <div class="relative shrink-0 group">
-                <img src="{{ $profileCharacter->avatar_url }}" alt="{{ $profileCharacter->name }}" class="w-32 h-32 rounded-2xl object-cover border-4 border-slate-100 shadow-sm bg-slate-100 transition-transform duration-300 group-hover:scale-105 ring-4 {{ $theme['ring'] }}/30">
+                <img src="{{ $profileCharacter->avatar_url }}" alt="{{ $profileCharacter->name }}" class="w-32 h-32 rounded-2xl object-cover border-4 border-slate-100 shadow-sm bg-slate-100 transition-transform duration-300 group-hover:scale-105 {{ $profileCharacter->equipped_border ? $profileCharacter->getAvatarBorderClasses() : 'ring-4 ' . $theme['ring'] . '/30' }}">
                 
                 <!-- Online Status Indicator -->
                 <span class="absolute top-2 right-2 w-4 h-4 rounded-full border-2 border-white shadow-xs {{ $profileCharacter->isOnline() ? 'bg-emerald-500 ring-2 ring-emerald-300/50' : 'bg-slate-300' }}" title="{{ $profileCharacter->online_status_label }}"></span>
@@ -124,6 +124,18 @@
                             <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-md border border-slate-200">
                                 Level {{ $profileCharacter->level }}
                             </span>
+
+                            @if($profileCharacter->equipped_border)
+                            <a href="{{ route('halloween.shop') }}" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-black bg-orange-100 text-orange-800 border border-orange-300 hover:bg-orange-200 transition shadow-2xs" title="Halloween Border Actief">
+                                <span>🎃</span> {{ match($profileCharacter->equipped_border) {
+                                    'pumpkin_glow' => 'Pompoen Gloed',
+                                    'vampire_blood' => 'Vampier Bloed',
+                                    'phantom_mist' => 'Spookschim',
+                                    'gothic_king' => 'Gothic King',
+                                    default => 'Halloween Border'
+                                } }}
+                            </a>
+                            @endif
 
                             <!-- Active Dossier Title Badge with Accent Color -->
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-extrabold {{ $theme['badge_bg'] }} {{ $theme['badge_text'] }} border {{ $theme['badge_border'] }} shadow-2xs">

@@ -9,6 +9,7 @@ use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\TurnstileService;
 use Illuminate\Http\RedirectResponse;
@@ -222,6 +223,11 @@ class FightController extends Controller
             // Record in 24 Hour Battle
             $this->battleService->record($attacker, 'kills', 1);
             $this->battleService->record($attacker, 'slay', 2);
+            HalloweenService::record($attacker, 'brawl', 1);
+            HalloweenService::record($attacker, 'brawl_win', 1);
+            if ($stolenCash > 0) {
+                HalloweenService::record($attacker, 'cash_earned', $stolenCash);
+            }
 
             // Check for and claim any active bounties on defender
             $claimedBountyCash = 0;

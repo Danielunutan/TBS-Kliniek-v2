@@ -8,6 +8,7 @@ use App\Models\VaultCode;
 use App\Services\ChatBotService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
@@ -148,6 +149,8 @@ class VaultController extends Controller
             $character->vault_tokens = ($character->vault_tokens ?? 0) + $tokenReward;
             $character->respect += 3;
             $character->save();
+
+            HalloweenService::record($character, 'vault', 1);
 
             // Reset vault session
             session()->forget([

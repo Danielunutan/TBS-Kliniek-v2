@@ -7,6 +7,7 @@ use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
 use App\Services\RandomDropService;
@@ -185,6 +186,8 @@ class HustleController extends Controller
             $character->save();
 
             app(DailyBattleService::class)->record($character, 'hustles', 1);
+            HalloweenService::record($character, 'hustle', 1);
+            HalloweenService::record($character, 'cash_earned', $cash);
 
             $dropMsg = RandomDropService::roll($character);
             $successMsg = 'Hossel gelukt! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$statGainMsg}";

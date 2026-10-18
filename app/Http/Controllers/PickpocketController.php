@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
 use App\Services\RandomDropService;
@@ -99,6 +100,9 @@ class PickpocketController extends Controller
             $this->level->addXp($character, $action['xp']);
             $character->respect += 1;
             $character->save();
+
+            HalloweenService::record($character, 'theft', 1);
+            HalloweenService::record($character, 'cash_earned', $cash);
 
             $dropMsg = RandomDropService::roll($character);
             $successMsg = 'Succesvol gerold! Je pakt €'.number_format($cash, 0, ',', '.')." contant uit de zakken! +{$action['xp']} XP (1 masker verbruikt).";

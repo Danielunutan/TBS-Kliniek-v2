@@ -284,7 +284,9 @@
             $pctXp = min(100, max(0, round(($character->xp / max(1, $reqXp)) * 100)));
         }
         $activeCategory = '';
-        if (request()->routeIs('gangs.*') || request()->is('gangs*', 'bendes*')) {
+        if (request()->routeIs('halloween.*') || request()->is('event*', 'halloween*')) {
+            $activeCategory = 'event';
+        } elseif (request()->routeIs('gangs.*') || request()->is('gangs*', 'bendes*')) {
             $activeCategory = 'bende';
         } elseif (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'news.*', 'newspaper.*', 'roadmap.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'nieuws*', 'afdelingsblad*', 'roadmap*')) {
             $activeCategory = 'algemeen';
@@ -588,7 +590,43 @@
                 </div>
             </div>
 
-            <!-- 2. VOORTGANG (Apart Kopje) -->
+            <!-- 🎃 EVENT: HALLOWEEN 2026 (Tot 5 November) -->
+            <div class="space-y-1">
+                <button @click="toggleCategory('event')" 
+                        type="button" 
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-orange-500 hover:text-orange-400 dark:hover:text-orange-300 transition group">
+                    <span class="flex items-center gap-2">
+                        <span class="text-xs">🎃</span>
+                        <span class="font-black">Event</span>
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[8px] font-black uppercase text-orange-900 dark:text-orange-200 bg-orange-400/20 dark:bg-orange-950/80 px-1.5 py-0.2 rounded border border-orange-500/40 animate-pulse">
+                            HALLOWEEN
+                        </span>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'event' ? 'rotate-180' : ''"></i>
+                    </div>
+                </button>
+                <div x-show="openCategory === 'event'" x-collapse class="space-y-0.5 pl-1">
+                    <a href="{{ route('halloween.quests') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*') ? 'nav-item-active bg-orange-500/10 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-scroll w-4 text-center text-orange-500"></i>
+                            <span>Halloween Quests</span>
+                        </div>
+                        <span class="text-[9px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Quests</span>
+                    </a>
+                    <a href="{{ route('halloween.shop') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.shop*') ? 'nav-item-active bg-orange-500/10 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-store w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <span>Halloween Shop</span>
+                        </div>
+                        <span class="text-[9px] font-black text-orange-500">
+                            {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }} 🎃
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. VOORTGANG (Apart Kopje) -->
             <div class="space-y-1">
                 <button @click="toggleCategory('voortgang')" 
                         type="button" 
@@ -1021,7 +1059,7 @@
             
             <div class="p-4 bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-200 dark:border-purple-800">
+                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-200 dark:border-purple-800 {{ $character->getAvatarBorderClasses() }}">
                     <div>
                         <div class="font-extrabold text-sm leading-tight text-slate-900 dark:text-white">{{ $character->name }}</div>
                         <div class="text-[11px] text-purple-700 dark:text-purple-300 font-bold">Level {{ $character->level }} &bull; {{ $character->title ?? 'Patiënt' }}</div>
@@ -1050,6 +1088,26 @@
                     <span class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> VIP Shop</span>
                     <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-900/60 px-2 py-0.5 rounded-full">Exclusief</span>
                 </a>
+
+                <!-- 🎃 EVENT (Halloween) -->
+                <div class="space-y-1 p-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                    <div class="flex items-center justify-between px-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 flex items-center gap-1.5">
+                            <span>🎃</span> EVENT (Tot 5 Nov)
+                        </span>
+                        <span class="text-[9px] font-bold text-amber-500 flex items-center gap-0.5">
+                            <i class="fa-solid fa-seedling text-[9px]"></i> {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }}
+                        </span>
+                    </div>
+                    <a href="{{ route('halloween.quests') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-orange-500/15 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('halloween.quests') ? 'bg-orange-500/20 text-orange-700 dark:text-orange-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-skull text-orange-500 w-4"></i> Halloween Quests</span>
+                        <span class="text-[9px] bg-orange-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Quests</span>
+                    </a>
+                    <a href="{{ route('halloween.shop') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-orange-500/15 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('halloween.shop') ? 'bg-orange-500/20 text-orange-700 dark:text-orange-300 font-bold' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-store text-orange-500 w-4"></i> Halloween Shop</span>
+                        <span class="text-[9px] bg-amber-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Shop</span>
+                    </a>
+                </div>
 
                 <!-- 1. Algemeen -->
                 <div class="space-y-1">
@@ -1336,7 +1394,7 @@
                 <!-- 1. LEFT: Player Profile Summary (Avatar with ring, Name, LVL Badge, XP Bar & Handle) -->
                 <div class="flex items-center gap-3.5 shrink-0">
                     <a href="{{ route('profile.me') }}" class="relative group shrink-0" title="Bekijk mijn profiel">
-                        <div class="w-12 h-12 rounded-full p-0.5 ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all bg-white dark:bg-purple-950/60 shadow-2xs">
+                        <div class="w-12 h-12 rounded-full p-0.5 ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all bg-white dark:bg-purple-950/60 shadow-2xs {{ $character->getAvatarBorderClasses() }}">
                             <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover bg-slate-100">
                         </div>
                     </a>
@@ -1465,6 +1523,19 @@
                         </div>
                         <span class="sr-only">Respect: {{ $character->formatted_respect }} Vandaag: {{ $character->formatted_today_respect }}</span>
                     </div>
+
+                    <!-- 🎃 HALLOWEEN POMPOENPITTEN -->
+                    @if(\App\Services\HalloweenService::isEventActive() || ($character->pumpkin_seeds ?? 0) > 0)
+                    <a href="{{ route('halloween.shop') }}" class="flex flex-col items-center gap-1 group" title="Halloween Pompoenpitten &bull; Klik voor Shop">
+                        <span class="text-[8px] font-black uppercase tracking-wider text-orange-800 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-orange-800/40 flex items-center gap-0.5">
+                            <span>🎃</span> PITTEN
+                        </span>
+                        <div class="flex items-center gap-1 text-orange-600 dark:text-orange-400 font-black text-xs sm:text-sm leading-none group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-seedling text-amber-500 text-xs"></i>
+                            <span>{{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }}</span>
+                        </div>
+                    </a>
+                    @endif
                 </div>
 
                 <!-- VERTICAL DIVIDER -->

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TrainingLog;
 use App\Models\User;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\TrainingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,8 @@ class TrainingController extends Controller
         $result = $this->trainingService->train($character, $validated['stat']);
 
         if ($result['success']) {
+            HalloweenService::record($character, 'training', 1);
+
             return back()->with('success', $result['message']);
         }
 

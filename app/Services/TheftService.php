@@ -321,6 +321,8 @@ class TheftService
         $character->save();
 
         app(DailyBattleService::class)->record($character, 'hustles', 1);
+        HalloweenService::record($character, 'theft', 1);
+        HalloweenService::record($character, 'cash_earned', $cashStolen);
 
         // Notify victim
         GameMessage::create([
@@ -403,6 +405,8 @@ class TheftService
             $character->save();
 
             app(DailyBattleService::class)->record($character, 'hustles', 1);
+            HalloweenService::record($character, 'theft', 1);
+            HalloweenService::record($character, 'cash_earned', $cashStolen);
 
             $logMsg = "Geslaagde diefstal: {$tier['name']} (+€{$cashStolen} contant, +{$xpGained} XP)"
                 .($tokenFound ? ' (+1 KluisMunt)' : '')

@@ -139,7 +139,45 @@ class Character extends Model
         'last_ad_date' => 'string',
         'birthdate' => 'date',
         'is_onboarded' => 'boolean',
+        'pumpkin_seeds' => 'integer',
+        'unlocked_borders' => 'array',
     ];
+
+    /**
+     * Get CSS classes for the currently equipped avatar border.
+     */
+    public function getAvatarBorderClasses(): string
+    {
+        return match ($this->equipped_border) {
+            'pumpkin_glow' => 'ring-4 ring-orange-500 shadow-[0_0_22px_rgba(249,115,22,0.85)] border-amber-400',
+            'vampire_blood' => 'ring-4 ring-rose-700 shadow-[0_0_22px_rgba(225,29,72,0.85)] border-rose-900',
+            'phantom_mist' => 'ring-4 ring-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.85)] border-purple-300',
+            'gothic_king' => 'ring-4 ring-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] border-amber-200',
+            default => '',
+        };
+    }
+
+    /**
+     * Check if character has purchased / unlocked a specific border.
+     */
+    public function hasBorder(string $borderKey): bool
+    {
+        $borders = $this->unlocked_borders ?? [];
+
+        return in_array($borderKey, $borders, true);
+    }
+
+    /**
+     * Unlock a specific avatar border for the character.
+     */
+    public function unlockBorder(string $borderKey): void
+    {
+        $borders = $this->unlocked_borders ?? [];
+        if (! in_array($borderKey, $borders, true)) {
+            $borders[] = $borderKey;
+            $this->unlocked_borders = $borders;
+        }
+    }
 
     /**
      * Get active daily ad bonus progress & claim status for today.
