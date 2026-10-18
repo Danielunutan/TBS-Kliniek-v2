@@ -1595,46 +1595,25 @@
                 </a>
 
                 <!-- Desktop / Tablet Navigation Menu -->
-                <nav class="hidden md:flex items-center gap-1 lg:gap-2">
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                <nav class="hidden md:flex items-center gap-2">
+                    @if(Auth::check())
+                        <a href="{{ route('dashboard') }}" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-2">
                             <i class="fa-solid fa-house text-purple-600 dark:text-purple-400 text-xs"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="{{ route('fight.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-hand-fist text-rose-500 text-xs"></i>
-                            <span>Luchtplaats</span>
-                        </a>
-                        <a href="{{ route('leaderboard.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-trophy text-amber-500 text-xs"></i>
-                            <span>Ranglijsten</span>
-                        </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
+                        <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-2">
                             <i class="fa-solid fa-right-to-bracket text-purple-600 dark:text-purple-400 text-xs"></i>
                             <span>Inloggen</span>
                         </a>
-                        <a href="{{ route('register') }}" class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-purple-600 hover:bg-purple-700 transition shadow-xs flex items-center gap-1.5">
+                        <a href="{{ route('register') }}" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-purple-600 hover:bg-purple-700 active:scale-95 transition shadow-xs flex items-center gap-2">
                             <i class="fa-solid fa-user-plus text-xs"></i>
                             <span>Registreren</span>
                         </a>
-                    @endauth
-
-                    <a href="{{ route('community.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/60 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-gift text-amber-500 text-xs"></i>
-                        <span>Community 🎁</span>
-                    </a>
-                    <a href="{{ route('faq.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-question text-amber-500 text-xs"></i>
-                        <span>Kennisbank</span>
-                    </a>
-                    <a href="{{ route('help.tickets.index') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-headset text-indigo-500 text-xs"></i>
-                        <span>Support</span>
-                    </a>
+                    @endif
                 </nav>
 
-                <!-- Right Side: Theme Switch + Socials + Mobile Button -->
+                <!-- Right Side: Theme Switch + Socials (TikTok & Discord) + Mobile Button -->
                 <div class="flex items-center gap-2 sm:gap-3">
                     <!-- Guest Dark Mode Animated Switch -->
                     <button type="button" onclick="window.tbsToggleTheme()" 
@@ -1651,27 +1630,7 @@
                         </span>
                     </button>
 
-                    <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-[#f36f21] hover:bg-[#d95d16] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS Kliniek op Hyves">
-                        <span class="w-4 h-4 rounded bg-white text-[#f36f21] flex items-center justify-center font-black text-[10px] leading-none shrink-0 shadow-2xs">H</span>
-                        <span>Hyves</span>
-                    </a>
-
-                    <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:opacity-90 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="Instagram @tbsklinieknl">
-                        <i class="fa-brands fa-instagram text-sm"></i>
-                        <span>Instagram</span>
-                    </a>
-
-                    <a href="https://www.youtube.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-[#FF0000] hover:bg-[#cc0000] text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]" title="TBS-Kliniek op YouTube (@tbsklinieknl)">
-                        <i class="fa-brands fa-youtube text-sm"></i>
-                        <span>YouTube</span>
-                    </a>
-
-                    <a href="https://x.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="hidden 2xl:inline-flex items-center gap-1.5 bg-black hover:bg-neutral-800 text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98] border border-white/10" title="Twitter / X @tbskliniek">
-                        <i class="fa-brands fa-x-twitter text-sm"></i>
-                        <span>Twitter</span>
-                    </a>
-
-                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden xl:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
+                    <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1.5 bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-extrabold px-3 py-2 rounded-xl transition shadow-xs hover:shadow-sm active:scale-[0.98]">
                         <i class="fa-brands fa-tiktok text-sm"></i>
                         <span>TikTok</span>
                     </a>
@@ -1702,18 +1661,10 @@
                  class="md:hidden border-t border-slate-200 dark:border-purple-900/40 bg-white/98 dark:bg-[#110726]/98 px-4 pt-3 pb-5 space-y-2 shadow-lg"
                  style="display: none;">
                 
-                @auth
+                @if(Auth::check())
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
                         <i class="fa-solid fa-house text-purple-600 dark:text-purple-400 w-5 text-center"></i>
                         <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
-                        <i class="fa-solid fa-hand-fist text-rose-500 w-5 text-center"></i>
-                        <span>De Luchtplaats</span>
-                    </a>
-                    <a href="{{ route('leaderboard.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
-                        <i class="fa-solid fa-trophy text-amber-500 w-5 text-center"></i>
-                        <span>Ranglijsten</span>
                     </a>
                 @else
                     <a href="{{ route('login') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
@@ -1724,20 +1675,7 @@
                         <i class="fa-solid fa-user-plus w-5 text-center"></i>
                         <span>Nieuw Account Registreren</span>
                     </a>
-                @endauth
-
-                <a href="{{ route('community.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-purple-950/60 transition">
-                    <i class="fa-solid fa-gift text-amber-500 w-5 text-center"></i>
-                    <span>Community Hub &amp; Beloningen 🎁</span>
-                </a>
-                <a href="{{ route('faq.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
-                    <i class="fa-solid fa-circle-question text-amber-500 w-5 text-center"></i>
-                    <span>Kennisbank & FAQ</span>
-                </a>
-                <a href="{{ route('help.tickets.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-white hover:bg-purple-50 dark:hover:bg-purple-950/60 transition">
-                    <i class="fa-solid fa-headset text-indigo-500 w-5 text-center"></i>
-                    <span>Support Ticket Systeem</span>
-                </a>
+                @endif
 
                 <div class="pt-2 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between gap-2">
                     <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 rounded-xl bg-[#5865F2] text-white text-xs font-bold text-center flex items-center justify-center gap-1.5">
