@@ -48,7 +48,26 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-U3M-955' || str_contains(strtolower($ticket->subject), 'halloween')) {
+        if ($ticketNumber === 'TBS-7VV-RR7' || str_contains(strtolower($ticket->subject), 'marktplaats')) {
+            $replyMessage = "Beste Rainbow,\n\n"
+                ."Heel scherp opgemerkt! We hebben de Marktplaats zojuist een grote update gegeven zodat alle nieuwe spelonderdelen nu volledig verhandelbaar zijn tussen spelers onderling:\n\n"
+                ."1. **Depot Items Verkopen**:\n"
+                ."   - Je kunt nu direct al je goederen, wapens, bescherming en zeldzame buit uit je persoonlijke Depot te koop aanbieden aan medepatiënten.\n"
+                ."   - Je bepaalt zelf het aantal en de vraagprijs (in contanten of sterren).\n\n"
+                ."2. **Garage Voertuigen Verhandelen**:\n"
+                ."   - Je kunt nu al je vluchtwagens, speedboten en helikopters uit je Smokkel Garage te koop zetten op de Marktplaats!\n"
+                ."   - De actuele conditie (%) en topsnelheid worden overzichtelijk getoond aan potentiële kopers.\n"
+                ."   - Zodra een speler je wagen koopt, wordt deze direct overgedragen naar diens garage en ontvang jij het aankoopbedrag direct op je bank!\n\n"
+                ."3. **Bende Panden Verhandelen**:\n"
+                ."   - Bendeleiders en beheerders kunnen nu ook aangekochte Bende Panden (loodsen, bunkers, fabrieken en villa's) te koop aanbieden op de Marktplaats.\n"
+                ."   - Bij verkoop wordt de volledige opbrengst automatisch direct bijgeschreven in de gezamenlijke bendekas (treasury)!\n\n"
+                ."4. **Nieuwe Filters & Snelle Koppelingen**:\n"
+                ."   - Op de Marktplaats vind je nu handige filters voor Depot Items, Garage Voertuigen en Bende Panden.\n"
+                ."   - Ook zijn er directe snelkoppelingen toegevoegd in je Depot, Garage en Bende Panden overzicht naar de Marktplaats.\n\n"
+                ."Nogmaals dank voor het meedenken en je waardevolle feedback. Veel succes met handelen!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-U3M-955' || str_contains(strtolower($ticket->subject), 'halloween')) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wat een geweldig idee! We zijn direct aan de slag gegaan en hebben het complete **Halloween Event** zojuist live gezet in de TBS Kliniek! 🎃🍬\n\n"
                 ."Dit is wat we voor jullie hebben geïmplementeerd:\n\n"

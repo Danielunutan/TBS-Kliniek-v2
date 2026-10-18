@@ -17,6 +17,7 @@ class CharacterVehicle extends Model
         'current_condition' => 'integer',
         'tuned_speed' => 'integer',
         'is_active' => 'boolean',
+        'is_for_sale' => 'boolean',
         'total_heists_done' => 'integer',
     ];
 

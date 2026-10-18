@@ -18,6 +18,10 @@
                         <i class="fa-solid fa-arrow-left"></i> Terug naar Bende
                     </a>
                     <span class="text-slate-300 dark:text-slate-700">•</span>
+                    <a href="{{ route('marketplace.index', ['type' => 'property']) }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                        <i class="fa-solid fa-shop"></i> Marktplaats Panden
+                    </a>
+                    <span class="text-slate-300 dark:text-slate-700">•</span>
                     <span class="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-black text-[10px] uppercase tracking-wider">
                         [{{ $gang->tag }}] {{ $gang->name }}
                     </span>

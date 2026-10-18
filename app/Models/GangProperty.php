@@ -22,6 +22,7 @@ class GangProperty extends Model
         'production_duration_minutes' => 'integer',
         'production_reward_cash' => 'integer',
         'production_reward_respect' => 'integer',
+        'is_for_sale' => 'boolean',
         'production_started_at' => 'datetime',
         'production_ends_at' => 'datetime',
     ];
