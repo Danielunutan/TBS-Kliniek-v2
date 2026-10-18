@@ -98,6 +98,7 @@
     gangHasChat: @js($gangHasChat),
     characterStars: {{ $characterStars }},
     gangStars: {{ $gangStars }},
+    myAvatar: @js($authCharacter?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg')),
 })" class="z-[9990]">
 
     <!-- FLOATING NEW MESSAGE TOAST BANNER -->
@@ -784,8 +785,31 @@
 
                                 <!-- Standard & System Notification Bubbles -->
                                 <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up'">
-                                    <div class="flex items-start gap-1.5 group" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="max-w-[85%] space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                    <div class="flex items-start gap-2 group" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                        <!-- Avatar Image -->
+                                        <template x-if="!dm.is_me">
+                                            <img :src="activeDirectPartner?.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                                 class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60 shrink-0"
+                                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                        </template>
+                                        <template x-if="dm.is_me">
+                                            <img :src="myAvatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                                 class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60 shrink-0"
+                                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                        </template>
+
+                                        <div class="max-w-[82%] space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                            <!-- Sender Meta: Name, Level, Time -->
+                                            <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap mb-0.5" :class="dm.is_me ? 'justify-end' : ''">
+                                                <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.is_me ? myName : (activeDirectPartner?.name || 'Inmate')"></span>
+                                                <template x-if="!dm.is_me && activeDirectPartner && activeDirectPartner.level">
+                                                    <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black">
+                                                        L<span x-text="activeDirectPartner.level"></span>
+                                                    </span>
+                                                </template>
+                                                <span class="text-slate-400 text-[9px]" x-text="dm.time"></span>
+                                            </div>
+
                                             <!-- Reply Quote if any -->
                                             <template x-if="dm.reply_to_name">
                                                 <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full">
@@ -827,10 +851,9 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Time & Read Receipt (Checkmarks) -->
-                                            <div class="flex items-center gap-1 text-[9px] text-slate-400 font-mono" :class="dm.is_me ? 'justify-end' : ''">
-                                                <span x-text="dm.time"></span>
-                                                <template x-if="dm.is_me">
+                                            <!-- Read Receipt (Checkmarks) for own messages -->
+                                            <template x-if="dm.is_me">
+                                                <div class="flex items-center justify-end gap-1 text-[9px] text-slate-400 font-mono">
                                                     <span class="inline-flex items-center ml-0.5">
                                                         <template x-if="dm.is_read">
                                                             <span class="text-purple-400 font-bold flex items-center" :title="'Gelezen om ' + (dm.read_at || dm.time)">
@@ -843,8 +866,8 @@
                                                             </span>
                                                         </template>
                                                     </span>
-                                                </template>
-                                            </div>
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
                                 </template>
@@ -1076,8 +1099,7 @@
     window.playTBSChime = function() {
         if (localStorage.getItem('tbs_chat_muted') === '1') return;
         const now = Date.now();
-        if (window.__tbsLastChime && (now - window.__tbsLastChime < 2000)) return;
-        window.__tbsLastChime = now;
+        if (window.__tbsLastChime && (now - window.__tbsLastChime < 2500)) return;
 
         try {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1086,10 +1108,14 @@
                 window.__tbsAudioCtx = new AudioCtx();
             }
             const ctx = window.__tbsAudioCtx;
+            
+            // If context is suspended (no user gesture yet), resume it asynchronously but do NOT queue sounds at time 0!
             if (ctx.state === 'suspended') {
                 ctx.resume().catch(() => {});
+                return;
             }
 
+            window.__tbsLastChime = now;
             const t0 = ctx.currentTime;
             
             // Note 1: Warm soft bell (D5 - 587.33 Hz)
@@ -1125,11 +1151,21 @@
         } catch (e) {}
     };
 
+    // Unlock AudioContext on first user interaction so it is running and never piles up
+    ['click', 'touchstart', 'keydown'].forEach(evt => {
+        window.addEventListener(evt, () => {
+            if (window.__tbsAudioCtx && window.__tbsAudioCtx.state === 'suspended') {
+                window.__tbsAudioCtx.resume().catch(() => {});
+            }
+        }, { once: true, passive: true });
+    });
+
     // Mini Live Chat Widget Handler with Synthesized Audio Ping & Notification Toasts
     function tbsMiniLiveChat(cfg = {}) {
         return {
             myId: cfg.myId || 0,
             myName: cfg.myName || '',
+            myAvatar: cfg.myAvatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}',
             canModerate: cfg.canModerate || false,
             hasGang: cfg.hasGang || false,
             gangId: cfg.gangId || 0,
@@ -1196,6 +1232,17 @@
                     this.loadGangMessages(true);
                 }
                 this.loadConversations();
+
+                // Pre-seed lastDirectDmId so already-existing unread messages don't chime on page load
+                fetch('{{ route('chat.poll-incoming') }}', { headers: { 'Accept': 'application/json' } })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && data.new_dm && data.new_dm.id) {
+                            this.lastDirectDmId = data.new_dm.id;
+                        }
+                    })
+                    .catch(() => {});
+
                 this.pollLoop();
 
                 this.$watch('isOpen', (open) => {
@@ -1678,6 +1725,9 @@
                     const res = await fetch(`/chat/prive/${pId}`, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
                     if (data.success) {
+                        if (data.partner) {
+                            this.activeDirectPartner = data.partner;
+                        }
                         this.activeDirectMessages = data.messages || [];
                         this.scrollDirectBottom();
                         setTimeout(() => this.scrollDirectBottom(), 100);
@@ -1783,7 +1833,7 @@
                                 if (data.new_dm && data.new_dm.id) {
                                     const dm = data.new_dm;
                                     const isNewer = this.lastDirectDmId > 0 && dm.id > this.lastDirectDmId;
-                                    this.lastDirectDmId = dm.id;
+                                    this.lastDirectDmId = Math.max(this.lastDirectDmId, dm.id);
 
                                     if (isNewer) {
                                         const isChattingWithSender = this.isOpen && 
@@ -1805,7 +1855,7 @@
                                                     metadata: null,
                                                     time: dm.time,
                                                     is_me: false,
-                                                    is_read: false,
+                                                    is_read: true,
                                                     read_at: null,
                                                     reply_to_id: dm.reply_to_id || null,
                                                     reply_to_name: dm.reply_to_name || null,
@@ -1814,6 +1864,14 @@
                                                     has_hearted: false,
                                                 });
                                                 this.scrollDirectBottom();
+
+                                                // Immediately mark as read on backend so it doesn't stay unread
+                                                fetch(`/chat/prive/${dm.sender_id}`, { headers: { 'Accept': 'application/json' } })
+                                                    .then(() => {
+                                                        const conv = this.directConversations.find(c => c.partner_id === dm.sender_id);
+                                                        if (conv) conv.unread_count = 0;
+                                                    })
+                                                    .catch(() => {});
                                             }
                                         } else {
                                             this.toastNotification = {
