@@ -237,7 +237,7 @@
         <!-- 1. TAB: ALGEMENE CHAT (KLINIEK PLEIN) -->
         <div x-show="activeTab === 'global'" class="flex-1 flex flex-col min-h-0">
             <!-- Messages Stream -->
-            <div x-ref="miniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
+            <div x-ref="miniChatScroll" id="tbsMiniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
                 <template x-for="msg in publicMessages" :key="msg.id">
                     <div class="flex items-start gap-2 group" :class="msg.is_me ? 'flex-row-reverse' : ''">
                         <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
@@ -503,7 +503,7 @@
                     </div>
 
                     <!-- Gang Messages Stream -->
-                    <div x-ref="miniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
+                    <div x-ref="miniGangScroll" id="tbsMiniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
                         <template x-for="msg in gangMessages" :key="msg.id">
                             <div class="flex items-start gap-2 group" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                 <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
@@ -754,7 +754,7 @@
                     </div>
 
                     <!-- Direct Messages Stream -->
-                    <div x-ref="miniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-2.5 text-xs">
+                    <div x-ref="miniDirectScroll" id="tbsMiniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-2.5 text-xs">
                         <template x-for="dm in activeDirectMessages" :key="dm.id">
                             <div class="space-y-1">
                                 <!-- Kluiscode Card -->
@@ -1145,6 +1145,32 @@
                 this.loadConversations();
                 this.pollLoop();
 
+                this.$watch('isOpen', (open) => {
+                    if (open) {
+                        if (this.activeTab === 'direct' && this.activeDirectPartner) {
+                            this.scrollDirectBottom();
+                        } else if (this.activeTab === 'gang') {
+                            this.scrollGangBottom();
+                        } else if (this.activeTab === 'global') {
+                            this.scrollChatBottom();
+                        }
+                    }
+                });
+
+                this.$watch('activeTab', (tab) => {
+                    if (tab === 'direct' && this.activeDirectPartner) {
+                        this.scrollDirectBottom();
+                    } else if (tab === 'gang') {
+                        this.scrollGangBottom();
+                    } else if (tab === 'global') {
+                        this.scrollChatBottom();
+                    }
+                });
+
+                this.$watch('activeDirectMessages', () => {
+                    this.scrollDirectBottom();
+                });
+
                 window.addEventListener('tbs-open-direct-chat', (e) => {
                     if (e.detail && e.detail.id !== undefined) {
                         this.openDirectChatWithPlayer(e.detail.id, e.detail.name || 'Inmate', e.detail.avatar || '/characters/avatar-default.png');
@@ -1221,27 +1247,74 @@
                 }
             },
 
-            scrollChatBottom() {
-                this.$nextTick(() => {
-                    if (this.$refs.miniChatScroll) {
-                        this.$refs.miniChatScroll.scrollTop = this.$refs.miniChatScroll.scrollHeight;
+            scrollChatBottom(smooth = false) {
+                const doScroll = () => {
+                    const el = this.$refs.miniChatScroll || document.getElementById('tbsMiniChatScroll');
+                    if (el) {
+                        if (smooth) {
+                            el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                        } else {
+                            el.scrollTop = el.scrollHeight;
+                        }
                     }
+                };
+                doScroll();
+                this.$nextTick(() => {
+                    doScroll();
+                    requestAnimationFrame(() => {
+                        doScroll();
+                        setTimeout(doScroll, 40);
+                        setTimeout(doScroll, 120);
+                        setTimeout(doScroll, 250);
+                    });
                 });
             },
 
-            scrollGangBottom() {
-                this.$nextTick(() => {
-                    if (this.$refs.miniGangScroll) {
-                        this.$refs.miniGangScroll.scrollTop = this.$refs.miniGangScroll.scrollHeight;
+            scrollGangBottom(smooth = false) {
+                const doScroll = () => {
+                    const el = this.$refs.miniGangScroll || document.getElementById('tbsMiniGangScroll');
+                    if (el) {
+                        if (smooth) {
+                            el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                        } else {
+                            el.scrollTop = el.scrollHeight;
+                        }
                     }
+                };
+                doScroll();
+                this.$nextTick(() => {
+                    doScroll();
+                    requestAnimationFrame(() => {
+                        doScroll();
+                        setTimeout(doScroll, 40);
+                        setTimeout(doScroll, 120);
+                        setTimeout(doScroll, 250);
+                    });
                 });
             },
 
-            scrollDirectBottom() {
-                this.$nextTick(() => {
-                    if (this.$refs.miniDirectScroll) {
-                        this.$refs.miniDirectScroll.scrollTop = this.$refs.miniDirectScroll.scrollHeight;
+            scrollDirectBottom(smooth = false) {
+                const doScroll = () => {
+                    const el = this.$refs.miniDirectScroll || document.getElementById('tbsMiniDirectScroll');
+                    if (el) {
+                        if (smooth) {
+                            el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                        } else {
+                            el.scrollTop = el.scrollHeight;
+                        }
                     }
+                };
+                doScroll();
+                this.$nextTick(() => {
+                    doScroll();
+                    requestAnimationFrame(() => {
+                        doScroll();
+                        setTimeout(doScroll, 30);
+                        setTimeout(doScroll, 80);
+                        setTimeout(doScroll, 160);
+                        setTimeout(doScroll, 300);
+                        setTimeout(doScroll, 600);
+                    });
                 });
             },
 
@@ -1590,6 +1663,8 @@
                     if (data.success) {
                         this.activeDirectMessages = data.messages || [];
                         this.scrollDirectBottom();
+                        setTimeout(() => this.scrollDirectBottom(), 100);
+                        setTimeout(() => this.scrollDirectBottom(), 300);
                         const conv = this.directConversations.find(c => c.partner_id === pId);
                         if (conv) conv.unread_count = 0;
                     }

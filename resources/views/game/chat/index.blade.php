@@ -878,12 +878,27 @@ function tbsLiveMessenger(config) {
             });
         },
 
-        scrollToBottom() {
-            this.$nextTick(() => {
+        scrollToBottom(smooth = false) {
+            const doScroll = () => {
                 const el = document.getElementById('tbsChatScrollContainer');
                 if (el) {
-                    el.scrollTop = el.scrollHeight;
+                    if (smooth) {
+                        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                    } else {
+                        el.scrollTop = el.scrollHeight;
+                    }
                 }
+            };
+            doScroll();
+            this.$nextTick(() => {
+                doScroll();
+                requestAnimationFrame(() => {
+                    doScroll();
+                    setTimeout(doScroll, 40);
+                    setTimeout(doScroll, 100);
+                    setTimeout(doScroll, 200);
+                    setTimeout(doScroll, 400);
+                });
             });
         }
     };
