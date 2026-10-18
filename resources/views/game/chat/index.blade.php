@@ -658,6 +658,7 @@ function tbsLiveMessenger(config) {
         messageInput: '',
         isSending: false,
         isRefreshing: false,
+        isPolling: false,
         copiedCode: null,
         pollTimer: null,
 
@@ -722,8 +723,26 @@ function tbsLiveMessenger(config) {
                 const res = await fetch('{{ route("chat.public.messages") }}?channel=global');
                 const data = await res.json();
                 if (data.success) {
-                    this.publicMessagesList = data.messages;
-                    this.lastPublicId = data.last_id;
+                    if (this.publicMessagesList.length === 0) {
+                        this.publicMessagesList = data.messages;
+                    } else {
+                        // Merge with any locally sent messages to avoid wiping them out
+                        const existingMap = new Map();
+                        data.messages.forEach(m => existingMap.set(m.id, m));
+                        this.publicMessagesList.forEach(m => {
+                            if (!existingMap.has(m.id)) {
+                                existingMap.set(m.id, m);
+                            }
+                        });
+                        const merged = Array.from(existingMap.values());
+                        merged.sort((a, b) => a.id - b.id);
+                        this.publicMessagesList = merged;
+                    }
+                    this.lastPublicId = Math.max(this.lastPublicId, data.last_id || 0);
+                    if (this.publicMessagesList.length > 0) {
+                        const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
+                        if (maxId > this.lastPublicId) this.lastPublicId = maxId;
+                    }
                     this.scrollToBottom();
                 }
             } catch(e) {}
@@ -749,7 +768,20 @@ function tbsLiveMessenger(config) {
                 const data = await res.json();
                 if (data.success) {
                     this.activePartner = data.partner;
-                    this.directMessagesList = data.messages;
+                    if (this.directMessagesList.length === 0) {
+                        this.directMessagesList = data.messages;
+                    } else {
+                        const existingMap = new Map();
+                        data.messages.forEach(m => existingMap.set(m.id, m));
+                        this.directMessagesList.forEach(m => {
+                            if (!existingMap.has(m.id)) {
+                                existingMap.set(m.id, m);
+                            }
+                        });
+                        const merged = Array.from(existingMap.values());
+                        merged.sort((a, b) => a.id - b.id);
+                        this.directMessagesList = merged;
+                    }
                     this.scrollToBottom();
                     // Update unread in conversations list
                     const conv = this.conversationsList.find(c => c.partner_id === partnerId);
@@ -765,8 +797,11 @@ function tbsLiveMessenger(config) {
         },
 
         async pollUpdates() {
-            if (this.activeTab === 'global') {
-                try {
+            if (this.isPolling) return;
+            this.isPolling = true;
+
+            try {
+                if (this.activeTab === 'global') {
                     const res = await fetch(`{{ route("chat.public.messages") }}?channel=global&after_id=${this.lastPublicId}`);
                     const data = await res.json();
                     if (data.success && data.messages.length > 0) {
@@ -780,26 +815,39 @@ function tbsLiveMessenger(config) {
                             });
                             if (notifyMsg) this.playChime();
                         }
-                        this.publicMessagesList = this.publicMessagesList.concat(data.messages);
-                        this.lastPublicId = data.last_id;
-                        this.scrollToBottom();
+
+                        // Strict deduplication by ID
+                        const existingIds = new Set(this.publicMessagesList.map(m => m.id));
+                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                        if (toAdd.length > 0) {
+                            this.publicMessagesList = [...this.publicMessagesList, ...toAdd];
+                            this.scrollToBottom();
+                        }
+                        if (data.last_id > this.lastPublicId) {
+                            this.lastPublicId = data.last_id;
+                        }
+                        if (this.publicMessagesList.length > 0) {
+                            const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
+                            if (maxId > this.lastPublicId) this.lastPublicId = maxId;
+                        }
                     }
-                } catch(e) {}
-            } else {
-                // Poll active DM thread
-                try {
+                } else {
+                    // Poll active DM thread
                     const res = await fetch(`/chat/prive/${this.activePartnerId}`);
                     const data = await res.json();
-                    if (data.success) {
-                        if (data.messages.length > this.directMessagesList.length) {
-                            const newCount = data.messages.length - this.directMessagesList.length;
-                            const latestNew = data.messages.slice(-newCount);
-                            if (latestNew.some(m => !m.is_me)) this.playChime();
-                            this.directMessagesList = data.messages;
+                    if (data.success && data.messages) {
+                        const existingIds = new Set(this.directMessagesList.map(m => m.id));
+                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                        if (toAdd.length > 0) {
+                            if (toAdd.some(m => !m.is_me)) this.playChime();
+                            this.directMessagesList = [...this.directMessagesList, ...toAdd];
                             this.scrollToBottom();
                         }
                     }
-                } catch(e) {}
+                }
+            } catch(e) {
+            } finally {
+                this.isPolling = false;
             }
         },
 
@@ -821,8 +869,10 @@ function tbsLiveMessenger(config) {
                     });
                     const data = await res.json();
                     if (data.success) {
-                        this.publicMessagesList.push(data.message);
-                        this.lastPublicId = data.message.id;
+                        if (!this.publicMessagesList.some(m => m.id === data.message.id)) {
+                            this.publicMessagesList.push(data.message);
+                        }
+                        this.lastPublicId = Math.max(this.lastPublicId, data.message.id);
                         this.messageInput = '';
                         this.scrollToBottom();
                     } else {
@@ -839,7 +889,9 @@ function tbsLiveMessenger(config) {
                     });
                     const data = await res.json();
                     if (data.success) {
-                        this.directMessagesList.push(data.message);
+                        if (!this.directMessagesList.some(m => m.id === data.message.id)) {
+                            this.directMessagesList.push(data.message);
+                        }
                         this.messageInput = '';
                         this.scrollToBottom();
                         this.loadConversations();

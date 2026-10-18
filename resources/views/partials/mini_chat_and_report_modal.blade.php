@@ -1183,6 +1183,7 @@
             lastPublicId: 0,
             inputMessage: '',
             isSending: false,
+            isLoadingPublic: false,
             showEmojiPicker: false,
 
             // Bende chat state
@@ -1190,6 +1191,7 @@
             lastGangId: 0,
             gangInputMessage: '',
             isSendingGang: false,
+            isLoadingGang: false,
             showGangEmojiPicker: false,
 
             // Replies
@@ -1511,13 +1513,25 @@
 
             async loadPublicMessages(isFirst = false) {
                 if (document.visibilityState === 'hidden' && !isFirst) return;
+                if (this.isLoadingPublic) return;
+                this.isLoadingPublic = true;
                 try {
                     const url = '{{ route('chat.public.messages') }}?channel=global' + (this.lastPublicId > 0 ? ('&after_id=' + this.lastPublicId) : '');
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
                     if (data.success && data.messages) {
                         if (this.lastPublicId === 0) {
-                            this.publicMessages = data.messages;
+                            // Safe merge to avoid wiping out any locally-sent messages while initial fetch was in-flight
+                            const existingMap = new Map();
+                            data.messages.forEach(m => existingMap.set(m.id, m));
+                            this.publicMessages.forEach(m => {
+                                if (!existingMap.has(m.id)) {
+                                    existingMap.set(m.id, m);
+                                }
+                            });
+                            const merged = Array.from(existingMap.values());
+                            merged.sort((a, b) => a.id - b.id);
+                            this.publicMessages = merged;
                             this.scrollChatBottom();
                         } else if (data.messages.length > 0) {
                             const newIncoming = data.messages.filter(m => !m.is_me);
@@ -1550,18 +1564,35 @@
                                     }
                                 }
                             }
-                            this.publicMessages = [...this.publicMessages, ...data.messages];
-                            this.scrollChatBottom();
+
+                            // Strict deduplication by ID so Alpine :key never collides and messages never disappear
+                            const existingIds = new Set(this.publicMessages.map(m => m.id));
+                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            if (toAdd.length > 0) {
+                                this.publicMessages = [...this.publicMessages, ...toAdd];
+                                this.scrollChatBottom();
+                            }
                         }
                         if (data.last_id > this.lastPublicId) {
                             this.lastPublicId = data.last_id;
                         }
+                        if (this.publicMessages.length > 0) {
+                            const maxId = Math.max(...this.publicMessages.map(m => m.id));
+                            if (maxId > this.lastPublicId) {
+                                this.lastPublicId = maxId;
+                            }
+                        }
                     }
-                } catch (e) {}
+                } catch (e) {
+                } finally {
+                    this.isLoadingPublic = false;
+                }
             },
 
             async loadGangMessages(isFirst = false) {
                 if (!this.hasGang || !this.gangHasChat || (document.visibilityState === 'hidden' && !isFirst)) return;
+                if (this.isLoadingGang) return;
+                this.isLoadingGang = true;
                 try {
                     const channel = 'gang_' + this.gangId;
                     const url = `{{ route('chat.public.messages') }}?channel=${channel}` + (this.lastGangId > 0 ? ('&after_id=' + this.lastGangId) : '');
@@ -1569,7 +1600,16 @@
                     const data = await res.json();
                     if (data.success && data.messages) {
                         if (this.lastGangId === 0) {
-                            this.gangMessages = data.messages;
+                            const existingMap = new Map();
+                            data.messages.forEach(m => existingMap.set(m.id, m));
+                            this.gangMessages.forEach(m => {
+                                if (!existingMap.has(m.id)) {
+                                    existingMap.set(m.id, m);
+                                }
+                            });
+                            const merged = Array.from(existingMap.values());
+                            merged.sort((a, b) => a.id - b.id);
+                            this.gangMessages = merged;
                             this.scrollGangBottom();
                         } else if (data.messages.length > 0) {
                             const newIncoming = data.messages.filter(m => !m.is_me);
@@ -1600,14 +1640,28 @@
                                     }
                                 }
                             }
-                            this.gangMessages = [...this.gangMessages, ...data.messages];
-                            this.scrollGangBottom();
+
+                            const existingIds = new Set(this.gangMessages.map(m => m.id));
+                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            if (toAdd.length > 0) {
+                                this.gangMessages = [...this.gangMessages, ...toAdd];
+                                this.scrollGangBottom();
+                            }
                         }
                         if (data.last_id > this.lastGangId) {
                             this.lastGangId = data.last_id;
                         }
+                        if (this.gangMessages.length > 0) {
+                            const maxId = Math.max(...this.gangMessages.map(m => m.id));
+                            if (maxId > this.lastGangId) {
+                                this.lastGangId = maxId;
+                            }
+                        }
                     }
-                } catch(e) {}
+                } catch(e) {
+                } finally {
+                    this.isLoadingGang = false;
+                }
             },
 
             openToastDestination() {
@@ -1653,7 +1707,9 @@
                     if (data.success && data.message) {
                         this.inputMessage = '';
                         this.cancelReply();
-                        this.publicMessages.push(data.message);
+                        if (!this.publicMessages.some(m => m.id === data.message.id)) {
+                            this.publicMessages.push(data.message);
+                        }
                         this.lastPublicId = Math.max(this.lastPublicId, data.message.id);
                         this.scrollChatBottom();
                     } else if (data.message) {
@@ -1689,7 +1745,9 @@
                     if (data.success && data.message) {
                         this.gangInputMessage = '';
                         this.cancelReply();
-                        this.gangMessages.push(data.message);
+                        if (!this.gangMessages.some(m => m.id === data.message.id)) {
+                            this.gangMessages.push(data.message);
+                        }
                         this.lastGangId = Math.max(this.lastGangId, data.message.id);
                         this.scrollGangBottom();
                     } else if (data.message) {
@@ -1774,7 +1832,9 @@
                     if (data.success && data.message) {
                         this.directInput = '';
                         this.cancelDirectReply();
-                        this.activeDirectMessages.push(data.message);
+                        if (!this.activeDirectMessages.some(m => m.id === data.message.id)) {
+                            this.activeDirectMessages.push(data.message);
+                        }
                         this.scrollDirectBottom();
                         this.loadConversations();
                     } else if (data.message) {
