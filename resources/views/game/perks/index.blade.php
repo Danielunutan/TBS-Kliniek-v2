@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Permanente Karakter Perks - TBS Kliniek')
-@section('meta_description', 'Activeer blijvende voordelen en elite perks voor je TBS karakter met zeldzame Sterren ⭐.')
+@section('title', 'Karakter Perks (24 Uur Actief) - TBS Kliniek')
+@section('meta_description', 'Activeer krachtige 24-uurs voordelen en perks voor je TBS karakter met zeldzame Sterren ⭐.')
 
 @section('content')
 <div class="space-y-6">
@@ -11,15 +11,15 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl shadow-md shrink-0">
-                    <i class="fa-solid fa-award"></i>
+                    <i class="fa-solid fa-bolt"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h2 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Permanente Karakter Perks</h2>
-                        <span class="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-black text-[10px] uppercase tracking-wider">Prestige ⭐</span>
+                        <h2 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Karakter Perks (24 Uur Actief)</h2>
+                        <span class="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-black text-[10px] uppercase tracking-wider">24 Uur Boost ⭐</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Investeer je zeldzame Sterren in blijvende privileges. Deze perks zijn eenmalig, permanent actief en gaan nooit verloren!
+                        Investeer je zeldzame Sterren in krachtige 24-uurs privileges. Elke geactiveerde perk blijft exact 24 uur actief en kan na afloop direct weer opnieuw worden geactiveerd!
                     </p>
                 </div>
             </div>
@@ -46,13 +46,15 @@
         @foreach($perks as $key => $perk)
         @php
             $isOwned = $character->hasPerk($key);
+            $expiresAt = $character->getPerkExpiresAt($key);
+            $secondsLeft = $character->getPerkRemainingSeconds($key);
             $hasEnough = ($character->stars ?? 0) >= $perk['cost_stars'];
         @endphp
         <div class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-emerald-400/80 dark:border-emerald-500/80 ring-2 ring-emerald-400/20' : 'border-slate-200 dark:border-slate-800' }} rounded-2xl p-6 shadow-xs flex flex-col justify-between gap-5 relative overflow-hidden transition hover:shadow-md">
             
             @if($isOwned)
                 <div class="absolute -right-12 top-6 bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-wider py-1 px-12 rotate-45 shadow-xs text-center pointer-events-none">
-                    Actief ✓
+                    24U Actief ✓
                 </div>
             @endif
 
@@ -82,14 +84,43 @@
                     <i class="fa-solid fa-circle-check text-emerald-500 text-sm shrink-0"></i>
                     <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $perk['benefit'] }}</span>
                 </div>
+
+                @if($isOwned)
+                    <!-- COUNTDOWN TIMER BOX -->
+                    <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-3 text-xs space-y-1"
+                         x-data="{
+                             left: {{ $secondsLeft }},
+                             format() {
+                                 if (this.left <= 0) return 'Zojuist verlopen (ververs pagina)';
+                                 const total = Math.floor(this.left);
+                                 const h = Math.floor(total / 3600);
+                                 const m = Math.floor((total % 3600) / 60);
+                                 const s = Math.floor(total % 60);
+                                 return `${h}u ${m < 10 ? '0' : ''}${m}m ${s < 10 ? '0' : ''}${s}s`;
+                             },
+                             init() {
+                                 setInterval(() => { if (this.left > 0) this.left--; }, 1000);
+                             }
+                         }">
+                        <div class="flex items-center justify-between text-emerald-800 dark:text-emerald-300 font-bold">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> Resterende actieve tijd:</span>
+                            <span class="font-black font-mono" x-text="format()"></span>
+                        </div>
+                        @if($expiresAt)
+                            <p class="text-[10px] text-emerald-600 dark:text-emerald-400">
+                                Loopt af op {{ $expiresAt->format('d-m-Y \o\m H:i') }} uur.
+                            </p>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <!-- ACTION BUTTON -->
             <div class="pt-2">
                 @if($isOwned)
                     <div class="w-full py-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-black text-xs text-center border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-lock-open text-xs"></i>
-                        <span>Permanent Ontgrendeld</span>
+                        <i class="fa-solid fa-circle-check text-xs"></i>
+                        <span>24 Uur Actief Ingeschakeld</span>
                     </div>
                 @else
                     <form action="{{ route('perks.buy', $key) }}" method="POST">
@@ -97,9 +128,9 @@
                         <button type="submit" 
                                 @if(! $hasEnough) disabled @endif
                                 class="w-full py-3 px-4 rounded-xl {{ $hasEnough ? 'bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black cursor-pointer shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold cursor-not-allowed' }} text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-unlock-keyhole"></i>
+                            <i class="fa-solid fa-bolt"></i>
                             @if($hasEnough)
-                                <span>Ontgrendel voor {{ $perk['cost_stars'] }} ⭐</span>
+                                <span>Activeer 24 Uur ({{ $perk['cost_stars'] }} ⭐)</span>
                             @else
                                 <span>Niet genoeg Sterren ({{ $character->stars ?? 0 }}/{{ $perk['cost_stars'] }} ⭐)</span>
                             @endif

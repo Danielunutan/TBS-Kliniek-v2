@@ -88,7 +88,7 @@ class PerksAndStarVehiclesTest extends TestCase
         $this->assertFalse($character->characterVehicles()->where('vehicle_id', $vehicle->id)->exists());
     }
 
-    public function test_player_can_buy_permanent_character_perk(): void
+    public function test_player_can_buy_24_hour_character_perk(): void
     {
         [$user, $character] = $this->createInmate(['stars' => 30]);
 
@@ -99,14 +99,15 @@ class PerksAndStarVehiclesTest extends TestCase
         $character->refresh();
         $this->assertEquals(5, $character->stars);
         $this->assertTrue($character->hasPerk('grotere_broekzakken'));
+        $this->assertTrue($character->getPerkRemainingSeconds('grotere_broekzakken') > 86000);
+        $this->assertNotNull($character->getPerkExpiresAt('grotere_broekzakken'));
     }
 
-    public function test_player_cannot_buy_same_perk_twice(): void
+    public function test_player_cannot_buy_same_perk_while_already_active(): void
     {
-        [$user, $character] = $this->createInmate([
-            'stars' => 50,
-            'perks' => ['grotere_broekzakken'],
-        ]);
+        [$user, $character] = $this->createInmate(['stars' => 50]);
+        $character->addPerk('grotere_broekzakken', 24);
+        $character->save();
 
         $response = $this->actingAs($user)
             ->post(route('perks.buy', 'grotere_broekzakken'));
@@ -114,6 +115,31 @@ class PerksAndStarVehiclesTest extends TestCase
         $response->assertSessionHas('error');
         $character->refresh();
         $this->assertEquals(50, $character->stars);
+    }
+
+    public function test_perk_expires_after_24_hours_and_can_be_reactivated(): void
+    {
+        Carbon::setTestNow(now());
+        [$user, $character] = $this->createInmate(['stars' => 50]);
+
+        $character->addPerk('grotere_broekzakken', 24);
+        $character->save();
+        $this->assertTrue($character->hasPerk('grotere_broekzakken'));
+
+        // Fast-forward 25 hours -> perk must be expired
+        Carbon::setTestNow(now()->addHours(25));
+        $this->assertFalse($character->hasPerk('grotere_broekzakken'));
+
+        // Reactivate perk with stars
+        $response = $this->actingAs($user)
+            ->post(route('perks.buy', 'grotere_broekzakken'));
+
+        $response->assertSessionHas('success');
+        $character->refresh();
+        $this->assertTrue($character->hasPerk('grotere_broekzakken'));
+        $this->assertEquals(25, $character->stars);
+
+        Carbon::setTestNow();
     }
 
     public function test_kluis_uitbreiding_perk_increases_storage_capacity(): void

@@ -169,23 +169,105 @@ class Character extends Model
     }
 
     /**
-     * Check if character has a permanent prestige perk unlocked.
+     * Check if character has an active perk (24-hour duration).
      */
     public function hasPerk(string $perk): bool
     {
-        return in_array($perk, $this->perks ?? [], true);
+        $perks = $this->perks ?? [];
+        if (! is_array($perks)) {
+            return false;
+        }
+
+        if (isset($perks[$perk])) {
+            $val = $perks[$perk];
+            if (is_numeric($val)) {
+                return (int) $val > now()->timestamp;
+            }
+            if (is_string($val)) {
+                try {
+                    return Carbon::parse($val)->isFuture();
+                } catch (\Throwable) {
+                    return false;
+                }
+            }
+            if (is_bool($val)) {
+                return $val;
+            }
+        }
+
+        // Support legacy flat array format: ['grotere_broekzakken']
+        if (in_array($perk, $perks, true)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
-     * Unlock a permanent prestige perk for the character.
+     * Get the expiration Carbon instance for an active perk.
      */
-    public function addPerk(string $perk): void
+    public function getPerkExpiresAt(string $perk): ?Carbon
     {
         $perks = $this->perks ?? [];
-        if (! in_array($perk, $perks, true)) {
-            $perks[] = $perk;
-            $this->perks = $perks;
+        if (! is_array($perks) || ! isset($perks[$perk])) {
+            return null;
         }
+
+        $val = $perks[$perk];
+        if (is_numeric($val)) {
+            $dt = Carbon::createFromTimestamp((int) $val);
+
+            return $dt->isFuture() ? $dt : null;
+        }
+
+        if (is_string($val)) {
+            try {
+                $dt = Carbon::parse($val);
+
+                return $dt->isFuture() ? $dt : null;
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get remaining active seconds for a perk.
+     */
+    public function getPerkRemainingSeconds(string $perk): int
+    {
+        $expiresAt = $this->getPerkExpiresAt($perk);
+        if (! $expiresAt) {
+            return 0;
+        }
+
+        return max(0, (int) round(now()->diffInSeconds($expiresAt, false)));
+    }
+
+    /**
+     * Activate or extend a 24-hour perk for the character.
+     */
+    public function addPerk(string $perk, int $hours = 24): void
+    {
+        $perks = $this->perks ?? [];
+        if (! is_array($perks)) {
+            $perks = [];
+        }
+
+        // Remove legacy flat string entry if present
+        $legacyKey = array_search($perk, $perks, true);
+        if ($legacyKey !== false) {
+            unset($perks[$legacyKey]);
+        }
+
+        $currentExpiry = $this->getPerkExpiresAt($perk);
+        $base = ($currentExpiry && $currentExpiry->isFuture()) ? $currentExpiry : now();
+        $newExpiry = $base->copy()->addHours($hours);
+
+        $perks[$perk] = $newExpiry->toIso8601String();
+        $this->perks = $perks;
     }
 
     /**

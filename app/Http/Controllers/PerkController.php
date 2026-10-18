@@ -17,9 +17,9 @@ class PerkController extends Controller
             'icon' => 'fa-wallet',
             'color' => 'emerald',
             'cost_stars' => 25,
-            'tagline' => 'Permanent +10% Contant Geld',
-            'description' => 'Je broeken zijn vakkundig aangepast met geheime diepe binnenzakken. Je scoort permanent 10% meer contant zwart geld bij elke hossel en elke geslaagde zakkenrol-actie.',
-            'benefit' => '+10% cash opbrengst bij Zakkenrollen & Hosselen',
+            'tagline' => '24 Uur +10% Contant Geld',
+            'description' => 'Je broeken zijn vakkundig aangepast met geheime diepe binnenzakken. Je scoort 24 uur lang 10% meer contant zwart geld bij elke hossel en elke geslaagde zakkenrol-actie.',
+            'benefit' => '+10% cash opbrengst bij Zakkenrollen & Hosselen (24 uur)',
         ],
         'kluis_uitbreiding' => [
             'id' => 'kluis_uitbreiding',
@@ -27,9 +27,9 @@ class PerkController extends Controller
             'icon' => 'fa-vault',
             'color' => 'blue',
             'cost_stars' => 20,
-            'tagline' => 'Permanent +25 Opslagcapaciteit',
-            'description' => 'Je hebt een extra geheime opbergruimte achter het ventilatierooster van je cel uitgehakt. Je persoonlijke kluiscapaciteit wordt permanent verhoogd met 25 slots.',
-            'benefit' => '+25 permanente opslagruimte in je kluis',
+            'tagline' => '24 Uur +25 Opslagcapaciteit',
+            'description' => 'Je hebt een extra geheime opbergruimte achter het ventilatierooster van je cel uitgehakt. Je persoonlijke kluiscapaciteit wordt 24 uur lang verhoogd met 25 slots.',
+            'benefit' => '+25 opslagruimte in je kluis (24 uur)',
         ],
         'goede_advocaat' => [
             'id' => 'goede_advocaat',
@@ -37,9 +37,9 @@ class PerkController extends Controller
             'icon' => 'fa-scale-balanced',
             'color' => 'purple',
             'cost_stars' => 40,
-            'tagline' => 'Permanent 25% Minder Isoleercel',
-            'description' => 'Je hebt een gehaaide topadvocaat op speeddial staan. Zodra je in de isoleercel belandt, dient je advocaat direct vormfouten in, waardoor elke toekomstige straftijd permanent met 25% wordt ingekort.',
-            'benefit' => '-25% straftijd bij elke isoleercel veroordeling',
+            'tagline' => '24 Uur 25% Minder Isoleercel',
+            'description' => 'Je hebt een gehaaide topadvocaat op speeddial staan. Zodra je in de isoleercel belandt, dient je advocaat direct vormfouten in, waardoor elke straftijd 24 uur lang met 25% wordt ingekort.',
+            'benefit' => '-25% straftijd bij elke isoleercel veroordeling (24 uur)',
         ],
     ];
 
@@ -65,7 +65,7 @@ class PerkController extends Controller
         }
 
         if ($character->hasPerk($perk)) {
-            return back()->with('error', 'Je bezit deze permanente perk al!');
+            return back()->with('error', 'Deze perk is momenteel al actief! Je kunt deze weer opnieuw activeren zodra de huidige 24 uur zijn verlopen.');
         }
 
         $perkData = self::PERKS[$perk];
@@ -76,9 +76,9 @@ class PerkController extends Controller
         }
 
         $character->stars -= $cost;
-        $character->addPerk($perk);
+        $character->addPerk($perk, 24);
         $character->save();
 
-        return back()->with('success', "🎉 Gefeliciteerd! Je hebt de permanente perk '{$perkData['name']}' succesvol geactiveerd!");
+        return back()->with('success', "🎉 Gefeliciteerd! Je hebt de perk '{$perkData['name']}' succesvol geactiveerd voor 24 uur!");
     }
 }
