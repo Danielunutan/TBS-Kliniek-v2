@@ -51,7 +51,35 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-BKI-972' || $ticket->id === 9 || str_contains(strtolower($ticket->subject), 'krachttraining')) {
+        if ($ticketNumber === 'TBS-JCG-100' || $ticket->id === 10 || str_contains(strtolower($ticket->subject), 'controlepunt') || str_contains(strtolower($ticket->subject), 'controle punt')) {
+            $replyMessage = "Beste Rainbow,\n\n"
+                ."Wat een waanzinnig goed King-of-the-Hill concept voor de TBS Kliniek! We vonden het idee zó vet dat we het direct van top tot teen hebben gebouwd en zojuist live hebben gezet in de game! 🚩👑\n\n"
+                ."Dit is hoe het nieuwe Controlepunten systeem nu exact werkt zoals jij hebt voorgesteld:\n\n"
+                ."1. **5 Strategische Controlepunten in de Kliniek**:\n"
+                ."   - **De Luchtplaats**: Heers over de open buitenplaats.\n"
+                ."   - **De Kantine**: Beheers het centrale ontmoetingspunt van de kliniek.\n"
+                ."   - **De Sportzaal**: Laat zien wie de sterkste heerser is in de gym.\n"
+                ."   - **Centraal Depot**: Controleer alle goederen en voorraadstromen.\n"
+                ."   - **De Medicijnkluis**: Grijp de macht over de zwaarst beveiligde kluis.\n\n"
+                ."2. **Opeisen & Veroveren (2⚡ Energie)**:\n"
+                ."   - Via de nieuwe pagina **/controlepunten** (en de interactieve controlepunt-banners op de locaties zelf) kun je met één klik een punt opeisen of afpakken van een rivaal.\n"
+                ."   - Zolang jij op het controlepunt staat, blijft het stevig in jouw bezit en stijgt je buit!\n\n"
+                ."3. **Stijgende Buit per Minuut (+€50 & +1 Ster ⭐)**:\n"
+                ."   - Exact volgens jouw formule:\n"
+                ."     • 1 minuut = €50 + 1 Ster ⭐\n"
+                ."     • 2 minuten = €100 + 2 Sterren ⭐\n"
+                ."     • 10 minuten = €500 + 10 Sterren ⭐\n"
+                ."     • 60 minuten = €3.000 + 60 Sterren ⭐!\n\n"
+                ."4. **Automatische Uitbetaling & Notificatie**:\n"
+                ."   - Zodra een andere speler het punt van jou overneemt, stopt de teller en wordt de volledige opgebouwde buit (cash én sterren) direct op jouw saldo bijgeschreven!\n"
+                ."   - Je ontvangt direct een in-game notificatie én een officieel uitbetalingsbericht in je postvak met het complete overzicht van jouw heerschappij.\n\n"
+                ."5. **Bende Eer & Live Overname Feed**:\n"
+                ."   - Als je bij een bende zit, schittert jouw bendetag als heersende bende over dat punt.\n"
+                ."   - Onderaan de pagina vind je een live historiek met alle recente overnames, heerschappij-tijden en uitbetaalde beloningen.\n\n"
+                ."Nogmaals enorm bedankt voor dit gave idee en het meebouwen aan een levendige TBS Kliniek! Ga snel naar 'Controlepunten' in het Bende-menu of surf naar /controlepunten om je eerste hotspot te claimen!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-BKI-972' || $ticket->id === 9 || str_contains(strtolower($ticket->subject), 'krachttraining')) {
             $replyMessage = "Beste ozzy,\n\n"
                 ."Bedankt voor je melding en scherpe oog! We hebben dit probleem zojuist grondig aangepakt en opgelost:\n\n"
                 ."1. **In-place Krachttraining (Geen Paginaverspringing meer)**:\n"

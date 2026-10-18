@@ -168,6 +168,8 @@
     }
 }">
 
+    @include('game.control_points.banner', ['slug' => 'kantine'])
+
     <!-- Top Hero Banner -->
     <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">

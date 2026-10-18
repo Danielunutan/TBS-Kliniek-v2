@@ -5,6 +5,8 @@
 @section('content')
 <div class="space-y-6 pb-12" x-data="{ tab: '{{ $activeTab }}', sellModalItem: null, sellQty: 1 }">
 
+    @include('game.control_points.banner', ['slug' => 'depot'])
+
     <!-- HERO HEADER -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">

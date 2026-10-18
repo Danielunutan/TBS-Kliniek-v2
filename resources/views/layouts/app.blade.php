@@ -587,6 +587,15 @@
                             <span>Bende Oprichten</span>
                         </a>
                     @endif
+                    <a href="{{ route('control-points.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('control-points.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-flag w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <span>Controlepunten</span>
+                        </div>
+                        <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide border border-amber-300/40 animate-pulse">
+                            King of Hill
+                        </span>
+                    </a>
                 </div>
             </div>
 
@@ -1192,6 +1201,10 @@
                             <i class="fa-solid fa-trophy w-4 text-amber-500 dark:text-amber-400"></i> Bende Ranglijst
                         </a>
                     @endif
+                    <a href="{{ route('control-points.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('control-points.*') ? 'bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : '' }}">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-flag w-4 text-amber-500 dark:text-amber-400"></i> Controlepunten</span>
+                        <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">KOTH</span>
+                    </a>
                 </div>
 
                 <!-- 2. Voortgang -->

@@ -46,6 +46,8 @@
         </button>
     </div>
 
+    @include('game.control_points.banner', ['slug' => 'sportzaal'])
+
     <!-- Header Banner (Clean Modern) -->
     <div class="bg-white dark:bg-[#110726] p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-purple-900/40 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>

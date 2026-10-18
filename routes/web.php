@@ -13,6 +13,7 @@ use App\Http\Controllers\CasinoController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CombatTrainingController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\ControlPointController;
 use App\Http\Controllers\CooldownController;
 use App\Http\Controllers\CpaleadPostbackController;
 use App\Http\Controllers\DailyBattleController;
@@ -459,6 +460,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/gangs/panden/{property}/claim-productie', [GangPropertyController::class, 'claimProduction'])->name('gangs.panden.claim-production');
     Route::post('/gangs/panden/hire-npc/{npcKey}', [GangPropertyController::class, 'hireNpc'])->name('gangs.panden.hire-npc');
     Route::post('/gangs/panden/{property}/assign-npc', [GangPropertyController::class, 'assignNpc'])->name('gangs.panden.assign-npc');
+
+    // Controlepunten (King of the Hill - Verover en Verdien)
+    Route::get('/controlepunten', [ControlPointController::class, 'index'])->name('control-points.index');
+    Route::post('/controlepunten/{point}/claim', [ControlPointController::class, 'capture'])->name('control-points.capture');
 
     // Marktplaats (Marketplace)
     Route::get('/marktplaats', [MarketplaceController::class, 'index'])->name('marketplace.index');
