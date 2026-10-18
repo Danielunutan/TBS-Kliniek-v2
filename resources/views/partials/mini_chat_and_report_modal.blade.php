@@ -238,9 +238,9 @@
         <!-- 1. TAB: ALGEMENE CHAT (KLINIEK PLEIN) -->
         <div x-show="activeTab === 'global'" class="flex-1 flex flex-col min-h-0">
             <!-- Messages Stream -->
-            <div x-ref="miniChatScroll" id="tbsMiniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
+            <div x-ref="miniChatScroll" id="tbsMiniChatScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50 max-w-full">
                 <template x-for="msg in publicMessages" :key="msg.id">
-                    <div class="flex items-start gap-2 group" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                    <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                         <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
                                 class="shrink-0 cursor-pointer transition hover:scale-105"
                                 :title="!msg.is_me ? 'Chat privé met ' + msg.name : ''">
@@ -249,9 +249,9 @@
                                  onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                         </button>
 
-                        <div class="max-w-[84%] space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
+                        <div class="max-w-[84%] min-w-0 space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
                             <!-- Sender Meta -->
-                            <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap" :class="msg.is_me ? 'justify-end' : ''">
+                            <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
                                 <!-- EIGENAAR -->
                                 <template x-if="msg.is_owner">
                                     <span class="text-amber-500 dark:text-amber-400 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
@@ -324,7 +324,7 @@
 
                             <!-- Reply Quote Bubble (if replied) -->
                             <template x-if="msg.reply_to_name">
-                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full">
+                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
                                     <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
                                     <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
                                     <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
@@ -332,8 +332,8 @@
                             </template>
 
                             <!-- Message Bubble & Heart Reaction -->
-                            <div class="flex items-center gap-1.5" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-2xs"
+                            <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                                <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
                                      :class="msg.is_me 
                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                         : (msg.is_owner 
@@ -341,7 +341,7 @@
                                             : (msg.is_admin || msg.is_moderator 
                                                 ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs'
                                                 : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'))">
-                                    <span x-text="msg.message"></span>
+                                    <span class="break-words [overflow-wrap:anywhere] [word-break:break-word] block max-w-full" x-text="msg.message"></span>
                                 </div>
 
                                 <!-- Paars Hartje Reactie Knop 💜 -->
@@ -423,8 +423,14 @@
                         </div>
                     </div>
 
-                    <input type="text" x-model="inputMessage" placeholder="Typ @naam of een bericht... (Enter)" maxlength="350"
-                           class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                    <div class="flex-1 relative flex items-center">
+                        <input type="text" x-model="inputMessage" placeholder="Typ @naam of een bericht... (Enter)" maxlength="250"
+                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                        <span x-show="inputMessage.length > 150" 
+                              class="absolute right-2 text-[9px] font-mono pointer-events-none"
+                              :class="inputMessage.length >= 240 ? 'text-rose-500 font-black' : (inputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
+                              x-text="inputMessage.length + '/250'"></span>
+                    </div>
                     <button type="submit" :disabled="isSending || !inputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
@@ -504,9 +510,9 @@
                     </div>
 
                     <!-- Gang Messages Stream -->
-                    <div x-ref="miniGangScroll" id="tbsMiniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
+                    <div x-ref="miniGangScroll" id="tbsMiniGangScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-3 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50 max-w-full">
                         <template x-for="msg in gangMessages" :key="msg.id">
-                            <div class="flex items-start gap-2 group" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                            <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                 <button type="button" @click="if(!msg.is_me) openDirectChatWithPlayer(msg.character_id, msg.name, msg.avatar)"
                                         class="shrink-0 cursor-pointer transition hover:scale-105"
                                         :title="!msg.is_me ? 'Chat privé met ' + msg.name : ''">
@@ -515,9 +521,9 @@
                                          onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                 </button>
 
-                                <div class="max-w-[84%] space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
+                                <div class="max-w-[84%] min-w-0 space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
                                     <!-- Sender Meta -->
-                                    <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap" :class="msg.is_me ? 'justify-end' : ''">
+                                    <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
                                         <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
                                               @click="tagPlayer(msg.name)" title="Klik om te taggen"
                                               x-text="msg.name"></span>
@@ -543,7 +549,7 @@
 
                                     <!-- Reply Quote -->
                                     <template x-if="msg.reply_to_name">
-                                        <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full">
+                                        <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
                                             <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
                                             <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + msg.reply_to_name"></span>
                                             <span class="truncate opacity-75 italic" x-text="msg.reply_to_snippet"></span>
@@ -551,10 +557,10 @@
                                     </template>
 
                                     <!-- Bubble & Heart -->
-                                    <div class="flex items-center gap-1.5" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed break-words shadow-2xs"
+                                    <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                                        <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
                                              :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
-                                            <span x-text="msg.message"></span>
+                                            <span class="break-words [overflow-wrap:anywhere] [word-break:break-word] block max-w-full" x-text="msg.message"></span>
                                         </div>
 
                                         <!-- Paars Hartje Reactie Knop 💜 -->
@@ -632,8 +638,14 @@
                                 </div>
                             </div>
 
-                            <input type="text" x-model="gangInputMessage" placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="350"
-                                   class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                            <div class="flex-1 relative flex items-center">
+                                <input type="text" x-model="gangInputMessage" placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="250"
+                                       class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                <span x-show="gangInputMessage.length > 150" 
+                                      class="absolute right-2 text-[9px] font-mono pointer-events-none"
+                                      :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
+                                      x-text="gangInputMessage.length + '/250'"></span>
+                            </div>
                             <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                                 <i class="fa-solid fa-paper-plane"></i>
                             </button>
@@ -755,12 +767,12 @@
                     </div>
 
                     <!-- Direct Messages Stream -->
-                    <div x-ref="miniDirectScroll" id="tbsMiniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-2.5 text-xs">
+                    <div x-ref="miniDirectScroll" id="tbsMiniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs max-w-full">
                         <template x-for="dm in activeDirectMessages" :key="dm.id">
                             <div class="space-y-1">
                                 <!-- Kluiscode Card -->
                                 <template x-if="dm.type === 'kluiscode'">
-                                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400 dark:border-amber-600/60 space-y-1.5 text-slate-900 dark:text-amber-100">
+                                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-400 dark:border-amber-600/60 space-y-1.5 text-slate-900 dark:text-amber-100 min-w-0 max-w-full">
                                         <div class="flex items-center justify-between text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">
                                             <span>🔐 Exclusieve Kluiscode</span>
                                             <span x-text="dm.time"></span>
@@ -774,18 +786,18 @@
 
                                 <!-- Level Up Card -->
                                 <template x-if="dm.type === 'level_up'">
-                                    <div class="p-2.5 rounded-xl bg-purple-600/10 border border-purple-400 dark:border-purple-600/60 space-y-1 text-slate-900 dark:text-purple-100">
+                                    <div class="p-2.5 rounded-xl bg-purple-600/10 border border-purple-400 dark:border-purple-600/60 space-y-1 text-slate-900 dark:text-purple-100 min-w-0 max-w-full">
                                         <div class="flex items-center gap-1.5 text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase">
                                             <i class="fa-solid fa-award"></i>
                                             <span x-text="'Level ' + dm.metadata?.level + ' Bereikt!'"></span>
                                         </div>
-                                        <p class="text-[11px]" x-text="dm.message"></p>
+                                        <p class="text-[11px] break-words [overflow-wrap:anywhere]" x-text="dm.message"></p>
                                     </div>
                                 </template>
 
                                 <!-- Standard & System Notification Bubbles -->
                                 <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up'">
-                                    <div class="flex items-start gap-2 group" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                    <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                         <!-- Avatar Image -->
                                         <template x-if="!dm.is_me">
                                             <img :src="activeDirectPartner?.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
@@ -798,9 +810,9 @@
                                                  onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                                         </template>
 
-                                        <div class="max-w-[82%] space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                        <div class="max-w-[82%] min-w-0 space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
                                             <!-- Sender Meta: Name, Level, Time -->
-                                            <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap mb-0.5" :class="dm.is_me ? 'justify-end' : ''">
+                                            <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap mb-0.5 min-w-0 max-w-full" :class="dm.is_me ? 'justify-end' : ''">
                                                 <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.is_me ? myName : (activeDirectPartner?.name || 'Inmate')"></span>
                                                 <template x-if="!dm.is_me && activeDirectPartner && activeDirectPartner.level">
                                                     <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black">
@@ -812,7 +824,7 @@
 
                                             <!-- Reply Quote if any -->
                                             <template x-if="dm.reply_to_name">
-                                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full">
+                                                <div class="text-[10px] text-purple-300 bg-purple-950/60 px-2 py-0.5 rounded-lg border-l-2 border-purple-400 mb-1 flex items-center gap-1.5 truncate max-w-full min-w-0">
                                                     <i class="fa-solid fa-reply text-[8px] text-purple-400"></i>
                                                     <span class="font-extrabold text-purple-300 shrink-0" x-text="'@' + dm.reply_to_name"></span>
                                                     <span class="truncate opacity-75 italic" x-text="dm.reply_to_snippet"></span>
@@ -820,10 +832,10 @@
                                             </template>
 
                                             <!-- Bubble & Reactions -->
-                                            <div class="flex items-center gap-1.5" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block p-2.5 rounded-2xl text-xs break-words whitespace-pre-line shadow-2xs leading-relaxed"
+                                            <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                                <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
                                                      :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
-                                                    <span x-text="dm.message"></span>
+                                                    <span class="break-words [overflow-wrap:anywhere] [word-break:break-word] block max-w-full" x-text="dm.message"></span>
                                                 </div>
 
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
@@ -945,8 +957,14 @@
                                     </div>
                                 </div>
 
-                                <input type="text" x-model="directInput" placeholder="Typ een privébericht... (Enter)" maxlength="500"
-                                       class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                <div class="relative flex-1 flex items-center min-w-0">
+                                    <input type="text" x-model="directInput" placeholder="Typ een privébericht... (Enter)" maxlength="500"
+                                           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 pr-14 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                    <span x-show="directInput.length > 350" x-cloak
+                                          class="absolute right-2 text-[10px] font-mono pointer-events-none"
+                                          :class="directInput.length >= 500 ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
+                                          x-text="directInput.length + '/500'"></span>
+                                </div>
                                 <button type="submit" :disabled="isSendingDirect || !directInput.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                                     <i class="fa-solid fa-paper-plane text-[10px]"></i>
                                 </button>
@@ -959,12 +977,12 @@
 
         <!-- 3. TAB: AI KENNISBANK & HELPBOT -->
         <div x-show="activeTab === 'help'" class="flex-1 flex flex-col min-h-0">
-            <div x-ref="helpBox" class="flex-1 min-h-0 p-3 overflow-y-auto space-y-2.5 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
+            <div x-ref="helpBox" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs bg-slate-50/70 dark:bg-[#0d041e]/50">
                 <template x-for="(msg, i) in helpMessages" :key="i">
                     <div :class="msg.from === 'bot' ? 'flex flex-col items-start' : 'flex flex-col items-end'">
                         <div :class="msg.from === 'bot' ? 'bg-white dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 text-slate-800 dark:text-purple-100' : 'bg-purple-600 text-white font-medium'"
-                             class="rounded-2xl p-2.5 max-w-[88%] space-y-1.5 shadow-2xs">
-                            <p class="whitespace-pre-line leading-relaxed" x-text="msg.text"></p>
+                             class="rounded-2xl p-2.5 max-w-[88%] space-y-1.5 shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word]">
+                            <p class="whitespace-pre-line leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word]" x-text="msg.text"></p>
                             <template x-if="msg.links && msg.links.length > 0">
                                 <div class="pt-1 flex flex-wrap gap-1 border-t border-slate-100 dark:border-purple-800/30">
                                     <template x-for="lnk in msg.links">

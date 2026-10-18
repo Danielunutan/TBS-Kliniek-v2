@@ -259,10 +259,10 @@ class ChatController extends Controller
             ], 422);
         }
 
-        if (mb_strlen($cleanMessage) > 350) {
+        if (mb_strlen($cleanMessage) > 250) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bericht is te lang (maximaal 350 tekens).',
+                'message' => 'Bericht is te lang (maximaal 250 tekens).',
             ], 422);
         }
 
@@ -615,8 +615,8 @@ class ChatController extends Controller
             return response()->json(['success' => false, 'message' => 'Typ eerst een bericht.'], 422);
         }
 
-        if (mb_strlen($cleanMessage) > 1000) {
-            return response()->json(['success' => false, 'message' => 'Bericht is te lang (maximaal 1000 tekens).'], 422);
+        if (mb_strlen($cleanMessage) > 500) {
+            return response()->json(['success' => false, 'message' => 'Bericht is te lang (maximaal 500 tekens).'], 422);
         }
 
         if ($linkError = $this->validateChatLinks($cleanMessage)) {

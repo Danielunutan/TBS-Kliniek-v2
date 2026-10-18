@@ -346,7 +346,7 @@
 
             <!-- CHAT STREAM CONTAINER -->
             <div id="tbsChatScrollContainer" 
-                 class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+                 class="flex-1 overflow-y-auto overflow-x-hidden max-w-full p-4 sm:p-6 space-y-4 custom-scrollbar">
                 
                 <!-- =============================== -->
                 <!-- 1. PUBLIC CHAT MESSAGES STREAM  -->
@@ -354,7 +354,7 @@
                 <template x-if="activeTab === 'global'">
                     <div class="space-y-3.5">
                         <template x-for="msg in publicMessagesList" :key="msg.id">
-                            <div class="flex items-start gap-3 group" :class="msg.is_me ? 'flex-row-reverse' : ''">
+                            <div class="flex items-start gap-3 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                 <!-- AVATAR -->
                                 <button type="button" 
                                         @click="if(!msg.is_me) { switchTab('direct'); selectPartner(msg.character_id, msg.name); }"
@@ -366,7 +366,7 @@
                                 </button>
 
                                 <!-- MESSAGE BUBBLE -->
-                                <div class="max-w-[85%] sm:max-w-md space-y-1" :class="msg.is_me ? 'text-right' : 'text-left'">
+                                <div class="max-w-[85%] sm:max-w-md min-w-0 space-y-1" :class="msg.is_me ? 'text-right' : 'text-left'">
                                     <!-- SENDER HEADER -->
                                     <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap" :class="msg.is_me ? 'justify-end' : ''">
                                         <!-- EIGENAAR STYLING -->
@@ -451,7 +451,7 @@
                                     </div>
 
                                     <!-- BUBBLE -->
-                                    <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed shadow-2xs break-words"
+                                    <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
                                          :class="msg.is_me 
                                             ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                             : (msg.is_owner 
@@ -459,7 +459,7 @@
                                                 : (msg.is_admin || msg.is_moderator
                                                     ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs'
                                                     : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700'))">
-                                        <span x-text="msg.message"></span>
+                                        <span class="break-words [overflow-wrap:anywhere] [word-break:break-word]" x-text="msg.message"></span>
                                     </div>
                                 </div>
                             </div>
@@ -553,11 +553,11 @@
                                 <!-- STANDARD & SYSTEM NOTIFICATION BUBBLES -->
                                 <!-- ===================================== -->
                                 <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up'">
-                                    <div class="flex items-start gap-3" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="max-w-[85%] sm:max-w-md space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                            <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed break-words whitespace-pre-line shadow-2xs"
+                                    <div class="flex items-start gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                        <div class="max-w-[85%] sm:max-w-md min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                            <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line shadow-2xs max-w-full"
                                                  :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700'">
-                                                <span x-text="dm.message"></span>
+                                                <span class="break-words [overflow-wrap:anywhere] [word-break:break-word]" x-text="dm.message"></span>
                                             </div>
                                             <div class="text-[10px] text-slate-400 font-mono" x-text="dm.time"></div>
                                         </div>
@@ -600,17 +600,23 @@
                         </div>
 
                         <form @submit.prevent="sendMessage()" class="flex items-center gap-2">
-                            <input type="text" 
-                                   x-model="messageInput"
-                                   x-ref="messageInputField"
-                                   @keydown.enter.prevent="if(!event.shiftKey) sendMessage()"
-                                   :placeholder="activeTab === 'global' ? 'Typ een bericht aan de afdeling... (Enter om te verzenden)' : 'Stuur een privébericht...'"
-                                   maxlength="350"
-                                   class="flex-1 bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 rounded-xl px-4 py-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                            <div class="relative flex-1 flex items-center min-w-0">
+                                <input type="text" 
+                                       x-model="messageInput"
+                                       x-ref="messageInputField"
+                                       @keydown.enter.prevent="if(!event.shiftKey) sendMessage()"
+                                       :placeholder="activeTab === 'global' ? 'Typ een bericht aan de afdeling... (max 250 tekens)' : 'Stuur een privébericht... (max 500 tekens)'"
+                                       :maxlength="activeTab === 'global' ? 250 : 500"
+                                       class="w-full bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 rounded-xl px-4 py-3 pr-16 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                                <span x-show="messageInput.length > (activeTab === 'global' ? 150 : 350)" x-cloak
+                                      class="absolute right-3 text-[11px] font-mono pointer-events-none"
+                                      :class="messageInput.length >= (activeTab === 'global' ? 250 : 500) ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
+                                      x-text="messageInput.length + '/' + (activeTab === 'global' ? 250 : 500)"></span>
+                            </div>
                             
                             <button type="submit" 
                                     :disabled="isSending || messageInput.trim() === ''"
-                                    class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+                                    class="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
                                 <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
                                 <span class="hidden sm:inline">Verstuur</span>
                             </button>
