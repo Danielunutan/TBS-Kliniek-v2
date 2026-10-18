@@ -36,4 +36,39 @@ class SupportTicketMessage extends Model
     {
         return $this->belongsTo(Character::class);
     }
+
+    /**
+     * Format message with styled markdown and lists.
+     */
+    public function getFormattedMessageAttribute(): string
+    {
+        $text = e($this->message);
+
+        // Bold **text**
+        $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
+
+        // Italic *text*
+        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/s', '<em class="italic text-slate-600 dark:text-slate-400">$1</em>', $text);
+
+        // Numbered step headers: e.g. "1. Title"
+        $text = preg_replace_callback('/^(\d+)\.\s+(.*?)$/m', function ($m) {
+            return '<div class="flex items-start gap-2.5 my-2.5 font-medium"><span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-mono font-black text-xs flex items-center justify-center shrink-0 border border-purple-200 dark:border-purple-800/80 mt-0.5">'.$m[1].'</span><div class="grow leading-relaxed">'.$m[2].'</div></div>';
+        }, $text);
+
+        // Sub-bullets: lines starting with "   - " or "- "
+        $text = preg_replace_callback('/^\s*[-•]\s+(.*?)$/m', function ($m) {
+            return '<div class="flex items-start gap-2 my-1 pl-4 text-slate-700 dark:text-slate-300"><span class="text-purple-500 font-bold shrink-0 mt-0.5">•</span><span class="leading-relaxed">'.$m[1].'</span></div>';
+        }, $text);
+
+        // Paragraph breaks
+        $text = preg_replace("/\n\n+/", '<div class="my-2.5"></div>', $text);
+
+        // Remaining line breaks
+        $text = nl2br($text);
+
+        // Clean up redundant breaks after containers
+        $text = str_replace(['</div><br />', '</div><br/>', '</div><br>'], '</div>', $text);
+
+        return $text;
+    }
 }

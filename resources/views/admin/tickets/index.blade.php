@@ -148,13 +148,21 @@
                                     <i class="fa-solid {{ $ticket->category_icon }} text-[9px]"></i>
                                     {{ $ticket->category_label }}
                                 </span>
-                                @if($ticket->last_reply_by_staff)
+                                @if($ticket->status === 'beantwoord')
+                                <span class="text-[9px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded-sm border border-emerald-200 font-bold inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-check text-[8px]"></i> Beantwoord door staff
+                                </span>
+                                @elseif($ticket->status === 'gesloten')
+                                <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded-sm border border-slate-200 font-bold inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-lock text-[8px]"></i> Gesloten
+                                </span>
+                                @elseif($ticket->last_reply_by_staff)
                                 <span class="text-[9px] bg-purple-50 text-purple-700 px-1.5 py-0.2 rounded-sm border border-purple-200 font-bold">
-                                    Laatste door staff
+                                    Wacht op speler
                                 </span>
                                 @else
-                                <span class="text-[9px] bg-amber-50 text-amber-700 px-1.5 py-0.2 rounded-sm border border-amber-200 font-bold">
-                                    Reactie speler!
+                                <span class="text-[9px] bg-amber-50 text-amber-700 px-1.5 py-0.2 rounded-sm border border-amber-200 font-bold inline-flex items-center gap-1 animate-pulse">
+                                    <i class="fa-solid fa-bell text-[8px]"></i> Reactie vereist!
                                 </span>
                                 @endif
                             </div>
@@ -173,11 +181,35 @@
                             {{ $ticket->updated_at->diffForHumans() }}
                         </td>
                         <td class="py-3.5 px-4 text-right">
+                            @if($ticket->status === 'beantwoord')
+                            <div class="flex items-center justify-end gap-1.5">
+                                <a href="{{ route('admin.tickets.show', $ticket) }}" 
+                                   class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition inline-flex items-center gap-1 shadow-2xs">
+                                    <i class="fa-solid fa-eye text-[10px]"></i>
+                                    <span>Bekijken</span>
+                                </a>
+                                <form action="{{ route('admin.tickets.status', $ticket) }}" method="POST" class="inline">
+                                    @csrf
+                                    <input type="hidden" name="status" value="gesloten">
+                                    <button type="submit" title="Direct sluiten & afronden" class="px-2 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-700 border border-slate-200 hover:border-rose-200 text-xs font-bold transition inline-flex items-center gap-1 cursor-pointer">
+                                        <i class="fa-solid fa-lock text-[10px]"></i>
+                                        <span>Sluit</span>
+                                    </button>
+                                </form>
+                            </div>
+                            @elseif($ticket->status === 'gesloten')
+                            <a href="{{ route('admin.tickets.show', $ticket) }}" 
+                               class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition inline-flex items-center gap-1">
+                                <i class="fa-solid fa-folder-open text-[10px]"></i>
+                                <span>Dossier</span>
+                            </a>
+                            @else
                             <a href="{{ route('admin.tickets.show', $ticket) }}" 
                                class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition inline-flex items-center gap-1.5 shadow-2xs">
                                 <i class="fa-solid fa-reply text-[10px]"></i>
                                 <span>Beantwoorden</span>
                             </a>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

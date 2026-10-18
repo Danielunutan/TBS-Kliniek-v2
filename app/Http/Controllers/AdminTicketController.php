@@ -45,7 +45,17 @@ class AdminTicketController extends Controller
             });
         }
 
-        $tickets = $query->latest('updated_at')->paginate(20)->withQueryString();
+        $tickets = $query
+            ->orderByRaw("CASE 
+                WHEN status = 'open' THEN 1 
+                WHEN last_reply_by_staff = 0 AND status != 'gesloten' THEN 2 
+                WHEN status = 'in_behandeling' THEN 3 
+                WHEN status = 'beantwoord' THEN 4 
+                ELSE 5 
+            END")
+            ->latest('updated_at')
+            ->paginate(20)
+            ->withQueryString();
 
         $stats = [
             'open' => SupportTicket::where('status', 'open')->count(),

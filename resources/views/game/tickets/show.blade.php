@@ -125,8 +125,8 @@
             </div>
 
             <!-- Message Body -->
-            <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed whitespace-pre-line font-medium {{ $msg->is_staff ? 'bg-purple-50/70 dark:bg-slate-950/70 p-4 sm:p-5 rounded-xl border border-purple-200/80 dark:border-purple-900/60' : 'p-1' }}">
-                {{ $msg->message }}
+            <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed font-medium {{ $msg->is_staff ? 'bg-purple-50/70 dark:bg-slate-950/70 p-4 sm:p-5 rounded-xl border border-purple-200/80 dark:border-purple-900/60' : 'p-1' }}">
+                {!! $msg->formatted_message !!}
             </div>
 
         </div>

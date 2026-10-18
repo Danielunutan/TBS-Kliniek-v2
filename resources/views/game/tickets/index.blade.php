@@ -109,11 +109,11 @@
                             {{ $ticket->ticket_number }}
                         </td>
                         <td class="py-3.5 px-4">
-                            <a href="{{ route('help.tickets.show', $ticket) }}" class="font-bold text-slate-900 hover:text-purple-600 transition block">
+                            <a href="{{ route('help.tickets.show', $ticket) }}" class="font-extrabold text-slate-900 hover:text-purple-600 transition block">
                                 {{ $ticket->subject }}
                             </a>
-                            <span class="text-[11px] text-slate-400 truncate block max-w-xs">
-                                {{ Str::limit($ticket->lastMessage?->message ?? '', 60) }}
+                            <span class="text-[11px] text-slate-400 truncate block max-w-sm mt-0.5">
+                                {{ Str::limit(strip_tags(str_replace(['**', '*', '#'], '', $ticket->lastMessage?->message ?? '')), 70) }}
                             </span>
                         </td>
                         <td class="py-3.5 px-4">
@@ -123,19 +123,33 @@
                             </span>
                         </td>
                         <td class="py-3.5 px-4 text-center">
+                            @if($ticket->status === 'beantwoord')
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
+                                <i class="fa-solid fa-circle-check text-[9px] text-emerald-600"></i> Beantwoord
+                            </span>
+                            @else
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $ticket->status_badge_classes }}">
                                 {{ $ticket->status_label }}
                             </span>
+                            @endif
                         </td>
                         <td class="py-3.5 px-4 text-center text-slate-500 text-[11px]">
                             {{ $ticket->updated_at->diffForHumans() }}
                         </td>
                         <td class="py-3.5 px-4 text-right">
+                            @if($ticket->status === 'beantwoord')
+                            <a href="{{ route('help.tickets.show', $ticket) }}" 
+                               class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition inline-flex items-center gap-1.5 shadow-2xs">
+                                <span>Lees Antwoord</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </a>
+                            @else
                             <a href="{{ route('help.tickets.show', $ticket) }}" 
                                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-purple-50 text-slate-700 hover:text-purple-700 border border-slate-200 hover:border-purple-200 font-bold text-xs transition inline-flex items-center gap-1.5">
                                 <span>Bekijk</span>
                                 <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </a>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

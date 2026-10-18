@@ -179,25 +179,57 @@
             </div>
             @endif
 
+            @if($ticket->status === 'beantwoord')
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-check-double"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-emerald-950 text-sm block">Ticket is beantwoord</span>
+                        <span class="text-emerald-700 text-xs">Er is officieel gereageerd door staff. Wacht op reactie van {{ $ticket->character?->name ?? 'de speler' }}, of sluit het ticket af.</span>
+                    </div>
+                </div>
+                <form action="{{ route('admin.tickets.status', $ticket) }}" method="POST" class="shrink-0">
+                    @csrf
+                    <input type="hidden" name="status" value="gesloten">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer">
+                        <i class="fa-solid fa-lock text-[10px]"></i>
+                        <span>Ticket Sluiten (Afgehandeld)</span>
+                    </button>
+                </form>
+            </div>
+            @elseif($ticket->status === 'gesloten')
+            <div class="p-4 rounded-2xl bg-slate-100 border border-slate-200 flex items-center gap-3 text-xs">
+                <div class="w-9 h-9 rounded-xl bg-slate-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-slate-900 text-sm block">Dit ticket is gesloten en afgehandeld</span>
+                    <span class="text-slate-500 text-xs">Gesloten op {{ $ticket->closed_at ? $ticket->closed_at->format('d-m-Y H:i') : $ticket->updated_at->format('d-m-Y H:i') }}.</span>
+                </div>
+            </div>
+            @endif
+
             <!-- Messages Thread -->
             <div class="space-y-4">
                 @foreach($ticket->messages as $msg)
-                <div class="bg-white border {{ $msg->is_staff ? 'border-purple-200 shadow-xs' : 'border-slate-200' }} rounded-2xl p-5 shadow-2xs space-y-3">
+                <div class="bg-white border {{ $msg->is_staff ? 'border-purple-200 shadow-xs ring-1 ring-purple-100' : 'border-slate-200' }} rounded-2xl p-5 shadow-2xs space-y-3">
                     
                     <div class="flex items-center justify-between gap-3 border-b {{ $msg->is_staff ? 'border-purple-100' : 'border-slate-100' }} pb-3">
                         <div class="flex items-center gap-3">
                             @if($msg->is_staff)
-                            <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base font-bold shrink-0">
+                            <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base font-bold shrink-0 shadow-2xs">
                                 <i class="fa-solid fa-shield-halved"></i>
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="font-extrabold text-sm text-purple-900">{{ $msg->user?->name ? ucfirst($msg->user->name) : 'Daniel' }}</span>
-                                    <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-black uppercase">
+                                    <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-black uppercase tracking-wider">
                                         Medewerker
                                     </span>
                                 </div>
-                                <span class="text-[11px] text-purple-600/80 font-medium">TBS Kliniek Medewerker</span>
+                                <span class="text-[11px] text-purple-600 font-medium">Officiële reactie van TBS Kliniek</span>
                             </div>
                             @else
                             <img src="{{ $msg->character?->avatar_url ?? asset('assets/logo.png') }}" 
@@ -220,8 +252,8 @@
                         </span>
                     </div>
 
-                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-100 leading-relaxed whitespace-pre-line font-medium {{ $msg->is_staff ? 'bg-purple-50/70 dark:bg-slate-950/70 p-4 sm:p-5 rounded-xl border border-purple-200/80 dark:border-purple-900/60' : 'p-1' }}">
-                        {{ $msg->message }}
+                    <div class="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium {{ $msg->is_staff ? 'bg-purple-50/60 p-4 sm:p-5 rounded-xl border border-purple-100' : 'p-1' }}">
+                        {!! $msg->formatted_message !!}
                     </div>
 
                 </div>
@@ -230,9 +262,16 @@
 
             <!-- Staff Reply Box -->
             <div class="bg-white border border-purple-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-                    <i class="fa-solid fa-reply text-purple-600"></i>
-                    <span>Antwoord sturen naar {{ $ticket->character->name }}</span>
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
+                        <i class="fa-solid fa-reply text-purple-600"></i>
+                        <span>{{ $ticket->status === 'beantwoord' ? 'Aanvullend antwoord sturen naar ' . $ticket->character->name : 'Antwoord sturen naar ' . $ticket->character->name }}</span>
+                    </div>
+                    @if($ticket->status === 'beantwoord')
+                    <span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                        Reeds beantwoord
+                    </span>
+                    @endif
                 </div>
 
                 <form action="{{ route('admin.tickets.reply', $ticket) }}" method="POST" class="space-y-4">
