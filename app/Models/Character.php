@@ -1912,11 +1912,16 @@ class Character extends Model
     }
 
     /**
-     * Count currently occupied storage places (items quantity + masks).
+     * Count currently occupied standard storage places (items quantity + masks, excluding unlimited event varia items).
      */
     public function getStorageUsed(): int
     {
-        $itemsTotal = (int) CharacterItem::where('character_id', $this->id)->sum('quantity');
+        $itemsTotal = (int) CharacterItem::where('character_id', $this->id)
+            ->whereHas('item', function ($q) {
+                $q->where('slug', 'not like', 'halloween_%')
+                    ->whereNotIn('category', ['special', 'collectible']);
+            })
+            ->sum('quantity');
         $masks = (int) ($this->masks ?? 0);
 
         return $itemsTotal + $masks;

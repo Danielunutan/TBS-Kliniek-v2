@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\CharacterItem;
 use App\Models\CharacterVehicle;
 use App\Models\User;
+use App\Models\VaultCode;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,10 +41,23 @@ class DepotController extends Controller
 
         // 2. Persoonlijke Opbergplaats (Reguliere inventaris)
         $inventoryItems = CharacterItem::where('character_id', $character->id)
+            ->whereHas('item', function ($q) {
+                $q->where('slug', 'not like', 'halloween_%')
+                    ->whereNotIn('category', ['special', 'collectible']);
+            })
             ->with('item')
             ->get();
 
-        // 3. Capaciteiten berekenen
+        // 3. Persoonlijk Varia (Event Opslag & Zeldzame verzamelobjecten)
+        $eventItems = CharacterItem::where('character_id', $character->id)
+            ->whereHas('item', function ($q) {
+                $q->where('slug', 'like', 'halloween_%')
+                    ->orWhereIn('category', ['special', 'collectible']);
+            })
+            ->with('item')
+            ->get();
+
+        // 4. Capaciteiten berekenen
         $garageCapacity = $character->getGarageCapacity();
         $garageUsed = $character->getGarageUsed();
         $garagePercent = min(100, (int) round(($garageUsed / max(1, $garageCapacity)) * 100));
@@ -51,7 +66,7 @@ class DepotController extends Controller
         $storageUsed = $character->getStorageUsed();
         $storagePercent = min(100, (int) round(($storageUsed / max(1, $storageCapacity)) * 100));
 
-        // 4. Volgende level threshold info
+        // 5. Volgende level threshold info
         $level = $character->level ?? 1;
         $nextTierLevel = null;
         if ($level < 10) {
@@ -64,6 +79,17 @@ class DepotController extends Controller
             $nextTierLevel = 50;
         }
 
+        // 6. Event context & opslag metadata
+        $isEventActive = HalloweenService::isEventActive();
+        $timeRemaining = HalloweenService::getRemainingTime();
+        $pumpkinSeeds = (int) ($character->pumpkin_seeds ?? 0);
+        $unlockedBorders = $character->unlocked_borders ?? [];
+        $equippedBorder = $character->equipped_border;
+        $borderCatalog = array_filter(HalloweenService::SHOP_ITEMS, fn ($i) => $i['category'] === 'borders');
+        $collectibleCatalog = array_filter(HalloweenService::SHOP_ITEMS, fn ($i) => $i['category'] === 'collectibles');
+        $activePerks = $character->active_perks ?? [];
+        $unredeemedCodes = VaultCode::where('character_id', $character->id)->where('is_redeemed', false)->get();
+
         $activeTab = $request->input('tab', 'storage');
 
         return view('game.depot.index', compact(
@@ -71,6 +97,7 @@ class DepotController extends Controller
             'ownedVehicles',
             'activeVehicle',
             'inventoryItems',
+            'eventItems',
             'garageCapacity',
             'garageUsed',
             'garagePercent',
@@ -78,6 +105,15 @@ class DepotController extends Controller
             'storageUsed',
             'storagePercent',
             'nextTierLevel',
+            'isEventActive',
+            'timeRemaining',
+            'pumpkinSeeds',
+            'unlockedBorders',
+            'equippedBorder',
+            'borderCatalog',
+            'collectibleCatalog',
+            'activePerks',
+            'unredeemedCodes',
             'activeTab'
         ));
     }

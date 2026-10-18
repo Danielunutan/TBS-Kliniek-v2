@@ -125,7 +125,7 @@
                     :class="tab === 'varia' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
                     class="px-5 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-ghost text-amber-400"></i>
-                <span>3. Persoonlijk Varia (Event Opslag)</span>
+                <span>3. Persoonlijk Varia (Event Opslag: {{ $eventItems->count() }} items &bull; {{ number_format($pumpkinSeeds, 0, ',', '.') }} 🎃)</span>
                 <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">Event</span>
             </button>
         </div>
@@ -228,7 +228,7 @@
                     @endif
 
                     @if($charVehicle->current_condition < 100)
-                    <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST" class="{{ $charVehicle->is_active ? 'w-full' : 'shrink-0' }}">
+                    <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST" class="{{ $charVehicle->is_active ? 'flex-1' : 'shrink-0' }}">
                         @csrf
                         <button type="submit" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-wrench text-amber-500"></i>
@@ -236,6 +236,13 @@
                         </button>
                     </form>
                     @endif
+
+                    <a href="{{ route('marketplace.index', ['type' => 'vehicle']) }}" 
+                       class="py-2 px-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs transition flex items-center justify-center gap-1"
+                       title="Bied dit voertuig te koop aan op de Marktplaats">
+                        <i class="fa-solid fa-shop text-[10px]"></i>
+                        <span class="hidden sm:inline">Markt</span>
+                    </a>
                 </div>
 
             </div>
@@ -352,7 +359,11 @@
 
                 <!-- ACTIONS -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                    @if($it->category !== 'equipment')
+                    @php
+                        $isConsumable = ($it->category === 'consumable' || $it->energy_restore > 0 || $it->health_restore > 0 || in_array($it->slug, ['sigaretten', 'ritalin', 'telefoon', 'eiwitshake-bodybuilder', 'multivitaminen-focus', 'bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje', 'halloween_candy_bag'], true));
+                    @endphp
+
+                    @if($isConsumable)
                     <form action="{{ route('shop.consume', $itemRow->id) }}" method="POST" class="flex-1">
                         @csrf
                         <input type="hidden" name="quantity" value="1">
@@ -361,12 +372,17 @@
                             <span>Gebruiken</span>
                         </button>
                     </form>
+                    @else
+                    <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" class="flex-1 py-2 px-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] transition shadow-2xs flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-shop text-[10px]"></i>
+                        <span>Marktplaats</span>
+                    </a>
                     @endif
 
                     <!-- SELL BUTTON -->
                     <button type="button" 
                             @click="sellModalItem = { id: {{ $itemRow->id }}, name: '{{ addslashes($it->name) }}', qty: {{ $itemRow->quantity }}, unitPrice: {{ max(500, (int)round(($it->price_kc > 0 ? $it->price_kc : 1000) * 0.6)) }} }; sellQty = 1;"
-                            class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition cursor-pointer flex items-center justify-center gap-1 {{ $it->category === 'equipment' ? 'w-full' : '' }}">
+                            class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition cursor-pointer flex items-center justify-center gap-1">
                         <i class="fa-solid fa-coins text-amber-500"></i>
                         <span>Verkopen</span>
                     </button>
@@ -382,89 +398,384 @@
     <!-- ==================== TAB 3: PERSOONLIJK VARIA (EVENT OPSLAG) ==================== -->
     <div x-show="tab === 'varia'" class="space-y-6">
 
-        <!-- INTRO BANNER -->
-        <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
+        <!-- INTRO BANNER MET LIVE STATUS & COUNTDOWN -->
+        <div class="p-6 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-purple-600/10 border border-orange-500/30 dark:border-orange-500/40 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center text-3xl shadow-sm shrink-0">
-                    <i class="fa-solid fa-pumpkin"></i>
+                <div class="w-14 h-14 rounded-2xl bg-orange-500 text-slate-950 flex items-center justify-center text-3xl shadow-sm shrink-0">
+                    <i class="fa-solid fa-pumpkin animate-pulse"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <h3 class="text-base font-black text-slate-900 dark:text-white">Persoonlijk Varia & Event Kluis</h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500 text-white shadow-2xs">
+                            🎃 Halloween 2026 Actief
+                        </span>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">
                             Onbeperkte Capaciteit ♾️
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl leading-relaxed">
-                        In tegenstelling tot je Garage en Opbergplaats heeft Varia <strong>geen maximum limiet</strong>.
-                        Alle speciale feestdag-drops, seizoensmunten en zeldzame verzamelobjecten worden hier veilig opgeslagen zodat je nooit iets misloopt tijdens events!
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 max-w-2xl leading-relaxed">
+                        In tegenstelling tot je reguliere Opbergplaats heeft de Event Kluis <strong>geen maximum opslaglimiet</strong>.
+                        Alle speciale feestdag-drops, seizoensmunten, profielranden en unieke collectibles worden hier veilig bewaard zonder je normale voorraad te belasten!
                     </p>
                 </div>
             </div>
 
-            <div class="shrink-0 text-center md:text-right">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Status</span>
-                <span class="text-sm font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 justify-center md:justify-end">
-                    <i class="fa-solid fa-circle-check"></i> Gereed voor Events
+            <div class="shrink-0 text-left md:text-right w-full md:w-auto p-3 md:p-0 rounded-xl bg-white/60 dark:bg-slate-900/60 md:bg-transparent border md:border-0 border-orange-200 dark:border-orange-950/60">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Resterende Event Tijd</span>
+                <span class="text-sm font-black text-orange-600 dark:text-orange-400 flex items-center gap-1.5 md:justify-end">
+                    <i class="fa-solid fa-hourglass-half animate-spin text-xs"></i>
+                    <span>{{ $timeRemaining['formatted'] ?? 'Actief' }}</span>
                 </span>
+                <span class="text-[10px] text-slate-400 font-medium block mt-0.5">Tot 5 november 23:59u</span>
             </div>
         </div>
 
-        <!-- HALLOWEEN UPDATE TEASER & PREVIEW SLOTS -->
-        <div class="bg-white dark:bg-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-xs">
-            <div class="flex items-center justify-between gap-4 mb-4">
+        <!-- EVENT VALUTA & QUICK METRICS -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            <!-- POMPOENPITTEN SALDO -->
+            <div class="bg-white dark:bg-slate-900 border border-orange-500/30 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-500 flex items-center gap-1">
+                            <i class="fa-solid fa-coins"></i> Evenement Valuta
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300">
+                            Pitten
+                        </span>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>{{ number_format($pumpkinSeeds, 0, ',', '.') }}</span>
+                        <span class="text-xl">🎃</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                        Verdiend met Halloween Quests, zakkenrollen, vechten en trainingen.
+                    </p>
+                </div>
+                <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                    <a href="{{ route('halloween.shop') }}" class="flex-1 py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition text-center shadow-xs flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-store text-xs"></i>
+                        <span>Shop</span>
+                    </a>
+                    <a href="{{ route('halloween.quests') }}" class="flex-1 py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs uppercase tracking-wider transition text-center flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-scroll text-xs text-orange-500"></i>
+                        <span>Quests</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- OVERVAL & EVENT MASKERS -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                            <i class="fa-solid fa-masks-theater"></i> Event Uitrusting
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                            Maskers
+                        </span>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>{{ (int)($character->masks ?? 0) }}</span>
+                        <span class="text-lg text-purple-500">Stuks 🎭</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                        Jack-O'-Lantern & overvalmaskers voor ongemerkt zakkenrollen en heists.
+                    </p>
+                </div>
+                <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                    <a href="{{ route('theft.index') }}" class="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition text-center shadow-xs flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-mask"></i>
+                        <span>Zakkenrollen</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- EVENT OPSLAG CAPACITEIT -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                            <i class="fa-solid fa-boxes-packing"></i> Kluis Status
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                            Varia
+                        </span>
+                    </div>
+                    <div class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>{{ $eventItems->count() }} Items</span>
+                        <span class="text-lg text-emerald-500">♾️</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                        Geen limiet! Event-items belasten je normale opslagcapaciteit niet.
+                    </p>
+                </div>
+                <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                    <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs uppercase tracking-wider transition text-center flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-shop text-xs text-indigo-500"></i>
+                        <span>Marktplaats Verkoop</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ACTIEVE EVENT PERKS / ZEGENINGEN -->
+        @if($character->hasPerk('magere_hein_zegening'))
+        <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-600/15 to-slate-900/40 border border-amber-400/60 shadow-xs flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-xl shrink-0 shadow-md animate-bounce">
+                    <i class="fa-solid fa-skull"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">💀 Magere Hein Zegening Actief!</h4>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-400 text-slate-950">
+                            +15% Stats
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                        Je geniet van <strong>+15% extra Kracht &amp; Verdediging</strong> bij alle gevechten en berovingen op de luchtplaats!
+                    </p>
+                </div>
+            </div>
+            <div class="text-right shrink-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Resterende Duur</span>
+                <span class="text-xs font-black text-amber-500 font-mono">{{ $character->getPerkRemainingHours('magere_hein_zegening') }} uur resterend</span>
+            </div>
+        </div>
+        @endif
+
+        <!-- ============================================== -->
+        <!-- 1. EVENT ITEMS & VERZAMELOBJECTEN IN BEZIT    -->
+        <!-- ============================================== -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
-                    <i class="fa-solid fa-ghost text-amber-500 text-lg"></i>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Aankomend: Halloween 2026 Griezelweek in TBS Kliniek</h4>
+                    <i class="fa-solid fa-ghost text-orange-500 text-base"></i>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white">Fysieke Event Items &amp; Collectibles ({{ $eventItems->count() }})</h3>
                 </div>
-                <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60">
-                    Binnenkort Actief
+                <a href="{{ route('halloween.shop') }}" class="text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1">
+                    <span>Meer scoren in Shop</span> &raquo;
+                </a>
+            </div>
+
+            @if($eventItems->isEmpty())
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center shadow-xs space-y-4">
+                <div class="w-14 h-14 rounded-2xl bg-orange-100 dark:bg-orange-950/60 text-orange-500 flex items-center justify-center text-2xl mx-auto">
+                    <i class="fa-solid fa-candy-cane"></i>
+                </div>
+                <div class="max-w-md mx-auto">
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen fysieke event-items in bezit</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                        Scoor unieke Halloween collectibles zoals het <strong>Snoepzakje (+35 Energie)</strong>, 
+                        de <strong>Behekste Voodoo Pop</strong> of de <strong>Vampier Vleermuis</strong> in de Halloween Shop!
+                    </p>
+                </div>
+                <div class="flex items-center justify-center gap-3 pt-2">
+                    <a href="{{ route('halloween.shop') }}" class="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
+                        <i class="fa-solid fa-store"></i>
+                        <span>Naar Halloween Shop</span>
+                    </a>
+                    <a href="{{ route('halloween.quests') }}" class="px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black text-xs uppercase tracking-wider transition flex items-center gap-2">
+                        <i class="fa-solid fa-scroll text-orange-500"></i>
+                        <span>Quests Spelen</span>
+                    </a>
+                </div>
+            </div>
+            @else
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                @foreach($eventItems as $eRow)
+                @php $eItem = $eRow->item; @endphp
+                <div class="bg-white dark:bg-slate-900 border border-orange-500/30 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <!-- ITEM HEADER -->
+                        <div class="flex items-start justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-orange-100 dark:bg-orange-950/60 text-orange-500 flex items-center justify-center text-lg shrink-0">
+                                    <i class="fa-solid {{ $eItem->icon ?? 'fa-ghost' }}"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-black text-slate-900 dark:text-white leading-snug">{{ $eItem->name }}</h4>
+                                    <span class="text-[10px] uppercase font-bold text-orange-500">Event Collectible</span>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 font-black text-[11px] shrink-0">
+                                {{ $eRow->quantity }}x
+                            </span>
+                        </div>
+
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
+                            {{ $eItem->description ?? 'Zeldzaam evenement-item uit de TBS Kliniek.' }}
+                        </p>
+
+                        <!-- EVENT BADGES -->
+                        <div class="flex flex-wrap gap-1.5 mb-4 text-[10px] font-bold">
+                            @if($eItem->energy_restore > 0)
+                            <span class="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-[9px]"></i> +{{ $eItem->energy_restore }} Energie
+                            </span>
+                            @endif
+                            <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                                Zeldzaamheid: Legendarisch
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                        @if($eItem->energy_restore > 0 || $eItem->category === 'consumable')
+                        <form action="{{ route('shop.consume', $eRow->id) }}" method="POST" class="flex-1">
+                            @csrf
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="w-full py-2 px-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[11px] transition shadow-2xs cursor-pointer flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-candy-cane"></i>
+                                <span>Consumeren</span>
+                            </button>
+                        </form>
+                        @endif
+
+                        <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" 
+                           class="py-2 px-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] transition flex items-center justify-center gap-1 {{ $eItem->energy_restore > 0 ? '' : 'flex-1' }}">
+                            <i class="fa-solid fa-shop text-[10px]"></i>
+                            <span>Marktplaats</span>
+                        </a>
+
+                        <button type="button" 
+                                @click="sellModalItem = { id: {{ $eRow->id }}, name: '{{ addslashes($eItem->name) }}', qty: {{ $eRow->quantity }}, unitPrice: {{ max(1500, (int)round(($eItem->price_kc > 0 ? $eItem->price_kc : 2500) * 0.6)) }} }; sellQty = 1;"
+                                class="py-2 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition cursor-pointer flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-coins text-amber-500"></i>
+                            <span>Verkopen</span>
+                        </button>
+                    </div>
+
+                </div>
+                @endforeach
+            </div>
+            @endif
+        </div>
+
+        <!-- ============================================== -->
+        <!-- 2. HALLOWEEN PROFIELRANDEN (FRAMES) SHOWCASE   -->
+        <!-- ============================================== -->
+        <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-palette text-purple-500 text-base"></i>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white">Halloween Profielranden &amp; Frames</h3>
+                        <p class="text-[11px] text-slate-400">Verlicht je avatar met griezelige borders en speciale neon animaties.</p>
+                    </div>
+                </div>
+                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                    {{ count($unlockedBorders) }} / {{ count($borderCatalog) }} Vrijgespeeld
                 </span>
             </div>
 
-            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
-                Tijdens het Halloween Event dwalen er mysterieuze geesten over de luchtplaats en verschijnen er geheime pompoenkratten bij de expeditiepoort.
-                Verzamel Pompoen Munten en wissel ze in voor unieke heists en trofeeën!
-            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                @foreach($borderCatalog as $bKey => $border)
+                @php
+                    $isUnlocked = in_array($bKey, $unlockedBorders, true);
+                    $isEquipped = ($equippedBorder === $bKey);
+                @endphp
+                <div class="bg-white dark:bg-slate-900 border {{ $isEquipped ? 'border-orange-500 ring-2 ring-orange-500/30' : ($isUnlocked ? 'border-slate-300 dark:border-slate-700' : 'border-slate-200 dark:border-slate-800 opacity-80') }} rounded-2xl p-4 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <!-- BORDER PREVIEW WITH AVATAR -->
+                        <div class="relative w-20 h-20 mx-auto my-3 flex items-center justify-center">
+                            <img src="{{ $character->avatar_url ?? asset('assets/characters/avatar_male_1.jpg') }}" 
+                                 class="w-16 h-16 rounded-2xl object-cover {{ $border['preview_class'] ?? '' }}"
+                                 alt="{{ $border['name'] }}"
+                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                            @if($isEquipped)
+                            <span class="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs shadow-md">
+                                <i class="fa-solid fa-check"></i>
+                            </span>
+                            @endif
+                        </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- SLOT 1 -->
-                <div class="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-xl mx-auto mb-2">
-                        <i class="fa-solid fa-coins"></i>
+                        <div class="text-center mt-2">
+                            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full {{ $isUnlocked ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-500' }}">
+                                {{ $border['badge'] ?? 'Event' }}
+                            </span>
+                            <h4 class="text-xs font-black text-slate-900 dark:text-white mt-1.5">{{ $border['name'] }}</h4>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                                {{ $border['description'] }}
+                            </p>
+                        </div>
                     </div>
-                    <h5 class="text-xs font-black text-slate-900 dark:text-white">Halloween Pompoen Munten</h5>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Drop kans tijdens klusjes & heists</p>
-                    <span class="inline-block mt-3 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                        0 in bezit
-                    </span>
-                </div>
 
-                <!-- SLOT 2 -->
-                <div class="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mx-auto mb-2">
-                        <i class="fa-solid fa-key"></i>
+                    <!-- ACTION BUTTONS -->
+                    <div class="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
+                        @if($isUnlocked)
+                            @if($isEquipped)
+                            <form action="{{ route('halloween.equip-border') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="border_key" value="none">
+                                <button type="submit" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-[11px] transition cursor-pointer flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-xmark"></i>
+                                    <span>Deactiveren</span>
+                                </button>
+                            </form>
+                            @else
+                            <form action="{{ route('halloween.equip-border') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="border_key" value="{{ $bKey }}">
+                                <button type="submit" class="w-full py-2 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-[11px] transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>Activeer Rand</span>
+                                </button>
+                            </form>
+                            @endif
+                        @else
+                            <a href="{{ route('halloween.shop') }}" class="w-full py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-orange-500 hover:text-white text-slate-600 dark:text-slate-300 font-extrabold text-[11px] transition text-center flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Kopen ({{ $border['price_seeds'] }} 🎃)</span>
+                            </a>
+                        @endif
                     </div>
-                    <h5 class="text-xs font-black text-slate-900 dark:text-white">Spookhuis Cryptesleutel</h5>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Opent de geheime kelderkluis</p>
-                    <span class="inline-block mt-3 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                        0 in bezit
-                    </span>
                 </div>
-
-                <!-- SLOT 3 -->
-                <div class="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 text-center">
-                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-xl mx-auto mb-2">
-                        <i class="fa-solid fa-skull"></i>
-                    </div>
-                    <h5 class="text-xs font-black text-slate-900 dark:text-white">Zeldzaam Geestenrelikwie</h5>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Geeft tijdelijke stat boosters</p>
-                    <span class="inline-block mt-3 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                        0 in bezit
-                    </span>
-                </div>
+                @endforeach
             </div>
         </div>
+
+        <!-- ============================================== -->
+        <!-- 3. GEHEIME KLICODES & VOUCHERS                -->
+        <!-- ============================================== -->
+        @if($unredeemedCodes->isNotEmpty())
+        <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-vault text-amber-500 text-base"></i>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white">Onverzilverde Kluiscodes &amp; Vouchers ({{ $unredeemedCodes->count() }})</h3>
+                        <p class="text-[11px] text-slate-400">Verzilver jouw vouchers direct voor contant bankgeld, exclusieve sterren en kluistokens.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach($unredeemedCodes as $code)
+                <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300/60 dark:border-amber-700/60 shadow-xs flex items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-black uppercase text-amber-500 tracking-wider">Kluis Voucher</span>
+                        <div class="font-mono font-black text-sm text-slate-900 dark:text-white tracking-wider">
+                            {{ $code->code }}
+                        </div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+                            +€{{ number_format($code->reward_cash, 0, ',', '.') }} bankgeld &bull; +{{ $code->reward_stars }} ⭐
+                        </div>
+                    </div>
+                    <a href="/kluis-kraak?code={{ urlencode($code->code) }}" 
+                       class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-2xs flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-unlock-keyhole"></i>
+                        <span>Inwisselen</span>
+                    </a>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
 
     </div>
 
