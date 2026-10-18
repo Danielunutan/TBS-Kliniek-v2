@@ -455,15 +455,16 @@ class ChatController extends Controller
                     'level' => $partner->level,
                     'last_message' => $cleanPreview,
                     'last_time' => $lastMsg->created_at->diffForHumans(null, true, true),
+                    'last_time_ts' => $lastMsg->created_at->timestamp,
                     'last_msg_id' => $lastMsg->id,
                     'unread_count' => $unread,
                     'is_pinned' => false,
                 ];
             }
 
-            // Strictly sort by latest message descending (newest message always at top)
+            // Strictly sort by latest message timestamp descending (newest message always at top)
             usort($inmateConversations, function ($a, $b) {
-                return $b['last_msg_id'] <=> $a['last_msg_id'];
+                return $b['last_time_ts'] <=> $a['last_time_ts'];
             });
 
             foreach ($inmateConversations as $c) {
