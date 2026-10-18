@@ -28,6 +28,21 @@ class GameMessage extends Model
                 ? "📢 **{$gameMsg->subject}**\n\n{$gameMsg->content}"
                 : ($gameMsg->content ?? '');
 
+            if (! $isPlayerDm) {
+                $alreadyExists = DirectMessage::where('recipient_id', $gameMsg->recipient_id)
+                    ->whereNull('sender_id')
+                    ->where('created_at', '>=', now()->subSeconds(3))
+                    ->where(function ($q) use ($gameMsg) {
+                        $q->where('metadata->game_message_id', $gameMsg->id)
+                            ->orWhere('message', 'like', '%'.substr($gameMsg->subject ?? '', 0, 15).'%');
+                    })
+                    ->exists();
+
+                if ($alreadyExists) {
+                    return;
+                }
+            }
+
             DirectMessage::create([
                 'sender_id' => $senderId,
                 'recipient_id' => $gameMsg->recipient_id,

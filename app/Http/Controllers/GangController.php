@@ -277,22 +277,32 @@ class GangController extends Controller
         ]);
 
         if ($gang->leader) {
-            GameMessage::create([
-                'recipient_id' => $gang->leader->id,
-                'sender_id' => $character->id,
-                'sender_name' => $character->name,
-                'subject' => "📩 Nieuwe lidmaatschapsaanvraag voor {$gang->name}",
-                'content' => "Patiënt {$character->name} wil zich graag aansluiten bij jouw bende {$gang->name}. Beheer verzoeken via Bende Beheer!",
-                'type' => 'gang',
-            ]);
+            // Notify leader and co-leaders via GameMessage and GameNotification
+            $officers = Character::where('gang_id', $gang->id)
+                ->whereIn('gang_role', ['leader', 'co_leader'])
+                ->where('id', '!=', $character->id)
+                ->get();
 
-            if ($gang->leader->id !== $character->id) {
+            if ($officers->isEmpty() && $gang->leader && $gang->leader->id !== $character->id) {
+                $officers = collect([$gang->leader]);
+            }
+
+            foreach ($officers as $officer) {
                 GameNotification::create([
-                    'character_id' => $gang->leader->id,
+                    'character_id' => $officer->id,
                     'type' => 'gang',
                     'icon' => 'fa-user-plus',
                     'title' => 'Nieuw lidmaatschapsverzoek!',
                     'message' => "{$character->name} heeft een verzoek ingediend om lid te worden van '{$gang->name}'!",
+                ]);
+
+                GameMessage::create([
+                    'recipient_id' => $officer->id,
+                    'sender_id' => $character->id,
+                    'sender_name' => $character->name,
+                    'subject' => "📩 Nieuwe lidmaatschapsaanvraag voor {$gang->name}",
+                    'content' => "Patiënt {$character->name} wil zich graag aansluiten bij jouw bende {$gang->name}. Beheer verzoeken via Bende Beheer!",
+                    'type' => 'gang',
                 ]);
             }
         }

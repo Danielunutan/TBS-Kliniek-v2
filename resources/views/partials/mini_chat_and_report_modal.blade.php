@@ -782,8 +782,8 @@
                                     </div>
                                 </template>
 
-                                <!-- Standard Bubbles -->
-                                <template x-if="dm.type === 'chat' || dm.type === 'system'">
+                                <!-- Standard & System Notification Bubbles -->
+                                <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up'">
                                     <div class="flex items-start gap-1.5 group" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                         <div class="max-w-[85%] space-y-0.5" :class="dm.is_me ? 'text-right' : 'text-left'">
                                             <!-- Reply Quote if any -->
@@ -797,7 +797,7 @@
 
                                             <!-- Bubble & Reactions -->
                                             <div class="flex items-center gap-1.5" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block p-2.5 rounded-2xl text-xs break-words shadow-2xs leading-relaxed"
+                                                <div class="inline-block p-2.5 rounded-2xl text-xs break-words whitespace-pre-line shadow-2xs leading-relaxed"
                                                      :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
                                                     <span x-text="dm.message"></span>
                                                 </div>

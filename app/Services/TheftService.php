@@ -325,6 +325,14 @@ class TheftService
         HalloweenService::record($character, 'cash_earned', $cashStolen);
 
         // Notify victim
+        GameNotification::create([
+            'character_id' => $victim->id,
+            'type' => 'theft',
+            'icon' => 'fa-sack-dollar',
+            'title' => 'Bestolen door een medepatiënt!',
+            'message' => "Patiënt {$character->name} heeft zojuist €".number_format($cashStolen, 0, ',', '.').' contant uit je zakken gerold!',
+        ]);
+
         GameMessage::create([
             'recipient_id' => $victim->id,
             'sender_id' => $character->id,

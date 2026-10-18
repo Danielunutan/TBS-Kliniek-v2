@@ -550,12 +550,12 @@
                                 </template>
 
                                 <!-- ===================================== -->
-                                <!-- STANDARD DIRECT CHAT BUBBLES          -->
+                                <!-- STANDARD & SYSTEM NOTIFICATION BUBBLES -->
                                 <!-- ===================================== -->
-                                <template x-if="dm.type === 'chat' || dm.type === 'system'">
+                                <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up'">
                                     <div class="flex items-start gap-3" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                         <div class="max-w-[85%] sm:max-w-md space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                            <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed shadow-2xs break-words"
+                                            <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed break-words whitespace-pre-line shadow-2xs"
                                                  :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700'">
                                                 <span x-text="dm.message"></span>
                                             </div>
