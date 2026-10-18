@@ -666,11 +666,13 @@ class Character extends Model
     }
 
     /**
-     * Get remaining daily attacks out of 100 max.
+     * Get remaining daily attacks (100 for normal, 1000 for VIP).
      */
     public function getRemainingDailyAttacksAttribute(): int
     {
-        return max(0, 100 - $this->today_attacks_count);
+        $max = $this->isVip() ? 1000 : 100;
+
+        return max(0, $max - $this->today_attacks_count);
     }
 
     /**

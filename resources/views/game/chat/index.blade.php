@@ -451,16 +451,15 @@
                                     </div>
 
                                     <!-- BUBBLE -->
-                                    <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
+                                    <div class="inline-block px-3.5 py-2 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                          :class="msg.is_me 
                                             ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                             : (msg.is_owner 
-                                                ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs'
+                                                ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
                                                 : (msg.is_admin || msg.is_moderator
-                                                    ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs'
-                                                    : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700'))">
-                                        <span class="break-words [overflow-wrap:anywhere] [word-break:break-word]" x-text="msg.message"></span>
-                                    </div>
+                                                    ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700 text-left'))"
+                                         x-text="msg.message"></div>
                                 </div>
                             </div>
                         </template>
@@ -555,10 +554,9 @@
                                 <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up'">
                                     <div class="flex items-start gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                         <div class="max-w-[85%] sm:max-w-md min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                            <div class="inline-block p-3 rounded-2xl text-xs leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line shadow-2xs max-w-full"
-                                                 :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700'">
-                                                <span class="break-words [overflow-wrap:anywhere] [word-break:break-word]" x-text="dm.message"></span>
-                                            </div>
+                                            <div class="inline-block px-3.5 py-2 rounded-2xl text-xs leading-relaxed break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line shadow-2xs max-w-full"
+                                                 :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-xs border border-slate-200 dark:border-slate-700 text-left'"
+                                                 x-text="dm.message"></div>
                                             <div class="text-[10px] text-slate-400 font-mono" x-text="dm.time"></div>
                                         </div>
                                     </div>

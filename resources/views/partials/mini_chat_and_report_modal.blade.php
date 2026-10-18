@@ -333,16 +333,15 @@
 
                             <!-- Message Bubble & Heart Reaction -->
                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
+                                <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                      :class="msg.is_me 
                                         ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                         : (msg.is_owner 
-                                            ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs'
+                                            ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
                                             : (msg.is_admin || msg.is_moderator 
-                                                ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs'
-                                                : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'))">
-                                    <span class="break-words [overflow-wrap:anywhere] [word-break:break-word] block max-w-full" x-text="msg.message"></span>
-                                </div>
+                                                ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
+                                                : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'))"
+                                     x-text="msg.message"></div>
 
                                 <!-- Paars Hartje Reactie Knop 💜 -->
                                 <button type="button" @click="togglePublicHeart(msg)" 
@@ -558,10 +557,9 @@
 
                                     <!-- Bubble & Heart -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
-                                             :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
-                                            <span class="break-words [overflow-wrap:anywhere] [word-break:break-word] block max-w-full" x-text="msg.message"></span>
-                                        </div>
+                                        <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                             :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                             x-text="msg.message"></div>
 
                                         <!-- Paars Hartje Reactie Knop 💜 -->
                                         <button type="button" @click="togglePublicHeart(msg)" 
@@ -833,10 +831,9 @@
 
                                             <!-- Bubble & Reactions -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block p-2.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-wrap max-w-full"
-                                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40'">
-                                                    <span class="break-words [overflow-wrap:anywhere] [word-break:break-word] block max-w-full" x-text="dm.message"></span>
-                                                </div>
+                                                <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                                     x-text="dm.message"></div>
 
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
                                                 <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">

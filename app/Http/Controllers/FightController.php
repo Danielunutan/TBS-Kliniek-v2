@@ -32,6 +32,7 @@ class FightController extends Controller
     {
         $character = Auth::user()->character;
         $this->energy->refresh($character);
+        $character->isImprisoned(); // auto-release if expired
 
         $today = now()->format('Y-m-d');
         if ($character->daily_attacks_date !== $today) {
@@ -41,7 +42,7 @@ class FightController extends Controller
         }
 
         $attacksToday = $character->today_attacks_count;
-        $maxDailyAttacks = 100;
+        $maxDailyAttacks = $character->isVip() ? 1000 : 100;
         $attacksRemaining = $character->remaining_daily_attacks;
 
         $cooldownSeconds = $this->cooldownService->getRemainingSeconds($character, 'fight_attack');

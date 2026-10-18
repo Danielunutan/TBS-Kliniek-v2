@@ -26,6 +26,28 @@
         </div>
     </div>
 
+    @if($character->isImprisoned())
+    <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-lock text-rose-500 text-base"></i>
+            <span>Je zit momenteel in de isoleercel! Vanuit de cel kun je niemand beroven op de luchtplaats.</span>
+        </div>
+        <a href="{{ route('prison') }}" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider shrink-0 transition">
+            Naar Isoleercel &raquo;
+        </a>
+    </div>
+    @elseif($character->energy < 20)
+    <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
+            <span>Je hebt minimaal <strong>20⚡ Energie</strong> nodig om een patiënt te beroven (je hebt nu {{ $character->energy }}⚡).</span>
+        </div>
+        <a href="{{ route('shop.index') }}" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider shrink-0 transition">
+            Scoor Drinken in Shop &raquo;
+        </a>
+    </div>
+    @endif
+
     <!-- MAIN TWO COLUMN SLAYLIST LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
@@ -60,12 +82,12 @@
             <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
                 <div class="flex items-center justify-between">
                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Dagelijkse Aanvallen & Berovingen</span>
-                    <span class="text-xs font-extrabold text-slate-900 font-mono">{{ $attacksToday }} / 100</span>
+                    <span class="text-xs font-extrabold text-slate-900 font-mono">{{ $attacksToday }} / {{ $maxDailyAttacks }}</span>
                 </div>
                 <!-- Progress bar -->
                 <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
                     <div class="bg-purple-600 h-full rounded-full transition-all duration-300" 
-                         style="width: {{ min(100, $attacksToday) }}%"></div>
+                         style="width: {{ min(100, round(($attacksToday / max(1, $maxDailyAttacks)) * 100)) }}%"></div>
                 </div>
                 <div class="flex items-center justify-between text-xs text-slate-500">
                     <span>Resterend vandaag:</span>
@@ -325,9 +347,9 @@
                                     <input type="hidden" name="cf-turnstile-response" class="turnstile-token-input" value="">
 
                                     <button type="submit"
-                                            :disabled="globalCd > 0 || {{ $attacksRemaining <= 0 || $character->energy < 20 ? 'true' : 'false' }}"
+                                            :disabled="globalCd > 0"
                                             title="Steel geld van {{ $opp->name }} (20 energie)"
-                                            class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                                            class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
                                         <template x-if="globalCd <= 0">
                                             <span class="inline-flex items-center gap-1.5">
                                                 <i class="fa-solid fa-sack-dollar text-xs"></i>
