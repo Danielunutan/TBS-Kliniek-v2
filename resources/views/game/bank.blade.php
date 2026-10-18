@@ -299,16 +299,25 @@
                     </div>
 
                     <!-- Renteconstructie Box (Exact zoals 112Simulator) -->
-                    <div class="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-xs space-y-1.5 text-purple-900 dark:text-purple-200">
-                        <div class="font-extrabold uppercase tracking-wide flex items-center gap-1.5">
-                            <i class="fa-solid fa-percent text-purple-600 dark:text-purple-400"></i>
-                            <span>Renteconstructie (8,5%)</span>
+                    <div class="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-xs space-y-2 text-purple-900 dark:text-purple-200">
+                        <div class="font-extrabold uppercase tracking-wide flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-percent text-purple-600 dark:text-purple-400"></i>
+                                <span>Rente & Leningtax (8,5%)</span>
+                            </div>
+                            <a href="{{ route('lottery.index') }}" class="text-[10px] font-bold text-purple-700 dark:text-purple-300 hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-ticket text-amber-500"></i> Naar Loterij
+                            </a>
                         </div>
                         <p class="leading-relaxed text-[11px] text-purple-800 dark:text-purple-300">
                             Je betaalt over het geleende bedrag eenmalig <strong>8,5% rente</strong>.
-                            Je mag op ieder gewenst moment handmatig (deel)aflossen via contant of bankgeld.
+                            Deze leningtax vloeit <strong>100% direct door naar de <a href="{{ route('lottery.index') }}" class="underline font-bold text-purple-900 dark:text-purple-100">TBS Afdelingsloterij Jackpot</a></strong>!
                         </p>
                         <div class="pt-2 border-t border-purple-200 dark:border-purple-800 flex items-center justify-between text-xs">
+                            <span class="text-slate-600 dark:text-purple-300">Leningtax naar loterijpot:</span>
+                            <span class="font-black text-amber-600 dark:text-amber-400 font-mono">+ € <span x-text="formatEuro(interestAmount)"></span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs pt-1 border-t border-dashed border-purple-200 dark:border-purple-800/60">
                             <span class="text-slate-600 dark:text-purple-300">Totaal terug te betalen:</span>
                             <span class="font-black text-purple-900 dark:text-purple-100 font-mono">€ <span x-text="formatEuro(totalDue)"></span></span>
                         </div>

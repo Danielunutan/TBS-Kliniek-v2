@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\Loan;
+use App\Models\LotteryRound;
 use Illuminate\Support\Facades\DB;
 
 class LoanService
@@ -71,21 +72,28 @@ class LoanService
             $character->cash = $lockedChar->cash;
             $character->bank = $lockedChar->bank;
 
+            $destinationText = $depositTo === 'bank' ? 'op bankrekening gestort' : 'contant ontvangen';
             BankTransaction::record(
                 $lockedChar,
                 'loan_received',
                 $depositTo,
                 $amount,
                 $balanceAfter,
-                "Lening {$loanNumber} afgesloten (+€".number_format($amount, 0, ',', '.').' contant ontvangen)'
+                "Lening {$loanNumber} afgesloten (+€".number_format($amount, 0, ',', '.')." {$destinationText}, €".number_format($interestAmount, 0, ',', '.').' rente/tax naar loterijpot)'
             );
+
+            // Voeg de leningtax (rente) toe aan de actieve loterij jackpot pot
+            LotteryRound::addTax($interestAmount);
 
             return $loan;
         });
 
+        $formattedAmount = number_format($amount, 0, ',', '.');
+        $formattedTax = number_format($interestAmount, 0, ',', '.');
+
         return [
             'success' => true,
-            'message' => 'Lening '.$loanNumber.' van €'.number_format($amount, 0, ',', '.').' is succesvol goedgekeurd en uitgekeerd!',
+            'message' => "Lening {$loanNumber} van €{$formattedAmount} is succesvol afgesloten! De leningtax (€{$formattedTax}) vloeit direct door naar de TBS Afdelingsloterij Jackpot!",
             'loan' => $loan,
         ];
     }

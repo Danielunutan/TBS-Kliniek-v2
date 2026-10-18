@@ -17,7 +17,7 @@
                     Grijp de <span class="text-amber-500 dark:text-amber-400">Kliniek Jackpot!</span>
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed font-medium">
-                    Iedere cent opnamebelasting van de bank stroomt rechtstreeks in deze pot. Koop loten met contant geld of sterren en maak kans op de volledige pot bij de 14-daagse trekking!
+                    Iedere cent bank opnamebelasting én leningtax stroomt rechtstreeks in deze pot. Koop loten met contant geld of sterren en maak kans op de volledige pot bij de 14-daagse trekking!
                 </p>
 
                 <!-- Tax info pill -->

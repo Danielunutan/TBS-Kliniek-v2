@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\Loan;
+use App\Models\LotteryRound;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -51,13 +52,17 @@ class BankAndLoanSystemTest extends TestCase
         $response->assertSee('Leningen');
         $response->assertSee('Transacties');
         $response->assertSee('Nieuwe lening aanvragen');
-        $response->assertSee('Renteconstructie (8,5%)');
+        $response->assertSee('Rente & Leningtax (8,5%)', false);
     }
 
     public function test_player_can_request_loan_within_capacity(): void
     {
         [$user, $character] = $this->createInmate(['level' => 4, 'cash' => 10000]);
         $initialCash = $character->cash;
+
+        $lotteryRound = LotteryRound::current();
+        $initialJackpot = $lotteryRound->jackpot;
+        $initialTaxCollected = $lotteryRound->tax_collected;
 
         // Level 4 capacity = €400.000. Request €50.000 loan.
         $response = $this->actingAs($user)->post(route('bank.loans.request'), [
@@ -70,6 +75,10 @@ class BankAndLoanSystemTest extends TestCase
 
         $character->refresh();
         $this->assertEquals($initialCash + 50000, $character->cash);
+
+        $lotteryRound->refresh();
+        $this->assertEquals($initialJackpot + 4250, $lotteryRound->jackpot);
+        $this->assertEquals($initialTaxCollected + 4250, $lotteryRound->tax_collected);
 
         $this->assertDatabaseHas('loans', [
             'character_id' => $character->id,
