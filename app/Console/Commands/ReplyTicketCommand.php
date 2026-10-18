@@ -48,23 +48,40 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        $replyMessage = "Beste Rainbow,\n\n"
-            ."Wat een fantastische en gestructureerde suggestie! We hebben je idee zojuist direct besproken én volledig live geïmplementeerd in TBS Kliniek:\n\n"
-            ."1. **Nieuw Depot tabblad onder Voortgang**: In de linkernavigatie vind je nu direct onder Voortgang het nieuwe 'Depot (Inventaris)' overzicht (/depot).\n"
-            ."2. **3 Duidelijke Categorieën**:\n"
-            ."   - **Persoonlijke Garage**: Al je gekochte scooters, auto's, motoren en heli's overzichtelijk met conditie, vluchtsnelheid en actieve heist-status.\n"
-            ."   - **Persoonlijke Opbergplaats**: Je wapens, sigaretten, pillen, telefoons en overval-maskers.\n"
-            ."   - **Persoonlijk Varia (Event Opslag)**: Speciaal ingericht met onbeperkte capaciteit voor grote events (zoals de aankomende Halloween 2026 Griezelweek)!\n"
-            ."3. **Level & VIP Limieten**:\n"
-            ."   - Level 1-9: 2 Garageplekken & 30 Opbergplekken\n"
-            ."   - Level 10-19: 3 Garageplekken & 50 Opbergplekken\n"
-            ."   - Level 20-29: 4 Garageplekken & 75 Opbergplekken\n"
-            ."   - Level 30+: 5+ Garageplekken & 100+ Opbergplekken\n"
-            ."   - **VIP Spelers**: Ontvangen automatisch +3 Garageplekken en +50 Opbergplekken extra bonus!\n"
-            ."4. **Direct Verkopen & Ruimte Vrijmaken**: Via het Depot kun je overtollige voorraad met één klik verkopen voor cash om weer ruimte vrij te maken voor farmen en diefstallen.\n\n"
-            ."Ontzettend bedankt voor je betrokkenheid en het meedenken om TBS Kliniek nog beter en leuker te maken!\n\n"
-            ."Met vriendelijke groet,\n"
-            .'Daniel • TBS Kliniek Leiding';
+        if ($ticketNumber === 'TBS-565-167' || str_contains(strtolower($ticket->subject), 'panden')) {
+            $replyMessage = "Beste Rainbow,\n\n"
+                ."Wauw, wat een geweldige en waardevolle suggestie voor de bende-wereld! We hebben je idee zojuist direct uitgewerkt en zojuist volledig live geïmplementeerd in TBS Kliniek:\n\n"
+                ."1. **Nieuw Bende Panden & Vastgoed Systeem (/gangs/panden)**:\n"
+                ."   - In het Bende Menu en de zijbalk vind je nu direct het nieuwe onderdeel 'Bende Panden'.\n"
+                ."   - Panden worden gefinancierd via de gezamenlijke bendekas (treasury) door de leiders/beheerders.\n\n"
+                ."2. **3 Soorten Panden & Vastgoed**:\n"
+                ."   - **Opslag & Stallingen (Loodsen & Bunkers)**:\n"
+                ."     - *Kleine Opslagloods & Garage*: +50 bende opslagplaatsen & 2 voertuigstallingen.\n"
+                ."     - *Industriële Distributieloods*: +150 opslagplaatsen & 5 voertuigstallingen.\n"
+                ."     - *Versterkte Ondergrondse Bunker*: +350 opslagplaatsen & 10 zware wagenplekken + verdedigingsbonus.\n"
+                ."   - **Productie & Fabrieken**:\n"
+                ."     - *Ondergrondse Valsgeld Drukkerij*: Produceert €75.000 cash en 30 Respect per 2-uurs cyclus.\n"
+                ."     - *Geheim Chemisch Smokkel-Lab*: Produceert €180.000 cash en 65 Respect per 4-uurs cyclus.\n"
+                ."     - *Verborgen Wapenfabriek & Smelterij*: Produceert €400.000 cash en 150 Respect per 6-uurs cyclus.\n"
+                ."     - Bendeleiders kunnen de productiecyclus starten. Zodra de timer klaar is, claim je de buit direct naar de bendekas!\n"
+                ."   - **Luxe Panden & Villa's (HQ & NPC Rekruten)**:\n"
+                ."     - *Luxe Sky-Penthouse HQ*: Biedt plaats aan 3 NPC Rekruten + 10% bonus op alle bendelonen.\n"
+                ."     - *Zwaarbeveiligd Landgoed & Gang Villa*: Biedt plaats aan 8 NPC Rekruten + 25% bonus op bendelonen en 250 Respect.\n\n"
+                ."3. **NPC Bendeleden Inhuren & Inzetten in Fabrieken**:\n"
+                ."   - Zodra je bende een Penthouse of Villa bezit, kun je gespecialiseerde NPC's aannemen uit de bendekas:\n"
+                ."     - *Dimitri \"De Opzichter\"*: Wijs hem toe aan een fabriek voor +25% extra cash opbrengst!\n"
+                ."     - *Dr. Walter V. (Chemisch Specialist)*: Verkort productietijden met 30%.\n"
+                ."     - *Boris \"De Sloper\" (Enforcer)*: Biedt +20% verdedigingskracht bij bendeaanvallen.\n\n"
+                ."Ontzettend bedankt voor je fantastische bijdrage en het meedenken om TBS Gang en de kliniek naar een hoger niveau te tillen! Veel succes met het opbouwen van jullie vastgoedimperium.\n\n"
+                ."Met vriendelijke groet,\n"
+                ."Daniel • TBS Kliniek Leiding";
+        } else {
+            $replyMessage = "Beste {$ticket->character?->name},\n\n"
+                ."Bedankt voor je support ticket. We hebben je verzoek zorgvuldig bekeken en afgehandeld.\n\n"
+                ."Mocht je verdere vragen of suggesties hebben, laat het ons gerust weten!\n\n"
+                ."Met vriendelijke groet,\n"
+                ."Daniel • TBS Kliniek Leiding";
+        }
 
         SupportTicketMessage::create([
             'support_ticket_id' => $ticket->id,
