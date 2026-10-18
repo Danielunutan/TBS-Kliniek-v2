@@ -28,6 +28,7 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FightController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GangController;
+use App\Http\Controllers\GangPropertyController;
 use App\Http\Controllers\GarageController;
 use App\Http\Controllers\HeistController;
 use App\Http\Controllers\HighLowController;
@@ -440,6 +441,14 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/gangs/opheffen', [GangController::class, 'disband'])->name('gangs.disband');
     Route::post('/gangs/aanvallen', [GangController::class, 'attack'])->name('gangs.attack');
     Route::post('/gangs/claim-uurloon', [GangController::class, 'claimWage'])->name('gangs.claim-wage');
+
+    // Bende Panden, Productie & NPC Rekruten
+    Route::get('/gangs/panden', [GangPropertyController::class, 'index'])->name('gangs.panden');
+    Route::post('/gangs/panden/kopen/{propertyKey}', [GangPropertyController::class, 'buy'])->name('gangs.panden.buy');
+    Route::post('/gangs/panden/{property}/start-productie', [GangPropertyController::class, 'startProduction'])->name('gangs.panden.start-production');
+    Route::post('/gangs/panden/{property}/claim-productie', [GangPropertyController::class, 'claimProduction'])->name('gangs.panden.claim-production');
+    Route::post('/gangs/panden/hire-npc/{npcKey}', [GangPropertyController::class, 'hireNpc'])->name('gangs.panden.hire-npc');
+    Route::post('/gangs/panden/{property}/assign-npc', [GangPropertyController::class, 'assignNpc'])->name('gangs.panden.assign-npc');
 
     // Marktplaats (Marketplace)
     Route::get('/marktplaats', [MarketplaceController::class, 'index'])->name('marketplace.index');

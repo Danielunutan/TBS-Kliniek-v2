@@ -123,6 +123,31 @@ class Gang extends Model
         return $this->hasMany(GangAttack::class, 'target_gang_id');
     }
 
+    public function properties(): HasMany
+    {
+        return $this->hasMany(GangProperty::class);
+    }
+
+    public function npcs(): HasMany
+    {
+        return $this->hasMany(GangNpc::class);
+    }
+
+    public function getTotalStorageCapacityAttribute(): int
+    {
+        return (int) $this->properties()->sum('storage_capacity');
+    }
+
+    public function getTotalVehicleSlotsAttribute(): int
+    {
+        return (int) $this->properties()->sum('vehicle_slots');
+    }
+
+    public function getTotalNpcCapacityAttribute(): int
+    {
+        return (int) $this->properties()->sum('npc_capacity');
+    }
+
     public function isUnderShield(): bool
     {
         return $this->shield_until !== null && $this->shield_until->isFuture();
