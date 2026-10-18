@@ -51,7 +51,21 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-ZVV-887' || $ticketNumber === 'TBS-7VV-RR7' || $ticket->id === 8 || str_contains(strtolower($ticket->subject), 'marktplaats')) {
+        if ($ticketNumber === 'TBS-BKI-972' || $ticket->id === 9 || str_contains(strtolower($ticket->subject), 'krachttraining')) {
+            $replyMessage = "Beste ozzy,\n\n"
+                ."Bedankt voor je melding en scherpe oog! We hebben dit probleem zojuist grondig aangepakt en opgelost:\n\n"
+                ."1. **In-place Krachttraining (Geen Paginaverspringing meer)**:\n"
+                ."   - Krachttraining voert upgrades nu volledig vloeiend 'in-place' uit via asynchrone updates.\n"
+                ."   - De pagina herlaadt niet meer na elke klik, waardoor het scherm en het zijbalkmenu ('Voortgang') niet meer onverwacht verspringen of inklappen.\n"
+                ."   - Je statistieken, benodigde cash, energie en saldo worden direct live en soepel bijgewerkt met duidelijke subtiele feedback.\n\n"
+                ."2. **Snelle +5x Upgrade Knop**:\n"
+                ."   - Om het trainen nog vlotter te maken, is er naast de 'Trainen (+1)' knop nu ook direct een snelle '+5x' knop toegevoegd waarmee je in één klik 5 punten tegelijkertijd traint.\n\n"
+                ."3. **Realtime Status Bovenbalk**:\n"
+                ."   - Zowel je energie- als geldsaldo in de bovenbalk worden nu direct synchroon bijgewerkt bij elke training.\n\n"
+                ."Nogmaals dank voor het melden van deze bug en je waardevolle feedback. Veel succes met het opbouwen van je statistieken!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-ZVV-887' || $ticketNumber === 'TBS-7VV-RR7' || $ticket->id === 8 || str_contains(strtolower($ticket->subject), 'marktplaats')) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Heel scherp opgemerkt! We hebben de Marktplaats zojuist een grote update gegeven zodat alle nieuwe spelonderdelen nu volledig verhandelbaar zijn tussen spelers onderling:\n\n"
                 ."1. **Depot Items Verkopen**:\n"
