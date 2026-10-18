@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\ChatMessage;
+use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\Report;
 use App\Models\User;
@@ -94,7 +95,7 @@ class ReportController extends Controller
             ], 422);
         }
 
-        Report::create([
+        $report = Report::create([
             'reporter_id' => $character->id,
             'reported_type' => $validated['reported_type'],
             'reported_id' => $validated['reported_id'],
@@ -103,6 +104,36 @@ class ReportController extends Controller
             'details' => $validated['details'],
             'status' => 'pending',
         ]);
+
+        // Send instant alert to all online/active staff / moderators
+        try {
+            $staffUsers = User::whereIn('role', ['admin', 'moderator', 'owner'])
+                ->orWhere('is_staff', true)
+                ->with('character')
+                ->get();
+
+            $targetUrl = $report->getTargetUrl();
+            $typeLabel = match ($validated['reported_type']) {
+                'character' => 'Patiënt',
+                'gang' => 'Bende',
+                'chat_message' => 'Chatbericht',
+                default => 'Melding',
+            };
+
+            foreach ($staffUsers as $staffUser) {
+                if ($staffUser->character && $staffUser->character->id !== $character->id) {
+                    GameNotification::create([
+                        'character_id' => $staffUser->character->id,
+                        'type' => 'moderation',
+                        'icon' => 'fa-flag',
+                        'title' => "🚨 Nieuwe Melding: {$targetName}",
+                        'message' => "Patiënt {$character->name} heeft {$typeLabel} '{$targetName}' gerapporteerd wegens: {$validated['reason']}.\n\nBekijk direct het dossier: {$targetUrl}",
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Ignore notification failure so report is always recorded
+        }
 
         Cache::put($cooldownKey, true, now()->addSeconds(20));
 

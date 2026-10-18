@@ -2,11 +2,29 @@
 
 @section('admin-content')
 <div class="space-y-6" x-data="{ 
-    activeTab: 'bans', 
+    activeTab: '{{ request('tab', 'bans') }}', 
     showQuickAction: false, 
-    quickMode: 'ban', 
+    quickMode: 'warn', 
     selectedUserId: '', 
-    selectedUserName: '' 
+    selectedUserName: '',
+    selectedActionUrl: '',
+    defaultReason: '',
+    openQuickWarn(userId, userName, reason) {
+        this.selectedUserId = userId;
+        this.selectedUserName = userName;
+        this.defaultReason = reason ? ('Naar aanleiding van melding: ' + reason) : '';
+        this.quickMode = 'warn';
+        this.selectedActionUrl = '{{ url('/admin/moderatie/spelers') }}/' + userId + '/waarschuwen';
+        this.showQuickAction = true;
+    },
+    openQuickBan(userId, userName, reason) {
+        this.selectedUserId = userId;
+        this.selectedUserName = userName;
+        this.defaultReason = reason ? ('Wegens overtreding: ' + reason) : '';
+        this.quickMode = 'ban';
+        this.selectedActionUrl = '{{ url('/admin/moderatie/spelers') }}/' + userId + '/verbannen';
+        this.showQuickAction = true;
+    }
 }">
 
     <!-- Stats Row -->
@@ -365,19 +383,29 @@
                                 @endif
                             </td>
                             <td class="py-3 px-4 font-bold text-slate-800">
-                                @if($report->reported_type === 'character')
-                                    <a href="{{ route('profile.show', $report->reported_name ?? $report->reported_id) }}" target="_blank" class="text-purple-600 hover:underline flex items-center gap-1">
-                                        <span>{{ $report->reported_name ?? ('Speler #'.$report->reported_id) }}</span>
-                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
-                                    </a>
-                                @elseif($report->reported_type === 'gang')
-                                    <a href="{{ route('gangs.index') }}" target="_blank" class="text-purple-600 hover:underline flex items-center gap-1">
-                                        <span>{{ $report->reported_name ?? ('Bende #'.$report->reported_id) }}</span>
-                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
-                                    </a>
-                                @else
-                                    <span class="font-extrabold text-slate-700">{{ $report->reported_name }}</span>
-                                @endif
+                                @php
+                                    $reportedChar = $report->getReportedCharacter();
+                                    $reportedUser = $report->getReportedUser();
+                                    $targetUrl = $report->getTargetUrl();
+                                @endphp
+                                <div class="flex items-center gap-2.5">
+                                    @if($reportedChar)
+                                        <a href="{{ $targetUrl }}" target="_blank" class="shrink-0" title="Bekijk dossier van {{ $reportedChar->name }}">
+                                            <img src="{{ $reportedChar->avatar_url }}" alt="{{ $reportedChar->name }}" class="w-8 h-8 rounded-full object-cover border border-slate-200 hover:ring-2 hover:ring-purple-400 transition">
+                                        </a>
+                                    @endif
+                                    <div>
+                                        <a href="{{ $targetUrl }}" target="_blank" class="text-purple-700 hover:text-purple-900 font-extrabold flex items-center gap-1.5 hover:underline" title="Klik om direct naar het profiel te gaan">
+                                            <span>{{ $report->reported_name ?? ($report->reported_type === 'gang' ? 'Bende #'.$report->reported_id : 'Speler #'.$report->reported_id) }}</span>
+                                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-purple-400"></i>
+                                        </a>
+                                        @if($reportedChar)
+                                            <span class="text-[10px] text-slate-400 font-mono block">Level {{ $reportedChar->level }} &bull; {{ number_format($reportedChar->respect, 0, ',', '.') }} respect</span>
+                                        @elseif($report->reported_type === 'gang')
+                                            <span class="text-[10px] text-purple-600 font-bold block">Openbare Bendepagina</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
                             <td class="py-3 px-4 max-w-xs">
                                 <div class="font-bold text-rose-700">{{ $report->reason }}</div>
@@ -404,17 +432,51 @@
                             </td>
                             <td class="py-3 px-4 text-right whitespace-nowrap">
                                 <div class="flex items-center justify-end gap-1.5">
+                                    <!-- DIRECT LINK TO DOSSIER / PROFIEL -->
+                                    <a href="{{ $targetUrl }}" target="_blank" 
+                                       class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-600 hover:text-white text-purple-700 text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs"
+                                       title="Bekijk direct het profiel van {{ $report->reported_name }}">
+                                        <i class="fa-solid fa-id-card text-[10px]"></i>
+                                        <span>Dossier</span>
+                                    </a>
+
+                                    @if($reportedUser && ! $reportedUser->isOwner())
+                                        <!-- DIRECTE MAATREGEL: WAARSCHUWEN -->
+                                        <button type="button" 
+                                                @click="openQuickWarn('{{ $reportedUser->id }}', '{{ addslashes($report->reported_name) }}', '{{ addslashes($report->reason) }}')"
+                                                class="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-700 text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                title="Deel direct een officiële waarschuwing uit aan {{ $report->reported_name }}">
+                                            <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                                            <span class="hidden xl:inline">Waarschuw</span>
+                                        </button>
+
+                                        <!-- DIRECTE MAATREGEL: VERBANNEN -->
+                                        @if(! $reportedUser->is_banned)
+                                        <button type="button" 
+                                                @click="openQuickBan('{{ $reportedUser->id }}', '{{ addslashes($report->reported_name) }}', '{{ addslashes($report->reason) }}')"
+                                                class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                title="Verban {{ $report->reported_name }} direct van het spel">
+                                            <i class="fa-solid fa-ban text-[10px]"></i>
+                                            <span class="hidden xl:inline">Ban</span>
+                                        </button>
+                                        @else
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-700 inline-flex items-center gap-1" title="Deze speler is al verbannen">
+                                            <i class="fa-solid fa-lock text-[9px]"></i>
+                                        </span>
+                                        @endif
+                                    @endif
+
                                     @if($report->status === 'pending')
                                     <form action="{{ route('admin.moderation.report.resolve', $report) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold transition cursor-pointer" title="Markeer als opgelost">
-                                            <i class="fa-solid fa-check"></i> Oplossen
+                                            <i class="fa-solid fa-check"></i>
                                         </button>
                                     </form>
                                     <form action="{{ route('admin.moderation.report.dismiss', $report) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-300 text-slate-700 text-xs font-bold transition cursor-pointer" title="Verwerp melding">
-                                            <i class="fa-solid fa-xmark"></i> Verwerpen
+                                            <i class="fa-solid fa-xmark"></i>
                                         </button>
                                     </form>
                                     @endif
@@ -448,6 +510,62 @@
             <div class="p-4 border-t border-slate-100 flex justify-end">
                 {{ $reports->links() }}
             </div>
+        </div>
+    </div>
+
+    <!-- QUICK ACTION MODAL (WARN / BAN) -->
+    <div x-show="showQuickAction" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div @click.outside="showQuickAction = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span :class="quickMode === 'ban' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'" class="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold">
+                        <i :class="quickMode === 'ban' ? 'fa-solid fa-ban' : 'fa-solid fa-triangle-exclamation'"></i>
+                    </span>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900" x-text="quickMode === 'ban' ? 'Speler Verbannen' : 'Officiële Waarschuwing Uitdelen'"></h4>
+                        <p class="text-xs text-slate-500">Patiënt: <strong class="text-slate-800" x-text="selectedUserName"></strong></p>
+                    </div>
+                </div>
+                <button type="button" @click="showQuickAction = false" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+            </div>
+
+            <form :action="selectedActionUrl" method="POST" class="space-y-4">
+                @csrf
+                <template x-if="quickMode === 'ban'">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700">Duur van de verbanning</label>
+                        <select name="duration" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-purple-600">
+                            <option value="1_hour">1 uur</option>
+                            <option value="6_hours">6 uur</option>
+                            <option value="12_hours">12 uur</option>
+                            <option value="1_day" selected>1 dag (24 uur)</option>
+                            <option value="3_days">3 dagen</option>
+                            <option value="7_days">7 dagen (1 week)</option>
+                            <option value="14_days">14 dagen</option>
+                            <option value="30_days">30 dagen (1 maand)</option>
+                            <option value="permanent">Permanent (Voor altijd)</option>
+                        </select>
+                    </div>
+                </template>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Opgegeven Reden (zichtbaar voor speler)</label>
+                    <textarea name="reason" rows="3" required x-model="defaultReason"
+                              placeholder="Beschrijf de reden van deze maatregel..." 
+                              class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="showQuickAction = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                        Annuleren
+                    </button>
+                    <button type="submit" 
+                            :class="quickMode === 'ban' ? 'bg-rose-600 hover:bg-rose-700 text-white' : 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs">
+                        <span x-text="quickMode === 'ban' ? 'Definitief Verbannen' : 'Waarschuwing Verzenden'"></span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

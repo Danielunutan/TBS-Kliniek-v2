@@ -35,7 +35,7 @@ class ProfileController extends Controller
         if (! $name) {
             $profileCharacter = $myCharacter;
         } else {
-            $profileCharacter = Character::where('name', $name)->first();
+            $profileCharacter = Character::with(['user', 'gang'])->where('name', $name)->first();
             if (! $profileCharacter) {
                 return redirect()->route('dashboard')->with('error', "Patiënt '{$name}' is niet aangetroffen in het dossier.");
             }

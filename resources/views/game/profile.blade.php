@@ -5,6 +5,8 @@
     avatarModalOpen: false, 
     bioModalOpen: false, 
     titleModalOpen: false,
+    staffWarnModalOpen: false,
+    staffBanModalOpen: false,
     activeTab: '{{ session('profile_tab', request('tab', 'overzicht')) }}',
     init() {
         if (!'{{ session('profile_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_profile_tab')) {
@@ -93,6 +95,64 @@
     ];
     $theme = $colorMaps[$accentColor] ?? $colorMaps['purple'];
 @endphp
+
+    @if(Auth::user()->canModerate() && $profileCharacter->id !== Auth::user()->character->id)
+    <!-- STAFF MODERATOR CONSOLE BANNER -->
+    <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-purple-500/40 rounded-2xl p-4 sm:p-5 shadow-lg text-white">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 text-[10px] font-black uppercase tracking-wider border border-purple-400/30 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-purple-300"></i> Moderator Console
+                    </span>
+                    @if($profileCharacter->user?->is_banned)
+                        <span class="px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-300 text-[10px] font-black uppercase tracking-wider border border-rose-400/40 flex items-center gap-1">
+                            <i class="fa-solid fa-ban"></i> Account Verbannen
+                        </span>
+                    @endif
+                </div>
+                <h4 class="text-sm font-black text-white">
+                    Passende Maatregelen voor {{ $profileCharacter->name }}
+                </h4>
+                <p class="text-xs text-purple-200/80">
+                    Directe sancties uitvoeren naar aanleiding van rapportages of overtredingen.
+                </p>
+            </div>
+
+            <div class="flex items-center flex-wrap gap-2 shrink-0">
+                <!-- Waarschuwen Knop -->
+                <button type="button" @click="staffWarnModalOpen = true" 
+                        class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Waarschuwing Geven</span>
+                </button>
+
+                <!-- Verbannen Knop -->
+                @if(! $profileCharacter->user?->is_banned)
+                    <button type="button" @click="staffBanModalOpen = true" 
+                            class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition cursor-pointer shadow-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-ban"></i>
+                        <span>Speler Verbannen</span>
+                    </button>
+                @else
+                    <form action="{{ route('admin.moderation.unban', $profileCharacter->user) }}" method="POST" class="inline"
+                          onsubmit="return confirm('Weet je zeker dat je de ban van {{ addslashes($profileCharacter->name) }} wilt opheffen?');">
+                        @csrf
+                        <button type="submit" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer shadow-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-lock-open"></i>
+                            <span>Ban Opheffen</span>
+                        </button>
+                    </form>
+                @endif
+
+                <a href="{{ route('admin.moderation.index', ['tab' => 'reports']) }}" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition flex items-center gap-1.5 border border-white/20">
+                    <i class="fa-solid fa-flag"></i>
+                    <span>Meldingen</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Profile Header Card (Clean Modern Light) -->
     <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden relative">
@@ -1197,6 +1257,93 @@
                     </button>
                     <button type="submit" class="px-5 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition shadow-xs cursor-pointer">
                         Titel Toepassen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    @if(Auth::user()->canModerate() && $profileCharacter->id !== Auth::user()->character->id && $profileCharacter->user)
+    <!-- STAFF WARN MODAL -->
+    <div x-show="staffWarnModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div @click.away="staffWarnModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </span>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900">Officiële Waarschuwing Uitdelen</h4>
+                        <p class="text-xs text-slate-500">Aan patiënt: <strong class="text-slate-800">{{ $profileCharacter->name }}</strong></p>
+                    </div>
+                </div>
+                <button type="button" @click="staffWarnModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+            </div>
+
+            <form action="{{ route('admin.moderation.warn', $profileCharacter->user) }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Opgegeven Reden (verschijnt direct in het scherm van de speler)</label>
+                    <textarea name="reason" rows="3" required placeholder="Bijv. Onbehoorlijk gedrag in de chat / overtreding regels..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="staffWarnModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                        Annuleren
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer shadow-xs">
+                        Waarschuwing Verzenden
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STAFF BAN MODAL -->
+    <div x-show="staffBanModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div @click.away="staffBanModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-ban"></i>
+                    </span>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900">Speler Verbannen van het Spel</h4>
+                        <p class="text-xs text-slate-500">Patiënt: <strong class="text-slate-800">{{ $profileCharacter->name }}</strong></p>
+                    </div>
+                </div>
+                <button type="button" @click="staffBanModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">&times;</button>
+            </div>
+
+            <form action="{{ route('admin.moderation.ban', $profileCharacter->user) }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Duur van de verbanning</label>
+                    <select name="duration" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-purple-600">
+                        <option value="1_hour">1 uur</option>
+                        <option value="6_hours">6 uur</option>
+                        <option value="12_hours">12 uur</option>
+                        <option value="1_day" selected>1 dag (24 uur)</option>
+                        <option value="3_days">3 dagen</option>
+                        <option value="7_days">7 dagen (1 week)</option>
+                        <option value="14_days">14 dagen</option>
+                        <option value="30_days">30 dagen (1 maand)</option>
+                        <option value="permanent">Permanent (Voor altijd)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-700">Opgegeven Reden van Verbanning</label>
+                    <textarea name="reason" rows="3" required placeholder="Bijv. Herhaaldelijke overtreding van de kliniekregels / wangedrag..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:border-purple-600"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="staffBanModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                        Annuleren
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition cursor-pointer shadow-xs">
+                        Definitief Verbannen
                     </button>
                 </div>
             </form>

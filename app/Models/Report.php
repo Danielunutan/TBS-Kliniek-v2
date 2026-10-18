@@ -55,4 +55,54 @@ class Report extends Model
             default => null,
         };
     }
+
+    /**
+     * Get the reported character, whether reported directly or via a chat message.
+     */
+    public function getReportedCharacter(): ?Character
+    {
+        if ($this->reported_type === 'character') {
+            return Character::with('user')->find($this->reported_id)
+                ?: Character::with('user')->where('name', $this->reported_name)->first();
+        }
+
+        if ($this->reported_type === 'chat_message') {
+            $msg = ChatMessage::with('character.user')->find($this->reported_id);
+            if ($msg && $msg->character) {
+                return $msg->character;
+            }
+            if ($this->reported_name) {
+                return Character::with('user')->where('name', $this->reported_name)->first();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the User account of the reported player (for banning or warning).
+     */
+    public function getReportedUser(): ?User
+    {
+        return $this->getReportedCharacter()?->user;
+    }
+
+    /**
+     * Get the direct public URL for the reported entity.
+     */
+    public function getTargetUrl(): string
+    {
+        if ($this->reported_type === 'gang') {
+            return route('gangs.show', $this->reported_id);
+        }
+
+        $character = $this->getReportedCharacter();
+        $characterName = $character?->name ?? $this->reported_name;
+
+        if ($characterName) {
+            return route('profile.show', $characterName);
+        }
+
+        return route('admin.moderation.index');
+    }
 }
