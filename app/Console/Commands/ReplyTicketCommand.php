@@ -30,7 +30,10 @@ class ReplyTicketCommand extends Command
     public function handle(): int
     {
         $ticketNumber = $this->argument('ticket_number');
-        $ticket = SupportTicket::where('ticket_number', $ticketNumber)->first();
+        $ticket = SupportTicket::where('ticket_number', $ticketNumber)
+            ->orWhere('ticket_number', 'like', "%{$ticketNumber}%")
+            ->orWhere('id', $ticketNumber)
+            ->first();
 
         if (! $ticket) {
             $this->error("Ticket {$ticketNumber} niet gevonden.");
@@ -48,7 +51,7 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-7VV-RR7' || str_contains(strtolower($ticket->subject), 'marktplaats')) {
+        if ($ticketNumber === 'TBS-ZVV-887' || $ticketNumber === 'TBS-7VV-RR7' || $ticket->id === 8 || str_contains(strtolower($ticket->subject), 'marktplaats')) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Heel scherp opgemerkt! We hebben de Marktplaats zojuist een grote update gegeven zodat alle nieuwe spelonderdelen nu volledig verhandelbaar zijn tussen spelers onderling:\n\n"
                 ."1. **Depot Items Verkopen**:\n"
