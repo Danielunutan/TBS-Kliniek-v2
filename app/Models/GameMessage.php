@@ -19,7 +19,10 @@ class GameMessage extends Model
     protected static function booted(): void
     {
         static::created(function (GameMessage $gameMsg) {
-            $isPlayerDm = $gameMsg->sender_id && $gameMsg->type === 'player';
+            $isPlayerDm = $gameMsg->sender_id
+                && $gameMsg->type === 'player'
+                && ! str_contains($gameMsg->subject ?? '', 'Vriendschapsverzoek')
+                && ! str_contains($gameMsg->subject ?? '', 'vriendschapsverzoek');
             $senderId = $isPlayerDm ? $gameMsg->sender_id : null;
             $formattedMessage = (! empty($gameMsg->subject) && ! $isPlayerDm)
                 ? "📢 **{$gameMsg->subject}**\n\n{$gameMsg->content}"

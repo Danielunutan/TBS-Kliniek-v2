@@ -34,4 +34,21 @@ class DirectMessage extends Model
     {
         return $this->belongsTo(Character::class, 'recipient_id');
     }
+
+    /**
+     * Send official system / clinic notification DM to a character.
+     */
+    public static function sendSystem(int|Character $recipient, string $message, string $type = 'system', ?array $metadata = null): self
+    {
+        $recipientId = $recipient instanceof Character ? $recipient->id : $recipient;
+
+        return self::create([
+            'sender_id' => null,
+            'recipient_id' => $recipientId,
+            'type' => $type,
+            'message' => $message,
+            'metadata' => $metadata ?? ['source' => 'system_alert'],
+            'is_read' => false,
+        ]);
+    }
 }

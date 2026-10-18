@@ -1700,6 +1700,7 @@
                                             (this.activeDirectPartner.id === dm.sender_id || this.activeDirectPartner.partner_id === dm.sender_id);
 
                                         this.playChime();
+                                        this.loadConversations();
 
                                         if (isChattingWithSender) {
                                             if (!this.activeDirectMessages.some(m => m.id === dm.id)) {

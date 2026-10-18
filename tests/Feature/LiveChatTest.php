@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\DirectMessage;
+use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\Report;
 use App\Models\User;
@@ -508,5 +509,73 @@ class LiveChatTest extends TestCase
             'is_read' => true,
         ]);
         $this->assertNotNull(DirectMessage::find($dmId)->read_at);
+    }
+
+    public function test_conversations_are_sorted_by_latest_message_descending_with_pinned_bot(): void
+    {
+        [$user, $char] = $this->createInmate();
+        [$userOld, $charOld] = $this->createInmate(['name' => 'OldPartner']);
+        [$userNew, $charNew] = $this->createInmate(['name' => 'NewPartner']);
+
+        // Older message with charOld
+        DirectMessage::create([
+            'sender_id' => $charOld->id,
+            'recipient_id' => $char->id,
+            'type' => 'chat',
+            'message' => 'Oud bericht van gisteren',
+            'created_at' => now()->subDay(),
+        ]);
+
+        // Newer message with charNew
+        DirectMessage::create([
+            'sender_id' => $charNew->id,
+            'recipient_id' => $char->id,
+            'type' => 'chat',
+            'message' => 'Vers bericht zojuist',
+            'created_at' => now(),
+        ]);
+
+        $res = $this->actingAs($user)->getJson(route('chat.conversations'));
+        $res->assertOk();
+
+        $convs = $res->json('conversations');
+        $this->assertCount(3, $convs);
+
+        // Pinned Bot is first
+        $this->assertEquals(0, $convs[0]['partner_id']);
+        $this->assertTrue($convs[0]['is_bot']);
+
+        // Newest partner is second
+        $this->assertEquals($charNew->id, $convs[1]['partner_id']);
+
+        // Older partner is third
+        $this->assertEquals($charOld->id, $convs[2]['partner_id']);
+    }
+
+    public function test_theft_and_game_notifications_automatically_deliver_direct_messages_to_victim(): void
+    {
+        [$userVictim, $charVictim] = $this->createInmate(['name' => 'Victim']);
+        [$userThief, $charThief] = $this->createInmate(['name' => 'Thief']);
+
+        // Create a GameNotification for theft
+        GameNotification::create([
+            'character_id' => $charVictim->id,
+            'type' => 'theft',
+            'icon' => 'fa-sack-dollar',
+            'title' => 'Bestolen op de Luchtplaats!',
+            'message' => "Patiënt {$charThief->name} heeft €500 gerold uit je zakken!",
+        ]);
+
+        // Verify DirectMessage was automatically generated for victim
+        $this->assertDatabaseHas('direct_messages', [
+            'sender_id' => null,
+            'recipient_id' => $charVictim->id,
+            'type' => 'theft',
+            'is_read' => false,
+        ]);
+
+        $dm = DirectMessage::where('recipient_id', $charVictim->id)->whereNull('sender_id')->latest('id')->first();
+        $this->assertStringContainsString('Bestolen op de Luchtplaats!', $dm->message);
+        $this->assertStringContainsString('€500', $dm->message);
     }
 }

@@ -139,7 +139,7 @@ class FriendController extends Controller
                 'sender_name' => $character->name,
                 'subject' => "🎉 {$character->name} heeft je vriendschapsverzoek geaccepteerd!",
                 'content' => "Patiënt {$target->name},\n\nJullie zijn nu officieel vrienden in de TBS Kliniek!",
-                'type' => 'player',
+                'type' => 'system',
             ]);
 
             return back()->with('success', "{$target->name} had jou ook al een verzoek gestuurd! Jullie zijn nu vrienden!");
@@ -196,7 +196,7 @@ class FriendController extends Controller
             'sender_name' => $character->name,
             'subject' => "🎉 {$character->name} heeft je vriendschapsverzoek geaccepteerd!",
             'content' => "Patiënt {$sender->name},\n\n{$character->name} heeft je vriendschapsverzoek zojuist geaccepteerd! Jullie zijn nu vrienden in de TBS Kliniek en kunnen elkaar respect geven.",
-            'type' => 'player',
+            'type' => 'system',
         ]);
 
         // Mark friend_request message as read

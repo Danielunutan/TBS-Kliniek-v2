@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Character;
 use App\Models\GameMessage;
+use App\Models\GameNotification;
 use App\Models\TheftRecord;
 
 class TheftService
@@ -277,6 +278,14 @@ class TheftService
             'jailed' => false,
             'jail_minutes' => 0,
             'log_message' => "Mislukte overval op {$victim->name} – leeg teruggekomen.",
+        ]);
+
+        GameNotification::create([
+            'character_id' => $victim->id,
+            'type' => 'theft',
+            'icon' => 'fa-shield-halved',
+            'title' => 'Zakkenrollerij Afgeslagen!',
+            'message' => "Patiënt {$character->name} probeerde stiekem contanten uit je zakken te rollen, maar je had het net op tijd door!",
         ]);
 
         return [

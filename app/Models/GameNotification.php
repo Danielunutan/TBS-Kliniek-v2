@@ -33,6 +33,39 @@ class GameNotification extends Model
         'is_read' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function (GameNotification $notification) {
+            $emoji = match ($notification->type) {
+                'theft' => '🚨',
+                'attack' => '⚔️',
+                'bounty_placed', 'bounty_claimed' => '🎯',
+                'prison', 'isolation' => '🔒',
+                'level' => '⭐',
+                'gang' => '🛡️',
+                'reward', 'daily_reward' => '🎁',
+                default => '📢',
+            };
+
+            $title = ! empty($notification->title) ? "**{$notification->title}**\n\n" : '';
+            $message = "{$emoji} {$title}{$notification->message}";
+
+            DirectMessage::create([
+                'sender_id' => null,
+                'recipient_id' => $notification->character_id,
+                'type' => $notification->type ?? 'system',
+                'message' => $message,
+                'metadata' => [
+                    'source' => 'game_notification',
+                    'icon' => $notification->icon,
+                    'title' => $notification->title,
+                    'game_notification_id' => $notification->id,
+                ],
+                'is_read' => (bool) $notification->is_read,
+            ]);
+        });
+    }
+
     public function character(): BelongsTo
     {
         return $this->belongsTo(Character::class);

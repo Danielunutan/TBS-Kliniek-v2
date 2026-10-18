@@ -379,6 +379,10 @@ class ChatController extends Controller
 
         $conversations = [];
 
+        $botPreview = $botLastMessage
+            ? Str::limit(str_replace(['**', '__'], '', $botLastMessage->message), 45)
+            : 'Officiële kluiscodes, beloningen en level updates.';
+
         $conversations[] = [
             'partner_id' => 0,
             'name' => '🏥 Kliniek Directie',
@@ -386,19 +390,24 @@ class ChatController extends Controller
             'is_bot' => true,
             'is_online' => true,
             'level' => 99,
-            'last_message' => $botLastMessage ? Str::limit($botLastMessage->message, 45) : 'Officiële kluiscodes, beloningen en level updates.',
+            'last_message' => $botPreview,
             'last_time' => $botLastMessage ? $botLastMessage->created_at->diffForHumans(null, true, true) : '',
             'unread_count' => $botUnread,
             'is_pinned' => true,
         ];
 
-        // 2. Fetch distinct inmate conversation partner IDs
+        // 2. Fetch distinct inmate conversation partner IDs (excluding legacy migrated notices)
         $sentTo = DirectMessage::where('sender_id', $character->id)
             ->whereNotNull('recipient_id')
             ->pluck('recipient_id');
 
         $receivedFrom = DirectMessage::where('recipient_id', $character->id)
             ->whereNotNull('sender_id')
+            ->where(function ($q) {
+                $q->whereNull('metadata->source')
+                    ->orWhere('metadata->source', '!=', 'system_migration');
+            })
+            ->where('message', 'not like', '%vriendschapsverzoek%')
             ->pluck('sender_id');
 
         $partnerIds = $sentTo->merge($receivedFrom)->unique()->values();
@@ -407,6 +416,8 @@ class ChatController extends Controller
             $partners = Character::whereIn('id', $partnerIds)
                 ->get()
                 ->keyBy('id');
+
+            $inmateConversations = [];
 
             foreach ($partnerIds as $pId) {
                 $partner = $partners->get($pId);
@@ -422,6 +433,10 @@ class ChatController extends Controller
                     ->latest('id')
                     ->first();
 
+                if (! $lastMsg) {
+                    continue;
+                }
+
                 $unread = DirectMessage::where('sender_id', $pId)
                     ->where('recipient_id', $character->id)
                     ->where('is_read', false)
@@ -429,18 +444,30 @@ class ChatController extends Controller
 
                 $isOnline = $partner->last_active_at && $partner->last_active_at->diffInMinutes(now()) < 5;
 
-                $conversations[] = [
+                $cleanPreview = Str::limit(str_replace(['**', '__'], '', $lastMsg->message), 45);
+
+                $inmateConversations[] = [
                     'partner_id' => $partner->id,
                     'name' => $partner->name,
                     'avatar' => $partner->avatar_url,
                     'is_bot' => false,
                     'is_online' => (bool) $isOnline,
                     'level' => $partner->level,
-                    'last_message' => $lastMsg ? Str::limit($lastMsg->message, 45) : 'Nieuw gesprek gestart.',
-                    'last_time' => $lastMsg ? $lastMsg->created_at->diffForHumans(null, true, true) : '',
+                    'last_message' => $cleanPreview,
+                    'last_time' => $lastMsg->created_at->diffForHumans(null, true, true),
+                    'last_msg_id' => $lastMsg->id,
                     'unread_count' => $unread,
                     'is_pinned' => false,
                 ];
+            }
+
+            // Strictly sort by latest message descending (newest message always at top)
+            usort($inmateConversations, function ($a, $b) {
+                return $b['last_msg_id'] <=> $a['last_msg_id'];
+            });
+
+            foreach ($inmateConversations as $c) {
+                $conversations[] = $c;
             }
         }
 

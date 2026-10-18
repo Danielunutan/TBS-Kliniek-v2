@@ -74,13 +74,13 @@ class ReplyTicketCommand extends Command
                 ."     - *Boris \"De Sloper\" (Enforcer)*: Biedt +20% verdedigingskracht bij bendeaanvallen.\n\n"
                 ."Ontzettend bedankt voor je fantastische bijdrage en het meedenken om TBS Gang en de kliniek naar een hoger niveau te tillen! Veel succes met het opbouwen van jullie vastgoedimperium.\n\n"
                 ."Met vriendelijke groet,\n"
-                ."Daniel • TBS Kliniek Leiding";
+                .'Daniel • TBS Kliniek Leiding';
         } else {
             $replyMessage = "Beste {$ticket->character?->name},\n\n"
                 ."Bedankt voor je support ticket. We hebben je verzoek zorgvuldig bekeken en afgehandeld.\n\n"
                 ."Mocht je verdere vragen of suggesties hebben, laat het ons gerust weten!\n\n"
                 ."Met vriendelijke groet,\n"
-                ."Daniel • TBS Kliniek Leiding";
+                .'Daniel • TBS Kliniek Leiding';
         }
 
         SupportTicketMessage::create([
