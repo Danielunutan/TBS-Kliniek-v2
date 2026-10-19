@@ -13,6 +13,7 @@ class Heist extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
+        'required_property_keys' => 'array',
         'is_gang_heist' => 'boolean',
         'min_gang_members' => 'integer',
         'gang_respect_reward' => 'integer',
@@ -28,6 +29,83 @@ class Heist extends Model
         'respect_reward' => 'integer',
         'isolation_risk_minutes' => 'integer',
     ];
+
+    /**
+     * Check if a gang owns at least one of the required properties for this heist.
+     */
+    public function gangHasRequiredProperty(?Gang $gang): bool
+    {
+        if (! $this->is_gang_heist || empty($this->required_property_keys)) {
+            return true;
+        }
+
+        if (! $gang) {
+            return false;
+        }
+
+        $ownedKeys = $gang->properties->pluck('property_key')->all();
+
+        foreach ($this->required_property_keys as $key) {
+            if (in_array($key, $ownedKeys, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine the effective vehicle used for this heist (personal active vehicle or qualifying vehicle from Bende Garage).
+     */
+    public function getEffectiveVehicle(Character $character): ?CharacterVehicle
+    {
+        $personal = CharacterVehicle::where('character_id', $character->id)
+            ->where('is_active', true)
+            ->with('vehicle')
+            ->first() ?? CharacterVehicle::where('character_id', $character->id)->with('vehicle')->first();
+
+        if ($personal && $this->vehicleQualifies($personal)) {
+            return $personal;
+        }
+
+        // If gang heist and personal doesn't qualify, look in the Bende Garage
+        if ($this->is_gang_heist && $character->gang) {
+            $gangVehicles = $character->gang->storedVehicles()->with('vehicle')->get();
+            foreach ($gangVehicles as $gv) {
+                if ($this->vehicleQualifies($gv)) {
+                    return $gv;
+                }
+            }
+        }
+
+        return $personal;
+    }
+
+    /**
+     * Check if a vehicle meets the minimum speed, condition and type requirements for this heist.
+     */
+    public function vehicleQualifies(?CharacterVehicle $cv): bool
+    {
+        if (! $cv || ! $cv->vehicle) {
+            return false;
+        }
+
+        if ($this->required_vehicle_type && $this->required_vehicle_type !== 'any') {
+            if ($cv->vehicle->type !== $this->required_vehicle_type) {
+                return false;
+            }
+        }
+
+        if ($cv->effective_speed < $this->min_speed_required) {
+            return false;
+        }
+
+        if ($cv->current_condition < $this->min_condition_required) {
+            return false;
+        }
+
+        return true;
+    }
 
     public function logs(): HasMany
     {

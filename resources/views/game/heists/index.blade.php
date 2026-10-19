@@ -56,7 +56,7 @@
     </div>
 
     <!-- HEIST TARGETS CONTAINER (SOLO VS GANG TABS) -->
-    <div x-data="{ mode: 'solo' }" class="space-y-6">
+    <div x-data="{ mode: '{{ request('tab') === 'gang' ? 'gang' : 'solo' }}' }" class="space-y-6">
 
         <!-- MODE SWITCHER TABS -->
         <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
@@ -299,8 +299,26 @@
                     $hasGangMembers = $gangMemberCount >= $heist->min_gang_members;
                     $hasLevel = $character->level >= $heist->min_level;
                     $hasMasks = ($character->masks ?? 0) >= $heist->required_mask_count;
-                    $hasVehicle = !empty($activeVehicle);
-                    $hasCondition = $activeVehicle && ($activeVehicle->current_condition >= $heist->min_condition_required);
+                    $hasProperty = $heist->gangHasRequiredProperty($gang);
+
+                    $effectiveVehicle = $heist->getEffectiveVehicle($character);
+                    $hasVehicle = !empty($effectiveVehicle);
+                    $hasCondition = $effectiveVehicle && ($effectiveVehicle->current_condition >= $heist->min_condition_required);
+                    $isGangGarageVehicle = $effectiveVehicle && $effectiveVehicle->in_gang_garage;
+
+                    $tierLabel = match (true) {
+                        $heist->min_gang_members >= 10 => 'Tier 4: 10+ Leden Quota',
+                        $heist->min_gang_members >= 5 => 'Tier 3: 5+ Leden Quota',
+                        $heist->min_gang_members >= 3 => 'Tier 2: 3+ Leden Quota',
+                        default => 'Tier 1: 2+ Leden Quota',
+                    };
+
+                    $tierBadgeColor = match (true) {
+                        $heist->min_gang_members >= 10 => 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800',
+                        $heist->min_gang_members >= 5 => 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800',
+                        $heist->min_gang_members >= 3 => 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800',
+                        default => 'bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800',
+                    };
 
                     $baseChance = match ($heist->difficulty) {
                         'makkelijk' => 75,
@@ -310,11 +328,11 @@
                         'legendarisch' => 32,
                         default => 50,
                     };
-                    $speedDiff = $activeVehicle ? ($activeVehicle->effective_speed - $heist->min_speed_required) : 0;
+                    $speedDiff = $effectiveVehicle ? ($effectiveVehicle->effective_speed - $heist->min_speed_required) : 0;
                     $speedBonus = (int) round($speedDiff * 0.4);
-                    $condBonus = $activeVehicle ? (int) round(($activeVehicle->current_condition - 70) * 0.25) : 0;
+                    $condBonus = $effectiveVehicle ? (int) round(($effectiveVehicle->current_condition - 70) * 0.25) : 0;
                     $statBonus = min(15, (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveDiscipline()) / 30));
-                    $gangBonus = min(12, $gangMemberCount * 2);
+                    $gangBonus = min(15, $gangMemberCount * 2);
                     $estChance = max(15, min(92, $baseChance + $speedBonus + $condBonus + $statBonus + $gangBonus));
 
                     $personalMin = (int) round($heist->payout_min * 0.5);
@@ -333,16 +351,19 @@
                                 <span class="px-2.5 py-0.5 rounded-full border text-[10px] font-black uppercase tracking-wider {{ $heist->difficulty_badge }}">
                                     {{ $heist->difficulty }}
                                 </span>
-                                <div class="text-[11px] font-bold text-purple-600 dark:text-purple-400">
-                                    Min. {{ $heist->min_gang_members }} Gangleden
+                                <div class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border {{ $tierBadgeColor }} block text-right">
+                                    {{ $tierLabel }}
                                 </div>
                             </div>
                         </div>
 
                         <div>
-                            <div class="flex items-center gap-1.5 mb-1">
+                            <div class="flex items-center gap-1.5 mb-1 flex-wrap">
                                 <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-black uppercase">
                                     Officiële Gang Heist
+                                </span>
+                                <span class="text-[11px] font-extrabold text-purple-600 dark:text-purple-400">
+                                    Min. Level {{ $heist->min_level }}
                                 </span>
                             </div>
                             <h3 class="text-base font-black text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{{ $heist->name }}</h3>
@@ -375,14 +396,49 @@
 
                         <!-- Checklist Requirements -->
                         <div class="space-y-1.5 text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
+                            <!-- 1. Gang Leden Quota -->
                             <div class="flex items-center justify-between {{ $hasGangMembers ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
                                 <span class="flex items-center gap-1.5">
                                     <i class="fa-solid {{ $hasGangMembers ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }}"></i>
-                                    Minimaal {{ $heist->min_gang_members }} Bendeleden in Gang
+                                    Minimaal {{ $heist->min_gang_members }} Bendeleden Quota
                                 </span>
                                 <span class="font-mono text-[11px] font-bold">{{ $gangMemberCount }}/{{ $heist->min_gang_members }}</span>
                             </div>
 
+                            <!-- 2. Benodigd Bende Pand -->
+                            @if($heist->required_property_name)
+                            <div class="flex items-center justify-between {{ $hasProperty ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
+                                <span class="flex items-center gap-1.5 min-w-0">
+                                    <i class="fa-solid {{ $hasProperty ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }} shrink-0"></i>
+                                    <span class="truncate">Pand: {{ $heist->required_property_name }}</span>
+                                </span>
+                                @if($hasProperty)
+                                    <span class="font-mono text-[11px] font-bold text-emerald-600 shrink-0">In Bezit ✓</span>
+                                @else
+                                    <a href="{{ route('gangs.panden') }}" class="text-[11px] font-black text-purple-600 dark:text-purple-400 underline hover:text-purple-700 shrink-0">Koop Pand →</a>
+                                @endif
+                            </div>
+                            @endif
+
+                            <!-- 3. Benodigd Voertuig -->
+                            <div class="flex items-center justify-between {{ ($hasVehicle && $hasCondition) ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
+                                <span class="flex items-center gap-1.5 min-w-0">
+                                    <i class="fa-solid {{ ($hasVehicle && $hasCondition) ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }} shrink-0"></i>
+                                    <span class="truncate">Wagen: {{ $heist->required_vehicle_name ?? ($heist->required_vehicle_type . ' min. ' . $heist->min_speed_required . ' km/u') }}</span>
+                                </span>
+                                @if($effectiveVehicle)
+                                    <span class="font-mono text-[11px] font-bold shrink-0">
+                                        {{ $effectiveVehicle->vehicle->name }} ({{ $effectiveVehicle->current_condition }}%)
+                                        @if($isGangGarageVehicle)
+                                            <span class="text-[9px] px-1 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-black">Bende Garage</span>
+                                        @endif
+                                    </span>
+                                @else
+                                    <a href="{{ route('gangs.garage') }}" class="text-[11px] font-black text-purple-600 dark:text-purple-400 underline hover:text-purple-700 shrink-0">Bende Garage →</a>
+                                @endif
+                            </div>
+
+                            <!-- 4. Maskers -->
                             <div class="flex items-center justify-between {{ $hasMasks ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
                                 <span class="flex items-center gap-1.5">
                                     <i class="fa-solid {{ $hasMasks ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }}"></i>
@@ -391,12 +447,13 @@
                                 <span class="font-mono text-[11px] font-bold">{{ $character->masks ?? 0 }}/{{ $heist->required_mask_count }}</span>
                             </div>
 
-                            <div class="flex items-center justify-between {{ $hasCondition ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
+                            <!-- 5. Energie -->
+                            <div class="flex items-center justify-between {{ $character->energy >= $heist->energy_cost ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500' }}">
                                 <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid {{ $hasCondition ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }}"></i>
-                                    Min. {{ $heist->min_condition_required }}% Wagen Conditie
+                                    <i class="fa-solid fa-bolt text-amber-500 text-[10px]"></i>
+                                    Energie Kosten
                                 </span>
-                                <span class="font-mono text-[11px] font-bold">{{ $activeVehicle ? $activeVehicle->current_condition : 0 }}%</span>
+                                <span class="font-mono text-[11px] font-bold">{{ $heist->energy_cost }} Energie</span>
                             </div>
                         </div>
 
@@ -423,13 +480,19 @@
                             </a>
                         @elseif(! $hasGangMembers)
                             <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
-                                Onvoldoende Gangleden ({{ $gangMemberCount }}/{{ $heist->min_gang_members }})
+                                Onvoldoende Leden Quota ({{ $gangMemberCount }}/{{ $heist->min_gang_members }})
                             </button>
+                        @elseif(! $hasProperty)
+                            <a href="{{ route('gangs.panden') }}" 
+                               class="w-full py-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-building"></i>
+                                <span>Koop Pand: {{ $heist->required_property_name }}</span>
+                            </a>
                         @elseif(! $hasVehicle)
-                            <a href="{{ route('garage.index') }}" 
+                            <a href="{{ route('gangs.garage') }}" 
                                class="w-full py-3 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 border border-purple-200 dark:border-purple-800/60 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-warehouse"></i>
-                                <span>Koop Vluchtwagen in Garage</span>
+                                <span>Koppel Wagen in Bende Garage</span>
                             </a>
                         @elseif(! $hasCondition)
                             <a href="{{ route('garage.index') }}" 
@@ -441,7 +504,7 @@
                             <a href="{{ route('shop.index', ['tab' => 'items']) }}" 
                                class="w-full py-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-black text-xs text-center transition flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-mask"></i>
-                                <span>Koop Maskers in Winkel</span>
+                                <span>Koop {{ $heist->required_mask_count }}x Maskers in Winkel</span>
                             </a>
                         @elseif($character->energy < $heist->energy_cost)
                             <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xs cursor-not-allowed text-center">
@@ -460,7 +523,7 @@
                                         data-confirm-btn="Ja, Lanceer Heist!"
                                         data-confirm-type="attack"
                                         data-confirm-icon="fa-bomb"
-                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-600 to-purple-600 hover:from-rose-500 hover:to-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                                        class="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-600 via-purple-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-bomb text-xs"></i>
                                     <span>Lanceer Bende Heist Operatie</span>
                                 </button>

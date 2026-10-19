@@ -39,6 +39,9 @@ class HeistController extends Controller
         $soloHeists = $heists->where('is_gang_heist', false);
         $gangHeists = $heists->where('is_gang_heist', true);
         $myGang = $character->gang;
+        if ($myGang) {
+            $myGang->load(['properties', 'storedVehicles.vehicle']);
+        }
 
         $activeVehicle = CharacterVehicle::where('character_id', $character->id)
             ->where('is_active', true)
@@ -92,9 +95,17 @@ class HeistController extends Controller
             }
 
             $gang = $character->gang;
+            $gang->load(['properties', 'storedVehicles.vehicle']);
             $memberCount = $gang->members()->count();
+
+            // 1. Quota check (Leden Quota)
             if ($memberCount < $heist->min_gang_members) {
-                return back()->with('error', "Onvoldoende bendeleden! Voor de {$heist->name} moet jouw bende minimaal {$heist->min_gang_members} actieve leden tellen (jouw bende heeft {$memberCount} leden).");
+                return back()->with('error', "Onvoldoende bendeleden! Voor de {$heist->name} moet jouw bende minimaal {$heist->min_gang_members} actieve leden tellen (jouw bende heeft momenteel {$memberCount} leden).");
+            }
+
+            // 2. Panden requirement check (Benodigde Gang Panden)
+            if (! $heist->gangHasRequiredProperty($gang)) {
+                return back()->with('error', "Jullie bende bezit nog niet het vereiste pand ({$heist->required_property_name}) om de {$heist->name} te organiseren! Schaf dit pand eerst aan via Bende Panden.");
             }
         }
 
@@ -109,14 +120,19 @@ class HeistController extends Controller
             return back()->with('error', "Onvoldoende maskers! Voor de {$heist->name} heb je minimaal {$heist->required_mask_count} Bivakmutsen/Maskers 🎭 nodig om je identiteit te verbergen. Koop maskers in de Kliniek Winkel!");
         }
 
-        // Vehicle requirement
-        $charVehicle = CharacterVehicle::where('character_id', $character->id)
-            ->where('is_active', true)
-            ->with('vehicle')
-            ->first() ?? CharacterVehicle::where('character_id', $character->id)->with('vehicle')->first();
+        // Vehicle requirement (Personal vehicle or qualifying Bende Garage fleet vehicle)
+        $charVehicle = $heist->getEffectiveVehicle($character);
 
         if (! $charVehicle) {
-            return back()->with('error', 'Je hebt een geregistreerd vluchtvoertuig nodig om een Heist te plegen! Ga eerst naar de Smokkel Garage om een voertuig aan te schaffen.');
+            return back()->with('error', 'Je hebt een geregistreerd vluchtvoertuig nodig (in je eigen garage of in de Bende Garage) om een Heist te plegen!');
+        }
+
+        if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle->type !== $heist->required_vehicle_type) {
+            return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$charVehicle->vehicle->type}.");
+        }
+
+        if ($charVehicle->effective_speed < $heist->min_speed_required) {
+            return back()->with('error', "De topsnelheid van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een sneller bendevoertuig!");
         }
 
         if ($charVehicle->current_condition < $heist->min_condition_required) {
@@ -151,7 +167,7 @@ class HeistController extends Controller
         // 5. Gang synergy bonus for Bende Heists
         $gangBonus = 0;
         if ($heist->is_gang_heist && $character->gang) {
-            $gangBonus = min(12, $character->gang->members()->count() * 2);
+            $gangBonus = min(15, $character->gang->members()->count() * 2);
         }
 
         $finalChance = max(15, min(92, $baseChance + $speedBonus + $conditionBonus + $statBonus + $gangBonus));
@@ -171,6 +187,9 @@ class HeistController extends Controller
                 $playerPayout = $totalPayout - $gangPayout;
 
                 $gang->treasury += $gangPayout;
+                if ($heist->gang_respect_reward > 0) {
+                    $gang->respect = ($gang->respect ?? 0) + $heist->gang_respect_reward;
+                }
                 $gang->save();
 
                 $character->cash += $playerPayout;
@@ -178,7 +197,7 @@ class HeistController extends Controller
                 $this->levelService->addXp($character, $heist->xp_reward);
 
                 $formattedGangCash = number_format($gangPayout, 0, ',', '.');
-                $gangMsg = " Bende Buit: +€{$formattedGangCash} direct gestort in de bendekluis van [{$gang->name}]!";
+                $gangMsg = " Bende Buit: +€{$formattedGangCash} & +{$heist->gang_respect_reward} Gang Respect direct bijgeschreven in de bendekas van [{$gang->name}]!";
             } else {
                 $playerPayout = $totalPayout;
                 $character->cash += $playerPayout;

@@ -51,7 +51,33 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-OAE-551' || $ticket->id === 12 || str_contains(strtolower($ticket->subject), 'aanpasbare profielen') || str_contains(strtolower($ticket->subject), 'profiel')) {
+        if ($ticketNumber === 'TBS-SQM-770' || $ticketNumber === 'TBS-SQN-778' || $ticket->id === 13 || str_contains(strtolower($ticket->subject), 'grote heists') || (str_contains(strtolower($ticket->subject), 'bende') && str_contains(strtolower($ticket->subject), 'heist'))) {
+            $replyMessage = "Beste Rainbow,\n\n"
+                ."Wat een meesterlijk idee! Het koppelen van bendeleden quota, vereiste bende panden én bendevoertuigen uit de garage brengt het hele bendesysteem samen tot één gigantisch co-op spektakel. We hebben je concept direct volledig uitgewerkt en zojuist live gezet in TBS Kliniek! 💣💰🏎️\n\n"
+                ."Dit is hoe de nieuwe Grote Bende Heists nu exact werken volgens jouw voorstel:\n\n"
+                ."1. **Bendeleden Quota Systeem (2+, 3+, 5+ en 10+ Leden)**:\n"
+                ."   - **Tier 1 (2+ Leden)**: *DVO Celtransport Onderschepping* en de nieuwe *Explosieve Geldautomaat Plofkraak* (€220.000 – €480.000 buit).\n"
+                ."   - **Tier 2 (3+ Leden)**: *Holland Casino Cash Vault* en het *Underground Chemisch Smokkeldepot* (€550.000 – €1.150.000 buit).\n"
+                ."   - **Tier 3 (5+ Leden)**: *Douane Haven Containeroverslag Rotterdam* en de *Internationale Diamantenconvooi Overval* (€1.350.000 – €2.800.000 buit).\n"
+                ."   - **Tier 4 (10+ Leden - Syndicate Masterpiece)**: *DNB A2 Goudtransport* en de ultieme *Centrale Reservereden Fort Goudkluis Heist* (tot maar liefst €8.500.000 buit + 3.500 Bende Respect)!\n\n"
+                ."2. **Benodigde Bende Panden (Gekoppeld aan /gangs/panden)**:\n"
+                ."   - Precies zoals je vroeg: grote bende heists kunnen enkel gepland en gelanceerd worden als jullie bende het juiste vastgoedobject bezit:\n"
+                ."     • Loods of Garagebox Complex voor de ramkraken\n"
+                ."     • Chemisch Smokkel-Lab of Fabriek voor de chemische raid\n"
+                ."     • Oude Scheepswerf & Havenloods voor de havenoverval\n"
+                ."     • Zwaar Transport Terminal of Smuggle Vliegveld Hangar voor het convooi\n"
+                ."     • Ondergrondse Bunker of Gang Villa HQ voor de ultieme nationale goudkraak!\n\n"
+                ."3. **Benodigde Vluchtwagens & Directe Bende Garage Koppeling**:\n"
+                ."   - Elke heist stelt specifieke eisen aan het vluchtvoertuig (auto, snelle speedboot, helikopter of gepantserde truck, topsnelheid en conditie).\n"
+                ."   - **Super co-op feature**: Bezit je zelf niet het vereiste voertuig? Geen probleem! Als een bendelid een geschikte wagen heeft gestald in de gezamenlijke **Bende Garage**, kan die wagen direct worden ingezet voor de bende heist!\n\n"
+                ."4. **50/50 Buitverdeling & Bende Respect**:\n"
+                ."   - Bij succes ontvangt de uitvoerder direct 50% persoonlijke contanten, wordt de overige 50% direct gestort in de gezamenlijke bendekas én stijgt jullie benderanking met honderden tot duizenden Respectpunten!\n\n"
+                ."5. **Directe Menu Koppelingen**:\n"
+                ."   - In het hoofdmenu onder 'Bende & Gangs' vind je nu directe knoppen naar zowel de **Bende Garage** als **Bende Heists** (/heists?tab=gang).\n\n"
+                ."Nogmaals ontzettend bedankt voor je fantastische visie en het actief meebouwen aan TBS Kliniek. Roep je bendeleden bij elkaar, check jullie panden en garage, en kraak die kluizen!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-OAE-551' || $ticket->id === 12 || str_contains(strtolower($ticket->subject), 'aanpasbare profielen') || str_contains(strtolower($ticket->subject), 'profiel')) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wat een geweldige feature suggestie! Profielen zijn het visitekaartje van iedere speler in TBS Kliniek, en de wens voor meer creativiteit en personalisatie sluit daar perfect op aan. We hebben jouw complete concept direct opgepakt, ontworpen en zojuist volledig live gezet in de game! 🎨✨\n\n"
                 ."Dit is wat we allemaal exact hebben geïmplementeerd:\n\n"
