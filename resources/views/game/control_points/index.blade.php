@@ -122,7 +122,7 @@
                     <div class="p-3.5 rounded-xl {{ $isHolder ? 'bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60' : 'bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800' }} mb-4">
                         @if($point->holder)
                             <div class="flex items-center gap-3">
-                                <img src="{{ $point->holder->getAvatarUrl() }}" 
+                                <img src="{{ $point->holder->avatar_url }}" 
                                      alt="{{ $point->holder->name }}" 
                                      class="w-10 h-10 rounded-xl object-cover border {{ $isHolder ? 'border-amber-400' : 'border-slate-300 dark:border-slate-700' }} shrink-0">
                                 <div class="min-w-0 flex-1">

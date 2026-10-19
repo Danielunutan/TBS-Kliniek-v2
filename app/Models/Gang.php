@@ -63,6 +63,11 @@ class Gang extends Model
         return asset('assets/logo.png');
     }
 
+    public function getAvatarUrl(): string
+    {
+        return $this->avatar_url;
+    }
+
     public function getBannerUrlAttribute(): string
     {
         if ($this->banner) {
@@ -131,6 +136,11 @@ class Gang extends Model
     public function npcs(): HasMany
     {
         return $this->hasMany(GangNpc::class);
+    }
+
+    public function storedVehicles(): HasMany
+    {
+        return $this->hasMany(CharacterVehicle::class)->where('in_gang_garage', true);
     }
 
     public function getTotalStorageCapacityAttribute(): int

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\CharacterVehicle;
 use App\Models\Gang;
 use App\Models\GangNpc;
 use App\Models\GangProperty;
@@ -17,7 +18,7 @@ use Illuminate\View\View;
 class GangPropertyController extends Controller
 {
     /**
-     * Show the Gang Properties & Real Estate overview.
+     * Show the Gang Properties & Real Estate overview with 30-minute rotating showroom.
      */
     public function index(Request $request): View|RedirectResponse
     {
@@ -33,16 +34,20 @@ class GangPropertyController extends Controller
 
         /** @var Gang $gang */
         $gang = $character->gang;
-        $gang->load(['properties', 'npcs.assignedProperty', 'leader']);
+        $gang->load(['properties', 'npcs.assignedProperty', 'leader', 'storedVehicles']);
 
         $catalog = GangPropertyCatalog::all();
         $npcCatalog = GangPropertyCatalog::npcs();
+
+        $rotatingProperties = GangPropertyCatalog::getRotatingProperties();
+        $rotatingNpcs = GangPropertyCatalog::getRotatingNpcs();
 
         $ownedProperties = $gang->properties->keyBy('property_key');
         $hiredNpcs = $gang->npcs;
 
         $totalStorage = $gang->total_storage_capacity;
         $totalVehicles = $gang->total_vehicle_slots;
+        $storedVehiclesCount = $gang->storedVehicles()->count();
         $totalNpcCap = $gang->total_npc_capacity;
         $availableNpcSlots = max(0, $totalNpcCap - $hiredNpcs->count());
 
@@ -53,14 +58,148 @@ class GangPropertyController extends Controller
             'gang',
             'catalog',
             'npcCatalog',
+            'rotatingProperties',
+            'rotatingNpcs',
             'ownedProperties',
             'hiredNpcs',
             'totalStorage',
             'totalVehicles',
+            'storedVehiclesCount',
             'totalNpcCap',
             'availableNpcSlots',
             'isOfficer'
         ));
+    }
+
+    /**
+     * Show the Bende Garage overview and fleet management.
+     */
+    public function garage(Request $request): View|RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->gang_id) {
+            return redirect()->route('gangs.index')
+                ->with('info', 'Sluit je eerst aan bij een bende of richt een bende op om de Bende Garage te openen!');
+        }
+
+        $gang = $character->gang;
+        $gang->load(['properties', 'storedVehicles.vehicle', 'storedVehicles.character', 'storedVehicles.storedBy']);
+
+        $totalVehicleSlots = $gang->total_vehicle_slots;
+        $storedVehicles = $gang->storedVehicles;
+        $storedCount = $storedVehicles->count();
+        $freeSlots = max(0, $totalVehicleSlots - $storedCount);
+
+        // Character's own personal vehicles that can be parked in the gang garage
+        $personalVehicles = CharacterVehicle::where('character_id', $character->id)
+            ->where('in_gang_garage', false)
+            ->where('is_for_sale', false)
+            ->with('vehicle')
+            ->get();
+
+        // Garage/storage properties that provide vehicle slots
+        $garageProperties = $gang->properties()->where('vehicle_slots', '>', 0)->get();
+
+        $isOfficer = $gang->isOfficer($character);
+
+        return view('game.gangs.garage', compact(
+            'character',
+            'gang',
+            'totalVehicleSlots',
+            'storedVehicles',
+            'storedCount',
+            'freeSlots',
+            'personalVehicles',
+            'garageProperties',
+            'isOfficer'
+        ));
+    }
+
+    /**
+     * Store a personal vehicle into the gang garage fleet.
+     */
+    public function storeVehicle(Request $request, CharacterVehicle $characterVehicle): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $gang = $character->gang;
+
+        if (! $gang) {
+            return back()->with('error', 'Je zit niet in een bende.');
+        }
+
+        if ($characterVehicle->character_id !== $character->id) {
+            return back()->with('error', 'Dit voertuig is niet van jou.');
+        }
+
+        if ($characterVehicle->in_gang_garage) {
+            return back()->with('info', 'Dit voertuig staat al in de bende garage.');
+        }
+
+        if ($characterVehicle->is_for_sale) {
+            return back()->with('error', 'Dit voertuig staat te koop op de marktplaats en kan niet worden gestald.');
+        }
+
+        // Capacity check
+        $totalSlots = $gang->total_vehicle_slots;
+        $currentCount = $gang->storedVehicles()->count();
+        if ($currentCount >= $totalSlots) {
+            return back()->with('error', "De bende garage zit vol ({$currentCount}/{$totalSlots} plekken bezet)! Koop meer garage- of opslagpanden via Bende Panden om extra wagenplekken vrij te spelen.");
+        }
+
+        DB::transaction(function () use ($characterVehicle, $gang, $character): void {
+            $characterVehicle->update([
+                'gang_id' => $gang->id,
+                'in_gang_garage' => true,
+                'stored_at' => now(),
+                'stored_by_character_id' => $character->id,
+                'is_active' => false,
+            ]);
+        });
+
+        return back()->with('success', "🚗 Je {$characterVehicle->vehicle->name} is veilig gestald in de Bende Garage van {$gang->name}!");
+    }
+
+    /**
+     * Retrieve a vehicle from the gang garage back to personal garage.
+     */
+    public function retrieveVehicle(Request $request, CharacterVehicle $characterVehicle): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+        $gang = $character->gang;
+
+        if (! $gang) {
+            return back()->with('error', 'Je zit niet in een bende.');
+        }
+
+        if (! $characterVehicle->in_gang_garage || $characterVehicle->gang_id !== $gang->id) {
+            return back()->with('error', 'Dit voertuig staat niet in jullie bende garage.');
+        }
+
+        // Only owner or gang officer can retrieve
+        $isOwner = $characterVehicle->character_id === $character->id;
+        $isOfficer = $gang->isOfficer($character);
+
+        if (! $isOwner && ! $isOfficer) {
+            return back()->with('error', 'Alleen de eigenaar of een bendebeheerder kan dit voertuig uit de bende garage halen.');
+        }
+
+        DB::transaction(function () use ($characterVehicle): void {
+            $characterVehicle->update([
+                'in_gang_garage' => false,
+                'gang_id' => null,
+                'stored_at' => null,
+                'stored_by_character_id' => null,
+            ]);
+        });
+
+        return back()->with('success', "🔑 De {$characterVehicle->vehicle->name} is succesvol uit de Bende Garage gehaald en terug in je persoonlijke wagenpark geplaatst!");
     }
 
     /**
@@ -87,6 +226,16 @@ class GangPropertyController extends Controller
         }
 
         $price = (int) $catalogProp['price'];
+
+        // Check if purchased via rotating showroom offer with valid token & discount
+        if ($request->filled('token') && $request->filled('dynamic_price')) {
+            $slot = (int) floor(time() / 1800);
+            $expectedToken = substr(hash_hmac('sha256', "{$slot}_{$propertyKey}_{$request->input('dynamic_price')}", config('app.key')), 0, 16);
+            if ($request->input('token') === $expectedToken) {
+                $price = (int) $request->input('dynamic_price');
+            }
+        }
+
         if ($gang->treasury < $price) {
             $shortage = number_format($price - $gang->treasury, 0, ',', '.');
 
@@ -118,7 +267,7 @@ class GangPropertyController extends Controller
     }
 
     /**
-     * Start a production cycle on a production facility.
+     * Start a production cycle in a gang production facility.
      */
     public function startProduction(Request $request, GangProperty $property): RedirectResponse
     {
@@ -128,45 +277,35 @@ class GangPropertyController extends Controller
         $gang = $character->gang;
 
         if (! $gang || ! $gang->isOfficer($character) || (int) $property->gang_id !== (int) $gang->id) {
-            return back()->with('error', 'Alleen bendebeheerders kunnen productieprocessen opstarten.');
+            return back()->with('error', 'Alleen bendebeheerders kunnen productieprocessen starten.');
         }
 
-        if (! $property->isProduction()) {
-            return back()->with('error', 'Dit pand heeft geen productiefaciliteiten.');
+        if ($property->type !== 'production') {
+            return back()->with('error', 'Dit pand heeft geen productiefaciliteit.');
         }
 
         if ($property->isProducing()) {
-            return back()->with('error', 'Er loopt momenteel al een actieve productiecyclus in dit pand!');
+            return back()->with('error', 'De productie is al in volle gang!');
         }
 
-        if ($property->isReadyToClaim()) {
+        if ($property->isProductionReady()) {
             return back()->with('error', 'De vorige productiecyclus is voltooid! Claim eerst de opbrengst.');
         }
 
-        $durationMinutes = $property->production_duration_minutes;
-
-        // Check if an assigned NPC speeds up production
-        $assignedNpc = GangNpc::where('gang_id', $gang->id)
-            ->where('assigned_property_id', $property->id)
-            ->where('bonus_type', 'production_speed')
-            ->first();
-
-        if ($assignedNpc) {
-            $reduction = $assignedNpc->bonus_value / 100;
-            $durationMinutes = (int) max(15, round($durationMinutes * (1 - $reduction)));
-        }
+        $durationMinutes = $property->effective_duration_minutes;
+        $completesAt = now()->addMinutes($durationMinutes);
 
         $property->update([
             'production_status' => 'producing',
             'production_started_at' => now(),
-            'production_ends_at' => now()->addMinutes($durationMinutes),
+            'production_completes_at' => $completesAt,
         ]);
 
-        return back()->with('success', "⚙️ Productiecyclus succesvol gestart in '{$property->name}'! Over {$durationMinutes} minuten is de lading gereed om te claimen.");
+        return back()->with('success', "🏭 Productie gestart in '{$property->name}'! Over {$durationMinutes} minuten kan de opbrengst worden geclaimd.");
     }
 
     /**
-     * Claim completed production cycle rewards into the gang treasury.
+     * Claim completed production yield into gang treasury and respect.
      */
     public function claimProduction(Request $request, GangProperty $property): RedirectResponse
     {
@@ -175,36 +314,33 @@ class GangPropertyController extends Controller
         $character = $user->character;
         $gang = $character->gang;
 
-        if (! $gang || (int) $property->gang_id !== (int) $gang->id) {
-            return back()->with('error', 'Je kunt alleen opbrengsten van je eigen bende panden claimen.');
+        if (! $gang || ! $gang->isOfficer($character) || (int) $property->gang_id !== (int) $gang->id) {
+            return back()->with('error', 'Alleen bendebeheerders kunnen productieopbrengsten claimen.');
         }
 
-        if (! $property->isReadyToClaim()) {
-            return back()->with('error', 'De productie is nog bezig en kan nog niet worden geclaimd.');
+        if (! $property->isProductionReady()) {
+            return back()->with('error', 'De productiecyclus is nog niet afgerond.');
         }
 
-        $rewards = $property->getEffectiveRewards();
-        $cashReward = $rewards['cash'];
-        $respectReward = $rewards['respect'];
+        $cash = $property->effective_reward_cash;
+        $respect = $property->effective_reward_respect;
 
-        DB::transaction(function () use ($gang, $property, $cashReward, $character, $respectReward): void {
+        DB::transaction(function () use ($gang, $property, $cash, $respect): void {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
-            $lockedGang->treasury += $cashReward;
+            $lockedGang->treasury += $cash;
+            $lockedGang->respect += $respect;
             $lockedGang->save();
-
-            // Reward respect to the claiming player
-            $character->increment('respect', $respectReward);
 
             $property->update([
                 'production_status' => 'idle',
                 'production_started_at' => null,
-                'production_ends_at' => null,
+                'production_completes_at' => null,
             ]);
         });
 
-        $formattedCash = number_format($cashReward, 0, ',', '.');
+        $formattedCash = number_format($cash, 0, ',', '.');
 
-        return back()->with('success', "💰 Buit veiliggesteld! +€{$formattedCash} contant toegevoegd aan de bendekas en +{$respectReward} Respect verdiend!");
+        return back()->with('success', "💰 Buit veiliggesteld! Er is €{$formattedCash} in de bendekas gestort en +{$respect} Respect toegekend aan {$gang->name}!");
     }
 
     /**
@@ -221,7 +357,7 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Alleen bendebeheerders kunnen specialistische NPC bendeleden aannemen.');
         }
 
-        $npcData = GangPropertyCatalog::npcs()[$npcKey] ?? null;
+        $npcData = GangPropertyCatalog::getNpc($npcKey);
         if (! $npcData) {
             return back()->with('error', 'Ongeldig NPC bendelid geselecteerd.');
         }

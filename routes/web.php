@@ -461,6 +461,11 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/gangs/panden/hire-npc/{npcKey}', [GangPropertyController::class, 'hireNpc'])->name('gangs.panden.hire-npc');
     Route::post('/gangs/panden/{property}/assign-npc', [GangPropertyController::class, 'assignNpc'])->name('gangs.panden.assign-npc');
 
+    // Bende Garage & Wagenpark
+    Route::get('/gangs/garage', [GangPropertyController::class, 'garage'])->name('gangs.garage');
+    Route::post('/gangs/garage/stallen/{characterVehicle}', [GangPropertyController::class, 'storeVehicle'])->name('gangs.garage.store-vehicle');
+    Route::post('/gangs/garage/ophalen/{characterVehicle}', [GangPropertyController::class, 'retrieveVehicle'])->name('gangs.garage.retrieve-vehicle');
+
     // Controlepunten (King of the Hill - Verover en Verdien)
     Route::get('/controlepunten', [ControlPointController::class, 'index'])->name('control-points.index');
     Route::post('/controlepunten/{point}/claim', [ControlPointController::class, 'capture'])->name('control-points.capture');

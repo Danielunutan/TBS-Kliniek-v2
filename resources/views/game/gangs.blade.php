@@ -142,6 +142,18 @@
                         </span>
                     </a>
 
+                    <!-- Bende Garage & Wagenpark -->
+                    <a href="{{ route('gangs.garage') }}" 
+                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400 w-4 text-center"></i>
+                            <span class="font-extrabold text-purple-700 dark:text-purple-300">Bende Garage</span>
+                        </span>
+                        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
+                            {{ $myGang->storedVehicles->count() }}/{{ $myGang->total_vehicle_slots }}
+                        </span>
+                    </a>
+
                     @if($myGang && $myGang->isOfficer($character))
                     <button type="button" @click="setGangTab('beheer')" 
                             :class="activeGangTab === 'beheer' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"

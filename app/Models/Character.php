@@ -356,6 +356,14 @@ class Character extends Model
     }
 
     /**
+     * Get avatar url method alias for avatar_url attribute.
+     */
+    public function getAvatarUrl(): string
+    {
+        return $this->avatar_url;
+    }
+
+    /**
      * Check if character is currently granted accompanied leave outside the clinic.
      */
     public function isOnLeave(): bool
@@ -985,8 +993,8 @@ class Character extends Model
      */
     public function activeVehicle(): ?CharacterVehicle
     {
-        return $this->characterVehicles()->where('is_active', true)->with('vehicle')->first()
-            ?? $this->characterVehicles()->with('vehicle')->first();
+        return $this->characterVehicles()->where('in_gang_garage', false)->where('is_active', true)->with('vehicle')->first()
+            ?? $this->characterVehicles()->where('in_gang_garage', false)->with('vehicle')->first();
     }
 
     /**

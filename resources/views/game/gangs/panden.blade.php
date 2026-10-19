@@ -1,12 +1,25 @@
 @extends('layouts.app')
 
-@section('title', 'Bende Panden, Fabrieken & NPC Rekruten - ' . $gang->name . ' - TBS Kliniek')
+@section('title', 'Bende Panden, Fabrieken & Garage - ' . $gang->name . ' - TBS Kliniek')
 
 @section('content')
 <div class="space-y-6" x-data="{
     activeCategory: 'all',
     selectedProperty: null,
-    showNpcModal: false
+    showNpcModal: false,
+    propCd: {{ $rotatingProperties['seconds_left'] ?? 1800 }},
+    npcCd: {{ $rotatingNpcs['seconds_left'] ?? 1800 }},
+    init() {
+        setInterval(() => {
+            if (this.propCd > 0) this.propCd--;
+            if (this.npcCd > 0) this.npcCd--;
+        }, 1000);
+    },
+    formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    }
 }">
 
     <!-- Top Hero Header -->
@@ -16,6 +29,10 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <a href="{{ route('gangs.index') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline">
                         <i class="fa-solid fa-arrow-left"></i> Terug naar Bende
+                    </a>
+                    <span class="text-slate-300 dark:text-slate-700">•</span>
+                    <a href="{{ route('gangs.garage') }}" class="inline-flex items-center gap-1.5 text-xs font-black text-white bg-purple-600 hover:bg-purple-700 px-2.5 py-0.5 rounded-full shadow-2xs transition">
+                        <i class="fa-solid fa-warehouse"></i> Bende Garage ({{ $storedVehiclesCount ?? 0 }}/{{ $totalVehicles ?? 0 }} wagens)
                     </a>
                     <span class="text-slate-300 dark:text-slate-700">•</span>
                     <a href="{{ route('marketplace.index', ['type' => 'property']) }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
@@ -32,10 +49,10 @@
                     @endif
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Bende Panden & Vastgoed
+                    Bende Panden, Garage & Vastgoed
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-                    Breid het territorium van je bende uit. Koop loodsen voor extra opslag en voertuigen, start winstgevende fabrieken en vestig luxe villa's om gespecialiseerde NPC bendeleden te huisvesten!
+                    Breid het territorium van je bende uit. Koop garage- en opslagpanden voor jullie wagenpark, start winstgevende fabrieken en vestig luxe villa's om gespecialiseerde NPC bendeleden te huisvesten!
                 </p>
             </div>
 
@@ -68,18 +85,24 @@
             <p class="text-[11px] text-slate-500 mt-1">Extra kluis- & buitcapaciteit</p>
         </div>
 
-        <!-- Vehicle Slots -->
+        <!-- Vehicle Slots & Bende Garage Link -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
             <div class="flex items-center justify-between mb-2">
                 <span class="text-xs font-black uppercase text-slate-500">Voertuig Stallingen</span>
                 <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-car"></i>
+                    <i class="fa-solid fa-warehouse"></i>
                 </div>
             </div>
-            <div class="text-2xl font-black font-mono text-slate-900 dark:text-white">
-                {{ number_format($totalVehicles, 0, ',', '.') }} <span class="text-xs text-slate-400 font-sans font-bold">wagens</span>
+            <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-black font-mono text-slate-900 dark:text-white">{{ $storedVehiclesCount ?? 0 }} / {{ $totalVehicles }}</span>
+                <span class="text-xs text-slate-400 font-sans font-bold">wagens</span>
             </div>
-            <p class="text-[11px] text-slate-500 mt-1">Voor heists en bende vervoer</p>
+            <div class="mt-2">
+                <a href="{{ route('gangs.garage') }}" class="text-[11px] font-black text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1">
+                    <span>Open Bende Garage</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
         </div>
 
         <!-- NPC Capacity -->
@@ -117,6 +140,86 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- 30-MINUTE ROTATING PANDEN SHOWROOM BANNER  -->
+    <!-- ========================================== -->
+    <div class="bg-gradient-to-r from-purple-900/90 via-slate-900 to-indigo-950 border border-purple-500/30 rounded-2xl p-5 shadow-lg relative overflow-hidden text-white">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-400 text-slate-950 animate-pulse">
+                        30-Min Rotatie
+                    </span>
+                    <span class="text-xs font-bold text-purple-200">Elk half uur nieuwe panden & exclusieve kortingen!</span>
+                </div>
+                <h3 class="text-lg font-black tracking-tight">Actuele Vastgoed Rotatie Aanbiedingen</h3>
+                <p class="text-xs text-slate-300">
+                    Net als bij de Smokkel Garage roteert het aanbod van bende panden elk half uur (:00 en :30). Grijp tijdelijke kortingen met de bendekas!
+                </p>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="bg-black/40 border border-purple-500/30 rounded-xl px-4 py-2.5 flex items-center gap-3 shrink-0">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-stopwatch animate-pulse"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Nieuwe Panden Over</span>
+                    <span class="text-base font-black font-mono text-amber-300" x-text="formatTime(propCd)"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rotating Cards Strip -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 pt-3 border-t border-purple-500/20">
+            @foreach($rotatingProperties['listings'] ?? [] as $offer)
+                @php
+                    $p = $offer['property'];
+                    $alreadyOwned = $ownedProperties->has($p['key']);
+                    $dynPrice = $offer['dynamic_price'];
+                    $canAffordRot = (int) $gang->treasury >= $dynPrice;
+                @endphp
+                <div class="bg-slate-900/80 border {{ $alreadyOwned ? 'border-emerald-500/50' : 'border-purple-500/30' }} rounded-xl p-3.5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-1 mb-1.5">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-purple-300">{{ $p['category_label'] }}</span>
+                            @if($offer['discount_pct'] > 0)
+                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-500 text-slate-950">-{{ $offer['discount_pct'] }}%</span>
+                            @endif
+                        </div>
+                        <h4 class="font-extrabold text-xs text-white truncate">{{ $p['name'] }}</h4>
+                        <div class="text-[11px] text-purple-200 mt-1 flex items-center gap-2">
+                            <span><i class="fa-solid fa-car text-blue-400"></i> {{ $p['vehicle_slots'] ?? 0 }} wagens</span>
+                            <span>•</span>
+                            <span><i class="fa-solid fa-boxes-stacked text-amber-400"></i> +{{ $p['storage_capacity'] ?? 0 }} opslag</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
+                        <span class="text-xs font-black font-mono text-emerald-400">€ {{ number_format($dynPrice, 0, ',', '.') }}</span>
+                        @if($alreadyOwned)
+                            <span class="text-[10px] font-black text-emerald-400">Bezit ✓</span>
+                        @elseif($isOfficer)
+                            <form action="{{ route('gangs.panden.buy', $p['key']) }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="token" value="{{ $offer['token'] }}">
+                                <input type="hidden" name="dynamic_price" value="{{ $dynPrice }}">
+                                <button type="submit" 
+                                        @if(!$canAffordRot) disabled @endif
+                                        onclick="return confirm('Koop {{ $p['name'] }} voor €{{ number_format($dynPrice, 0, ',', '.') }} uit de bendekas?')"
+                                        class="px-2.5 py-1 rounded-lg {{ $canAffordRot ? 'bg-purple-600 hover:bg-purple-500 text-white cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed' }} text-[10px] font-black uppercase transition">
+                                    Kopen
+                                </button>
+                            </form>
+                        @else
+                            <span class="text-[10px] text-slate-500 italic">Beheerder</span>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
     <!-- Category Filter Tabs -->
     <div class="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl overflow-x-auto text-xs font-bold">
         <button type="button" @click="activeCategory = 'all'"
@@ -129,7 +232,7 @@
                 :class="activeCategory === 'storage' ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                 class="px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shrink-0">
             <i class="fa-solid fa-warehouse text-amber-500"></i>
-            <span>Opslag & Stallingen (Loodsen / Bunker)</span>
+            <span>Garages & Opslag (Loodsen / Bunker)</span>
         </button>
         <button type="button" @click="activeCategory = 'production'"
                 :class="activeCategory === 'production' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
@@ -147,7 +250,7 @@
                 :class="activeCategory === 'npcs' ? 'bg-white dark:bg-slate-900 text-cyan-600 dark:text-cyan-400 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
                 class="px-4 py-2.5 rounded-xl transition cursor-pointer flex items-center gap-2 shrink-0">
             <i class="fa-solid fa-users-gear text-cyan-500"></i>
-            <span>NPC Rekruten ({{ $hiredNpcs->count() }})</span>
+            <span>100+ NPC Rekruten ({{ $hiredNpcs->count() }})</span>
         </button>
     </div>
 
@@ -201,101 +304,36 @@
                     <span>{{ $prop['perks_summary'] }}</span>
                 </div>
 
-                <!-- ========================================== -->
-                <!-- IF OWNED & PRODUCTION FACILITY             -->
-                <!-- ========================================== -->
-                @if($isOwned && $owned->isProduction())
-                @php
-                    $isReady = $owned->isReadyToClaim();
-                    $isProducing = $owned->isProducing();
-                    $secondsLeft = $owned->productionSecondsRemaining();
-                    $rewards = $owned->getEffectiveRewards();
-                    $assignedNpc = $hiredNpcs->firstWhere('assigned_property_id', $owned->id);
-                @endphp
-                <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                    <div class="flex items-center justify-between text-xs font-extrabold">
-                        <span class="text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-gear fa-spin text-purple-500"></i> Productiestatus:
-                        </span>
-                        @if($isReady)
-                            <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 animate-pulse">Gereed om te claimen!</span>
-                        @elseif($isProducing)
-                            <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">In productie...</span>
+                <!-- Production Status if Owned & Production Type -->
+                @if($isOwned && $prop['category'] === 'production')
+                <div class="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold text-slate-500">Productie Status:</span>
+                        @if($owned->isProductionReady())
+                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold text-[10px]">
+                                Klaar om te claimen!
+                            </span>
+                        @elseif($owned->isProducing())
+                            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 font-extrabold text-[10px]">
+                                Bezig ({{ $owned->remaining_production_minutes }} min)
+                            </span>
                         @else
-                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400">Inactief (Klaar voor start)</span>
+                            <span class="text-slate-400 text-xs italic">Inactief</span>
                         @endif
                     </div>
 
-                    <!-- Assigned Specialist Badge -->
-                    <div class="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-xs flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-user-tie text-purple-600 dark:text-purple-400"></i>
-                            <div>
-                                <span class="font-extrabold text-purple-950 dark:text-purple-200 block text-[11px]">
-                                    {{ $assignedNpc ? $assignedNpc->name : 'Geen NPC Specialist' }}
-                                </span>
-                                <span class="text-[10px] text-purple-700 dark:text-purple-300 block">
-                                    {{ $assignedNpc ? $assignedNpc->role_title : 'Wijs een NPC toe voor +25% opbrengst' }}
-                                </span>
-                            </div>
-                        </div>
-
-                        @if($isOfficer && $hiredNpcs->count() > 0)
-                        <form method="POST" action="{{ route('gangs.panden.assign-npc', $owned->id) }}" class="inline">
-                            @csrf
-                            <select name="npc_id" onchange="this.form.submit()" class="text-[10px] py-1 px-1.5 rounded-lg border border-purple-300 dark:border-purple-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold outline-none cursor-pointer">
-                                <option value="">{{ $assignedNpc ? 'Verwijder NPC' : '+ Wijs NPC toe' }}</option>
-                                @foreach($hiredNpcs as $npc)
-                                    <option value="{{ $npc->id }}" {{ $assignedNpc && $assignedNpc->id === $npc->id ? 'selected' : '' }}>
-                                        {{ $npc->name }} ({{ $npc->role_title }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </form>
-                        @endif
-                    </div>
-
-                    <!-- Production Timer or Rewards -->
-                    @if($isProducing)
-                    <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 rounded-xl p-3 text-xs space-y-1.5"
-                         x-data="{
-                             left: {{ $secondsLeft }},
-                             format() {
-                                 if (this.left <= 0) return 'Gereed! (Ververs pagina)';
-                                 const total = Math.floor(this.left);
-                                 const h = Math.floor(total / 3600);
-                                 const m = Math.floor((total % 3600) / 60);
-                                 const s = Math.floor(total % 60);
-                                 return `${h}u ${m < 10 ? '0' : ''}${m}m ${s < 10 ? '0' : ''}${s}s`;
-                             },
-                             init() {
-                                 setInterval(() => { if (this.left > 0) this.left--; }, 1000);
-                             }
-                         }">
-                        <div class="flex items-center justify-between text-blue-900 dark:text-blue-200 font-bold">
-                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> Resterende tijd:</span>
-                            <span class="font-black font-mono text-sm" x-text="format()"></span>
-                        </div>
-                        <div class="w-full bg-blue-200 dark:bg-blue-900 rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-blue-600 h-1.5 rounded-full animate-pulse" style="width: 70%"></div>
-                        </div>
-                    </div>
-                    @endif
-
-                    <!-- Claim Button if Ready -->
-                    @if($isReady)
-                    <form method="POST" action="{{ route('gangs.panden.claim-production', $owned->id) }}">
+                    @if($owned->isProductionReady() && $isOfficer)
+                    <form method="POST" action="{{ route('gangs.panden.claim-production', $owned) }}">
                         @csrf
-                        <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer animate-bounce">
+                        <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-sack-dollar"></i>
-                            <span>Claim Buit: €{{ number_format($rewards['cash'], 0, ',', '.') }} & +{{ $rewards['respect'] }} Respect</span>
+                            <span>Claim Opbrengst (+€{{ number_format($owned->effective_reward_cash, 0, ',', '.') }})</span>
                         </button>
                     </form>
-                    @elseif(! $isProducing && $isOfficer)
-                    <!-- Start Production Button -->
-                    <form method="POST" action="{{ route('gangs.panden.start-production', $owned->id) }}">
+                    @elseif(! $owned->isProducing() && $isOfficer)
+                    <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}">
                         @csrf
-                        <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-play"></i>
                             <span>Start Productiecyclus ({{ $owned->production_duration_minutes }} min)</span>
                         </button>
@@ -339,22 +377,33 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- NPC RECRUITS SECTION                       -->
+    <!-- 100+ NPC RECRUITS SECTION WITH 30-MIN ROTATION -->
     <!-- ========================================== -->
     <div x-show="activeCategory === 'npcs' || activeCategory === 'all'" class="space-y-4 pt-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
             <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                        100+ Karakters Pool
+                    </span>
+                    <span class="text-xs text-slate-500">Roterende Werving</span>
+                </div>
                 <h2 class="text-base font-black text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
                     <i class="fa-solid fa-users-gear text-purple-600"></i>
-                    <span>NPC Bendeleden & Specialisten</span>
+                    <span>NPC Bendeleden & Specialisten (Rotatie Showroom)</span>
                 </h2>
                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Huur ervaren criminelen in om je fabrieken te runnen, opbrengsten te maximaliseren en bende respect te verhogen.
+                    Huur ervaren criminelen, chauffeurs, tuners, chemici en witwassers in om je bende bonussen te geven!
                 </p>
             </div>
-            <div>
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-2 text-xs font-mono font-bold">
+                    <i class="fa-solid fa-stopwatch text-purple-500"></i>
+                    <span class="text-slate-500">Ververst in:</span>
+                    <span class="text-purple-600 dark:text-purple-400 font-black" x-text="formatTime(npcCd)"></span>
+                </div>
                 <span class="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 text-xs font-black text-purple-700 dark:text-purple-300">
-                    Capaciteit: {{ $hiredNpcs->count() }} / {{ $totalNpcCap }} ingehuurd
+                    Capaciteit: {{ $hiredNpcs->count() }} / {{ $totalNpcCap }}
                 </span>
             </div>
         </div>
@@ -366,16 +415,18 @@
             <div class="text-xs text-amber-900 dark:text-amber-200 space-y-1">
                 <span class="font-black block">Geen woonruimte voor NPC bendeleden!</span>
                 <p class="text-amber-800 dark:text-amber-300">
-                    Om NPC bendeleden aan te nemen moet je bende eerst een <strong>Luxe Sky-Penthouse (3 plekken)</strong> of een <strong>Zwaarbeveiligd Landgoed & Villa (8 plekken)</strong> bezitten.
+                    Om NPC bendeleden aan te nemen moet je bende eerst een <strong>Luxe Sky-Penthouse</strong>, <strong>Havenjachthuis</strong>, <strong>Grachtenpand</strong> of <strong>Gang Villa</strong> bezitten.
                 </p>
             </div>
         </div>
         @endif
 
-        <!-- NPC Catalog Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            @foreach($npcCatalog as $npcKey => $npcDef)
+        <!-- Rotating NPC Showroom Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            @foreach($rotatingNpcs['listings'] ?? [] as $item)
             @php
+                $npcDef = $item['npc'];
+                $npcKey = $npcDef['key'];
                 $hiredInstances = $hiredNpcs->where('npc_key', $npcKey);
                 $isHired = $hiredInstances->count() > 0;
                 $canAffordNpc = (int) $gang->treasury >= $npcDef['cost'];

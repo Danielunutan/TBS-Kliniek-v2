@@ -18,12 +18,24 @@ class CharacterVehicle extends Model
         'tuned_speed' => 'integer',
         'is_active' => 'boolean',
         'is_for_sale' => 'boolean',
+        'in_gang_garage' => 'boolean',
+        'stored_at' => 'datetime',
         'total_heists_done' => 'integer',
     ];
 
     public function character(): BelongsTo
     {
         return $this->belongsTo(Character::class);
+    }
+
+    public function gang(): BelongsTo
+    {
+        return $this->belongsTo(Gang::class);
+    }
+
+    public function storedBy(): BelongsTo
+    {
+        return $this->belongsTo(Character::class, 'stored_by_character_id');
     }
 
     public function vehicle(): BelongsTo
