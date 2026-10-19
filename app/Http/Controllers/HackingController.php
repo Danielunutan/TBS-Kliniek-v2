@@ -82,7 +82,7 @@ class HackingController extends Controller
 
         // Seconds until midnight for countdown if already completed today
         $now = Carbon::now(config('app.timezone', 'Europe/Amsterdam'));
-        $secondsUntilMidnight = $now->copy()->endOfDay()->diffInSeconds($now);
+        $secondsUntilMidnight = (int) abs($now->diffInSeconds($now->copy()->endOfDay()));
 
         return view('game.hacking.index', compact(
             'character',

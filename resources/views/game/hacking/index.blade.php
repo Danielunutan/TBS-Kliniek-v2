@@ -41,8 +41,8 @@
             <div class="flex items-center gap-3 shrink-0">
                 <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl px-4 py-2.5 text-center min-w-[120px] shadow-inner">
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Terminal Status</span>
-                    <span class="text-sm font-black" :class="canHack ? 'text-emerald-400' : 'text-amber-400'">
-                        <span x-text="canHack ? 'TOEGANG OPEN' : 'VERGRENDELD'"></span>
+                    <span class="text-sm font-black" :class="canHack && stage != 'done' ? 'text-emerald-400' : 'text-amber-400'">
+                        <span x-text="canHack && stage != 'done' ? 'TOEGANG OPEN' : 'VERGRENDELD'"></span>
                     </span>
                     <span class="text-[9px] text-slate-500 block">1x Poging Per Dag</span>
                 </div>
@@ -74,230 +74,218 @@
                         <span class="text-xs text-slate-400 font-bold ml-2">root@tbs-mainframe:~#</span>
                     </div>
                     <div class="flex items-center gap-2 text-xs">
-                        <template x-if="stage === 1 || stage === 2 || stage === 3">
-                            <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-rose-950/80 border border-rose-500/50 text-rose-300 font-black">
-                                <i class="fa-solid fa-stopwatch animate-pulse"></i>
-                                <span>ALARM TIMER: </span>
-                                <span class="text-sm font-black text-rose-400" x-text="timerSeconds + 's'">60s</span>
-                            </div>
-                        </template>
+                        <div x-show="canHack && (stage == 1 || stage == 2 || stage == 3)" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-rose-950/80 border border-rose-500/50 text-rose-300 font-black">
+                            <i class="fa-solid fa-stopwatch animate-pulse"></i>
+                            <span>ALARM TIMER: </span>
+                            <span class="text-sm font-black text-rose-400" x-text="timerSeconds + 's'">60s</span>
+                        </div>
                         <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-bold" x-text="'STAGE: ' + getStageLabel()"></span>
                     </div>
                 </div>
 
-                <!-- CRT Scanlines Background Effect -->
+                <!-- CRT Screen Body -->
                 <div class="p-6 relative min-h-[440px] flex flex-col justify-between" style="background: radial-gradient(circle at center, #022c22 0%, #020617 80%);">
 
                     <!-- STATE 1: ALREADY COMPLETED TODAY (LOCKED UNTIL RESET) -->
-                    <template x-if="stage === 'done' || !canHack">
-                        <div class="flex flex-col items-center justify-center text-center py-12 space-y-5">
-                            <div class="w-20 h-20 rounded-2xl bg-emerald-950 border-2 border-emerald-500/40 text-emerald-400 flex items-center justify-center text-3xl shadow-[0_0_30px_rgba(16,185,129,0.3)]">
-                                <i class="fa-solid fa-lock"></i>
-                            </div>
-                            <div class="space-y-1">
-                                <h3 class="text-xl font-black text-white tracking-wide">MAINFRAME LOCKOUT ACTIEF</h3>
-                                <p class="text-xs text-emerald-300/80 max-w-md mx-auto">
-                                    Je hebt vandaag je dagelijkse hackpoging al voltooid of de kliniekbeveiliging heeft de trace afgerond. De poorten resetten automatisch om middernacht!
-                                </p>
-                            </div>
-                            <div class="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-center">
-                                <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">Volgende inbraakpoging beschikbaar over:</span>
-                                <span class="text-2xl font-black text-emerald-400 font-mono tracking-wider" x-text="formatTime(secondsLeftDaily)">00:00:00</span>
-                            </div>
+                    <div x-show="!canHack || stage == 'done'" class="flex flex-col items-center justify-center text-center py-12 space-y-5 my-auto">
+                        <div class="w-20 h-20 rounded-2xl bg-emerald-950 border-2 border-emerald-500/40 text-emerald-400 flex items-center justify-center text-3xl shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                            <i class="fa-solid fa-lock"></i>
                         </div>
-                    </template>
+                        <div class="space-y-1">
+                            <h3 class="text-xl font-black text-white tracking-wide">MAINFRAME LOCKOUT ACTIEF</h3>
+                            <p class="text-xs text-emerald-300/80 max-w-md mx-auto">
+                                Je hebt vandaag je dagelijkse hackpoging al voltooid of de kliniekbeveiliging heeft de trace afgerond. De poorten resetten automatisch om middernacht!
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-center">
+                            <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">Volgende inbraakpoging beschikbaar over:</span>
+                            <span class="text-2xl font-black text-emerald-400 font-mono tracking-wider" x-text="formatTime(secondsLeftDaily)">00:00:00</span>
+                        </div>
+                    </div>
 
                     <!-- PUZZLE 1: FIREWALL BYPASS (HEX NODE SEQUENCE) -->
-                    <template x-if="canHack && stage === 1">
-                        <div class="space-y-5">
-                            <div class="border-b border-emerald-500/20 pb-3 flex items-center justify-between">
-                                <div>
-                                    <div class="text-[10px] text-emerald-500 uppercase tracking-widest font-black">Puzzel 1 van 3 (Moeilijkheid: Basis)</div>
-                                    <h2 class="text-base font-black text-white">FIREWALL ENCRYPTIE BYPASS</h2>
-                                </div>
-                                <span class="text-xs text-slate-400">Match de 3 cryptografische nodes in de juiste volgorde</span>
+                    <div x-show="canHack && stage == 1" class="space-y-5">
+                        <div class="border-b border-emerald-500/20 pb-3 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-emerald-500 uppercase tracking-widest font-black">Puzzel 1 van 3 (Moeilijkheid: Basis)</div>
+                                <h2 class="text-base font-black text-white">FIREWALL ENCRYPTIE BYPASS</h2>
                             </div>
+                            <span class="text-xs text-slate-400">Match de 3 cryptografische nodes in de juiste volgorde</span>
+                        </div>
 
-                            <!-- Target Sequence -->
-                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex items-center justify-between">
-                                <div class="text-xs font-bold text-slate-300">VEREISTE SLEUTEL REEKS:</div>
-                                <div class="flex items-center gap-2">
-                                    <template x-for="(code, idx) in p1Target" :key="idx">
-                                        <div class="px-3 py-1.5 rounded-lg text-xs font-black font-mono transition-all border"
-                                             :class="p1UserStep > idx ? 'bg-emerald-500 text-slate-950 border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : (p1UserStep === idx ? 'bg-amber-500/20 text-amber-300 border-amber-400 animate-pulse' : 'bg-slate-800 text-slate-400 border-slate-700')">
-                                            <span x-text="code"></span>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <!-- 4x4 Grid of Hex Nodes -->
-                            <div class="grid grid-cols-4 gap-2.5 max-w-md mx-auto pt-2">
-                                <template x-for="(node, idx) in p1Grid" :key="idx">
-                                    <button type="button" @click="handleP1Click(node)"
-                                            class="py-3 px-2 rounded-xl text-xs font-black font-mono border transition-all transform active:scale-95 cursor-pointer flex flex-col items-center justify-center gap-0.5"
-                                            :class="node.status === 'selected' ? 'bg-emerald-500 text-slate-950 border-emerald-300 font-black shadow-[0_0_15px_rgba(16,185,129,0.6)]' : (node.status === 'wrong' ? 'bg-rose-500 text-white border-rose-300 animate-shake' : 'bg-slate-900/80 hover:bg-emerald-950/60 text-emerald-400 border-emerald-500/30 hover:border-emerald-400')">
-                                        <span x-text="node.val"></span>
-                                        <span class="text-[8px] text-slate-500 uppercase tracking-tighter">NODE-<span x-text="idx+1"></span></span>
-                                    </button>
+                        <!-- Target Sequence -->
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex items-center justify-between">
+                            <div class="text-xs font-bold text-slate-300">VEREISTE SLEUTEL REEKS:</div>
+                            <div class="flex items-center gap-2">
+                                <template x-for="(code, idx) in p1Target" :key="idx">
+                                    <div class="px-3 py-1.5 rounded-lg text-xs font-black font-mono transition-all border"
+                                         :class="p1UserStep > idx ? 'bg-emerald-500 text-slate-950 border-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : (p1UserStep === idx ? 'bg-amber-500/20 text-amber-300 border-amber-400 animate-pulse' : 'bg-slate-800 text-slate-400 border-slate-700')">
+                                        <span x-text="code"></span>
+                                    </div>
                                 </template>
                             </div>
-
-                            <p class="text-center text-[11px] text-slate-400 italic">
-                                Klik op de overeenkomende hex-codes volgens de reeks bovenaan. Foute invoer reset de buffer!
-                            </p>
                         </div>
-                    </template>
+
+                        <!-- 4x4 Grid of Hex Nodes -->
+                        <div class="grid grid-cols-4 gap-2.5 max-w-md mx-auto pt-2">
+                            <template x-for="(node, idx) in p1Grid" :key="idx">
+                                <button type="button" @click="handleP1Click(node)"
+                                        class="py-3 px-2 rounded-xl text-xs font-black font-mono border transition-all transform active:scale-95 cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                                        :class="node.status === 'selected' ? 'bg-emerald-500 text-slate-950 border-emerald-300 font-black shadow-[0_0_15px_rgba(16,185,129,0.6)]' : (node.status === 'wrong' ? 'bg-rose-500 text-white border-rose-300' : 'bg-slate-900/80 hover:bg-emerald-950/60 text-emerald-400 border-emerald-500/30 hover:border-emerald-400')">
+                                    <span x-text="node.val"></span>
+                                    <span class="text-[8px] text-slate-500 uppercase tracking-tighter">NODE-<span x-text="idx+1"></span></span>
+                                </button>
+                            </template>
+                        </div>
+
+                        <p class="text-center text-[11px] text-slate-400 italic">
+                            Klik op de overeenkomende hex-codes volgens de reeks bovenaan. Foute invoer reset de buffer!
+                        </p>
+                    </div>
 
                     <!-- PUZZLE 2: CYPHER DECRYPTIE (POORT FREQUENTIES) -->
-                    <template x-if="canHack && stage === 2">
-                        <div class="space-y-5">
-                            <div class="border-b border-emerald-500/20 pb-3 flex items-center justify-between">
-                                <div>
-                                    <div class="text-[10px] text-emerald-500 uppercase tracking-widest font-black">Puzzel 2 van 3 (Moeilijkheid: Gemiddeld)</div>
-                                    <h2 class="text-base font-black text-white">CYPHER POORT SYNCHRONISATIE</h2>
-                                </div>
-                                <span class="text-xs text-slate-400">Verbind alle 4 data-kanalen met het mainframe</span>
+                    <div x-show="canHack && stage == 2" class="space-y-5">
+                        <div class="border-b border-emerald-500/20 pb-3 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-emerald-500 uppercase tracking-widest font-black">Puzzel 2 van 3 (Moeilijkheid: Gemiddeld)</div>
+                                <h2 class="text-base font-black text-white">CYPHER POORT SYNCHRONISATIE</h2>
                             </div>
+                            <span class="text-xs text-slate-400">Verbind alle 4 data-kanalen met het mainframe</span>
+                        </div>
 
-                            <!-- 4 Sync Ports -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                                <template x-for="(port, idx) in p2Ports" :key="idx">
-                                    <div class="p-3.5 rounded-xl border transition-all"
-                                         :class="port.synced ? 'bg-emerald-950/40 border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-slate-900/80 border-slate-700'">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <span class="text-xs font-black text-white" x-text="port.name"></span>
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                                  :class="port.synced ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-amber-500/20 text-amber-400'">
-                                                <span x-text="port.synced ? 'LOCKED' : 'DESYNC'"></span>
-                                            </span>
+                        <!-- 4 Sync Ports -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <template x-for="(port, idx) in p2Ports" :key="idx">
+                                <div class="p-3.5 rounded-xl border transition-all"
+                                     :class="port.synced ? 'bg-emerald-950/40 border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 'bg-slate-900/80 border-slate-700'">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-xs font-black text-white" x-text="port.name"></span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                              :class="port.synced ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-amber-500/20 text-amber-400'">
+                                            <span x-text="port.synced ? 'LOCKED' : 'DESYNC'"></span>
+                                        </span>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                                            <span>Frequentie: <span class="text-emerald-400" x-text="port.current + ' MHz'"></span></span>
+                                            <span>Doel: <span class="text-amber-300" x-text="port.target + ' MHz'"></span></span>
                                         </div>
-                                        <div class="space-y-1.5">
-                                            <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                                                <span>Frequentie: <span class="text-emerald-400" x-text="port.current + ' MHz'"></span></span>
-                                                <span>Doel: <span class="text-amber-300" x-text="port.target + ' MHz'"></span></span>
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" @click="adjustPort(idx, -5)" :disabled="port.synced"
+                                                    class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">-</button>
+                                            <div class="flex-1 bg-slate-950 rounded-full h-2.5 border border-slate-700 overflow-hidden relative">
+                                                <div class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full rounded-full transition-all"
+                                                     :style="'width: ' + Math.min(100, Math.max(0, (port.current / port.target) * 100)) + '%'"></div>
                                             </div>
-                                            <div class="flex items-center gap-2">
-                                                <button type="button" @click="adjustPort(idx, -5)" :disabled="port.synced"
-                                                        class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">-</button>
-                                                <div class="flex-1 bg-slate-950 rounded-full h-2.5 border border-slate-700 overflow-hidden relative">
-                                                    <div class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full rounded-full transition-all"
-                                                         :style="'width: ' + Math.min(100, Math.max(0, (port.current / port.target) * 100)) + '%'"></div>
-                                                </div>
-                                                <button type="button" @click="adjustPort(idx, +5)" :disabled="port.synced"
-                                                        class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">+</button>
-                                            </div>
+                                            <button type="button" @click="adjustPort(idx, +5)" :disabled="port.synced"
+                                                    class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-black text-xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">+</button>
                                         </div>
                                     </div>
-                                </template>
-                            </div>
-
-                            <p class="text-center text-[11px] text-slate-400 italic">
-                                Stel de frequenties van alle 4 de poorten af op exact hun doelwaarde om de tunnel te openen.
-                            </p>
+                                </div>
+                            </template>
                         </div>
-                    </template>
+
+                        <p class="text-center text-[11px] text-slate-400 italic">
+                            Stel de frequenties van alle 4 de poorten af op exact hun doelwaarde om de tunnel te openen.
+                        </p>
+                    </div>
 
                     <!-- PUZZLE 3: HOOFDSERVER ROOT ACCESS (CIRCUIT OVERRIDE) -->
-                    <template x-if="canHack && stage === 3">
-                        <div class="space-y-5">
-                            <div class="border-b border-emerald-500/20 pb-3 flex items-center justify-between">
-                                <div>
-                                    <div class="text-[10px] text-emerald-500 uppercase tracking-widest font-black">Puzzel 3 van 3 (Moeilijkheid: Expert)</div>
-                                    <h2 class="text-base font-black text-white">HOOFDSERVER ROOT ADMIN OVERRIDE</h2>
-                                </div>
-                                <span class="text-xs text-slate-400">Verbind de 3 hoofd-nodes en activeer de override</span>
+                    <div x-show="canHack && stage == 3" class="space-y-5">
+                        <div class="border-b border-emerald-500/20 pb-3 flex items-center justify-between">
+                            <div>
+                                <div class="text-[10px] text-emerald-500 uppercase tracking-widest font-black">Puzzel 3 van 3 (Moeilijkheid: Expert)</div>
+                                <h2 class="text-base font-black text-white">HOOFDSERVER ROOT ADMIN OVERRIDE</h2>
                             </div>
-
-                            <!-- 3 Core Processor Nodes -->
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                                <template x-for="(core, idx) in p3Cores" :key="idx">
-                                    <button type="button" @click="toggleCore(idx)"
-                                            class="p-4 rounded-xl border transition-all text-center space-y-2 cursor-pointer transform active:scale-95"
-                                            :class="core.active ? 'bg-emerald-950/80 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-slate-900/90 border-slate-700 hover:border-slate-500'">
-                                        <div class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center text-xl transition-all"
-                                             :class="core.active ? 'bg-emerald-500 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-500'">
-                                            <i class="fa-solid" :class="core.icon"></i>
-                                        </div>
-                                        <div>
-                                            <span class="text-xs font-black block text-white" x-text="core.name"></span>
-                                            <span class="text-[10px] font-bold block" :class="core.active ? 'text-emerald-400' : 'text-slate-500'" x-text="core.active ? 'ONLINE (100%)' : 'OFFLINE (0%)'"></span>
-                                        </div>
-                                    </button>
-                                </template>
-                            </div>
-
-                            <!-- Master Override Switch -->
-                            <div class="pt-4 text-center">
-                                <button type="button" @click="checkP3Solution()"
-                                        :disabled="!p3AllActive"
-                                        class="px-8 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 mx-auto"
-                                        :class="p3AllActive ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.7)] cursor-pointer active:scale-95' : 'bg-slate-800 text-slate-500 cursor-not-allowed'">
-                                    <i class="fa-solid fa-bolt"></i>
-                                    <span>EXECUTE ROOT OVERRIDE</span>
-                                </button>
-                            </div>
+                            <span class="text-xs text-slate-400">Verbind de 3 hoofd-nodes en activeer de override</span>
                         </div>
-                    </template>
+
+                        <!-- 3 Core Processor Nodes -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                            <template x-for="(core, idx) in p3Cores" :key="idx">
+                                <button type="button" @click="toggleCore(idx)"
+                                        class="p-4 rounded-xl border transition-all text-center space-y-2 cursor-pointer transform active:scale-95"
+                                        :class="core.active ? 'bg-emerald-950/80 border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.4)]' : 'bg-slate-900/90 border-slate-700 hover:border-slate-500'">
+                                    <div class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center text-xl transition-all"
+                                         :class="core.active ? 'bg-emerald-500 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-500'">
+                                        <i class="fa-solid" :class="core.icon"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-black block text-white" x-text="core.name"></span>
+                                        <span class="text-[10px] font-bold block" :class="core.active ? 'text-emerald-400' : 'text-slate-500'" x-text="core.active ? 'ONLINE (100%)' : 'OFFLINE (0%)'"></span>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
+
+                        <!-- Master Override Switch -->
+                        <div class="pt-4 text-center">
+                            <button type="button" @click="checkP3Solution()"
+                                    :disabled="!p3AllActive"
+                                    class="px-8 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 mx-auto"
+                                    :class="p3AllActive ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.7)] cursor-pointer active:scale-95' : 'bg-slate-800 text-slate-500 cursor-not-allowed'">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>EXECUTE ROOT OVERRIDE</span>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- STAGE 4: THE 10-SECTOR HACKER SPINNER REWARD WHEEL -->
-                    <template x-if="canHack && stage === 'wheel'">
-                        <div class="space-y-6 text-center py-2">
-                            <div>
-                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black border border-emerald-500/40 mb-2">
-                                    <i class="fa-solid fa-trophy"></i> ROOTHACK SUCCESVOL!
-                                </div>
-                                <h2 class="text-xl font-black text-white tracking-tight">HACKER SPINNER RAD (10 KANSEN)</h2>
-                                <p class="text-xs text-slate-300">
-                                    Alle 3 de beveiligingslagen zijn omzeild! Draai nu aan het rad om je buit direct binnen te halen.
-                                </p>
+                    <div x-show="canHack && stage == 'wheel'" class="space-y-6 text-center py-2">
+                        <div>
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-black border border-emerald-500/40 mb-2">
+                                <i class="fa-solid fa-trophy"></i> ROOTHACK SUCCESVOL!
                             </div>
+                            <h2 class="text-xl font-black text-white tracking-tight">HACKER SPINNER RAD (10 KANSEN)</h2>
+                            <p class="text-xs text-slate-300">
+                                Alle 3 de beveiligingslagen zijn omzeild! Draai nu aan het rad om je buit direct binnen te halen.
+                            </p>
+                        </div>
 
-                            <!-- VIP Extra Bonus Banner if VIP -->
-                            @if($character->isVip())
-                                <div class="max-w-md mx-auto p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/50 flex items-center gap-3 text-left">
-                                    <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-lg font-black shrink-0">
-                                        <i class="fa-solid fa-crown"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <span class="text-[10px] font-black uppercase text-amber-300 tracking-wider block">VIP Lidmaatschap Actief</span>
-                                        <span class="text-xs font-bold text-white block">Je ontvangt automatisch de exclusieve VIP bonus (+€25K, +3⭐, +1XXL, +4🎭) bovenop je winst!</span>
-                                    </div>
+                        <!-- VIP Extra Bonus Banner if VIP -->
+                        @if($character->isVip())
+                            <div class="max-w-md mx-auto p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/50 flex items-center gap-3 text-left">
+                                <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-lg font-black shrink-0">
+                                    <i class="fa-solid fa-crown"></i>
                                 </div>
-                            @endif
-
-                            <!-- Wheel Canvas Container -->
-                            <div class="relative my-4 flex items-center justify-center">
-                                <!-- Wheel Top Pointer -->
-                                <div class="absolute -top-3 z-30 flex flex-col items-center pointer-events-none drop-shadow-md">
-                                    <div class="w-8 h-8 bg-emerald-400 clip-arrow shadow-md flex items-center justify-center text-slate-950 text-xs pt-0.5 font-black border-t-2 border-emerald-200">
-                                        <i class="fa-solid fa-caret-down text-lg text-slate-950"></i>
-                                    </div>
+                                <div class="min-w-0">
+                                    <span class="text-[10px] font-black uppercase text-amber-300 tracking-wider block">VIP Lidmaatschap Actief</span>
+                                    <span class="text-xs font-bold text-white block">Je ontvangt automatisch de exclusieve VIP bonus (+€25K, +3⭐, +1XXL, +4🎭) bovenop je winst!</span>
                                 </div>
+                            </div>
+                        @endif
 
-                                <!-- The Wheel Canvas -->
-                                <div class="p-2 rounded-full bg-slate-950 shadow-[0_0_35px_rgba(16,185,129,0.3)] border-4 border-emerald-500/40">
-                                    <canvas id="hackingWheelCanvas" width="360" height="360" class="max-w-[300px] sm:max-w-[340px] aspect-square rounded-full transition-transform duration-75"></canvas>
-                                </div>
-
-                                <!-- Center Centerpiece -->
-                                <div class="absolute z-20 w-16 h-16 rounded-full bg-slate-950 border-4 border-emerald-400 text-emerald-400 flex flex-col items-center justify-center shadow-lg pointer-events-none">
-                                    <i class="fa-solid fa-laptop-code text-base"></i>
-                                    <span class="text-[8px] font-black uppercase tracking-wider text-white">ROOT</span>
+                        <!-- Wheel Canvas Container -->
+                        <div class="relative my-4 flex items-center justify-center">
+                            <!-- Wheel Top Pointer -->
+                            <div class="absolute -top-3 z-30 flex flex-col items-center pointer-events-none drop-shadow-md">
+                                <div class="w-8 h-8 bg-emerald-400 clip-arrow shadow-md flex items-center justify-center text-slate-950 text-xs pt-0.5 font-black border-t-2 border-emerald-200">
+                                    <i class="fa-solid fa-caret-down text-lg text-slate-950"></i>
                                 </div>
                             </div>
 
-                            <!-- Spin Button -->
-                            <div class="max-w-xs mx-auto">
-                                <button type="button" @click="spinWheel()" :disabled="isSpinning"
-                                        class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg"
-                                        :class="isSpinning ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.6)] cursor-pointer active:scale-95'">
-                                    <i class="fa-solid fa-dharmachakra" :class="isSpinning ? 'fa-spin' : ''"></i>
-                                    <span x-text="isSpinning ? 'BEZIG MET DRAAIEN...' : 'DRAAI HACKER SPINNER'"></span>
-                                </button>
+                            <!-- The Wheel Canvas -->
+                            <div class="p-2 rounded-full bg-slate-950 shadow-[0_0_35px_rgba(16,185,129,0.3)] border-4 border-emerald-500/40">
+                                <canvas id="hackingWheelCanvas" width="360" height="360" class="max-w-[300px] sm:max-w-[340px] aspect-square rounded-full transition-transform duration-75"></canvas>
+                            </div>
+
+                            <!-- Center Centerpiece -->
+                            <div class="absolute z-20 w-16 h-16 rounded-full bg-slate-950 border-4 border-emerald-400 text-emerald-400 flex flex-col items-center justify-center shadow-lg pointer-events-none">
+                                <i class="fa-solid fa-laptop-code text-base"></i>
+                                <span class="text-[8px] font-black uppercase tracking-wider text-white">ROOT</span>
                             </div>
                         </div>
-                    </template>
+
+                        <!-- Spin Button -->
+                        <div class="max-w-xs mx-auto">
+                            <button type="button" @click="spinWheel()" :disabled="isSpinning"
+                                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg"
+                                    :class="isSpinning ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.6)] cursor-pointer active:scale-95'">
+                                <i class="fa-solid fa-dharmachakra" :class="isSpinning ? 'fa-spin' : ''"></i>
+                                <span x-text="isSpinning ? 'BEZIG MET DRAAIEN...' : 'DRAAI HACKER SPINNER'"></span>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Terminal Status Notification Bar -->
                     <div class="mt-4 pt-3 border-t border-emerald-500/20 flex items-center justify-between text-xs text-slate-400">
@@ -434,14 +422,17 @@
 
 <script>
 function tbsHackingTerminal(config) {
+    const rawStage = config.initialStage;
+    const initialStageParsed = (!isNaN(rawStage) && rawStage !== '') ? parseInt(rawStage, 10) : rawStage;
+
     return {
-        canHack: config.canHack,
-        stage: config.initialStage, // 1, 2, 3, 'wheel', 'done'
-        secondsLeftDaily: config.secondsLeftDaily,
+        canHack: Boolean(config.canHack),
+        stage: initialStageParsed, // 1, 2, 3, 'wheel', 'done'
+        secondsLeftDaily: Math.max(0, Math.floor(Number(config.secondsLeftDaily) || 0)),
         csrfToken: config.csrfToken,
         puzzleRoute: config.puzzleRoute,
         spinRoute: config.spinRoute,
-        sectors: config.sectors,
+        sectors: config.sectors || [],
 
         // Timer
         timerSeconds: 60,
@@ -487,11 +478,11 @@ function tbsHackingTerminal(config) {
             this.initP1Grid();
             this.startDailyTimer();
 
-            if (this.canHack && (this.stage === 1 || this.stage === 2 || this.stage === 3)) {
+            if (this.canHack && (this.stage == 1 || this.stage == 2 || this.stage == 3)) {
                 this.startTimer();
             }
 
-            if (this.stage === 'wheel') {
+            if (this.stage == 'wheel') {
                 this.$nextTick(() => {
                     this.initWheel();
                 });
@@ -499,22 +490,24 @@ function tbsHackingTerminal(config) {
         },
 
         getStageLabel() {
-            if (!this.canHack || this.stage === 'done') return 'LOCKED';
-            if (this.stage === 1) return '1/3 (FIREWALL)';
-            if (this.stage === 2) return '2/3 (CYPHER)';
-            if (this.stage === 3) return '3/3 (ROOT)';
-            if (this.stage === 'wheel') return 'HACKER SPINNER';
+            if (!this.canHack || this.stage == 'done') return 'LOCKED';
+            if (this.stage == 1) return '1/3 (FIREWALL)';
+            if (this.stage == 2) return '2/3 (CYPHER)';
+            if (this.stage == 3) return '3/3 (ROOT)';
+            if (this.stage == 'wheel') return 'HACKER SPINNER';
             return 'SYSTEM';
         },
 
         formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
+            const totalSecs = Math.max(0, Math.floor(Number(seconds) || 0));
+            const h = Math.floor(totalSecs / 3600);
+            const m = Math.floor((totalSecs % 3600) / 60);
+            const s = totalSecs % 60;
             return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
         },
 
         startDailyTimer() {
+            if (this.dailyInterval) clearInterval(this.dailyInterval);
             this.dailyInterval = setInterval(() => {
                 if (this.secondsLeftDaily > 0) {
                     this.secondsLeftDaily--;
@@ -538,12 +531,12 @@ function tbsHackingTerminal(config) {
         },
 
         resetCurrentPuzzle() {
-            if (this.stage === 1) {
+            if (this.stage == 1) {
                 this.p1UserStep = 0;
                 this.initP1Grid();
-            } else if (this.stage === 2) {
+            } else if (this.stage == 2) {
                 this.p2Ports.forEach(p => p.synced = false);
-            } else if (this.stage === 3) {
+            } else if (this.stage == 3) {
                 this.p3Cores.forEach(c => c.active = false);
             }
         },
@@ -616,9 +609,10 @@ function tbsHackingTerminal(config) {
 
                 const data = await response.json();
                 if (data.success) {
-                    this.stage = data.next_stage;
+                    const nextStageRaw = data.next_stage;
+                    this.stage = (!isNaN(nextStageRaw) && nextStageRaw !== '') ? parseInt(nextStageRaw, 10) : nextStageRaw;
                     this.statusLog = data.message;
-                    if (this.stage === 'wheel') {
+                    if (this.stage == 'wheel') {
                         if (this.timerInterval) clearInterval(this.timerInterval);
                         this.$nextTick(() => {
                             this.initWheel();
@@ -651,6 +645,7 @@ function tbsHackingTerminal(config) {
             const cy = h / 2;
             const radius = cx - 8;
             const numSectors = this.sectors.length;
+            if (numSectors === 0) return;
             const arc = (2 * Math.PI) / numSectors;
 
             ctx.clearRect(0, 0, w, h);
@@ -717,7 +712,7 @@ function tbsHackingTerminal(config) {
                 const targetSectorCenter = (winningIndex * arc) + (arc / 2);
                 const targetAngle = (3 * Math.PI / 2) - targetSectorCenter;
 
-                // Add 5 to 7 full rotations
+                // Add 6 full rotations
                 const extraRotations = 6 * 2 * Math.PI;
                 const finalAngle = targetAngle + extraRotations;
 
