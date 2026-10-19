@@ -43,6 +43,9 @@ class CooldownService
         'casino_dice' => 5,
         'casino_numbergame' => 8,
         'casino_rps' => 5,
+
+        // Armpjedruk Arena (anti-spam / anti-bot)
+        'arm_wrestling' => 20,
     ];
 
     /**

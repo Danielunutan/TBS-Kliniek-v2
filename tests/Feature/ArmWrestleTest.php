@@ -113,4 +113,61 @@ class ArmWrestleTest extends TestCase
         $response->assertSee('playerSpeed: 10,');
         $response->assertSee('Tafelduel Aangaan');
     }
+
+    public function test_player_cannot_spam_arm_wrestling_due_to_cooldown(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $this->createCharacter($user, [
+            'cash' => 50000,
+            'bank' => 50000,
+            'strength' => 25,
+            'energy' => 100,
+        ]);
+
+        // First match succeeds
+        $first = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
+            'npc_key' => 'sjonnie',
+            'won' => true,
+            'clicks' => 20,
+            'duration_seconds' => 4,
+        ]);
+        $first->assertStatus(200);
+
+        // Immediate second match is blocked by cooldown (HTTP 422)
+        $second = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
+            'npc_key' => 'sjonnie',
+            'won' => true,
+            'clicks' => 20,
+            'duration_seconds' => 4,
+        ]);
+        $second->assertStatus(422);
+        $second->assertJson(['success' => false]);
+    }
+
+    public function test_cheat_attempt_with_insufficient_clicks_or_duration_fails_server_side(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'cash' => 200000,
+            'bank' => 200000,
+            'strength' => 100,
+            'energy' => 100,
+        ]);
+
+        // Autoclicker sending 0 duration or 0 clicks claiming won: true against Mike
+        $cheatAttempt = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
+            'npc_key' => 'mike',
+            'won' => true,
+            'clicks' => 2, // Way too few clicks
+            'duration_seconds' => 0,
+        ]);
+
+        $cheatAttempt->assertStatus(200);
+        $cheatAttempt->assertJson([
+            'success' => true,
+            'won' => false, // Overruled server-side to false!
+        ]);
+    }
 }

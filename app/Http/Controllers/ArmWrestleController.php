@@ -43,8 +43,8 @@ class ArmWrestleController extends Controller
                 'npc_stamina' => 10,
                 'bet' => 1500,
                 'win_payout' => 3000,
-                'xp' => 20,
-                'respect' => 3,
+                'xp' => 15,
+                'respect' => 2,
                 'difficulty' => 'Beginner',
                 'difficulty_color' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                 'icon' => 'fa-broom',
@@ -61,8 +61,8 @@ class ArmWrestleController extends Controller
                 'npc_stamina' => 30,
                 'bet' => 5000,
                 'win_payout' => 10000,
-                'xp' => 45,
-                'respect' => 8,
+                'xp' => 25,
+                'respect' => 5,
                 'difficulty' => 'Gemiddeld',
                 'difficulty_color' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
                 'icon' => 'fa-dumbbell',
@@ -79,8 +79,8 @@ class ArmWrestleController extends Controller
                 'npc_stamina' => 65,
                 'bet' => 20000,
                 'win_payout' => 40000,
-                'xp' => 100,
-                'respect' => 20,
+                'xp' => 40,
+                'respect' => 10,
                 'difficulty' => 'Zwaar',
                 'difficulty_color' => 'bg-amber-50 text-amber-700 border-amber-200',
                 'icon' => 'fa-hand-fist',
@@ -97,8 +97,8 @@ class ArmWrestleController extends Controller
                 'npc_stamina' => 120,
                 'bet' => 75000,
                 'win_payout' => 150000,
-                'xp' => 300,
-                'respect' => 50,
+                'xp' => 60,
+                'respect' => 20,
                 'difficulty' => 'Eindbaas',
                 'difficulty_color' => 'bg-rose-50 text-rose-700 border-rose-200',
                 'icon' => 'fa-skull',
@@ -158,6 +158,8 @@ class ArmWrestleController extends Controller
             ->take(5)
             ->get();
 
+        $cooldownRemaining = $this->cooldownService->getRemainingSeconds($character, 'arm_wrestling');
+
         return view('game.armwrestling.index', compact(
             'character',
             'stat',
@@ -165,7 +167,8 @@ class ArmWrestleController extends Controller
             'openChallenges',
             'myOpenChallenge',
             'recentMatches',
-            'topChampions'
+            'topChampions',
+            'cooldownRemaining'
         ));
     }
 
@@ -181,6 +184,14 @@ class ArmWrestleController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Vanuit de isoleercel kun je niet armpjedrukken!',
+            ], 422);
+        }
+
+        $remaining = $this->cooldownService->getRemainingSeconds($character, 'arm_wrestling');
+        if ($remaining > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "Je spieren moeten nog even bijkomen van de vorige partij! Wacht nog {$remaining} seconden.",
             ], 422);
         }
 
@@ -202,48 +213,74 @@ class ArmWrestleController extends Controller
             ], 422);
         }
 
-        if ($character->energy < 5) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Je hebt minimaal 5 Energie nodig om een armpjedrukduel aan te gaan!',
-            ], 422);
-        }
-
         $bet = (int) $npc['bet'];
-        $totalAvailable = (int) ($character->cash + $character->bank);
 
-        if ($totalAvailable < $bet) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Je hebt onvoldoende saldo (contant + bank) op zak voor deze inzet (€'.number_format($bet, 0, ',', '.').')!',
-            ], 422);
-        }
+        return DB::transaction(function () use ($character, $npc, $validated, $bet) {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $durationMs = (int) ($validated['duration_ms'] ?? (($validated['duration_seconds'] ?? 1) * 1000));
-
-        return DB::transaction(function () use ($character, $npc, $validated, $bet, $durationMs) {
-            // Deduct energy & inzet (pay from cash first, cover remaining from bank)
-            $character->decrement('energy', 5);
-            if ($character->cash >= $bet) {
-                $character->decrement('cash', $bet);
-            } else {
-                $diff = $bet - $character->cash;
-                $character->cash = 0;
-                $character->save();
-                $character->decrement('bank', $diff);
+            $totalAvailable = (int) ($lockedCharacter->cash + $lockedCharacter->bank);
+            if ($totalAvailable < $bet) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt onvoldoende saldo (contant + bank) op zak voor deze inzet (€'.number_format($bet, 0, ',', '.').')!',
+                ], 422);
             }
 
-            /** @var CharacterArmWrestleStat $stat */
-            $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $character->id]);
+            if ($lockedCharacter->energy < 5) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt minimaal 5 Energie nodig om een armpjedrukduel aan te gaan!',
+                ], 422);
+            }
 
-            $isWon = (bool) $validated['won'];
+            // Deduct energy & inzet (pay from cash first, cover remaining from bank)
+            $lockedCharacter->decrement('energy', 5);
+            if ($lockedCharacter->cash >= $bet) {
+                $lockedCharacter->decrement('cash', $bet);
+            } else {
+                $diff = $bet - $lockedCharacter->cash;
+                $lockedCharacter->cash = 0;
+                $lockedCharacter->save();
+                $lockedCharacter->decrement('bank', $diff);
+            }
+
+            // Set cooldown immediately upon match resolution (20 seconds)
+            $this->cooldownService->setCooldown($lockedCharacter, 'arm_wrestling', 20);
+
+            $durationSec = max(1, (int) ($validated['duration_seconds'] ?? ceil(($validated['duration_ms'] ?? 1000) / 1000)));
+            $durationMs = (int) ($validated['duration_ms'] ?? ($durationSec * 1000));
+            $clicks = (int) $validated['clicks'];
+
+            // Anti-cheat: Cap click rate to human max (14 clicks per second)
+            $effectiveClicks = min($clicks, $durationSec * 14);
+
+            // Minimum clicks check: player must have actually pushed
+            $minClicksReq = match ($npc['key']) {
+                'sjonnie' => 8,
+                'karel' => 12,
+                'bennie' => 16,
+                'mike' => 20,
+                default => 10,
+            };
+
+            // Calculate contest power server-side
+            $playerPower = ($lockedCharacter->strength * 1.5) + (($lockedCharacter->stamina ?? 10) * 0.8) + ($effectiveClicks * 1.2) + rand(5, 20);
+            $npcPower = ($npc['npc_strength'] * 1.6) + ($npc['npc_stamina'] * 0.9) + rand(10, 25);
+
+            // Player only wins if client claimed won AND server contest agrees AND clicks met minimum AND duration >= 2s
+            $clientWon = (bool) $validated['won'];
+            $isWon = $clientWon && ($durationSec >= 2) && ($effectiveClicks >= $minClicksReq) && ($playerPower >= $npcPower);
+
+            /** @var CharacterArmWrestleStat $stat */
+            $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);
 
             if ($isWon) {
                 // Calculate rewards
                 $profit = $npc['win_payout'] - $npc['bet'];
-                $character->increment('cash', $npc['win_payout']);
-                $character->increment('respect', $npc['respect']);
-                $this->level->addXp($character, $npc['xp']);
+                $lockedCharacter->increment('cash', $npc['win_payout']);
+                $lockedCharacter->increment('respect', $npc['respect']);
+                $this->level->addXp($lockedCharacter, $npc['xp']);
 
                 $stat->wins++;
                 $stat->current_streak++;
@@ -253,16 +290,16 @@ class ArmWrestleController extends Controller
                 $stat->total_profit += $profit;
                 $stat->save();
 
-                $match = ArmWrestleMatch::create([
-                    'challenger_id' => $character->id,
+                ArmWrestleMatch::create([
+                    'challenger_id' => $lockedCharacter->id,
                     'type' => 'npc',
                     'npc_key' => $npc['key'],
                     'bet_amount' => $npc['bet'],
-                    'winner_id' => $character->id,
+                    'winner_id' => $lockedCharacter->id,
                     'status' => 'completed',
                     'xp_earned' => $npc['xp'],
                     'respect_earned' => $npc['respect'],
-                    'challenger_clicks' => $validated['clicks'],
+                    'challenger_clicks' => $clicks,
                     'match_duration_ms' => $durationMs,
                 ]);
 
@@ -271,10 +308,11 @@ class ArmWrestleController extends Controller
                     'won' => true,
                     'title' => 'KNAL! Tafelwinst!',
                     'message' => "Je hebt de arm van {$npc['name']} met brute kracht op het hout geslagen! +€".number_format($profit, 0, ',', '.')." winst, +{$npc['xp']} XP en +{$npc['respect']} Respect!",
-                    'cash' => $character->cash,
-                    'energy' => $character->energy,
+                    'cash' => $lockedCharacter->fresh()->cash,
+                    'energy' => $lockedCharacter->fresh()->energy,
                     'wins' => $stat->wins,
                     'streak' => $stat->current_streak,
+                    'cooldown' => 20,
                 ]);
             }
 
@@ -285,7 +323,7 @@ class ArmWrestleController extends Controller
             $stat->save();
 
             ArmWrestleMatch::create([
-                'challenger_id' => $character->id,
+                'challenger_id' => $lockedCharacter->id,
                 'type' => 'npc',
                 'npc_key' => $npc['key'],
                 'bet_amount' => $npc['bet'],
@@ -293,22 +331,27 @@ class ArmWrestleController extends Controller
                 'status' => 'completed',
                 'xp_earned' => 5,
                 'respect_earned' => 0,
-                'challenger_clicks' => $validated['clicks'],
+                'challenger_clicks' => $clicks,
                 'match_duration_ms' => $durationMs,
             ]);
 
             // Give consolation 5 XP
-            $this->level->addXp($character, 5);
+            $this->level->addXp($lockedCharacter, 5);
+
+            $reason = ($clientWon && ! $isWon)
+                ? "{$npc['name']} pareerde je aanval op het allerlaatste moment met zijn stalen pols! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'.'
+                : "{$npc['name']} bleek te sterk en heeft jouw arm tegen het hout gedrukt! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'. Wel +5 troost-XP.';
 
             return response()->json([
                 'success' => true,
                 'won' => false,
                 'title' => 'Verloren aan de Tafel...',
-                'message' => "{$npc['name']} bleek te sterk en heeft jouw arm tegen het hout gedrukt! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'. Wel +5 troost-XP.',
-                'cash' => $character->cash,
-                'energy' => $character->energy,
+                'message' => $reason,
+                'cash' => $lockedCharacter->fresh()->cash,
+                'energy' => $lockedCharacter->fresh()->energy,
                 'losses' => $stat->losses,
                 'streak' => 0,
+                'cooldown' => 20,
             ]);
         });
     }
@@ -340,31 +383,34 @@ class ArmWrestleController extends Controller
         ]);
 
         $bet = (int) $validated['bet_amount'];
-        $totalAvailable = (int) ($character->cash + $character->bank);
 
-        if ($totalAvailable < $bet) {
-            return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging op tafel te leggen (€'.number_format($bet, 0, ',', '.').').');
-        }
+        return DB::transaction(function () use ($character, $bet) {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        DB::transaction(function () use ($character, $bet) {
-            if ($character->cash >= $bet) {
-                $character->decrement('cash', $bet);
+            $totalAvailable = (int) ($lockedCharacter->cash + $lockedCharacter->bank);
+            if ($totalAvailable < $bet) {
+                return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging op tafel te leggen (€'.number_format($bet, 0, ',', '.').').');
+            }
+
+            if ($lockedCharacter->cash >= $bet) {
+                $lockedCharacter->decrement('cash', $bet);
             } else {
-                $diff = $bet - $character->cash;
-                $character->cash = 0;
-                $character->save();
-                $character->decrement('bank', $diff);
+                $diff = $bet - $lockedCharacter->cash;
+                $lockedCharacter->cash = 0;
+                $lockedCharacter->save();
+                $lockedCharacter->decrement('bank', $diff);
             }
 
             ArmWrestleMatch::create([
-                'challenger_id' => $character->id,
+                'challenger_id' => $lockedCharacter->id,
                 'type' => 'pvp',
                 'bet_amount' => $bet,
                 'status' => 'open',
             ]);
-        });
 
-        return back()->with('success', 'Jouw uitdaging van €'.number_format($bet, 0, ',', '.').' ligt open op de armpjedruktafel! Wacht tot een medepatiënt hem accepteert.');
+            return back()->with('success', 'Jouw uitdaging van €'.number_format($bet, 0, ',', '.').' ligt open op de armpjedruktafel! Wacht tot een medepatiënt hem accepteert.');
+        });
     }
 
     /**
@@ -404,6 +450,11 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen aannemen!');
         }
 
+        $remaining = $this->cooldownService->getRemainingSeconds($opponent, 'arm_wrestling');
+        if ($remaining > 0) {
+            return back()->with('error', "Je armen moeten nog even bijkomen van de vorige partij! Wacht nog {$remaining} seconden.");
+        }
+
         if ($opponent->energy < 5) {
             return back()->with('error', 'Je hebt minimaal 5 Energie nodig om deze uitdaging aan te gaan!');
         }
@@ -433,22 +484,28 @@ class ArmWrestleController extends Controller
         $pot = $match->bet_amount * 2;
 
         return DB::transaction(function () use ($opponent, $challenger, $match, $pot, $bet) {
-            $opponent->decrement('energy', 5);
-            if ($opponent->cash >= $bet) {
-                $opponent->decrement('cash', $bet);
+            /** @var Character $lockedOpponent */
+            $lockedOpponent = Character::where('id', $opponent->id)->lockForUpdate()->first();
+
+            $lockedOpponent->decrement('energy', 5);
+            if ($lockedOpponent->cash >= $bet) {
+                $lockedOpponent->decrement('cash', $bet);
             } else {
-                $diff = $bet - $opponent->cash;
-                $opponent->cash = 0;
-                $opponent->save();
-                $opponent->decrement('bank', $diff);
+                $diff = $bet - $lockedOpponent->cash;
+                $lockedOpponent->cash = 0;
+                $lockedOpponent->save();
+                $lockedOpponent->decrement('bank', $diff);
             }
 
-            // Calculate battle scores: Strength (70%) + Speed (15%) + Stamina (15%) + RNG variance
-            $challengerScore = ($challenger->strength * 1.4) + ($challenger->speed * 0.4) + ($challenger->stamina * 0.4) + rand(1, 20);
-            $opponentScore = ($opponent->strength * 1.4) + ($opponent->speed * 0.4) + ($opponent->stamina * 0.4) + rand(1, 20);
+            // Set cooldown for opponent
+            $this->cooldownService->setCooldown($lockedOpponent, 'arm_wrestling', 20);
 
-            $winner = $opponentScore >= $challengerScore ? $opponent : $challenger;
-            $loser = $winner->id === $opponent->id ? $challenger : $opponent;
+            // Calculate battle scores: Strength (60%) + Stamina (25%) + Discipline (15%) + RNG variance
+            $challengerScore = ($challenger->strength * 1.5) + (($challenger->stamina ?? 10) * 0.5) + (($challenger->discipline ?? 10) * 0.4) + rand(1, 20);
+            $opponentScore = ($lockedOpponent->strength * 1.5) + (($lockedOpponent->stamina ?? 10) * 0.5) + (($lockedOpponent->discipline ?? 10) * 0.4) + rand(1, 20);
+
+            $winner = $opponentScore >= $challengerScore ? $lockedOpponent : $challenger;
+            $loser = $winner->id === $lockedOpponent->id ? $challenger : $lockedOpponent;
 
             // Payout winner
             $winner->increment('cash', $pot);
@@ -475,7 +532,7 @@ class ArmWrestleController extends Controller
             $loserStat->save();
 
             $match->update([
-                'opponent_id' => $opponent->id,
+                'opponent_id' => $lockedOpponent->id,
                 'winner_id' => $winner->id,
                 'status' => 'completed',
                 'xp_earned' => 50,
@@ -488,10 +545,10 @@ class ArmWrestleController extends Controller
                 'type' => 'arm_wrestling',
                 'icon' => 'fa-hand-back-fist',
                 'title' => 'Armpjedruk Uitdaging Beslecht!',
-                'message' => 'Jouw uitdaging van €'.number_format($match->bet_amount, 0, ',', '.')." is aangenomen door {$opponent->name}. Winnaar: {$winner->name}!",
+                'message' => 'Jouw uitdaging van €'.number_format($match->bet_amount, 0, ',', '.')." is aangenomen door {$lockedOpponent->name}. Winnaar: {$winner->name}!",
             ]);
 
-            if ($winner->id === $opponent->id) {
+            if ($winner->id === $lockedOpponent->id) {
                 return back()->with('success', "KNAL! Je hebt {$challenger->name} tegen de tafel gedrukt en wint de pot van €".number_format($pot, 0, ',', '.').'! (+50 XP, +15 Respect)');
             }
 

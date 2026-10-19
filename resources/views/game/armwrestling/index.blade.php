@@ -3,7 +3,7 @@
 @section('title', 'Illegale Armpjedruk Arena - TBS Kliniek')
 
 @section('content')
-<div class="space-y-6" x-data="tbsArmWrestleArena()">
+<div class="space-y-6" x-data="tbsArmWrestleArena({{ (int) ($cooldownRemaining ?? 0) }})">
 
     <!-- Flash Messages -->
     @if(session('success'))
@@ -144,10 +144,19 @@
                                 Onvoldoende Energie (5 vereist)
                             </button>
                         @else
-                            <button type="button" @click="startMatch('{{ $npcKey }}')" 
+                            <button type="button" 
+                                    x-show="cooldownSeconds <= 0"
+                                    @click="startMatch('{{ $npcKey }}')" 
                                     class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition cursor-pointer shadow-xs flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-hand-back-fist text-amber-300"></i>
                                 <span>Tafelduel Aangaan (€ {{ number_format($npc['bet'], 0, ',', '.') }})</span>
+                            </button>
+                            <button type="button" 
+                                    x-show="cooldownSeconds > 0"
+                                    disabled 
+                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed">
+                                <i class="fa-solid fa-hourglass-half text-amber-500"></i>
+                                <span>Spieren Herstellen (<span x-text="cooldownSeconds + 's'"></span>)</span>
                             </button>
                         @endif
                     </div>
@@ -440,8 +449,10 @@
 </div>
 
 <script>
-function tbsArmWrestleArena() {
+function tbsArmWrestleArena(initialCooldown = 0) {
     return {
+        cooldownSeconds: initialCooldown,
+        cdInterval: null,
         isMatchActive: false,
         activeNpcKey: null,
         activeNpc: null,
@@ -450,6 +461,7 @@ function tbsArmWrestleArena() {
         sweetSpotDir: 1,
         timeLeft: 12,
         clicks: 0,
+        lastPushTime: 0,
         matchStartTime: 0,
         matchResult: null,
         npcsData: @json($npcs),
@@ -460,12 +472,34 @@ function tbsArmWrestleArena() {
         sweetSpotInterval: null,
         timerInterval: null,
 
+        init() {
+            if (this.cooldownSeconds > 0) {
+                this.startCooldownTimer();
+            }
+        },
+
+        startCooldownTimer() {
+            if (this.cdInterval) clearInterval(this.cdInterval);
+            this.cdInterval = setInterval(() => {
+                this.cooldownSeconds--;
+                if (this.cooldownSeconds <= 0) {
+                    clearInterval(this.cdInterval);
+                    this.cooldownSeconds = 0;
+                }
+            }, 1000);
+        },
+
         startMatch(npcKey) {
+            if (this.cooldownSeconds > 0) {
+                return;
+            }
+
             this.activeNpcKey = npcKey;
             this.activeNpc = this.npcsData[npcKey];
             this.armPosition = 50;
             this.timeLeft = 12;
             this.clicks = 0;
+            this.lastPushTime = 0;
             this.matchResult = null;
             this.isMatchActive = true;
             this.matchStartTime = Date.now();
@@ -500,7 +534,7 @@ function tbsArmWrestleArena() {
             }, 60);
 
             // Sweet Spot Needle Animation Loop
-            const speedFactor = Math.max(1, 3 - (this.playerSpeed * 0.03));
+            const speedFactor = Math.max(1, 3 - (this.playerStamina * 0.02));
             this.sweetSpotInterval = setInterval(() => {
                 if (!this.isMatchActive || this.matchResult) return;
                 
@@ -532,6 +566,12 @@ function tbsArmWrestleArena() {
 
         pushArm() {
             if (!this.isMatchActive || this.matchResult) return;
+
+            const now = Date.now();
+            if (this.lastPushTime && (now - this.lastPushTime < 70)) {
+                return; // Throttled: anti-autoclicker limit
+            }
+            this.lastPushTime = now;
 
             this.clicks++;
 
@@ -576,6 +616,10 @@ function tbsArmWrestleArena() {
             })
             .then(res => res.json())
             .then(data => {
+                if (data.cooldown) {
+                    this.cooldownSeconds = data.cooldown;
+                    this.startCooldownTimer();
+                }
                 if (data.success) {
                     this.matchResult = {
                         won: data.won,
