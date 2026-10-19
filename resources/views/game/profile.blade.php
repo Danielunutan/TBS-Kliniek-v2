@@ -10,6 +10,10 @@
     staffWarnModalOpen: false,
     staffBanModalOpen: false,
     activeTab: '{{ session('profile_tab', request('tab', 'overzicht')) }}',
+    selectedSticker: '{{ $profileCharacter->profile_sticker ?? 'none' }}',
+    selectedTheme: '{{ $profileCharacter->profile_bg_theme ?? 'default' }}',
+    selectedColor: '{{ $profileCharacter->profile_color ?: 'purple' }}',
+    selectedTitle: '{{ $profileCharacter->title ?? 'Modelpatiënt' }}',
     init() {
         if (!'{{ session('profile_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_profile_tab')) {
             this.activeTab = sessionStorage.getItem('tbs_profile_tab');
@@ -1440,42 +1444,51 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
                         <!-- Option: Geen Sticker -->
-                        <label class="p-3.5 rounded-2xl border-2 cursor-pointer transition flex items-center gap-3 {{ empty($profileCharacter->profile_sticker) ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300' }}">
-                            <input type="radio" name="profile_sticker" value="none" {{ empty($profileCharacter->profile_sticker) ? 'checked' : '' }} class="sr-only">
-                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-sm shrink-0">
-                                <i class="fa-solid fa-ban"></i>
+                        <label @click="selectedSticker = 'none'" 
+                               class="p-3.5 rounded-2xl border-2 cursor-pointer transition flex items-center justify-between gap-3"
+                               :class="selectedSticker === 'none' ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 shadow-xs ring-2 ring-purple-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <input type="radio" name="profile_sticker" value="none" x-model="selectedSticker" class="sr-only">
+                                <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-sm shrink-0">
+                                    <i class="fa-solid fa-ban"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="font-extrabold text-xs text-slate-800 dark:text-slate-200 block">Geen Sticker</span>
+                                    <span class="text-[11px] text-slate-400">Laat het stickervakje leeg</span>
+                                </div>
                             </div>
-                            <div class="min-w-0">
-                                <span class="font-extrabold text-xs text-slate-800 dark:text-slate-200 block">Geen Sticker</span>
-                                <span class="text-[11px] text-slate-400">Laat het stickervakje leeg</span>
-                            </div>
+                            <i x-show="selectedSticker === 'none'" class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-sm"></i>
                         </label>
 
                         <!-- All Collectible Stickers -->
                         @foreach($allStickers as $sKey => $sticker)
                             @php 
                                 $isUnlocked = in_array($sKey, $unlockedStickers, true);
-                                $isSelected = $profileCharacter->profile_sticker === $sKey;
                             @endphp
-                            <label class="p-3.5 rounded-2xl border-2 transition flex items-start gap-3 relative {{ $isUnlocked ? 'cursor-pointer ' . ($isSelected ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 shadow-xs' : 'border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700') : 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30' }}">
-                                <input type="radio" name="profile_sticker" value="{{ $sKey }}" {{ $isSelected ? 'checked' : '' }} {{ !$isUnlocked ? 'disabled' : '' }} class="sr-only">
-                                <div class="w-10 h-10 rounded-xl {{ $sticker['badge_class'] }} flex items-center justify-center text-base shrink-0 border">
-                                    <i class="fa-solid {{ $sticker['icon'] }}"></i>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center justify-between gap-1">
-                                        <span class="font-black text-xs text-slate-900 dark:text-white truncate">{{ $sticker['name'] }}</span>
-                                        <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
-                                            {{ $sticker['rarity'] }}
-                                        </span>
+                            <label @if($isUnlocked) @click="selectedSticker = '{{ $sKey }}'" @endif
+                                   class="p-3.5 rounded-2xl border-2 transition flex items-start justify-between gap-3 relative"
+                                   :class="!{{ $isUnlocked ? 'true' : 'false' }} ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30' : (selectedSticker === '{{ $sKey }}' ? 'cursor-pointer border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 shadow-xs ring-2 ring-purple-500/40' : 'cursor-pointer border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700')">
+                                <div class="flex items-start gap-3 min-w-0 flex-1">
+                                    <input type="radio" name="profile_sticker" value="{{ $sKey }}" x-model="selectedSticker" {{ !$isUnlocked ? 'disabled' : '' }} class="sr-only">
+                                    <div class="w-10 h-10 rounded-xl {{ $sticker['badge_class'] }} flex items-center justify-center text-base shrink-0 border">
+                                        <i class="fa-solid {{ $sticker['icon'] }}"></i>
                                     </div>
-                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
-                                        {{ $sticker['description'] }}
-                                    </p>
-                                    @if(!$isUnlocked)
-                                        <span class="text-[10px] text-rose-500 font-bold mt-1 block">🔒 Nog niet ontgrendeld</span>
-                                    @endif
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center justify-between gap-1">
+                                            <span class="font-black text-xs text-slate-900 dark:text-white truncate">{{ $sticker['name'] }}</span>
+                                            <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                                {{ $sticker['rarity'] }}
+                                            </span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                                            {{ $sticker['description'] }}
+                                        </p>
+                                        @if(!$isUnlocked)
+                                            <span class="text-[10px] text-rose-500 font-bold mt-1 block">🔒 Nog niet ontgrendeld</span>
+                                        @endif
+                                    </div>
                                 </div>
+                                <i x-show="selectedSticker === '{{ $sKey }}'" class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-sm shrink-0 mt-1"></i>
                             </label>
                         @endforeach
                     </div>
@@ -1489,9 +1502,10 @@
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
                             @foreach($allThemes as $tKey => $themeDef)
-                                @php $isThemeActive = ($profileCharacter->profile_bg_theme ?? 'default') === $tKey; @endphp
-                                <label class="p-3 rounded-2xl border-2 cursor-pointer transition flex items-center gap-3 {{ $isThemeActive ? 'border-purple-600 bg-purple-50/40 dark:bg-purple-950/40 shadow-xs' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300' }}">
-                                    <input type="radio" name="profile_bg_theme" value="{{ $tKey }}" {{ $isThemeActive ? 'checked' : '' }} class="sr-only">
+                                <label @click="selectedTheme = '{{ $tKey }}'"
+                                       class="p-3 rounded-2xl border-2 cursor-pointer transition flex items-center gap-3"
+                                       :class="selectedTheme === '{{ $tKey }}' ? 'border-purple-600 bg-purple-50/40 dark:bg-purple-950/40 shadow-xs ring-2 ring-purple-500/50' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'">
+                                    <input type="radio" name="profile_bg_theme" value="{{ $tKey }}" x-model="selectedTheme" class="sr-only">
                                     <div class="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center border shadow-xs" style="background-color: {{ $themeDef['dot_color'] }};">
                                         <i class="fa-solid fa-sparkles text-white text-xs"></i>
                                     </div>
@@ -1499,9 +1513,7 @@
                                         <span class="font-extrabold text-xs text-slate-900 dark:text-white block truncate">{{ $themeDef['name'] }}</span>
                                         <span class="text-[10px] text-slate-400">Header verloop & glow</span>
                                     </div>
-                                    @if($isThemeActive)
-                                        <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-sm"></i>
-                                    @endif
+                                    <i x-show="selectedTheme === '{{ $tKey }}'" class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-sm"></i>
                                 </label>
                             @endforeach
                         </div>
@@ -1514,9 +1526,12 @@
                         </label>
                         <div class="flex flex-wrap gap-2">
                             @foreach(['purple' => 'Paars', 'rose' => 'Rood', 'emerald' => 'Groen', 'amber' => 'Goud', 'blue' => 'Blauw', 'indigo' => 'Indigo', 'dark' => 'Zwart'] as $cKey => $cLabel)
-                                <label class="px-3 py-1.5 rounded-xl border cursor-pointer text-xs font-extrabold transition flex items-center gap-1.5 {{ ($profileCharacter->profile_color ?: 'purple') === $cKey ? 'border-purple-600 bg-purple-600 text-white' : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                    <input type="radio" name="profile_color" value="{{ $cKey }}" {{ ($profileCharacter->profile_color ?: 'purple') === $cKey ? 'checked' : '' }} class="sr-only">
+                                <label @click="selectedColor = '{{ $cKey }}'"
+                                       class="px-3 py-1.5 rounded-xl border cursor-pointer text-xs font-extrabold transition flex items-center gap-1.5"
+                                       :class="selectedColor === '{{ $cKey }}' ? 'border-purple-600 bg-purple-600 text-white shadow-xs' : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'">
+                                    <input type="radio" name="profile_color" value="{{ $cKey }}" x-model="selectedColor" class="sr-only">
                                     <span>{{ $cLabel }}</span>
+                                    <i x-show="selectedColor === '{{ $cKey }}'" class="fa-solid fa-check text-[10px]"></i>
                                 </label>
                             @endforeach
                         </div>
@@ -1530,9 +1545,11 @@
                     </label>
                     <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
                         @foreach($availableTitles as $tDef)
-                            <label class="p-3 rounded-2xl border-2 transition flex items-center justify-between gap-3 {{ $tDef['unlocked'] ? 'cursor-pointer ' . ($profileCharacter->title === $tDef['id'] ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-800 hover:border-purple-300') : 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800' }}">
+                            <label @if($tDef['unlocked']) @click="selectedTitle = '{{ addslashes($tDef['id']) }}'" @endif
+                                   class="p-3 rounded-2xl border-2 transition flex items-center justify-between gap-3"
+                                   :class="!{{ $tDef['unlocked'] ? 'true' : 'false' }} ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800' : (selectedTitle === '{{ addslashes($tDef['id']) }}' ? 'cursor-pointer border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 ring-2 ring-purple-500/50' : 'cursor-pointer border-slate-200 dark:border-slate-800 hover:border-purple-300')">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <input type="radio" name="title" value="{{ $tDef['id'] }}" {{ $profileCharacter->title === $tDef['id'] ? 'checked' : '' }} {{ !$tDef['unlocked'] ? 'disabled' : '' }} class="sr-only">
+                                    <input type="radio" name="title" value="{{ $tDef['id'] }}" x-model="selectedTitle" {{ !$tDef['unlocked'] ? 'disabled' : '' }} class="sr-only">
                                     <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs shrink-0">
                                         <i class="fa-solid fa-award"></i>
                                     </div>
@@ -1542,11 +1559,16 @@
                                     </div>
                                 </div>
                                 <div>
-                                    @if($tDef['unlocked'])
-                                        <span class="text-[10px] font-black text-emerald-600">Beschikbaar</span>
-                                    @else
-                                        <span class="text-[10px] font-bold text-slate-400">Vergrendeld</span>
-                                    @endif
+                                    <span x-show="selectedTitle === '{{ addslashes($tDef['id']) }}'" class="text-[10px] font-black text-purple-600 dark:text-purple-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check"></i> Geselecteerd
+                                    </span>
+                                    <span x-show="selectedTitle !== '{{ addslashes($tDef['id']) }}'">
+                                        @if($tDef['unlocked'])
+                                            <span class="text-[10px] font-black text-emerald-600">Beschikbaar</span>
+                                        @else
+                                            <span class="text-[10px] font-bold text-slate-400">Vergrendeld</span>
+                                        @endif
+                                    </span>
                                 </div>
                             </label>
                         @endforeach

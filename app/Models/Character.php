@@ -1270,7 +1270,7 @@ class Character extends Model
     {
         $totalWealth = $this->cash + $this->bank;
 
-        return [
+        $titles = [
             [
                 'id' => 'Modelpatiënt',
                 'name' => 'Modelpatiënt (Schijn bedriegt)',
@@ -1344,6 +1344,30 @@ class Character extends Model
                 'icon' => 'fa-solid fa-triangle-exclamation',
             ],
         ];
+
+        if ($this->user?->role === 'owner' || $this->user?->role === 'admin' || $this->user?->is_staff || $this->title === 'Eigenaar') {
+            array_unshift($titles, [
+                'id' => 'Eigenaar',
+                'name' => '👑 Kliniek Eigenaar & Leiding',
+                'unlocked' => true,
+                'description' => 'Opperbevelhebber en beheerder van de TBS Kliniek.',
+                'requirement' => 'Kliniek Leiding',
+                'icon' => 'fa-solid fa-crown',
+            ]);
+        }
+
+        if (! empty($this->title) && ! collect($titles)->contains('id', $this->title)) {
+            array_unshift($titles, [
+                'id' => $this->title,
+                'name' => $this->title,
+                'unlocked' => true,
+                'description' => 'Exclusieve toegekende eretitel.',
+                'requirement' => 'Speciale Eretitel',
+                'icon' => 'fa-solid fa-star',
+            ]);
+        }
+
+        return $titles;
     }
 
     /**
