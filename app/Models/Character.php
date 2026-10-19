@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\DailyBattleService;
+use App\Support\ProfileStickerCatalog;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -141,6 +142,7 @@ class Character extends Model
         'is_onboarded' => 'boolean',
         'pumpkin_seeds' => 'integer',
         'unlocked_borders' => 'array',
+        'unlocked_stickers' => 'array',
     ];
 
     /**
@@ -361,6 +363,67 @@ class Character extends Model
     public function getAvatarUrl(): string
     {
         return $this->avatar_url;
+    }
+
+    /**
+     * Get all unlocked sticker keys for this character.
+     *
+     * @return array<int, string>
+     */
+    public function getUnlockedStickers(): array
+    {
+        $base = ['skull', 'handcuffs', 'dagger', 'smoking', 'vip_star'];
+        $unlocked = is_array($this->unlocked_stickers) ? $this->unlocked_stickers : [];
+
+        if ($this->level >= 5) {
+            $base[] = 'fire';
+        }
+        if ($this->level >= 10) {
+            $base[] = 'crown';
+        }
+        if ($this->fights_won >= 10) {
+            $base[] = 'boxing';
+        }
+        if ($this->thefts_succeeded >= 10) {
+            $base[] = 'mask';
+        }
+        if ($this->cash >= 25000) {
+            $base[] = 'money';
+        }
+        if ($this->gang_id) {
+            $base[] = 'shield';
+        }
+        if ($this->isVip()) {
+            $base[] = 'dice';
+        }
+        if ($this->pumpkin_seeds > 0 || $this->equipped_border) {
+            $base[] = 'pumpkin';
+        }
+        if ($this->missions_completed >= 5) {
+            $base[] = 'biohazard';
+        }
+
+        return array_values(array_unique(array_merge($base, $unlocked)));
+    }
+
+    /**
+     * Get the active showcase sticker definition.
+     */
+    public function getActiveSticker(): ?array
+    {
+        if (! $this->profile_sticker) {
+            return null;
+        }
+
+        return ProfileStickerCatalog::getSticker($this->profile_sticker);
+    }
+
+    /**
+     * Get the active profile header background theme.
+     */
+    public function getActiveProfileTheme(): array
+    {
+        return ProfileStickerCatalog::getTheme($this->profile_bg_theme);
     }
 
     /**

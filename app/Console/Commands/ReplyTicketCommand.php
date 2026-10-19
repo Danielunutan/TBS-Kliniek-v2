@@ -51,7 +51,38 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-RRK-331' || $ticketNumber === 'TBS-B8K-331' || $ticket->id === 11 || str_contains(strtolower($ticket->subject), 'garage update') || (str_contains(strtolower($ticket->subject), 'panden') && str_contains(strtolower($ticket->subject), 'garage'))) {
+        if ($ticketNumber === 'TBS-OAE-551' || $ticket->id === 12 || str_contains(strtolower($ticket->subject), 'aanpasbare profielen') || str_contains(strtolower($ticket->subject), 'profiel')) {
+            $replyMessage = "Beste Rainbow,\n\n"
+                ."Wat een geweldige feature suggestie! Profielen zijn het visitekaartje van iedere speler in TBS Kliniek, en de wens voor meer creativiteit en personalisatie sluit daar perfect op aan. We hebben jouw complete concept direct opgepakt, ontworpen en zojuist volledig live gezet in de game! 🎨✨\n\n"
+                ."Dit is wat we allemaal exact hebben geïmplementeerd:\n\n"
+                ."1. **'Profiel Personaliseren' Knop (Rechtsboven)**:\n"
+                ."   - Wanneer je op je eigen profielpagina (/profiel) bent, vind je rechtsboven nu direct de paars/roze knop **'Profiel Personaliseren'**.\n"
+                ."   - Hiermee open je een gloednieuw interactief Personalisatie Hub modal waarin je al je instellingen overzichtelijk beheert.\n\n"
+                ."2. **Stickers Showcase Slot & Sticker Inventaris**:\n"
+                ."   - Op je profielkaart vind je nu een speciaal **Sticker Showcase Slot** waar je gekozen sticker trots schittert naast je patiëntendossier.\n"
+                ."   - In het personalisatiemenu kun je kiezen uit je sticker-inventaris met unieke icoontjes (o.a. Doodskop 💀, Handboeien ⛓️, Gouden Kroon 👑, Schaduw Dolk 🗡️, Jack-o'-Lantern 🎃, VIP Ster ⭐, Bende Buidel 💰 en meer).\n"
+                ."   - Je sticker heeft een interactieve hover-tooltip en geeft direct karakter aan je profiel!\n\n"
+                ."3. **Aanpasbare Achtergrondthema's & Accentkleuren**:\n"
+                ."   - Je kunt nu kiezen uit **8 unieke achtergrondstijlen & sferen**:\n"
+                ."     • Standaard Kliniek Donker (Sleek Slate)\n"
+                ."     • Middernacht Neon (Deep Indigo & Violet)\n"
+                ."     • Crimson Bloedbad (Dark Red & Crimson Glow)\n"
+                ."     • Toxic Emerald (Clandestiene Groene Gloed)\n"
+                ."     • Cartel Goud (Luxe Amber & Gouden Tinten)\n"
+                ."     • Marineblauw Fort (High-Security Blue)\n"
+                ."     • Cyberpunk Neon (Futuristische Pink & Violet Glow)\n"
+                ."     • Halloween Night (Spooky Oranje & Paarse Mist)\n"
+                ."   - Daarnaast kun je met één klik je favoriete neon accentkleur kiezen of een custom hex code invoeren.\n\n"
+                ."4. **Gastenboek met Eigenaar Beheerrechten**:\n"
+                ."   - Iedereen die jouw profiel passeert kan een felicitatie, waarschuwing of shout-out achterlaten in jouw Gastenboek.\n"
+                ."   - Als eigenaar van het profiel heb jij nu volledige controle: bij elk bericht staat een rode prullenbak/verwijderknop waarmee je ongewenste berichten direct uit je gastenboek wist!\n\n"
+                ."5. **Titels, Tags & Dossier Status**:\n"
+                ."   - Toon je actieve bendetag, rol of specialisatie (zoals Slimme Hosselaar, Huurmoordenaar, Zware Crimineel of Veteraan) direct onder je naam.\n"
+                ."   - Pas ook direct je persoonlijke bio en statusbericht aan via dezelfde hub.\n\n"
+                ."Nogmaals ontzettend bedankt voor je fantastische suggestie en je actieve bijdrage om TBS Kliniek leuker en interactiever te maken! Neem snel een kijkje op je profiel om jouw eigen unieke stijl in te stellen.\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-RRK-331' || $ticketNumber === 'TBS-B8K-331' || $ticket->id === 11 || str_contains(strtolower($ticket->subject), 'garage update') || (str_contains(strtolower($ticket->subject), 'panden') && str_contains(strtolower($ticket->subject), 'garage'))) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wauw, wat een geweldige reeks ideeën en suggesties! We hebben je feedback van A tot Z direct opgepakt en zojuist volledig gebouwd en live gezet in de game! 🚗🏢👥\n\n"
                 ."Dit is wat we allemaal exact hebben geïmplementeerd:\n\n"

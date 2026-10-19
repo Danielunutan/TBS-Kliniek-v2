@@ -426,6 +426,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/profiel/bijwerken', [ProfileController::class, 'updateBio'])->name('profile.update');
     Route::post('/profiel/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::post('/profiel/titel', [ProfileController::class, 'updateTitle'])->name('profile.title');
+    Route::post('/profiel/personaliseren', [ProfileController::class, 'customize'])->name('profile.customize');
 
     // Gangs
     Route::get('/bende/{gang}', [GangController::class, 'show'])->name('gangs.show');

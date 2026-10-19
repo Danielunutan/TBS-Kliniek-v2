@@ -10,6 +10,7 @@ use App\Models\ProfileRespect;
 use App\Models\User;
 use App\Services\EnergyService;
 use App\Services\LevelService;
+use App\Support\ProfileStickerCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -91,6 +92,13 @@ class ProfileController extends Controller
         $psychiatricReport = $profileCharacter->getPsychiatricReport();
         $availableTitles = $isOwnProfile ? $myCharacter->getAvailableTitles() : [];
 
+        // Profile customization: Stickers and Background Themes
+        $unlockedStickers = $myCharacter->getUnlockedStickers();
+        $allStickers = ProfileStickerCatalog::stickers();
+        $allThemes = ProfileStickerCatalog::themes();
+        $activeSticker = $profileCharacter->getActiveSticker();
+        $activeTheme = $profileCharacter->getActiveProfileTheme();
+
         // $character must be passed for layouts.app navigation bar and sidebar
         $character = $myCharacter;
 
@@ -112,7 +120,12 @@ class ProfileController extends Controller
             'badges',
             'badgeSets',
             'psychiatricReport',
-            'availableTitles'
+            'availableTitles',
+            'unlockedStickers',
+            'allStickers',
+            'allThemes',
+            'activeSticker',
+            'activeTheme'
         ));
     }
 
@@ -304,5 +317,75 @@ class ProfileController extends Controller
         $character->update(['title' => $matchedTitle['id']]);
 
         return back()->with('success', "Je actieve titel is succesvol gewijzigd naar '{$matchedTitle['name']}'!");
+    }
+
+    /**
+     * Update complete patient profile customizations (stickers, background theme, color, title, bio, status).
+     */
+    public function customize(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $validated = $request->validate([
+            'profile_sticker' => ['nullable', 'string', 'max:50'],
+            'profile_bg_theme' => ['nullable', 'string', 'max:50'],
+            'profile_color' => ['nullable', 'string', 'in:purple,rose,emerald,amber,blue,indigo,dark'],
+            'title' => ['nullable', 'string', 'max:60'],
+            'status_message' => ['nullable', 'string', 'max:120'],
+            'bio' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $updates = [];
+
+        // 1. Sticker validation
+        if ($request->has('profile_sticker')) {
+            $stickerKey = $validated['profile_sticker'];
+            if ($stickerKey === '' || $stickerKey === 'none') {
+                $updates['profile_sticker'] = null;
+            } else {
+                $unlocked = $character->getUnlockedStickers();
+                if (in_array($stickerKey, $unlocked, true)) {
+                    $updates['profile_sticker'] = $stickerKey;
+                }
+            }
+        }
+
+        // 2. Background theme
+        if (! empty($validated['profile_bg_theme'])) {
+            $themes = ProfileStickerCatalog::themes();
+            if (isset($themes[$validated['profile_bg_theme']])) {
+                $updates['profile_bg_theme'] = $validated['profile_bg_theme'];
+            }
+        }
+
+        // 3. Profile Accent Color
+        if (! empty($validated['profile_color'])) {
+            $updates['profile_color'] = $validated['profile_color'];
+        }
+
+        // 4. Dossier Title
+        if (! empty($validated['title'])) {
+            $availableTitles = collect($character->getAvailableTitles());
+            $matched = $availableTitles->firstWhere('id', $validated['title']);
+            if ($matched && $matched['unlocked']) {
+                $updates['title'] = $matched['id'];
+            }
+        }
+
+        // 5. Bio & Status
+        if ($request->has('status_message')) {
+            $updates['status_message'] = strip_tags((string) $validated['status_message']);
+        }
+        if ($request->has('bio')) {
+            $updates['bio'] = strip_tags((string) $validated['bio']);
+        }
+
+        if (! empty($updates)) {
+            $character->update($updates);
+        }
+
+        return back()->with('success', '🎨 Je profielpersonalisatie is succesvol opgeslagen!');
     }
 }

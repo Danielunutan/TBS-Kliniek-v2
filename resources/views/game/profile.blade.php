@@ -5,6 +5,8 @@
     avatarModalOpen: false, 
     bioModalOpen: false, 
     titleModalOpen: false,
+    customizeModalOpen: false,
+    activeCustomTab: 'sticker',
     staffWarnModalOpen: false,
     staffBanModalOpen: false,
     activeTab: '{{ session('profile_tab', request('tab', 'overzicht')) }}',
@@ -154,12 +156,15 @@
     </div>
     @endif
 
-    <!-- Profile Header Card (Clean Modern Light) -->
-    <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden relative">
-        <!-- Dynamic Player Accent Color Top Bar -->
-        <div class="h-1.5 w-full {{ $theme['bar'] }}"></div>
+    <!-- Profile Header Card (Customized Theme & Background) -->
+    <div class="{{ $activeTheme['bg_class'] }} rounded-2xl shadow-sm border overflow-hidden relative transition-all duration-300">
+        <!-- Ambient Glowing Background Light -->
+        <div class="absolute -right-16 -top-16 w-64 h-64 {{ $activeTheme['glow_class'] }} rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative">
+        <!-- Dynamic Theme Accent Bar -->
+        <div class="h-2 w-full {{ $activeTheme['bar_class'] }}"></div>
+
+        <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
             
             <!-- Avatar with Dynamic Player Accent Ring / Halloween Border -->
             <div class="relative shrink-0 group">
@@ -169,7 +174,7 @@
                 <span class="absolute top-2 right-2 w-4 h-4 rounded-full border-2 border-white shadow-xs {{ $profileCharacter->isOnline() ? 'bg-emerald-500 ring-2 ring-emerald-300/50' : 'bg-slate-300' }}" title="{{ $profileCharacter->online_status_label }}"></span>
 
                 @if(Auth::user()->character->id === $profileCharacter->id)
-                <button @click="avatarModalOpen = true" type="button" class="absolute -bottom-2 -right-2 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-indigo-600 transition shadow-sm border-2 border-white flex items-center justify-center text-xs" title="Kies een andere profielfoto">
+                <button @click="avatarModalOpen = true" type="button" class="absolute -bottom-2 -right-2 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-indigo-600 transition shadow-sm border-2 border-white flex items-center justify-center text-xs cursor-pointer" title="Kies een andere profielfoto">
                     <i class="fa-solid fa-camera"></i>
                 </button>
                 @endif
@@ -180,8 +185,8 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                     <div>
                         <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-                            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $profileCharacter->name }}</h1>
-                            <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded-md border border-slate-200">
+                            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $profileCharacter->name }}</h1>
+                            <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
                                 Level {{ $profileCharacter->level }}
                             </span>
 
@@ -207,6 +212,19 @@
                                 </button>
                                 @endif
                             </span>
+
+                            <!-- STICKER SHOWCASE VAKJE -->
+                            @if($activeSticker)
+                                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl {{ $activeSticker['badge_class'] }} border shadow-2xs transition hover:scale-105 cursor-help" title="Sticker: {{ $activeSticker['name'] }} — {{ $activeSticker['description'] }}">
+                                    <i class="fa-solid {{ $activeSticker['icon'] }} text-xs"></i>
+                                    <span class="text-xs font-black">{{ $activeSticker['name'] }}</span>
+                                </div>
+                            @elseif($isOwnProfile)
+                                <button type="button" @click="customizeModalOpen = true; activeCustomTab = 'sticker'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-400 hover:text-purple-600 hover:border-purple-400 transition text-[11px] font-bold cursor-pointer" title="Kies een verzamelde sticker voor je profiel">
+                                    <i class="fa-solid fa-plus text-[9px]"></i>
+                                    <span>Sticker Plakken</span>
+                                </button>
+                            @endif
                         </div>
                         <p class="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider flex items-center flex-wrap justify-center md:justify-start gap-1.5">
                             <span>Patiënt</span>
@@ -230,13 +248,11 @@
                     </div>
                     
                     @if(Auth::user()->character->id === $profileCharacter->id)
-                    <!-- Edit Actions -->
-                    <div class="flex gap-2 justify-center md:justify-end">
-                        <button @click="avatarModalOpen = true" type="button" class="px-3.5 py-2 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg transition flex items-center gap-2">
-                            <i class="fa-solid fa-image text-slate-500"></i> Foto Wijzigen
-                        </button>
-                        <button @click="bioModalOpen = true" type="button" class="px-3.5 py-2 text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 rounded-lg transition shadow-xs flex items-center gap-2">
-                            <i class="fa-solid fa-pen-to-square"></i> Bio Bewerken
+                    <!-- Edit Actions: Prominent Personalisatie Knopje Rechtsboven -->
+                    <div class="flex flex-wrap gap-2 justify-center md:justify-end items-center">
+                        <button @click="customizeModalOpen = true" type="button" class="px-4 py-2.5 text-xs font-black bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer active:scale-95">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                            <span>Profiel Personaliseren</span>
                         </button>
                     </div>
                     @else
@@ -1344,6 +1360,220 @@
                     </button>
                     <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition cursor-pointer shadow-xs">
                         Definitief Verbannen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    @if($isOwnProfile)
+    <!-- ========================================== -->
+    <!-- PROFILE PERSONALISATIE MODAL HUB           -->
+    <!-- ========================================== -->
+    <div x-show="customizeModalOpen" 
+         x-cloak 
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6"
+         @keydown.escape.window="customizeModalOpen = false">
+        
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden relative"
+             @click.away="customizeModalOpen = false">
+            
+            <!-- Modal Header -->
+            <div class="p-6 bg-gradient-to-r from-purple-900/40 via-slate-900 to-indigo-950/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Profiel Personalisatie Hub</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Personaliseer je stickers, achtergrondthema, titels en bio.</p>
+                    </div>
+                </div>
+                <button type="button" @click="customizeModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Tab Navigation Inside Modal -->
+            <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 px-6 gap-2 text-xs font-bold overflow-x-auto">
+                <button type="button" @click="activeCustomTab = 'sticker'" 
+                        :class="activeCustomTab === 'sticker' ? 'border-purple-600 text-purple-600 dark:text-purple-400 border-b-2' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'"
+                        class="py-3 px-3 transition cursor-pointer shrink-0 flex items-center gap-1.5">
+                    <i class="fa-solid fa-certificate"></i>
+                    <span>Sticker Vakje</span>
+                </button>
+                <button type="button" @click="activeCustomTab = 'theme'" 
+                        :class="activeCustomTab === 'theme' ? 'border-purple-600 text-purple-600 dark:text-purple-400 border-b-2' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'"
+                        class="py-3 px-3 transition cursor-pointer shrink-0 flex items-center gap-1.5">
+                    <i class="fa-solid fa-palette"></i>
+                    <span>Achtergrond & Thema</span>
+                </button>
+                <button type="button" @click="activeCustomTab = 'title'" 
+                        :class="activeCustomTab === 'title' ? 'border-purple-600 text-purple-600 dark:text-purple-400 border-b-2' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'"
+                        class="py-3 px-3 transition cursor-pointer shrink-0 flex items-center gap-1.5">
+                    <i class="fa-solid fa-award"></i>
+                    <span>Titels & Tags</span>
+                </button>
+                <button type="button" @click="activeCustomTab = 'bio'" 
+                        :class="activeCustomTab === 'bio' ? 'border-purple-600 text-purple-600 dark:text-purple-400 border-b-2' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'"
+                        class="py-3 px-3 transition cursor-pointer shrink-0 flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen"></i>
+                    <span>Bio & Status</span>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form action="{{ route('profile.customize') }}" method="POST" class="p-6 space-y-5">
+                @csrf
+
+                <!-- TAB 1: STICKERS -->
+                <div x-show="activeCustomTab === 'sticker'" class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Kies een sticker voor je profielvakje:
+                        </label>
+                        <span class="text-xs text-purple-600 dark:text-purple-400 font-extrabold">
+                            {{ count($unlockedStickers) }} / {{ count($allStickers) }} ontgrendeld
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+                        <!-- Option: Geen Sticker -->
+                        <label class="p-3.5 rounded-2xl border-2 cursor-pointer transition flex items-center gap-3 {{ empty($profileCharacter->profile_sticker) ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300' }}">
+                            <input type="radio" name="profile_sticker" value="none" {{ empty($profileCharacter->profile_sticker) ? 'checked' : '' }} class="sr-only">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-sm shrink-0">
+                                <i class="fa-solid fa-ban"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="font-extrabold text-xs text-slate-800 dark:text-slate-200 block">Geen Sticker</span>
+                                <span class="text-[11px] text-slate-400">Laat het stickervakje leeg</span>
+                            </div>
+                        </label>
+
+                        <!-- All Collectible Stickers -->
+                        @foreach($allStickers as $sKey => $sticker)
+                            @php 
+                                $isUnlocked = in_array($sKey, $unlockedStickers, true);
+                                $isSelected = $profileCharacter->profile_sticker === $sKey;
+                            @endphp
+                            <label class="p-3.5 rounded-2xl border-2 transition flex items-start gap-3 relative {{ $isUnlocked ? 'cursor-pointer ' . ($isSelected ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 shadow-xs' : 'border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700') : 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30' }}">
+                                <input type="radio" name="profile_sticker" value="{{ $sKey }}" {{ $isSelected ? 'checked' : '' }} {{ !$isUnlocked ? 'disabled' : '' }} class="sr-only">
+                                <div class="w-10 h-10 rounded-xl {{ $sticker['badge_class'] }} flex items-center justify-center text-base shrink-0 border">
+                                    <i class="fa-solid {{ $sticker['icon'] }}"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center justify-between gap-1">
+                                        <span class="font-black text-xs text-slate-900 dark:text-white truncate">{{ $sticker['name'] }}</span>
+                                        <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                            {{ $sticker['rarity'] }}
+                                        </span>
+                                    </div>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                                        {{ $sticker['description'] }}
+                                    </p>
+                                    @if(!$isUnlocked)
+                                        <span class="text-[10px] text-rose-500 font-bold mt-1 block">🔒 Nog niet ontgrendeld</span>
+                                    @endif
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- TAB 2: THEME & BACKGROUNDS -->
+                <div x-show="activeCustomTab === 'theme'" class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">
+                            Selecteer een Achtergrond Thema:
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                            @foreach($allThemes as $tKey => $themeDef)
+                                @php $isThemeActive = ($profileCharacter->profile_bg_theme ?? 'default') === $tKey; @endphp
+                                <label class="p-3 rounded-2xl border-2 cursor-pointer transition flex items-center gap-3 {{ $isThemeActive ? 'border-purple-600 bg-purple-50/40 dark:bg-purple-950/40 shadow-xs' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300' }}">
+                                    <input type="radio" name="profile_bg_theme" value="{{ $tKey }}" {{ $isThemeActive ? 'checked' : '' }} class="sr-only">
+                                    <div class="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center border shadow-xs" style="background-color: {{ $themeDef['dot_color'] }};">
+                                        <i class="fa-solid fa-sparkles text-white text-xs"></i>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <span class="font-extrabold text-xs text-slate-900 dark:text-white block truncate">{{ $themeDef['name'] }}</span>
+                                        <span class="text-[10px] text-slate-400">Header verloop & glow</span>
+                                    </div>
+                                    @if($isThemeActive)
+                                        <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-sm"></i>
+                                    @endif
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Accent Kleur Chips -->
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-2">
+                            Profiel Accent Kleur:
+                        </label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach(['purple' => 'Paars', 'rose' => 'Rood', 'emerald' => 'Groen', 'amber' => 'Goud', 'blue' => 'Blauw', 'indigo' => 'Indigo', 'dark' => 'Zwart'] as $cKey => $cLabel)
+                                <label class="px-3 py-1.5 rounded-xl border cursor-pointer text-xs font-extrabold transition flex items-center gap-1.5 {{ ($profileCharacter->profile_color ?: 'purple') === $cKey ? 'border-purple-600 bg-purple-600 text-white' : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                    <input type="radio" name="profile_color" value="{{ $cKey }}" {{ ($profileCharacter->profile_color ?: 'purple') === $cKey ? 'checked' : '' }} class="sr-only">
+                                    <span>{{ $cLabel }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: TITELS & TAGS -->
+                <div x-show="activeCustomTab === 'title'" class="space-y-4">
+                    <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+                        Selecteer je Actieve Dossier Titel:
+                    </label>
+                    <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        @foreach($availableTitles as $tDef)
+                            <label class="p-3 rounded-2xl border-2 transition flex items-center justify-between gap-3 {{ $tDef['unlocked'] ? 'cursor-pointer ' . ($profileCharacter->title === $tDef['id'] ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-800 hover:border-purple-300') : 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-800' }}">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <input type="radio" name="title" value="{{ $tDef['id'] }}" {{ $profileCharacter->title === $tDef['id'] ? 'checked' : '' }} {{ !$tDef['unlocked'] ? 'disabled' : '' }} class="sr-only">
+                                    <div class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs shrink-0">
+                                        <i class="fa-solid fa-award"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="font-extrabold text-xs text-slate-900 dark:text-white block">{{ $tDef['name'] }}</span>
+                                        <span class="text-[10px] text-slate-400 block">{{ $tDef['requirement'] }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    @if($tDef['unlocked'])
+                                        <span class="text-[10px] font-black text-emerald-600">Beschikbaar</span>
+                                    @else
+                                        <span class="text-[10px] font-bold text-slate-400">Vergrendeld</span>
+                                    @endif
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- TAB 4: BIO & STATUS -->
+                <div x-show="activeCustomTab === 'bio'" class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Statusregel (Korte shout op je profiel):</label>
+                        <input type="text" name="status_message" maxlength="120" value="{{ $profileCharacter->status_message }}" placeholder="Bijv. Bezig met de volgende grote slag..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-purple-600">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-300">Persoonlijke Dossier Bio:</label>
+                        <textarea name="bio" rows="4" maxlength="1000" placeholder="Schrijf je achtergrondverhaal, reputatie in de kliniek of boodschap aan rivalen..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-600">{{ $profileCharacter->bio }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <button type="button" @click="customizeModalOpen = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer">
+                        Annuleren
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center gap-2 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i>
+                        <span>Personalisatie Opslaan</span>
                     </button>
                 </div>
             </form>
