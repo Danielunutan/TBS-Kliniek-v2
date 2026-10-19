@@ -51,7 +51,7 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-RRK-331' || str_contains(strtolower($ticket->subject), 'garage update') || (str_contains(strtolower($ticket->subject), 'panden') && str_contains(strtolower($ticket->subject), 'garage'))) {
+        if ($ticketNumber === 'TBS-RRK-331' || $ticketNumber === 'TBS-B8K-331' || $ticket->id === 11 || str_contains(strtolower($ticket->subject), 'garage update') || (str_contains(strtolower($ticket->subject), 'panden') && str_contains(strtolower($ticket->subject), 'garage'))) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wauw, wat een geweldige reeks ideeën en suggesties! We hebben je feedback van A tot Z direct opgepakt en zojuist volledig gebouwd en live gezet in de game! 🚗🏢👥\n\n"
                 ."Dit is wat we allemaal exact hebben geïmplementeerd:\n\n"
