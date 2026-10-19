@@ -776,6 +776,17 @@
                         <i class="fa-solid fa-mask w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Zakkenrollen</span>
                     </a>
+                    <a href="{{ route('hacking.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('hacking.*') ? 'nav-item-active bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-terminal w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <span>Kliniek Terminal</span>
+                        </div>
+                        @if($character->canDailyHack())
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                            Hack
+                        </span>
+                        @endif
+                    </a>
                 </div>
             </div>
 
@@ -1293,6 +1304,16 @@
                     </a>
                     <a href="{{ route('pickpocket.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('pickpocket.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
                         <i class="fa-solid fa-mask w-4 text-indigo-500 dark:text-indigo-400"></i> Zakkenrollen
+                    </a>
+                    <a href="{{ route('hacking.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('hacking.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-terminal w-4 text-emerald-500 dark:text-emerald-400"></i> Kliniek Terminal
+                        </div>
+                        @if($character->canDailyHack())
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                            Hack
+                        </span>
+                        @endif
                     </a>
                 </div>
 

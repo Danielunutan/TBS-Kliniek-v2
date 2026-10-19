@@ -143,6 +143,8 @@ class Character extends Model
         'pumpkin_seeds' => 'integer',
         'unlocked_borders' => 'array',
         'unlocked_stickers' => 'array',
+        'last_hack_at' => 'datetime',
+        'hacks_completed_total' => 'integer',
     ];
 
     /**
@@ -485,6 +487,18 @@ class Character extends Model
     public function canDailySpin(): bool
     {
         return $this->availableSpinsCount() > 0;
+    }
+
+    /**
+     * Can character participate in the daily terminal hack session today?
+     */
+    public function canDailyHack(): bool
+    {
+        if (! $this->last_hack_at) {
+            return true;
+        }
+
+        return ! $this->last_hack_at->isToday();
     }
 
     /**
@@ -1069,6 +1083,14 @@ class Character extends Model
     }
 
     /**
+     * Get hacking logs for this character.
+     */
+    public function hackingLogs(): HasMany
+    {
+        return $this->hasMany(HackingLog::class);
+    }
+
+    /**
      * Check if this character is accepted friends with another character.
      */
     public function isFriendWith(Character|int $other): bool
@@ -1254,6 +1276,7 @@ class Character extends Model
                 'name' => 'Modelpatiënt (Schijn bedriegt)',
                 'unlocked' => true,
                 'description' => 'Altijd beleefd tegen de bewakers, maar in stilte plannend.',
+                'requirement' => 'Altijd beleefd tegen de bewakers, maar in stilte plannend.',
                 'icon' => 'fa-solid fa-face-smile',
             ],
             [
@@ -1261,6 +1284,7 @@ class Character extends Model
                 'name' => 'Sigarettensmokkelaar',
                 'unlocked' => $this->level >= 2,
                 'description' => 'Voorziet de afdeling van broodnodige rookwaren (Level 2+).',
+                'requirement' => 'Level 2+',
                 'icon' => 'fa-solid fa-smoking',
             ],
             [
@@ -1268,6 +1292,7 @@ class Character extends Model
                 'name' => 'Luchtplaats Vechter',
                 'unlocked' => $this->fights_won >= 3,
                 'description' => 'Gevreesd tijdens het dagelijkse luchtuurtje (3+ gevechten gewonnen).',
+                'requirement' => '3+ Gevechten gewonnen',
                 'icon' => 'fa-solid fa-hand-fist',
             ],
             [
@@ -1275,6 +1300,7 @@ class Character extends Model
                 'name' => 'Gevaarlijk Onvoorspelbaar',
                 'unlocked' => $this->level >= 5,
                 'description' => 'Zelfs de bewaarders lopen met een boog om je heen (Level 5+).',
+                'requirement' => 'Level 5+',
                 'icon' => 'fa-solid fa-radiation',
             ],
             [
@@ -1282,6 +1308,7 @@ class Character extends Model
                 'name' => 'Mokerslag van de Afdeling',
                 'unlocked' => $this->fights_won >= 10,
                 'description' => 'Niemand daagt jou ongestraft uit (10+ gevechten gewonnen).',
+                'requirement' => '10+ Gevechten gewonnen',
                 'icon' => 'fa-solid fa-hammer',
             ],
             [
@@ -1289,6 +1316,7 @@ class Character extends Model
                 'name' => 'Kliniek Bankier',
                 'unlocked' => $totalWealth >= 50000,
                 'description' => 'Beheert het zwarte geld van de hele inrichting (€50.000+ vermogen).',
+                'requirement' => '€50.000+ Vermogen',
                 'icon' => 'fa-solid fa-vault',
             ],
             [
@@ -1296,6 +1324,7 @@ class Character extends Model
                 'name' => 'Bende Kopstuk',
                 'unlocked' => ! empty($this->gang_id),
                 'description' => 'Heeft de rugdekking van een georganiseerde bende.',
+                'requirement' => 'Lid van een bende',
                 'icon' => 'fa-solid fa-users-viewfinder',
             ],
             [
@@ -1303,6 +1332,7 @@ class Character extends Model
                 'name' => 'Kliniek Psychopaat',
                 'unlocked' => $this->level >= 10,
                 'description' => 'Een kille legende binnen de muren van de kliniek (Level 10+).',
+                'requirement' => 'Level 10+',
                 'icon' => 'fa-solid fa-skull',
             ],
             [
@@ -1310,6 +1340,7 @@ class Character extends Model
                 'name' => 'Vluchtgevaarlijk (Code Rood)',
                 'unlocked' => $this->level >= 15 || $this->prison_escapes >= 5,
                 'description' => 'Staat onder continue camerabewaking (Level 15+ of 5 ontsnappingen).',
+                'requirement' => 'Level 15+ of 5 ontsnappingen',
                 'icon' => 'fa-solid fa-triangle-exclamation',
             ],
         ];

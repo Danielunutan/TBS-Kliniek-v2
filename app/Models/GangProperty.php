@@ -71,6 +71,42 @@ class GangProperty extends Model
         return $this->production_status === 'producing' && $this->production_ends_at && $this->production_ends_at->isPast();
     }
 
+    public function isProductionReady(): bool
+    {
+        return $this->isReadyToClaim();
+    }
+
+    public function getRemainingProductionMinutesAttribute(): int
+    {
+        return (int) ceil($this->productionSecondsRemaining() / 60);
+    }
+
+    public function getEffectiveRewardCashAttribute(): int
+    {
+        return $this->getEffectiveRewards()['cash'] ?? (int) $this->production_reward_cash;
+    }
+
+    public function getEffectiveRewardRespectAttribute(): int
+    {
+        return $this->getEffectiveRewards()['respect'] ?? (int) $this->production_reward_respect;
+    }
+
+    public function getEffectiveDurationMinutesAttribute(): int
+    {
+        $baseMinutes = (int) ($this->production_duration_minutes ?? 60);
+        $assignedNpc = GangNpc::where('gang_id', $this->gang_id)
+            ->where('assigned_property_id', $this->id)
+            ->first();
+
+        if ($assignedNpc && $assignedNpc->bonus_type === 'production_speed') {
+            $speedFactor = 1 - min(0.75, $assignedNpc->bonus_value / 100);
+
+            return max(5, (int) round($baseMinutes * $speedFactor));
+        }
+
+        return $baseMinutes;
+    }
+
     public function productionSecondsRemaining(): int
     {
         if (! $this->production_ends_at) {

@@ -1538,7 +1538,7 @@
                                     </div>
                                     <div class="min-w-0">
                                         <span class="font-extrabold text-xs text-slate-900 dark:text-white block">{{ $tDef['name'] }}</span>
-                                        <span class="text-[10px] text-slate-400 block">{{ $tDef['requirement'] }}</span>
+                                        <span class="text-[10px] text-slate-400 block">{{ $tDef['requirement'] ?? $tDef['description'] ?? '' }}</span>
                                     </div>
                                 </div>
                                 <div>

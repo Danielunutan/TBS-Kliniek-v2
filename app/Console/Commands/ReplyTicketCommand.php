@@ -51,7 +51,39 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-SQM-770' || $ticketNumber === 'TBS-SQN-778' || $ticket->id === 13 || str_contains(strtolower($ticket->subject), 'grote heists') || (str_contains(strtolower($ticket->subject), 'bende') && str_contains(strtolower($ticket->subject), 'heist'))) {
+        if ($ticketNumber === 'TBS-GE4-318' || $ticket->id === 14 || str_contains(strtolower($ticket->subject), 'hacking') || str_contains(strtolower($ticket->subject), 'computer')) {
+            $replyMessage = "Beste Rainbow,\n\n"
+                ."Wat een fenomenaal en vernieuwend idee voor TBS Kliniek! Een echte interactieve cyber-terminal met minigames en een beloningsrad sluit perfect aan bij de mysterieuze, clandestiene sfeer van de kliniek. We hebben jouw complete concept direct ontworpen, geprogrammeerd en zojuist live gezet onder 'Bonus & Kluizen' -> 'Kliniek Terminal' (/hacking)! 💻⚡🔓\n\n"
+                ."Dit is wat we allemaal exact volgens jouw wensen hebben gerealiseerd:\n\n"
+                ."1. **Computer Terminal Beeld (Cyber Terminal)**:\n"
+                ."   - Een sfeervol groen/cyaan retro-hacker computerscherm met terminal glow, live system diagnostics en terminal audio/visuele feedback.\n"
+                ."   - Je krijgt **dagelijks 1 keer de kans** om een terminal inbraak uit te voeren.\n\n"
+                ."2. **3 Puzzels per dag met Oplopende Moeilijkheid & 1 Minuut Countdown Timer**:\n"
+                ."   - Precies zoals gevraagd: je hebt **telkens exact 60 seconden** per puzzel om de beveiliging te omzeilen voordat het alarm afgaat!\n"
+                ."   - **Puzzel 1 (Firewall Omzeilen)**: Vind en klik de juiste hexadecimale encryptie-sleutels in het beveiligingsraster.\n"
+                ."   - **Puzzel 2 (Cypher Poorten Decryptie)**: Schakel de 4 synchrone data-poorten in op de vereiste doel-frequenties.\n"
+                ."   - **Puzzel 3 (Hoofdserver Root Access)**: Verbind het stroomcircuit en activeer de 3 hoofdprocessoren om volledige admin override te bereiken!\n\n"
+                ."3. **Hacker Spinner met 10 Unieke Kansen**:\n"
+                ."   - Zodra je alle 3 de puzzels binnen de tijd hebt gekraakt, ontgrendelt direct het 10-delige neon **Hacker Spinner** beloningsrad:\n"
+                ."     1. 💶 **€ 25.000 Cash**\n"
+                ."     2. 💼 **1x Smokkelkoffer** (direct aan je depot toegevoegd)\n"
+                ."     3. 🗝️ **1x Unieke Kluiscode** (direct bruikbaar in de centrale MedicijnKluis)\n"
+                ."     4. 🧳 **1x XXL Koffer**\n"
+                ."     5. ⭐ **5x VIP Punten / Sterren**\n"
+                ."     6. 💰 **€ 75.000 Mega Buit**\n"
+                ."     7. 🚬 **15x Sigaretten**\n"
+                ."     8. 🎭 **4x Heist Maskers**\n"
+                ."     9. 📱 **3x Smokkel Telefoons**\n"
+                ."     10. 💊 **10x Ritalin Strips**\n\n"
+                ."4. **Exclusieve VIP Bonus Feature**:\n"
+                ."   - Precies zoals je vroeg: spelers met een actieve **VIP status** ontvangen bij elke succesvolle draai een **exclusieve VIP Bonus** *bovenop* hun gewonnen prijs!\n"
+                ."   - Als VIP speler krijg je direct: **+€25.000 extra cash**, **+3 extra VIP Sterren ⭐**, **+1 extra XXL Koffer 🧳** én **+4 extra Heist Maskers 🎭** bekroond met een gouden koninklijke badge!\n\n"
+                ."5. **Directe Koppeling in het Menu**:\n"
+                ."   - In het hoofdmenu onder 'Bonus & Kluizen' vind je nu direct **'Kliniek Terminal'**. Als je dagelijkse hack nog klaarstaat, zie je er een pulserende badge bij branden!\n\n"
+                ."Nogmaals ontzettend bedankt voor je creatieve input en je enthousiasme voor TBS Kliniek. Kruip achter het toetsenbord, versla de 60-seconden klok en draai aan dat rad!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-SQM-770' || $ticketNumber === 'TBS-SQN-778' || $ticket->id === 13 || str_contains(strtolower($ticket->subject), 'grote heists') || (str_contains(strtolower($ticket->subject), 'bende') && str_contains(strtolower($ticket->subject), 'heist'))) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wat een meesterlijk idee! Het koppelen van bendeleden quota, vereiste bende panden én bendevoertuigen uit de garage brengt het hele bendesysteem samen tot één gigantisch co-op spektakel. We hebben je concept direct volledig uitgewerkt en zojuist live gezet in TBS Kliniek! 💣💰🏎️\n\n"
                 ."Dit is hoe de nieuwe Grote Bende Heists nu exact werken volgens jouw voorstel:\n\n"

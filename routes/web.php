@@ -31,6 +31,7 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GangController;
 use App\Http\Controllers\GangPropertyController;
 use App\Http\Controllers\GarageController;
+use App\Http\Controllers\HackingController;
 use App\Http\Controllers\HalloweenController;
 use App\Http\Controllers\HeistController;
 use App\Http\Controllers\HighLowController;
@@ -304,6 +305,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/rad-van-fortuin', [DailyRewardController::class, 'index'])->name('daily.index');
     Route::post('/rad-van-fortuin/spin', [DailyRewardController::class, 'spin'])->name('daily.spin');
     Route::post('/rad-van-fortuin/streak', [DailyRewardController::class, 'claimStreak'])->name('daily.claim-streak');
+
+    // Cyber Terminal Hacking Minigame
+    Route::get('/hacking', [HackingController::class, 'index'])->name('hacking.index');
+    Route::post('/hacking/puzzle', [HackingController::class, 'solvePuzzle'])->name('hacking.puzzle');
+    Route::post('/hacking/spin', [HackingController::class, 'spin'])->name('hacking.spin');
 
     // Vault (Kluis Kraak & Codes)
     Route::get('/kluis-kraak', [VaultController::class, 'index'])->name('vault.index');
