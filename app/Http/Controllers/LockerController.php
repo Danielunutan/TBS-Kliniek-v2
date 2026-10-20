@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
 use App\Services\RandomDropService;
@@ -86,6 +87,8 @@ class LockerController extends Controller
             $this->level->addXp($character, $locker['xp']);
             $character->respect += 1;
             $character->save();
+
+            HalloweenService::record($character, 'vault', 1);
 
             $dropMsg = RandomDropService::roll($character);
             $successMsg = 'Kluisje opengeknald! Je vindt €'.number_format($cash, 0, ',', '.')." contant erin! +{$locker['xp']} XP.";

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\CharacterItem;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Models\GangAlliance;
 use App\Models\GangAttack;
 use App\Models\GangDonation;
+use App\Models\GangItem;
 use App\Models\GangRequest;
 use App\Models\User;
 use App\Services\EconomyService;
@@ -50,8 +52,13 @@ class GangController extends Controller
                 'alliances.allyGang',
                 'personalShopper',
                 'moneyMagnet',
+                'properties',
+                'storedVehicles.vehicle',
+                'items.item',
             ]);
         }
+
+        $myInventoryItems = $myGang ? CharacterItem::where('character_id', $character->id)->where('quantity', '>', 0)->with('item')->get() : collect();
 
         // Real gang ranking list sorted by total member respect
         $realGangs = Gang::with(['leader', 'members'])->withCount('members')->get();
@@ -150,7 +157,7 @@ class GangController extends Controller
         $defaultTab = $myGang ? 'mijn_gang' : 'ranglijst';
         $activeTab = $forceTab ?? $request->query('tab', session('active_gang_tab', $defaultTab));
 
-        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab'));
+        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems'));
     }
 
     /**
@@ -1132,6 +1139,206 @@ class GangController extends Controller
         return back()
             ->with('active_gang_tab', 'doneren')
             ->with('success', "Je hebt {$stars} Sterren ⭐ gedoneerd aan {$gang->name}! (+".($stars * 5).' Respect voor jou).');
+    }
+
+    /**
+     * Donate heist masks to the Gang Depot.
+     */
+    public function donateMasks(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->gang_id) {
+            return back()->with('error', 'Je bent geen lid van een bende.');
+        }
+
+        $gang = $character->gang;
+        $currentMasks = (int) ($character->masks ?? 0);
+        if ($currentMasks < 1) {
+            return back()->with('error', 'Je hebt geen maskers op zak om te doneren.');
+        }
+
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $quantity = min((int) $validated['quantity'], $currentMasks);
+
+        // Check gang depot storage capacity (provided by gang properties)
+        $storageCap = $gang->total_storage_capacity;
+        $storageUsed = $gang->getStorageUsed();
+        if ($storageUsed + $quantity > $storageCap) {
+            $spaceLeft = max(0, $storageCap - $storageUsed);
+
+            return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items/maskers bij. Schaf meer bende opslagpanden aan of laat beheerders overtollige voorraad verkopen.");
+        }
+
+        $character->masks -= $quantity;
+        $character->respect += max(1, (int) round($quantity * 0.5));
+        $character->save();
+
+        $gang->masks = ($gang->masks ?? 0) + $quantity;
+        $gang->save();
+
+        return back()
+            ->with('active_gang_tab', 'depot')
+            ->with('success', "🎭 Je hebt succesvol {$quantity}x Overval Masker(s) gedoneerd aan het Bende Depot! De bende bezit nu {$gang->masks} maskers voor Bende Heists.");
+    }
+
+    /**
+     * Donate an inventory item (cigarettes, contraband, tools) to the Gang Depot.
+     */
+    public function donateItem(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->gang_id) {
+            return back()->with('error', 'Je bent geen lid van een bende.');
+        }
+
+        $gang = $character->gang;
+
+        $validated = $request->validate([
+            'character_item_id' => ['required', 'integer', 'exists:character_items,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $charItem = CharacterItem::where('id', $validated['character_item_id'])
+            ->where('character_id', $character->id)
+            ->with('item')
+            ->first();
+
+        if (! $charItem || $charItem->quantity < 1) {
+            return back()->with('error', 'Dit voorwerp bevindt zich niet in je opbergplaats.');
+        }
+
+        $quantity = min((int) $validated['quantity'], $charItem->quantity);
+
+        // Check gang depot storage capacity
+        $storageCap = $gang->total_storage_capacity;
+        $storageUsed = $gang->getStorageUsed();
+        if ($storageUsed + $quantity > $storageCap) {
+            $spaceLeft = max(0, $storageCap - $storageUsed);
+
+            return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items bij. Koop meer opslagpanden.");
+        }
+
+        // Deduct from player
+        $charItem->quantity -= $quantity;
+        if ($charItem->quantity <= 0) {
+            $charItem->delete();
+        } else {
+            $charItem->save();
+        }
+
+        // Add to gang items
+        $gangItem = GangItem::firstOrCreate([
+            'gang_id' => $gang->id,
+            'item_id' => $charItem->item_id,
+        ], [
+            'quantity' => 0,
+        ]);
+        $gangItem->quantity += $quantity;
+        $gangItem->save();
+
+        $character->respect += max(1, $quantity);
+        $character->save();
+
+        return back()
+            ->with('active_gang_tab', 'depot')
+            ->with('success', "📦 Succesvol {$quantity}x {$charItem->item->name} gedoneerd aan het Bende Depot!");
+    }
+
+    /**
+     * Sell heist masks from the Gang Depot to fund the Gang Treasury (Officer only).
+     */
+    public function sellGangMasks(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->gang_id) {
+            return back()->with('error', 'Je bent geen lid van een bende.');
+        }
+
+        $gang = $character->gang;
+        if (! $gang->isOfficer($character)) {
+            return back()->with('error', 'Alleen bendeleiders of beheerders kunnen spullen uit het Bende Depot verkopen!');
+        }
+
+        $currentMasks = (int) ($gang->masks ?? 0);
+        if ($currentMasks < 1) {
+            return back()->with('error', 'Er liggen geen maskers in het Bende Depot.');
+        }
+
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $quantity = min((int) $validated['quantity'], $currentMasks);
+        $pricePerMask = 750;
+        $totalEarned = $pricePerMask * $quantity;
+
+        $gang->masks -= $quantity;
+        $gang->treasury += $totalEarned;
+        $gang->save();
+
+        $formattedCash = number_format($totalEarned, 0, ',', '.');
+
+        return back()
+            ->with('active_gang_tab', 'depot')
+            ->with('success', "💰 Succesvol {$quantity}x Bende Maskers verkocht aan de heler voor €{$formattedCash}! Dit bedrag is direct bijgeschreven in de Bende Kas 🏛️.");
+    }
+
+    /**
+     * Sell items from Gang Depot to fund the Gang Treasury (Officer only).
+     */
+    public function sellGangItem(Request $request, GangItem $gangItem): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->gang_id) {
+            return back()->with('error', 'Je bent geen lid van een bende.');
+        }
+
+        $gang = $character->gang;
+        if (! $gang->isOfficer($character)) {
+            return back()->with('error', 'Alleen bendeleiders of beheerders kunnen bende-eigendommen verkopen!');
+        }
+
+        if ($gangItem->gang_id !== $gang->id || $gangItem->quantity < 1) {
+            return back()->with('error', 'Dit voorwerp bevindt zich niet in het Bende Depot.');
+        }
+
+        $item = $gangItem->item;
+        $requestedQty = max(1, (int) $request->input('quantity', 1));
+        $quantity = min($requestedQty, $gangItem->quantity);
+
+        $pricePerUnit = max(500, (int) round(($item->price_kc > 0 ? $item->price_kc : 1000) * 0.6));
+        $totalEarned = $pricePerUnit * $quantity;
+
+        $gangItem->quantity -= $quantity;
+        if ($gangItem->quantity <= 0) {
+            $gangItem->delete();
+        } else {
+            $gangItem->save();
+        }
+
+        $gang->treasury += $totalEarned;
+        $gang->save();
+
+        $formattedCash = number_format($totalEarned, 0, ',', '.');
+
+        return back()
+            ->with('active_gang_tab', 'depot')
+            ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! De opbrengst is direct gestort in de Bende Kas 🏛️.");
     }
 
     /**

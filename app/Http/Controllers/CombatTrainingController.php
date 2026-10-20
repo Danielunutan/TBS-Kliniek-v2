@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\TrainingLog;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,6 +78,8 @@ class CombatTrainingController extends Controller
         ]);
 
         $this->level->addXp($character, $session['xp']);
+
+        HalloweenService::record($character, 'training', 1);
 
         return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$session['gain']}! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
     }

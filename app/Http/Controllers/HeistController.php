@@ -114,34 +114,66 @@ class HeistController extends Controller
             return back()->with('error', "Niet genoeg energie! Deze operatie kost {$heist->energy_cost} Energie.");
         }
 
-        // Mask requirement
-        $currentMasks = $character->masks ?? 0;
-        if ($currentMasks < $heist->required_mask_count) {
-            return back()->with('error', "Onvoldoende maskers! Voor de {$heist->name} heb je minimaal {$heist->required_mask_count} Bivakmutsen/Maskers 🎭 nodig om je identiteit te verbergen. Koop maskers in de Kliniek Winkel!");
+        // Requirements handling: Bende Heists vs Solo Heists
+        if ($heist->is_gang_heist) {
+            $gang = $character->gang;
+            // 1. Mask requirement strictly from Gang Depot
+            $gangMasks = (int) ($gang->masks ?? 0);
+            if ($gangMasks < $heist->required_mask_count) {
+                return back()->with('error', "Onvoldoende maskers in het Bende Depot! Voor de {$heist->name} zijn {$heist->required_mask_count} maskers vereist in het Bende Depot (huidige bendevoorraad: {$gangMasks} stuks). Bendeleden kunnen maskers doneren via Bende > Doneren of Depot!");
+            }
+
+            // 2. Vehicle requirement strictly from Gang Garage fleet
+            $gangVehicles = $gang->storedVehicles()->where('in_gang_garage', true)->with('vehicle')->get();
+            if ($gangVehicles->isEmpty()) {
+                return back()->with('error', 'Geen bendevoertuig in de Bende Garage! Voor Bende Heists kunnen enkel voertuigen worden gebruikt die zijn gestald in de Bende Garage van jullie panden. Parkeer een vluchtvoertuig in de Bende Garage!');
+            }
+
+            $qualifyingVehicles = $gangVehicles->filter(function ($cv) use ($heist) {
+                if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $cv->vehicle->type !== $heist->required_vehicle_type) {
+                    return false;
+                }
+
+                return $cv->effective_speed >= $heist->min_speed_required && $cv->current_condition >= $heist->min_condition_required;
+            });
+
+            if ($qualifyingVehicles->isEmpty()) {
+                return back()->with('error', "Geen enkel voertuig in de Bende Garage voldoet aan de eisen voor de {$heist->name} (Type: {$heist->required_vehicle_type}, Min. Snelheid: {$heist->min_speed_required} km/u, Min. Conditie: {$heist->min_condition_required}%). Breng een geschikte wagen naar de Bende Garage!");
+            }
+
+            $charVehicle = $qualifyingVehicles->sortByDesc('effective_speed')->first();
+
+            // Deduct masks directly from Gang Depot
+            $gang->decrement('masks', $heist->required_mask_count);
+        } else {
+            // Solo Heist: Personal masks & Personal garage vehicle
+            $currentMasks = $character->masks ?? 0;
+            if ($currentMasks < $heist->required_mask_count) {
+                return back()->with('error', "Onvoldoende maskers! Voor de {$heist->name} heb je minimaal {$heist->required_mask_count} Bivakmutsen/Maskers 🎭 nodig om je identiteit te verbergen. Koop maskers in de Kliniek Winkel!");
+            }
+
+            $charVehicle = $heist->getEffectiveVehicle($character);
+
+            if (! $charVehicle) {
+                return back()->with('error', 'Je hebt een geregistreerd vluchtvoertuig nodig (in je eigen garage) om een Heist te plegen!');
+            }
+
+            if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle->type !== $heist->required_vehicle_type) {
+                return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$charVehicle->vehicle->type}.");
+            }
+
+            if ($charVehicle->effective_speed < $heist->min_speed_required) {
+                return back()->with('error', "De topsnelheid van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een snellere auto!");
+            }
+
+            if ($charVehicle->current_condition < $heist->min_condition_required) {
+                return back()->with('error', "De conditie van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
+            }
+
+            // Deduct personal masks
+            $character->masks -= $heist->required_mask_count;
+            $character->save();
         }
-
-        // Vehicle requirement (Personal vehicle or qualifying Bende Garage fleet vehicle)
-        $charVehicle = $heist->getEffectiveVehicle($character);
-
-        if (! $charVehicle) {
-            return back()->with('error', 'Je hebt een geregistreerd vluchtvoertuig nodig (in je eigen garage of in de Bende Garage) om een Heist te plegen!');
-        }
-
-        if ($heist->required_vehicle_type && $heist->required_vehicle_type !== 'any' && $charVehicle->vehicle->type !== $heist->required_vehicle_type) {
-            return back()->with('error', "Onjuist voertuigtype! Voor de {$heist->name} is een {$heist->required_vehicle_type} vereist ({$heist->required_vehicle_name}). Jouw wagen is een {$charVehicle->vehicle->type}.");
-        }
-
-        if ($charVehicle->effective_speed < $heist->min_speed_required) {
-            return back()->with('error', "De topsnelheid van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->effective_speed} km/u). Deze heist vereist minimaal {$heist->min_speed_required} km/u. Tune je wagen of gebruik een sneller bendevoertuig!");
-        }
-
-        if ($charVehicle->current_condition < $heist->min_condition_required) {
-            return back()->with('error', "De conditie van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
-        }
-
-        // Deduct masks used in the heist
-        $character->masks -= $heist->required_mask_count;
-        $character->save();
 
         // Calculate Success Chance
         // 1. Base difficulty

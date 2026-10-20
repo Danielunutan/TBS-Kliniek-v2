@@ -161,4 +161,39 @@ class DepotController extends Controller
             ->with('tab', 'storage')
             ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! Er is weer opbergruimte vrijgemaakt in je Depot.");
     }
+
+    /**
+     * Sell heist masks from personal storage to free up space and earn cash.
+     */
+    public function sellMasks(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $currentMasks = (int) ($character->masks ?? 0);
+        if ($currentMasks < 1) {
+            return back()->with('error', 'Je hebt geen maskers om te verkopen.');
+        }
+
+        $validated = $request->validate([
+            'quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $quantity = min((int) $validated['quantity'], $currentMasks);
+        $pricePerMask = 750; // Fair cash per mask
+        $totalEarned = $pricePerMask * $quantity;
+
+        $character->masks -= $quantity;
+        $character->cash = ($character->cash ?? 0) + $totalEarned;
+        $character->save();
+
+        $formattedCash = number_format($totalEarned, 0, ',', '.');
+        $used = $character->getStorageUsed();
+        $cap = $character->getStorageCapacity();
+
+        return back()
+            ->with('tab', 'storage')
+            ->with('success', "🎭 Succesvol {$quantity}x Overval Masker(s) verkocht aan de heler voor €{$formattedCash}! Je opbergplaats heeft nu weer ruimte ({$used}/{$cap} plekken).");
+    }
 }

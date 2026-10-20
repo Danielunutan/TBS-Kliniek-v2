@@ -415,6 +415,9 @@ class TheftService
             app(DailyBattleService::class)->record($character, 'hustles', 1);
             HalloweenService::record($character, 'theft', 1);
             HalloweenService::record($character, 'cash_earned', $cashStolen);
+            if ($tierKey === 'safe_heist') {
+                HalloweenService::record($character, 'vault', 1);
+            }
 
             $logMsg = "Geslaagde diefstal: {$tier['name']} (+€{$cashStolen} contant, +{$xpGained} XP)"
                 .($tokenFound ? ' (+1 KluisMunt)' : '')

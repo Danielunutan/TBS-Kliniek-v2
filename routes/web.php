@@ -11,6 +11,7 @@ use App\Http\Controllers\BankController;
 use App\Http\Controllers\BountyController;
 use App\Http\Controllers\CasinoController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\CombatTrainingController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ControlPointController;
@@ -410,6 +411,15 @@ Route::middleware('auth')->group(function (): void {
     // Persoonlijk Depot (Garage, Opbergplaats & Event Varia)
     Route::get('/depot', [DepotController::class, 'index'])->name('depot.index');
     Route::post('/depot/verkopen/{characterItem}', [DepotController::class, 'sellItem'])->name('depot.sell-item');
+    Route::post('/depot/maskers-verkopen', [DepotController::class, 'sellMasks'])->name('depot.sell-masks');
+
+    // Cinema & Watchparties (YouTube, Live Session Chat, Emojis, GIFs)
+    Route::get('/cinema', [CinemaController::class, 'index'])->name('cinema.index');
+    Route::post('/cinema/rooms', [CinemaController::class, 'createRoom'])->name('cinema.create');
+    Route::get('/cinema/{room:slug}', [CinemaController::class, 'show'])->name('cinema.show');
+    Route::post('/cinema/{room}/chat', [CinemaController::class, 'sendMessage'])->name('cinema.send-message');
+    Route::get('/cinema/{room}/messages', [CinemaController::class, 'getMessages'])->name('cinema.get-messages');
+    Route::post('/cinema/{room:slug}/video', [CinemaController::class, 'updateVideo'])->name('cinema.update-video');
 
     // Smokkel Garage & Wagenpark
     Route::get('/garage', [GarageController::class, 'index'])->name('garage.index');
@@ -447,6 +457,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/gangs/verlaten', [GangController::class, 'leave'])->name('gangs.leave');
     Route::post('/gangs/doneren', [GangController::class, 'donate'])->name('gangs.donate');
     Route::post('/gangs/doneren/sterren', [GangController::class, 'donateStars'])->name('gangs.donate-stars');
+    Route::post('/gangs/doneren/maskers', [GangController::class, 'donateMasks'])->name('gangs.donate-masks');
+    Route::post('/gangs/doneren/item', [GangController::class, 'donateItem'])->name('gangs.donate-item');
+    Route::post('/gangs/depot/maskers-verkopen', [GangController::class, 'sellGangMasks'])->name('gangs.sell-masks');
+    Route::post('/gangs/depot/item-verkopen/{gangItem}', [GangController::class, 'sellGangItem'])->name('gangs.sell-item');
     Route::post('/gangs/winkel/kopen', [GangController::class, 'buyShopItem'])->name('gangs.shop-buy');
     Route::post('/gangs/instellingen', [GangController::class, 'updateSettings'])->name('gangs.settings');
     Route::post('/gangs/kick/{member}', [GangController::class, 'kick'])->name('gangs.kick');

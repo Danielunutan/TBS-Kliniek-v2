@@ -46,6 +46,8 @@ class RandomDropService
                 'type' => 'reward',
             ]);
 
+            HalloweenService::record($character, 'vault', 1);
+
             return "🔐 GEHEIM GEVONDEN: Een kluiscode voucher ({$uniqueCode}) is direct naar je postvak gestuurd!";
         }
 

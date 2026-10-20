@@ -150,6 +150,10 @@ class PackageController extends Controller
             return back()->with('error', 'Je hebt geen ongeopende tassen liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
         }
 
+        if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
+            return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
+        }
+
         $character->unopened_bags -= 1;
 
         // Clean white money deposited directly to bank!
@@ -165,10 +169,12 @@ class PackageController extends Controller
             $character->stars = ($character->stars ?? 0) + $starsFound;
         }
 
-        // Chance for a mask (40% chance)
+        // Chance for a mask (40% chance, if storage has room)
         $maskFound = (rand(1, 100) <= 40);
-        if ($maskFound) {
+        if ($maskFound && $character->getStorageUsed() < $character->getStorageCapacity()) {
             $character->masks = ($character->masks ?? 0) + 1;
+        } else {
+            $maskFound = false;
         }
 
         // Chance for a secret voucher code
@@ -252,6 +258,10 @@ class PackageController extends Controller
             return back()->with('error', 'Je hebt geen XXL koffers in je bezit! Win ze in de 24 Uur Battle of koop er een met sterren.');
         }
 
+        if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
+            return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
+        }
+
         $character->xxl_cases -= 1;
 
         // Big rewards!
@@ -264,7 +274,8 @@ class PackageController extends Controller
         $starsFound = rand(10, 25);
         $character->stars = ($character->stars ?? 0) + $starsFound;
 
-        $masksFound = rand(5, 12);
+        $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
+        $masksFound = min(rand(5, 12), $spaceLeft);
         $character->masks = ($character->masks ?? 0) + $masksFound;
 
         $respectGain = rand(15, 30);

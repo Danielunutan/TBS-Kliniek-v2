@@ -257,36 +257,112 @@
     <!-- ==================== TAB 2: PERSOONLIJKE OPBERGPLAATS ==================== -->
     <div x-show="tab === 'storage'" class="space-y-6">
 
-        @if($storagePercent >= 100)
-        <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-3">
-            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-base shrink-0"></i>
-            <div>
-                <strong>Je opbergplaats zit vol ({{ $storageUsed }}/{{ $storageCapacity }})!</strong>
-                Verkoop spullen voor cash of consumeer herstel-items om weer ruimte vrij te maken voor diefstallen, pakketjes en drops.
+        @if($storageUsed >= $storageCapacity)
+        <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-500/80 text-rose-900 dark:text-rose-100 text-xs flex items-center justify-between gap-4 shadow-lg shadow-rose-900/10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center text-lg shrink-0 animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h4 class="font-black text-sm text-rose-700 dark:text-rose-300">⚠️ OPBERGPLAATS OVERVOL ({{ $storageUsed }}/{{ $storageCapacity }} plaatsen bezet)!</h4>
+                    <p class="text-xs text-rose-600 dark:text-rose-400 mt-0.5">
+                        Je hebt je maximale voorraad overschreden. Zolang je opslag vol zit kun je <strong>geen nieuwe kluizen kraken, pakketjes aannemen of buit ontvangen</strong>. Verkoop hieronder direct overtollige maskers of spullen aan de heler om ruimte vrij te maken!
+                    </p>
+                </div>
             </div>
         </div>
         @endif
 
         <!-- OVERVAL MASKERS KAART -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0">
-                    <i class="fa-solid fa-masks-theater"></i>
+        <div x-data="{ showSellModal: false, sellQty: {{ min(10, (int)($character->masks ?? 0)) }} }" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-masks-theater"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-black text-slate-900 dark:text-white">Overval Maskers (Heist Gear)</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
+                                €750 / stuk helerwaarde
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Noodzakelijk voor de bemanning tijdens heists, of verkoop ze direct voor contant zwart geld.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white">Overval Maskers (Heist Gear)</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Noodzakelijk voor de bemanning tijdens Grote Heists en kraakoperaties.
-                    </p>
+                <div class="flex items-center gap-2.5 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+                    <span class="text-lg font-black text-purple-600 dark:text-purple-400">
+                        {{ (int)($character->masks ?? 0) }} <span class="text-xs font-bold text-slate-400">Stuks</span>
+                    </span>
+                    <div class="flex items-center gap-2">
+                        @if((int)($character->masks ?? 0) > 0)
+                        <button type="button" @click="showSellModal = true"
+                                class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <i class="fa-solid fa-coins"></i>
+                            <span>Maskers Verkopen</span>
+                        </button>
+                        @endif
+                        <a href="{{ route('heists.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition">
+                            Heists
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3 shrink-0">
-                <span class="text-base font-black text-purple-600 dark:text-purple-400">
-                    {{ (int)($character->masks ?? 0) }} Stuks
-                </span>
-                <a href="{{ route('heists.index') }}" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition">
-                    Naar Heists
-                </a>
+
+            <!-- MODAL VOOR MASKERS VERKOPEN -->
+            <div x-show="showSellModal" x-cloak
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+                <div @click.away="showSellModal = false"
+                     class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center">
+                                <i class="fa-solid fa-masks-theater text-sm"></i>
+                            </div>
+                            <h3 class="font-black text-sm text-slate-900 dark:text-white">Maskers Verkopen aan Heler</h3>
+                        </div>
+                        <button type="button" @click="showSellModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                    </div>
+
+                    <form action="{{ route('depot.sell-masks') }}" method="POST" class="mt-4 space-y-4">
+                        @csrf
+                        <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200">
+                            De heler biedt <strong>€750 contant per masker</strong>. Verkoop overtollige maskers om direct opbergruimte in je depot vrij te spelen!
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">
+                                Aantal maskers te verkopen (Je bezit: {{ (int)($character->masks ?? 0) }}):
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" name="quantity" x-model.number="sellQty" min="1" max="{{ (int)($character->masks ?? 0) }}"
+                                       class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500" required>
+                                <button type="button" @click="sellQty = {{ (int)($character->masks ?? 0) }}"
+                                        class="px-3 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 font-black text-xs text-slate-700 dark:text-slate-200 shrink-0">
+                                    Alles
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between text-xs font-bold">
+                            <span class="text-slate-500 dark:text-slate-400">Verwachte Opbrengst:</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-black text-sm" x-text="'€' + new Intl.NumberFormat('nl-NL').format(Math.max(0, sellQty * 750))"></span>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-2">
+                            <button type="button" @click="showSellModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs">
+                                Annuleren
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-sm">
+                                <i class="fa-solid fa-check mr-1"></i> Bevestig Verkoop
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 

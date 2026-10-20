@@ -449,6 +449,13 @@
                         <span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Live</span>
                     @endif
                 </a>
+                <a href="{{ route('cinema.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('cinema.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-film w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                        <span>Cinema Watchparties</span>
+                    </div>
+                    <span class="bg-gradient-to-r from-purple-500 to-amber-500 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide shadow-2xs">NIEUW</span>
+                </a>
             </div>
 
             <!-- 1. ALGEMEEN (Dropdown / Accordion) -->
@@ -1102,17 +1109,21 @@
             </div>
 
             <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-semibold">
-                <div class="grid grid-cols-2 gap-1.5">
+                <div class="grid grid-cols-3 gap-1.5">
                     <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition {{ request()->routeIs('dashboard') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
                         <i class="fa-solid fa-gauge text-indigo-600 dark:text-indigo-400 mb-0.5 text-sm"></i>
-                        <span class="text-[11px] truncate w-full">Overzicht</span>
+                        <span class="text-[10px] truncate w-full">Overzicht</span>
                     </a>
                     <a href="{{ route('chat.index') }}" @click="mobileMenuOpen = false" class="relative flex flex-col items-center justify-center p-2 rounded-xl text-center transition {{ request()->routeIs('chat.*') ? 'bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
                         <i class="fa-solid fa-comments text-emerald-500 dark:text-emerald-400 mb-0.5 text-sm"></i>
-                        <span class="text-[11px] truncate w-full">Live Chat & DMs</span>
+                        <span class="text-[10px] truncate w-full">Live Chat</span>
                         @if($unreadChatCount > 0)
                             <span class="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-extrabold px-1 rounded-full animate-pulse">{{ $unreadChatCount }}</span>
                         @endif
+                    </a>
+                    <a href="{{ route('cinema.index') }}" @click="mobileMenuOpen = false" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition {{ request()->routeIs('cinema.*') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 font-bold' }}">
+                        <i class="fa-solid fa-film text-purple-500 dark:text-purple-400 mb-0.5 text-sm"></i>
+                        <span class="text-[10px] truncate w-full">Cinema 🍿</span>
                     </a>
                 </div>
                 <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold transition hover:bg-amber-100/60 dark:hover:bg-amber-900/50">
@@ -1898,6 +1909,30 @@
                 </div>
             </div>
             @endif
+
+            @auth
+            @php
+                $navChar = Auth::user()?->character;
+            @endphp
+            @if($navChar && !request()->routeIs('depot.*') && $navChar->getStorageUsed() >= $navChar->getStorageCapacity())
+            <div class="mb-6 bg-gradient-to-r from-rose-950/80 via-rose-900/60 to-purple-950/80 border-2 border-rose-500/80 p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center text-lg shrink-0 animate-bounce">
+                        <i class="fa-solid fa-box-archive"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-wider text-rose-300">⚠️ Inventaris Overvol ({{ $navChar->getStorageUsed() }}/{{ $navChar->getStorageCapacity() }} plekken)</p>
+                        <p class="text-xs text-rose-100 mt-0.5 leading-relaxed">
+                            Je persoonlijke opbergplaats zit over zijn limiet! Verkoop overtollige maskers of spullen in je Depot om weer buit, drops en kluizen te kunnen ontvangen.
+                        </p>
+                    </div>
+                </div>
+                <a href="{{ route('depot.index', ['tab' => 'storage']) }}" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shrink-0 text-center shadow-md">
+                    <i class="fa-solid fa-coins mr-1"></i> Depot Openen &amp; Verkopen
+                </a>
+            </div>
+            @endif
+            @endauth
 
             @yield('content')
         </main>

@@ -202,6 +202,19 @@
                         <i class="fa-solid fa-plus text-[10px] opacity-60"></i>
                     </button>
 
+                    <!-- Bende Depot Tab -->
+                    <button type="button" @click="setGangTab('depot')" 
+                            :class="activeGangTab === 'depot' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
+                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-boxes-stacked text-amber-500 w-4 text-center"></i>
+                            <span>Bende Depot</span>
+                        </span>
+                        <span class="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-black">
+                            {{ $myGang->getStorageUsed() }}/{{ $myGang->total_storage_capacity }}
+                        </span>
+                    </button>
+
                     <button type="button" @click="setGangTab('logboek')" 
                             :class="activeGangTab === 'logboek' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
                             class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
@@ -1380,10 +1393,328 @@
                         </form>
                     </div>
 
+                    <!-- Maskers Doneren Box -->
+                    <div class="bg-gradient-to-br from-slate-50 to-purple-50/30 dark:from-slate-800/50 dark:to-purple-950/20 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4" x-data="{ maskDonationQty: {{ min(5, (int)($character->masks ?? 0)) }} }">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-masks-theater text-purple-600 dark:text-purple-400"></i>
+                                <span>Maskers op zak:</span>
+                                <strong class="text-purple-600 dark:text-purple-400 font-black font-mono">{{ (int)($character->masks ?? 0) }} stuks</strong>
+                            </span>
+
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <button type="button" @click="maskDonationQty = Math.min({{ (int)($character->masks ?? 0) }}, 5)" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-400 transition cursor-pointer">5x</button>
+                                <button type="button" @click="maskDonationQty = Math.min({{ (int)($character->masks ?? 0) }}, 20)" class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-400 transition cursor-pointer">20x</button>
+                                <button type="button" @click="maskDonationQty = {{ (int)($character->masks ?? 0) }}" class="px-2.5 py-1 text-[11px] font-black rounded-lg bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-700 text-purple-800 dark:text-purple-300 hover:bg-purple-200 transition cursor-pointer">Alles / Max</button>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('gangs.donate-masks') }}" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            @csrf
+                            <div class="relative flex-1">
+                                <i class="fa-solid fa-mask absolute left-3.5 top-3 text-purple-500 text-xs"></i>
+                                <input type="number" 
+                                       name="quantity" 
+                                       x-model.number="maskDonationQty"
+                                       min="1" 
+                                       max="{{ (int)($character->masks ?? 0) }}" 
+                                       required
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl pl-8 pr-4 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 font-mono shadow-2xs">
+                            </div>
+                            <button type="submit" 
+                                    :disabled="maskDonationQty < 1 || maskDonationQty > {{ (int)($character->masks ?? 0) }}"
+                                    class="py-2.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs shrink-0 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-masks-theater"></i>
+                                <span>Doneer Maskers aan Bende Depot</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Spullen & Heist Gear Doneren Box -->
+                    <div class="bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-slate-800/50 dark:to-indigo-950/20 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-box-open text-indigo-500"></i>
+                                <span>Spullen &amp; Benodigdheden Doneren (Sigaretten, Gereedschap, Heist Gear)</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-medium">Opslagplek in bende depot vereist</span>
+                        </div>
+
+                        @if(isset($myInventoryItems) && $myInventoryItems->isNotEmpty())
+                        <form action="{{ route('gangs.donate-item') }}" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                            @csrf
+                            <div class="sm:col-span-7">
+                                <select name="character_item_id" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500">
+                                    @foreach($myInventoryItems as $ci)
+                                    <option value="{{ $ci->id }}">{{ $ci->item?->name ?? 'Voorwerp' }} (Je bezit: {{ $ci->quantity }}x)</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <input type="number" name="quantity" value="1" min="1" max="100" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none focus:border-indigo-500" placeholder="Aantal" required>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider cursor-pointer transition shadow-xs flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-share-from-square"></i>
+                                    <span>Doneer Item</span>
+                                </button>
+                            </div>
+                        </form>
+                        @else
+                        <p class="text-xs text-slate-400 py-1">Je hebt momenteel geen overige spullen of smokkelwaar in je opbergplaats om te doneren.</p>
+                        @endif
+                    </div>
+
                     @else
                     <p class="text-xs text-slate-400 py-4">Je bent nog geen lid van een bende. Sluit je eerst aan bij een bende via de ranglijst!</p>
                     @endif
                 </div>
+            </div>
+
+            <!-- TAB: BENDE DEPOT (OPSLAG, VOORRAAD, GARAGE & PANDEN) -->
+            <div x-show="activeGangTab === 'depot'" class="space-y-6">
+                @if($myGang)
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+                    
+                    <!-- Depot Header & Capaciteit Progress Bar -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                                <i class="fa-solid fa-boxes-stacked"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-0.5">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-md">Collectieve Opslag</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">Bende: {{ $myGang->name }}</span>
+                                </div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Centraal Bende Depot</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Beheer de collectieve maskers, smokkelwaar, het bende wagenpark en vastgoedpanden voor Bende Heists.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Highlights Stats -->
+                        <div class="flex items-center gap-2 flex-wrap shrink-0">
+                            <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
+                                <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Opslag Capaciteit</span>
+                                <span class="font-black text-amber-600 dark:text-amber-400 font-mono">{{ $myGang->getStorageUsed() }} / {{ $myGang->total_storage_capacity }} plekken</span>
+                            </div>
+                            <div class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-xs text-purple-700 dark:text-purple-300">
+                                <span class="text-[10px] text-purple-400 uppercase tracking-wider block font-bold">Wagenpark Fleet</span>
+                                <span class="font-black text-purple-900 dark:text-purple-200 font-mono">{{ $myGang->storedVehicles->count() }} / {{ $myGang->total_vehicle_slots }} wagens</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Capaciteit Alert als het vol zit -->
+                    @if($myGang->getStorageUsed() >= $myGang->total_storage_capacity && $myGang->total_storage_capacity > 0)
+                    <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg shrink-0"></i>
+                            <div>
+                                <strong>Bende Depot Zit Vol ({{ $myGang->getStorageUsed() }}/{{ $myGang->total_storage_capacity }})!</strong>
+                                Bendeleden kunnen pas weer nieuwe maskers of spullen doneren zodra beheerders overtollige voorraad verkopen voor de Bende Kas of nieuwe opslagpanden aankopen.
+                            </div>
+                        </div>
+                        <a href="{{ route('gangs.panden') }}" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shrink-0 transition">
+                            Panden Kopen
+                        </a>
+                    </div>
+                    @elseif($myGang->total_storage_capacity == 0)
+                    <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 text-xs flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-warehouse text-rose-600 text-lg shrink-0"></i>
+                            <div>
+                                <strong>Jullie bende bezit nog geen opslagpanden!</strong>
+                                Schaf een Bende Pand (zoals een Loods of Safehouse) aan via Bende Panden om opslagruimte en garageplekken vrij te spelen.
+                            </div>
+                        </div>
+                        <a href="{{ route('gangs.panden') }}" class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shrink-0 transition">
+                            Naar Bende Panden
+                        </a>
+                    </div>
+                    @endif
+
+                    <!-- SECTIE 1: BENDE MASKERS (HEIST GEAR) -->
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-masks-theater"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-sm font-black text-slate-900 dark:text-white">Bende Overval Maskers</h3>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300">
+                                        Vereist voor Bende Heists
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Bij het starten van een officiële Bende Heist worden maskers direct uit deze voorraad afgetrokken.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 shrink-0 justify-between md:justify-end">
+                            <span class="text-xl font-black text-purple-600 dark:text-purple-400 font-mono">
+                                {{ (int)($myGang->masks ?? 0) }} <span class="text-xs font-bold text-slate-400">stuks</span>
+                            </span>
+
+                            @if($myGang->isOfficer($character) && (int)($myGang->masks ?? 0) > 0)
+                            <form action="{{ route('gangs.sell-masks') }}" method="POST" onsubmit="return confirm('Weet je zeker dat je bende maskers wilt verkopen aan de heler? De opbrengst van €750 per stuk wordt direct gestort in de Bende Kas.');" class="flex items-center gap-1.5">
+                                @csrf
+                                <input type="number" name="quantity" value="{{ min(10, (int)($myGang->masks ?? 0)) }}" min="1" max="{{ (int)($myGang->masks ?? 0) }}" class="w-16 px-2 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-center" title="Aantal te verkopen">
+                                <button type="submit" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition flex items-center gap-1 shadow-xs cursor-pointer" title="Verkoop voor bende kas">
+                                    <i class="fa-solid fa-coins"></i>
+                                    <span>Verkopen (€750 p/s)</span>
+                                </button>
+                            </form>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- SECTIE 2: BENDE ITEMS VOORRAAD -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-boxes-stacked text-amber-500"></i>
+                                <span>Bende Smokkel- &amp; Voorraadartikelen</span>
+                            </h3>
+                            <button type="button" @click="setGangTab('doneren')" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline">
+                                + Spullen Doneren
+                            </button>
+                        </div>
+
+                        @if($myGang->items->isEmpty())
+                        <div class="p-8 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center">
+                            <i class="fa-solid fa-box-open text-slate-300 dark:text-slate-700 text-3xl mb-2 block"></i>
+                            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Er zijn momenteel geen overige goederen in het bende depot opgeslagen.</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Leden kunnen sigaretten, gereedschap en heist items doneren via het Doneren tabblad.</p>
+                        </div>
+                        @else
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            @foreach($myGang->items as $gItem)
+                            <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-base shrink-0">
+                                        <i class="fa-solid {{ $gItem->item?->icon ?? 'fa-box' }}"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-black text-slate-900 dark:text-white">{{ $gItem->item?->name ?? 'Voorwerp' }}</h4>
+                                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Voorraad: <strong class="text-amber-600 dark:text-amber-400">{{ $gItem->quantity }}x</strong></span>
+                                    </div>
+                                </div>
+
+                                @if($myGang->isOfficer($character))
+                                <form action="{{ route('gangs.sell-item', $gItem->id) }}" method="POST" onsubmit="return confirm('Item verkopen en opbrengst storten in de bende kas?');" class="flex items-center gap-1">
+                                    @csrf
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ $gItem->quantity }}" class="w-12 px-1 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs text-center">
+                                    <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition" title="Verkopen voor bende kas">
+                                        <i class="fa-solid fa-coins"></i>
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- SECTIE 3: BENDE GARAGE (WAGENPARK IN DEPOT) -->
+                    <div class="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-car-side text-indigo-500"></i>
+                                <span>Bende Garage Vloot (Gestalde Vluchtvoertuigen)</span>
+                            </h3>
+                            <a href="{{ route('garage.index') }}" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                Naar Garage &rarr;
+                            </a>
+                        </div>
+
+                        @if($myGang->storedVehicles->isEmpty())
+                        <div class="p-6 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/40 text-center">
+                            <i class="fa-solid fa-warehouse text-indigo-400 text-2xl mb-1.5 block"></i>
+                            <p class="text-xs font-bold text-indigo-900 dark:text-indigo-200">Er staan nog geen auto's geparkeerd in de Bende Garage.</p>
+                            <p class="text-[11px] text-indigo-600 dark:text-indigo-400 mt-0.5">
+                                Parkeer een wagen vanuit je persoonlijke garage in de Bende Garage om Bende Heists te kunnen organiseren!
+                            </p>
+                        </div>
+                        @else
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            @foreach($myGang->storedVehicles as $gv)
+                            <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
+                                            <i class="fa-solid fa-car"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 dark:text-white">{{ $gv->vehicle?->name ?? 'Bendevoertuig' }}</h4>
+                                            <span class="text-[10px] text-slate-400 uppercase font-bold">{{ $gv->vehicle?->type ?? 'Voertuig' }}</span>
+                                        </div>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
+                                        Bende Fleet
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60 text-[11px]">
+                                    <div class="text-slate-500">Snelheid: <strong class="text-slate-900 dark:text-white font-mono">{{ $gv->effective_speed }} km/u</strong></div>
+                                    <div class="text-slate-500 text-right">Conditie: <strong class="text-emerald-600 font-mono">{{ $gv->current_condition }}%</strong></div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- SECTIE 4: OVERZICHT AANGEKOCHTE BENDE PANDEN -->
+                    <div class="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-building text-purple-500"></i>
+                                <span>Aangekochte Bende Panden (Vastgoedimperium)</span>
+                            </h3>
+                            <a href="{{ route('gangs.panden') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline">
+                                Panden Beheer &rarr;
+                            </a>
+                        </div>
+
+                        @if($myGang->properties->isEmpty())
+                        <div class="p-6 rounded-2xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40 text-center">
+                            <i class="fa-solid fa-city text-purple-400 text-2xl mb-1.5 block"></i>
+                            <p class="text-xs font-bold text-purple-900 dark:text-purple-200">Jullie bende bezit nog geen panden.</p>
+                            <p class="text-[11px] text-purple-600 dark:text-purple-400 mt-0.5">
+                                Koop safehouses, loodsen en bunkers om opslagcapaciteit en garageplekken vrij te spelen.
+                            </p>
+                        </div>
+                        @else
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            @foreach($myGang->properties as $prop)
+                            <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm">
+                                            <i class="fa-solid fa-warehouse"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-black text-slate-900 dark:text-white">{{ $prop->name }}</h4>
+                                            <span class="text-[10px] text-purple-600 dark:text-purple-400 font-bold uppercase">{{ $prop->type }} (Lvl {{ $prop->level }})</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60 text-[11px] text-slate-500">
+                                    <div>Opslag: <strong class="text-amber-600 font-mono">+{{ $prop->storage_capacity }}</strong></div>
+                                    <div class="text-right">Garage: <strong class="text-indigo-600 font-mono">+{{ $prop->vehicle_slots }}</strong></div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+
+                </div>
+                @endif
             </div>
 
             <!-- TAB 4: RANGLIJST -->

@@ -46,6 +46,7 @@ class Gang extends Model
         'vip_boost_until' => 'datetime',
         'leave_fee_multiplier' => 'integer',
         'min_respect' => 'integer',
+        'masks' => 'integer',
         'has_gang_chat' => 'boolean',
     ];
 
@@ -143,6 +144,11 @@ class Gang extends Model
         return $this->hasMany(CharacterVehicle::class)->where('in_gang_garage', true);
     }
 
+    public function items(): HasMany
+    {
+        return $this->hasMany(GangItem::class);
+    }
+
     public function getTotalStorageCapacityAttribute(): int
     {
         return (int) $this->properties()->sum('storage_capacity');
@@ -156,6 +162,19 @@ class Gang extends Model
     public function getTotalNpcCapacityAttribute(): int
     {
         return (int) $this->properties()->sum('npc_capacity');
+    }
+
+    public function getStorageUsed(): int
+    {
+        $itemsCount = (int) $this->items()->sum('quantity');
+        $masksCount = (int) ($this->masks ?? 0);
+
+        return $itemsCount + $masksCount;
+    }
+
+    public function canAddStorage(int $amount = 1): bool
+    {
+        return ($this->getStorageUsed() + $amount) <= $this->total_storage_capacity;
     }
 
     public function isUnderShield(): bool

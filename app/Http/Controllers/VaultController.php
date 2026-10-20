@@ -254,6 +254,15 @@ class VaultController extends Controller
             return back()->with('error', 'Geen geldige of ongebruikte kluiscodes gevonden om te kraken.');
         }
 
+        // Storage capacity check: prevent overflowing inventory
+        $currentUsed = $character->getStorageUsed();
+        $capacity = $character->getStorageCapacity();
+        if ($currentUsed >= $capacity) {
+            return back()->with('error', "⚠️ Je opbergplaats zit vol ({$currentUsed}/{$capacity} plaatsen bezet)! Je kunt pas weer kluizen kraken zodra je ruimte vrijmaakt door overtollige spullen of maskers te verkopen in je Depot.");
+        }
+
+        $spaceLeft = max(0, $capacity - $currentUsed);
+
         $redeemedCount = 0;
         $totalCash = 0;
         $totalStars = 0;
@@ -274,19 +283,31 @@ class VaultController extends Controller
             $vaultCode->save();
         }
 
+        // Only add masks up to available storage capacity
+        $masksGranted = min($totalMasks, $spaceLeft);
+
         // Clean white money strictly deposited to bank account!
         $character->bank += $totalCash;
         $character->stars = ($character->stars ?? 0) + $totalStars;
         $character->vault_tokens = ($character->vault_tokens ?? 0) + $totalTokens;
-        $character->masks = ($character->masks ?? 0) + $totalMasks;
+        $character->masks = ($character->masks ?? 0) + $masksGranted;
         $character->respect += $totalRespect;
         $character->save();
+
+        // Record Halloween Quest progress for cracking safes/codes
+        HalloweenService::record($character, 'vault', $redeemedCount);
 
         $msg = "🎉 {$redeemedCount} kluiscode(s) succesvol gekraakt in de Suikerkluis!\n";
         $msg .= '• +€'.number_format($totalCash, 0, ',', '.')." wit geld op je Bankrekening 🏦\n";
         $msg .= "• +{$totalStars} Exclusieve Sterren ⭐\n";
-        $msg .= "• +{$totalMasks} Maskers 🎭 (voor zakkenrollen)\n";
-        $msg .= "• +{$totalRespect} Respect 🔥";
+        if ($masksGranted < $totalMasks) {
+            $dropped = $totalMasks - $masksGranted;
+            $msg .= "• +{$masksGranted} Maskers 🎭 (Let op: {$dropped} maskers pasten niet in je volle depot en zijn achtergelaten)\n";
+        } else {
+            $msg .= "• +{$masksGranted} Maskers 🎭 (voor zakkenrollen)\n";
+        }
+        $msg .= "• +{$totalRespect} Respect 🔥\n";
+        $msg .= "• 🎃 Halloween Quest: +{$redeemedCount} kluis voortgang geregistreerd!";
 
         return back()->with('success', $msg);
     }
