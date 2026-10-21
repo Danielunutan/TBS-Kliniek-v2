@@ -5,6 +5,16 @@ namespace App\Support;
 class ProfileStickerCatalog
 {
     /**
+     * Alias for stickers() for broader compatibility.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function all(): array
+    {
+        return self::stickers();
+    }
+
+    /**
      * All available collectible stickers for patient profiles.
      *
      * @return array<string, array<string, mixed>>

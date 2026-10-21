@@ -72,7 +72,7 @@ class CinemaController extends Controller
 
         $gifs = self::GIF_GALLERY;
         $presets = self::PRESET_VIDEOS;
-        $stickers = ProfileStickerCatalog::all();
+        $stickers = ProfileStickerCatalog::stickers();
 
         return view('game.cinema.index', compact('character', 'officialRooms', 'patientRooms', 'gifs', 'presets', 'stickers'));
     }
@@ -163,9 +163,21 @@ class CinemaController extends Controller
 
         $gifs = self::GIF_GALLERY;
         $presets = self::PRESET_VIDEOS;
-        $stickers = ProfileStickerCatalog::all();
+        $stickers = ProfileStickerCatalog::stickers();
 
-        return view('game.cinema.room', compact('character', 'room', 'messages', 'gifs', 'presets', 'stickers'));
+        $initialMessages = $messages->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'text' => $m->message,
+                'gif_url' => $m->gif_url,
+                'character_name' => $m->character?->name ?? 'Onbekend',
+                'avatar' => asset($m->character?->avatar ?? 'characters/avatar-default.png'),
+                'is_staff' => (bool) ($m->character?->user?->isStaff()),
+                'time' => $m->created_at?->format('H:i') ?? '',
+            ];
+        })->values();
+
+        return view('game.cinema.room', compact('character', 'room', 'messages', 'initialMessages', 'gifs', 'presets', 'stickers'));
     }
 
     /**

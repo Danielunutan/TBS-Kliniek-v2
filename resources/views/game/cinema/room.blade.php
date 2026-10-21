@@ -212,15 +212,7 @@ function cinemaTheater(roomId, initialVideoId, lastMessageId) {
         showGifPicker: false,
         showChangeVideoModal: false,
         pollStatus: 'Verbonden',
-        messages: @json($messages->map(fn($m) => [
-            'id' => $m->id,
-            'text' => $m->message,
-            'gif_url' => $m->gif_url,
-            'character_name' => $m->character?->name ?? 'Onbekend',
-            'avatar' => asset($m->character?->avatar ?? 'characters/avatar-default.png'),
-            'is_staff' => (bool)($m->character?->user?->isStaff()),
-            'time' => $m->created_at->format('H:i'),
-        ])),
+        messages: @json($initialMessages ?? []),
 
         init() {
             this.scrollToBottom();
