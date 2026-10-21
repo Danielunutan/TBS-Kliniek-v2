@@ -60,26 +60,26 @@
 
             <!-- Quick Cinema Floating Reactions Bar -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 shadow-xs flex items-center justify-between gap-2 overflow-x-auto">
-                <span class="text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 flex items-center gap-1.5">
+                <span class="text-xs font-bold text-slate-600 dark:text-slate-400 shrink-0 flex items-center gap-1.5">
                     <i class="fa-solid fa-sparkles text-amber-500"></i>
                     <span class="hidden sm:inline">Snelle Reacties:</span>
                 </span>
                 
                 <div class="flex items-center gap-1.5 shrink-0">
-                    <button type="button" @click="sendQuickReaction('🍿 Popcorn crunch!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Popcorn">🍿</button>
-                    <button type="button" @click="sendQuickReaction('🔥 HEET / HYPE!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Fire">🔥</button>
-                    <button type="button" @click="sendQuickReaction('😂 Stuk gaan!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Laugh">😂</button>
-                    <button type="button" @click="sendQuickReaction('🎬 Bioscoop vibes!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Clapper">🎬</button>
-                    <button type="button" @click="sendQuickReaction('💀 DOOD!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Skull">💀</button>
-                    <button type="button" @click="sendQuickReaction('😱 WAT GEBEURT DAAR!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Shock">😱</button>
-                    <button type="button" @click="sendQuickReaction('🚓 Zwaailichten / Boeven!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Police">🚓</button>
-                    <button type="button" @click="sendQuickReaction('🍻 Proost!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 text-sm transition cursor-pointer active:scale-95" title="Cheers">🍻</button>
+                    <button type="button" @click="sendQuickReaction('🍿 Popcorn crunch!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Popcorn">🍿</button>
+                    <button type="button" @click="sendQuickReaction('🔥 HEET / HYPE!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Fire">🔥</button>
+                    <button type="button" @click="sendQuickReaction('😂 Stuk gaan!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Laugh">😂</button>
+                    <button type="button" @click="sendQuickReaction('🎬 Bioscoop vibes!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Clapper">🎬</button>
+                    <button type="button" @click="sendQuickReaction('💀 DOOD!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Skull">💀</button>
+                    <button type="button" @click="sendQuickReaction('😱 WAT GEBEURT DAAR!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Shock">😱</button>
+                    <button type="button" @click="sendQuickReaction('🚓 Zwaailichten / Boeven!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Police">🚓</button>
+                    <button type="button" @click="sendQuickReaction('🍻 Proost!')" class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm transition cursor-pointer active:scale-95 border border-slate-200/70 dark:border-slate-700/60" title="Cheers">🍻</button>
                 </div>
             </div>
         </div>
 
         <!-- SESSION LIVE CHAT (4 cols) -->
-        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xl flex flex-col h-[560px]">
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-lg flex flex-col h-[560px]">
             
             <!-- Chat Header -->
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
@@ -87,13 +87,13 @@
                     <i class="fa-solid fa-comments text-purple-600 dark:text-purple-400"></i>
                     <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Zaal Chatroom</h3>
                 </div>
-                <span class="text-[10px] text-slate-400 font-bold" x-text="pollStatus">Live</span>
+                <span class="text-[10px] text-slate-500 dark:text-slate-400 font-bold" x-text="pollStatus">Live</span>
             </div>
 
             <!-- Messages Stream -->
             <div id="cinema-chat-box" class="flex-1 overflow-y-auto py-3 space-y-3 pr-1 text-xs">
                 <template x-for="msg in messages" :key="msg.id">
-                    <div class="flex items-start gap-2.5 p-2 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                    <div class="flex items-start gap-2.5 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 shadow-2xs">
                         <img :src="msg.avatar" class="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-1 mb-0.5">
@@ -108,7 +108,7 @@
 
                             <!-- Text Message -->
                             <template x-if="msg.text">
-                                <p class="text-slate-700 dark:text-slate-300 break-words leading-relaxed" x-text="msg.text"></p>
+                                <p class="text-slate-800 dark:text-slate-200 break-words leading-relaxed font-medium" x-text="msg.text"></p>
                             </template>
 
                             <!-- Animated GIF -->
@@ -130,7 +130,7 @@
                      class="absolute bottom-16 inset-x-0 bg-white dark:bg-slate-900 border-2 border-purple-500 rounded-2xl p-3 shadow-2xl z-30 max-h-60 overflow-y-auto space-y-2">
                     <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-black text-purple-600 dark:text-purple-400">Kies een Meme GIF Reactie:</span>
-                        <button type="button" @click="showGifPicker = false" class="text-slate-400 text-xs">&times;</button>
+                        <button type="button" @click="showGifPicker = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs cursor-pointer">&times;</button>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
                         @foreach($gifs as $gif)
@@ -146,10 +146,10 @@
                 <form @submit.prevent="sendMessage" class="space-y-2">
                     <div class="flex items-center gap-1.5">
                         <input type="text" x-model="chatInput" placeholder="Typ je reactie in de zaal..."
-                               class="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500">
+                               class="flex-1 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium">
                         
                         <button type="button" @click="showGifPicker = !showGifPicker"
-                                class="px-2.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 hover:bg-purple-100 font-black text-xs transition cursor-pointer"
+                                class="px-2.5 py-2 rounded-xl bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-black text-xs transition cursor-pointer border border-purple-200 dark:border-purple-800"
                                 title="Kies een GIF reactie">
                             GIF
                         </button>
@@ -177,22 +177,22 @@
                     <i class="fa-solid fa-film text-purple-600"></i>
                     <span>Zaal Video Wijzigen</span>
                 </h3>
-                <button type="button" @click="showChangeVideoModal = false" class="text-slate-400 text-sm">&times;</button>
+                <button type="button" @click="showChangeVideoModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-base cursor-pointer">&times;</button>
             </div>
 
             <form action="{{ route('cinema.update-video', $room->slug) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Nieuwe YouTube Video Link:</label>
+                    <label class="block text-xs font-black text-slate-900 dark:text-slate-200 mb-1">Nieuwe YouTube Video Link:</label>
                     <input type="text" name="youtube_url" placeholder="https://www.youtube.com/watch?v=..." required
-                           class="w-full px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-mono">
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-mono text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-bold">
                 </div>
 
-                <div class="flex items-center justify-end gap-2 pt-2">
-                    <button type="button" @click="showChangeVideoModal = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold">
+                <div class="flex items-center justify-end gap-2.5 pt-2">
+                    <button type="button" @click="showChangeVideoModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer transition">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-purple-600 text-white font-black text-xs">
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition shadow-sm cursor-pointer active:scale-95">
                         Video Starten
                     </button>
                 </div>

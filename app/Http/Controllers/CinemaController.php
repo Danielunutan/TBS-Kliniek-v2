@@ -40,7 +40,7 @@ class CinemaController extends Controller
         ['title' => 'TBS Kliniek Promo & Trailers', 'id' => 'dQw4w9WgXcQ', 'category' => 'Trailers'],
         ['title' => 'Grootste Bankovervallen Documentaire', 'id' => '1la4bUKxMJE', 'category' => 'Misdaad Docu'],
         ['title' => 'Lofi Prison Beats to Chill/Escape to', 'id' => 'jfKfPfyJRdk', 'category' => 'Muziek Stream'],
-        ['title' => 'GTA 6 Gameplay & Heists Montage', 'id' => 'QdBZY2fkU-0', 'category' => 'Gaming'],
+        ['title' => 'Spannende Misdaad & Gevangenis Dossiers', 'id' => '1la4bUKxMJE', 'category' => 'Dossiers'],
     ];
 
     /**
@@ -51,21 +51,6 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
-
-        // Auto-seed an official community watchparty room if none exists
-        if (! CinemaRoom::where('is_official', true)->exists()) {
-            CinemaRoom::create([
-                'title' => '🎬 TBS Kliniek Community Watchparty [Officieel]',
-                'slug' => 'tbs-kliniek-community-watchparty',
-                'description' => 'De centrale bioscoopzaal voor alle patiënten! Bekijk samen spannende documentaires, misdaad trailers en gezellige video\'s.',
-                'host_character_id' => $character->id,
-                'youtube_url' => 'https://www.youtube.com/watch?v=1la4bUKxMJE',
-                'youtube_video_id' => '1la4bUKxMJE',
-                'is_official' => true,
-                'is_private' => false,
-                'views_count' => 142,
-            ]);
-        }
 
         $officialRooms = CinemaRoom::where('is_official', true)->with('host')->latest()->get();
         $patientRooms = CinemaRoom::where('is_official', false)->with('host')->latest()->take(20)->get();

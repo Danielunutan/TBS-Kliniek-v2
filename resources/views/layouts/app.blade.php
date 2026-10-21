@@ -1915,20 +1915,24 @@
                 $navChar = Auth::user()?->character;
             @endphp
             @if($navChar && !request()->routeIs('depot.*') && $navChar->getStorageUsed() >= $navChar->getStorageCapacity())
-            <div class="mb-6 bg-gradient-to-r from-rose-950/80 via-rose-900/60 to-purple-950/80 border-2 border-rose-500/80 p-4 rounded-2xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-white">
+            <div class="mb-6 bg-gradient-to-r from-rose-50 via-rose-100/80 to-purple-50 dark:from-rose-950/90 dark:via-rose-900/70 dark:to-purple-950/90 border-2 border-rose-300 dark:border-rose-600/80 p-4 rounded-2xl shadow-sm dark:shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center text-lg shrink-0 animate-bounce">
+                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg shrink-0 shadow-sm animate-bounce">
                         <i class="fa-solid fa-box-archive"></i>
                     </div>
                     <div>
-                        <p class="text-xs font-black uppercase tracking-wider text-rose-300">⚠️ Inventaris Overvol ({{ $navChar->getStorageUsed() }}/{{ $navChar->getStorageCapacity() }} plekken)</p>
-                        <p class="text-xs text-rose-100 mt-0.5 leading-relaxed">
+                        <p class="text-xs font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                            <span>Inventaris Overvol ({{ $navChar->getStorageUsed() }}/{{ $navChar->getStorageCapacity() }} plekken)</span>
+                        </p>
+                        <p class="text-xs text-rose-950 dark:text-rose-100 font-medium mt-0.5 leading-relaxed">
                             Je persoonlijke opbergplaats zit over zijn limiet! Verkoop overtollige maskers of spullen in je Depot om weer buit, drops en kluizen te kunnen ontvangen.
                         </p>
                     </div>
                 </div>
-                <a href="{{ route('depot.index', ['tab' => 'storage']) }}" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shrink-0 text-center shadow-md">
-                    <i class="fa-solid fa-coins mr-1"></i> Depot Openen &amp; Verkopen
+                <a href="{{ route('depot.index', ['tab' => 'storage']) }}" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shrink-0 text-center shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-coins text-amber-950"></i>
+                    <span>Depot Openen &amp; Verkopen</span>
                 </a>
             </div>
             @endif
