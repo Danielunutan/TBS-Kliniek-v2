@@ -1975,23 +1975,57 @@
             </div>
             @endif
 
-            @if(session('success') || session('status'))
-            <div id="flash-success-alert" class="mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
-                <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-lg mt-0.5 shrink-0"></i>
-                <div>
-                    <p class="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">Actie Geslaagd!</p>
-                    <p class="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 leading-relaxed">{{ session('success') ?? session('status') }}</p>
+            @php
+                $flashSuccess = session('success') ?? session('status');
+                if (!$flashSuccess && session()->has('tbs_flash_success')) {
+                    $flashTime = (int) (session('tbs_flash_time') ?? 0);
+                    if ($flashTime === 0 || (now()->timestamp - $flashTime) <= 60) {
+                        $flashSuccess = session('tbs_flash_success');
+                    }
+                }
+                if (session()->has('tbs_flash_success')) {
+                    session()->forget(['tbs_flash_success', 'tbs_flash_time']);
+                }
+
+                $flashError = session('error') ?? ($errors->any() ? $errors->first() : null);
+                if (!$flashError && session()->has('tbs_flash_error')) {
+                    $flashTime = (int) (session('tbs_flash_time') ?? 0);
+                    if ($flashTime === 0 || (now()->timestamp - $flashTime) <= 60) {
+                        $flashError = session('tbs_flash_error');
+                    }
+                }
+                if (session()->has('tbs_flash_error')) {
+                    session()->forget(['tbs_flash_error', 'tbs_flash_time']);
+                }
+            @endphp
+
+            @if($flashSuccess)
+            <div id="flash-success-alert" x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-xl shadow-xs flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-lg mt-0.5 shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">Actie Geslaagd!</p>
+                        <p class="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 leading-relaxed">{{ $flashSuccess }}</p>
+                    </div>
                 </div>
+                <button type="button" @click="show = false" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 text-xs p-1 shrink-0 cursor-pointer" title="Sluiten">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             @endif
 
-            @if(session('error') || $errors->any())
-            <div id="flash-error-alert" class="mb-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
-                <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-lg mt-0.5 shrink-0"></i>
-                <div>
-                    <p class="text-xs font-extrabold text-rose-900 dark:text-rose-200">Let op / Tegenwerking!</p>
-                    <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5 leading-relaxed">{{ session('error') ?? $errors->first() }}</p>
+            @if($flashError)
+            <div id="flash-error-alert" x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 p-4 rounded-xl shadow-xs flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-lg mt-0.5 shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-extrabold text-rose-900 dark:text-rose-200">Let op / Tegenwerking!</p>
+                        <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5 leading-relaxed">{{ $flashError }}</p>
+                    </div>
                 </div>
+                <button type="button" @click="show = false" class="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-200 text-xs p-1 shrink-0 cursor-pointer" title="Sluiten">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             @endif
 
