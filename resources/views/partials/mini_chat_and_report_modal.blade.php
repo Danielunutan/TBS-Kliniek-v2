@@ -341,7 +341,7 @@
                                             : (msg.is_admin || msg.is_moderator 
                                                 ? 'bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-100 rounded-tl-xs text-left'
                                                 : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'))"
-                                     x-text="msg.message"></div>
+                                     x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                 <!-- Paars Hartje Reactie Knop 💜 -->
                                 <button type="button" @click="togglePublicHeart(msg)" 
@@ -422,8 +422,57 @@
                         </div>
                     </div>
 
+                    <!-- FLOATING MENTION AUTOCOMPLETE DROPDOWN (Above Plein Input) -->
+                    <div x-show="showMentionDropdown && mentionTargetField === 'global' && mentionUsers.length > 0"
+                         @click.outside="showMentionDropdown = false"
+                         x-cloak
+                         class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-purple-950/70 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-at text-purple-500"></i>
+                                <span>Speler Vermelden</span>
+                            </span>
+                            <span class="text-[9px] text-slate-400 font-normal lowercase">↑↓ navigeer • enter</span>
+                        </div>
+                        <div class="max-h-48 overflow-y-auto p-1 space-y-0.5">
+                            <template x-for="(user, idx) in mentionUsers" :key="user.id">
+                                <div @click="selectMention(user)"
+                                     @mouseenter="mentionSelectedIndex = idx"
+                                     :class="mentionSelectedIndex === idx ? 'bg-purple-100 dark:bg-purple-900/60 border-l-2 border-purple-500' : 'hover:bg-slate-50 dark:hover:bg-purple-950/30 border-l-2 border-transparent'"
+                                     class="px-2.5 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="relative shrink-0">
+                                            <img :src="user.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                                 class="w-6 h-6 rounded-md object-cover border border-slate-200 dark:border-purple-800"
+                                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                            <span x-show="user.is_online" 
+                                                  class="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="user.name"></span>
+                                                <template x-if="user.gang_tag">
+                                                    <span class="text-[8px] font-black uppercase text-purple-600 dark:text-purple-400" x-text="'[' + user.gang_tag + ']'"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                        <template x-if="user.staff_role">
+                                            <span class="text-[8px] font-extrabold text-amber-500" x-text="user.staff_role"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
                     <div class="flex-1 relative flex items-center">
-                        <input type="text" x-model="inputMessage" placeholder="Typ @naam of een bericht... (Enter)" maxlength="250"
+                        <input type="text" x-ref="publicInputField" x-model="inputMessage" 
+                               @input="onChatInput($event, 'global')"
+                               @keydown="onChatKeydown($event, 'global')"
+                               placeholder="Typ @naam of een bericht... (Enter)" maxlength="250"
                                class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                         <span x-show="inputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
@@ -559,7 +608,7 @@
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                         <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                              :class="msg.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
-                                             x-text="msg.message"></div>
+                                             x-html="formatMessage(msg.message, msg.is_me)"></div>
 
                                         <!-- Paars Hartje Reactie Knop 💜 -->
                                         <button type="button" @click="togglePublicHeart(msg)" 
@@ -636,14 +685,60 @@
                                 </div>
                             </div>
 
-                            <div class="flex-1 relative flex items-center">
-                                <input type="text" x-model="gangInputMessage" placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="250"
-                                       class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                                <span x-show="gangInputMessage.length > 150" 
-                                      class="absolute right-2 text-[9px] font-mono pointer-events-none"
-                                      :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
-                                      x-text="gangInputMessage.length + '/250'"></span>
-                            </div>
+                    <!-- FLOATING MENTION AUTOCOMPLETE DROPDOWN (Above Gang Input) -->
+                    <div x-show="showMentionDropdown && mentionTargetField === 'gang' && mentionUsers.length > 0"
+                         @click.outside="showMentionDropdown = false"
+                         x-cloak
+                         class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
+                        <div class="px-3 py-1.5 bg-slate-50 dark:bg-purple-950/70 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-at text-purple-500"></i>
+                                <span>Bende Lid Vermelden</span>
+                            </span>
+                            <span class="text-[9px] text-slate-400 font-normal lowercase">↑↓ navigeer • enter</span>
+                        </div>
+                        <div class="max-h-48 overflow-y-auto p-1 space-y-0.5">
+                            <template x-for="(user, idx) in mentionUsers" :key="user.id">
+                                <div @click="selectMention(user)"
+                                     @mouseenter="mentionSelectedIndex = idx"
+                                     :class="mentionSelectedIndex === idx ? 'bg-purple-100 dark:bg-purple-900/60 border-l-2 border-purple-500' : 'hover:bg-slate-50 dark:hover:bg-purple-950/30 border-l-2 border-transparent'"
+                                     class="px-2.5 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="relative shrink-0">
+                                            <img :src="user.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                                 class="w-6 h-6 rounded-md object-cover border border-slate-200 dark:border-purple-800"
+                                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                            <span x-show="user.is_online" 
+                                                  class="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="user.name"></span>
+                                                <template x-if="user.gang_tag">
+                                                    <span class="text-[8px] font-black uppercase text-purple-600 dark:text-purple-400" x-text="'[' + user.gang_tag + ']'"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 relative flex items-center">
+                        <input type="text" x-ref="gangInputField" x-model="gangInputMessage" 
+                               @input="onChatInput($event, 'gang')"
+                               @keydown="onChatKeydown($event, 'gang')"
+                               placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="250"
+                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                        <span x-show="gangInputMessage.length > 150" 
+                              class="absolute right-2 text-[9px] font-mono pointer-events-none"
+                              :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
+                              x-text="gangInputMessage.length + '/250'"></span>
+                    </div>
                             <button type="submit" :disabled="isSendingGang || !gangInputMessage.trim()" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                                 <i class="fa-solid fa-paper-plane"></i>
                             </button>
@@ -833,7 +928,7 @@
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                                 <div class="inline-block px-3 py-1.5 rounded-2xl text-xs leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                                      :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
-                                                     x-text="dm.message"></div>
+                                                     x-html="formatMessage(dm.message, dm.is_me)"></div>
 
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
                                                 <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">
@@ -954,8 +1049,54 @@
                                     </div>
                                 </div>
 
+                                <!-- FLOATING MENTION AUTOCOMPLETE DROPDOWN (Above Direct Input) -->
+                                <div x-show="showMentionDropdown && mentionTargetField === 'direct' && mentionUsers.length > 0"
+                                     @click.outside="showMentionDropdown = false"
+                                     x-cloak
+                                     class="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
+                                    <div class="px-3 py-1.5 bg-slate-50 dark:bg-purple-950/70 flex items-center justify-between text-[10px] font-black uppercase text-purple-700 dark:text-purple-300">
+                                        <span class="flex items-center gap-1">
+                                            <i class="fa-solid fa-at text-purple-500"></i>
+                                            <span>Speler Vermelden</span>
+                                        </span>
+                                        <span class="text-[9px] text-slate-400 font-normal lowercase">↑↓ navigeer • enter</span>
+                                    </div>
+                                    <div class="max-h-48 overflow-y-auto p-1 space-y-0.5">
+                                        <template x-for="(user, idx) in mentionUsers" :key="user.id">
+                                            <div @click="selectMention(user)"
+                                                 @mouseenter="mentionSelectedIndex = idx"
+                                                 :class="mentionSelectedIndex === idx ? 'bg-purple-100 dark:bg-purple-900/60 border-l-2 border-purple-500' : 'hover:bg-slate-50 dark:hover:bg-purple-950/30 border-l-2 border-transparent'"
+                                                 class="px-2.5 py-1.5 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition">
+                                                <div class="flex items-center gap-2 min-w-0">
+                                                    <div class="relative shrink-0">
+                                                        <img :src="user.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                                             class="w-6 h-6 rounded-md object-cover border border-slate-200 dark:border-purple-800"
+                                                             onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                                        <span x-show="user.is_online" 
+                                                              class="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <div class="flex items-center gap-1">
+                                                            <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="user.name"></span>
+                                                            <template x-if="user.gang_tag">
+                                                                <span class="text-[8px] font-black uppercase text-purple-600 dark:text-purple-400" x-text="'[' + user.gang_tag + ']'"></span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-1 shrink-0">
+                                                    <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
                                 <div class="relative flex-1 flex items-center min-w-0">
-                                    <input type="text" x-model="directInput" placeholder="Typ een privébericht... (Enter)" maxlength="500"
+                                    <input type="text" x-ref="directInputField" x-model="directInput" 
+                                           @input="onChatInput($event, 'direct')"
+                                           @keydown="onChatKeydown($event, 'direct')"
+                                           placeholder="Typ @naam of een privébericht... (Enter)" maxlength="500"
                                            class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 pr-14 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                                     <span x-show="directInput.length > 350" x-cloak
                                           class="absolute right-2 text-[10px] font-mono pointer-events-none"
@@ -1228,6 +1369,13 @@
             isSoundMuted: localStorage.getItem('tbs_chat_muted') === '1',
             lastChimeTime: 0,
 
+            // Mention autocomplete state
+            showMentionDropdown: false,
+            mentionUsers: [],
+            mentionSelectedIndex: 0,
+            mentionTargetField: 'global',
+            mentionQuery: '',
+
             // Helpbot state
             helpInput: '',
             helpMessages: [
@@ -1399,6 +1547,148 @@
                 });
             },
 
+            formatMessage(text, isMe = false) {
+                if (!text) return '';
+                // Prevent XSS by HTML encoding first
+                const tempDiv = document.createElement('div');
+                tempDiv.textContent = text;
+                let safe = tempDiv.innerHTML;
+
+                // Convert @username into clean, sleek clickable badges linking to dossier profile
+                const mentionRegex = /@([a-zA-Z0-9_\-]+)/g;
+                safe = safe.replace(mentionRegex, (match, username) => {
+                    const url = '/speler/' + encodeURIComponent(username);
+                    if (isMe) {
+                        return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                    } else {
+                        return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-500 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                    }
+                });
+
+                return safe;
+            },
+
+            async onChatInput(e, fieldType = 'global') {
+                this.mentionTargetField = fieldType;
+                let inputEl = null;
+                let text = '';
+                if (fieldType === 'gang') {
+                    inputEl = this.$refs.gangInputField;
+                    text = this.gangInputMessage;
+                } else if (fieldType === 'direct') {
+                    inputEl = this.$refs.directInputField;
+                    text = this.directInput;
+                } else {
+                    inputEl = this.$refs.publicInputField;
+                    text = this.inputMessage;
+                }
+
+                if (!inputEl) return;
+                const cursorPos = inputEl.selectionStart || 0;
+                const textBeforeCursor = text.slice(0, cursorPos);
+                const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+
+                if (match) {
+                    const query = match[1] || '';
+                    this.mentionQuery = query;
+                    await this.fetchMentionSuggestions(query);
+                } else {
+                    this.showMentionDropdown = false;
+                    this.mentionUsers = [];
+                }
+            },
+
+            async fetchMentionSuggestions(q) {
+                try {
+                    const res = await fetch(`/chat/zoek-spelers?q=${encodeURIComponent(q)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success && Array.isArray(data.players) && data.players.length > 0) {
+                            this.mentionUsers = data.players;
+                            this.mentionSelectedIndex = 0;
+                            this.showMentionDropdown = true;
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Mention fetch error:', e);
+                }
+                this.showMentionDropdown = false;
+                this.mentionUsers = [];
+            },
+
+            onChatKeydown(e, fieldType = 'global') {
+                if (this.showMentionDropdown && this.mentionTargetField === fieldType && this.mentionUsers.length > 0) {
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        this.mentionSelectedIndex = (this.mentionSelectedIndex + 1) % this.mentionUsers.length;
+                        return;
+                    }
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        this.mentionSelectedIndex = (this.mentionSelectedIndex - 1 + this.mentionUsers.length) % this.mentionUsers.length;
+                        return;
+                    }
+                    if (e.key === 'Enter' || e.key === 'Tab') {
+                        e.preventDefault();
+                        if (this.mentionUsers[this.mentionSelectedIndex]) {
+                            this.selectMention(this.mentionUsers[this.mentionSelectedIndex]);
+                        }
+                        return;
+                    }
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        this.showMentionDropdown = false;
+                        return;
+                    }
+                }
+            },
+
+            selectMention(user) {
+                let inputEl = null;
+                let currentText = '';
+                if (this.mentionTargetField === 'gang') {
+                    inputEl = this.$refs.gangInputField;
+                    currentText = this.gangInputMessage;
+                } else if (this.mentionTargetField === 'direct') {
+                    inputEl = this.$refs.directInputField;
+                    currentText = this.directInput;
+                } else {
+                    inputEl = this.$refs.publicInputField;
+                    currentText = this.inputMessage;
+                }
+
+                const cursorPos = inputEl ? inputEl.selectionStart : currentText.length;
+                const textBeforeCursor = currentText.slice(0, cursorPos);
+                const textAfterCursor = currentText.slice(cursorPos);
+
+                const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+                if (match) {
+                    const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
+                    const prefix = textBeforeCursor.slice(0, atIndex);
+                    const inserted = '@' + user.name + ' ';
+                    const updated = prefix + inserted + textAfterCursor;
+                    if (this.mentionTargetField === 'gang') {
+                        this.gangInputMessage = updated;
+                    } else if (this.mentionTargetField === 'direct') {
+                        this.directInput = updated;
+                    } else {
+                        this.inputMessage = updated;
+                    }
+
+                    const nextPos = prefix.length + inserted.length;
+                    this.$nextTick(() => {
+                        if (inputEl) {
+                            inputEl.focus();
+                            inputEl.setSelectionRange(nextPos, nextPos);
+                        }
+                    });
+                }
+
+                this.showMentionDropdown = false;
+                this.mentionUsers = [];
+            },
+
             tagPlayer(name) {
                 if (!name) return;
                 const tag = '@' + name.trim() + ' ';
@@ -1406,10 +1696,16 @@
                     if (!this.gangInputMessage.includes(tag)) {
                         this.gangInputMessage = tag + this.gangInputMessage;
                     }
+                    this.$nextTick(() => {
+                        if (this.$refs.gangInputField) this.$refs.gangInputField.focus();
+                    });
                 } else {
                     if (!this.inputMessage.includes(tag)) {
                         this.inputMessage = tag + this.inputMessage;
                     }
+                    this.$nextTick(() => {
+                        if (this.$refs.publicInputField) this.$refs.publicInputField.focus();
+                    });
                 }
             },
 
@@ -1889,87 +2185,112 @@
             },
 
             pollLoop() {
+                let pollCounter = 0;
                 setInterval(() => {
-                    this.loadPublicMessages();
-                    if (this.hasGang && this.gangHasChat) {
-                        this.loadGangMessages();
+                    // 1. If tab is in background, skip completely to save server resources & battery
+                    if (document.visibilityState === 'hidden') {
+                        return;
                     }
 
-                    // Poll incoming direct messages & unread count
-                    const pollDmUrl = '{{ route('chat.poll-incoming') }}' + (this.lastDirectDmId > 0 ? ('?after_dm_id=' + this.lastDirectDmId) : '');
-                    fetch(pollDmUrl, { headers: { 'Accept': 'application/json' } })
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.success) {
-                                if (data.unread_dms !== undefined) {
-                                    this.unreadDmsCount = data.unread_dms;
-                                }
+                    pollCounter++;
 
-                                if (data.new_dm && data.new_dm.id) {
-                                    const dm = data.new_dm;
-                                    const isNewer = this.lastDirectDmId > 0 && dm.id > this.lastDirectDmId;
-                                    this.lastDirectDmId = Math.max(this.lastDirectDmId, dm.id);
+                    // 2. Direct Messages & Badges: poll every ~6 seconds when closed, or every ~3 seconds when open
+                    const dmIntervalTicks = this.isOpen ? 1 : 2;
+                    if (pollCounter % dmIntervalTicks === 0) {
+                        const pollDmUrl = '{{ route('chat.poll-incoming') }}' + (this.lastDirectDmId > 0 ? ('?after_dm_id=' + this.lastDirectDmId) : '');
+                        fetch(pollDmUrl, { headers: { 'Accept': 'application/json' } })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success) {
+                                    if (data.unread_dms !== undefined) {
+                                        this.unreadDmsCount = data.unread_dms;
+                                    }
 
-                                    if (isNewer) {
-                                        const isChattingWithSender = this.isOpen && 
-                                            this.activeTab === 'direct' && 
-                                            this.activeDirectPartner && 
-                                            (this.activeDirectPartner.id === dm.sender_id || this.activeDirectPartner.partner_id === dm.sender_id);
+                                    if (data.new_dm && data.new_dm.id) {
+                                        const dm = data.new_dm;
+                                        const isNewer = this.lastDirectDmId > 0 && dm.id > this.lastDirectDmId;
+                                        this.lastDirectDmId = Math.max(this.lastDirectDmId, dm.id);
 
-                                        this.playChime();
-                                        this.loadConversations();
+                                        if (isNewer) {
+                                            const isChattingWithSender = this.isOpen && 
+                                                this.activeTab === 'direct' && 
+                                                this.activeDirectPartner && 
+                                                (this.activeDirectPartner.id === dm.sender_id || this.activeDirectPartner.partner_id === dm.sender_id);
 
-                                        if (isChattingWithSender) {
-                                            if (!this.activeDirectMessages.some(m => m.id === dm.id)) {
-                                                this.activeDirectMessages.push({
-                                                    id: dm.id,
-                                                    sender_id: dm.sender_id,
-                                                    recipient_id: 0,
-                                                    message: dm.message,
-                                                    type: 'chat',
-                                                    metadata: null,
-                                                    time: dm.time,
-                                                    is_me: false,
-                                                    is_read: true,
-                                                    read_at: null,
-                                                    reply_to_id: dm.reply_to_id || null,
-                                                    reply_to_name: dm.reply_to_name || null,
-                                                    reply_to_snippet: dm.reply_to_snippet || null,
-                                                    hearts_count: 0,
-                                                    has_hearted: false,
-                                                });
-                                                this.scrollDirectBottom();
+                                            this.playChime();
+                                            this.loadConversations();
 
-                                                // Immediately mark as read on backend so it doesn't stay unread
-                                                fetch(`/chat/prive/${dm.sender_id}`, { headers: { 'Accept': 'application/json' } })
-                                                    .then(() => {
-                                                        const conv = this.directConversations.find(c => c.partner_id === dm.sender_id);
-                                                        if (conv) conv.unread_count = 0;
-                                                    })
-                                                    .catch(() => {});
-                                            }
-                                        } else {
-                                            this.toastNotification = {
-                                                type: 'direct',
-                                                partner_id: dm.sender_id,
-                                                name: dm.sender_name,
-                                                text: dm.message,
-                                                avatar: dm.sender_avatar,
-                                                time: dm.time,
-                                                is_bot: dm.is_bot,
-                                            };
-                                            setTimeout(() => { 
-                                                if (this.toastNotification && this.toastNotification.type === 'direct') {
-                                                    this.toastNotification = null; 
+                                            if (isChattingWithSender) {
+                                                if (!this.activeDirectMessages.some(m => m.id === dm.id)) {
+                                                    this.activeDirectMessages.push({
+                                                        id: dm.id,
+                                                        sender_id: dm.sender_id,
+                                                        recipient_id: 0,
+                                                        message: dm.message,
+                                                        type: 'chat',
+                                                        metadata: null,
+                                                        time: dm.time,
+                                                        is_me: false,
+                                                        is_read: true,
+                                                        read_at: null,
+                                                        reply_to_id: dm.reply_to_id || null,
+                                                        reply_to_name: dm.reply_to_name || null,
+                                                        reply_to_snippet: dm.reply_to_snippet || null,
+                                                        hearts_count: 0,
+                                                        has_hearted: false,
+                                                    });
+                                                    this.scrollDirectBottom();
+
+                                                    // Immediately mark as read on backend so it doesn't stay unread
+                                                    fetch(`/chat/prive/${dm.sender_id}`, { headers: { 'Accept': 'application/json' } })
+                                                        .then(() => {
+                                                            const conv = this.directConversations.find(c => c.partner_id === dm.sender_id);
+                                                            if (conv) conv.unread_count = 0;
+                                                        })
+                                                        .catch(() => {});
                                                 }
-                                            }, 7000);
+                                            } else {
+                                                this.toastNotification = {
+                                                    type: 'direct',
+                                                    partner_id: dm.sender_id,
+                                                    name: dm.sender_name,
+                                                    text: dm.message,
+                                                    avatar: dm.sender_avatar,
+                                                    time: dm.time,
+                                                    is_bot: dm.is_bot,
+                                                };
+                                                setTimeout(() => { 
+                                                    if (this.toastNotification && this.toastNotification.type === 'direct') {
+                                                        this.toastNotification = null; 
+                                                    }
+                                                }, 7000);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        })
-                        .catch(() => {});
-                }, 2500);
+                            })
+                            .catch(() => {});
+                    }
+
+                    // 3. Public Messages & Gang Messages:
+                    // If chat modal is OPEN:
+                    // - if activeTab is 'global', poll public messages every 3s
+                    // - if activeTab is 'gang', poll gang messages every 3s
+                    // If chat modal is CLOSED:
+                    // - only poll for public/gang @mentions occasionally (every ~9 seconds = 3 ticks)
+                    if (this.isOpen) {
+                        if (this.activeTab === 'global') {
+                            this.loadPublicMessages();
+                        } else if (this.activeTab === 'gang' && this.hasGang && this.gangHasChat) {
+                            this.loadGangMessages();
+                        }
+                    } else if (pollCounter % 3 === 0) {
+                        this.loadPublicMessages();
+                        if (this.hasGang && this.gangHasChat) {
+                            this.loadGangMessages();
+                        }
+                    }
+                }, 3000);
             }
         };
     }

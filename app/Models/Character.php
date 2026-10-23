@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\DailyBattleService;
+use App\Services\HalloweenService;
 use App\Support\ProfileStickerCatalog;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Class Character
@@ -146,6 +148,22 @@ class Character extends Model
         'last_hack_at' => 'datetime',
         'hacks_completed_total' => 'integer',
     ];
+
+    /**
+     * Get rich metadata for the currently equipped avatar border / frame.
+     *
+     * @return array{key: string, name: string, emoji: string, badge_title: string, price_seeds: int, badge: string, description: string, ring: string, border: string, glow: string, badge_gradient: string, preview_class: string}|null
+     */
+    public function getEquippedBorderInfo(): ?array
+    {
+        if (empty($this->equipped_border)) {
+            return null;
+        }
+
+        $borders = HalloweenService::getBorders();
+
+        return $borders[$this->equipped_border] ?? null;
+    }
 
     /**
      * Get CSS classes for the currently equipped avatar border.
@@ -833,6 +851,22 @@ class Character extends Model
     }
 
     /**
+     * Recent visits received on this character's profile.
+     */
+    public function profileVisitsReceived(): HasMany
+    {
+        return $this->hasMany(ProfileVisit::class, 'visited_id');
+    }
+
+    /**
+     * Profiles visited by this character.
+     */
+    public function profileVisitsMade(): HasMany
+    {
+        return $this->hasMany(ProfileVisit::class, 'visitor_id');
+    }
+
+    /**
      * Get completed missions records.
      */
     public function missions(): HasMany
@@ -1240,9 +1274,11 @@ class Character extends Model
      */
     public static function getOnlineCount(): int
     {
-        $count = static::where('last_active_at', '>=', now()->subMinutes(5))->count();
+        return Cache::remember('tbs_online_count', 15, function () {
+            $count = static::where('last_active_at', '>=', now()->subMinutes(5))->count();
 
-        return max(1, $count);
+            return max(1, $count);
+        });
     }
 
     /**

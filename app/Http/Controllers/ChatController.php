@@ -90,6 +90,17 @@ class ChatController extends Controller
             }
         }
 
+        if ($afterId > 0) {
+            $cachedLastId = Cache::get("chat_last_id_{$channel}");
+            if ($cachedLastId !== null && $afterId >= (int) $cachedLastId) {
+                return response()->json([
+                    'success' => true,
+                    'messages' => [],
+                    'last_id' => (int) $cachedLastId,
+                ]);
+            }
+        }
+
         $query = ChatMessage::with(['character.gang', 'character.user'])
             ->where('channel', $channel);
 
@@ -104,6 +115,12 @@ class ChatController extends Controller
                 ->get()
                 ->reverse()
                 ->values();
+        }
+
+        if ($messages->isNotEmpty()) {
+            Cache::put("chat_last_id_{$channel}", (int) $messages->max('id'), now()->addHours(24));
+        } elseif ($afterId > 0) {
+            Cache::put("chat_last_id_{$channel}", $afterId, now()->addHours(24));
         }
 
         $formatted = $messages->map(function (ChatMessage $msg) use ($character) {
@@ -318,6 +335,8 @@ class ChatController extends Controller
             'hearts_count' => 0,
             'hearts_users' => [],
         ]);
+
+        Cache::put("chat_last_id_{$channel}", (int) $chatMsg->id, now()->addHours(24));
 
         $gang = $character->gang;
 
@@ -535,6 +554,8 @@ class ChatController extends Controller
                 ->where('is_read', false)
                 ->update(['is_read' => true, 'read_at' => now()]);
 
+            Cache::forget("dm_unread_count_{$character->id}");
+
             $isOnline = $partner->last_active_at && $partner->last_active_at->diffInMinutes(now()) < 5;
 
             $partnerData = [
@@ -656,6 +677,8 @@ class ChatController extends Controller
             'hearts_users' => [],
         ]);
 
+        Cache::forget("dm_unread_count_{$partner->id}");
+
         return response()->json([
             'success' => true,
             'message' => [
@@ -693,6 +716,22 @@ class ChatController extends Controller
 
         $afterDmId = (int) $request->query('after_dm_id', 0);
 
+        // Fast unread count cache (5 seconds)
+        $unreadCount = Cache::remember("dm_unread_count_{$character->id}", 5, function () use ($character) {
+            return DirectMessage::where('recipient_id', $character->id)
+                ->where('is_read', false)
+                ->count();
+        });
+
+        // If no unread DMs exist, return immediately with zero SQL queries
+        if ($unreadCount === 0) {
+            return response()->json([
+                'success' => true,
+                'unread_dms' => 0,
+                'new_dm' => null,
+            ]);
+        }
+
         // Find latest unread DM for this character
         $query = DirectMessage::with(['sender'])
             ->where('recipient_id', $character->id)
@@ -704,10 +743,6 @@ class ChatController extends Controller
 
         /** @var DirectMessage|null $latestDm */
         $latestDm = $query->orderBy('id', 'desc')->first();
-
-        $unreadCount = DirectMessage::where('recipient_id', $character->id)
-            ->where('is_read', false)
-            ->count();
 
         $dmData = null;
         if ($latestDm) {
@@ -764,16 +799,24 @@ class ChatController extends Controller
         }
 
         $query = trim((string) $request->query('q', ''));
-        if (mb_strlen($query) < 2) {
-            return response()->json(['success' => true, 'players' => []]);
-        }
 
-        $players = Character::with(['gang', 'user'])
-            ->where('id', '!=', $character->id)
-            ->where('name', 'like', "%{$query}%")
-            ->orderBy('level', 'desc')
-            ->take(12)
-            ->get();
+        $queryBuilder = Character::with(['gang', 'user'])
+            ->where('id', '!=', $character->id);
+
+        if ($query === '') {
+            $players = $queryBuilder
+                ->whereNotNull('last_active_at')
+                ->orderBy('last_active_at', 'desc')
+                ->take(8)
+                ->get();
+        } else {
+            $players = $queryBuilder
+                ->where('name', 'like', "%{$query}%")
+                ->orderByRaw('CASE WHEN last_active_at >= ? THEN 0 ELSE 1 END', [now()->subMinutes(15)])
+                ->orderBy('level', 'desc')
+                ->take(8)
+                ->get();
+        }
 
         $formatted = $players->map(function (Character $p) {
             $user = $p->user;

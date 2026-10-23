@@ -347,7 +347,7 @@
                         if (document.visibilityState === 'visible') {
                             this.refresh();
                         }
-                    }, 4000);
+                    }, 8000);
                     window.addEventListener('stats:refresh', () => this.refresh());
                 },
                 async refresh() {
