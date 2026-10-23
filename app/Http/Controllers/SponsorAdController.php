@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\CharacterCooldown;
+use App\Models\CharacterTrueCrimeState;
 use App\Models\GameMessage;
 use App\Models\GameSetting;
 use App\Models\LotteryRound;
@@ -99,7 +100,7 @@ class SponsorAdController extends Controller
         }
 
         $rewardType = $request->input('reward_type', 'cash');
-        $validTypes = ['cash', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars', 'lottery_ticket'];
+        $validTypes = ['cash', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars', 'lottery_ticket', 'true_crime'];
         $isSpecificCooldown = is_string($rewardType) && str_starts_with($rewardType, 'cooldown:');
         if (! in_array($rewardType, $validTypes, true) && ! $isSpecificCooldown) {
             $rewardType = 'cash';
@@ -293,11 +294,12 @@ class SponsorAdController extends Controller
             }
         }
 
-        // 3. Fallback verification only when no active Robins Ads tracking ID exists (e.g. testing / offline)
-        if (! $isVerified && empty($robinRewardId)) {
+        // 3. Fallback & Timer verification (essential when players are on the same household IP, RobinsAds has no ad fill, or player watched in-screen)
+        if (! $isVerified) {
             $startedAt = (int) ($adSession['started_at'] ?? 0);
-            $elapsedSeconds = now()->timestamp - $startedAt;
-            if ($elapsedSeconds >= self::WATCH_DURATION_SECONDS) {
+            $elapsedSeconds = $startedAt > 0 ? (now()->timestamp - $startedAt) : 0;
+            // Allow watch duration with a 3-second grace buffer (>= 12s) for client-server clock/network latency
+            if ($elapsedSeconds >= (self::WATCH_DURATION_SECONDS - 3)) {
                 $isVerified = true;
             }
         }
@@ -345,7 +347,7 @@ class SponsorAdController extends Controller
         $rewardDetails = '';
 
         // Process reward
-        if (str_starts_with($rewardType, 'cooldown:')) {
+        if (str_starts_with($rewardType, 'cooldown:') && $rewardType !== 'cooldown:true_crime') {
             $targetAction = substr($rewardType, 9);
             $actions = [$targetAction];
             if ($targetAction === 'produce_telefoon') {
@@ -368,6 +370,27 @@ class SponsorAdController extends Controller
             $rewardDetails = "⚡ Cooldown voor {$label} is direct gewist!";
         } else {
             switch ($rewardType) {
+                case 'true_crime':
+                case 'cooldown:true_crime':
+                    /** @var CharacterTrueCrimeState $state */
+                    $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $character->id]);
+                    $current = ($state->cooldown_ads_watched ?? 0) + 1;
+                    if ($current >= 5) {
+                        $state->update([
+                            'cooldown_until' => null,
+                            'cooldown_ads_watched' => 0,
+                            'current_case_id' => null,
+                        ]);
+                        $rewardDetails = '🔍 [5/5 Ads] GEFELICITEERD: Je hebt 5 advertenties bekeken! Caroline heeft direct een nieuw dossier voor je ontgrendeld!';
+                    } else {
+                        $state->update([
+                            'cooldown_ads_watched' => $current,
+                        ]);
+                        $left = 5 - $current;
+                        $rewardDetails = "🔍 [{$current}/5 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om Caroline\'s 24-uurs wachttijd direct te omzeilen.';
+                    }
+                    break;
+
                 case 'respect':
                     $character->respect = ($character->respect ?? 0) + 1;
                     $rewardDetails = '🔥 +1 Respect verdiend! Je respect score is direct verhoogd!';

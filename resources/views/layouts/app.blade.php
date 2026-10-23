@@ -294,6 +294,8 @@
             $activeCategory = 'voortgang';
         } elseif (request()->routeIs('hustle.*', 'smuggle.*', 'extort.*', 'lockers.*') || request()->is('hosselen*', 'smokkelen*', 'afpersen*', 'kluisjes*')) {
             $activeCategory = 'misdaad';
+        } elseif (request()->routeIs('connect_four.*', 'true_crime.*') || request()->is('vier-op-een-rij*', 'true-crime*')) {
+            $activeCategory = 'specials';
         } elseif (request()->routeIs('vault.*', 'packages.*', 'pickpocket.*') || request()->is('kluis-kraak*', 'pakketjes*', 'zakkenrollen*', 'vault*')) {
             $activeCategory = 'bonus';
         } elseif (request()->routeIs('fight.*', 'theft.*', 'combat_training.*', 'armwrestling.*', 'hitman.*', 'informants.*', 'isolation.*', 'murder_stats.*') || request()->is('luchtplaats*', 'vechten*', 'diefstal*', 'klusjes*', 'vechtoefening*', 'armpjedrukken*', 'liquidatie*', 'informanten*', 'vrijwillige-isolatie*', 'geweldsstatistieken*')) {
@@ -627,7 +629,7 @@
                         <span class="font-black">Event</span>
                     </span>
                     <div class="flex items-center gap-1.5">
-                        <span class="text-[8px] font-black uppercase text-orange-900 dark:text-orange-200 bg-orange-400/20 dark:bg-orange-950/80 px-1.5 py-0.2 rounded border border-orange-500/40 animate-pulse">
+                        <span class="text-[8px] font-black uppercase text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/80 px-1.5 py-0.5 rounded border border-orange-300 dark:border-orange-800 tracking-wider">
                             HALLOWEEN
                         </span>
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'event' ? 'rotate-180' : ''"></i>
@@ -793,6 +795,40 @@
                             Hack
                         </span>
                         @endif
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. MINIGAMES (OOHPA Arjan & Caroline) -->
+            <div class="space-y-1">
+                <button @click="toggleCategory('specials')" 
+                        type="button" 
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition group">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad text-purple-500"></i> Minigames
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'specials' ? 'rotate-180' : ''"></i>
+                    </div>
+                </button>
+                <div x-show="openCategory === 'specials'" x-collapse class="space-y-0.5 pl-1">
+                    <a href="{{ route('connect_four.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-chess-board w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <span>4 op 'n Rij (Arjan)</span>
+                        </div>
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            OOHPA
+                        </span>
+                    </a>
+                    <a href="{{ route('true_crime.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('true_crime.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-fingerprint w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <span>True Crime (Caroline)</span>
+                        </div>
+                        <span class="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            500 Zaken
+                        </span>
                     </a>
                 </div>
             </div>
@@ -994,8 +1030,16 @@
                 @endif
             </a>
 
+            @php
+                $mobileTopBorder = $character ? $character->getEquippedBorderInfo() : null;
+            @endphp
             <a href="{{ route('profile.me') }}" class="flex items-center gap-1.5 bg-slate-100 dark:bg-purple-950/60 hover:bg-slate-200 dark:hover:bg-purple-900/60 px-2 py-1 rounded-xl transition border border-transparent dark:border-purple-800/40">
-                <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-6 h-6 rounded-full object-cover">
+                <div class="relative shrink-0">
+                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-6 h-6 rounded-full object-cover {{ $mobileTopBorder ? $mobileTopBorder['ring'] : '' }}">
+                    @if($mobileTopBorder)
+                        <span class="absolute -bottom-1 -right-1 text-[9px] leading-none select-none">{{ $mobileTopBorder['emoji'] }}</span>
+                    @endif
+                </div>
                 <span class="text-[10px] font-extrabold text-slate-700 dark:text-purple-200 max-w-[70px] truncate leading-normal py-0.5">{{ $character->name }}</span>
             </a>
 
@@ -1097,7 +1141,17 @@
             
             <div class="p-4 bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                    <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover border-2 border-purple-200 dark:border-purple-800 {{ $character->getAvatarBorderClasses() }}">
+                    @php
+                        $drawerBorder = $character->getEquippedBorderInfo();
+                    @endphp
+                    <div class="relative shrink-0">
+                        <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-10 h-10 rounded-full object-cover {{ $drawerBorder ? $drawerBorder['ring'] . ' ' . $drawerBorder['glow'] : 'border-2 border-purple-200 dark:border-purple-800' }}">
+                        @if($drawerBorder)
+                            <span class="absolute -bottom-1 -right-1 text-xs select-none drop-shadow leading-none">
+                                {{ $drawerBorder['emoji'] }}
+                            </span>
+                        @endif
+                    </div>
                     <div>
                         <div class="font-extrabold text-sm leading-tight text-slate-900 dark:text-white">{{ $character->name }}</div>
                         <div class="text-[11px] text-purple-700 dark:text-purple-300 font-bold">Level {{ $character->level }} &bull; {{ $character->title ?? 'Patiënt' }}</div>
@@ -1328,6 +1382,27 @@
                     </a>
                 </div>
 
+                <!-- 4b. Minigames (OOHPA Arjan & Caroline) -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block px-2">Minigames</span>
+                    <a href="{{ route('connect_four.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('connect_four.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-chess-board w-4 text-emerald-500 dark:text-emerald-400"></i> 4 op 'n Rij (Arjan)
+                        </div>
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            OOHPA
+                        </span>
+                    </a>
+                    <a href="{{ route('true_crime.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/30 transition text-slate-700 dark:text-slate-300 {{ request()->routeIs('true_crime.*') ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : '' }}">
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-fingerprint w-4 text-purple-500 dark:text-purple-400"></i> True Crime (Caroline)
+                        </div>
+                        <span class="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            500 Zaken
+                        </span>
+                    </a>
+                </div>
+
                 <!-- 5. Geweld & Strijd -->
                 <div class="space-y-1">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block px-2">Geweld & Strijd</span>
@@ -1457,8 +1532,18 @@
                 <!-- 1. LEFT: Player Profile Summary (Avatar with ring, Name, LVL Badge, XP Bar & Handle) -->
                 <div class="flex items-center gap-3.5 shrink-0">
                     <a href="{{ route('profile.me') }}" class="relative group shrink-0" title="Bekijk mijn profiel">
-                        <div class="w-12 h-12 rounded-full p-0.5 ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 transition-all bg-white dark:bg-purple-950/60 shadow-2xs {{ $character->getAvatarBorderClasses() }}">
-                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover bg-slate-100">
+                        @php
+                            $headerBorder = $character->getEquippedBorderInfo();
+                        @endphp
+                        <div class="relative">
+                            <div class="w-12 h-12 rounded-full p-0.5 transition-all bg-white dark:bg-purple-950/60 {{ $headerBorder ? $headerBorder['ring'] . ' ' . $headerBorder['glow'] : 'ring-2 ring-indigo-500/30 group-hover:ring-indigo-500 shadow-2xs' }}">
+                                <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover bg-slate-100">
+                            </div>
+                            @if($headerBorder)
+                                <span class="absolute -bottom-1 -right-1 text-sm select-none drop-shadow leading-none animate-bounce" style="animation-duration: 2.5s;" title="{{ $headerBorder['name'] }} Frame">
+                                    {{ $headerBorder['emoji'] }}
+                                </span>
+                            @endif
                         </div>
                     </a>
                     <div class="flex flex-col gap-1 min-w-0">
@@ -1891,7 +1976,7 @@
             @endif
 
             @if(session('success') || session('status'))
-            <div class="mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
+            <div id="flash-success-alert" class="mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
                 <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-lg mt-0.5 shrink-0"></i>
                 <div>
                     <p class="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">Actie Geslaagd!</p>
@@ -1900,12 +1985,12 @@
             </div>
             @endif
 
-            @if(session('error'))
-            <div class="mb-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
+            @if(session('error') || $errors->any())
+            <div id="flash-error-alert" class="mb-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 p-4 rounded-xl shadow-xs flex items-start gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-lg mt-0.5 shrink-0"></i>
                 <div>
                     <p class="text-xs font-extrabold text-rose-900 dark:text-rose-200">Let op / Tegenwerking!</p>
-                    <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5 leading-relaxed">{{ session('error') }}</p>
+                    <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5 leading-relaxed">{{ session('error') ?? $errors->first() }}</p>
                 </div>
             </div>
             @endif
@@ -2542,6 +2627,9 @@
                 } else if (rewardType === 'vault_code') {
                     this.rewardTitle = 'Geheime Kluiscode Voucher';
                     this.rewardIcon = 'fa-key';
+                } else if (rewardType === 'true_crime' || rewardType === 'cooldown:true_crime') {
+                    this.rewardTitle = '🔍 Caroline Cold Case Dossier (5 Ads)';
+                    this.rewardIcon = 'fa-fingerprint';
                 } else if (rewardType === 'cooldown' || rewardType.startsWith('cooldown:')) {
                     if (rewardType === 'cooldown:produce_sigaretten') {
                         this.rewardTitle = '⚡ Reset Sigaretten Cooldown';
@@ -2614,8 +2702,9 @@
                                 this.claim(result.token, result.rewardId, data.token);
                                 return;
                             } else {
-                                this.status = 'error';
-                                this.statusMessage = 'De advertentie is voortijdig gesloten. Bekijk de video volledig tot het einde om je beloning te ontvangen.';
+                                // Interstitial had no fill / frequency capped by household IP: seamlessly fallback to in-screen timer!
+                                console.warn('RobinAds interstitial not granted, falling back to in-screen watch timer.');
+                                this.startInScreenFallback(data);
                                 return;
                             }
                         } catch (interstitialErr) {

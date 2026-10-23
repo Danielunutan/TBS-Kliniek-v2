@@ -335,4 +335,33 @@ class SponsorRewardsTest extends TestCase
         $response->assertSee('7 / 15 Ads Bekeken');
         $response->assertSee('Onbeperkt Herhaalbaar');
     }
+
+    public function test_claim_succeeds_via_timer_even_when_robin_reward_id_exists_but_not_verified(): void
+    {
+        [$user, $character] = $this->createTestUser();
+
+        $token = Str::random(32);
+        $adData = [
+            'token' => $token,
+            'started_at' => now()->subSeconds(16)->timestamp, // Watched for 16 seconds (> 12s)
+            'character_id' => $character->id,
+            'reward_type' => 'lottery_ticket',
+            'robin_reward_id' => 'rwd_mock_99999', // Simulating Robin Ads ID generated at start()
+        ];
+
+        Cache::put("tbs_ad_token_{$token}", $adData, now()->addMinutes(30));
+        Cache::put("tbs_ad_char_{$character->id}", $adData, now()->addMinutes(30));
+
+        // When claiming without robin verification token or when Robin Ads returns pending,
+        // it should fall back to timer verification because elapsedSeconds >= 12s.
+        $response = $this->actingAs($user)->postJson(route('sponsor.claim'), [
+            'token' => $token,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        $character->refresh();
+        $this->assertEquals(1, $character->ad_lottery_progress);
+    }
 }
