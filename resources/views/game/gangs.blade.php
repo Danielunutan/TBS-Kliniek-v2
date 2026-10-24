@@ -1150,13 +1150,17 @@
 
                             <!-- Quick Amount Fill Buttons -->
                             <div class="flex items-center gap-1.5 flex-wrap">
-                                <button type="button" @click="donateAmount = Math.min({{ $character->cash }}, 10000)" 
+                                <button type="button" @click="donateAmount = Math.min({{ $character->cash }}, 100000)" 
                                         class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-400 transition cursor-pointer">
-                                    +€10.000
+                                    €100k
                                 </button>
-                                <button type="button" @click="donateAmount = Math.min({{ $character->cash }}, 50000)" 
+                                <button type="button" @click="donateAmount = Math.min({{ $character->cash }}, 1000000)" 
                                         class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-400 transition cursor-pointer">
-                                    +€50.000
+                                    €1 Miljoen
+                                </button>
+                                <button type="button" @click="donateAmount = Math.min({{ $character->cash }}, 10000000)" 
+                                        class="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-400 transition cursor-pointer">
+                                    €10M
                                 </button>
                                 <button type="button" @click="donateAmount = {{ $character->cash }}" 
                                         class="px-2.5 py-1 text-[11px] font-black rounded-lg bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-700 text-purple-800 dark:text-purple-300 hover:bg-purple-200 transition cursor-pointer">

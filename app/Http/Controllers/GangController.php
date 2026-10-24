@@ -20,6 +20,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class GangController extends Controller
@@ -560,31 +561,52 @@ class GangController extends Controller
         }
 
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:50', 'max:5000000'],
+            'amount' => ['required', 'integer', 'min:50', 'max:1000000000000'],
+        ], [
+            'amount.min' => 'Je moet minimaal €50 doneren.',
+            'amount.max' => 'Het donatiebedrag is te hoog.',
+            'amount.integer' => 'Voer een geldig heel getal in.',
+            'amount.required' => 'Vul een donatiebedrag in.',
         ]);
 
         $amount = (int) $validated['amount'];
-        if ($character->cash < $amount) {
-            return back()->with('error', 'Je hebt niet genoeg contant geld om dit bedrag te doneren.');
-        }
 
-        $character->cash -= $amount;
-        $character->respect += (int) ceil($amount / 2000);
-        $character->save();
+        return DB::transaction(function () use ($character, $amount) {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $gang = $character->gang;
-        $gang->treasury += $amount;
-        $gang->save();
+            if (! $lockedCharacter || $lockedCharacter->cash < $amount) {
+                return back()
+                    ->with('active_gang_tab', 'doneren')
+                    ->with('error', 'Je hebt niet genoeg contant geld om dit bedrag te doneren.');
+            }
 
-        GangDonation::create([
-            'gang_id' => $gang->id,
-            'character_id' => $character->id,
-            'amount' => $amount,
-        ]);
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $lockedCharacter->gang_id)->lockForUpdate()->first();
+            if (! $lockedGang) {
+                return back()->with('error', 'Je bent geen lid van een geldige bende.');
+            }
 
-        return back()
-            ->with('active_gang_tab', 'doneren')
-            ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' gedoneerd aan de bende kas!');
+            // Deduct cash and calculate balanced respect (capped at 5,000 per donation to prevent respect-overflow)
+            $lockedCharacter->cash -= $amount;
+            $respectGained = min(5000, (int) ceil($amount / 2000));
+            $lockedCharacter->respect += $respectGained;
+            $lockedCharacter->save();
+
+            // Add cash to gang treasury
+            $lockedGang->treasury += $amount;
+            $lockedGang->save();
+
+            GangDonation::create([
+                'gang_id' => $lockedGang->id,
+                'character_id' => $lockedCharacter->id,
+                'amount' => $amount,
+            ]);
+
+            return back()
+                ->with('active_gang_tab', 'doneren')
+                ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' contant gedoneerd aan de bende kas! (+'.$respectGained.' respect)');
+        });
     }
 
     /**
