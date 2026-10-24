@@ -14,6 +14,7 @@
     selectedTheme: '{{ $profileCharacter->profile_bg_theme ?? 'default' }}',
     selectedColor: '{{ $profileCharacter->profile_color ?: 'purple' }}',
     selectedTitle: '{{ $profileCharacter->title ?? 'Modelpatiënt' }}',
+    selectedBorder: '{{ $profileCharacter->equipped_border ?? 'none' }}',
     init() {
         if (!'{{ session('profile_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_profile_tab')) {
             this.activeTab = sessionStorage.getItem('tbs_profile_tab');
@@ -104,23 +105,23 @@
 
     @if(Auth::user()->canModerate() && $profileCharacter->id !== Auth::user()->character->id)
     <!-- STAFF MODERATOR CONSOLE BANNER -->
-    <div class="bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-purple-500/40 rounded-2xl p-4 sm:p-5 shadow-lg text-white">
+    <div class="bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800/80 rounded-2xl p-4 sm:p-5 shadow-xs text-slate-900 dark:text-white">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="space-y-1">
                 <div class="flex items-center gap-2">
-                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 text-[10px] font-black uppercase tracking-wider border border-purple-400/30 flex items-center gap-1.5">
-                        <i class="fa-solid fa-shield-halved text-purple-300"></i> Moderator Console
+                    <span class="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 text-[10px] font-black uppercase tracking-wider border border-purple-200 dark:border-purple-800/60 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i> Moderator Console
                     </span>
                     @if($profileCharacter->user?->is_banned)
-                        <span class="px-2.5 py-0.5 rounded-full bg-rose-500/30 text-rose-300 text-[10px] font-black uppercase tracking-wider border border-rose-400/40 flex items-center gap-1">
+                        <span class="px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-[10px] font-black uppercase tracking-wider border border-rose-200 dark:border-rose-800 flex items-center gap-1">
                             <i class="fa-solid fa-ban"></i> Account Verbannen
                         </span>
                     @endif
                 </div>
-                <h4 class="text-sm font-black text-white">
+                <h4 class="text-sm font-black text-slate-900 dark:text-white">
                     Passende Maatregelen voor {{ $profileCharacter->name }}
                 </h4>
-                <p class="text-xs text-purple-200/80">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
                     Directe sancties uitvoeren naar aanleiding van rapportages of overtredingen.
                 </p>
             </div>
@@ -170,15 +171,29 @@
 
         <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-start gap-6 relative z-10">
             
-            <!-- Avatar with Dynamic Player Accent Ring / Halloween Border -->
+            @php
+                $profileBorder = $profileCharacter->getEquippedBorderInfo();
+            @endphp
+
+            <!-- Avatar with Dynamic Player Accent Ring / Halloween Border Frame -->
             <div class="relative shrink-0 group">
-                <img src="{{ $profileCharacter->avatar_url }}" alt="{{ $profileCharacter->name }}" class="w-32 h-32 rounded-2xl object-cover border-4 border-slate-100 shadow-sm bg-slate-100 transition-transform duration-300 group-hover:scale-105 {{ $profileCharacter->equipped_border ? $profileCharacter->getAvatarBorderClasses() : 'ring-4 ' . $theme['ring'] . '/30' }}">
-                
-                <!-- Online Status Indicator -->
-                <span class="absolute top-2 right-2 w-4 h-4 rounded-full border-2 border-white shadow-xs {{ $profileCharacter->isOnline() ? 'bg-emerald-500 ring-2 ring-emerald-300/50' : 'bg-slate-300' }}" title="{{ $profileCharacter->online_status_label }}"></span>
+                <div class="relative w-32 h-32 rounded-2xl transition-transform duration-300 group-hover:scale-105 {{ $profileBorder ? $profileBorder['ring'] . ' ' . $profileBorder['glow'] . ' ' . $profileBorder['border'] . ' border-2 bg-slate-950/20' : 'ring-4 ' . $theme['ring'] . '/30 border-4 border-slate-100 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 shadow-sm' }}">
+                    <img src="{{ $profileCharacter->avatar_url }}" alt="{{ $profileCharacter->name }}" class="w-full h-full rounded-2xl object-cover bg-slate-100 dark:bg-slate-900">
+                    
+                    <!-- Online Status Indicator (top right) -->
+                    <span class="absolute top-2 right-2 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 shadow-xs z-10 {{ $profileCharacter->isOnline() ? 'bg-emerald-500 ring-2 ring-emerald-300/50' : 'bg-slate-300' }}" title="{{ $profileCharacter->online_status_label }}"></span>
+                </div>
+
+                <!-- Halloween Frame Corner Ornament (e.g. 🎃 for pumpkin_glow, 🩸, 👻, 👑) -->
+                @if($profileBorder)
+                <div class="absolute -bottom-2.5 -right-2.5 z-20 flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-br {{ $profileBorder['badge_gradient'] }} text-lg shadow-lg border-2 border-white dark:border-slate-900 transform hover:scale-125 transition-transform duration-200 select-none cursor-help animate-bounce" style="animation-duration: 2.5s;" title="{{ $profileBorder['name'] }} Frame actief!">
+                    <span>{{ $profileBorder['emoji'] }}</span>
+                </div>
+                @endif
 
                 @if(Auth::user()->character->id === $profileCharacter->id)
-                <button @click="avatarModalOpen = true" type="button" class="absolute -bottom-2 -right-2 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-indigo-600 transition shadow-sm border-2 border-white flex items-center justify-center text-xs cursor-pointer" title="Kies een andere profielfoto">
+                <!-- Camera Button moved to bottom-left to avoid covering the frame ornament -->
+                <button @click="avatarModalOpen = true" type="button" class="absolute -bottom-2 -left-2 z-20 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-indigo-600 transition shadow-md border-2 border-white dark:border-slate-800 flex items-center justify-center text-xs cursor-pointer" title="Kies een andere profielfoto">
                     <i class="fa-solid fa-camera"></i>
                 </button>
                 @endif
@@ -194,16 +209,16 @@
                                 Level {{ $profileCharacter->level }}
                             </span>
 
-                            @if($profileCharacter->equipped_border)
-                            <a href="{{ route('halloween.shop') }}" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-black bg-orange-100 text-orange-800 border border-orange-300 hover:bg-orange-200 transition shadow-2xs" title="Halloween Border Actief">
-                                <span>🎃</span> {{ match($profileCharacter->equipped_border) {
-                                    'pumpkin_glow' => 'Pompoen Gloed',
-                                    'vampire_blood' => 'Vampier Bloed',
-                                    'phantom_mist' => 'Spookschim',
-                                    'gothic_king' => 'Gothic King',
-                                    default => 'Halloween Border'
-                                } }}
+                            @if($profileBorder)
+                            <a href="{{ route('halloween.shop') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-orange-500/10 text-orange-700 dark:text-orange-300 border border-orange-400/50 hover:border-orange-500 hover:scale-105 transition shadow-xs" title="Halloween Frame: {{ $profileBorder['name'] }}">
+                                <span class="text-sm">{{ $profileBorder['emoji'] }}</span>
+                                <span>{{ $profileBorder['name'] }}</span>
                             </a>
+                            @elseif($isOwnProfile && count($unlockedBorders ?? []) > 0)
+                            <button type="button" @click="customizeModalOpen = true; activeCustomTab = 'frame'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-dashed border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition text-[11px] font-bold cursor-pointer" title="Kies een Halloween avatar frame">
+                                <span>🎃</span>
+                                <span>Frame Kiezen</span>
+                            </button>
                             @endif
 
                             <!-- Active Dossier Title Badge with Accent Color -->
@@ -317,33 +332,19 @@
                         </span>
                         @endif
 
-                        <!-- Direct Steal Button with 3s anti-script loader -->
-                        <div x-data="{ stealing: false, countdown: 3, intervalId: null }">
-                            <form x-ref="stealForm" action="{{ route('theft.steal') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="tier" value="pocket">
-                                <input type="hidden" name="victim_id" value="{{ $profileCharacter->id }}">
-                                
-                                <button type="button" 
-                                        @click="if(!stealing) { stealing = true; intervalId = setInterval(() => { countdown--; if(countdown <= 0) { clearInterval(intervalId); $refs.stealForm.submit(); } }, 1000); }"
-                                        :disabled="stealing"
-                                        :class="stealing ? 'bg-amber-600 text-white cursor-wait' : 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer'"
-                                        class="px-4 py-2 text-xs font-black rounded-xl transition shadow-xs flex items-center gap-2">
-                                    <template x-if="!stealing">
-                                        <span class="flex items-center gap-1.5">
-                                            <i class="fa-solid fa-mask"></i>
-                                            <span>Beroof Patiënt (€{{ number_format($profileCharacter->cash, 0, ',', '.') }})</span>
-                                        </span>
-                                    </template>
-                                    <template x-if="stealing">
-                                        <span class="flex items-center gap-1.5 font-black">
-                                            <i class="fa-solid fa-spinner fa-spin"></i>
-                                            <span>Zakken doorzoeken... <span x-text="countdown"></span>s</span>
-                                        </span>
-                                    </template>
-                                </button>
-                            </form>
-                        </div>
+                        <!-- Direct Steal Button leading to Respectlijst Arena suspense screen -->
+                        <form action="{{ route('fight.attack') }}" method="POST" class="inline-block">
+                            @csrf
+                            <input type="hidden" name="opponent_id" value="{{ $profileCharacter->id }}">
+                            <input type="hidden" name="from_profile" value="1">
+                            
+                            <button type="submit" 
+                                    class="px-4 py-2 text-xs font-black rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white transition shadow-xs flex items-center gap-2 cursor-pointer"
+                                    title="Overmeester en beroof {{ $profileCharacter->name }} van contant geld (20 energie)">
+                                <i class="fa-solid fa-mask"></i>
+                                <span>Beroof Patiënt (€{{ number_format($profileCharacter->cash, 0, ',', '.') }})</span>
+                            </button>
+                        </form>
 
                         <!-- Report Profile Button -->
                         <button type="button" 
@@ -362,68 +363,106 @@
                     $lvlService = app(\App\Services\LevelService::class);
                     $reqXp = $lvlService->getXpRequiredForNextLevel($profileCharacter->level);
                     $pctXp = min(100, max(0, round(($profileCharacter->xp / max(1, $reqXp)) * 100)));
+                    $isDarkCard = ($activeTheme['key'] ?? 'default') !== 'default';
                 @endphp
-                <div class="flex flex-col gap-1 mb-4 md:w-3/4">
+                <div class="flex flex-col gap-1.5 mb-4 md:w-3/4">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="font-bold text-slate-400 uppercase text-[10px] tracking-wide">Voortgang naar Level {{ $profileCharacter->level + 1 }}</span>
-                        <span class="font-bold text-slate-700">{{ number_format($profileCharacter->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP ({{ $pctXp }}%)</span>
+                        <span class="font-bold {{ $isDarkCard ? 'text-slate-300' : 'text-slate-400 dark:text-slate-400' }} uppercase text-[10px] tracking-wider">Voortgang naar Level {{ $profileCharacter->level + 1 }}</span>
+                        <span class="font-black {{ $isDarkCard ? 'text-white' : 'text-slate-700 dark:text-white' }}">{{ number_format($profileCharacter->xp, 0, ',', '.') }} / {{ number_format($reqXp, 0, ',', '.') }} XP ({{ $pctXp }}%)</span>
                     </div>
-                    <div class="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                        <div class="h-full bg-indigo-600 rounded-full transition-all duration-500" style="width: {{ $pctXp }}%"></div>
+                    <div class="h-2.5 {{ $isDarkCard ? 'bg-black/40 border-white/10' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700' }} rounded-full overflow-hidden border p-0.5 shadow-inner">
+                        <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500 shadow-sm" style="width: {{ $pctXp }}%"></div>
                     </div>
                 </div>
 
                 <!-- Status quote -->
-                <div class="bg-slate-50 border border-slate-100 rounded-lg px-4 py-2.5 inline-block text-left text-xs font-medium text-slate-600">
-                    <i class="fa-solid fa-quote-left text-slate-300 mr-1.5"></i>
-                    {{ $profileCharacter->status_message ?: 'Geen statusbericht ingesteld. "Kliniekleven is overleven."' }}
+                <div class="{{ $isDarkCard ? 'bg-white/10 border-white/15 text-white/90' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200' }} border rounded-xl px-4 py-2 inline-flex items-center text-left text-xs font-medium backdrop-blur-xs shadow-2xs">
+                    <i class="fa-solid fa-quote-left text-purple-400 mr-2 opacity-75"></i>
+                    <span>{{ $profileCharacter->status_message ?: 'Geen statusbericht ingesteld. "Kliniekleven is overleven."' }}</span>
                 </div>
             </div>
         </div>
 
-        <!-- Stats Bar -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-100 border-t border-slate-100 bg-slate-50/50">
-            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
-                <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield-halved text-indigo-500"></i> Respect
-                </span>
-                <span class="text-base sm:text-xl font-extrabold text-slate-900">{{ number_format($profileCharacter->respect, 0, ',', '.') }}</span>
+        <!-- Stats Bar (Sleek Glassmorphic Badges) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 border-t {{ $isDarkCard ? 'border-white/10 bg-black/30' : 'border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-black/30' }} backdrop-blur-md">
+            
+            <!-- 1: Respect -->
+            <div class="p-3 sm:py-4 sm:px-5 flex items-center justify-center gap-3 border-r border-b lg:border-b-0 {{ $isDarkCard ? 'border-white/10 hover:bg-white/5' : 'border-slate-200/80 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5' }} transition-colors group">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-500 dark:text-indigo-400 flex items-center justify-center text-base shrink-0 group-hover:scale-110 transition-transform shadow-xs">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="text-left min-w-0">
+                    <span class="text-[10px] font-black tracking-widest uppercase {{ $isDarkCard ? 'text-slate-400' : 'text-slate-400 dark:text-slate-400' }} block leading-tight">
+                        Respect
+                    </span>
+                    <span class="text-base sm:text-xl font-black {{ $isDarkCard ? 'text-white' : 'text-slate-900 dark:text-white' }} tracking-tight font-['Outfit'] block truncate">
+                        {{ number_format($profileCharacter->respect, 0, ',', '.') }}
+                    </span>
+                </div>
             </div>
-            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
-                <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <i class="fa-solid fa-smoking text-amber-500"></i> Peuk Fooi (+1)
-                </span>
-                <span class="text-base sm:text-xl font-extrabold text-amber-600">{{ number_format($totalRespectsReceived, 0, ',', '.') }}</span>
+
+            <!-- 2: Peuk Fooi (+1) -->
+            <div class="p-3 sm:py-4 sm:px-5 flex items-center justify-center gap-3 border-b lg:border-b-0 lg:border-r {{ $isDarkCard ? 'border-white/10 hover:bg-white/5' : 'border-slate-200/80 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5' }} transition-colors group">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-500 dark:text-amber-400 flex items-center justify-center text-base shrink-0 group-hover:scale-110 transition-transform shadow-xs">
+                    <i class="fa-solid fa-smoking"></i>
+                </div>
+                <div class="text-left min-w-0">
+                    <span class="text-[10px] font-black tracking-widest uppercase {{ $isDarkCard ? 'text-slate-400' : 'text-slate-400 dark:text-slate-400' }} block leading-tight">
+                        Peuk Fooi (+1)
+                    </span>
+                    <span class="text-base sm:text-xl font-black text-amber-500 dark:text-amber-400 tracking-tight font-['Outfit'] block truncate">
+                        {{ number_format($totalRespectsReceived, 0, ',', '.') }}
+                    </span>
+                </div>
             </div>
-            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
-                <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <i class="fa-solid fa-coins text-amber-500"></i> Contant
-                </span>
-                <span class="text-base sm:text-xl font-extrabold text-slate-900">€{{ number_format($profileCharacter->cash, 0, ',', '.') }}</span>
+
+            <!-- 3: Contant Geld -->
+            <div class="p-3 sm:py-4 sm:px-5 flex items-center justify-center gap-3 border-r {{ $isDarkCard ? 'border-white/10 hover:bg-white/5' : 'border-slate-200/80 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5' }} transition-colors group">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 dark:text-emerald-400 flex items-center justify-center text-base shrink-0 group-hover:scale-110 transition-transform shadow-xs">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                <div class="text-left min-w-0">
+                    <span class="text-[10px] font-black tracking-widest uppercase {{ $isDarkCard ? 'text-slate-400' : 'text-slate-400 dark:text-slate-400' }} block leading-tight">
+                        Contant
+                    </span>
+                    <span class="text-base sm:text-xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight font-['Outfit'] block truncate">
+                        €{{ number_format($profileCharacter->cash, 0, ',', '.') }}
+                    </span>
+                </div>
             </div>
-            <div class="p-3 sm:p-5 text-center flex flex-col items-center justify-center">
-                <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                    <i class="fa-solid fa-building-columns text-emerald-500"></i> Banktegoed
-                </span>
-                <span class="text-base sm:text-xl font-extrabold text-slate-900">€{{ number_format($profileCharacter->bank, 0, ',', '.') }}</span>
+
+            <!-- 4: Banktegoed -->
+            <div class="p-3 sm:py-4 sm:px-5 flex items-center justify-center gap-3 {{ $isDarkCard ? 'hover:bg-white/5' : 'hover:bg-black/5 dark:hover:bg-white/5' }} transition-colors group">
+                <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-500 dark:text-sky-400 flex items-center justify-center text-base shrink-0 group-hover:scale-110 transition-transform shadow-xs">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <div class="text-left min-w-0">
+                    <span class="text-[10px] font-black tracking-widest uppercase {{ $isDarkCard ? 'text-slate-400' : 'text-slate-400 dark:text-slate-400' }} block leading-tight">
+                        Banktegoed
+                    </span>
+                    <span class="text-base sm:text-xl font-black {{ $isDarkCard ? 'text-white' : 'text-slate-900 dark:text-white' }} tracking-tight font-['Outfit'] block truncate">
+                        €{{ number_format($profileCharacter->bank, 0, ',', '.') }}
+                    </span>
+                </div>
             </div>
+
         </div>
 
         <!-- Navigation Tabs with Dynamic Accent Color -->
-        <div class="flex border-t border-slate-100 px-6 gap-6 overflow-x-auto">
-            <button @click="setActiveTab('overzicht')" :class="activeTab === 'overzicht' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+        <div class="flex {{ $isDarkCard ? 'border-t border-white/10 bg-black/20' : 'border-t border-slate-200/80 dark:border-white/10 bg-slate-50/40 dark:bg-black/20' }} px-6 gap-6 overflow-x-auto">
+            <button @click="setActiveTab('overzicht')" :class="activeTab === 'overzicht' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-id-card"></i> Dossier Overzicht
             </button>
-            <button @click="setActiveTab('psychiatrisch')" :class="activeTab === 'psychiatrisch' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+            <button @click="setActiveTab('psychiatrisch')" :class="activeTab === 'psychiatrisch' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-clipboard-user text-rose-500"></i> Psychiatrisch Rapport
             </button>
-            <button @click="setActiveTab('medailles')" :class="activeTab === 'medailles' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+            <button @click="setActiveTab('medailles')" :class="activeTab === 'medailles' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-medal text-amber-500"></i> Medailles & Prestaties
             </button>
-            <button @click="setActiveTab('vrienden')" :class="activeTab === 'vrienden' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+            <button @click="setActiveTab('vrienden')" :class="activeTab === 'vrienden' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-user-group text-purple-500"></i> Vriendenlijst ({{ $friendsCount }})
             </button>
-            <button @click="setActiveTab('gastenboek')" :class="activeTab === 'gastenboek' ? '{{ $theme['tab_active'] }}' : 'border-transparent text-slate-500 hover:text-slate-800'" class="py-3.5 text-xs border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+            <button @click="setActiveTab('gastenboek')" :class="activeTab === 'gastenboek' ? '{{ $theme['tab_active'] }}' : 'border-transparent {{ $isDarkCard ? 'text-slate-300 hover:text-white' : 'text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white' }}'" class="py-3.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
                 <i class="fa-solid fa-book-open text-indigo-500"></i> Gastenboek ({{ $guestbookEntries->total() }})
             </button>
         </div>
@@ -610,6 +649,130 @@
                 @endforeach
             </div>
             @endif
+        </div>
+
+        <!-- Laatst Bezochte TBS'ers (Recent Profile Visits & Visitors) -->
+        <div class="md:col-span-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/80 dark:border-slate-800 p-6 space-y-4"
+             x-data="{ visitorMode: 'visitors' }">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80 pb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-sm font-black shadow-2xs">
+                        <i class="fa-solid fa-footsteps"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider font-['Outfit']">
+                            Laatst Bezochte TBS'ers
+                        </h3>
+                        <p class="text-[11px] text-slate-400">
+                            Recente activiteit en bezoeken aan dit patiëntendossier
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mode Switcher Pills -->
+                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl shrink-0 self-start sm:self-center">
+                    <button type="button" @click="visitorMode = 'visitors'"
+                            :class="visitorMode === 'visitors' ? 'bg-white dark:bg-purple-600 text-purple-700 dark:text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-purple-600'"
+                            class="px-3 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-eye text-[10px]"></i>
+                        <span>Bezoekers ({{ $recentVisitors->count() }})</span>
+                    </button>
+                    <button type="button" @click="visitorMode = 'visited'"
+                            :class="visitorMode === 'visited' ? 'bg-white dark:bg-purple-600 text-purple-700 dark:text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-purple-600'"
+                            class="px-3 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-compass text-[10px]"></i>
+                        <span>{{ $isOwnProfile ? 'Door Jou Bezocht' : 'Door ' . $profileCharacter->name . ' Bezocht' }} ({{ $recentlyVisited->count() }})</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 1: BEZOEKERS (TBS'ers who visited this profile) -->
+            <div x-show="visitorMode === 'visitors'">
+                @if($recentVisitors->isEmpty())
+                    <div class="p-8 text-center text-xs text-slate-400 dark:text-slate-500 bg-slate-50/60 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                        <i class="fa-solid fa-ghost text-2xl text-slate-300 dark:text-slate-600 mb-1.5 block"></i>
+                        <span>Nog geen recente bezoekers geregistreerd in dit kliniekdossier.</span>
+                    </div>
+                @else
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                        @foreach($recentVisitors as $visit)
+                            @if($visit->visitor)
+                            <a href="{{ route('profile.show', $visit->visitor->name) }}" 
+                               class="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-purple-300 dark:hover:border-purple-600/60 hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition-all duration-200 flex flex-col items-center text-center group shadow-2xs hover:-translate-y-0.5">
+                                <div class="relative mb-2">
+                                    <img src="{{ $visit->visitor->avatar_url }}" alt="{{ $visit->visitor->name }}" 
+                                         class="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:scale-105 transition-transform"
+                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                    <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $visit->visitor->isOnline() ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600' }}" 
+                                          title="{{ $visit->visitor->online_status_label }}"></span>
+                                </div>
+                                <span class="text-xs font-black text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate max-w-full block leading-tight">
+                                    {{ $visit->visitor->name }}
+                                </span>
+                                <div class="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
+                                    <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300">
+                                        Lvl {{ $visit->visitor->level }}
+                                    </span>
+                                    @if($visit->visitor->gang)
+                                        <span class="text-[8px] font-black text-purple-600 dark:text-purple-400 uppercase">
+                                            [{{ $visit->visitor->gang->tag }}]
+                                        </span>
+                                    @endif
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1">
+                                    <i class="fa-regular fa-clock text-[9px]"></i>
+                                    <span>{{ $visit->visited_at ? $visit->visited_at->diffForHumans(null, true) : 'Zojuist' }}</span>
+                                </span>
+                            </a>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            <!-- VIEW 2: DOOR JOU / DEZE PATIENT BEZOCHT (TBS'ers visited by this character) -->
+            <div x-show="visitorMode === 'visited'" x-cloak>
+                @if($recentlyVisited->isEmpty())
+                    <div class="p-8 text-center text-xs text-slate-400 dark:text-slate-500 bg-slate-50/60 dark:bg-slate-800/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                        <i class="fa-solid fa-compass text-2xl text-slate-300 dark:text-slate-600 mb-1.5 block"></i>
+                        <span>Nog geen andere dossiers bezocht door deze patiënt.</span>
+                    </div>
+                @else
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                        @foreach($recentlyVisited as $visit)
+                            @if($visit->visited)
+                            <a href="{{ route('profile.show', $visit->visited->name) }}" 
+                               class="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-purple-300 dark:hover:border-purple-600/60 hover:bg-purple-50/20 dark:hover:bg-purple-950/20 transition-all duration-200 flex flex-col items-center text-center group shadow-2xs hover:-translate-y-0.5">
+                                <div class="relative mb-2">
+                                    <img src="{{ $visit->visited->avatar_url }}" alt="{{ $visit->visited->name }}" 
+                                         class="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs group-hover:scale-105 transition-transform"
+                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                    <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $visit->visited->isOnline() ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600' }}" 
+                                          title="{{ $visit->visited->online_status_label }}"></span>
+                                </div>
+                                <span class="text-xs font-black text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate max-w-full block leading-tight">
+                                    {{ $visit->visited->name }}
+                                </span>
+                                <div class="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
+                                    <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300">
+                                        Lvl {{ $visit->visited->level }}
+                                    </span>
+                                    @if($visit->visited->gang)
+                                        <span class="text-[8px] font-black text-purple-600 dark:text-purple-400 uppercase">
+                                            [{{ $visit->visited->gang->tag }}]
+                                        </span>
+                                    @endif
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1">
+                                    <i class="fa-regular fa-clock text-[9px]"></i>
+                                    <span>{{ $visit->visited_at ? $visit->visited_at->diffForHumans(null, true) : 'Zojuist' }}</span>
+                                </span>
+                            </a>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -1132,65 +1295,142 @@
 
     <!-- MODAL 1: Avatar Selector Modal (Diverse Generated Avatars) -->
     @if(Auth::user()->character->id === $profileCharacter->id)
-    <div x-show="avatarModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-        <div @click.away="avatarModalOpen = false" class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+    <div x-show="avatarModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+         x-data="{ 
+             avatarTab: '{{ $profileCharacter->avatar_custom ? 'custom' : 'presets' }}',
+             previewUrl: null,
+             handleFileSelect(e) {
+                 const file = e.target.files[0];
+                 if (file) {
+                     const reader = new FileReader();
+                     reader.onload = (event) => {
+                         this.previewUrl = event.target.result;
+                     };
+                     reader.readAsDataURL(file);
+                 }
+             }
+         }">
+        <div @click.away="avatarModalOpen = false" class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
             
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Kies je Profielfoto</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Selecteer jouw patiëntenpas avatar uit onze officiële kliniek assets.</p>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-camera text-purple-600"></i>
+                        <span>Profielfoto Aanpassen</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Upload je eigen foto vanaf je apparaat of kies een kliniek avatar.</p>
                 </div>
-                <button @click="avatarModalOpen = false" type="button" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                <button @click="avatarModalOpen = false" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <!-- Avatars Grid -->
-            <form action="{{ route('profile.avatar') }}" method="POST">
-                @csrf
-                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-96 overflow-y-auto custom-scrollbar p-1">
-                    @php
-                        $avatars = [
-                            ['file' => 'assets/characters/avatar_male_1.jpg', 'title' => 'Man 1'],
-                            ['file' => 'assets/characters/avatar_male_2.jpg', 'title' => 'Man 2'],
-                            ['file' => 'assets/characters/avatar_male_3.jpg', 'title' => 'Man 3'],
-                            ['file' => 'assets/characters/avatar_male_4.jpg', 'title' => 'Man 4'],
-                            ['file' => 'assets/characters/avatar_male_5.jpg', 'title' => 'Man 5'],
-                            ['file' => 'assets/characters/avatar_male_6.jpg', 'title' => 'Man 6'],
-                            ['file' => 'assets/characters/avatar_female_1.jpg', 'title' => 'Vrouw 1'],
-                            ['file' => 'assets/characters/avatar_female_2.jpg', 'title' => 'Vrouw 2'],
-                            ['file' => 'assets/characters/avatar_female_3.jpg', 'title' => 'Vrouw 3'],
-                            ['file' => 'assets/characters/avatar_female_4.jpg', 'title' => 'Vrouw 4'],
-                            ['file' => 'assets/characters/avatar_female_5.jpg', 'title' => 'Vrouw 5'],
-                            ['file' => 'assets/characters/avatar_female_6.jpg', 'title' => 'Vrouw 6'],
-                            ['file' => 'assets/characters/henkie.jpg', 'title' => 'Henkie Legende'],
-                        ];
-                    @endphp
+            <!-- Tab Switcher -->
+            <div class="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-xs font-bold gap-1">
+                <button type="button" 
+                        @click="avatarTab = 'custom'" 
+                        :class="avatarTab === 'custom' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                        class="flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>📸 Eigen Foto Uploaden</span>
+                </button>
+                <button type="button" 
+                        @click="avatarTab = 'presets'" 
+                        :class="avatarTab === 'presets' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+                        class="flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-masks-theater"></i>
+                    <span>🎭 Kliniek Avatars</span>
+                </button>
+            </div>
 
-                    @foreach($avatars as $av)
-                        <label class="cursor-pointer group relative flex flex-col items-center p-1.5 rounded-xl border-2 transition {{ $profileCharacter->avatar === $av['file'] ? 'border-purple-600 bg-purple-50/50 shadow-xs' : 'border-slate-200 hover:border-slate-400 bg-white' }}">
-                            <input type="radio" name="avatar" value="{{ $av['file'] }}" class="sr-only" {{ $profileCharacter->avatar === $av['file'] ? 'checked' : '' }}>
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden relative shadow-2xs">
-                                <img src="{{ asset($av['file']) }}" alt="{{ $av['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
-                                @if($profileCharacter->avatar === $av['file'])
-                                    <span class="absolute top-1 right-1 bg-purple-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-xs">
-                                        <i class="fa-solid fa-check"></i>
-                                    </span>
-                                @endif
+            <!-- TAB 1: Custom Upload -->
+            <div x-show="avatarTab === 'custom'" class="space-y-4">
+                <form action="{{ route('profile.avatar') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+                    
+                    <div class="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700">
+                        <div class="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0 border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center">
+                            <template x-if="previewUrl">
+                                <img :src="previewUrl" alt="Voorbeeld" class="w-full h-full object-cover">
+                            </template>
+                            <template x-if="!previewUrl">
+                                <img src="{{ $profileCharacter->avatar_url }}" alt="Huidig" class="w-full h-full object-cover">
+                            </template>
+                        </div>
+                        <div class="flex-1 text-center sm:text-left space-y-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-900 dark:text-white mb-0.5">Kies een afbeelding</label>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">JPG, PNG, WEBP of GIF (max. 5MB). Direct zichtbaar op je hele profiel en chat!</p>
                             </div>
-                        </label>
-                    @endforeach
-                </div>
+                            <input type="file" 
+                                   name="custom_avatar" 
+                                   accept="image/*" 
+                                   required 
+                                   @change="handleFileSelect($event)"
+                                   class="block w-full text-xs text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-600 file:text-white hover:file:bg-purple-700 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-1 cursor-pointer">
+                        </div>
+                    </div>
 
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-4">
-                    <button @click="avatarModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition">
-                        Annuleren
-                    </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition shadow-xs">
-                        Opslaan & Toepassen
-                    </button>
-                </div>
-            </form>
+                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                        <button @click="avatarModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer">
+                            Annuleren
+                        </button>
+                        <button type="submit" class="px-5 py-2 text-xs font-extrabold bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition shadow-xs flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Eigen Foto Toepassen</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 2: Presets Grid -->
+            <div x-show="avatarTab === 'presets'" class="space-y-4">
+                <form action="{{ route('profile.avatar') }}" method="POST">
+                    @csrf
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-80 overflow-y-auto custom-scrollbar p-1">
+                        @php
+                            $avatars = [
+                                ['file' => 'assets/characters/avatar_male_1.jpg', 'title' => 'Man 1'],
+                                ['file' => 'assets/characters/avatar_male_2.jpg', 'title' => 'Man 2'],
+                                ['file' => 'assets/characters/avatar_male_3.jpg', 'title' => 'Man 3'],
+                                ['file' => 'assets/characters/avatar_male_4.jpg', 'title' => 'Man 4'],
+                                ['file' => 'assets/characters/avatar_male_5.jpg', 'title' => 'Man 5'],
+                                ['file' => 'assets/characters/avatar_male_6.jpg', 'title' => 'Man 6'],
+                                ['file' => 'assets/characters/avatar_female_1.jpg', 'title' => 'Vrouw 1'],
+                                ['file' => 'assets/characters/avatar_female_2.jpg', 'title' => 'Vrouw 2'],
+                                ['file' => 'assets/characters/avatar_female_3.jpg', 'title' => 'Vrouw 3'],
+                                ['file' => 'assets/characters/avatar_female_4.jpg', 'title' => 'Vrouw 4'],
+                                ['file' => 'assets/characters/avatar_female_5.jpg', 'title' => 'Vrouw 5'],
+                                ['file' => 'assets/characters/avatar_female_6.jpg', 'title' => 'Vrouw 6'],
+                                ['file' => 'assets/characters/henkie.jpg', 'title' => 'Henkie Legende'],
+                            ];
+                        @endphp
+
+                        @foreach($avatars as $av)
+                            <label class="cursor-pointer group relative flex flex-col items-center p-1.5 rounded-xl border-2 transition {{ (!$profileCharacter->avatar_custom && $profileCharacter->avatar === $av['file']) ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 shadow-xs' : 'border-slate-200 dark:border-slate-700 hover:border-slate-400 bg-white dark:bg-slate-800' }}">
+                                <input type="radio" name="avatar" value="{{ $av['file'] }}" class="sr-only" {{ (!$profileCharacter->avatar_custom && $profileCharacter->avatar === $av['file']) ? 'checked' : '' }}>
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden relative shadow-2xs">
+                                    <img src="{{ asset($av['file']) }}" alt="{{ $av['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                                    @if(!$profileCharacter->avatar_custom && $profileCharacter->avatar === $av['file'])
+                                        <span class="absolute top-1 right-1 bg-purple-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-xs">
+                                            <i class="fa-solid fa-check"></i>
+                                        </span>
+                                    @endif
+                                </div>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3 mt-4">
+                        <button @click="avatarModalOpen = false" type="button" class="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition cursor-pointer">
+                            Annuleren
+                        </button>
+                        <button type="submit" class="px-5 py-2 text-xs font-bold bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white rounded-xl transition shadow-xs cursor-pointer">
+                            Preset Opslaan & Toepassen
+                        </button>
+                    </div>
+                </form>
+            </div>
 
         </div>
     </div>
@@ -1384,7 +1624,7 @@
              @click.away="customizeModalOpen = false">
             
             <!-- Modal Header -->
-            <div class="p-6 bg-gradient-to-r from-purple-900/40 via-slate-900 to-indigo-950/40 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div class="p-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-sm">
                         <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
@@ -1425,11 +1665,88 @@
                     <i class="fa-solid fa-pen"></i>
                     <span>Bio & Status</span>
                 </button>
+                <button type="button" @click="activeCustomTab = 'frame'" 
+                        :class="activeCustomTab === 'frame' ? 'border-orange-500 text-orange-600 dark:text-orange-400 border-b-2 font-black' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 font-bold'"
+                        class="py-3 px-3 transition cursor-pointer shrink-0 flex items-center gap-1.5">
+                    <span>🎃</span>
+                    <span>Profiel Rand / Frame</span>
+                </button>
             </div>
 
             <!-- Form -->
             <form action="{{ route('profile.customize') }}" method="POST" class="p-6 space-y-5">
                 @csrf
+
+                <!-- TAB: PROFIEL RANDEN / FRAMES -->
+                <div x-show="activeCustomTab === 'frame'" class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            Kies jouw actieve Halloween Avatar Frame:
+                        </label>
+                        <a href="{{ route('halloween.shop') }}" class="text-xs text-orange-600 dark:text-orange-400 hover:underline font-extrabold flex items-center gap-1">
+                            <span>🎃 Halloween Shop</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-1">
+                        <!-- Option: Geen Rand -->
+                        <label @click="selectedBorder = 'none'" 
+                               class="p-3.5 rounded-2xl border-2 cursor-pointer transition flex items-center justify-between gap-3"
+                               :class="selectedBorder === 'none' ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/40 shadow-xs ring-2 ring-orange-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <input type="radio" name="equipped_border" value="none" x-model="selectedBorder" class="sr-only">
+                                <div class="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center text-sm shrink-0">
+                                    <i class="fa-solid fa-ban"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="font-extrabold text-xs text-slate-800 dark:text-slate-200 block">Standaard (Geen Rand)</span>
+                                    <span class="text-[11px] text-slate-400">Gebruik de standaard stijl zonder gloed</span>
+                                </div>
+                            </div>
+                            <i x-show="selectedBorder === 'none'" class="fa-solid fa-circle-check text-orange-600 dark:text-orange-400 text-sm"></i>
+                        </label>
+
+                        <!-- All Halloween Borders -->
+                        @foreach($allBorders as $bKey => $border)
+                            @php 
+                                $isOwned = in_array($bKey, $unlockedBorders ?? [], true);
+                            @endphp
+                            <label @if($isOwned) @click="selectedBorder = '{{ $bKey }}'" @endif
+                                   class="p-3.5 rounded-2xl border-2 transition flex items-start justify-between gap-3 relative"
+                                   :class="!{{ $isOwned ? 'true' : 'false' }} ? 'opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30' : (selectedBorder === '{{ $bKey }}' ? 'cursor-pointer border-orange-500 bg-orange-50/50 dark:bg-orange-950/40 shadow-xs ring-2 ring-orange-500/40' : 'cursor-pointer border-slate-200 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-700')">
+                                <div class="flex items-start gap-3 min-w-0 flex-1">
+                                    <input type="radio" name="equipped_border" value="{{ $bKey }}" x-model="selectedBorder" {{ !$isOwned ? 'disabled' : '' }} class="sr-only">
+                                    <!-- Mini Avatar Preview with Frame and Badge -->
+                                    <div class="relative shrink-0">
+                                        <div class="w-12 h-12 rounded-xl p-0.5 {{ $border['preview_class'] }}">
+                                            <img src="{{ $profileCharacter->avatar_url }}" alt="{{ $border['name'] }}" class="w-full h-full rounded-xl object-cover bg-slate-900">
+                                        </div>
+                                        <span class="absolute -bottom-1 -right-1 text-sm select-none drop-shadow">{{ $border['emoji'] }}</span>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center justify-between gap-1">
+                                            <span class="font-black text-xs text-slate-900 dark:text-white truncate">{{ $border['name'] }}</span>
+                                            <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300">
+                                                {{ $border['badge'] }}
+                                            </span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2 leading-relaxed">
+                                            {{ $border['description'] }}
+                                        </p>
+                                        @if(!$isOwned)
+                                            <div class="mt-1 flex items-center gap-1.5 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                                                <i class="fa-solid fa-lock text-[9px]"></i>
+                                                <span>{{ $border['price_seeds'] }} 🎃 in Halloween Shop</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                                <i x-show="selectedBorder === '{{ $bKey }}'" class="fa-solid fa-circle-check text-orange-600 dark:text-orange-400 text-sm shrink-0 mt-1"></i>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
 
                 <!-- TAB 1: STICKERS -->
                 <div x-show="activeCustomTab === 'sticker'" class="space-y-4">

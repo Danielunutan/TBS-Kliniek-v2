@@ -61,7 +61,7 @@
                 <p><strong>TikTok:</strong> <a href="https://www.tiktok.com/@tbsklinieknl" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbsklinieknl</a></p>
                 <p><strong>Instagram:</strong> <a href="https://www.instagram.com/tbsklinieknl/" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbsklinieknl</a></p>
                 <p><strong>Twitter / X:</strong> <a href="https://x.com/tbskliniek" target="_blank" rel="noopener" class="text-purple-600 font-bold underline">@tbskliniek</a></p>
-                <p><strong>Hyves:</strong> <a href="https://hyves.nl/#hyves/hyve?id=14926" target="_blank" rel="noopener" class="text-orange-600 font-bold underline inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#f36f21] text-white inline-flex items-center justify-center font-black text-[9px] leading-none shrink-0 shadow-2xs">H</span> TBS Kliniek op Hyves</a></p>
+                <p><strong>Hyves:</strong> <a href="https://hyves.nl/#my-profile/hyve?id=Zv3DWejo" target="_blank" rel="noopener" class="text-orange-600 font-bold underline inline-flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#f36f21] text-white inline-flex items-center justify-center font-black text-[9px] leading-none shrink-0 shadow-2xs">H</span> TBS Kliniek op Hyves</a></p>
             </div>
         </section>
 

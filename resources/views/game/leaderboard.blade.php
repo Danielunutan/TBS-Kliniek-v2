@@ -97,8 +97,15 @@
                                 <td class="p-3.5">
                                     <div class="flex items-center gap-3">
                                         <div class="relative shrink-0">
-                                            <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-slate-700">
-                                            <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $player->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $player->online_status_label }}"></span>
+                                            @php
+                                                $playerBorder = $player->getEquippedBorderInfo();
+                                            @endphp
+                                            <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" class="w-8 h-8 rounded-lg object-cover {{ $playerBorder ? $playerBorder['ring'] . ' ' . $playerBorder['border'] . ' border' : 'border border-slate-200 dark:border-slate-700' }}">
+                                            @if($playerBorder)
+                                                <span class="absolute -top-1.5 -right-1.5 text-[10px] leading-none drop-shadow select-none">{{ $playerBorder['emoji'] }}</span>
+                                            @else
+                                                <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $player->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $player->online_status_label }}"></span>
+                                            @endif
                                         </div>
                                         <div>
                                             <a href="{{ route('profile.show', $player->name) }}" class="font-bold text-slate-900 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-purple-400 transition block leading-tight">

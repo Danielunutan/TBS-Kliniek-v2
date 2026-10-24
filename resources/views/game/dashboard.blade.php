@@ -709,8 +709,12 @@
         <div class="bg-white dark:bg-slate-900/90 rounded-xl shadow-xs border border-slate-200/80 dark:border-slate-800 overflow-hidden relative group">
             @if($character->gang)
                 <div class="p-6 flex flex-col items-center text-center">
-                    <div class="w-16 h-16 mb-3 rounded-2xl bg-slate-900 dark:bg-slate-800 text-amber-400 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform">
-                        <i class="fa-solid {{ $character->gang->emblem ?: 'fa-crown' }}"></i>
+                    <div class="w-16 h-16 mb-3 rounded-2xl bg-slate-900 dark:bg-slate-800 text-amber-400 flex items-center justify-center text-2xl shadow-sm group-hover:scale-105 transition-transform overflow-hidden border border-slate-200/60 dark:border-slate-700">
+                        @if($character->gang->avatar)
+                            <img src="{{ $character->gang->avatar_url }}" alt="{{ $character->gang->name }}" class="w-full h-full object-cover">
+                        @else
+                            <i class="fa-solid {{ $character->gang->emblem ?: 'fa-crown' }}"></i>
+                        @endif
                     </div>
                     <div class="flex items-center gap-1.5 justify-center flex-wrap">
                         <h3 class="text-base font-bold text-slate-900 dark:text-white mb-0.5">{{ $character->gang->name }}</h3>

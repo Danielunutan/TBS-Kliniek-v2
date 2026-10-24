@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Mail\VerifyEmailCodeMail;
 use Carbon\CarbonInterface;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -13,9 +14,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_id', 'banned_at'])]
-#[Hidden(['password', 'remember_token', 'two_factor_secret'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_id', 'banned_at', 'email_verification_code', 'email_verification_code_expires_at'])]
+#[Hidden(['password', 'remember_token', 'two_factor_secret', 'email_verification_code'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -235,6 +237,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Send the email verification notification using a 6-digit code expiring in 30 minutes.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $code = sprintf('%06d', random_int(100000, 999999));
+        $expiresAt = now()->addMinutes(30);
+
+        $this->forceFill([
+            'email_verification_code' => $code,
+            'email_verification_code_expires_at' => $expiresAt,
+        ])->saveQuietly();
+
+        Mail::to($this->email)->send(new VerifyEmailCodeMail($this, $code, $expiresAt));
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -243,6 +261,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_code_expires_at' => 'datetime',
             'password' => 'hashed',
             'is_staff' => 'boolean',
             'two_factor_enabled' => 'boolean',

@@ -18,17 +18,63 @@ class CinemaRoom extends Model
         'host_character_id',
         'youtube_url',
         'youtube_video_id',
+        'video_started_at',
+        'seek_offset',
+        'video_queue',
         'is_official',
         'is_private',
+        'is_closed',
+        'closed_at',
         'passcode',
         'views_count',
     ];
 
     protected $casts = [
+        'video_started_at' => 'datetime',
+        'seek_offset' => 'integer',
         'is_official' => 'boolean',
         'is_private' => 'boolean',
+        'is_closed' => 'boolean',
+        'closed_at' => 'datetime',
+        'video_queue' => 'array',
         'views_count' => 'integer',
     ];
+
+    /**
+     * Get the current synchronized playback position in seconds.
+     */
+    public function getCurrentPlaybackSeconds(): int
+    {
+        if (! $this->video_started_at) {
+            return 0;
+        }
+
+        $startedTimestamp = $this->video_started_at instanceof \DateTimeInterface
+            ? $this->video_started_at->getTimestamp()
+            : strtotime((string) $this->video_started_at);
+
+        $elapsed = max(0, time() - $startedTimestamp);
+
+        return $elapsed + (int) ($this->seek_offset ?? 0);
+    }
+
+    /**
+     * Get the YouTube thumbnail URL.
+     */
+    public function getThumbnailUrl(): string
+    {
+        return $this->youtube_video_id
+            ? "https://img.youtube.com/vi/{$this->youtube_video_id}/mqdefault.jpg"
+            : asset('images/cinema-placeholder.jpg');
+    }
+
+    /**
+     * Get current video queue safely as an array.
+     */
+    public function getQueue(): array
+    {
+        return is_array($this->video_queue) ? $this->video_queue : [];
+    }
 
     public function host(): BelongsTo
     {

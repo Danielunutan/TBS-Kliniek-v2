@@ -1,7 +1,31 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
+@php
+    $lockerCooldown = $character->cooldownRemaining('locker');
+    $lockerSkipCost = app(\App\Services\CooldownService::class)->getSkipCost('locker');
+@endphp
+<div class="space-y-6" x-data="{
+    seconds: {{ (int) $lockerCooldown }},
+    format(s) {
+        if (s <= 0) return '00:00';
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    },
+    init() {
+        if (this.seconds > 0) {
+            const timer = setInterval(() => {
+                if (this.seconds > 0) {
+                    this.seconds--;
+                }
+                if (this.seconds <= 0) {
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+    }
+}">
     <!-- Clean TBS Kliniek Title Banner -->
     <div class="rounded-2xl bg-white p-6 sm:p-8 text-slate-800 shadow-xs border border-slate-200 relative overflow-hidden">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -32,33 +56,30 @@
         </div>
     </div>
 
-    @php
-        $lockerCooldown = $character->cooldownRemaining('locker');
-        $lockerSkipCost = app(\App\Services\CooldownService::class)->getSkipCost('locker');
-    @endphp
-
-    @if($lockerCooldown > 0)
-        <div class="p-4 rounded-xl bg-amber-500/10 border border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
-                    <i class="fa-solid fa-clock"></i>
-                </div>
-                <div>
-                    <h4 class="text-xs font-black text-amber-950">Kluisjes Cooldown Actief</h4>
-                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $lockerCooldown) }}</strong> of reset direct via een sponsor advertentie.</p>
-                </div>
+    <div x-show="seconds > 0" class="p-4 rounded-xl bg-amber-500/10 border border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $lockerCooldown > 0 ? '' : 'display: none;' }}">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                <i class="fa-solid fa-clock"></i>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                    <i class="fa-solid fa-tv text-[11px]"></i>
-                    <span>Kijk Ad (Reset Cooldown)</span>
-                </button>
+            <div>
+                <h4 class="text-xs font-black text-amber-950">Kluisjes Cooldown Actief</h4>
+                <p class="text-[11px] text-amber-800">Wacht nog <strong class="font-mono text-amber-950 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $lockerCooldown) }}</strong> of reset direct via een sponsor advertentie.</p>
             </div>
         </div>
-    @endif
+        <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <i class="fa-solid fa-tv text-[11px]"></i>
+                <span>Kijk Ad (Reset Cooldown)</span>
+            </button>
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($lockers as $locker)
+        @php
+            $otherBlocked = $character->isImprisoned() || $character->energy < $locker['energy'];
+            $isDisabled = $otherBlocked || $lockerCooldown > 0;
+        @endphp
         <div class="bg-white rounded-xl border border-slate-200 hover:border-slate-300 shadow-xs transition p-5 flex flex-col justify-between gap-4">
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -92,8 +113,10 @@
                     @csrf
                     <input type="hidden" name="locker_id" value="{{ $locker['id'] }}">
                     <button type="submit"
-                            {{ $character->isImprisoned() || $character->energy < $locker['energy'] || $lockerCooldown > 0 ? 'disabled' : '' }}
-                            class="px-4 py-2 rounded-lg text-xs font-extrabold text-white transition shadow-xs {{ $character->isImprisoned() || $character->energy < $locker['energy'] || $lockerCooldown > 0 ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800' }}">
+                            :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
+                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 cursor-pointer'"
+                            {{ $isDisabled ? 'disabled' : '' }}
+                            class="px-4 py-2 rounded-lg text-xs font-extrabold text-white transition shadow-xs {{ $isDisabled ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 cursor-pointer' }}">
                         <i class="fa-solid fa-key mr-1"></i> Kraken
                     </button>
                 </form>

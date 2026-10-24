@@ -93,18 +93,33 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            @if($sigCooldown > 0)
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
-                                        <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $sigCooldown) }}
-                                    </span>
-                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_sigaretten')" title="Kijk Ad (Reset Sigaretten Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
-                                        <i class="fa-solid fa-tv text-[11px]"></i>
-                                        <span>Reset via Ad</span>
-                                    </button>
-                                </div>
-                            @else
+                        <div class="flex items-center gap-2 shrink-0" x-data="{
+                            cd: {{ (int) $sigCooldown }},
+                            format(s) {
+                                if (s <= 0) return '00:00';
+                                const m = Math.floor(s / 60);
+                                const sec = Math.floor(s % 60);
+                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+                            },
+                            init() {
+                                if (this.cd > 0) {
+                                    const timer = setInterval(() => {
+                                        if (this.cd > 0) this.cd--;
+                                        if (this.cd <= 0) clearInterval(timer);
+                                    }, 1000);
+                                }
+                            }
+                        }">
+                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $sigCooldown > 0 ? '' : 'display: none;' }}">
+                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
+                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $sigCooldown) }}</span>
+                                </span>
+                                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_sigaretten')" title="Kijk Ad (Reset Sigaretten Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                    <i class="fa-solid fa-tv text-[11px]"></i>
+                                    <span>Reset via Ad</span>
+                                </button>
+                            </div>
+                            <div x-show="cd <= 0" style="{{ $sigCooldown <= 0 ? '' : 'display: none;' }}">
                                 <form action="{{ route('smuggle.produce') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="type" value="sigaretten">
@@ -115,7 +130,7 @@
                                         <span>Produceren</span>
                                     </button>
                                 </form>
-                            @endif
+                            </div>
                         </div>
                     </div>
 
@@ -135,18 +150,33 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            @if($ritCooldown > 0)
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
-                                        <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $ritCooldown) }}
-                                    </span>
-                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_ritalin')" title="Kijk Ad (Reset Ritalin Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
-                                        <i class="fa-solid fa-tv text-[11px]"></i>
-                                        <span>Reset via Ad</span>
-                                    </button>
-                                </div>
-                            @else
+                        <div class="flex items-center gap-2 shrink-0" x-data="{
+                            cd: {{ (int) $ritCooldown }},
+                            format(s) {
+                                if (s <= 0) return '00:00';
+                                const m = Math.floor(s / 60);
+                                const sec = Math.floor(s % 60);
+                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+                            },
+                            init() {
+                                if (this.cd > 0) {
+                                    const timer = setInterval(() => {
+                                        if (this.cd > 0) this.cd--;
+                                        if (this.cd <= 0) clearInterval(timer);
+                                    }, 1000);
+                                }
+                            }
+                        }">
+                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $ritCooldown > 0 ? '' : 'display: none;' }}">
+                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
+                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $ritCooldown) }}</span>
+                                </span>
+                                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_ritalin')" title="Kijk Ad (Reset Ritalin Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                    <i class="fa-solid fa-tv text-[11px]"></i>
+                                    <span>Reset via Ad</span>
+                                </button>
+                            </div>
+                            <div x-show="cd <= 0" style="{{ $ritCooldown <= 0 ? '' : 'display: none;' }}">
                                 <form action="{{ route('smuggle.produce') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="type" value="ritalin">
@@ -157,7 +187,7 @@
                                         <span>Produceren</span>
                                     </button>
                                 </form>
-                            @endif
+                            </div>
                         </div>
                     </div>
 
@@ -177,18 +207,33 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            @if($phoneCooldown > 0)
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
-                                        <i class="fa-regular fa-clock mr-1"></i>{{ gmdate('i:s', $phoneCooldown) }}
-                                    </span>
-                                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_telefoon')" title="Kijk Ad (Reset Telefoon Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
-                                        <i class="fa-solid fa-tv text-[11px]"></i>
-                                        <span>Reset via Ad</span>
-                                    </button>
-                                </div>
-                            @else
+                        <div class="flex items-center gap-2 shrink-0" x-data="{
+                            cd: {{ (int) $phoneCooldown }},
+                            format(s) {
+                                if (s <= 0) return '00:00';
+                                const m = Math.floor(s / 60);
+                                const sec = Math.floor(s % 60);
+                                return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+                            },
+                            init() {
+                                if (this.cd > 0) {
+                                    const timer = setInterval(() => {
+                                        if (this.cd > 0) this.cd--;
+                                        if (this.cd <= 0) clearInterval(timer);
+                                    }, 1000);
+                                }
+                            }
+                        }">
+                            <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $phoneCooldown > 0 ? '' : 'display: none;' }}">
+                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
+                                    <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $phoneCooldown) }}</span>
+                                </span>
+                                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_telefoon')" title="Kijk Ad (Reset Telefoon Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                    <i class="fa-solid fa-tv text-[11px]"></i>
+                                    <span>Reset via Ad</span>
+                                </button>
+                            </div>
+                            <div x-show="cd <= 0" style="{{ $phoneCooldown <= 0 ? '' : 'display: none;' }}">
                                 <form action="{{ route('smuggle.produce') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="type" value="telefoon">
@@ -199,7 +244,7 @@
                                         <span>Produceren</span>
                                     </button>
                                 </form>
-                            @endif
+                            </div>
                         </div>
                     </div>
                 </div>

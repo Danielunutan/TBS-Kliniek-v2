@@ -122,7 +122,7 @@ class FightController extends Controller
             $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
 
             if (! $this->turnstileService->verify($turnstileToken, $request->ip())) {
-                return back()->with('error', '🛡️ Beveiligingscontrole mislukt! Bevestig via de Cloudflare Turnstile verificatie dat je geen bot bent.');
+                return redirect()->route('fight.index')->with('error', '🛡️ Zaalwacht controle vereist! Bevestig via de Cloudflare Turnstile verificatie op de luchtplaats dat je een echte speler bent om te kunnen beroven.');
             }
 
             // Captcha passed
@@ -284,6 +284,7 @@ class FightController extends Controller
                 'xp' => 25,
                 'respect' => 2,
                 'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
+                'from_profile' => $request->boolean('from_profile'),
             ]);
 
             return redirect()->route('fight.arena', $defender);
@@ -322,6 +323,7 @@ class FightController extends Controller
                 'xp' => 0,
                 'respect' => 0,
                 'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
+                'from_profile' => $request->boolean('from_profile'),
             ]);
 
             return redirect()->route('fight.arena', $defender);

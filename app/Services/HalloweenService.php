@@ -239,6 +239,73 @@ class HalloweenService
     ];
 
     /**
+     * Get rich configuration and styling tokens for all avatar borders/frames.
+     *
+     * @return array<string, array{key: string, name: string, emoji: string, badge_title: string, price_seeds: int, badge: string, description: string, ring: string, border: string, glow: string, badge_gradient: string, preview_class: string}>
+     */
+    public static function getBorders(): array
+    {
+        return [
+            'pumpkin_glow' => [
+                'key' => 'pumpkin_glow',
+                'name' => 'Spooky Pumpkin Glow',
+                'emoji' => '🎃',
+                'badge_title' => 'Halloween Pompoen Gloed',
+                'price_seeds' => 120,
+                'badge' => 'Exclusief',
+                'description' => 'Verlicht je profiel met een vurige neon-oranje pompoen aura en gloeiend rand-effect.',
+                'ring' => 'ring-4 ring-orange-500 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-orange-400',
+                'glow' => 'shadow-[0_0_25px_rgba(249,115,22,0.9)]',
+                'badge_gradient' => 'from-amber-400 via-orange-500 to-amber-600',
+                'preview_class' => 'ring-4 ring-orange-500 shadow-[0_0_22px_rgba(249,115,22,0.85)] border-amber-400',
+            ],
+            'vampire_blood' => [
+                'key' => 'vampire_blood',
+                'name' => 'Bloederige Vampier',
+                'emoji' => '🩸',
+                'badge_title' => 'Bloederige Vampier Rand',
+                'price_seeds' => 180,
+                'badge' => 'Gothic',
+                'description' => 'Duistere karmijnrode bloedspatten en een angstaanjagende vampieren gloed rondom je avatar.',
+                'ring' => 'ring-4 ring-rose-700 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-rose-600',
+                'glow' => 'shadow-[0_0_25px_rgba(225,29,72,0.9)]',
+                'badge_gradient' => 'from-rose-600 via-red-700 to-rose-950',
+                'preview_class' => 'ring-4 ring-rose-700 shadow-[0_0_22px_rgba(225,29,72,0.85)] border-rose-900',
+            ],
+            'phantom_mist' => [
+                'key' => 'phantom_mist',
+                'name' => 'Spookhuis Paarse Mist',
+                'emoji' => '👻',
+                'badge_title' => 'Spookhuis Paarse Mist Rand',
+                'price_seeds' => 220,
+                'badge' => 'Geanimeerd',
+                'description' => 'Geanimeerde ectoplasma nevel met oplichtende spookogen rondom je avatar.',
+                'ring' => 'ring-4 ring-purple-500 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-purple-300',
+                'glow' => 'shadow-[0_0_28px_rgba(168,85,247,0.9)]',
+                'badge_gradient' => 'from-purple-500 via-indigo-600 to-purple-900',
+                'preview_class' => 'ring-4 ring-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.85)] border-purple-300',
+            ],
+            'gothic_king' => [
+                'key' => 'gothic_king',
+                'name' => 'Magere Hein Kroon',
+                'emoji' => '👑',
+                'badge_title' => 'Magere Hein Kroon Rand',
+                'price_seeds' => 350,
+                'badge' => 'Legendarisch',
+                'description' => 'Het ultieme Halloween meester-frame met gouden skeletvleugels en sinistere kroongloed.',
+                'ring' => 'ring-4 ring-amber-400 ring-offset-2 ring-offset-slate-900',
+                'border' => 'border-amber-200',
+                'glow' => 'shadow-[0_0_30px_rgba(251,191,36,0.95)]',
+                'badge_gradient' => 'from-amber-300 via-yellow-400 to-amber-600',
+                'preview_class' => 'ring-4 ring-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.9)] border-amber-200',
+            ],
+        ];
+    }
+
+    /**
      * Check if the Halloween event is currently running.
      */
     public static function isEventActive(): bool

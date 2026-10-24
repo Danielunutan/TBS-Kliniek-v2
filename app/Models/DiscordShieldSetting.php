@@ -25,7 +25,7 @@ class DiscordShieldSetting extends Model
         $defaults = [
             'bot_token' => env('DISCORD_BOT_TOKEN', ''),
             'client_id' => env('DISCORD_CLIENT_ID', '1558628995439005748'),
-            'client_secret' => env('DISCORD_CLIENT_SECRET', 'tvX_NGRzmXI4fwt4HJGrl7Lc6cUNjBo9'),
+            'client_secret' => env('DISCORD_CLIENT_SECRET', ''),
             'guild_id' => env('DISCORD_GUILD_ID', ''),
             'verified_role_id' => env('DISCORD_VERIFIED_ROLE_ID', ''),
             'unverified_role_id' => env('DISCORD_UNVERIFIED_ROLE_ID', ''),

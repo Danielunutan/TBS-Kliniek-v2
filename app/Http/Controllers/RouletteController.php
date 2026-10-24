@@ -45,7 +45,7 @@ class RouletteController extends Controller
         ]);
 
         $bet = (int) $validated['bet'];
-        if ($character->cash < $bet) {
+        if (! $this->economy->deductCash($character, $bet)) {
             return back()->with('error', 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
 
@@ -91,9 +91,6 @@ class RouletteController extends Controller
 
             return back()->with('success', "Gewonnen! Bal landde op {$number} ({$colorLabel}). Je wint €".number_format($payout, 0, ',', '.')." ({$multiplier}x)! +20 XP.");
         }
-
-        $character->cash -= $bet;
-        $character->save();
 
         return back()->with('error', "Verloren! Bal landde op {$number} ({$colorLabel}). Je verliest €".number_format($bet, 0, ',', '.').'.');
     }

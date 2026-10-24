@@ -3,7 +3,31 @@
 @section('title', 'Hosselen & Klussen - TBS Kliniek')
 
 @section('content')
-<div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+@php
+    $hustleCooldown = $character->cooldownRemaining('hustle');
+    $hustleSkipCost = app(\App\Services\CooldownService::class)->getSkipCost('hustle');
+@endphp
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6" x-data="{
+    seconds: {{ (int) $hustleCooldown }},
+    format(s) {
+        if (s <= 0) return '00:00';
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    },
+    init() {
+        if (this.seconds > 0) {
+            const timer = setInterval(() => {
+                if (this.seconds > 0) {
+                    this.seconds--;
+                }
+                if (this.seconds <= 0) {
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+    }
+}">
     
     <!-- Left column: Hosselen -->
     <div class="xl:col-span-8 space-y-6">
@@ -27,38 +51,32 @@
                 </div>
             </div>
 
-            @php
-                $hustleCooldown = $character->cooldownRemaining('hustle');
-                $hustleSkipCost = app(\App\Services\CooldownService::class)->getSkipCost('hustle');
-            @endphp
-
-            @if($hustleCooldown > 0)
-                <div class="m-6 p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
-                            <i class="fa-solid fa-clock"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Hossel Cooldown Actief</h4>
-                            <p class="text-[11px] text-amber-800 dark:text-amber-300">Wacht nog <strong>{{ gmdate('i:s', $hustleCooldown) }}</strong> voordat je opnieuw kunt klussen in de gangen.</p>
-                        </div>
+            <div x-show="seconds > 0" class="m-6 p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $hustleCooldown > 0 ? '' : 'display: none;' }}">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                        <i class="fa-solid fa-clock"></i>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                            <i class="fa-solid fa-tv text-[11px]"></i>
-                            <span>Kijk Ad (Reset Cooldown)</span>
-                        </button>
+                    <div>
+                        <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Hossel Cooldown Actief</h4>
+                        <p class="text-[11px] text-amber-800 dark:text-amber-300">Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-200 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $hustleCooldown) }}</strong> voordat je opnieuw kunt klussen in de gangen.</p>
                     </div>
                 </div>
-            @endif
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <i class="fa-solid fa-tv text-[11px]"></i>
+                        <span>Kijk Ad (Reset Cooldown)</span>
+                    </button>
+                </div>
+            </div>
 
             <div class="p-6">
                 <form action="{{ route('hustle.attempt') }}" method="POST">
                     @csrf
                     <div class="space-y-3 mb-6">
                         @foreach($hustles as $h)
-                        <label class="flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition group border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800/80 has-[:checked]:border-purple-600 dark:has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50/70 dark:has-[:checked]:bg-purple-950/50 has-[:checked]:ring-2 has-[:checked]:ring-purple-500/20 {{ $hustleCooldown > 0 ? 'opacity-60 cursor-not-allowed' : '' }}">
-                            <input type="radio" name="hustle_id" value="{{ $h['id'] }}" class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0" {{ $loop->first ? 'checked' : '' }} {{ $hustleCooldown > 0 ? 'disabled' : '' }} required>
+                        <label class="flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition group border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800/80 has-[:checked]:border-purple-600 dark:has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50/70 dark:has-[:checked]:bg-purple-950/50 has-[:checked]:ring-2 has-[:checked]:ring-purple-500/20"
+                               :class="seconds > 0 ? 'opacity-60 cursor-not-allowed' : ''">
+                            <input type="radio" name="hustle_id" value="{{ $h['id'] }}" class="w-4 h-4 text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0" {{ $loop->first ? 'checked' : '' }} :disabled="seconds > 0" {{ $hustleCooldown > 0 ? 'disabled' : '' }} required>
                             <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
                                     <span class="font-bold text-xs text-slate-800 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 block transition">{{ $h['name'] }}</span>
@@ -78,8 +96,10 @@
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                         <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5"><i class="fa-solid fa-stopwatch text-amber-500"></i> Cooldown wachttijd is afhankelijk van de slagingskans (1 tot 6 minuten).</span>
                         <button type="submit" 
+                                :disabled="seconds > 0"
+                                :class="seconds > 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
                                 {{ $hustleCooldown > 0 ? 'disabled' : '' }}
-                                class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs px-8 py-3 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs px-8 py-3 rounded-xl transition shadow-xs flex items-center gap-2">
                             <span>Actie Uitvoeren</span>
                             <i class="fa-solid fa-arrow-right text-[10px]"></i>
                         </button>

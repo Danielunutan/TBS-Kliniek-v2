@@ -152,11 +152,41 @@ class NewsArticle extends Model
         }, $text);
 
         // Horizontal Rule
-        $text = preg_replace('/^---$/m', '<hr class="my-4 border-slate-200" />', $text);
+        $text = preg_replace('/^---$/m', '<hr class="my-3 border-slate-200" />', $text);
 
         // Unordered list items
-        $text = preg_replace('/^-\s+(.*?)$/m', '<li class="ml-4 list-disc text-slate-700 font-medium">$1</li>', $text);
+        $text = preg_replace('/^-\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 font-medium leading-relaxed">$1</li>', $text);
 
-        return nl2br($text);
+        // Group consecutive <li> elements into a <ul>
+        $text = preg_replace_callback('~((?:<li[^>]*>.*?</li>\s*)+)~s', function ($m) {
+            return '<ul class="my-2 space-y-0.5">'.$m[1].'</ul>';
+        }, $text);
+
+        // Normalise multiple blank lines to exactly two newlines
+        $text = preg_replace("/\n{2,}/", "\n\n", $text);
+
+        // Remove newlines immediately before opening block-level tags
+        $text = preg_replace('~\n(<(?:h[1-6]|hr|ul|ol|li|div|blockquote|p)[\s>])~i', '$1', $text);
+
+        // Remove newlines immediately after closing block-level tags
+        $text = preg_replace('~(</(?:h[1-6]|hr|ul|ol|li|div|blockquote|p)>)\n~i', '$1', $text);
+
+        // Split on remaining double newlines and wrap plain-text segments in <p>
+        $segments = preg_split("/\n\n/", $text);
+        $segments = array_map(function ($seg) {
+            $trimmed = trim($seg);
+            if ($trimmed === '') {
+                return '';
+            }
+
+            // Leave segments that already start with a block-level HTML tag as-is
+            if (preg_match('~^\s*<(?:h[1-6]|hr|ul|ol|li|div|blockquote|p)[ >]~i', $trimmed)) {
+                return $trimmed;
+            }
+
+            return '<p class="mb-2 leading-relaxed">'.nl2br($trimmed).'</p>';
+        }, $segments);
+
+        return implode('', $segments);
     }
 }

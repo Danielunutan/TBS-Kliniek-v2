@@ -33,6 +33,10 @@ class ReplyTicketCommand extends Command
         $ticket = SupportTicket::where('ticket_number', $ticketNumber)
             ->orWhere('ticket_number', 'like', "%{$ticketNumber}%")
             ->orWhere('id', $ticketNumber)
+            ->orWhere('subject', 'like', "%{$ticketNumber}%")
+            ->orWhereHas('character', function ($q) use ($ticketNumber) {
+                $q->where('name', 'like', "%{$ticketNumber}%");
+            })
             ->first();
 
         if (! $ticket) {
@@ -51,7 +55,24 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-GE4-318' || $ticket->id === 14 || str_contains(strtolower($ticket->subject), 'hacking') || str_contains(strtolower($ticket->subject), 'computer')) {
+        if ($ticketNumber === 'TBS-CJS-614' || str_contains(strtolower($ticket->subject), 'afkoelen') || str_contains(strtolower($ticket->character?->name ?? ''), 'carootje')) {
+            $replyMessage = "Beste carootje,\n\n"
+                ."Ontzettend bedankt voor je melding en scherpe observatie via dit ticket! ⏱️🔥\n\n"
+                ."Je had helemaal gelijk: voorheen bleven de cooldown timers op het scherm statisch stilstaan op de server-tijd waarop de pagina geladen was. Als je wachtte tot je weer een actie mocht uitvoeren, liep de timer in de browser niet realtime af en bleven de actieknoppen vergrendeld totdat je de pagina handmatig ververste. Dat speelde natuurlijk niet fijn als je even zat te wachten.\n\n"
+                ."We hebben dit zojuist direct grondig aangepakt en opgelost voor de gehele game:\n\n"
+                ."1. **Realtime Aflopende Cooldowns**:\n"
+                ."   - Alle acties met een cooldown wachttijd (zoals **Zakkenrollen**, **Afpersen**, **Hosselen**, **Kluisjes Kraken**, **Pakketjes Onderscheppen**, **Smokkelproducties** en **Bende Oorlog**) tellen nu direct elke seconde live en realtime af in je browser.\n"
+                ."   - Je ziet de minuten en seconden nu vloeiend aftikken (bijv. 02:59 -> 02:58 -> ...).\n\n"
+                ."2. **Automatische Ontgrendeling zonder Herladen**:\n"
+                ."   - Zodra de timer 00:00 bereikt, verdwijnt de cooldown banner direct vanzelf en springen alle actieknoppen automatisch op actief ('Klaar voor actie').\n"
+                ."   - Je hoeft de pagina dus NOOIT meer handmatig te verversen (F5); zodra je cooldown voorbij is kun je direct doorklikken en verder spelen!\n\n"
+                ."3. **Gesynchroniseerd met Cooldown Skip via Sponsor Ads**:\n"
+                ."   - Ook wanneer je tussentijds een sponsor video bekijkt om je cooldown te resetten, ontgrendelt alles direct.\n\n"
+                ."Nogmaals enorm bedankt voor het melden van deze bug, dankzij jouw ticket is de ervaring voor alle spelers in de TBS Kliniek nu een stuk aangenamer en vlotter geworden!\n\n"
+                ."Veel succes en speelplezier in de kliniek!\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniel • TBS Kliniek Leiding';
+        } elseif ($ticketNumber === 'TBS-GE4-318' || $ticket->id === 14 || str_contains(strtolower($ticket->subject), 'hacking') || str_contains(strtolower($ticket->subject), 'computer')) {
             $replyMessage = "Beste Rainbow,\n\n"
                 ."Wat een fenomenaal en vernieuwend idee voor TBS Kliniek! Een echte interactieve cyber-terminal met minigames en een beloningsrad sluit perfect aan bij de mysterieuze, clandestiene sfeer van de kliniek. We hebben jouw complete concept direct ontworpen, geprogrammeerd en zojuist live gezet onder 'Bonus & Kluizen' -> 'Kliniek Terminal' (/hacking)! 💻⚡🔓\n\n"
                 ."Dit is wat we allemaal exact volgens jouw wensen hebben gerealiseerd:\n\n"

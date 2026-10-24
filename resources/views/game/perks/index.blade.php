@@ -144,14 +144,14 @@
     </div>
 
     <!-- INFO CARD OVER STERREN -->
-    <div class="bg-gradient-to-r from-slate-900 via-purple-950/80 to-slate-900 border border-purple-500/30 rounded-2xl p-6 text-white shadow-xs">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="space-y-1">
-                <h4 class="text-sm font-black text-white flex items-center gap-2">
-                    <i class="fa-solid fa-circle-question text-amber-400"></i>
+                <h4 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-amber-500"></i>
                     <span>Hoe kom je aan Sterren ⭐?</span>
                 </h4>
-                <p class="text-xs text-purple-200/80 max-w-2xl leading-relaxed">
+                <p class="text-xs text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
                     Cooldowns en de isoleercel kun je nu gratis skippen via een sponsor advertentie. Hierdoor zijn Sterren een pure verzamel- en prestige-valuta geworden! Verdien dagelijks <strong>5 gratis Sterren</strong> via de sponsor-ads in de header, behaal prestaties, heists en open speciale kisten.
                 </p>
             </div>

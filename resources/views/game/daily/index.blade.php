@@ -4,20 +4,20 @@
 <div class="space-y-6" x-data="tbsDailyRewards()">
 
     <!-- Header Card (Clean Solid White TBS Styling) -->
-    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-5 sm:p-7 relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl shadow-xs border border-slate-800 shrink-0">
                     <i class="fa-solid fa-dharmachakra"></i>
                 </div>
                 <div>
-                    <div class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-amber-200 mb-1">
+                    <div class="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/60 mb-1">
                         Dagelijkse Beloningen & 22:00 Inlog Bonus
                     </div>
-                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                         Rad van Fortuin & Inlog Bonus Kalender
                     </h1>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                         Draai elke dag gratis aan het rad voor kluiscodes, maskers, koffers en contanten!
                     </p>
                 </div>
@@ -25,18 +25,18 @@
 
             <!-- Stats & Spin status -->
             <div class="flex items-center gap-3 shrink-0">
-                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
+                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Draaien Vandaag</span>
-                    <span class="text-base font-black text-purple-700" x-text="availableSpins">
+                    <span class="text-base font-black text-purple-700 dark:text-purple-400" x-text="availableSpins">
                         {{ $availableSpins }}
                     </span>
                     <span class="text-[9px] font-bold text-slate-400 block">
                         {{ $character->isVip() ? 'VIP: 2x per dag' : 'Normaal: 1x per dag' }}
                     </span>
                 </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
+                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2 text-center min-w-[110px]">
                     <span class="text-[10px] font-bold text-slate-400 uppercase block">Actieve Streak</span>
-                    <span class="text-base font-black text-amber-600">
+                    <span class="text-base font-black text-amber-600 dark:text-amber-400">
                         {{ $currentStreak }} {{ $currentStreak === 1 ? 'dag' : 'dagen' }}
                     </span>
                     <span class="text-[9px] font-bold text-slate-400 block">
@@ -52,18 +52,18 @@
 
         <!-- Left: The Wheel of Fortune (7 cols) -->
         <div class="lg:col-span-7 space-y-4">
-            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 flex flex-col items-center relative overflow-hidden">
-                <div class="w-full flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 flex flex-col items-center relative overflow-hidden">
+                <div class="w-full flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
                     <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center text-xs font-bold border border-purple-200">
+                        <span class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-bold border border-purple-200 dark:border-purple-800/60">
                             <i class="fa-solid fa-gift"></i>
                         </span>
-                        <h2 class="text-sm sm:text-base font-black text-slate-900">
+                        <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white">
                             Rad van de TBS Kliniek
                         </h2>
                     </div>
                     <span class="text-xs font-extrabold px-2.5 py-1 rounded-full"
-                          :class="availableSpins > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'">
+                          :class="availableSpins > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'">
                         <span x-text="availableSpins > 0 ? 'Klaar om te draaien!' : 'Vandaag verbruikt'"></span>
                     </span>
                 </div>
@@ -90,9 +90,9 @@
                 </div>
 
                 <!-- Prize announcement box -->
-                <div x-show="lastPrizeMessage" x-transition class="w-full mt-4 p-4 rounded-xl bg-purple-50 border border-purple-200 text-center">
-                    <div class="text-xs font-bold text-purple-600 uppercase tracking-wider mb-0.5">Laatste Winst</div>
-                    <div class="text-base font-black text-purple-900" x-text="lastPrizeMessage"></div>
+                <div x-show="lastPrizeMessage" x-transition class="w-full mt-4 p-4 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/60 text-center">
+                    <div class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-0.5">Laatste Winst</div>
+                    <div class="text-base font-black text-purple-900 dark:text-purple-200" x-text="lastPrizeMessage"></div>
                 </div>
 
                 <!-- Action Controls (Solid button, NO gradients) -->
@@ -101,7 +101,7 @@
                             @click="spinWheel()" 
                             :disabled="spinning || availableSpins <= 0"
                             class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            :class="availableSpins > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-slate-400'">
+                            :class="availableSpins > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-slate-400 dark:bg-slate-700'">
                         <span x-show="!spinning && availableSpins > 0">
                             <i class="fa-solid fa-play mr-1"></i> Gratis Draaien!
                         </span>
@@ -115,24 +115,24 @@
                     @if(!$character->isVip())
                     <p class="text-[11px] text-center text-slate-400 font-semibold mt-1">
                         <i class="fa-solid fa-crown text-amber-500"></i> VIP-leden krijgen <strong>2x draaien per dag</strong>! 
-                        <a href="{{ route('vip.index') }}" class="text-purple-600 font-bold hover:underline">Word VIP</a>
+                        <a href="{{ route('vip.index') }}" class="text-purple-600 dark:text-purple-400 font-bold hover:underline">Word VIP</a>
                     </p>
                     @endif
                 </div>
 
                 <!-- Possible Prizes Legend -->
-                <div class="w-full mt-6 pt-5 border-t border-slate-100">
+                <div class="w-full mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-3 text-center">
                         Mogelijke Prijzen op het Rad
                     </span>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         @foreach($sectors as $sec)
-                        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2 text-left">
+                        <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 flex items-center gap-2 text-left">
                             <span class="w-7 h-7 rounded-lg text-white flex items-center justify-center text-xs shrink-0" style="background-color: {{ $sec['color'] }}">
                                 <i class="fa-solid {{ $sec['icon'] }}"></i>
                             </span>
                             <div class="min-w-0">
-                                <span class="text-[11px] font-black text-slate-800 block truncate">{{ $sec['label'] }}</span>
+                                <span class="text-[11px] font-black text-slate-800 dark:text-slate-200 block truncate">{{ $sec['label'] }}</span>
                             </div>
                         </div>
                         @endforeach
@@ -183,18 +183,18 @@
                      }, 1000);
                  }
              }">
-            <div class="bg-white rounded-2xl shadow-xs border border-slate-200/90 p-6 flex flex-col justify-between">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-6 flex flex-col justify-between">
                 <div>
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-5">
                         <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs font-bold border border-amber-200">
+                            <span class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold border border-amber-200 dark:border-amber-800/60">
                                 <i class="fa-solid fa-calendar-days"></i>
                             </span>
                             <div>
-                                <h2 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                                <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">
                                     7-Dagen Login Kalender & Inlog Bonus
                                 </h2>
-                                <span class="text-[10px] font-bold text-amber-600">
+                                <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400">
                                     Elke avond 22:00 - 22:30
                                 </span>
                             </div>
@@ -215,16 +215,16 @@
                             @endphp
 
                             <div class="p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3
-                                {{ $isCompleted ? 'bg-slate-50 border-slate-200 opacity-60' : '' }}
-                                {{ $isCurrent ? 'bg-purple-50/50 border-2 border-purple-600 shadow-xs' : '' }}
-                                {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-white border-slate-200' : '' }}
-                                {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-50/40 border-2 border-amber-400' : '' }}">
+                                {{ $isCompleted ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/80 opacity-60' : '' }}
+                                {{ $isCurrent ? 'bg-purple-50/50 dark:bg-purple-950/30 border-2 border-purple-600 dark:border-purple-500 shadow-xs' : '' }}
+                                {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700' : '' }}
+                                {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-50/40 dark:bg-amber-950/20 border-2 border-amber-400 dark:border-amber-500' : '' }}">
                                 
                                 <div class="flex items-center gap-3">
                                     <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0
                                         {{ $isCompleted ? 'bg-emerald-600 text-white' : '' }}
                                         {{ $isCurrent ? 'bg-purple-700 text-white' : '' }}
-                                        {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-slate-100 text-slate-600' : '' }}
+                                        {{ !$isCompleted && !$isCurrent && !$isFinalDay ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : '' }}
                                         {{ $isFinalDay && !$isCurrent && !$isCompleted ? 'bg-amber-500 text-white' : '' }}">
                                         @if($isCompleted)
                                             <i class="fa-solid fa-check"></i>
@@ -234,27 +234,27 @@
                                     </div>
                                     <div>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-black text-slate-900">
+                                            <span class="text-xs font-black text-slate-900 dark:text-white">
                                                 Dag {{ $d }}
                                             </span>
                                             @if($isCompleted)
-                                                <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                                                <span class="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800/60">
                                                     Geclaimd
                                                 </span>
                                             @elseif($isCurrent)
-                                                <span class="text-[9px] font-black uppercase text-purple-700 bg-purple-100 px-1.5 py-0.2 rounded border border-purple-200 animate-pulse">
+                                                <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800 animate-pulse">
                                                     Nu Claimbaar!
                                                 </span>
                                             @endif
                                         </div>
-                                        <div class="text-[11px] font-medium text-slate-500 mt-0.5">
+                                        <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
                                             {{ $item['label'] }}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="text-right shrink-0">
-                                    <span class="text-xs font-black text-slate-800 block">
+                                    <span class="text-xs font-black text-slate-800 dark:text-slate-200 block">
                                         +€{{ number_format($item['cash'], 0, ',', '.') }}
                                     </span>
                                 </div>
@@ -264,7 +264,7 @@
                 </div>
 
                 <!-- Claim Button & Window Status -->
-                <div class="mt-6 pt-4 border-t border-slate-100 space-y-3">
+                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
                     @if($canClaimStreak)
                     <form action="{{ route('daily.claim-streak') }}" method="POST">
                         @csrf
@@ -273,31 +273,31 @@
                             <i class="fa-solid fa-gift"></i> Claim Dag {{ $nextStreakDay }} Inlog Bonus!
                         </button>
                     </form>
-                    <div class="text-center text-[11px] font-bold text-amber-600 flex items-center justify-center gap-1.5">
+                    <div class="text-center text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-fire text-amber-500 animate-pulse"></i>
                         <span>Inlog bonus is geopend tot 22:30! (Nog <strong x-text="formatTimer(secRemaining)"></strong>)</span>
                     </div>
                     @elseif($hasClaimedStreakToday)
-                    <div class="w-full py-3 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold text-center flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+                    <div class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-sm"></i>
                         <span>Vandaag al geclaimd! Kom morgen tussen 22:00 en 22:30 terug voor Dag {{ $nextStreakDay === 7 ? 1 : $nextStreakDay + 1 }}.</span>
                     </div>
                     @else
-                    <div class="w-full p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-center space-y-2">
-                        <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-amber-900">
-                            <i class="fa-regular fa-clock text-amber-600"></i>
+                    <div class="w-full p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-center space-y-2">
+                        <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-amber-900 dark:text-amber-200">
+                            <i class="fa-regular fa-clock text-amber-600 dark:text-amber-400"></i>
                             <span>Inlog Bonus Venster: Elke avond van 22:00 tot 22:30</span>
                         </div>
-                        <p class="text-[11px] text-amber-800">
+                        <p class="text-[11px] text-amber-800 dark:text-amber-300">
                             De inlog bonus kan alleen worden geclaimd tijdens het avondvenster tussen 22:00 en 22:30.
                         </p>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white border border-amber-300 text-xs font-black text-slate-900 shadow-xs">
-                            <span class="text-amber-600">Opent over:</span>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-xs font-black text-slate-900 dark:text-white shadow-xs">
+                            <span class="text-amber-600 dark:text-amber-400">Opent over:</span>
                             <span x-text="formatTimer(secUntilStart)"></span>
                         </div>
                     </div>
                     <button type="button" disabled
-                            class="w-full py-3 px-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                            class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-lock text-slate-400"></i>
                         <span>Beschikbaar tussen 22:00 en 22:30</span>
                     </button>

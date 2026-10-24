@@ -208,8 +208,31 @@
 
     </div>
 
+    @php
+        $pkgCooldown = $character->cooldownRemaining('package');
+    @endphp
     <!-- Intercept Corridor Missions Grid (Site Activity to drop koffers & kluizen) -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4" x-data="{
+        seconds: {{ (int) $pkgCooldown }},
+        format(s) {
+            if (s <= 0) return '00:00';
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+        },
+        init() {
+            if (this.seconds > 0) {
+                const timer = setInterval(() => {
+                    if (this.seconds > 0) {
+                        this.seconds--;
+                    }
+                    if (this.seconds <= 0) {
+                        clearInterval(timer);
+                    }
+                }, 1000);
+            }
+        }
+    }">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
                 <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
@@ -225,23 +248,17 @@
             </div>
         </div>
 
-        @php
-            $pkgCooldown = $character->cooldownRemaining('package');
-        @endphp
-
-        @if($pkgCooldown > 0)
-            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex flex-wrap items-center justify-between gap-3">
-                <span class="text-xs font-bold text-amber-900">
-                    <i class="fa-solid fa-clock mr-1 text-amber-600"></i> Cooldown actief: nog <strong>{{ gmdate('i:s', $pkgCooldown) }}</strong>
-                </span>
-                <div class="flex items-center gap-2 shrink-0">
-                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-8 px-3.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-[11px] font-black transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-tv text-white text-[10px]"></i>
-                        <span>Kijk Ad (Reset Cooldown)</span>
-                    </button>
-                </div>
+        <div x-show="seconds > 0" class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 flex flex-wrap items-center justify-between gap-3" style="{{ $pkgCooldown > 0 ? '' : 'display: none;' }}">
+            <span class="text-xs font-bold text-amber-900">
+                <i class="fa-solid fa-clock mr-1 text-amber-600"></i> Cooldown actief: nog <strong class="font-mono text-amber-950 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $pkgCooldown) }}</strong>
+            </span>
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-8 px-3.5 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-[11px] font-black transition shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-tv text-white text-[10px]"></i>
+                    <span>Kijk Ad (Reset Cooldown)</span>
+                </button>
             </div>
-        @endif
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($packages as $pkg)
@@ -249,7 +266,8 @@
                 $hasTokenCost = ($pkg['token_cost'] ?? 0) > 0;
                 $canAffordTokens = !$hasTokenCost || ($character->vault_tokens >= $pkg['token_cost']);
                 $canAffordEnergy = $character->energy >= $pkg['energy'];
-                $isDisabled = $character->isImprisoned() || !$canAffordEnergy || !$canAffordTokens || $pkgCooldown > 0;
+                $otherBlocked = $character->isImprisoned() || !$canAffordEnergy || !$canAffordTokens;
+                $isDisabled = $otherBlocked || $pkgCooldown > 0;
             @endphp
             <div class="bg-slate-50 hover:bg-white border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
                 <div class="flex items-start gap-3">
@@ -289,8 +307,10 @@
                     @csrf
                     <input type="hidden" name="package_id" value="{{ $pkg['id'] }}">
                     <button type="submit" 
+                            :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
+                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs cursor-pointer'"
                             {{ $isDisabled ? 'disabled' : '' }}
-                            class="w-full py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer {{ $isDisabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs' }}">
+                            class="w-full py-2 px-3 rounded-lg text-xs font-bold transition {{ $isDisabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs cursor-pointer' }}">
                         Onderscheppen ({{ $pkg['energy'] }} EP)
                     </button>
                 </form>

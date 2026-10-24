@@ -40,6 +40,7 @@ class Gang extends Model
      */
     protected $casts = [
         'treasury' => 'integer',
+        'respect' => 'integer',
         'is_open' => 'boolean',
         'last_attack_at' => 'datetime',
         'shield_until' => 'datetime',

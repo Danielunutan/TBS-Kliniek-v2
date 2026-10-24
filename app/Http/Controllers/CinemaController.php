@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
+use App\Models\ChatMessage;
 use App\Models\CinemaMessage;
 use App\Models\CinemaRoom;
 use App\Models\User;
+use App\Services\ChatBotService;
 use App\Support\ProfileStickerCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -52,14 +56,94 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        $officialRooms = CinemaRoom::where('is_official', true)->with('host')->latest()->get();
-        $patientRooms = CinemaRoom::where('is_official', false)->with('host')->latest()->take(20)->get();
+        $officialRooms = CinemaRoom::where('is_official', true)
+            ->where('is_closed', false)
+            ->with('host')
+            ->latest()
+            ->get();
+
+        $patientRooms = CinemaRoom::where('is_official', false)
+            ->where('is_closed', false)
+            ->with('host')
+            ->latest()
+            ->take(30)
+            ->get();
 
         $gifs = self::GIF_GALLERY;
         $presets = self::PRESET_VIDEOS;
         $stickers = ProfileStickerCatalog::stickers();
 
         return view('game.cinema.index', compact('character', 'officialRooms', 'patientRooms', 'gifs', 'presets', 'stickers'));
+    }
+
+    /**
+     * Search YouTube videos for watchparties without requiring an API key.
+     */
+    public function searchYoutube(Request $request): JsonResponse
+    {
+        $query = trim((string) $request->query('q', ''));
+        if (mb_strlen($query) < 2) {
+            return response()->json(['results' => []]);
+        }
+
+        // If the query is already a YouTube URL or direct 11-char ID, handle directly
+        $directId = CinemaRoom::extractYoutubeId($query);
+        if ($directId) {
+            return response()->json([
+                'results' => [
+                    [
+                        'id' => $directId,
+                        'title' => "Directe YouTube Video ({$directId})",
+                        'channel' => 'Directe Link',
+                        'thumbnail' => "https://img.youtube.com/vi/{$directId}/mqdefault.jpg",
+                        'url' => "https://www.youtube.com/watch?v={$directId}",
+                    ],
+                ],
+            ]);
+        }
+
+        try {
+            $ch = curl_init('https://www.youtube.com/results?search_query='.urlencode($query));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            $html = curl_exec($ch);
+            curl_close($ch);
+
+            $results = [];
+            if ($html && preg_match('/ytInitialData\s*=\s*({.+?});/s', $html, $matches)) {
+                $data = json_decode($matches[1], true);
+                $items = $data['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'] ?? [];
+
+                foreach ($items as $item) {
+                    if (isset($item['videoRenderer'])) {
+                        $v = $item['videoRenderer'];
+                        $videoId = $v['videoId'] ?? null;
+                        $title = $v['title']['runs'][0]['text'] ?? $v['title']['simpleText'] ?? null;
+                        $channel = $v['ownerText']['runs'][0]['text'] ?? null;
+
+                        if ($videoId && $title) {
+                            $results[] = [
+                                'id' => $videoId,
+                                'title' => $title,
+                                'channel' => $channel ?? '',
+                                'thumbnail' => "https://img.youtube.com/vi/{$videoId}/mqdefault.jpg",
+                                'url' => "https://www.youtube.com/watch?v={$videoId}",
+                            ];
+                        }
+
+                        if (count($results) >= 6) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return response()->json(['results' => $results]);
+        } catch (\Throwable $e) {
+            return response()->json(['results' => []]);
+        }
     }
 
     /**
@@ -94,6 +178,7 @@ class CinemaController extends Controller
 
         $isPrivate = ! empty($validated['is_private']);
         $passcode = $isPrivate ? ($validated['passcode'] ?? null) : null;
+        $isOfficial = $user->isStaff() && $request->boolean('is_official');
 
         $room = CinemaRoom::create([
             'title' => $validated['title'],
@@ -102,8 +187,12 @@ class CinemaController extends Controller
             'host_character_id' => $character->id,
             'youtube_url' => $validated['youtube_url'],
             'youtube_video_id' => $videoId,
-            'is_official' => $user->isStaff() && $request->boolean('is_official'),
+            'video_started_at' => now(),
+            'seek_offset' => 0,
+            'video_queue' => [],
+            'is_official' => $isOfficial,
             'is_private' => $isPrivate,
+            'is_closed' => false,
             'passcode' => $passcode,
             'views_count' => 1,
         ]);
@@ -115,15 +204,57 @@ class CinemaController extends Controller
             'message' => "🍿 Welkom in bioscoopzaal '{$room->title}'! De video is gestart. Veel kijkplezier!",
         ]);
 
+        // If this is an Official Hoofdzaal, broadcast to all players via Directie Chat & Public Chat
+        if ($isOfficial) {
+            $this->broadcastOfficialRoomNotification($room, $character);
+        }
+
         return redirect()->route('cinema.show', $room->slug)
-            ->with('success', "🎬 Bioscoopzaal '{$room->title}' succesvol aangemaakt! Deel de link met medepatiënten of in Discord voor jullie watchparty.");
+            ->with('success', "🎬 Bioscoopzaal '{$room->title}' succesvol aangemaakt! Deel de link met medepatiënten voor jullie watchparty.");
     }
 
     /**
-     * Show a cinema theater room with synchronized video & live session chat.
+     * Broadcast Directie Chat notification to all characters when an official room is opened.
+     */
+    protected function broadcastOfficialRoomNotification(CinemaRoom $room, Character $creator): void
+    {
+        $title = "🎬 Officiële Zaal Geopend: {$room->title}";
+        $message = "De Kliniek Directie heeft zojuist een officiële bioscoopzaal geopend: '{$room->title}'! Kom gezellig samen kijken, chatten en video's streamen in de zaal.";
+        $actionUrl = route('cinema.show', $room->slug);
+
+        try {
+            $chatBotService = app(ChatBotService::class);
+            Character::select('id')->chunkById(100, function ($characters) use ($chatBotService, $title, $message, $actionUrl) {
+                foreach ($characters as $recipient) {
+                    $chatBotService->sendSystemNotice($recipient, $title, $message, $actionUrl);
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::warning('Failed sending Directie Chat broadcast for cinema room: '.$e->getMessage());
+        }
+
+        try {
+            ChatMessage::create([
+                'character_id' => $creator->id,
+                'channel' => 'algemeen',
+                'message' => "🎬 **[OFFICIËLE BIOSCOOP]:** De directie heeft zojuist een officiële bioscoopzaal geopend: **{$room->title}**! Kom gezellig meekijken via: {$actionUrl}",
+                'hearts_count' => 0,
+                'hearts_users' => [],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Failed sending public ChatMessage for official cinema room: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Show a cinema theater room with synchronized video, video queue & live session chat.
      */
     public function show(Request $request, CinemaRoom $room): View|RedirectResponse
     {
+        if ($room->is_closed) {
+            return redirect()->route('cinema.index')->with('info', "De bioscoopzaal '{$room->title}' is gesloten door de zaalhost.");
+        }
+
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
@@ -134,6 +265,12 @@ class CinemaController extends Controller
             if ($providedPass !== $room->passcode) {
                 return redirect()->route('cinema.index')->with('error', 'Deze zaal is privé beveiligd met een toegangscode!');
             }
+        }
+
+        if (! $room->video_started_at) {
+            $room->video_started_at = now();
+            $room->seek_offset = 0;
+            $room->save();
         }
 
         $room->increment('views_count');
@@ -149,12 +286,15 @@ class CinemaController extends Controller
         $gifs = self::GIF_GALLERY;
         $presets = self::PRESET_VIDEOS;
         $stickers = ProfileStickerCatalog::stickers();
+        $queue = $room->getQueue();
+        $initialPlaybackSeconds = $room->getCurrentPlaybackSeconds();
 
         $initialMessages = $messages->map(function ($m) {
             return [
                 'id' => $m->id,
                 'text' => $m->message,
                 'gif_url' => $m->gif_url,
+                'sticker_key' => $m->sticker_key,
                 'character_name' => $m->character?->name ?? 'Onbekend',
                 'avatar' => asset($m->character?->avatar ?? 'characters/avatar-default.png'),
                 'is_staff' => (bool) ($m->character?->user?->isStaff()),
@@ -162,7 +302,215 @@ class CinemaController extends Controller
             ];
         })->values();
 
-        return view('game.cinema.room', compact('character', 'room', 'messages', 'initialMessages', 'gifs', 'presets', 'stickers'));
+        return view('game.cinema.room', compact('character', 'room', 'messages', 'initialMessages', 'gifs', 'presets', 'stickers', 'queue', 'initialPlaybackSeconds'));
+    }
+
+    /**
+     * Close an active cinema room (Host or Staff only).
+     */
+    public function closeRoom(Request $request, CinemaRoom $room): RedirectResponse|JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alleen de zaalhost of een stafflid kan deze zaal sluiten.'], 403);
+            }
+
+            return back()->with('error', 'Alleen de zaalhost of een stafflid kan deze zaal sluiten.');
+        }
+
+        $room->is_closed = true;
+        $room->closed_at = now();
+        $room->save();
+
+        CinemaMessage::create([
+            'room_id' => $room->id,
+            'character_id' => $character->id,
+            'message' => "⛔ Bioscoopzaal '{$room->title}' is gesloten door host {$character->name}.",
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('cinema.index'),
+                'message' => 'Bioscoopzaal succesvol gesloten.',
+            ]);
+        }
+
+        return redirect()->route('cinema.index')->with('success', "Bioscoopzaal '{$room->title}' is succesvol gesloten.");
+    }
+
+    /**
+     * Add a YouTube video to the room's watchparty queue.
+     */
+    public function addToQueue(Request $request, CinemaRoom $room): JsonResponse|RedirectResponse
+    {
+        if ($room->is_closed) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
+            }
+
+            return back()->with('error', 'Deze zaal is gesloten.');
+        }
+
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $validated = $request->validate([
+            'youtube_url' => ['required', 'string'],
+            'title' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $videoId = CinemaRoom::extractYoutubeId($validated['youtube_url']);
+        if (! $videoId) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Ongeldige YouTube video link!'], 422);
+            }
+
+            return back()->with('error', 'Ongeldige YouTube video link!');
+        }
+
+        $queue = $room->getQueue();
+        if (count($queue) >= 25) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Wachtrij is vol (maximaal 25 video\'s).'], 422);
+            }
+
+            return back()->with('error', 'Wachtrij is vol (maximaal 25 video\'s).');
+        }
+
+        $itemTitle = ! empty($validated['title']) ? trim($validated['title']) : "YouTube Video ({$videoId})";
+
+        $item = [
+            'id' => (string) Str::uuid(),
+            'title' => Str::limit($itemTitle, 80),
+            'youtube_url' => $validated['youtube_url'],
+            'youtube_video_id' => $videoId,
+            'thumbnail' => "https://img.youtube.com/vi/{$videoId}/mqdefault.jpg",
+            'added_by_name' => $character->name,
+            'added_by_avatar' => asset($character->avatar ?? 'characters/avatar-default.png'),
+            'added_at' => now()->format('H:i'),
+        ];
+
+        $queue[] = $item;
+        $room->video_queue = $queue;
+        $room->save();
+
+        CinemaMessage::create([
+            'room_id' => $room->id,
+            'character_id' => $character->id,
+            'message' => "🎶 {$character->name} heeft '{$item['title']}' toegevoegd aan de wachtrij!",
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'queue' => $queue,
+                'message' => 'Video toegevoegd aan de wachtrij!',
+            ]);
+        }
+
+        return back()->with('success', "'{$item['title']}' toegevoegd aan de wachtrij!");
+    }
+
+    /**
+     * Play a video from the queue immediately (Host or Staff only).
+     */
+    public function playFromQueue(Request $request, CinemaRoom $room, string $queueId): JsonResponse|RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan video\'s starten.'], 403);
+            }
+
+            return back()->with('error', 'Alleen de zaalhost kan video\'s starten.');
+        }
+
+        $queue = $room->getQueue();
+        $target = null;
+        $remaining = [];
+
+        foreach ($queue as $item) {
+            if ($item['id'] === $queueId && $target === null) {
+                $target = $item;
+            } else {
+                $remaining[] = $item;
+            }
+        }
+
+        if (! $target) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Video niet gevonden in wachtrij.'], 404);
+            }
+
+            return back()->with('error', 'Video niet gevonden in wachtrij.');
+        }
+
+        $room->youtube_video_id = $target['youtube_video_id'];
+        $room->youtube_url = $target['youtube_url'];
+        $room->video_started_at = now();
+        $room->seek_offset = 0;
+        $room->video_queue = $remaining;
+        $room->save();
+
+        CinemaMessage::create([
+            'room_id' => $room->id,
+            'character_id' => $character->id,
+            'message' => "🎬 Zaalhost {$character->name} speelt nu af uit de wachtrij: {$target['title']}!",
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'video_id' => $room->youtube_video_id,
+                'playback_seconds' => 0,
+                'queue' => $remaining,
+                'message' => "Nu aan het afspelen: {$target['title']}",
+            ]);
+        }
+
+        return back()->with('success', "Nu aan het afspelen: {$target['title']}");
+    }
+
+    /**
+     * Remove a video from the queue (Host or Staff only).
+     */
+    public function removeFromQueue(Request $request, CinemaRoom $room, string $queueId): JsonResponse|RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan items uit de wachtrij verwijderen.'], 403);
+            }
+
+            return back()->with('error', 'Alleen de zaalhost kan items uit de wachtrij verwijderen.');
+        }
+
+        $queue = $room->getQueue();
+        $filtered = array_values(array_filter($queue, fn ($item) => $item['id'] !== $queueId));
+        $room->video_queue = $filtered;
+        $room->save();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'queue' => $filtered,
+                'message' => 'Video verwijderd uit wachtrij.',
+            ]);
+        }
+
+        return back()->with('success', 'Video verwijderd uit wachtrij.');
     }
 
     /**
@@ -170,6 +518,14 @@ class CinemaController extends Controller
      */
     public function sendMessage(Request $request, CinemaRoom $room): JsonResponse|RedirectResponse
     {
+        if ($room->is_closed) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
+            }
+
+            return back()->with('error', 'Deze zaal is gesloten.');
+        }
+
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
@@ -207,7 +563,7 @@ class CinemaController extends Controller
                     'gif_url' => $msg->gif_url,
                     'sticker_key' => $msg->sticker_key,
                     'character_name' => $character->name,
-                    'avatar' => asset($character->avatar),
+                    'avatar' => asset($character->avatar ?? 'characters/avatar-default.png'),
                     'is_staff' => (bool) $user->isStaff(),
                     'time' => $msg->created_at->format('H:i'),
                 ],
@@ -218,7 +574,7 @@ class CinemaController extends Controller
     }
 
     /**
-     * Poll latest messages in room (JSON endpoint).
+     * Poll latest messages and synchronized state in room (JSON endpoint).
      */
     public function getMessages(Request $request, CinemaRoom $room): JsonResponse
     {
@@ -245,9 +601,36 @@ class CinemaController extends Controller
 
         return response()->json([
             'success' => true,
+            'is_closed' => (bool) $room->is_closed,
             'video_id' => $room->youtube_video_id,
+            'playback_seconds' => $room->getCurrentPlaybackSeconds(),
+            'video_queue' => $room->getQueue(),
             'views' => $room->views_count,
             'messages' => $messages,
+        ]);
+    }
+
+    /**
+     * Synchronize video playback position from Host to room.
+     */
+    public function syncPlayback(Request $request, CinemaRoom $room): JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
+            return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan synchroniseren.'], 403);
+        }
+
+        $currentSeconds = max(0, (int) $request->input('current_seconds', 0));
+        $room->video_started_at = now();
+        $room->seek_offset = $currentSeconds;
+        $room->save();
+
+        return response()->json([
+            'success' => true,
+            'playback_seconds' => $room->getCurrentPlaybackSeconds(),
         ]);
     }
 
@@ -275,6 +658,8 @@ class CinemaController extends Controller
 
         $room->youtube_url = $validated['youtube_url'];
         $room->youtube_video_id = $videoId;
+        $room->video_started_at = now();
+        $room->seek_offset = 0;
         $room->save();
 
         CinemaMessage::create([

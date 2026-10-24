@@ -38,7 +38,7 @@
             </div>
             <div>
                 <h4 class="text-xs font-extrabold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">VIP Shop</h4>
-                <p class="text-[10px] text-slate-400">€7,50 pm via Discord</p>
+                <p class="text-[10px] text-slate-400">100% Gratis via Ads</p>
             </div>
         </a>
 

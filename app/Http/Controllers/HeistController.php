@@ -253,7 +253,7 @@ class HeistController extends Controller
                 VaultCode::create([
                     'character_id' => $character->id,
                     'code' => strtoupper(substr(md5(uniqid()), 0, 8)),
-                    'is_used' => false,
+                    'is_redeemed' => false,
                 ]);
                 $bonusMsg = ' 🗝️ EXTRA: Je vond een zeldzame Kluiscode in de vluchtbuit!';
             }
@@ -275,8 +275,9 @@ class HeistController extends Controller
             $character->save();
 
             $formattedPlayerCash = number_format($playerPayout, 0, ',', '.');
+            $redirectParams = $heist->is_gang_heist ? ['tab' => 'gang'] : [];
 
-            return redirect()->route('heists.index')->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$charVehicle->vehicle->name}! Persoonlijke buit: +€{$formattedPlayerCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie).{$gangMsg}{$bonusMsg}");
+            return redirect()->route('heists.index', $redirectParams)->with('success', "💥 KRAAK GESLAAGD! De {$heist->name} is vlekkeloos uitgevoerd met je {$charVehicle->vehicle->name}! Persoonlijke buit: +€{$formattedPlayerCash}, +{$heist->xp_reward} XP en +{$heist->respect_reward} Respect. (Wagen slijtage: -{$conditionLoss}% conditie).{$gangMsg}{$bonusMsg}");
         } else {
             // Failure: Heavy vehicle damage and isolation imprisonment
             $conditionLoss = mt_rand(20, 35);

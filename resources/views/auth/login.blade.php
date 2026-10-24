@@ -151,9 +151,21 @@
 
                         @php
                             $activeRef = request('ref', session('referral_name'));
+                            $isOohpaRef = in_array(strtolower((string)$activeRef), ['oohpaarjan', 'oohpa', 'arjan', 'oohpa_arjan', 'oohpa-arjan']);
                         @endphp
                         @if($activeRef)
                         <input type="hidden" name="ref" value="{{ $activeRef }}">
+                        @if($isOohpaRef)
+                        <div class="p-3.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-purple-600/15 to-purple-900/20 border-2 border-amber-400 text-slate-900 dark:text-amber-200 text-xs flex items-center gap-3 shadow-md animate-pulse">
+                            <div class="w-9 h-9 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center text-base shrink-0 font-black shadow-sm">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="font-black text-amber-500 dark:text-amber-300 block text-xs uppercase tracking-wide">🎉 OOHPA Arjan Actie Geactiveerd!</span>
+                                <span class="text-[11px] font-semibold text-slate-700 dark:text-zinc-200 block">Maak nu je account aan en ontvang direct <strong class="text-amber-400 underline">1 Maand Gratis VIP</strong> status cadeau!</span>
+                            </div>
+                        </div>
+                        @else
                         <div class="p-3 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs flex items-center gap-2.5 shadow-2xs">
                             <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm shrink-0">
                                 <i class="fa-solid fa-gift"></i>
@@ -163,6 +175,7 @@
                                 <span class="text-[11px] text-purple-700">Meld je aan en begin direct samen in de TBS Kliniek!</span>
                             </div>
                         </div>
+                        @endif
                         @endif
 
                         <!-- 1. ACCOUNT FIELDS -->

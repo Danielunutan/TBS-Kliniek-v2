@@ -62,6 +62,12 @@ class TheftController extends Controller
             if ($victim && $victim->id === $character->id) {
                 return back()->with('error', 'Je kunt je eigen zakken niet leegrollen!');
             }
+            if ($victim) {
+                return app(FightController::class)->attack(new Request([
+                    'opponent_id' => $victim->id,
+                    'from_profile' => true,
+                ]));
+            }
         }
 
         $result = $this->theftService->execute($character, $validated['tier'], $victim);

@@ -7,13 +7,16 @@ use App\Models\Friend;
 use App\Models\GameNotification;
 use App\Models\GuestbookEntry;
 use App\Models\ProfileRespect;
+use App\Models\ProfileVisit;
 use App\Models\User;
 use App\Services\EnergyService;
+use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Support\ProfileStickerCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -92,10 +95,41 @@ class ProfileController extends Controller
         $psychiatricReport = $profileCharacter->getPsychiatricReport();
         $availableTitles = $isOwnProfile ? $myCharacter->getAvailableTitles() : [];
 
-        // Profile customization: Stickers and Background Themes
+        // Record profile visit if viewing someone else's profile
+        if (! $isOwnProfile) {
+            ProfileVisit::updateOrCreate(
+                [
+                    'visitor_id' => $myCharacter->id,
+                    'visited_id' => $profileCharacter->id,
+                ],
+                [
+                    'visited_at' => now(),
+                ]
+            );
+        }
+
+        // Recent visitors to this profile (Laatste Bezoekers)
+        $recentVisitors = ProfileVisit::with(['visitor.gang', 'visitor.user'])
+            ->where('visited_id', $profileCharacter->id)
+            ->where('visitor_id', '!=', $profileCharacter->id)
+            ->orderByDesc('visited_at')
+            ->limit(12)
+            ->get();
+
+        // Profiles recently visited by this character (Laatst bezochte TBS'ers)
+        $recentlyVisited = ProfileVisit::with(['visited.gang', 'visited.user'])
+            ->where('visitor_id', $profileCharacter->id)
+            ->where('visited_id', '!=', $profileCharacter->id)
+            ->orderByDesc('visited_at')
+            ->limit(12)
+            ->get();
+
+        // Profile customization: Stickers, Borders and Background Themes
         $unlockedStickers = $myCharacter->getUnlockedStickers();
         $allStickers = ProfileStickerCatalog::stickers();
         $allThemes = ProfileStickerCatalog::themes();
+        $allBorders = HalloweenService::getBorders();
+        $unlockedBorders = $myCharacter->unlocked_borders ?? [];
         $activeSticker = $profileCharacter->getActiveSticker();
         $activeTheme = $profileCharacter->getActiveProfileTheme();
 
@@ -124,8 +158,12 @@ class ProfileController extends Controller
             'unlockedStickers',
             'allStickers',
             'allThemes',
+            'allBorders',
+            'unlockedBorders',
             'activeSticker',
-            'activeTheme'
+            'activeTheme',
+            'recentVisitors',
+            'recentlyVisited'
         ));
     }
 
@@ -212,17 +250,43 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update player avatar portrait.
+     * Update player avatar portrait (preset or custom upload).
      */
     public function updateAvatar(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'avatar' => ['required', 'string'],
-        ]);
-
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        // 1. Custom file upload directly from device
+        if ($request->hasFile('custom_avatar')) {
+            $request->validate([
+                'custom_avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            ]);
+
+            $file = $request->file('custom_avatar');
+            $ext = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            $filename = 'avatar_user_'.$user->id.'_'.time().'_'.Str::random(6).'.'.$ext;
+            $uploadDir = public_path('uploads/avatars');
+
+            if (! is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $file->move($uploadDir, $filename);
+            $relativePath = 'uploads/avatars/'.$filename;
+
+            $character->avatar_custom = $relativePath;
+            $character->avatar = $relativePath;
+            $character->save();
+
+            return back()->with('success', '📸 Je eigen profielfoto is succesvol geüpload en direct ingesteld!');
+        }
+
+        // 2. Preset selection
+        $validated = $request->validate([
+            'avatar' => ['required', 'string'],
+        ]);
 
         $allowedAvatars = [
             'assets/characters/henkie.jpg',
@@ -244,7 +308,9 @@ class ProfileController extends Controller
             return back()->with('error', 'Ongeldige profielfoto geselecteerd.');
         }
 
-        $character->update(['avatar' => $validated['avatar']]);
+        $character->avatar_custom = null;
+        $character->avatar = $validated['avatar'];
+        $character->save();
 
         return back()->with('success', 'Je profielfoto is succesvol aangepast!');
     }
@@ -335,6 +401,7 @@ class ProfileController extends Controller
             'title' => ['nullable', 'string', 'max:60'],
             'status_message' => ['nullable', 'string', 'max:120'],
             'bio' => ['nullable', 'string', 'max:1000'],
+            'equipped_border' => ['nullable', 'string', 'max:50'],
         ]);
 
         $updates = [];
@@ -380,6 +447,18 @@ class ProfileController extends Controller
         }
         if ($request->has('bio')) {
             $updates['bio'] = strip_tags((string) $validated['bio']);
+        }
+
+        // 6. Avatar Border / Frame
+        if ($request->has('equipped_border')) {
+            $borderKey = $validated['equipped_border'];
+            if (empty($borderKey) || $borderKey === 'none') {
+                $updates['equipped_border'] = null;
+            } else {
+                if ($character->hasBorder($borderKey)) {
+                    $updates['equipped_border'] = $borderKey;
+                }
+            }
         }
 
         if (! empty($updates)) {

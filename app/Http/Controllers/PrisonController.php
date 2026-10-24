@@ -144,9 +144,31 @@ class PrisonController extends Controller
         return back()->with('error', $result['message']);
     }
 
+    /**
+     * Buy self out of prison using stars.
+     */
     public function buyout(Request $request): RedirectResponse
     {
-        return back()->with('info', 'De isoleercel kan niet meer met Sterren worden afgekocht. Je kunt 1x per dag direct vrijkomen via een sponsor advertentie of een ontsnappingspoging wagen!');
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if (! $character->isImprisoned()) {
+            return back()->with('info', 'Je zit momenteel niet in de isoleercel!');
+        }
+
+        $cost = 25;
+        if (($character->stars ?? 0) < $cost) {
+            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf vrij te kopen.");
+        }
+
+        $character->stars -= $cost;
+        $character->is_in_prison = false;
+        $character->prison_until = null;
+        $character->prison_reason = null;
+        $character->save();
+
+        return back()->with('success', 'Je hebt jezelf succesvol vrijgekocht met Sterren ⭐! Je bent weer op vrije voeten.');
     }
 
     /**

@@ -125,8 +125,8 @@ class DiscordShieldController extends Controller
             return redirect()->route('discord.verify')->with('error', 'Discord autorisatie is geannuleerd.');
         }
 
-        $clientId = DiscordShieldSetting::get('client_id', config('services.discord.client_id', '1558628995439005748'));
-        $clientSecret = DiscordShieldSetting::get('client_secret', config('services.discord.client_secret', 'tvX_NGRzmXI4fwt4HJGrl7Lc6cUNjBo9'));
+        $clientId = DiscordShieldSetting::get('client_id') ?: config('services.discord.client_id');
+        $clientSecret = DiscordShieldSetting::get('client_secret') ?: config('services.discord.client_secret');
         $redirectUri = 'https://tbs-kliniek.nl/discord/callback';
 
         try {

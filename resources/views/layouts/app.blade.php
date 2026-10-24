@@ -3142,8 +3142,7 @@
          x-init="
              window.tbsToast = (msg, type, duration) => addToast(msg, type, duration);
          "
-         class="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-[9999999] flex flex-col items-center gap-3 pointer-events-none max-w-lg w-[95%] sm:w-auto"
-         style="position: fixed !important; top: 5.5rem !important; left: 50% !important; transform: translateX(-50%) !important; z-index: 9999999 !important;">
+         class="fixed top-5 left-1/2 -translate-x-1/2 lg:left-[calc(50%+8rem)] z-[9999999] flex flex-col items-center gap-3 pointer-events-none max-w-lg w-[92%] sm:w-auto">
         <template x-for="toast in toasts" :key="toast.id">
             <div x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
@@ -3151,7 +3150,7 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                  x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
-                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl backdrop-blur-md min-w-[320px] max-w-md w-full bg-white dark:bg-[#120a2e] text-slate-900 dark:text-white transition-all select-none border-slate-200 dark:border-purple-800/80">
+                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl backdrop-blur-md min-w-[320px] sm:min-w-[380px] max-w-md w-full bg-white/95 dark:bg-[#120a2e]/95 text-slate-900 dark:text-white transition-all select-none border-slate-200/90 dark:border-purple-800/80">
                 
                 <div class="flex items-center gap-3 p-3.5 sm:p-4">
                     <!-- Icon Badge -->

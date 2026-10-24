@@ -5,9 +5,22 @@
     activeGangTab: '{{ $activeTab ?? session('active_gang_tab', request('tab', ($myGang ? 'mijn_gang' : 'ranglijst'))) }}',
     beheerTab: '{{ session('beheer_tab', request('beheer_tab', 'leden')) }}',
     showCreateModal: false,
+    attackCooldown: {{ (int) ($myGang ? $myGang->attackCooldownRemaining() : 0) }},
+    formatTime(s) {
+        if (s <= 0) return '00:00';
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    },
     init() {
         if (!'{{ session('active_gang_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_active_gang_tab')) {
             this.activeGangTab = sessionStorage.getItem('tbs_active_gang_tab');
+        }
+        if (this.attackCooldown > 0) {
+            const timer = setInterval(() => {
+                if (this.attackCooldown > 0) this.attackCooldown--;
+                if (this.attackCooldown <= 0) clearInterval(timer);
+            }, 1000);
         }
     },
     setGangTab(tab) {
@@ -20,20 +33,20 @@
 }">
 
     <!-- Top Hero Banner (Clean TBS White Style) -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60 mb-2">
                     <i class="fa-solid fa-users"></i> Facties & Allianties
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Kliniek Gangs</h1>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Kliniek Gangs</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Verenig je met andere gevangenen in een bende. Doneer aan de gezamenlijke kas, verhoog het collectieve uurloon, koop smokkelkiosken en voer oorlog om de vleugels van de kliniek!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800 flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-star text-amber-600"></i> {{ $character->stars ?? 0 }} Sterren
+                <span class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-star text-amber-600 dark:text-amber-400"></i> {{ $character->stars ?? 0 }} Sterren
                 </span>
                 @if(!$character->gang_id)
                 <button type="button" @click="showCreateModal = true" 
@@ -121,13 +134,10 @@
                             <i class="fa-solid fa-crosshairs text-rose-600 dark:text-rose-400 w-4 text-center"></i>
                             <span class="font-black">Bende Oorlog</span>
                         </span>
-                        @if($myGang->attackCooldownRemaining() > 0)
-                            <span class="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-extrabold flex items-center gap-1">
-                                <i class="fa-solid fa-stopwatch text-amber-500 text-[10px]"></i> {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
-                            </span>
-                        @else
-                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                        @endif
+                        <span x-show="attackCooldown > 0" class="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-extrabold flex items-center gap-1" style="{{ ($myGang && $myGang->attackCooldownRemaining() > 0) ? '' : 'display: none;' }}">
+                            <i class="fa-solid fa-stopwatch text-amber-500 text-[10px]"></i> <span x-text="formatTime(attackCooldown)">{{ $myGang ? gmdate('i:s', $myGang->attackCooldownRemaining()) : '' }}</span>
+                        </span>
+                        <span x-show="attackCooldown <= 0" class="w-2 h-2 rounded-full bg-rose-500 animate-pulse" style="{{ ($myGang && $myGang->attackCooldownRemaining() <= 0) ? '' : 'display: none;' }}"></span>
                     </button>
 
                     <!-- Bende Panden & Vastgoed -->
@@ -2753,21 +2763,23 @@
                         </div>
 
                         <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg {{ $myGang->attackCooldownRemaining() > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200' }} border flex items-center justify-center text-lg font-black shrink-0">
+                            <div class="w-10 h-10 rounded-lg border flex items-center justify-center text-lg font-black shrink-0"
+                                 :class="attackCooldown > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'">
                                 <i class="fa-solid fa-clock"></i>
                             </div>
                             <div>
                                 <span class="text-[10px] font-bold text-slate-500 uppercase block">Aanvalsstatus</span>
-                                @if($myGang->attackCooldownRemaining() > 0)
+                                <div x-show="attackCooldown > 0" style="{{ ($myGang && $myGang->attackCooldownRemaining() > 0) ? '' : 'display: none;' }}">
                                     <span class="text-xs font-black text-amber-800 font-mono flex items-center gap-1.5">
-                                        <i class="fa-solid fa-stopwatch text-amber-600"></i> Wachten: {{ gmdate('i:s', $myGang->attackCooldownRemaining()) }}
+                                        <i class="fa-solid fa-stopwatch text-amber-600"></i> Wachten: <span x-text="formatTime(attackCooldown)">{{ $myGang ? gmdate('i:s', $myGang->attackCooldownRemaining()) : '' }}</span>
                                     </span>
-                                @else
+                                </div>
+                                <div x-show="attackCooldown <= 0" style="{{ ($myGang && $myGang->attackCooldownRemaining() <= 0) ? '' : 'display: none;' }}">
                                     <span class="text-xs font-black text-emerald-700 flex items-center gap-1.5">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                         Gereed voor aanval!
                                     </span>
-                                @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2847,9 +2859,14 @@
                                               data-confirm-icon="fa-crosshairs">
                                             @csrf
                                             <input type="hidden" name="target_gang_id" value="{{ $rg->id }}">
+                                            @php
+                                                $otherAttackBlocked = ! $myGang->isOfficer($character) || $isAlly || $hasShield;
+                                            @endphp
                                             <button type="submit" 
+                                                    :disabled="attackCooldown > 0 || {{ $otherAttackBlocked ? 'true' : 'false' }}"
+                                                    :class="(attackCooldown > 0 || {{ $otherAttackBlocked ? 'true' : 'false' }}) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'"
                                                     @if(! $canAttack) disabled @endif
-                                                    class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                                    class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center gap-2">
                                                 <i class="fa-solid fa-crosshairs"></i>
                                                 <span>Overval Bende</span>
                                             </button>

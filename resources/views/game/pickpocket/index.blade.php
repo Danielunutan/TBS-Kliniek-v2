@@ -1,7 +1,30 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
+@php
+    $ppCooldown = $character->cooldownRemaining('pickpocket');
+@endphp
+<div class="space-y-6" x-data="{
+    seconds: {{ (int) $ppCooldown }},
+    format(s) {
+        if (s <= 0) return '00:00';
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    },
+    init() {
+        if (this.seconds > 0) {
+            const timer = setInterval(() => {
+                if (this.seconds > 0) {
+                    this.seconds--;
+                }
+                if (this.seconds <= 0) {
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+    }
+}">
 
     <!-- Top Hero Banner (Clean TBS White Style) -->
     <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
@@ -35,7 +58,7 @@
             <div>
                 <h3 class="text-xs font-extrabold text-slate-900">Maskervoorraad</h3>
                 <p class="text-xs text-slate-500">
-                    Je bezit momenteel <strong class="text-slate-900">{{ $character->masks ?? 0 }}</strong> masker(s). Elke poging tot zakkenrollen verbruikt 1 masker.
+                    Je bezit momenteel <strong class="text-slate-900">{{ $character->masks ?? 0 }}</strong> masker(s). Je masker wordt verbruikt bij een geslaagde diefstal of bij arrestatie. Ontsnap je bij een mislukte poging? Dan behoud je je masker!
                 </p>
             </div>
         </div>
@@ -44,35 +67,34 @@
                 <i class="fa-solid fa-triangle-exclamation mr-1"></i> Geen maskers beschikbaar
             </span>
         @else
-            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
-                <i class="fa-solid fa-check mr-1"></i> Klaar voor actie
-            </span>
+            <div>
+                <span x-show="seconds > 0" class="text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200" style="{{ $ppCooldown > 0 ? '' : 'display: none;' }}">
+                    <i class="fa-solid fa-clock mr-1"></i> Cooldown: <strong class="font-mono" x-text="format(seconds)">{{ gmdate('i:s', $ppCooldown) }}</strong>
+                </span>
+                <span x-show="seconds <= 0" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200" style="{{ $ppCooldown <= 0 ? '' : 'display: none;' }}">
+                    <i class="fa-solid fa-check mr-1"></i> Klaar voor actie
+                </span>
+            </div>
         @endif
     </div>
 
-    @php
-        $ppCooldown = $character->cooldownRemaining('pickpocket');
-    @endphp
-
-    @if($ppCooldown > 0)
-        <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
-                    <i class="fa-solid fa-clock"></i>
-                </div>
-                <div>
-                    <h4 class="text-xs font-extrabold text-amber-950">Zakkenrollen Cooldown Actief</h4>
-                    <p class="text-[11px] text-amber-800">Wacht nog <strong>{{ gmdate('i:s', $ppCooldown) }}</strong> of reset direct via een sponsor advertentie.</p>
-                </div>
+    <div x-show="seconds > 0" class="p-4 rounded-xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $ppCooldown > 0 ? '' : 'display: none;' }}">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                <i class="fa-solid fa-clock"></i>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                    <i class="fa-solid fa-tv text-[11px]"></i>
-                    <span>Kijk Ad (Reset Cooldown)</span>
-                </button>
+            <div>
+                <h4 class="text-xs font-extrabold text-amber-950">Zakkenrollen Cooldown Actief</h4>
+                <p class="text-[11px] text-amber-800">Wacht nog <strong class="font-mono text-amber-950 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $ppCooldown) }}</strong> of reset direct via een sponsor advertentie.</p>
             </div>
         </div>
-    @endif
+        <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <i class="fa-solid fa-tv text-[11px]"></i>
+                <span>Kijk Ad (Reset Cooldown)</span>
+            </button>
+        </div>
+    </div>
 
     <!-- Moves List -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -80,7 +102,8 @@
         @php
             $hasMasks = ($character->masks ?? 0) >= 1;
             $hasEnergy = $character->energy >= $action['energy'];
-            $isDisabled = !$hasMasks || !$hasEnergy || $character->isImprisoned() || $ppCooldown > 0;
+            $otherBlocked = !$hasMasks || !$hasEnergy || $character->isImprisoned();
+            $isDisabled = $otherBlocked || $ppCooldown > 0;
         @endphp
         <div class="bg-white rounded-xl border border-slate-200 hover:border-purple-300 shadow-xs transition p-5 flex flex-col justify-between gap-4">
             <div class="flex items-start gap-3">
@@ -117,8 +140,10 @@
                     @csrf
                     <input type="hidden" name="action_id" value="{{ $action['id'] }}">
                     <button type="submit" 
+                            :disabled="seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}"
+                            :class="(seconds > 0 || {{ $otherBlocked ? 'true' : 'false' }}) ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs cursor-pointer'"
                             {{ $isDisabled ? 'disabled' : '' }}
-                            class="w-full py-2.5 px-3 rounded-lg text-xs font-bold transition cursor-pointer {{ $isDisabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs' }}">
+                            class="w-full py-2.5 px-3 rounded-lg text-xs font-bold transition {{ $isDisabled ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs cursor-pointer' }}">
                         Zakkenrollen
                     </button>
                 </form>

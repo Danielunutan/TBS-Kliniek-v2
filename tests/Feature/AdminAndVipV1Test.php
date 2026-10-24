@@ -26,7 +26,7 @@ class AdminAndVipV1Test extends TestCase
         $response->assertStatus(200);
         $response->assertSee('VIP Punten Shop');
         $response->assertSee('discord.gg/tbs');
-        $response->assertSee('€7,50');
+        $response->assertSee('100% Gratis');
         $response->assertSee('5 VIP Punten');
     }
 

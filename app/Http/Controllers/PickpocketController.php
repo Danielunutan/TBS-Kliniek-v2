@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CharacterItem;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
@@ -28,6 +29,16 @@ class PickpocketController extends Controller
     {
         $character = Auth::user()->character;
         $this->energy->refresh($character);
+
+        // Auto-sync any bivakmuts-masker items in inventory directly to mask balance
+        $invMaskItem = CharacterItem::where('character_id', $character->id)
+            ->whereHas('item', fn ($q) => $q->where('slug', 'bivakmuts-masker'))
+            ->first();
+        if ($invMaskItem && $invMaskItem->quantity > 0) {
+            $character->masks = ($character->masks ?? 0) + $invMaskItem->quantity;
+            $invMaskItem->delete();
+            $character->save();
+        }
 
         $actions = [
             ['id' => 1, 'name' => 'Bezoeker in de wachtkamer', 'desc' => 'Snel een portemonnee of smartphone meegrissen in de drukte.', 'energy' => 6, 'min' => 80, 'max' => 350, 'rate' => 52, 'cooldown' => $this->cooldownService->calculateBySuccessRate(52), 'xp' => 35, 'icon' => 'fa-person-walking'],
@@ -73,17 +84,23 @@ class PickpocketController extends Controller
 
         $action = $config[$validated['action_id']];
 
+        // Auto-sync any bivakmuts-masker items in inventory directly to mask balance
+        $invMaskItem = CharacterItem::where('character_id', $character->id)
+            ->whereHas('item', fn ($q) => $q->where('slug', 'bivakmuts-masker'))
+            ->first();
+        if ($invMaskItem && $invMaskItem->quantity > 0) {
+            $character->masks = ($character->masks ?? 0) + $invMaskItem->quantity;
+            $invMaskItem->delete();
+            $character->save();
+        }
+
         if (($character->masks ?? 0) < 1) {
-            return back()->with('error', 'Je hebt minimaal 1 Masker 🎭 nodig om ongemerkt te zakkenrollen! Koop maskers in de shop voor Sterren ⭐.');
+            return back()->with('error', 'Je hebt minimaal 1 Masker 🎭 nodig om ongemerkt te zakkenrollen! Koop maskers in de kantineshop voor contant geld of voor Sterren ⭐.');
         }
 
         if (! $this->energy->consume($character, $action['energy'])) {
             return back()->with('error', "Je hebt minimaal {$action['energy']} energie nodig voor dit zakkenrollen!");
         }
-
-        // Deduct 1 mask per move
-        $character->masks -= 1;
-        $character->save();
 
         // Dynamic cooldown duration based on success rate
         $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($action['rate']);
@@ -91,6 +108,9 @@ class PickpocketController extends Controller
 
         $roll = rand(1, 100);
         if ($roll <= $action['rate']) {
+            // Deduct 1 mask on successful pickpocket
+            $character->masks = max(0, ($character->masks ?? 1) - 1);
+
             $cash = rand($action['min'], $action['max']);
             if ($character->hasPerk('grotere_broekzakken')) {
                 $cash = (int) round($cash * 1.10);
@@ -114,16 +134,20 @@ class PickpocketController extends Controller
         }
 
         if ($action['jail'] && rand(1, 100) <= 60) {
+            // Mask confiscated by guards on arrest
+            $character->masks = max(0, ($character->masks ?? 1) - 1);
+            $character->save();
+
             $jailSeconds = random_int(85, 140);
             $this->prison->jailSeconds($character, $jailSeconds, 'Betrapt bij zakkenrollen.');
 
-            return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Gepakt door zaalwacht)");
+            return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Gepakt door zaalwacht, masker in beslag genomen)");
         }
 
         $dmg = rand(2, 6);
         $character->health = max(1, $character->health - $dmg);
         $character->save();
 
-        return back()->with('error', "Zakkenrollen mislukt! Je kreeg een duw van het slachtoffer. -{$dmg} HP.");
+        return back()->with('error', "❌ Zakkenrollen mislukt! Het slachtoffer had je door en gaf je een duw (-{$dmg} HP). Geen buit gepakt, maar je masker is behouden gebleven!");
     }
 }

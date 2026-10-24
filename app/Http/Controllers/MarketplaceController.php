@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\CharacterVehicle;
 use App\Models\GameMessage;
@@ -16,6 +17,7 @@ use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class MarketplaceController extends Controller
@@ -307,10 +309,6 @@ class MarketplaceController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen aankopen doen!');
         }
 
-        if ($listing->is_sold) {
-            return back()->with('error', 'Dit artikel is zojuist al verkocht aan een andere patiënt.');
-        }
-
         if ($listing->seller_id === $buyer->id) {
             return back()->with('error', 'Je kunt je eigen marktaanbod niet kopen! Gebruik annuleren als je het terug wilt.');
         }
@@ -333,112 +331,132 @@ class MarketplaceController extends Controller
             }
         }
 
-        $seller = $listing->seller;
+        try {
+            DB::transaction(function () use ($listing, $buyer): void {
+                /** @var MarketplaceListing|null $lockedListing */
+                $lockedListing = MarketplaceListing::where('id', $listing->id)->lockForUpdate()->first();
 
-        // Payment check & execution
-        if ($listing->currency === 'cash') {
-            if ($buyer->cash < $listing->price) {
-                return back()->with('error', 'Je hebt minimaal €'.number_format($listing->price, 0, ',', '.').' contant nodig voor deze aankoop.');
-            }
-            $buyer->cash -= $listing->price;
-
-            // Property sale proceeds can be routed to the selling gang treasury if specified
-            if ($listing->item_type === 'property' && isset($listing->metadata['seller_gang_id'])) {
-                $sellerGang = Gang::find($listing->metadata['seller_gang_id']);
-                if ($sellerGang) {
-                    $sellerGang->increment('treasury', $listing->price);
-                } elseif ($seller) {
-                    $seller->bank += $listing->price;
-                    $seller->save();
+                if (! $lockedListing || $lockedListing->is_sold) {
+                    throw new \RuntimeException('Dit artikel is zojuist al verkocht aan een andere patiënt.');
                 }
-            } elseif ($seller) {
-                $seller->bank += $listing->price;
-                $seller->save();
-            }
-        } elseif ($listing->currency === 'stars') {
-            if (($buyer->stars ?? 0) < $listing->price) {
-                return back()->with('error', "Je hebt minimaal {$listing->price} Sterren ⭐ nodig voor deze aankoop.");
-            }
-            $buyer->stars -= $listing->price;
 
-            if ($seller) {
-                $seller->stars = ($seller->stars ?? 0) + $listing->price;
-                $seller->save();
-            }
-        }
+                /** @var Character $lockedBuyer */
+                $lockedBuyer = Character::where('id', $buyer->id)->lockForUpdate()->first();
 
-        // Deliver purchased item to buyer
-        if ($listing->item_type === 'depot_item') {
-            $charItem = CharacterItem::firstOrCreate([
-                'character_id' => $buyer->id,
-                'item_id' => $listing->related_id,
-            ], [
-                'quantity' => 0,
-                'is_equipped' => false,
-            ]);
-            $charItem->quantity += $listing->amount;
-            $charItem->save();
-        } elseif ($listing->item_type === 'vehicle') {
-            $charVehicle = CharacterVehicle::where('id', $listing->related_id)->first();
+                // Payment check & deduction
+                if ($lockedListing->currency === 'cash') {
+                    if ($lockedBuyer->cash < $lockedListing->price) {
+                        throw new \RuntimeException('Je hebt minimaal €'.number_format($lockedListing->price, 0, ',', '.').' contant nodig voor deze aankoop.');
+                    }
+                    $lockedBuyer->cash -= $lockedListing->price;
+                } elseif ($lockedListing->currency === 'stars') {
+                    if (($lockedBuyer->stars ?? 0) < $lockedListing->price) {
+                        throw new \RuntimeException("Je hebt minimaal {$lockedListing->price} Sterren ⭐ nodig voor deze aankoop.");
+                    }
+                    $lockedBuyer->stars -= $lockedListing->price;
+                }
 
-            if ($charVehicle) {
-                $charVehicle->character_id = $buyer->id;
-                $charVehicle->is_for_sale = false;
-                $charVehicle->is_active = false;
-                $charVehicle->save();
-            }
-        } elseif ($listing->item_type === 'property') {
-            $gangProperty = GangProperty::where('id', $listing->related_id)->first();
+                // Process seller payout
+                $seller = $lockedListing->seller;
+                if ($seller) {
+                    /** @var Character $lockedSeller */
+                    $lockedSeller = Character::where('id', $seller->id)->lockForUpdate()->first();
 
-            if ($gangProperty && $buyer->gang_id) {
-                $gangProperty->gang_id = $buyer->gang_id;
-                $gangProperty->is_for_sale = false;
-                $gangProperty->production_status = 'idle';
-                $gangProperty->save();
-            }
-        } elseif ($listing->item_type === 'stars') {
-            $buyer->stars = ($buyer->stars ?? 0) + $listing->amount;
-        } elseif ($listing->item_type === 'packages') {
-            $buyer->unopened_bags = ($buyer->unopened_bags ?? 0) + $listing->amount;
-        } elseif ($listing->item_type === 'masks') {
-            $buyer->masks = ($buyer->masks ?? 0) + $listing->amount;
-        } elseif ($listing->item_type === 'pumpkin_seeds') {
-            $buyer->pumpkin_seeds = ($buyer->pumpkin_seeds ?? 0) + $listing->amount;
-        } elseif ($listing->item_type === 'cash') {
-            $buyer->cash += $listing->amount;
-        } elseif ($listing->item_type === 'vault_codes') {
-            $code = VaultCode::whereNull('character_id')->where('is_redeemed', false)->first();
-            if ($code) {
-                $code->character_id = $buyer->id;
-                $code->save();
-            } else {
-                VaultCode::create([
-                    'code' => 'KLUIS-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8)),
-                    'reward_cash' => 2500,
-                    'reward_stars' => 2,
-                    'reward_tokens' => 4,
-                    'character_id' => $buyer->id,
-                    'is_redeemed' => false,
-                ]);
-            }
-        }
+                    if ($lockedListing->currency === 'cash') {
+                        if ($lockedListing->item_type === 'property' && isset($lockedListing->metadata['seller_gang_id'])) {
+                            $sellerGang = Gang::find($lockedListing->metadata['seller_gang_id']);
+                            if ($sellerGang) {
+                                $sellerGang->increment('treasury', $lockedListing->price);
+                            } elseif ($lockedSeller) {
+                                $lockedSeller->bank += $lockedListing->price;
+                                $lockedSeller->save();
+                            }
+                        } elseif ($lockedSeller) {
+                            $lockedSeller->bank += $lockedListing->price;
+                            $lockedSeller->save();
+                        }
+                    } elseif ($lockedListing->currency === 'stars' && $lockedSeller) {
+                        $lockedSeller->stars = ($lockedSeller->stars ?? 0) + $lockedListing->price;
+                        $lockedSeller->save();
+                    }
+                }
 
-        $buyer->save();
+                // Deliver purchased item to buyer
+                if ($lockedListing->item_type === 'depot_item') {
+                    $charItem = CharacterItem::firstOrCreate([
+                        'character_id' => $lockedBuyer->id,
+                        'item_id' => $lockedListing->related_id,
+                    ], [
+                        'quantity' => 0,
+                        'is_equipped' => false,
+                    ]);
+                    $charItem->quantity += $lockedListing->amount;
+                    $charItem->save();
+                } elseif ($lockedListing->item_type === 'vehicle') {
+                    $charVehicle = CharacterVehicle::where('id', $lockedListing->related_id)->first();
+                    if ($charVehicle) {
+                        $charVehicle->character_id = $lockedBuyer->id;
+                        $charVehicle->is_for_sale = false;
+                        $charVehicle->is_active = false;
+                        $charVehicle->save();
+                    }
+                } elseif ($lockedListing->item_type === 'property') {
+                    $gangProperty = GangProperty::where('id', $lockedListing->related_id)->first();
+                    if ($gangProperty && $lockedBuyer->gang_id) {
+                        $gangProperty->gang_id = $lockedBuyer->gang_id;
+                        $gangProperty->is_for_sale = false;
+                        $gangProperty->production_status = 'idle';
+                        $gangProperty->save();
+                    }
+                } elseif ($lockedListing->item_type === 'stars') {
+                    $lockedBuyer->stars = ($lockedBuyer->stars ?? 0) + $lockedListing->amount;
+                } elseif ($lockedListing->item_type === 'packages') {
+                    $lockedBuyer->unopened_bags = ($lockedBuyer->unopened_bags ?? 0) + $lockedListing->amount;
+                } elseif ($lockedListing->item_type === 'masks') {
+                    $lockedBuyer->masks = ($lockedBuyer->masks ?? 0) + $lockedListing->amount;
+                } elseif ($lockedListing->item_type === 'pumpkin_seeds') {
+                    $lockedBuyer->pumpkin_seeds = ($lockedBuyer->pumpkin_seeds ?? 0) + $lockedListing->amount;
+                } elseif ($lockedListing->item_type === 'cash') {
+                    $lockedBuyer->cash += $lockedListing->amount;
+                } elseif ($lockedListing->item_type === 'vault_codes') {
+                    $code = VaultCode::whereNull('character_id')->where('is_redeemed', false)->first();
+                    if ($code) {
+                        $code->character_id = $lockedBuyer->id;
+                        $code->save();
+                    } else {
+                        VaultCode::create([
+                            'code' => 'KLUIS-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8)),
+                            'reward_cash' => 2500,
+                            'reward_stars' => 2,
+                            'reward_tokens' => 4,
+                            'character_id' => $lockedBuyer->id,
+                            'is_redeemed' => false,
+                        ]);
+                    }
+                }
 
-        $listing->is_sold = true;
-        $listing->buyer_id = $buyer->id;
-        $listing->save();
+                $lockedBuyer->save();
+                $buyer->cash = $lockedBuyer->cash;
+                $buyer->stars = $lockedBuyer->stars;
 
-        if ($seller) {
-            $currName = $listing->currency === 'stars' ? "{$listing->price} Sterren ⭐" : '€'.number_format($listing->price, 0, ',', '.').' (wit op de bank)';
-            GameMessage::create([
-                'recipient_id' => $seller->id,
-                'sender_id' => $buyer->id,
-                'sender_name' => 'Marktplaats Systeem',
-                'subject' => "🛒 Artikel Verkocht: {$listing->title}",
-                'content' => "Goed nieuws!\n\nPatiënt {$buyer->name} heeft zojuist jouw aanbod '{$listing->title}' gekocht voor {$currName}.",
-                'type' => 'trade',
-            ]);
+                $lockedListing->is_sold = true;
+                $lockedListing->buyer_id = $lockedBuyer->id;
+                $lockedListing->save();
+
+                if ($seller) {
+                    $currName = $lockedListing->currency === 'stars' ? "{$lockedListing->price} Sterren ⭐" : '€'.number_format($lockedListing->price, 0, ',', '.').' (wit op de bank)';
+                    GameMessage::create([
+                        'recipient_id' => $seller->id,
+                        'sender_id' => $lockedBuyer->id,
+                        'sender_name' => 'Marktplaats Systeem',
+                        'subject' => "🛒 Artikel Verkocht: {$lockedListing->title}",
+                        'content' => "Goed nieuws!\n\nPatiënt {$lockedBuyer->name} heeft zojuist jouw aanbod '{$lockedListing->title}' gekocht voor {$currName}.",
+                        'type' => 'trade',
+                    ]);
+                }
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
         return back()->with('success', "Aankoop voltooid! Je hebt '{$listing->title}' ontvangen.");

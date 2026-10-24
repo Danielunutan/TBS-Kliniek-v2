@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DailyRewardController extends Controller
@@ -91,50 +92,70 @@ class DailyRewardController extends Controller
         $character = Auth::user()->character;
         $this->energy->refresh($character);
 
-        if (! $character->canDailySpin()) {
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Je hebt vandaag al al je gratis draaien verbruikt! Kom morgen weer terug.',
-                ], 422);
-            }
-
-            return back()->with('error', 'Je hebt vandaag al je gratis draaien verbruikt!');
-        }
-
         // Randomly pick a winning sector (0 to 7)
         $winningIndex = random_int(0, count($this->wheelSectors) - 1);
         $prize = $this->wheelSectors[$winningIndex];
-
-        // Apply prize to character
         $rewardDescription = $prize['label'];
-        switch ($prize['type']) {
-            case 'cash':
-                $this->economy->addCash($character, $prize['value']);
-                break;
-            case 'energy':
-                $character->energy = min($character->max_energy, $character->energy + $prize['value']);
-                break;
-            case 'masks':
-                $character->masks = ($character->masks ?? 0) + $prize['value'];
-                break;
-            case 'koffer':
-                $character->xxl_cases = ($character->xxl_cases ?? 0) + $prize['value'];
-                break;
-            case 'vault_code':
-                $character->vault_tokens = ($character->vault_tokens ?? 0) + $prize['value'];
-                break;
-        }
 
-        // Update spin counts
-        $maxSpins = $character->isVip() ? 2 : 1;
-        if (! $character->last_daily_spin_at || ! $character->last_daily_spin_at->isToday()) {
-            $character->daily_spins_today = 1;
-        } else {
-            $character->daily_spins_today = min($maxSpins, $character->daily_spins_today + 1);
+        $spinSuccess = DB::transaction(function () use ($character, $prize): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked->canDailySpin()) {
+                return false;
+            }
+
+            // Apply prize to locked character
+            switch ($prize['type']) {
+                case 'cash':
+                    $locked->cash += $prize['value'];
+                    break;
+                case 'energy':
+                    $locked->energy = min($locked->max_energy, $locked->energy + $prize['value']);
+                    break;
+                case 'masks':
+                    $locked->masks = ($locked->masks ?? 0) + $prize['value'];
+                    break;
+                case 'koffer':
+                    $locked->xxl_cases = ($locked->xxl_cases ?? 0) + $prize['value'];
+                    break;
+                case 'vault_code':
+                    $locked->vault_tokens = ($locked->vault_tokens ?? 0) + $prize['value'];
+                    break;
+            }
+
+            // Update spin counts
+            $maxSpins = $locked->isVip() ? 2 : 1;
+            if (! $locked->last_daily_spin_at || ! $locked->last_daily_spin_at->isToday()) {
+                $locked->daily_spins_today = 1;
+            } else {
+                $locked->daily_spins_today = min($maxSpins, $locked->daily_spins_today + 1);
+            }
+            $locked->last_daily_spin_at = Carbon::now();
+            $locked->save();
+
+            // Sync original model instance
+            $character->cash = $locked->cash;
+            $character->energy = $locked->energy;
+            $character->masks = $locked->masks;
+            $character->xxl_cases = $locked->xxl_cases;
+            $character->vault_tokens = $locked->vault_tokens;
+            $character->daily_spins_today = $locked->daily_spins_today;
+            $character->last_daily_spin_at = $locked->last_daily_spin_at;
+
+            return true;
+        });
+
+        if (! $spinSuccess) {
+            $msg = 'Je hebt vandaag al al je gratis draaien verbruikt! Kom morgen weer terug.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                ], 422);
+            }
+
+            return back()->with('error', $msg);
         }
-        $character->last_daily_spin_at = Carbon::now();
-        $character->save();
 
         GameNotification::create([
             'character_id' => $character->id,
@@ -179,51 +200,70 @@ class DailyRewardController extends Controller
             return back()->with('error', 'De dagelijkse inlog bonus kan alleen worden geclaimd tussen 22:00 en 22:30!');
         }
 
-        if (! $character->canClaimStreak()) {
-            return back()->with('error', 'Je hebt je dagelijkse inlog bonus voor vandaag al geclaimd! Kom morgen tussen 22:00 en 22:30 terug.');
-        }
+        $reward = null;
+        $newStreak = 1;
 
-        $now = Carbon::now();
-        $currentStreak = (int) $character->streak_days;
+        $streakSuccess = DB::transaction(function () use ($character, &$reward, &$newStreak): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked->canClaimStreak()) {
+                return false;
+            }
 
-        if ($character->last_streak_claim_at) {
-            $diffDays = (int) $character->last_streak_claim_at->startOfDay()->diffInDays($now->startOfDay());
-            if ($diffDays === 1) {
-                // Continued yesterday
-                $newStreak = ($currentStreak % 7) + 1;
+            $now = Carbon::now();
+            $currentStreak = (int) $locked->streak_days;
+
+            if ($locked->last_streak_claim_at) {
+                $diffDays = (int) $locked->last_streak_claim_at->startOfDay()->diffInDays($now->startOfDay());
+                if ($diffDays === 1) {
+                    $newStreak = ($currentStreak % 7) + 1;
+                } else {
+                    $newStreak = 1;
+                }
             } else {
-                // Streak broken
                 $newStreak = 1;
             }
-        } else {
-            $newStreak = 1;
-        }
 
-        $reward = $this->streakSchedule[$newStreak] ?? $this->streakSchedule[1];
+            $reward = $this->streakSchedule[$newStreak] ?? $this->streakSchedule[1];
 
-        // Award rewards
-        if ($reward['cash'] > 0) {
-            $this->economy->addCash($character, $reward['cash']);
-        }
-        if ($reward['energy'] > 0) {
-            $character->energy = min($character->max_energy, $character->energy + $reward['energy']);
-        }
-        if (($reward['masks'] ?? 0) > 0) {
-            $character->masks = ($character->masks ?? 0) + $reward['masks'];
-        }
-        if (($reward['koffers'] ?? 0) > 0) {
-            $character->xxl_cases = ($character->xxl_cases ?? 0) + $reward['koffers'];
-        }
-        if (($reward['vault_codes'] ?? 0) > 0) {
-            $character->vault_tokens = ($character->vault_tokens ?? 0) + $reward['vault_codes'];
-        }
-        if ($reward['xp'] > 0) {
-            $this->level->addXp($character, $reward['xp']);
-        }
+            if ($reward['cash'] > 0) {
+                $locked->cash += $reward['cash'];
+            }
+            if ($reward['energy'] > 0) {
+                $locked->energy = min($locked->max_energy, $locked->energy + $reward['energy']);
+            }
+            if (($reward['masks'] ?? 0) > 0) {
+                $locked->masks = ($locked->masks ?? 0) + $reward['masks'];
+            }
+            if (($reward['koffers'] ?? 0) > 0) {
+                $locked->xxl_cases = ($locked->xxl_cases ?? 0) + $reward['koffers'];
+            }
+            if (($reward['vault_codes'] ?? 0) > 0) {
+                $locked->vault_tokens = ($locked->vault_tokens ?? 0) + $reward['vault_codes'];
+            }
+            if ($reward['xp'] > 0) {
+                $this->level->addXp($locked, $reward['xp']);
+            }
 
-        $character->streak_days = $newStreak;
-        $character->last_streak_claim_at = $now;
-        $character->save();
+            $locked->streak_days = $newStreak;
+            $locked->last_streak_claim_at = $now;
+            $locked->save();
+
+            // Sync original model instance
+            $character->cash = $locked->cash;
+            $character->energy = $locked->energy;
+            $character->masks = $locked->masks;
+            $character->xxl_cases = $locked->xxl_cases;
+            $character->vault_tokens = $locked->vault_tokens;
+            $character->streak_days = $locked->streak_days;
+            $character->last_streak_claim_at = $locked->last_streak_claim_at;
+
+            return true;
+        });
+
+        if (! $streakSuccess) {
+            return back()->with('error', 'Je hebt je dagelijkse inlog bonus voor vandaag al geclaimd! Kom morgen tussen 22:00 en 22:30 terug.');
+        }
 
         GameNotification::create([
             'character_id' => $character->id,

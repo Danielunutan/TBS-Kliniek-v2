@@ -32,23 +32,23 @@
 }" x-init="if (secReset > 0) { setInterval(() => { secReset--; if (secReset <= 0) window.location.reload(); }, 1000); }">
 
     <!-- Top Hero Banner (Clean TBS White Style) -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
             <div class="space-y-2 text-center md:text-left">
-                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Automatische 24-Uurs Dagbattle</span>
                 </div>
-                <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 uppercase">
-                    DE 24 UUR <span class="text-purple-600">Battle</span>
+                <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white uppercase">
+                    DE 24 UUR <span class="text-purple-600 dark:text-purple-400">Battle</span>
                 </h1>
-                <p class="text-slate-500 text-xs sm:text-sm font-medium max-w-xl leading-relaxed">
-                    Strijd dagelijks mee om de absolute macht in de kliniek en win unieke beloningen zoals <strong class="text-slate-900 underline">XXL Koffers</strong>, Sterren en Maskers als je in de top 3 eindigt!
+                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium max-w-xl leading-relaxed">
+                    Strijd dagelijks mee om de absolute macht in de kliniek en win unieke beloningen zoals <strong class="text-slate-900 dark:text-white underline">XXL Koffers</strong>, Sterren en Maskers als je in de top 3 eindigt!
                 </p>
             </div>
 
             <!-- Countdown Timer Card -->
-            <div class="bg-purple-50 dark:bg-slate-800 border border-purple-200 dark:border-slate-700 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
+            <div class="bg-purple-50 dark:bg-slate-800/80 border border-purple-200 dark:border-slate-700 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-purple-900 dark:text-slate-200 block mb-1">
                     Volgende Reset & Uitbetaling
                 </span>
@@ -149,13 +149,13 @@
     </div>
 
     <!-- Bottom Podium Ranglijst -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
                 <i class="fa-solid fa-trophy text-amber-500"></i>
                 <span>RANGLIJST TOP PATIËNTEN</span>
             </div>
-            <a href="{{ route('leaderboard.index') }}" class="text-xs font-bold text-purple-600 hover:text-purple-800 transition">
+            <a href="{{ route('leaderboard.index') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition">
                 Volledige ranglijst bekijken &rarr;
             </a>
         </div>
@@ -166,7 +166,7 @@
                 <div class="relative mb-2">
                     <img src="{{ $topChar->avatar_url }}" alt="{{ $topChar->name }}" 
                          onerror="this.onerror=null; this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}';"
-                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $rankIdx === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($rankIdx === 1 ? 'border-purple-400' : 'border-slate-200') }} group-hover:scale-105 transition-transform shadow-xs">
+                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $rankIdx === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($rankIdx === 1 ? 'border-purple-400' : 'border-slate-200 dark:border-slate-700') }} group-hover:scale-105 transition-transform shadow-xs">
                     
                     <span class="absolute -top-1 -left-1 w-5 h-5 rounded-full {{ $rankIdx === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($rankIdx < 3 ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-white font-bold') }} text-[11px] flex items-center justify-center shadow-xs">
                         {{ $rankIdx + 1 }}
@@ -177,7 +177,7 @@
                     </span>
                 </div>
 
-                <a href="{{ route('profile.show', $topChar->name) }}" class="text-xs font-bold text-slate-900 group-hover:text-purple-600 transition truncate w-full block" title="{{ $topChar->name }}">
+                <a href="{{ route('profile.show', $topChar->name) }}" class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block" title="{{ $topChar->name }}">
                     {{ $topChar->name }}
                 </a>
                 <span class="text-[10px] font-bold text-slate-400">
@@ -191,16 +191,16 @@
     <!-- MODAL FOR FULL CATEGORY LEADERBOARD -->
     <div x-show="modalOpen" 
          x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
          @click.self="modalOpen = false">
-        <div class="bg-white border border-slate-200 rounded-2xl max-w-lg w-full p-6 text-slate-900 shadow-xl space-y-4 relative max-h-[85vh] flex flex-col">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 text-slate-900 dark:text-white shadow-xl space-y-4 relative max-h-[85vh] flex flex-col">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2 font-extrabold text-slate-900 text-sm uppercase tracking-wider">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2 font-extrabold text-slate-900 dark:text-white text-sm uppercase tracking-wider">
                     <i class="fa-solid fa-trophy text-amber-500"></i>
                     <span x-text="modalCategory"></span>
                 </div>
-                <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-700 transition text-lg cursor-pointer">
+                <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition text-lg cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -208,7 +208,7 @@
             <!-- Modal Content -->
             <div class="overflow-y-auto flex-1 space-y-2 pr-1">
                 <template x-if="loadingScores">
-                    <div class="py-12 text-center text-purple-600 font-bold text-xs animate-pulse">
+                    <div class="py-12 text-center text-purple-600 dark:text-purple-400 font-bold text-xs animate-pulse">
                         <i class="fa-solid fa-spinner fa-spin text-lg mb-2 block"></i>
                         Ranglijst ophalen...
                     </div>
@@ -223,18 +223,18 @@
                 <template x-if="!loadingScores && modalScores.length > 0">
                     <div class="space-y-1.5">
                         <template x-for="item in modalScores" :key="item.rank">
-                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-purple-200 transition">
+                            <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 hover:border-purple-200 dark:hover:border-purple-600 transition">
                                 <div class="flex items-center gap-3">
-                                    <span class="w-6 font-bold text-sm text-purple-700 text-center" x-text="'#' + item.rank"></span>
+                                    <span class="w-6 font-bold text-sm text-purple-700 dark:text-purple-400 text-center" x-text="'#' + item.rank"></span>
                                     <img :src="item.avatar" 
                                          onerror="this.onerror=null; this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}';" 
-                                         class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-xs">
+                                         class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-xs">
                                     <div>
-                                        <span class="font-bold text-slate-900 text-xs block" x-text="item.name"></span>
+                                        <span class="font-bold text-slate-900 dark:text-white text-xs block" x-text="item.name"></span>
                                         <span class="text-[10px] text-slate-400" x-text="'Level ' + item.level"></span>
                                     </div>
                                 </div>
-                                <span class="font-mono font-bold text-purple-700 text-xs" x-text="item.score"></span>
+                                <span class="font-mono font-bold text-purple-700 dark:text-purple-400 text-xs" x-text="item.score"></span>
                             </div>
                         </template>
                     </div>
@@ -242,8 +242,8 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="pt-3 border-t border-slate-100 text-center">
-                <button type="button" @click="modalOpen = false" class="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase cursor-pointer transition">
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+                <button type="button" @click="modalOpen = false" class="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold text-xs uppercase cursor-pointer transition">
                     Sluiten
                 </button>
             </div>

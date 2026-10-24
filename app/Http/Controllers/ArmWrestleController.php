@@ -248,37 +248,26 @@ class ArmWrestleController extends Controller
             // Set cooldown immediately upon match resolution (20 seconds)
             $this->cooldownService->setCooldown($lockedCharacter, 'arm_wrestling', 20);
 
-            $durationMs = max(1000, (int) ($validated['duration_ms'] ?? ((int) ($validated['duration_seconds'] ?? 1) * 1000)));
+            $durationMs = max(200, (int) ($validated['duration_ms'] ?? ((int) ($validated['duration_seconds'] ?? 1) * 1000)));
             $durationSec = max(1, (int) round($durationMs / 1000));
-            $clicks = (int) $validated['clicks'];
+            $clicks = max(0, (int) $validated['clicks']);
 
-            // Anti-cheat: Cap click rate to human max (16 clicks per second)
-            $maxPossibleClicks = (int) ceil(($durationMs / 1000) * 16);
+            // Anti-cheat: Cap click rate to human max (20 clicks per second + initial buffer)
+            $maxPossibleClicks = (int) ceil(($durationMs / 1000) * 20) + 3;
             $effectiveClicks = min($clicks, $maxPossibleClicks);
 
-            // Minimum clicks check: player must have actually pushed to win
-            $minClicksReq = match ($npc['key']) {
-                'sjonnie' => 6,
-                'karel' => 10,
-                'bennie' => 14,
-                'mike' => 18,
-                default => 8,
-            };
-
             // Calculate contest power server-side (strength + stamina + click effort)
-            $playerPower = ($lockedCharacter->strength * 1.5) + (($lockedCharacter->stamina ?? 10) * 0.8) + ($effectiveClicks * 1.5);
+            $playerPower = ($lockedCharacter->strength * 1.5) + (($lockedCharacter->stamina ?? 10) * 0.8) + ($effectiveClicks * 2.0);
             $npcPower = ($npc['npc_strength'] * 1.3) + ($npc['npc_stamina'] * 0.8);
 
             // Fair win verification:
             // 1. Client pushed to victory (won == true)
-            // 2. Reasonable match duration (>= 1.2s)
-            // 3. Met minimum click requirement for this opponent
-            // 4. Power ratio check (player power within contest threshold of NPC)
+            // 2. Player must have made at least 1 click or survived a 10s+ dominance contest
+            // 3. Power sanity check: strong players can pin opponents in few clicks, while low-stat cheaters are rejected
             $clientWon = (bool) $validated['won'];
             $isWon = $clientWon
-                && ($durationMs >= 1200)
-                && ($effectiveClicks >= $minClicksReq)
-                && ($playerPower >= ($npcPower * 0.65));
+                && ($effectiveClicks >= 1 || $durationMs >= 10000)
+                && ($playerPower >= ($npcPower * 0.35) || $lockedCharacter->strength >= ($npc['npc_strength'] * 0.5));
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);

@@ -50,15 +50,14 @@ class SlotsController extends Controller
         ]);
 
         $bet = (int) $validated['bet'];
-        if ($character->cash < $bet) {
-            $msg = 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.';
+        $msg = 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.';
 
+        if (! $this->economy->deductCash($character, $bet)) {
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 422)
                 : back()->with('error', $msg);
         }
 
-        $this->economy->deductCash($character, $bet);
         $this->cooldownService->setCooldown($character, 'casino_slots', 4);
 
         $symbols = ['🍋', '🍒', '🍀', '⭐', '💎', '🔔', '7️⃣'];

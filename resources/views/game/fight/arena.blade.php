@@ -23,10 +23,16 @@
 
     <!-- Top Breadcrumb / Title -->
     <div class="flex items-center justify-between">
-        <a href="{{ route('fight.index') }}" class="text-xs font-bold text-slate-500 hover:text-purple-600 transition inline-flex items-center gap-1.5">
-            <i class="fa-solid fa-arrow-left"></i> Terug naar de Luchtplaats
-        </a>
-        <span class="text-xs font-mono font-bold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
+        <div class="flex items-center gap-2.5">
+            <a href="{{ route('fight.index') }}" class="text-xs font-bold text-slate-500 hover:text-purple-600 transition inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-list text-purple-600"></i> Respectlijst
+            </a>
+            <span class="text-slate-300 dark:text-slate-700">•</span>
+            <a href="{{ route('profile.show', $defender->name) }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-user"></i> Profiel van {{ $defender->name }}
+            </a>
+        </div>
+        <span class="text-xs font-mono font-bold text-purple-700 bg-purple-50 dark:bg-purple-950/60 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
             Aanvallen over vandaag: {{ $arenaBattle['left_today'] }} / 100
         </span>
     </div>
@@ -207,18 +213,25 @@
                 </div>
 
                 <!-- Action CTA buttons -->
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
-                    <a href="{{ route('fight.index') }}" 
-                       class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition text-center shadow-xs">
-                        <i class="fa-solid fa-arrow-left mr-1.5"></i> Terug naar Luchtplaats
-                    </a>
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <a href="{{ route('profile.show', $defender->name) }}" 
+                           class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs uppercase tracking-wider transition text-center border border-slate-200 dark:border-slate-700">
+                            <i class="fa-solid fa-user mr-1.5"></i> Naar Profiel
+                        </a>
+                        <a href="{{ route('fight.index') }}" 
+                           class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition text-center shadow-xs">
+                            <i class="fa-solid fa-list mr-1.5"></i> Respectlijst
+                        </a>
+                    </div>
 
                     <form action="{{ route('fight.attack') }}" method="POST" class="w-full sm:w-auto">
                         @csrf
                         <input type="hidden" name="opponent_id" value="{{ $defender->id }}">
+                        <input type="hidden" name="from_profile" value="1">
                         <button type="submit" 
                                 {{ $attacker->energy < 20 || $arenaBattle['left_today'] <= 0 ? 'disabled' : '' }}
-                                class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition text-center shadow-xs">
+                                class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold text-xs uppercase tracking-wider transition text-center shadow-xs cursor-pointer">
                             <i class="fa-solid fa-sack-dollar mr-1.5"></i> Opnieuw geld stelen (20 energie)
                         </button>
                     </form>

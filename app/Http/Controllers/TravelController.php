@@ -103,12 +103,10 @@ class TravelController extends Controller
 
         $cost = $this->calculateTravelCost($character);
 
-        if ($character->cash < $cost) {
+        // Deduct bribe money atomically
+        if (! $this->economy->deductCash($character, $cost)) {
             return back()->with('error', 'Je hebt niet genoeg contant geld (€'.number_format($cost, 0, ',', '.').') om de bewakers om te kopen!');
         }
-
-        // Deduct bribe money
-        $this->economy->deductCash($character, $cost);
 
         // Update location
         $character->current_location = $locData['name'];

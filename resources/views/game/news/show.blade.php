@@ -90,7 +90,7 @@
                     </div>
                     @endif
 
-                    <div class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed prose prose-purple max-w-none">
+                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed news-content">
                         {!! $article->formatted_content !!}
                     </div>
                 </div>

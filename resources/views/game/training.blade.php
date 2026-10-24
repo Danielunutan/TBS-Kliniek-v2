@@ -72,22 +72,22 @@
     </div>
 
     <!-- Armpjedruk Arena Promo Banner -->
-    <div class="relative overflow-hidden bg-amber-600 dark:bg-slate-900 border border-amber-500/40 rounded-2xl p-5 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="relative overflow-hidden bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/60 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-white/20 dark:bg-amber-500/20 backdrop-blur-xs flex items-center justify-center text-2xl shrink-0">
-                <i class="fa-solid fa-hand-back-fist text-white dark:text-amber-400"></i>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
+                <i class="fa-solid fa-hand-back-fist"></i>
             </div>
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-black uppercase tracking-wider bg-white/25 dark:bg-amber-500/20 text-white dark:text-amber-300 px-2 py-0.5 rounded-full">Nieuw Duel</span>
-                    <h3 class="font-extrabold text-base text-white">De Illegale Armpjedruk Arena</h3>
+                    <span class="text-xs font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 px-2 py-0.5 rounded-full">Nieuw Duel</span>
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white">De Illegale Armpjedruk Arena</h3>
                 </div>
-                <p class="text-xs text-amber-100 dark:text-slate-300 mt-0.5">
+                <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                     Test je getrainde Kracht & Snelheid aan de armpjedruktafel. Versla 4 beruchte NPC's of daag medespelers uit voor geldpotten tot €100.000!
                 </p>
             </div>
         </div>
-        <a href="{{ route('armwrestling.index') }}" class="shrink-0 bg-white hover:bg-amber-50 dark:bg-amber-500 dark:hover:bg-amber-400 text-slate-900 font-extrabold text-xs px-5 py-2.5 rounded-xl transition shadow-xs flex items-center gap-2">
+        <a href="{{ route('armwrestling.index') }}" class="shrink-0 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition shadow-xs flex items-center gap-2 cursor-pointer active:scale-95">
             <span>Betreed de Arena</span>
             <i class="fa-solid fa-arrow-right text-[11px]"></i>
         </a>

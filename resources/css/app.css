@@ -280,34 +280,98 @@ input::-webkit-calendar-picker-indicator {
     box-shadow: 0 0 8px rgba(79, 70, 229, 0.6);
 }
 
-/* Custom Sleek Scrollbars */
-::-webkit-scrollbar {
+/* ======================================================== */
+/* UNIVERSAL SLEEK SCROLLBARS FOR TBS KLINIEK               */
+/* ======================================================== */
+/* Standard modern CSS (Firefox & Chromium 121+) */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+html.dark * {
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+}
+
+/* WebKit / Chromium (Chrome, Edge, Safari, Brave, Opera) */
+*::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.4);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 116, 139, 0.6);
+
+*::-webkit-scrollbar-track {
+    background: transparent !important;
 }
 
+*::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.35);
+    border-radius: 9999px;
+    border: 1px solid transparent;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.65);
+}
+
+*::-webkit-scrollbar-corner {
+    background: transparent !important;
+}
+
+/* Dark Mode Scrollbars */
+html.dark *::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.22);
+}
+
+html.dark *::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(168, 85, 247, 0.6);
+}
+
+/* Thin Scrollbar Utility (for horizontal pills, tabs & dropdowns) */
+.scrollbar-thin,
+.custom-scrollbar {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent !important;
+}
+
+html.dark .scrollbar-thin,
+html.dark .custom-scrollbar {
+    scrollbar-color: rgba(168, 85, 247, 0.3) transparent !important;
+}
+
+.scrollbar-thin::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 4px !important;
+    height: 4px !important;
 }
+
+.scrollbar-thin::-webkit-scrollbar-track,
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    background: transparent !important;
 }
+
+.scrollbar-thin::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.35);
-    border-radius: 10px;
+    background-color: rgba(148, 163, 184, 0.35) !important;
+    border-radius: 9999px !important;
 }
-.custom-scrollbar:hover::-webkit-scrollbar-thumb {
-    background: rgba(100, 116, 139, 0.55);
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover,
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(147, 51, 234, 0.65) !important;
+}
+
+/* Hide Scrollbar completely when smooth touch/drag scrolling is preferred */
+.scrollbar-none,
+.no-scrollbar {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 /* Strict Theme Toggle Icon Display (Prevents FontAwesome Specificity Leak) */
@@ -345,4 +409,58 @@ html.dark .theme-toggle-moon {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+}
+
+/* ======================================================== */
+/* NEWS ARTICLE CONTENT BODY (.news-content)                */
+/* ======================================================== */
+.news-content p {
+    margin-bottom: 0.5rem;
+    line-height: 1.65;
+}
+.news-content h2 {
+    font-size: 1rem;
+    font-weight: 900;
+    color: #0f172a;
+    margin-top: 1.25rem;
+    margin-bottom: 0.4rem;
+    letter-spacing: -0.02em;
+}
+.news-content h3 {
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-top: 1rem;
+    margin-bottom: 0.35rem;
+}
+.news-content hr {
+    border-color: #e2e8f0;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.news-content ul {
+    margin: 0.35rem 0 0.5rem 0;
+    padding: 0;
+    list-style: none;
+}
+.news-content li {
+    margin-left: 1.1rem;
+    list-style-type: disc;
+    margin-bottom: 0.15rem;
+    line-height: 1.6;
+}
+.news-content strong {
+    font-weight: 800;
+    color: #0f172a;
+}
+html.dark .news-content h2,
+html.dark .news-content h3,
+html.dark .news-content strong {
+    color: #f1f5f9;
+}
+html.dark .news-content hr {
+    border-color: #334155;
+}
+html.dark .news-content li {
+    color: #cbd5e1;
 }

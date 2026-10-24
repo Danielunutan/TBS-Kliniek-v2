@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\DiscordShieldSetting;
+use App\Models\GameMessage;
 use App\Models\User;
 use App\Services\DiscordShieldService;
 use App\Services\ReferralService;
@@ -117,8 +118,8 @@ class AuthController extends Controller
      */
     public function discordCallback(Request $request): Response|RedirectResponse
     {
-        $clientId = DiscordShieldSetting::get('client_id', config('services.discord.client_id', '1558628995439005748'));
-        $clientSecret = DiscordShieldSetting::get('client_secret', config('services.discord.client_secret', 'tvX_NGRzmXI4fwt4HJGrl7Lc6cUNjBo9'));
+        $clientId = DiscordShieldSetting::get('client_id') ?: config('services.discord.client_id');
+        $clientSecret = DiscordShieldSetting::get('client_secret') ?: config('services.discord.client_secret');
         $code = $request->query('code');
         $redirectUri = 'https://tbs-kliniek.nl/discord/callback';
 
@@ -331,8 +332,33 @@ class AuthController extends Controller
         ]);
 
         $refName = $request->input('ref') ?: $request->session()->get('referral_name');
+        $isOohpaPromo = false;
         if ($refName) {
-            app(ReferralService::class)->recordReferral($character, (string) $refName, $request->ip());
+            $normalizedRef = strtolower(trim((string) $refName));
+            if (in_array($normalizedRef, ['oohpaarjan', 'oohpa', 'arjan', 'oohpa_arjan', 'oohpa-arjan'])) {
+                $isOohpaPromo = true;
+                $character->is_vip = true;
+                $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
+                    ? $character->vip_expires_at
+                    : now();
+                $character->vip_expires_at = $currentExpiry->addDays(30);
+                $character->vip_points += 50;
+                $character->cash += 5000;
+                $character->save();
+
+                try {
+                    GameMessage::create([
+                        'sender_id' => null,
+                        'receiver_id' => $character->id,
+                        'subject' => '🎁 1 Maand Gratis VIP Geactiveerd via OOHPA Arjan!',
+                        'body' => "Welkom in TBS Kliniek, {$character->name}!\n\nJe bent binnengebracht via de officiële actie van OOHPA Arjan. Jouw 1 Maand Gratis VIP status is per direct geactiveerd op jouw account (geldig tot ".$character->vip_expires_at->format('d-m-Y').")!\n\nAls VIP geniet je van:\n- Tot 1.000 aanvallen per dag (i.p.v. 100)\n- 2x dagelijkse rad-spins\n- Exclusieve VIP chat sticker & diamanten\n- Snellere energie herlading\n\nSucces achter de tralies,\nDe Directie",
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to create OOHPA welcome message: '.$e->getMessage());
+                }
+            } else {
+                app(ReferralService::class)->recordReferral($character, (string) $refName, $request->ip());
+            }
             $request->session()->forget('referral_name');
         }
 
@@ -356,9 +382,11 @@ class AuthController extends Controller
 
         event(new Registered($user));
 
-        $welcomeMsg = $verifiedDiscordId
-            ? 'Welkom in TBS Kliniek, '.$validated['username'].'! Je Discord is direct gekoppeld: je hebt €2.500 startbonus + 3 dagen gratis VIP ontvangen! Bevestig nog even je e-mailadres.'
-            : 'Welkom in TBS Kliniek, '.$validated['username'].'! Bevestig je e-mailadres via de verzonden e-mail om te kunnen spelen.';
+        $welcomeMsg = $isOohpaPromo
+            ? 'Welkom in TBS Kliniek, '.$validated['username'].'! 🎉 Jouw 1 Maand Gratis VIP via OOHPA Arjan is direct geactiveerd! Bevestig nog even je e-mailadres om direct te spelen.'
+            : ($verifiedDiscordId
+                ? 'Welkom in TBS Kliniek, '.$validated['username'].'! Je Discord is direct gekoppeld: je hebt €2.500 startbonus + 3 dagen gratis VIP ontvangen! Bevestig nog even je e-mailadres.'
+                : 'Welkom in TBS Kliniek, '.$validated['username'].'! Bevestig je e-mailadres via de verzonden e-mail om te kunnen spelen.');
 
         return redirect()->route('verification.notice')->with('success', $welcomeMsg);
     }
@@ -425,19 +453,83 @@ class AuthController extends Controller
     }
 
     /**
-     * Show email verification notice.
+     * Show email verification notice with 6-digit code input.
      */
     public function verifyNotice(): View|RedirectResponse
     {
-        if (Auth::user()?->hasVerifiedEmail()) {
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->hasVerifiedEmail()) {
             return redirect()->route('dashboard');
         }
 
-        return view('auth.verify-email');
+        // If user has no code yet or code has expired, send a fresh code
+        if (empty($user->email_verification_code) || ! $user->email_verification_code_expires_at || $user->email_verification_code_expires_at->isPast()) {
+            $user->sendEmailVerificationNotification();
+            $user->refresh();
+        }
+
+        return view('auth.verify-email', [
+            'user' => $user,
+            'expiresAt' => $user->email_verification_code_expires_at,
+        ]);
     }
 
     /**
-     * Handle incoming email verification request.
+     * Handle incoming 6-digit email verification code.
+     */
+    public function verifyWithCode(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return redirect()->route('dashboard');
+        }
+
+        $validated = $request->validate([
+            'code' => ['required', 'string', 'regex:/^[0-9]{6}$/'],
+        ], [
+            'code.required' => 'Vul de 6-cijferige verificatiecode in.',
+            'code.regex' => 'De verificatiecode moet precies 6 cijfers bevatten.',
+        ]);
+
+        $inputCode = trim($validated['code']);
+
+        // Check if code matches
+        if ($user->email_verification_code !== $inputCode) {
+            return back()->withErrors(['code' => 'De ingevoerde verificatiecode is onjuist. Controleer je e-mail of vraag een nieuwe code aan.'])->withInput();
+        }
+
+        // Check if expired after 30 minutes
+        if (! $user->email_verification_code_expires_at || $user->email_verification_code_expires_at->isPast()) {
+            return back()->withErrors(['code' => 'Deze verificatiecode is na 30 minuten verlopen. Vraag hieronder een nieuwe code aan.'])->withInput();
+        }
+
+        $user->markEmailAsVerified();
+        $user->forceFill([
+            'email_verification_code' => null,
+            'email_verification_code_expires_at' => null,
+        ])->saveQuietly();
+
+        event(new Verified($user));
+
+        if (! $user->is_onboarded || ! $user->character?->is_onboarded) {
+            return redirect()->route('onboarding.index')->with('success', 'E-mailadres succesvol geverifieerd! Welkom in TBS Kliniek.');
+        }
+
+        return redirect()->route('dashboard')->with('success', 'E-mailadres succesvol geverifieerd! Welkom in TBS Kliniek.');
+    }
+
+    /**
+     * Handle incoming email verification request via link (legacy fallback).
      */
     public function verifyEmail(Request $request, string $id, string $hash): RedirectResponse
     {
@@ -449,6 +541,11 @@ class AuthController extends Controller
 
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
+            $user->forceFill([
+                'email_verification_code' => null,
+                'email_verification_code_expires_at' => null,
+            ])->saveQuietly();
+
             event(new Verified($user));
         }
 
@@ -456,17 +553,19 @@ class AuthController extends Controller
     }
 
     /**
-     * Resend verification notification.
+     * Resend verification notification with new 6-digit code.
      */
     public function resendVerification(Request $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
             return redirect()->route('dashboard');
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        $user->sendEmailVerificationNotification();
 
-        return back()->with('status', 'verification-link-sent');
+        return back()->with('status', 'verification-code-sent');
     }
 
     /**

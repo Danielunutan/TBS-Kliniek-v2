@@ -71,12 +71,10 @@ class BountyController extends Controller
 
         $amount = (int) $request->input('amount');
 
-        if ($character->cash < $amount) {
+        // Deduct cash from placer atomically
+        if (! $this->economy->deductCash($character, $amount)) {
             return back()->with('error', 'Je hebt niet genoeg contant geld (€ '.number_format($amount, 0, ',', '.').' nodig) om dit kopgeld uit te loven.');
         }
-
-        // Deduct cash from placer
-        $this->economy->deductCash($character, $amount);
 
         // Create bounty
         $bounty = Bounty::create([
