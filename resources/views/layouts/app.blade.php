@@ -124,23 +124,45 @@
             display: none !important;
         }
 
-        /* TBS Floating In-App Toast Countdown Animation */
+        /* TBS Floating In-App Toast Design System */
         @keyframes tbsToastCountdown {
-            from {
-                width: 100%;
-            }
-            to {
-                width: 0%;
-            }
+            from { width: 100%; }
+            to { width: 0%; }
         }
         .tbs-toast-progress-bar {
             animation-name: tbsToastCountdown;
             animation-timing-function: linear;
             animation-fill-mode: forwards;
         }
-        .tbs-toast-item:hover .tbs-toast-progress-bar {
+        .tbs-toast-card:hover .tbs-toast-progress-bar {
             animation-play-state: paused;
         }
+        .tbs-toast-card {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08) !important;
+        }
+        html.dark .tbs-toast-card {
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+        }
+        .tbs-toast-badge-success { background-color: #ecfdf5 !important; color: #059669 !important; border: 1px solid #a7f3d0 !important; }
+        .tbs-toast-badge-error   { background-color: #fff1f2 !important; color: #e11d48 !important; border: 1px solid #fecdd3 !important; }
+        .tbs-toast-badge-warning { background-color: #fffbeb !important; color: #d97706 !important; border: 1px solid #fde68a !important; }
+        .tbs-toast-badge-info    { background-color: #f5f3ff !important; color: #7c3aed !important; border: 1px solid #ddd6fe !important; }
+
+        html.dark .tbs-toast-badge-success { background-color: rgba(6, 78, 59, 0.6) !important; color: #34d399 !important; border-color: #065f46 !important; }
+        html.dark .tbs-toast-badge-error   { background-color: rgba(136, 19, 55, 0.6) !important; color: #fb7185 !important; border-color: #9f1239 !important; }
+        html.dark .tbs-toast-badge-warning { background-color: rgba(120, 53, 15, 0.6) !important; color: #fbbf24 !important; border-color: #92400e !important; }
+        html.dark .tbs-toast-badge-info    { background-color: rgba(91, 33, 182, 0.6) !important; color: #c084fc !important; border-color: #6b21a8 !important; }
+
+        .tbs-toast-bar-success { background-color: #10b981 !important; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+        .tbs-toast-bar-error   { background-color: #f43f5e !important; box-shadow: 0 0 10px rgba(244, 63, 94, 0.6); }
+        .tbs-toast-bar-warning { background-color: #f59e0b !important; box-shadow: 0 0 10px rgba(245, 158, 11, 0.6); }
+        .tbs-toast-bar-info    { background-color: #9333ea !important; box-shadow: 0 0 10px rgba(147, 51, 234, 0.6); }
         html, body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -3214,44 +3236,52 @@
                  x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
                  @mouseenter="pauseToast(toast)"
                  @mouseleave="resumeToast(toast)"
-                 :class="{
-                     'bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 text-white border-emerald-400/40 shadow-emerald-950/40': toast.type === 'success',
-                     'bg-gradient-to-r from-rose-600 via-rose-600 to-pink-700 text-white border-rose-400/40 shadow-rose-950/40': toast.type === 'error' || toast.type === 'danger',
-                     'bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white border-amber-300/40 shadow-amber-950/40': toast.type === 'warning',
-                     'bg-gradient-to-r from-purple-600 via-purple-600 to-indigo-700 text-white border-purple-400/40 shadow-purple-950/40': toast.type === 'info'
-                 }"
-                 class="tbs-toast-item pointer-events-auto relative overflow-hidden flex items-center gap-3 pl-3.5 pr-2.5 py-3 rounded-2xl shadow-2xl border text-xs sm:text-sm font-bold tracking-tight select-none backdrop-blur-md max-w-full group">
+                 class="tbs-toast-card pointer-events-auto relative overflow-hidden flex items-center gap-3 pl-3.5 pr-2.5 py-3 rounded-2xl border text-xs sm:text-[13px] font-bold tracking-tight select-none backdrop-blur-md min-w-[300px] max-w-md w-full shadow-2xl group">
                 
-                <!-- Type Icon Badge -->
-                <div class="w-6 h-6 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white text-xs shrink-0 shadow-2xs">
+                <!-- Crisp Badge Icon -->
+                <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-sm shadow-2xs font-extrabold"
+                     :class="{
+                         'tbs-toast-badge-success': toast.type === 'success',
+                         'tbs-toast-badge-error': toast.type === 'error' || toast.type === 'danger',
+                         'tbs-toast-badge-warning': toast.type === 'warning',
+                         'tbs-toast-badge-info': toast.type === 'info'
+                     }">
                     <template x-if="toast.type === 'success'">
-                        <i class="fa-solid fa-check"></i>
+                        <i class="fa-solid fa-circle-check text-base"></i>
                     </template>
                     <template x-if="toast.type === 'error' || toast.type === 'danger'">
-                        <i class="fa-solid fa-exclamation"></i>
+                        <i class="fa-solid fa-circle-exclamation text-base"></i>
                     </template>
                     <template x-if="toast.type === 'warning'">
-                        <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                        <i class="fa-solid fa-triangle-exclamation text-sm"></i>
                     </template>
                     <template x-if="toast.type === 'info'">
-                        <i class="fa-solid fa-info text-[11px]"></i>
+                        <i class="fa-solid fa-circle-info text-base"></i>
                     </template>
                 </div>
 
                 <!-- Message Content -->
-                <span class="leading-snug pr-2 drop-shadow-2xs" x-text="toast.msg"></span>
+                <div class="flex-1 pr-1 leading-snug break-words">
+                    <span class="text-slate-800 dark:text-slate-100 font-extrabold" x-text="toast.msg"></span>
+                </div>
 
-                <!-- Kruisje (Close Button) with reliable hit area & hover feedback -->
+                <!-- Distinct Kruisje (Close Button) with clean tactile hover -->
                 <button type="button" 
                         @click.stop.prevent="removeToast(toast.id)" 
-                        class="w-7 h-7 rounded-xl bg-black/15 hover:bg-black/30 active:scale-90 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 ml-auto p-0"
+                        class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 flex items-center justify-center transition cursor-pointer shrink-0 ml-1 p-0 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
                         title="Sluiten">
-                    <i class="fa-solid fa-xmark text-xs pointer-events-none"></i>
+                    <i class="fa-solid fa-xmark text-sm pointer-events-none"></i>
                 </button>
 
                 <!-- Tijdbalkje (Countdown Progress Bar) -->
-                <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-black/25 overflow-hidden">
-                    <div class="h-full bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.9)] tbs-toast-progress-bar"
+                <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-slate-100 dark:bg-slate-800/80 overflow-hidden">
+                    <div class="h-full tbs-toast-progress-bar"
+                         :class="{
+                             'tbs-toast-bar-success': toast.type === 'success',
+                             'tbs-toast-bar-error': toast.type === 'error' || toast.type === 'danger',
+                             'tbs-toast-bar-warning': toast.type === 'warning',
+                             'tbs-toast-bar-info': toast.type === 'info'
+                         }"
                          :style="{ animationDuration: (toast.duration || 4500) + 'ms' }"></div>
                 </div>
             </div>
