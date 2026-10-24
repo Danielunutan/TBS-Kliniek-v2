@@ -4,6 +4,21 @@
 @section('meta_description', 'Chat live met alle inmates op het Kliniek Plein of in de besloten Bende Chat, en stuur privéberichten.')
 
 @section('content')
+<style>
+    .tbs-chat-wrapper {
+        height: 740px;
+        max-height: calc(100vh - 210px);
+        min-height: 520px;
+    }
+    @media (max-width: 768px) {
+        .tbs-chat-wrapper {
+            height: calc(100dvh - 175px);
+            max-height: none;
+            min-height: 460px;
+        }
+    }
+</style>
+
 <div class="space-y-4" 
      x-data="tbsLiveMessenger({
         authCharId: {{ $character->id }},
@@ -25,7 +40,7 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-800 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
                     <i class="fa-solid fa-comments"></i>
                 </div>
                 <div>
@@ -93,13 +108,14 @@
         </div>
     </div>
 
-    <!-- MAIN MESSENGER CARD (DESKTOP 2-COLUMN & MOBILE RESPONSIVE) -->
-    <div class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/40 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row h-[740px] lg:h-[800px] relative">
+    <!-- MAIN MESSENGER CARD (CONSTRAINED HEIGHT & INTERNALLY SCROLLABLE) -->
+    <div class="tbs-chat-wrapper bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/40 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row relative"
+         style="height: 740px; max-height: calc(100vh - 210px); min-height: 520px;">
         
         <!-- ========================================== -->
         <!-- LEFT COLUMN: CHANNELS & CONVERSATIONS LIST -->
         <!-- ========================================== -->
-        <div class="w-full md:w-80 lg:w-96 shrink-0 border-r border-slate-200 dark:border-purple-900/40 flex flex-col bg-slate-50/70 dark:bg-[#0c041d]/70 h-full"
+        <div class="w-full md:w-80 lg:w-96 shrink-0 border-r border-slate-200 dark:border-purple-900/40 flex flex-col bg-slate-50/70 dark:bg-[#0c041d]/70 h-full min-h-0 overflow-hidden"
              :class="(mobileView === 'chat' && window.innerWidth < 768) ? 'hidden md:flex' : 'flex'">
             
             <!-- HEADER -->
@@ -145,7 +161,7 @@
 
             <!-- CHANNELS LIST (GLOBAL / GANG) -->
             <template x-if="activeTab === 'global' || activeTab === 'gang'">
-                <div class="p-3 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+                <div class="p-3 space-y-2 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                     
                     <!-- KANAAL 1: KLINIEK PLEIN -->
                     <button type="button" 
@@ -154,7 +170,7 @@
                                 ? 'bg-purple-50/90 dark:bg-purple-950/60 border-purple-400 dark:border-purple-700/80 shadow-xs ring-1 ring-purple-500/20' 
                                 : 'bg-white dark:bg-[#140830] border-slate-200 dark:border-purple-900/40 hover:bg-slate-100 dark:hover:bg-purple-950/30'"
                             class="w-full p-3 rounded-2xl border text-left transition flex items-center gap-3 cursor-pointer group">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center text-base shadow-sm shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shadow-sm shrink-0">
                             <i class="fa-solid fa-bullhorn"></i>
                         </div>
                         <div class="flex-1 min-w-0">
@@ -173,7 +189,7 @@
                                 ? 'bg-amber-50/80 dark:bg-amber-950/40 border-amber-400 dark:border-amber-700/80 shadow-xs ring-1 ring-amber-500/20' 
                                 : 'bg-white dark:bg-[#140830] border-slate-200 dark:border-purple-900/40 hover:bg-slate-100 dark:hover:bg-purple-950/30'"
                             class="w-full p-3 rounded-2xl border text-left transition flex items-center gap-3 cursor-pointer group">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 text-slate-950 flex items-center justify-center text-base shadow-sm shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-base shadow-sm shrink-0">
                             <i class="fa-solid fa-walkie-talkie"></i>
                         </div>
                         <div class="flex-1 min-w-0">
@@ -257,7 +273,7 @@
 
             <!-- DIRECT MESSAGES SEARCH & LIST -->
             <template x-if="activeTab === 'direct'">
-                <div class="p-3 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+                <div class="p-3 space-y-2 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                     <!-- QUICK SEARCH & INITIATE CHAT -->
                     <div class="relative" x-data="{ searchResults: [], isSearching: false, inmateQuery: '' }">
                         <div class="relative">
@@ -372,7 +388,7 @@
         <!-- ========================================== -->
         <!-- RIGHT COLUMN: MAIN ACTIVE CHAT WINDOW      -->
         <!-- ========================================== -->
-        <div class="flex-1 flex flex-col h-full bg-slate-50/40 dark:bg-[#0d041e]/50 min-w-0"
+        <div class="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-slate-50/50 dark:bg-[#0d041e]/50 overflow-hidden"
              :class="(mobileView === 'list' && window.innerWidth < 768) ? 'hidden md:flex' : 'flex'">
             
             <!-- CHAT TOP BAR -->
@@ -406,7 +422,7 @@
                     <!-- GANG HEADER -->
                     <template x-if="activeTab === 'gang'">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 text-slate-950 flex items-center justify-center text-base shadow-sm shrink-0">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-base shadow-sm shrink-0">
                                 <i class="fa-solid fa-walkie-talkie"></i>
                             </div>
                             <div class="min-w-0">
@@ -479,15 +495,15 @@
                 </div>
             </div>
 
-            <!-- CHAT STREAM CONTAINER -->
+            <!-- CHAT STREAM CONTAINER (CONSTRAINED WITH AUTO-SCROLL) -->
             <div id="tbsChatScrollContainer" 
-                 class="flex-1 overflow-y-auto overflow-x-hidden max-w-full p-4 sm:p-5 space-y-4 custom-scrollbar min-h-0">
+                 class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden max-w-full p-4 sm:p-5 space-y-3.5 custom-scrollbar">
                 
                 <!-- =============================== -->
                 <!-- 1. PUBLIC CHAT MESSAGES STREAM  -->
                 <!-- =============================== -->
                 <template x-if="activeTab === 'global'">
-                    <div class="space-y-3.5">
+                    <div class="space-y-3">
                         <template x-for="msg in publicMessagesList" :key="msg.id">
                             <div class="flex items-start gap-2.5 sm:gap-3 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                 <!-- AVATAR -->
@@ -591,11 +607,11 @@
                                         </div>
                                     </template>
 
-                                    <!-- BUBBLE & HEART REACTION -->
+                                    <!-- BUBBLE & HEART REACTION (COLORS IDENTICAL TO MINI CHAT) -->
                                     <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                        <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                        <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                              :class="msg.is_me 
-                                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-xs text-left' 
+                                                ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                 : (msg.is_owner 
                                                     ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/60 text-slate-900 dark:text-amber-100 rounded-tl-xs text-left'
                                                     : (msg.is_admin || msg.is_moderator 
@@ -686,7 +702,7 @@
                                     @csrf
                                     <input type="hidden" name="item_type" value="gang_chat">
                                     <input type="hidden" name="quantity" value="1">
-                                    <button type="submit" :disabled="characterStars < 500 && gangStars < 500" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5">
+                                    <button type="submit" :disabled="characterStars < 500 && gangStars < 500" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5">
                                         <i class="fa-solid fa-cart-shopping"></i>
                                         <span>Koop Bende Chat (500 ⭐)</span>
                                     </button>
@@ -696,7 +712,7 @@
 
                         <!-- SCENARIO C: IN GANG & CHAT UNLOCKED -->
                         <template x-if="hasGang && gangHasChat">
-                            <div class="space-y-3.5">
+                            <div class="space-y-3">
                                 <template x-for="msg in gangMessagesList" :key="msg.id">
                                     <div class="flex items-start gap-2.5 sm:gap-3 group min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
                                         <!-- AVATAR -->
@@ -802,9 +818,9 @@
 
                                             <!-- BUBBLE & HEART REACTION -->
                                             <div class="flex items-center gap-1.5 min-w-0 max-w-full" :class="msg.is_me ? 'flex-row-reverse' : ''">
-                                                <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                                <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                                      :class="msg.is_me 
-                                                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-xs text-left' 
+                                                        ? 'bg-purple-600 text-white rounded-tr-xs text-left' 
                                                         : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
                                                      x-html="formatMessage(msg.message, msg.is_me)"></div>
 
@@ -813,52 +829,19 @@
                                                         :title="msg.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
                                                         class="shrink-0 p-1.5 rounded-full text-xs transition cursor-pointer flex items-center gap-1"
                                                         :class="msg.has_hearted ? 'text-purple-400 scale-110 font-black' : 'text-slate-400/70 hover:text-purple-400'">
-                                                    <span>💜</span>
-                                                    <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
-                                                </button>
-                                            </div>
-
-                                        </div>
+                                            <span>💜</span>
+                                            <span x-show="msg.hearts_count > 0" x-text="msg.hearts_count" class="text-[10px] font-black font-mono"></span>
+                                        </button>
                                     </div>
-                                </template>
 
-                                <template x-if="gangMessagesList.length === 0">
-                                    <div class="py-16 text-center text-slate-400 text-xs">
-                                        <i class="fa-solid fa-walkie-talkie text-3xl mb-2 block opacity-40"></i>
-                                        Nog geen berichten in de bende portofoon. Bespreek strategieën en overvallen met je bendeleden!
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-
-                    </div>
-                </template>
-
-                <!-- =============================== -->
-                <!-- 3. DIRECT MESSAGES STREAM       -->
-                <!-- =============================== -->
-                <template x-if="activeTab === 'direct'">
-                    <div class="space-y-3.5">
-                        <template x-for="dm in directMessagesList" :key="dm.id">
-                            <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                                <img :src="dm.sender_avatar" 
-                                     class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
-                                     onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
-                                <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                    <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
-                                        <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name"></span>
-                                        <span class="text-slate-400 text-[10px]" x-text="dm.created_at"></span>
-                                    </div>
-                                    <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
-                                         :class="dm.is_me ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
-                                         x-html="formatMessage(dm.message, dm.is_me)"></div>
                                 </div>
                             </div>
                         </template>
 
-                        <template x-if="directMessagesList.length === 0">
+                        <template x-if="gangMessagesList.length === 0">
                             <div class="py-16 text-center text-slate-400 text-xs">
-                                Geen berichten in dit gesprek. Stuur een bericht om te beginnen!
+                                <i class="fa-solid fa-walkie-talkie text-3xl mb-2 block opacity-40"></i>
+                                Nog geen berichten in de bende portofoon. Bespreek strategieën en overvallen met je bendeleden!
                             </div>
                         </template>
                     </div>
@@ -866,171 +849,201 @@
 
             </div>
 
-            <!-- CHAT INPUT BAR (GLOBAL / GANG / DIRECT) -->
-            <div class="p-3 sm:p-4 bg-white dark:bg-[#12072b] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-2">
-                
-                <!-- Disable input on locked gang states -->
-                <template x-if="activeTab === 'gang' && (!hasGang || !gangHasChat)">
-                    <div class="text-center py-2 text-xs text-slate-400 italic">
-                        <span x-text="!hasGang ? 'Sluit je aan bij een bende om berichten te sturen.' : 'Ontgrendel de portofoon om berichten te sturen.'"></span>
-                    </div>
-                </template>
-
-                <template x-if="activeTab === 'global' || activeTab === 'direct' || (activeTab === 'gang' && hasGang && gangHasChat)">
-                    <div class="space-y-2">
-                        
-                        <!-- REPLY QUOTE PREVIEW BANNER -->
-                        <template x-if="replyingTo">
-                            <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-3 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    <i class="fa-solid fa-reply text-purple-500"></i>
-                                    <span class="font-bold">Reageren op <span class="font-black text-purple-600 dark:text-purple-300" x-text="'@' + replyingTo.name"></span>:</span>
-                                    <span class="truncate italic opacity-80" x-text="'\"' + replyingTo.text + '\"'"></span>
+            <!-- =============================== -->
+            <!-- 3. DIRECT MESSAGES STREAM       -->
+            <!-- =============================== -->
+            <template x-if="activeTab === 'direct'">
+                <div class="space-y-3">
+                    <template x-for="dm in directMessagesList" :key="dm.id">
+                        <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                            <img :src="dm.sender_avatar" 
+                                 class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
+                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                            <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
+                                    <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name"></span>
+                                    <span class="text-slate-400 text-[10px]" x-text="dm.created_at"></span>
                                 </div>
-                                <button type="button" @click="cancelReply()" class="text-slate-400 hover:text-rose-500 ml-2 font-black cursor-pointer text-xs" title="Annuleren">
-                                    &times;
-                                </button>
+                                <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                     x-html="formatMessage(dm.message, dm.is_me)"></div>
                             </div>
-                        </template>
+                        </div>
+                    </template>
 
-                        <!-- QUICK EMOJI TOOLBAR -->
-                        <div class="flex items-center gap-1 overflow-x-auto pb-1 text-sm select-none custom-scrollbar">
-                            <template x-for="s in ['💜','🔥','😂','👑','💀','🔫','💊','💉','💰','👊','👀','💯','🚨','⭐']" :key="s">
-                                <button type="button" 
-                                        @click="insertEmoji(s)" 
-                                        class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/60 transition cursor-pointer shrink-0" 
-                                        :title="'Voeg ' + s + ' toe'">
-                                    <span x-text="s"></span>
-                                </button>
-                            </template>
+                    <template x-if="directMessagesList.length === 0">
+                        <div class="py-16 text-center text-slate-400 text-xs">
+                            Geen berichten in dit gesprek. Stuur een bericht om te beginnen!
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+        </div>
+
+        <!-- CHAT INPUT BAR (GLOBAL / GANG / DIRECT) -->
+        <div class="p-3 sm:p-4 bg-white dark:bg-[#12072b] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-2">
+            
+            <!-- Disable input on locked gang states -->
+            <template x-if="activeTab === 'gang' && (!hasGang || !gangHasChat)">
+                <div class="text-center py-2 text-xs text-slate-400 italic">
+                    <span x-text="!hasGang ? 'Sluit je aan bij een bende om berichten te sturen.' : 'Ontgrendel de portofoon om berichten te sturen.'"></span>
+                </div>
+            </template>
+
+            <template x-if="activeTab === 'global' || activeTab === 'direct' || (activeTab === 'gang' && hasGang && gangHasChat)">
+                <div class="space-y-2">
+                    
+                    <!-- REPLY QUOTE PREVIEW BANNER -->
+                    <template x-if="replyingTo">
+                        <div class="flex items-center justify-between bg-purple-50 dark:bg-purple-950/80 px-3 py-1.5 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200">
+                            <div class="flex items-center gap-1.5 truncate">
+                                <i class="fa-solid fa-reply text-purple-500"></i>
+                                <span class="font-bold">Reageren op <span class="font-black text-purple-600 dark:text-purple-300" x-text="'@' + replyingTo.name"></span>:</span>
+                                <span class="truncate italic opacity-80" x-text="'\"' + replyingTo.text + '\"'"></span>
+                            </div>
+                            <button type="button" @click="cancelReply()" class="text-slate-400 hover:text-rose-500 ml-2 font-black cursor-pointer text-xs" title="Annuleren">
+                                &times;
+                            </button>
+                        </div>
+                    </template>
+
+                    <!-- QUICK EMOJI TOOLBAR -->
+                    <div class="flex items-center gap-1 overflow-x-auto pb-1 text-sm select-none custom-scrollbar">
+                        <template x-for="s in ['💜','🔥','😂','👑','💀','🔫','💊','💉','💰','👊','👀','💯','🚨','⭐']" :key="s">
+                            <button type="button" 
+                                    @click="insertEmoji(s)" 
+                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/60 transition cursor-pointer shrink-0" 
+                                    :title="'Voeg ' + s + ' toe'">
+                                <span x-text="s"></span>
+                            </button>
+                        </template>
+                    </div>
+
+                    <!-- INPUT FORM WITH EMOJI DRAWER & MENTION AUTOCOMPLETE -->
+                    <form @submit.prevent="sendMessage()" class="flex items-center gap-2 relative">
+                        
+                        <!-- EMOJI DRAWER TOGGLE BUTTON & POPUP -->
+                        <div class="relative">
+                            <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
+                                <i class="fa-regular fa-face-smile"></i>
+                            </button>
+
+                            <!-- Emoji Drawer Popup -->
+                            <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
+                                 class="absolute bottom-full left-0 mb-3 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
+                                <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys & Misdaad</span>
+                                    <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
+                                </div>
+                                <div class="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                    <div>
+                                        <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Gezichten</span>
+                                        <div class="grid grid-cols-6 gap-1">
+                                            <template x-for="s in ['😀','😂','🤣','😎','😍','🤫','😡','💀','🤡','😈','😱','🥳']" :key="s">
+                                                <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-[9px] font-bold text-slate-400 block mb-0.5">TBS & Misdaad</span>
+                                        <div class="grid grid-cols-6 gap-1">
+                                            <template x-for="s in ['🔥','💰','💉','🚬','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
+                                                <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Symbolen</span>
+                                        <div class="grid grid-cols-6 gap-1">
+                                            <template x-for="s in ['💜','❤️','👑','⭐','⚡','🎉','👍','👎','🖕','💯','🎯','👀']" :key="s">
+                                                <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- INPUT FORM WITH EMOJI DRAWER & MENTION AUTOCOMPLETE -->
-                        <form @submit.prevent="sendMessage()" class="flex items-center gap-2 relative">
+                        <!-- MENTION AUTOCOMPLETE DROPDOWN (Above Chat Input) -->
+                        <div x-show="showMentionDropdown && mentionUsers.length > 0"
+                             @click.away="showMentionDropdown = false"
+                             x-cloak
+                             class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-[#150a30] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
                             
-                            <!-- EMOJI DRAWER TOGGLE BUTTON & POPUP -->
-                            <div class="relative">
-                                <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
-                                    <i class="fa-regular fa-face-smile"></i>
-                                </button>
-
-                                <!-- Emoji Drawer Popup -->
-                                <div x-show="showEmojiPicker" @click.outside="showEmojiPicker = false" x-cloak
-                                     class="absolute bottom-full left-0 mb-3 w-64 bg-white dark:bg-[#160a33] border border-slate-200 dark:border-purple-800 rounded-2xl p-3 shadow-2xl z-50 space-y-2.5">
-                                    <div class="flex items-center justify-between pb-1 border-b border-slate-100 dark:border-purple-900/40">
-                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Smileys & Misdaad</span>
-                                        <button type="button" @click="showEmojiPicker = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs">&times;</button>
-                                    </div>
-                                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                                        <div>
-                                            <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Gezichten</span>
-                                            <div class="grid grid-cols-6 gap-1">
-                                                <template x-for="s in ['😀','😂','🤣','😎','😍','🤫','😡','💀','🤡','😈','😱','🥳']" :key="s">
-                                                    <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
-                                                </template>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span class="text-[9px] font-bold text-slate-400 block mb-0.5">TBS & Misdaad</span>
-                                            <div class="grid grid-cols-6 gap-1">
-                                                <template x-for="s in ['🔥','💰','💉','🚬','🚬','🔪','💣','💊','🩸','⛓️','🔒','🥊']" :key="s">
-                                                    <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
-                                                </template>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span class="text-[9px] font-bold text-slate-400 block mb-0.5">Symbolen</span>
-                                            <div class="grid grid-cols-6 gap-1">
-                                                <template x-for="s in ['💜','❤️','👑','⭐','⚡','🎉','👍','👎','🖕','💯','🎯','👀']" :key="s">
-                                                    <button type="button" @click="insertEmoji(s)" class="h-7 rounded hover:bg-purple-100 dark:hover:bg-purple-900/50 text-sm flex items-center justify-center transition cursor-pointer" x-text="s"></button>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="px-3.5 py-2 bg-slate-50 dark:bg-purple-950/80 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-purple-300 border-b border-slate-100 dark:border-purple-900/40">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-at text-purple-600 dark:text-purple-400 text-xs"></i>
+                                    <span>Speler Vermelden</span>
+                                </span>
+                                <span class="text-[10px] text-slate-400 font-normal">↑↓ navigeer • enter kies</span>
                             </div>
 
-                            <!-- MENTION AUTOCOMPLETE DROPDOWN (Above Chat Input) -->
-                            <div x-show="showMentionDropdown && mentionUsers.length > 0"
-                                 @click.away="showMentionDropdown = false"
-                                 x-cloak
-                                 class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-[#150a30] border border-slate-200 dark:border-purple-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-purple-900/40">
-                                
-                                <div class="px-3.5 py-2 bg-slate-50 dark:bg-purple-950/80 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-purple-300 border-b border-slate-100 dark:border-purple-900/40">
-                                    <span class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-at text-purple-600 dark:text-purple-400 text-xs"></i>
-                                        <span>Speler Vermelden</span>
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 font-normal">↑↓ navigeer • enter kies</span>
-                                </div>
-
-                                <div class="max-h-56 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
-                                    <template x-for="(user, idx) in mentionUsers" :key="user.id">
-                                        <div @click="selectMention(user)"
-                                             @mouseenter="mentionSelectedIndex = idx"
-                                             :class="mentionSelectedIndex === idx ? 'bg-purple-50 dark:bg-purple-950/70 border-l-4 border-purple-600' : 'hover:bg-slate-50 dark:hover:bg-purple-950/40 border-l-4 border-transparent'"
-                                             class="px-3 py-2 rounded-xl flex items-center justify-between gap-2.5 cursor-pointer transition">
-                                            <div class="flex items-center gap-2.5 min-w-0">
-                                                <div class="relative shrink-0">
-                                                    <img :src="user.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
-                                                         class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60"
-                                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
-                                                    <span x-show="user.is_online" 
-                                                          class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-slate-900" 
-                                                          title="Online"></span>
+                            <div class="max-h-56 overflow-y-auto p-1 space-y-0.5 custom-scrollbar">
+                                <template x-for="(user, idx) in mentionUsers" :key="user.id">
+                                    <div @click="selectMention(user)"
+                                         @mouseenter="mentionSelectedIndex = idx"
+                                         :class="mentionSelectedIndex === idx ? 'bg-purple-50 dark:bg-purple-950/70 border-l-4 border-purple-600' : 'hover:bg-slate-50 dark:hover:bg-purple-950/40 border-l-4 border-transparent'"
+                                         class="px-3 py-2 rounded-xl flex items-center justify-between gap-2.5 cursor-pointer transition">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <div class="relative shrink-0">
+                                                <img :src="user.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
+                                                     class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60"
+                                                     onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                                <span x-show="user.is_online" 
+                                                      class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-slate-900" 
+                                                      title="Online"></span>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="user.name"></span>
+                                                    <template x-if="user.gang_tag">
+                                                        <span class="text-[9px] font-black uppercase text-purple-600 dark:text-purple-400" x-text="'[' + user.gang_tag + ']'"></span>
+                                                    </template>
                                                 </div>
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-1.5">
-                                                        <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="user.name"></span>
-                                                        <template x-if="user.gang_tag">
-                                                            <span class="text-[9px] font-black uppercase text-purple-600 dark:text-purple-400" x-text="'[' + user.gang_tag + ']'"></span>
-                                                        </template>
-                                                    </div>
-                                                    <div class="text-[10px] text-slate-400 flex items-center gap-1.5">
-                                                        <span x-text="'Lvl ' + user.level"></span>
-                                                        <template x-if="user.staff_role">
-                                                            <span class="font-bold text-amber-500" x-text="user.staff_role"></span>
-                                                        </template>
-                                                    </div>
+                                                <div class="text-[10px] text-slate-400 flex items-center gap-1.5">
+                                                    <span x-text="'Lvl ' + user.level"></span>
+                                                    <template x-if="user.staff_role">
+                                                        <span class="font-bold text-amber-500" x-text="user.staff_role"></span>
+                                                    </template>
                                                 </div>
                                             </div>
-
-                                            <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 shrink-0">
-                                                Kies
-                                            </span>
                                         </div>
-                                    </template>
-                                </div>
-                            </div>
 
-                            <!-- TEXT INPUT FIELD -->
-                            <div class="relative flex-1 flex items-center min-w-0">
-                                <input type="text" 
-                                       x-model="messageInput"
-                                       x-ref="messageInputField"
-                                       @input="onMessageInput($event)"
-                                       @keydown="onMessageKeydown($event)"
-                                       :placeholder="activeTab === 'direct' ? 'Stuur een privébericht of @speler... (max 500 tekens)' : (activeTab === 'gang' ? 'Typ een bericht voor je bende... (max 250 tekens)' : 'Typ een bericht of @speler... (max 250 tekens)')"
-                                       :maxlength="activeTab === 'direct' ? 500 : 250"
-                                       class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-[#0f0524] rounded-xl px-4 py-2.5 sm:py-3 pr-16 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
-                                <span x-show="messageInput.length > (activeTab === 'direct' ? 350 : 150)" x-cloak
-                                      class="absolute right-3 text-[11px] font-mono pointer-events-none"
-                                      :class="messageInput.length >= (activeTab === 'direct' ? 500 : 250) ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
-                                      x-text="messageInput.length + '/' + (activeTab === 'direct' ? 500 : 250)"></span>
+                                        <span class="text-[10px] font-bold text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 shrink-0">
+                                            Kies
+                                        </span>
+                                    </div>
+                                </template>
                             </div>
-                            
-                            <!-- SEND BUTTON -->
-                            <button type="submit" 
-                                    :disabled="isSending || messageInput.trim() === ''"
-                                    class="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
-                                <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
-                                <span class="hidden sm:inline">Verstuur</span>
-                            </button>
-                        </form>
-                    </div>
-                </template>
-            </div>
+                        </div>
 
+                        <!-- TEXT INPUT FIELD -->
+                        <div class="relative flex-1 flex items-center min-w-0">
+                            <input type="text" 
+                                   x-model="messageInput"
+                                   x-ref="messageInputField"
+                                   @input="onMessageInput($event)"
+                                   @keydown="onMessageKeydown($event)"
+                                   :placeholder="activeTab === 'direct' ? 'Stuur een privébericht of @speler... (max 500 tekens)' : (activeTab === 'gang' ? 'Typ een bericht voor je bende... (max 250 tekens)' : 'Typ een bericht of @speler... (max 250 tekens)')"
+                                   :maxlength="activeTab === 'direct' ? 500 : 250"
+                                   class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-[#0f0524] rounded-xl px-4 py-2.5 sm:py-3 pr-16 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                            <span x-show="messageInput.length > (activeTab === 'direct' ? 350 : 150)" x-cloak
+                                  class="absolute right-3 text-[11px] font-mono pointer-events-none"
+                                  :class="messageInput.length >= (activeTab === 'direct' ? 500 : 250) ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
+                                  x-text="messageInput.length + '/' + (activeTab === 'direct' ? 500 : 250)"></span>
+                        </div>
+                        
+                        <!-- SEND BUTTON -->
+                        <button type="submit" 
+                                :disabled="isSending || messageInput.trim() === ''"
+                                class="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                            <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
+                            <span class="hidden sm:inline">Verstuur</span>
+                        </button>
+                    </form>
+                </div>
+            </template>
         </div>
 
     </div>
@@ -1107,7 +1120,7 @@ function tbsLiveMessenger(config) {
             safe = safe.replace(mentionRegex, (match, username) => {
                 const url = '/speler/' + encodeURIComponent(username);
                 if (isMe) {
-                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-2xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
                 } else {
                     return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
                 }
