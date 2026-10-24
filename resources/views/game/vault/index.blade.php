@@ -4,14 +4,14 @@
 <div class="space-y-6">
 
     <!-- Top Hero Banner (Clean & Modern TBS Style) -->
-    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 relative overflow-hidden bg-white border border-slate-200">
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-3">
-                    <i class="fa-solid fa-vault text-purple-600"></i> MedicijnKluis & Vouchers
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60 mb-3">
+                    <i class="fa-solid fa-vault text-purple-600 dark:text-purple-400"></i> MedicijnKluis & Vouchers
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Suikerkluis</h1>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Suikerkluis</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Kluiscodes die je scoort of koopt worden automatisch aan je account gekoppeld. Wissel ze hieronder direct in per code of kraak ze allemaal in één klik voor 100% wit bankgeld, sterren, respect en maskers!
                 </p>
             </div>
@@ -53,99 +53,102 @@
         </div>
     </div>
 
+    <!-- Controlepunt: De Medicijnkluis Gang -->
+    @include('game.control_points.banner', ['slug' => 'medicijnkluis'])
+
     <!-- MAIN TWO COLUMN GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
         <!-- Left Column: Wat kun je scoren? Card -->
-        <div class="lg:col-span-4 bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col justify-between">
+        <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs flex flex-col justify-between">
             <div>
-                <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-5">
-                    <i class="fa-solid fa-circle-info text-purple-600"></i>
+                <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider mb-5">
+                    <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400"></i>
                     <span>Wat kun je scoren?</span>
                 </div>
 
                 <div class="space-y-3.5">
                     <!-- Reward 1: Kluisgeld -->
-                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="w-11 h-11 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0">
                             <i class="fa-solid fa-sack-dollar"></i>
                         </div>
                         <div>
-                            <div class="text-base font-extrabold text-slate-900">€32.078.000</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Kluisgeld (Wit Bankgeld)</div>
+                            <div class="text-base font-extrabold text-slate-900 dark:text-white">€32.078.000</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-400">Kluisgeld (Wit Bankgeld)</div>
                         </div>
                     </div>
 
                     <!-- Reward 2: Diamanten / Sterren -->
-                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl shrink-0">
                             <i class="fa-solid fa-gem"></i>
                         </div>
                         <div>
-                            <div class="text-base font-extrabold text-slate-900">20 Diamanten</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Exclusieve Sterren</div>
+                            <div class="text-base font-extrabold text-slate-900 dark:text-white">20 Diamanten</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-400">Exclusieve Sterren</div>
                         </div>
                     </div>
 
                     <!-- Reward 3: Slay / Respect -->
-                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="w-11 h-11 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl shrink-0">
+                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0">
                             <i class="fa-solid fa-fire"></i>
                         </div>
                         <div>
-                            <div class="text-base font-extrabold text-slate-900">748.44</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Slay & Respect</div>
+                            <div class="text-base font-extrabold text-slate-900 dark:text-white">748.44</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-400">Slay & Respect</div>
                         </div>
                     </div>
 
                     <!-- Reward 4: Maskers -->
-                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                        <div class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+                    <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl shrink-0">
                             <i class="fa-solid fa-mask"></i>
                         </div>
                         <div>
-                            <div class="text-base font-extrabold text-slate-900">1 Masker</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Voor Zakkenrollen</div>
+                            <div class="text-base font-extrabold text-slate-900 dark:text-white">1 Masker</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-400">Voor Zakkenrollen</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="pt-5 mt-5 border-t border-slate-100 text-xs text-slate-500 flex items-center gap-2">
-                <i class="fa-solid fa-building-columns text-emerald-600"></i>
+            <div class="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-building-columns text-emerald-600 dark:text-emerald-400"></i>
                 <span>Alle gekraakte bedragen worden direct 100% wit op je bankrekening gestort.</span>
             </div>
         </div>
 
         <!-- Right Column: Suikerkluis Card -->
-        <div class="lg:col-span-8 bg-white border border-slate-200 rounded-xl p-6 sm:p-7 shadow-xs flex flex-col justify-between space-y-5">
+        <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-7 shadow-xs flex flex-col justify-between space-y-5">
             <div class="space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2.5 text-base font-extrabold text-slate-900">
-                        <i class="fa-solid fa-vault text-purple-600 text-lg"></i>
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <div class="flex items-center gap-2.5 text-base font-extrabold text-slate-900 dark:text-white">
+                        <i class="fa-solid fa-vault text-purple-600 dark:text-purple-400 text-lg"></i>
                         <span>Suikerkluis Kraakpaneel</span>
                     </div>
                     @if(isset($myCodes) && $myCodes->count() > 0)
-                        <span class="px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold font-mono">
+                        <span class="px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 text-xs font-bold font-mono">
                             {{ $myCodes->count() }} code(s) beschikbaar
                         </span>
                     @endif
                 </div>
 
-                <p class="text-xs text-slate-600 leading-relaxed">
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Kluiscodes die je koopt of scoort via drops en battles worden automatisch aan je account gekoppeld. Wissel ze hieronder direct in of kraak ze allemaal in één keer!
                 </p>
 
                 @if(isset($myCodes) && $myCodes->count() > 0)
                     <!-- Active Instant Batch Crack Banner -->
-                    <div class="p-5 rounded-xl bg-purple-50/70 border border-purple-200 space-y-4">
+                    <div class="p-5 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 space-y-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <div class="text-sm font-extrabold text-purple-950 flex items-center gap-2">
-                                    <i class="fa-solid fa-key text-purple-600"></i>
+                                <div class="text-sm font-extrabold text-purple-950 dark:text-purple-200 flex items-center gap-2">
+                                    <i class="fa-solid fa-key text-purple-600 dark:text-purple-400"></i>
                                     <span>Je hebt {{ $myCodes->count() }} kluiscode(s) klaarstaan!</span>
                                 </div>
-                                <div class="text-xs text-purple-700 mt-0.5">
+                                <div class="text-xs text-purple-700 dark:text-purple-400 mt-0.5">
                                     Geen gedoe met overtikken: kraak ze allemaal direct in één klik voor alle prijzen.
                                 </div>
                             </div>
@@ -163,12 +166,12 @@
                     </div>
                 @else
                     <!-- No Codes State Banner -->
-                    <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-3">
-                        <div class="text-xs text-slate-500">
+                    <div class="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 text-center space-y-3">
+                        <div class="text-xs text-slate-500 dark:text-slate-400">
                             Momenteel geen actieve kluiscodes op je account. Scoor codes via missies, drops of in de winkel!
                         </div>
                         <a href="{{ route('shop.index') }}" 
-                           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider shadow-xs transition">
+                           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider shadow-xs transition">
                             <i class="fa-solid fa-cart-shopping"></i> Koop Kluiscodes in de Winkel
                         </a>
                     </div>
@@ -176,14 +179,14 @@
 
                 <!-- Optional Compact Manual Code Input (for promo codes) -->
                 <details class="group pt-2" {{ !empty($prefillCode) ? 'open' : '' }}>
-                    <summary class="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer flex items-center gap-1.5 list-none select-none">
+                    <summary class="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer flex items-center gap-1.5 list-none select-none">
                         <i class="fa-solid fa-chevron-right text-[10px] group-open:rotate-90 transition-transform"></i>
                         <span>Heb je een externe / voucher kluiscode? Typ hem hier in</span>
                     </summary>
                     <form action="{{ route('vault.redeem') }}" method="POST" class="mt-3 flex gap-2">
                         @csrf
                         <input type="text" name="code" value="{{ old('code', $prefillCode ?? '') }}" placeholder="Bijv. SPONSOR-1234 of KLUIS-X" 
-                               class="flex-1 bg-white border border-slate-300 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 placeholder-slate-400 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                               class="flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
                         <button type="submit" 
                                 class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer">
                             Inwisselen
@@ -192,8 +195,8 @@
                 </details>
             </div>
 
-            <div class="pt-4 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500">
-                <i class="fa-solid fa-shield-halved text-purple-600"></i>
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
                 <span>Direct 100% wit geld op je bankrekening gestort zonder verlies.</span>
             </div>
         </div>
@@ -201,10 +204,10 @@
     </div>
 
     <!-- Mijn Kluiscodes List (Directly Clickable Cards) -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                <i class="fa-solid fa-key text-purple-600"></i>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
+                <i class="fa-solid fa-key text-purple-600 dark:text-purple-400"></i>
                 <span>Mijn kluiscodes</span>
             </div>
             @if(isset($myCodes) && $myCodes->count() > 0)
@@ -212,12 +215,12 @@
                     <form action="{{ route('vault.redeem') }}" method="POST">
                         @csrf
                         <input type="hidden" name="redeem_all" value="1">
-                        <button type="submit" class="text-xs font-bold text-purple-600 hover:text-purple-700 transition cursor-pointer flex items-center gap-1.5">
+                        <button type="submit" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition cursor-pointer flex items-center gap-1.5">
                             <i class="fa-solid fa-bolt"></i>
                             <span>Kraak alle ({{ $myCodes->count() }})</span>
                         </button>
                     </form>
-                    <a href="{{ route('marketplace.index') }}" class="text-xs font-bold text-slate-500 hover:text-purple-600 transition flex items-center gap-1">
+                    <a href="{{ route('marketplace.index') }}" class="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition flex items-center gap-1">
                         <i class="fa-solid fa-scale-balanced"></i>
                         <span>Aanbieden op Marktplaats &rarr;</span>
                     </a>
@@ -228,20 +231,20 @@
         @if(isset($myCodes) && $myCodes->count() > 0)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 @foreach($myCodes as $c)
-                    <div class="p-4 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 hover:border-purple-300 transition shadow-xs flex flex-col justify-between gap-3">
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 hover:border-purple-300 dark:hover:border-purple-500 transition shadow-xs flex flex-col justify-between gap-3">
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
-                                <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-700 font-mono text-xs font-extrabold tracking-wider inline-flex items-center gap-1.5">
-                                    <i class="fa-solid fa-key text-purple-600 text-[10px]"></i>
+                                <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono text-xs font-extrabold tracking-wider inline-flex items-center gap-1.5">
+                                    <i class="fa-solid fa-key text-purple-600 dark:text-purple-400 text-[10px]"></i>
                                     <span>{{ $c->code }}</span>
                                 </span>
                                 <span class="text-[10px] text-slate-400 font-bold">Klaar</span>
                             </div>
                             <div class="text-xs space-y-0.5 pt-1">
-                                <div class="font-extrabold text-emerald-700">
+                                <div class="font-extrabold text-emerald-700 dark:text-emerald-400">
                                     +€{{ number_format($c->reward_cash, 0, ',', '.') }} wit bankgeld
                                 </div>
-                                <div class="text-[11px] text-slate-500 font-medium">
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                                     +{{ $c->reward_stars }} Sterren &bull; +1 Masker &bull; +5 Respect
                                 </div>
                             </div>
@@ -252,7 +255,7 @@
                                 @csrf
                                 <input type="hidden" name="code_id" value="{{ $c->id }}">
                                 <button type="submit" 
-                                        class="w-full py-2 px-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold uppercase tracking-wider transition flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                        class="w-full py-2 px-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white text-[11px] font-bold uppercase tracking-wider transition flex items-center justify-center gap-1 shadow-xs cursor-pointer"
                                         title="Kraak de kluis met deze code">
                                     <i class="fa-solid fa-unlock"></i>
                                     <span>Kraken</span>
@@ -275,12 +278,12 @@
         @else
             <!-- Empty State matching site layout -->
             <div class="py-10 text-center space-y-4">
-                <p class="text-sm font-bold text-slate-600">
+                <p class="text-sm font-bold text-slate-600 dark:text-slate-400">
                     Je hebt 0 kluiscodes klaar voor actie, ouleh.
                 </p>
                 <div>
                     <a href="{{ route('shop.index') }}" 
-                       class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs">
+                       class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs">
                         <i class="fa-solid fa-cart-shopping"></i>
                         <span>KOOP KLUISCODES</span>
                     </a>
@@ -290,8 +293,8 @@
     </div>
 
     <!-- Bottom Podium Ranglijst (Top 10 Avatars, Clean TBS Style) -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">
-        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-5">
+        <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
             <i class="fa-solid fa-trophy text-amber-500"></i>
             <span>RANGLIJST TOP 10</span>
         </div>
@@ -301,7 +304,7 @@
             <div class="flex flex-col items-center text-center group">
                 <div class="relative mb-2">
                     <img src="{{ $player->avatar_url }}" alt="{{ $player->name }}" 
-                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200') }} group-hover:scale-105 transition-transform shadow-xs">
+                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover border-2 {{ $index === 0 ? 'border-amber-400 ring-2 ring-amber-400/30' : ($index === 1 ? 'border-purple-400' : 'border-slate-200 dark:border-slate-700') }} group-hover:scale-105 transition-transform shadow-xs">
                     
                     <!-- Rank Badge Number -->
                     <span class="absolute -top-1 -left-1 w-5 h-5 rounded-full {{ $index === 0 ? 'bg-amber-400 text-slate-950 font-black' : ($index < 3 ? 'bg-purple-600 text-white font-black' : 'bg-slate-800 text-white font-bold') }} text-[10px] flex items-center justify-center shadow-xs">
@@ -309,7 +312,7 @@
                     </span>
                 </div>
 
-                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 group-hover:text-purple-600 transition truncate w-full block">
+                <a href="{{ route('profile.show', $player->name) }}" class="text-xs font-bold text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate w-full block">
                     {{ $player->name }}
                 </a>
                 <span class="text-[10px] font-bold text-slate-400">

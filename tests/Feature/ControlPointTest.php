@@ -52,11 +52,8 @@ class ControlPointTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('control-points.index'));
 
-        $response->assertOk();
-        $response->assertSee('Kliniek Controlepunten');
-        $response->assertSee('De Luchtplaats');
-        $response->assertSee('De Kantine');
-        $response->assertSee('Fitness');
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('info');
     }
 
     public function test_player_can_claim_free_control_point(): void

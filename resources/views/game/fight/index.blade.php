@@ -3,6 +3,9 @@
 @section('content')
 <div class="space-y-6" x-data="{ searchQuery: '' }">
 
+    <!-- Controlepunt: Het Bankje bij het Hek -->
+    @include('game.control_points.banner', ['slug' => 'luchtplaats'])
+
     <!-- Top Hero Banner (Clean TBS White Style) -->
     <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">

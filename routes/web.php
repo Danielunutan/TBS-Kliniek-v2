@@ -507,7 +507,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/gangs/garage/ophalen/{characterVehicle}', [GangPropertyController::class, 'retrieveVehicle'])->name('gangs.garage.retrieve-vehicle');
 
     // Controlepunten (King of the Hill - Verover en Verdien)
-    Route::get('/controlepunten', [ControlPointController::class, 'index'])->name('control-points.index');
+    Route::get('/controlepunten', fn () => redirect()->route('dashboard')->with('info', 'De centrale controlepunten-pagina is opgeheven. Controlepunten kun je nu uitsluitend direct op de locaties zelf (Luchtplaats, Kantine, Sportzaal, Depot en Medicijnkluis) opeisen of overnemen!'))->name('control-points.index');
     Route::post('/controlepunten/{point}/claim', [ControlPointController::class, 'capture'])->name('control-points.capture');
 
     // Marktplaats (Marketplace)
