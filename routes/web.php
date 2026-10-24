@@ -177,13 +177,13 @@ Route::middleware('auth')->group(function (): void {
     // Live Openbare Chat & Privé Messenger (Nieuw)
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/openbaar/berichten', [ChatController::class, 'publicMessages'])->name('chat.public.messages');
-    Route::post('/chat/openbaar/verzenden', [ChatController::class, 'sendPublic'])->name('chat.public.send');
+    Route::post('/chat/openbaar/verzenden', [ChatController::class, 'sendPublic'])->middleware('throttle:30,1')->name('chat.public.send');
     Route::post('/chat/openbaar/{id}/hartje', [ChatController::class, 'togglePublicHeart'])->name('chat.public.heart');
     Route::delete('/chat/openbaar/{id}', [ChatController::class, 'deletePublicMessage'])->name('chat.public.delete');
     Route::get('/chat/zoek-spelers', [ChatController::class, 'searchPlayers'])->name('chat.search-players');
     Route::get('/chat/gesprekken', [ChatController::class, 'conversations'])->name('chat.conversations');
     Route::get('/chat/prive/{partnerId}', [ChatController::class, 'directMessages'])->name('chat.direct.messages');
-    Route::post('/chat/prive/{partnerId}/verzenden', [ChatController::class, 'sendDirect'])->name('chat.direct.send');
+    Route::post('/chat/prive/{partnerId}/verzenden', [ChatController::class, 'sendDirect'])->middleware('throttle:30,1')->name('chat.direct.send');
     Route::post('/chat/prive-bericht/{id}/hartje', [ChatController::class, 'toggleDirectHeart'])->name('chat.direct.heart');
     Route::delete('/chat/prive-bericht/{id}', [ChatController::class, 'deleteDirectMessage'])->name('chat.direct.delete');
     Route::get('/chat/ongelezen-teller', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
@@ -248,7 +248,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Crime & Theft
     Route::get('/diefstal', [TheftController::class, 'index'])->name('theft.index');
-    Route::post('/diefstal', [TheftController::class, 'steal'])->name('theft.steal');
+    Route::post('/diefstal', [TheftController::class, 'steal'])->middleware('throttle:60,1')->name('theft.steal');
 
     // Hustle (Hosselen)
     Route::get('/hosselen', [HustleController::class, 'index'])->name('hustle.index');
@@ -363,23 +363,23 @@ Route::middleware('auth')->group(function (): void {
 
     // RPS (Steen Papier Schaar)
     Route::get('/casino/steen-papier-schaar', [RpsController::class, 'index'])->name('rps.index');
-    Route::post('/casino/steen-papier-schaar/spelen', [RpsController::class, 'play'])->name('rps.play');
+    Route::post('/casino/steen-papier-schaar/spelen', [RpsController::class, 'play'])->middleware('throttle:30,1')->name('rps.play');
 
     // High/Low (Hoger & Lager)
     Route::get('/casino/hoger-lager', [HighLowController::class, 'index'])->name('highlow.index');
-    Route::post('/casino/hoger-lager/spelen', [HighLowController::class, 'play'])->name('highlow.play');
+    Route::post('/casino/hoger-lager/spelen', [HighLowController::class, 'play'])->middleware('throttle:30,1')->name('highlow.play');
 
     // Number Game (Nummerspel)
     Route::get('/casino/nummerspel', [NumberGameController::class, 'index'])->name('numbergame.index');
-    Route::post('/casino/nummerspel/spelen', [NumberGameController::class, 'play'])->name('numbergame.play');
+    Route::post('/casino/nummerspel/spelen', [NumberGameController::class, 'play'])->middleware('throttle:30,1')->name('numbergame.play');
 
     // Roulette
     Route::get('/casino/roulette', [RouletteController::class, 'index'])->name('roulette.index');
-    Route::post('/casino/roulette/spelen', [RouletteController::class, 'play'])->name('roulette.play');
+    Route::post('/casino/roulette/spelen', [RouletteController::class, 'play'])->middleware('throttle:30,1')->name('roulette.play');
 
     // Slots (Fruitmachine)
     Route::get('/casino/fruitautomaat', [SlotsController::class, 'index'])->name('slots.index');
-    Route::post('/casino/fruitautomaat/draaien', [SlotsController::class, 'spin'])->name('slots.spin');
+    Route::post('/casino/fruitautomaat/draaien', [SlotsController::class, 'spin'])->middleware('throttle:30,1')->name('slots.spin');
 
     // TBS Afdelingsloterij (Jackpot & Belastingpot)
     Route::get('/loterij', [LotteryController::class, 'index'])->name('lottery.index');
@@ -395,7 +395,7 @@ Route::middleware('auth')->group(function (): void {
     // PvP (Luchtplaats)
     Route::get('/luchtplaats', [FightController::class, 'index'])->name('fight.index');
     Route::get('/luchtplaats/arena/{defender}', [FightController::class, 'arena'])->name('fight.arena');
-    Route::post('/luchtplaats/attack', [FightController::class, 'attack'])->name('fight.attack');
+    Route::post('/luchtplaats/attack', [FightController::class, 'attack'])->middleware('throttle:60,1')->name('fight.attack');
 
     // Bank & Financieel Centrum
     Route::get('/bank', [BankController::class, 'index'])->name('bank.index');
@@ -407,7 +407,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Casino
     Route::get('/casino', [CasinoController::class, 'index'])->name('casino.index');
-    Route::post('/casino/play', [CasinoController::class, 'play'])->name('casino.play');
+    Route::post('/casino/play', [CasinoController::class, 'play'])->middleware('throttle:30,1')->name('casino.play');
 
     // Shop & Inventory
     Route::get('/winkel', [ShopController::class, 'index'])->name('shop.index');

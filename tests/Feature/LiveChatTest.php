@@ -467,8 +467,10 @@ class LiveChatTest extends TestCase
         ]);
         $msgId = $msgRes->json('message.id');
 
-        // Regular user cannot delete
-        $delFail = $this->actingAs($regularUser)->deleteJson(route('chat.public.delete', $msgId));
+        [$otherUser, $otherChar] = $this->createInmate();
+
+        // Other regular user cannot delete
+        $delFail = $this->actingAs($otherUser)->deleteJson(route('chat.public.delete', $msgId));
         $delFail->assertStatus(403);
 
         // Moderator can delete

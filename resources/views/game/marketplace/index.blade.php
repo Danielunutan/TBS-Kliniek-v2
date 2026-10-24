@@ -305,6 +305,11 @@
                 </tbody>
             </table>
         </div>
+        @if ($listings->hasPages())
+            <div class="p-4 border-t border-slate-100 dark:border-slate-800">
+                {{ $listings->links() }}
+            </div>
+        @endif
     </div>
 
     <!-- CREATE LISTING MODAL -->

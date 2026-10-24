@@ -44,7 +44,7 @@ class CasinoController extends Controller
 
         $validated = $request->validate([
             'game' => 'required|in:coinflip,dice',
-            'bet' => 'required|integer|min:10',
+            'bet' => 'required|integer|min:10|max:10000000',
         ]);
 
         $bet = $validated['bet'];
@@ -57,7 +57,15 @@ class CasinoController extends Controller
                 : back()->with('error', $msg);
         }
 
-        $this->economy->deductCash($character, $bet);
+        $deducted = $this->economy->deductCash($character, $bet);
+        if (! $deducted) {
+            $msg = 'Je hebt niet genoeg contant geld (€) om in te zetten!';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
         $this->cooldownService->setCooldown($character, 'casino_dice', 5);
 
         // Simple Coin Flip (50/50)

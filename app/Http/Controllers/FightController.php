@@ -58,12 +58,9 @@ class FightController extends Controller
             ->orderByDesc('respect')
             ->paginate(15);
 
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
-
         return view('game.fight.index', compact(
             'character',
             'opponents',
-            'topRankings',
             'attacksToday',
             'maxDailyAttacks',
             'attacksRemaining',

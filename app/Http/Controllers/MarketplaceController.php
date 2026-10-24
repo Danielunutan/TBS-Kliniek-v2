@@ -46,7 +46,7 @@ class MarketplaceController extends Controller
             $query->where('item_type', $filterType);
         }
 
-        $listings = $query->latest()->get();
+        $listings = $query->latest()->paginate(25)->withQueryString();
 
         $myListings = MarketplaceListing::where('seller_id', $character->id)
             ->where('is_sold', false)
