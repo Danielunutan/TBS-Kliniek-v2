@@ -349,9 +349,11 @@ class AuthController extends Controller
                 try {
                     GameMessage::create([
                         'sender_id' => null,
-                        'receiver_id' => $character->id,
+                        'recipient_id' => $character->id,
+                        'sender_name' => 'OOHPA Arjan & Directie',
                         'subject' => '🎁 1 Maand Gratis VIP Geactiveerd via OOHPA Arjan!',
-                        'body' => "Welkom in TBS Kliniek, {$character->name}!\n\nJe bent binnengebracht via de officiële actie van OOHPA Arjan. Jouw 1 Maand Gratis VIP status is per direct geactiveerd op jouw account (geldig tot ".$character->vip_expires_at->format('d-m-Y').")!\n\nAls VIP geniet je van:\n- Tot 1.000 aanvallen per dag (i.p.v. 100)\n- 2x dagelijkse rad-spins\n- Exclusieve VIP chat sticker & diamanten\n- Snellere energie herlading\n\nSucces achter de tralies,\nDe Directie",
+                        'content' => "Welkom in TBS Kliniek, {$character->name}!\n\nJe bent binnengebracht via de officiële actie van OOHPA Arjan. Jouw 1 Maand Gratis VIP status is per direct geactiveerd op jouw account (geldig tot ".$character->vip_expires_at->format('d-m-Y').")!\n\nAls VIP geniet je van:\n- Tot 1.000 aanvallen per dag (i.p.v. 100)\n- 2x dagelijkse rad-spins\n- Exclusieve VIP chat sticker & diamanten\n- Snellere energie herlading\n\nSucces achter de tralies,\nDe Directie",
+                        'type' => 'reward',
                     ]);
                 } catch (\Throwable $e) {
                     Log::warning('Failed to create OOHPA welcome message: '.$e->getMessage());
