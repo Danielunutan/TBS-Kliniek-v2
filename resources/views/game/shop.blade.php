@@ -80,8 +80,20 @@
     bundleQty: 1,
     recipientId: '',
     bundles: {{ json_encode($bundles) }},
-    ownedCounts: {{ json_encode($inventory->pluck('quantity', 'item_id')) }},
+    @php
+        $ownedCountsMap = $inventory->pluck('quantity', 'item_id')->toArray();
+        $bivakItem = $items->firstWhere('slug', 'bivakmuts-masker');
+        if ($bivakItem) {
+            $ownedCountsMap[$bivakItem->id] = (int) ($character->masks ?? 0);
+        }
+    @endphp
+    ownedCounts: {{ json_encode($ownedCountsMap) }},
     totalInvCount: {{ (int) $inventory->sum('quantity') }},
+    storageUsed: {{ (int) $character->getStorageUsed() }},
+    storageCapacity: {{ (int) $character->getStorageCapacity() }},
+    get storageRemaining() {
+        return Math.max(0, this.storageCapacity - this.storageUsed);
+    },
     itemBuying: {},
     itemToast: {},
     init() {
@@ -125,6 +137,12 @@
             if (response.ok && data.success) {
                 this.ownedCounts = { ...this.ownedCounts, [itemId]: data.owned_count };
                 this.totalInvCount = data.total_inventory_count;
+                if (data.storage_used !== undefined) {
+                    this.storageUsed = data.storage_used;
+                }
+                if (data.storage_capacity !== undefined) {
+                    this.storageCapacity = data.storage_capacity;
+                }
                 
                 window.dispatchEvent(new CustomEvent('stats:refresh'));
                 
@@ -143,6 +161,12 @@
                     }
                 }, 2500);
             } else {
+                if (data.storage_used !== undefined) {
+                    this.storageUsed = data.storage_used;
+                }
+                if (data.storage_capacity !== undefined) {
+                    this.storageCapacity = data.storage_capacity;
+                }
                 this.itemToast = {
                     ...this.itemToast,
                     [itemId]: {
@@ -496,10 +520,20 @@
                                 <p class="text-[11px] text-slate-500 dark:text-slate-400">Koop snacks, drankjes, medische spullen en smokkelwaar met je contant geld.</p>
                             </div>
                         </div>
-                        <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1.5 cursor-pointer bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 px-3 py-1.5 rounded-lg transition w-fit">
-                            <i class="fa-solid fa-box-archive"></i>
-                            <span x-text="'Mijn inventaris (' + totalInvCount + ')'">Mijn inventaris ({{ $inventory->sum('quantity') }})</span>
-                        </button>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="text-xs font-bold px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition"
+                                 :class="storageRemaining <= 0 ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300' : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'">
+                                <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400"></i>
+                                <span>Opslagruimte: <span class="font-mono font-black" x-text="storageUsed + '/' + storageCapacity"></span></span>
+                                <span class="text-[10px] px-1.5 py-0.2 rounded-full font-bold font-mono"
+                                      :class="storageRemaining <= 0 ? 'bg-rose-600 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300'"
+                                      x-text="storageRemaining > 0 ? storageRemaining + ' vrij' : 'VOL'"></span>
+                            </div>
+                            <button type="button" @click="setShopTab('inventaris')" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 flex items-center gap-1.5 cursor-pointer bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 px-3 py-1.5 rounded-lg transition w-fit">
+                                <i class="fa-solid fa-box-archive"></i>
+                                <span x-text="'Mijn inventaris (' + totalInvCount + ')'">Mijn inventaris ({{ $inventory->sum('quantity') }})</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Category Filter Tabs -->
@@ -603,7 +637,9 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($items as $item)
                         @php
-                            $ownedCount = $inventory->firstWhere('item_id', $item->id)?->quantity ?? 0;
+                            $ownedCount = $item->slug === 'bivakmuts-masker'
+                                ? (int) ($character->masks ?? 0)
+                                : ($inventory->firstWhere('item_id', $item->id)?->quantity ?? 0);
                             $itemData = $getItemData($item);
                         @endphp
                         <div x-show="itemFilter === 'all' || itemFilter === '{{ $itemData['cat'] }}'"
@@ -616,8 +652,8 @@
                                     <div class="h-6 flex items-center">
                                         <template x-if="ownedCounts[{{ $item->id }}] > 0">
                                             <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-black shrink-0 transition"
-                                                  x-text="ownedCounts[{{ $item->id }}] + 'x op voorraad'">
-                                                {{ $ownedCount }}x op voorraad
+                                                  x-text="ownedCounts[{{ $item->id }}] + 'x in bezit'">
+                                                {{ $ownedCount }}x in bezit
                                             </span>
                                         </template>
                                     </div>
@@ -683,10 +719,20 @@
                                         <span>+{{ $item->intelligence_bonus }} Kennis</span> <i class="fa-solid fa-brain text-indigo-500 text-[9px]"></i>
                                     </span>
                                     @endif
+                                    @if(($item->charisma_bonus ?? 0) > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1" title="Biedt extra winkelkorting en sociale voordelen">
+                                        <span>+{{ $item->charisma_bonus }} Charisma</span> <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-[9px]"></i>
+                                    </span>
+                                    @endif
+                                    @if(($item->discipline_bonus ?? 0) > 0)
+                                    <span class="px-2 py-0.5 rounded-md bg-cyan-50 border border-cyan-200 text-cyan-700 text-[10px] font-bold inline-flex items-center gap-1">
+                                        <span>+{{ $item->discipline_bonus }} Discipline</span> <i class="fa-solid fa-shield-halved text-cyan-500 text-[9px]"></i>
+                                    </span>
+                                    @endif
                                 </div>
                             </div>
 
-                            <div class="pt-2 border-t border-slate-200/70 space-y-2.5"
+                            <div class="pt-2 border-t border-slate-200/70 dark:border-slate-700/60 space-y-2.5"
                                  x-data="{
                                      buyQty: 1,
                                      unitPrice: {{ $item->price_kc }},
@@ -697,10 +743,23 @@
                                      get totalCost() {
                                          return this.actualPrice * this.buyQty;
                                      },
-                                     get maxAffordable() {
+                                     get maxByMoney() {
                                          let cash = (typeof stats !== 'undefined' && stats.cash !== undefined) ? stats.cash : {{ (int) $character->cash }};
                                          let bank = (typeof stats !== 'undefined' && stats.bank !== undefined) ? stats.bank : {{ (int) $character->bank }};
-                                         return Math.max(1, Math.min(100, Math.floor((cash + bank) / Math.max(1, this.actualPrice))));
+                                         return Math.floor((cash + bank) / Math.max(1, this.actualPrice));
+                                     },
+                                     get maxByStorage() {
+                                         return Math.max(0, storageRemaining);
+                                     },
+                                     get maxBuyable() {
+                                         return Math.max(0, Math.min(100, Math.min(this.maxByMoney, this.maxByStorage)));
+                                     },
+                                     setQty(amount) {
+                                         if (this.maxBuyable <= 0) {
+                                             this.buyQty = 1;
+                                         } else {
+                                             this.buyQty = Math.max(1, Math.min(amount, this.maxBuyable));
+                                         }
                                      }
                                  }">
                                 <div class="flex items-center justify-between text-xs">
@@ -715,21 +774,38 @@
                                     </div>
                                 </div>
 
-                                <!-- Snelle Aantal Knoppen (1x, 5x, 10x, Max) -->
+                                <!-- Snelle Aantal Knoppen (1x, 5x, 10x, Max) berekend op geld én opslagruimte -->
                                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
-                                    <button type="button" @click="buyQty = 1" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
-                                    <button type="button" @click="buyQty = 5" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
-                                    <button type="button" @click="buyQty = 10" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
-                                    <button type="button" @click="buyQty = Math.max(1, maxAffordable)" :class="buyQty > 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" title="Koop zoveel als je kunt betalen">Max</button>
+                                    <button type="button" @click="setQty(1)" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
+                                    <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
+                                    <button type="button" @click="setQty(10)" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
+                                    <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" :title="'Max berekend op je saldo en resterende opslagruimte (' + maxBuyable + 'x)'">
+                                        <span x-text="maxBuyable > 0 ? 'Max (' + maxBuyable + ')' : 'Max'">Max</span>
+                                    </button>
                                 </div>
+
+                                <!-- Realtime Status Indicatie -->
+                                <template x-if="storageRemaining <= 0">
+                                    <div class="text-[10px] text-rose-500 dark:text-rose-400 font-bold text-center flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                                        <span>Opslagruimte vol (0 vrij in Depot)</span>
+                                    </div>
+                                </template>
+                                <template x-if="storageRemaining > 0 && maxByStorage < maxByMoney && maxByStorage < 100">
+                                    <div class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold text-center" x-text="'Max ' + maxByStorage + 'x passend in vrije voorraad (' + storageRemaining + ' vrij)'"></div>
+                                </template>
+                                <template x-if="storageRemaining > 0 && maxByMoney < 1">
+                                    <div class="text-[10px] text-rose-500 dark:text-rose-400 font-semibold text-center">Niet genoeg saldo voor dit item</div>
+                                </template>
 
                                 <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, buyQty)">
                                     @csrf
                                     <input type="hidden" name="quantity" :value="buyQty">
                                     
                                     <button type="submit" 
-                                            :disabled="itemBuying[{{ $item->id }}]"
-                                            class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-50 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+                                            :disabled="itemBuying[{{ $item->id }}] || storageRemaining <= 0 || maxByMoney < 1"
+                                            :class="storageRemaining <= 0 || maxByMoney < 1 ? 'opacity-60 cursor-not-allowed bg-slate-500' : 'bg-purple-600 hover:bg-purple-700 active:scale-95 cursor-pointer'"
+                                            class="w-full py-2.5 rounded-xl disabled:opacity-50 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
                                         <template x-if="itemBuying[{{ $item->id }}]">
                                             <span class="inline-flex items-center gap-1.5 text-purple-200">
                                                 <i class="fa-solid fa-spinner fa-spin text-xs"></i>
@@ -738,8 +814,18 @@
                                         </template>
                                         <template x-if="!itemBuying[{{ $item->id }}] && (!itemToast[{{ $item->id }}] || itemToast[{{ $item->id }}].type !== 'success')">
                                             <span class="inline-flex items-center gap-1.5">
-                                                <i class="fa-solid fa-cart-shopping text-xs"></i>
-                                                <span x-text="buyQty > 1 ? 'Koop ' + buyQty + 'x direct' : 'Kopen'">Kopen</span>
+                                                <template x-if="storageRemaining <= 0">
+                                                    <span>Opslag Vol</span>
+                                                </template>
+                                                <template x-if="storageRemaining > 0 && maxByMoney < 1">
+                                                    <span>Onvoldoende Saldo</span>
+                                                </template>
+                                                <template x-if="storageRemaining > 0 && maxByMoney >= 1">
+                                                    <span class="inline-flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                                        <span x-text="buyQty > 1 ? 'Koop ' + buyQty + 'x direct' : 'Kopen'">Kopen</span>
+                                                    </span>
+                                                </template>
                                             </span>
                                         </template>
                                         <template x-if="!itemBuying[{{ $item->id }}] && itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'success'">
@@ -807,6 +893,25 @@
                                      style="width: {{ min(100, round(($character->health / max(1, $character->max_health)) * 100)) }}%"></div>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Maskers & Buit Stats Banner in Inventaris -->
+                    <div class="mt-4 p-3 bg-purple-50/70 dark:bg-purple-950/40 rounded-xl border border-purple-200/80 dark:border-purple-800/60 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center text-sm shadow-2xs">
+                                <i class="fa-solid fa-mask"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                                    Zakkenroller Maskers: <strong class="text-purple-600 dark:text-purple-400">{{ $character->masks ?? 0 }} Masker(s)</strong>
+                                </span>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 block">Klaar voor gebruik bij Zakkenrollen in de gangen en Bende Heists.</span>
+                            </div>
+                        </div>
+                        <a href="{{ route('pickpocket.index') }}" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-xs transition shadow-2xs shrink-0 flex items-center gap-1">
+                            <span>Naar Zakkenrollen</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
                     </div>
 
                     @php

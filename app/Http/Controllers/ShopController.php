@@ -15,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ShopController extends Controller
@@ -131,12 +132,21 @@ class ShopController extends Controller
         $totalCost = $unitPrice * $quantity;
 
         if (! $character->canAddStorageItem($quantity)) {
-            $errorMsg = "Je opbergplaats zit vol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop of gebruik spullen in je Depot, level up of word VIP voor +50 extra voorraadplekken.";
+            $storageUsed = $character->getStorageUsed();
+            $storageCap = $character->getStorageCapacity();
+            $storageRemaining = max(0, $storageCap - $storageUsed);
+
+            $errorMsg = $storageRemaining > 0
+                ? "Je opbergplaats heeft nog maar {$storageRemaining} vrije plek(ken) ({$storageUsed}/{$storageCap})! Je kunt maximaal {$storageRemaining}x van dit voorwerp kopen."
+                : "Je opbergplaats zit helemaal vol ({$storageUsed}/{$storageCap} plaatsen)! Verkoop of gebruik spullen in je Depot, level up of word VIP voor +50 extra voorraadplekken.";
 
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
                     'message' => $errorMsg,
+                    'storage_used' => $storageUsed,
+                    'storage_capacity' => $storageCap,
+                    'storage_remaining' => $storageRemaining,
                 ], 422);
             }
 
@@ -145,10 +155,62 @@ class ShopController extends Controller
                 ->with('error', $errorMsg);
         }
 
-        $totalAvailable = (int) ($character->cash + $character->bank);
+        $discountNote = $discountPct > 0 ? " (inclusief {$discountPct}% Charisma-korting! 😎)" : '';
+        $formatted = number_format($totalCost, 0, ',', '.');
+        $ownedCount = 0;
+        $successMsg = '';
 
-        if ($totalAvailable < $totalCost) {
-            $formatted = number_format($totalCost, 0, ',', '.');
+        $purchaseSuccess = DB::transaction(function () use ($character, $totalCost, $item, $quantity, $discountNote, $formatted, &$ownedCount, &$successMsg): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            $totalAvailable = (int) ($locked->cash + $locked->bank);
+
+            if ($totalAvailable < $totalCost) {
+                return false;
+            }
+
+            // Pay from cash first; if cash is insufficient, cover difference from bank
+            if ($locked->cash >= $totalCost) {
+                $locked->cash -= $totalCost;
+            } else {
+                $remaining = $totalCost - $locked->cash;
+                $locked->cash = 0;
+                $locked->bank = max(0, $locked->bank - $remaining);
+            }
+            $locked->save();
+
+            // Deliver item under lock
+            if ($item->slug === 'bivakmuts-masker') {
+                $locked->masks = ($locked->masks ?? 0) + $quantity;
+                $locked->save();
+                $ownedCount = (int) $locked->masks;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$quantity} Masker(s) 🎭 toegevoegd aan je voorraad voor Zakkenrollen (totaal: {$locked->masks}).";
+            } elseif ($item->slug === 'smokkelpakketje') {
+                $locked->unopened_bags = ($locked->unopened_bags ?? 0) + $quantity;
+                $locked->save();
+                $ownedCount = (int) $locked->unopened_bags;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$quantity} Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$locked->unopened_bags}).";
+            } else {
+                $inv = CharacterItem::firstOrNew([
+                    'character_id' => $locked->id,
+                    'item_id' => $item->id,
+                ]);
+                $inv->quantity = ($inv->quantity ?? 0) + $quantity;
+                $inv->save();
+                $ownedCount = (int) $inv->quantity;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}!";
+            }
+
+            // Sync original model instance
+            $character->cash = $locked->cash;
+            $character->bank = $locked->bank;
+            $character->masks = $locked->masks;
+            $character->unopened_bags = $locked->unopened_bags;
+
+            return true;
+        });
+
+        if (! $purchaseSuccess) {
             $errorMsg = "Niet genoeg geld! {$quantity}x {$item->name} kost €{$formatted}.";
 
             if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
@@ -163,30 +225,7 @@ class ShopController extends Controller
                 ->with('error', $errorMsg);
         }
 
-        // Pay from cash first; if cash is insufficient, cover difference from bank
-        if ($character->cash >= $totalCost) {
-            $this->economyService->deductCash($character, $totalCost);
-        } else {
-            $remaining = $totalCost - $character->cash;
-            if ($character->cash > 0) {
-                $this->economyService->deductCash($character, $character->cash);
-            }
-            $character->bank = max(0, $character->bank - $remaining);
-            $character->save();
-        }
-
-        $inv = CharacterItem::firstOrNew([
-            'character_id' => $character->id,
-            'item_id' => $item->id,
-        ]);
-        $inv->quantity = ($inv->quantity ?? 0) + $quantity;
-        $inv->save();
-
         app(DailyBattleService::class)->record($character, 'payments', $totalCost);
-
-        $formatted = number_format($totalCost, 0, ',', '.');
-        $discountNote = $discountPct > 0 ? " (inclusief {$discountPct}% Charisma-korting! 😎)" : '';
-        $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}!";
 
         if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -195,7 +234,7 @@ class ShopController extends Controller
                 'item_id' => $item->id,
                 'item_name' => $item->name,
                 'quantity_bought' => $quantity,
-                'owned_count' => (int) $inv->quantity,
+                'owned_count' => $ownedCount,
                 'cash' => (int) $character->cash,
                 'cash_formatted' => number_format($character->cash, 0, ',', '.'),
                 'bank' => (int) $character->bank,
@@ -203,6 +242,10 @@ class ShopController extends Controller
                 'total' => (int) ($character->cash + $character->bank),
                 'total_formatted' => number_format($character->cash + $character->bank, 0, ',', '.'),
                 'total_inventory_count' => (int) CharacterItem::where('character_id', $character->id)->sum('quantity'),
+                'masks' => (int) ($character->masks ?? 0),
+                'storage_used' => (int) $character->getStorageUsed(),
+                'storage_capacity' => (int) $character->getStorageCapacity(),
+                'storage_remaining' => max(0, (int) ($character->getStorageCapacity() - $character->getStorageUsed())),
             ]);
         }
 
