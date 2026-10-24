@@ -61,7 +61,11 @@ class ChatController extends Controller
         $gangTag = (string) ($gang?->tag ?? '');
         $gangStars = (int) ($gang?->gang_stars ?? 0);
         $characterStars = (int) ($character->stars ?? 0);
-        $canModerate = (bool) ($user->isStaff() || $user->canModerate() || $user->isModerator());
+        $canModerate = (bool) ($user->isStaff() || $user->canModerate() || $user->isModerator() || $user->isOwner() || $user->isAdmin());
+
+        $characterNames = Cache::remember('all_character_names_list', 300, function () {
+            return Character::orderByRaw('LENGTH(name) DESC')->pluck('name')->all();
+        });
 
         return view('game.chat.index', compact(
             'character',
@@ -76,7 +80,8 @@ class ChatController extends Controller
             'gangTag',
             'gangStars',
             'characterStars',
-            'canModerate'
+            'canModerate',
+            'characterNames'
         ));
     }
 
@@ -936,15 +941,28 @@ class ChatController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
+        $character = $user?->character;
 
-        if (! ($user->isStaff() || $user->canModerate())) {
+        $msg = ChatMessage::findOrFail($id);
+
+        $isModeratorOrStaff = (bool) (
+            $user->isStaff()
+            || $user->canModerate()
+            || $user->isModerator()
+            || $user->isAdmin()
+            || $user->isOwner()
+            || ($user->role === 'moderator' || $user->role === 'admin' || $user->role === 'owner')
+        );
+
+        $isAuthor = $character && ($msg->character_id === $character->id);
+
+        if (! ($isModeratorOrStaff || $isAuthor)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Alleen moderators kunnen chatberichten verwijderen.',
+                'message' => 'Alleen moderators of de auteur kunnen chatberichten verwijderen.',
             ], 403);
         }
 
-        $msg = ChatMessage::findOrFail($id);
         $msg->delete();
 
         return response()->json([

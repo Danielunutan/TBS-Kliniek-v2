@@ -33,7 +33,8 @@ window.tbsChatConfig = {
     gangHasChat: {{ ($gangHasChat ?? false) ? "true" : "false" }},
     gangStars: {{ (int) ($gangStars ?? 0) }},
     characterStars: {{ (int) ($characterStars ?? 0) }},
-    canModerate: {{ ($canModerate ?? false) ? "true" : "false" }}
+    canModerate: {{ ($canModerate ?? false) ? "true" : "false" }},
+    characterNames: {!! json_encode($characterNames ?? []) !!}
 };
 </script>
 
@@ -55,6 +56,7 @@ function tbsLiveMessenger(config) {
         gangStars: config.gangStars,
         characterStars: config.characterStars,
         canModerate: config.canModerate,
+        characterNames: Array.isArray(config.characterNames) ? config.characterNames : [],
         
         // Public & Gang chat state
         publicMessagesList: [],
@@ -101,15 +103,28 @@ function tbsLiveMessenger(config) {
             tempDiv.textContent = text;
             let safe = tempDiv.innerHTML;
 
-            // Highlight and link @mentions
-            const mentionRegex = /@([a-zA-Z0-9_\-]+)/g;
-            safe = safe.replace(mentionRegex, (match, username) => {
+            const buildMentionPill = (username) => {
                 const url = '/speler/' + encodeURIComponent(username);
                 if (isMe) {
-                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
                 } else {
-                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                    return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
                 }
+            };
+
+            // 1. Highlight known player names (including multi-word / accented names like @OOHPA Arjan, @Daniël)
+            if (Array.isArray(this.characterNames) && this.characterNames.length > 0) {
+                const sortedNames = [...this.characterNames].sort((a, b) => b.length - a.length);
+                const escapedPatterns = sortedNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+                const knownRegex = new RegExp('@(' + escapedPatterns.join('|') + ')(?=$|[^\\p{L}\\p{N}])', 'gu');
+                safe = safe.replace(knownRegex, (match, username) => buildMentionPill(username));
+            }
+
+            // 2. Fallback regex for single-word mentions with Unicode letters, numbers, dashes, underscores, dots
+            // Only match @ if not inside an HTML tag or already wrapped in an <a> tag
+            const fallbackRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
+            safe = safe.replace(fallbackRegex, (match, username) => {
+                return buildMentionPill(username);
             });
 
             return safe;
@@ -160,7 +175,7 @@ function tbsLiveMessenger(config) {
 
             const cursorPos = inputEl.selectionStart || 0;
             const textBeforeCursor = this.messageInput.slice(0, cursorPos);
-            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-\s]*)$/u);
 
             if (match) {
                 const query = match[1] || '';
@@ -229,7 +244,7 @@ function tbsLiveMessenger(config) {
             const textBeforeCursor = this.messageInput.slice(0, cursorPos);
             const textAfterCursor = this.messageInput.slice(cursorPos);
 
-            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-\s]*)$/u);
             if (match) {
                 const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
                 const prefix = textBeforeCursor.slice(0, atIndex);
@@ -575,6 +590,25 @@ function tbsLiveMessenger(config) {
                 if (data.success) {
                     msg.hearts_count = data.hearts_count;
                     msg.has_hearted = data.has_hearted;
+                }
+            } catch(e) {}
+        },
+
+        async deleteDirectMessage(dmId) {
+            if (!confirm('Weet je zeker dat je dit privébericht wilt verwijderen?')) return;
+            try {
+                const res = await fetch(`/chat/prive-bericht/${dmId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': this.getCsrf(),
+                        'Accept': 'application/json',
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.directMessagesList = this.directMessagesList.filter(m => m.id !== dmId);
+                } else {
+                    alert(data.message || 'Kon privébericht niet verwijderen.');
                 }
             } catch(e) {}
         },
@@ -1196,9 +1230,9 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                             <i class="fa-solid fa-reply"></i>
                                         </button>
 
-                                        <!-- MODERATOR DELETE -->
-                                        <template x-if="canModerate">
-                                            <button type="button" @click="deletePublicMessage(msg.id)" title="Verwijder bericht (Moderator)" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[10px] cursor-pointer">
+                                        <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
+                                        <template x-if="canModerate || msg.is_me">
+                                            <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </template>
@@ -1405,9 +1439,9 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                     <i class="fa-solid fa-reply"></i>
                                                 </button>
 
-                                                <!-- MODERATOR DELETE -->
-                                                <template x-if="canModerate">
-                                                    <button type="button" @click="deletePublicMessage(msg.id)" title="Verwijder bericht (Moderator)" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[10px] cursor-pointer">
+                                                <!-- DELETE (MODERATOR / STAFF / AUTHOR) -->
+                                                <template x-if="canModerate || msg.is_me">
+                                                    <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[11px] cursor-pointer inline-flex items-center">
                                                         <i class="fa-solid fa-trash-can"></i>
                                                     </button>
                                                 </template>
@@ -1460,8 +1494,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         </template>
                     </div>
                 </template>
-
-            </div>
+                    </div>
+                </template>
 
             <!-- =============================== -->
             <!-- 3. DIRECT MESSAGES STREAM       -->
@@ -1477,6 +1511,11 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
                                     <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name"></span>
                                     <span class="text-slate-400 text-[10px]" x-text="dm.created_at"></span>
+                                    <template x-if="canModerate || dm.is_me">
+                                        <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </template>
                                 </div>
                                 <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
                                      :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
@@ -1662,5 +1701,6 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
     </div>
 
+</div>
 </div>
 @endsection
