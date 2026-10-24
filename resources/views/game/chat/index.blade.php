@@ -19,22 +19,636 @@
     }
 </style>
 
-<div class="space-y-4" 
-     x-data="tbsLiveMessenger({
-        authCharId: {{ $character->id ?? 0 }},
-        authCharName: @js($character->name ?? ''),
-        initialTab: @js($initialTab ?? 'global'),
-        initialRecipient: {{ $initialRecipient ?? 0 }},
-        hasGang: @js($hasGang ?? false),
-        gangId: {{ $gangId ?? 0 }},
-        gangName: @js($gangName ?? 'Bende'),
-        gangTag: @js($gangTag ?? ''),
-        gangHasChat: @js($gangHasChat ?? false),
-        gangStars: {{ $gangStars ?? 0 }},
-        characterStars: {{ $characterStars ?? 0 }},
-        canModerate: @js($canModerate ?? false)
-     })"
-     x-init="initMessenger()">
+<!-- SCRIPT: REALTIME ALPINE MESSENGER LOGIC -->
+<script>
+window.tbsChatConfig = {
+    authCharId: {{ (int) ($character->id ?? 0) }},
+    authCharName: {!! json_encode((string) ($character->name ?? "")) !!},
+    initialTab: {!! json_encode((string) ($initialTab ?? "global")) !!},
+    initialRecipient: {{ (int) ($initialRecipient ?? 0) }},
+    hasGang: {{ ($hasGang ?? false) ? "true" : "false" }},
+    gangId: {{ (int) ($gangId ?? 0) }},
+    gangName: {!! json_encode((string) ($gangName ?? "Bende")) !!},
+    gangTag: {!! json_encode((string) ($gangTag ?? "")) !!},
+    gangHasChat: {{ ($gangHasChat ?? false) ? "true" : "false" }},
+    gangStars: {{ (int) ($gangStars ?? 0) }},
+    characterStars: {{ (int) ($characterStars ?? 0) }},
+    canModerate: {{ ($canModerate ?? false) ? "true" : "false" }}
+};
+</script>
+
+<script>
+function tbsLiveMessenger(config) {
+    return {
+        authCharId: config.authCharId,
+        authCharName: config.authCharName,
+        activeTab: config.initialTab || 'global',
+        mobileView: (config.initialRecipient > 0 || config.initialTab === 'direct') ? 'chat' : 'list',
+        searchQuery: '',
+
+        // Gang configuration
+        hasGang: config.hasGang,
+        gangId: config.gangId,
+        gangName: config.gangName,
+        gangTag: config.gangTag,
+        gangHasChat: config.gangHasChat,
+        gangStars: config.gangStars,
+        characterStars: config.characterStars,
+        canModerate: config.canModerate,
+        
+        // Public & Gang chat state
+        publicMessagesList: [],
+        gangMessagesList: [],
+        lastPublicId: 0,
+        lastGangId: 0,
+        
+        // Direct messages state
+        conversationsList: [],
+        directMessagesList: [],
+        activePartnerId: config.initialRecipient || 0,
+        activePartner: {
+            id: 0,
+            name: 'Kies een gesprek',
+            avatar: '{{ asset('assets/characters/avatar_male_1.jpg') }}',
+            is_bot: false,
+            status_label: 'Selecteer een gesprek uit de lijst'
+        },
+        loadingConversations: false,
+        totalUnread: 0,
+
+        // Input & Interactive state
+        messageInput: '',
+        isSending: false,
+        isRefreshing: false,
+        isPolling: false,
+        pollTimer: null,
+        replyingTo: null,
+        showEmojiPicker: false,
+
+        // Mention autocomplete
+        showMentionDropdown: false,
+        mentionQuery: '',
+        mentionUsers: [],
+        mentionSelectedIndex: 0,
+
+        getCsrf() {
+            return '{{ csrf_token() }}';
+        },
+
+        formatMessage(text, isMe = false) {
+            if (!text) return '';
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = text;
+            let safe = tempDiv.innerHTML;
+
+            // Highlight and link @mentions
+            const mentionRegex = /@([a-zA-Z0-9_\-]+)/g;
+            safe = safe.replace(mentionRegex, (match, username) => {
+                const url = '/speler/' + encodeURIComponent(username);
+                if (isMe) {
+                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                } else {
+                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                }
+            });
+
+            return safe;
+        },
+
+        setReplyTo(msg) {
+            this.replyingTo = {
+                id: msg.id,
+                name: msg.name,
+                text: (msg.message || '').slice(0, 70)
+            };
+            this.$nextTick(() => {
+                if (this.$refs.messageInputField) {
+                    this.$refs.messageInputField.focus();
+                }
+            });
+        },
+
+        cancelReply() {
+            this.replyingTo = null;
+        },
+
+        tagPlayer(name) {
+            if (!name) return;
+            const tag = '@' + name + ' ';
+            if (!this.messageInput.includes(tag)) {
+                this.messageInput = tag + this.messageInput;
+            }
+            this.$nextTick(() => {
+                if (this.$refs.messageInputField) {
+                    this.$refs.messageInputField.focus();
+                }
+            });
+        },
+
+        insertEmoji(emoji) {
+            this.messageInput += emoji;
+            this.$nextTick(() => {
+                if (this.$refs.messageInputField) {
+                    this.$refs.messageInputField.focus();
+                }
+            });
+        },
+
+        async onMessageInput(e) {
+            const inputEl = this.$refs.messageInputField;
+            if (!inputEl) return;
+
+            const cursorPos = inputEl.selectionStart || 0;
+            const textBeforeCursor = this.messageInput.slice(0, cursorPos);
+            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+
+            if (match) {
+                const query = match[1] || '';
+                this.mentionQuery = query;
+                await this.fetchMentionSuggestions(query);
+            } else {
+                this.showMentionDropdown = false;
+                this.mentionUsers = [];
+            }
+        },
+
+        async fetchMentionSuggestions(q) {
+            try {
+                const res = await fetch(`/chat/zoek-spelers?q=${encodeURIComponent(q)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && Array.isArray(data.players) && data.players.length > 0) {
+                        this.mentionUsers = data.players;
+                        this.mentionSelectedIndex = 0;
+                        this.showMentionDropdown = true;
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Mention fetch error:', e);
+            }
+            this.showMentionDropdown = false;
+            this.mentionUsers = [];
+        },
+
+        onMessageKeydown(e) {
+            if (this.showMentionDropdown && this.mentionUsers.length > 0) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    this.mentionSelectedIndex = (this.mentionSelectedIndex + 1) % this.mentionUsers.length;
+                    return;
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    this.mentionSelectedIndex = (this.mentionSelectedIndex - 1 + this.mentionUsers.length) % this.mentionUsers.length;
+                    return;
+                }
+                if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault();
+                    if (this.mentionUsers[this.mentionSelectedIndex]) {
+                        this.selectMention(this.mentionUsers[this.mentionSelectedIndex]);
+                    }
+                    return;
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    this.showMentionDropdown = false;
+                    return;
+                }
+            }
+
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        },
+
+        selectMention(user) {
+            const inputEl = this.$refs.messageInputField;
+            const cursorPos = inputEl ? inputEl.selectionStart : this.messageInput.length;
+            const textBeforeCursor = this.messageInput.slice(0, cursorPos);
+            const textAfterCursor = this.messageInput.slice(cursorPos);
+
+            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+            if (match) {
+                const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
+                const prefix = textBeforeCursor.slice(0, atIndex);
+                const inserted = '@' + user.name + ' ';
+                this.messageInput = prefix + inserted + textAfterCursor;
+                const nextPos = prefix.length + inserted.length;
+
+                this.$nextTick(() => {
+                    if (inputEl) {
+                        inputEl.focus();
+                        inputEl.setSelectionRange(nextPos, nextPos);
+                    }
+                });
+            }
+
+            this.showMentionDropdown = false;
+            this.mentionUsers = [];
+        },
+
+        get filteredConversations() {
+            if (!this.searchQuery.trim()) {
+                return this.conversationsList;
+            }
+            const q = this.searchQuery.toLowerCase();
+            return this.conversationsList.filter(c => c.name.toLowerCase().includes(q));
+        },
+
+        initMessenger() {
+            if (this.activeTab === 'global') {
+                this.loadPublicMessages();
+            } else if (this.activeTab === 'gang') {
+                this.loadGangMessages();
+            } else {
+                this.loadConversations();
+                this.loadDirectMessages(this.activePartnerId);
+            }
+
+            // Polling interval: every 3.5s for snappy live chat
+            this.pollTimer = setInterval(() => {
+                if (document.visibilityState === 'hidden') return;
+                this.pollUpdates();
+            }, 3500);
+
+            // Clean up on page navigation
+            window.addEventListener('beforeunload', () => {
+                if (this.pollTimer) clearInterval(this.pollTimer);
+            });
+        },
+
+        switchTab(tab) {
+            this.activeTab = tab;
+            this.mobileView = 'chat';
+            this.replyingTo = null;
+            if (tab === 'global') {
+                this.loadPublicMessages();
+            } else if (tab === 'gang') {
+                this.loadGangMessages();
+            } else {
+                this.loadConversations();
+                if (this.activePartnerId === 0 && this.directMessagesList.length === 0) {
+                    this.loadDirectMessages(0);
+                }
+            }
+        },
+
+        selectPartner(partnerId, partnerName = '') {
+            this.activePartnerId = partnerId;
+            this.mobileView = 'chat';
+            this.replyingTo = null;
+            this.loadDirectMessages(partnerId);
+        },
+
+        async loadPublicMessages() {
+            try {
+                const res = await fetch('{{ route("chat.public.messages") }}?channel=global');
+                const data = await res.json();
+                if (data.success) {
+                    if (this.publicMessagesList.length === 0) {
+                        this.publicMessagesList = data.messages;
+                    } else {
+                        const existingMap = new Map();
+                        data.messages.forEach(m => existingMap.set(m.id, m));
+                        this.publicMessagesList.forEach(m => {
+                            if (!existingMap.has(m.id)) {
+                                existingMap.set(m.id, m);
+                            }
+                        });
+                        const merged = Array.from(existingMap.values());
+                        merged.sort((a, b) => a.id - b.id);
+                        this.publicMessagesList = merged;
+                    }
+                    this.lastPublicId = Math.max(this.lastPublicId, data.last_id || 0);
+                    if (this.publicMessagesList.length > 0) {
+                        const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
+                        if (maxId > this.lastPublicId) this.lastPublicId = maxId;
+                    }
+                    this.scrollToBottom();
+                }
+            } catch(e) {}
+        },
+
+        async loadGangMessages() {
+            if (!this.hasGang || !this.gangHasChat) return;
+            try {
+                const res = await fetch(`{{ route("chat.public.messages") }}?channel=gang_${this.gangId}`);
+                const data = await res.json();
+                if (data.success) {
+                    if (this.gangMessagesList.length === 0) {
+                        this.gangMessagesList = data.messages;
+                    } else {
+                        const existingMap = new Map();
+                        data.messages.forEach(m => existingMap.set(m.id, m));
+                        this.gangMessagesList.forEach(m => {
+                            if (!existingMap.has(m.id)) {
+                                existingMap.set(m.id, m);
+                            }
+                        });
+                        const merged = Array.from(existingMap.values());
+                        merged.sort((a, b) => a.id - b.id);
+                        this.gangMessagesList = merged;
+                    }
+                    this.lastGangId = Math.max(this.lastGangId, data.last_id || 0);
+                    if (this.gangMessagesList.length > 0) {
+                        const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
+                        if (maxId > this.lastGangId) this.lastGangId = maxId;
+                    }
+                    this.scrollToBottom();
+                }
+            } catch(e) {}
+        },
+
+        async loadConversations() {
+            this.loadingConversations = true;
+            try {
+                const res = await fetch('{{ route("chat.conversations") }}');
+                const data = await res.json();
+                if (data.success) {
+                    this.conversationsList = data.conversations;
+                    this.totalUnread = data.conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0);
+                }
+            } catch(e) {} finally {
+                this.loadingConversations = false;
+            }
+        },
+
+        async loadDirectMessages(partnerId) {
+            try {
+                const res = await fetch(`/chat/prive/${partnerId}`);
+                const data = await res.json();
+                if (data.success) {
+                    this.activePartner = data.partner;
+                    if (this.directMessagesList.length === 0) {
+                        this.directMessagesList = data.messages;
+                    } else {
+                        const existingMap = new Map();
+                        data.messages.forEach(m => existingMap.set(m.id, m));
+                        this.directMessagesList.forEach(m => {
+                            if (!existingMap.has(m.id)) {
+                                existingMap.set(m.id, m);
+                            }
+                        });
+                        const merged = Array.from(existingMap.values());
+                        merged.sort((a, b) => a.id - b.id);
+                        this.directMessagesList = merged;
+                    }
+                    this.scrollToBottom();
+                    const conv = this.conversationsList.find(c => c.partner_id === partnerId);
+                    if (conv) conv.unread_count = 0;
+                }
+            } catch(e) {}
+        },
+
+        playChime() {
+            if (window.playTBSChime) {
+                window.playTBSChime();
+            }
+        },
+
+        async pollUpdates() {
+            if (this.isPolling) return;
+            this.isPolling = true;
+
+            try {
+                if (this.activeTab === 'global') {
+                    const res = await fetch(`{{ route("chat.public.messages") }}?channel=global&after_id=${this.lastPublicId}`);
+                    const data = await res.json();
+                    if (data.success && data.messages.length > 0) {
+                        const newOthers = data.messages.filter(m => !m.is_me);
+                        if (newOthers.length > 0) {
+                            const myNameLower = (this.authCharName || '').toLowerCase();
+                            const notifyMsg = newOthers.find(m => {
+                                const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
+                                const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
+                                return isTagged || isReplied;
+                            });
+                            if (notifyMsg) this.playChime();
+                        }
+
+                        const existingIds = new Set(this.publicMessagesList.map(m => m.id));
+                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                        if (toAdd.length > 0) {
+                            this.publicMessagesList = [...this.publicMessagesList, ...toAdd];
+                            this.scrollToBottom();
+                        }
+                        if (data.last_id > this.lastPublicId) {
+                            this.lastPublicId = data.last_id;
+                        }
+                        if (this.publicMessagesList.length > 0) {
+                            const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
+                            if (maxId > this.lastPublicId) this.lastPublicId = maxId;
+                        }
+                    }
+                } else if (this.activeTab === 'gang' && this.hasGang && this.gangHasChat) {
+                    const res = await fetch(`{{ route("chat.public.messages") }}?channel=gang_${this.gangId}&after_id=${this.lastGangId}`);
+                    const data = await res.json();
+                    if (data.success && data.messages.length > 0) {
+                        const newOthers = data.messages.filter(m => !m.is_me);
+                        if (newOthers.length > 0) {
+                            const myNameLower = (this.authCharName || '').toLowerCase();
+                            const notifyMsg = newOthers.find(m => {
+                                const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
+                                const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
+                                return isTagged || isReplied;
+                            });
+                            if (notifyMsg) this.playChime();
+                        }
+
+                        const existingIds = new Set(this.gangMessagesList.map(m => m.id));
+                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                        if (toAdd.length > 0) {
+                            this.gangMessagesList = [...this.gangMessagesList, ...toAdd];
+                            this.scrollToBottom();
+                        }
+                        if (data.last_id > this.lastGangId) {
+                            this.lastGangId = data.last_id;
+                        }
+                        if (this.gangMessagesList.length > 0) {
+                            const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
+                            if (maxId > this.lastGangId) this.lastGangId = maxId;
+                        }
+                    }
+                } else if (this.activeTab === 'direct') {
+                    const res = await fetch(`/chat/prive/${this.activePartnerId}`);
+                    const data = await res.json();
+                    if (data.success && data.messages) {
+                        const existingIds = new Set(this.directMessagesList.map(m => m.id));
+                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                        if (toAdd.length > 0) {
+                            if (toAdd.some(m => !m.is_me)) this.playChime();
+                            this.directMessagesList = [...this.directMessagesList, ...toAdd];
+                            this.scrollToBottom();
+                        }
+                    }
+                }
+            } catch(e) {
+            } finally {
+                this.isPolling = false;
+            }
+        },
+
+        async sendMessage() {
+            const text = this.messageInput.trim();
+            if (!text || this.isSending) return;
+
+            this.isSending = true;
+
+            try {
+                if (this.activeTab === 'global' || this.activeTab === 'gang') {
+                    const targetChannel = this.activeTab === 'gang' ? `gang_${this.gangId}` : 'global';
+                    const payload = {
+                        message: text,
+                        channel: targetChannel
+                    };
+                    if (this.replyingTo && this.replyingTo.id) {
+                        payload.reply_to_id = this.replyingTo.id;
+                    }
+
+                    const res = await fetch('{{ route("chat.public.send") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrf()
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (this.activeTab === 'global') {
+                            if (!this.publicMessagesList.some(m => m.id === data.message.id)) {
+                                this.publicMessagesList.push(data.message);
+                            }
+                            this.lastPublicId = Math.max(this.lastPublicId, data.message.id);
+                        } else {
+                            if (!this.gangMessagesList.some(m => m.id === data.message.id)) {
+                                this.gangMessagesList.push(data.message);
+                            }
+                            this.lastGangId = Math.max(this.lastGangId, data.message.id);
+                        }
+                        this.messageInput = '';
+                        this.replyingTo = null;
+                        this.scrollToBottom();
+                    } else {
+                        alert(data.message || 'Kon bericht niet versturen.');
+                    }
+                } else {
+                    const res = await fetch(`/chat/prive/${this.activePartnerId}/verzenden`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': this.getCsrf()
+                        },
+                        body: JSON.stringify({ message: text })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (!this.directMessagesList.some(m => m.id === data.message.id)) {
+                            this.directMessagesList.push(data.message);
+                        }
+                        this.messageInput = '';
+                        this.scrollToBottom();
+                        this.loadConversations();
+                    } else {
+                        alert(data.message || 'Kon bericht niet versturen.');
+                    }
+                }
+            } catch(e) {
+                alert('Netwerkfout bij verzenden.');
+            } finally {
+                this.isSending = false;
+            }
+        },
+
+        async togglePublicHeart(msg) {
+            try {
+                const res = await fetch(`/chat/openbaar/${msg.id}/hartje`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': this.getCsrf(),
+                        'Accept': 'application/json',
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    msg.hearts_count = data.hearts_count;
+                    msg.has_hearted = data.has_hearted;
+                }
+            } catch(e) {}
+        },
+
+        async deletePublicMessage(msgId) {
+            if (!confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) return;
+            try {
+                const res = await fetch(`/chat/openbaar/${msgId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': this.getCsrf(),
+                        'Accept': 'application/json',
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.publicMessagesList = this.publicMessagesList.filter(m => m.id !== msgId);
+                    this.gangMessagesList = this.gangMessagesList.filter(m => m.id !== msgId);
+                } else {
+                    alert(data.message || 'Kon bericht niet verwijderen.');
+                }
+            } catch(e) {}
+        },
+
+        async refreshActiveChat() {
+            this.isRefreshing = true;
+            if (this.activeTab === 'global') {
+                await this.loadPublicMessages();
+            } else if (this.activeTab === 'gang') {
+                await this.loadGangMessages();
+            } else {
+                await this.loadDirectMessages(this.activePartnerId);
+                await this.loadConversations();
+            }
+            setTimeout(() => { this.isRefreshing = false; }, 400);
+        },
+
+        scrollToBottom(smooth = false) {
+            const doScroll = () => {
+                const el = document.getElementById('tbsChatScrollContainer');
+                if (el) {
+                    if (smooth) {
+                        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+                    } else {
+                        el.scrollTop = el.scrollHeight;
+                    }
+                }
+            };
+            doScroll();
+            this.$nextTick(() => {
+                doScroll();
+                requestAnimationFrame(() => {
+                    doScroll();
+                    setTimeout(doScroll, 40);
+                    setTimeout(doScroll, 100);
+                    setTimeout(doScroll, 200);
+                });
+            });
+        }
+    };
+}
+
+if (window.Alpine) {
+    window.Alpine.data("tbsLiveMessenger", (cfg = window.tbsChatConfig) => tbsLiveMessenger(cfg));
+} else {
+    document.addEventListener("alpine:init", () => {
+        Alpine.data("tbsLiveMessenger", (cfg = window.tbsChatConfig) => tbsLiveMessenger(cfg));
+    });
+}
+window.tbsLiveMessenger = tbsLiveMessenger;
+
+</script>
+
+<div class="space-y-4" x-data="tbsLiveMessenger(window.tbsChatConfig)" x-init="initMessenger()">
 
     <!-- HEADER BAR -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
@@ -1049,606 +1663,4 @@
     </div>
 
 </div>
-
-<!-- SCRIPT: REALTIME ALPINE MESSENGER LOGIC -->
-<script>
-function tbsLiveMessenger(config) {
-    return {
-        authCharId: config.authCharId,
-        authCharName: config.authCharName,
-        activeTab: config.initialTab || 'global',
-        mobileView: (config.initialRecipient > 0 || config.initialTab === 'direct') ? 'chat' : 'list',
-        searchQuery: '',
-
-        // Gang configuration
-        hasGang: config.hasGang,
-        gangId: config.gangId,
-        gangName: config.gangName,
-        gangTag: config.gangTag,
-        gangHasChat: config.gangHasChat,
-        gangStars: config.gangStars,
-        characterStars: config.characterStars,
-        canModerate: config.canModerate,
-        
-        // Public & Gang chat state
-        publicMessagesList: [],
-        gangMessagesList: [],
-        lastPublicId: 0,
-        lastGangId: 0,
-        
-        // Direct messages state
-        conversationsList: [],
-        directMessagesList: [],
-        activePartnerId: config.initialRecipient || 0,
-        activePartner: {
-            id: 0,
-            name: 'Kies een gesprek',
-            avatar: '{{ asset('assets/characters/avatar_male_1.jpg') }}',
-            is_bot: false,
-            status_label: 'Selecteer een gesprek uit de lijst'
-        },
-        loadingConversations: false,
-        totalUnread: 0,
-
-        // Input & Interactive state
-        messageInput: '',
-        isSending: false,
-        isRefreshing: false,
-        isPolling: false,
-        pollTimer: null,
-        replyingTo: null,
-        showEmojiPicker: false,
-
-        // Mention autocomplete
-        showMentionDropdown: false,
-        mentionQuery: '',
-        mentionUsers: [],
-        mentionSelectedIndex: 0,
-
-        getCsrf() {
-            return '{{ csrf_token() }}';
-        },
-
-        formatMessage(text, isMe = false) {
-            if (!text) return '';
-            const tempDiv = document.createElement('div');
-            tempDiv.textContent = text;
-            let safe = tempDiv.innerHTML;
-
-            // Highlight and link @mentions
-            const mentionRegex = /@([a-zA-Z0-9_\-]+)/g;
-            safe = safe.replace(mentionRegex, (match, username) => {
-                const url = '/speler/' + encodeURIComponent(username);
-                if (isMe) {
-                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
-                } else {
-                    return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
-                }
-            });
-
-            return safe;
-        },
-
-        setReplyTo(msg) {
-            this.replyingTo = {
-                id: msg.id,
-                name: msg.name,
-                text: (msg.message || '').slice(0, 70)
-            };
-            this.$nextTick(() => {
-                if (this.$refs.messageInputField) {
-                    this.$refs.messageInputField.focus();
-                }
-            });
-        },
-
-        cancelReply() {
-            this.replyingTo = null;
-        },
-
-        tagPlayer(name) {
-            if (!name) return;
-            const tag = '@' + name + ' ';
-            if (!this.messageInput.includes(tag)) {
-                this.messageInput = tag + this.messageInput;
-            }
-            this.$nextTick(() => {
-                if (this.$refs.messageInputField) {
-                    this.$refs.messageInputField.focus();
-                }
-            });
-        },
-
-        insertEmoji(emoji) {
-            this.messageInput += emoji;
-            this.$nextTick(() => {
-                if (this.$refs.messageInputField) {
-                    this.$refs.messageInputField.focus();
-                }
-            });
-        },
-
-        async onMessageInput(e) {
-            const inputEl = this.$refs.messageInputField;
-            if (!inputEl) return;
-
-            const cursorPos = inputEl.selectionStart || 0;
-            const textBeforeCursor = this.messageInput.slice(0, cursorPos);
-            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
-
-            if (match) {
-                const query = match[1] || '';
-                this.mentionQuery = query;
-                await this.fetchMentionSuggestions(query);
-            } else {
-                this.showMentionDropdown = false;
-                this.mentionUsers = [];
-            }
-        },
-
-        async fetchMentionSuggestions(q) {
-            try {
-                const res = await fetch(`/chat/zoek-spelers?q=${encodeURIComponent(q)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success && Array.isArray(data.players) && data.players.length > 0) {
-                        this.mentionUsers = data.players;
-                        this.mentionSelectedIndex = 0;
-                        this.showMentionDropdown = true;
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.error('Mention fetch error:', e);
-            }
-            this.showMentionDropdown = false;
-            this.mentionUsers = [];
-        },
-
-        onMessageKeydown(e) {
-            if (this.showMentionDropdown && this.mentionUsers.length > 0) {
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    this.mentionSelectedIndex = (this.mentionSelectedIndex + 1) % this.mentionUsers.length;
-                    return;
-                }
-                if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    this.mentionSelectedIndex = (this.mentionSelectedIndex - 1 + this.mentionUsers.length) % this.mentionUsers.length;
-                    return;
-                }
-                if (e.key === 'Enter' || e.key === 'Tab') {
-                    e.preventDefault();
-                    if (this.mentionUsers[this.mentionSelectedIndex]) {
-                        this.selectMention(this.mentionUsers[this.mentionSelectedIndex]);
-                    }
-                    return;
-                }
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    this.showMentionDropdown = false;
-                    return;
-                }
-            }
-
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessage();
-            }
-        },
-
-        selectMention(user) {
-            const inputEl = this.$refs.messageInputField;
-            const cursorPos = inputEl ? inputEl.selectionStart : this.messageInput.length;
-            const textBeforeCursor = this.messageInput.slice(0, cursorPos);
-            const textAfterCursor = this.messageInput.slice(cursorPos);
-
-            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
-            if (match) {
-                const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
-                const prefix = textBeforeCursor.slice(0, atIndex);
-                const inserted = '@' + user.name + ' ';
-                this.messageInput = prefix + inserted + textAfterCursor;
-                const nextPos = prefix.length + inserted.length;
-
-                this.$nextTick(() => {
-                    if (inputEl) {
-                        inputEl.focus();
-                        inputEl.setSelectionRange(nextPos, nextPos);
-                    }
-                });
-            }
-
-            this.showMentionDropdown = false;
-            this.mentionUsers = [];
-        },
-
-        get filteredConversations() {
-            if (!this.searchQuery.trim()) {
-                return this.conversationsList;
-            }
-            const q = this.searchQuery.toLowerCase();
-            return this.conversationsList.filter(c => c.name.toLowerCase().includes(q));
-        },
-
-        initMessenger() {
-            if (this.activeTab === 'global') {
-                this.loadPublicMessages();
-            } else if (this.activeTab === 'gang') {
-                this.loadGangMessages();
-            } else {
-                this.loadConversations();
-                this.loadDirectMessages(this.activePartnerId);
-            }
-
-            // Polling interval: every 3.5s for snappy live chat
-            this.pollTimer = setInterval(() => {
-                if (document.visibilityState === 'hidden') return;
-                this.pollUpdates();
-            }, 3500);
-
-            // Clean up on page navigation
-            window.addEventListener('beforeunload', () => {
-                if (this.pollTimer) clearInterval(this.pollTimer);
-            });
-        },
-
-        switchTab(tab) {
-            this.activeTab = tab;
-            this.mobileView = 'chat';
-            this.replyingTo = null;
-            if (tab === 'global') {
-                this.loadPublicMessages();
-            } else if (tab === 'gang') {
-                this.loadGangMessages();
-            } else {
-                this.loadConversations();
-                if (this.activePartnerId === 0 && this.directMessagesList.length === 0) {
-                    this.loadDirectMessages(0);
-                }
-            }
-        },
-
-        selectPartner(partnerId, partnerName = '') {
-            this.activePartnerId = partnerId;
-            this.mobileView = 'chat';
-            this.replyingTo = null;
-            this.loadDirectMessages(partnerId);
-        },
-
-        async loadPublicMessages() {
-            try {
-                const res = await fetch('{{ route("chat.public.messages") }}?channel=global');
-                const data = await res.json();
-                if (data.success) {
-                    if (this.publicMessagesList.length === 0) {
-                        this.publicMessagesList = data.messages;
-                    } else {
-                        const existingMap = new Map();
-                        data.messages.forEach(m => existingMap.set(m.id, m));
-                        this.publicMessagesList.forEach(m => {
-                            if (!existingMap.has(m.id)) {
-                                existingMap.set(m.id, m);
-                            }
-                        });
-                        const merged = Array.from(existingMap.values());
-                        merged.sort((a, b) => a.id - b.id);
-                        this.publicMessagesList = merged;
-                    }
-                    this.lastPublicId = Math.max(this.lastPublicId, data.last_id || 0);
-                    if (this.publicMessagesList.length > 0) {
-                        const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
-                        if (maxId > this.lastPublicId) this.lastPublicId = maxId;
-                    }
-                    this.scrollToBottom();
-                }
-            } catch(e) {}
-        },
-
-        async loadGangMessages() {
-            if (!this.hasGang || !this.gangHasChat) return;
-            try {
-                const res = await fetch(`{{ route("chat.public.messages") }}?channel=gang_${this.gangId}`);
-                const data = await res.json();
-                if (data.success) {
-                    if (this.gangMessagesList.length === 0) {
-                        this.gangMessagesList = data.messages;
-                    } else {
-                        const existingMap = new Map();
-                        data.messages.forEach(m => existingMap.set(m.id, m));
-                        this.gangMessagesList.forEach(m => {
-                            if (!existingMap.has(m.id)) {
-                                existingMap.set(m.id, m);
-                            }
-                        });
-                        const merged = Array.from(existingMap.values());
-                        merged.sort((a, b) => a.id - b.id);
-                        this.gangMessagesList = merged;
-                    }
-                    this.lastGangId = Math.max(this.lastGangId, data.last_id || 0);
-                    if (this.gangMessagesList.length > 0) {
-                        const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
-                        if (maxId > this.lastGangId) this.lastGangId = maxId;
-                    }
-                    this.scrollToBottom();
-                }
-            } catch(e) {}
-        },
-
-        async loadConversations() {
-            this.loadingConversations = true;
-            try {
-                const res = await fetch('{{ route("chat.conversations") }}');
-                const data = await res.json();
-                if (data.success) {
-                    this.conversationsList = data.conversations;
-                    this.totalUnread = data.conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0);
-                }
-            } catch(e) {} finally {
-                this.loadingConversations = false;
-            }
-        },
-
-        async loadDirectMessages(partnerId) {
-            try {
-                const res = await fetch(`/chat/prive/${partnerId}`);
-                const data = await res.json();
-                if (data.success) {
-                    this.activePartner = data.partner;
-                    if (this.directMessagesList.length === 0) {
-                        this.directMessagesList = data.messages;
-                    } else {
-                        const existingMap = new Map();
-                        data.messages.forEach(m => existingMap.set(m.id, m));
-                        this.directMessagesList.forEach(m => {
-                            if (!existingMap.has(m.id)) {
-                                existingMap.set(m.id, m);
-                            }
-                        });
-                        const merged = Array.from(existingMap.values());
-                        merged.sort((a, b) => a.id - b.id);
-                        this.directMessagesList = merged;
-                    }
-                    this.scrollToBottom();
-                    const conv = this.conversationsList.find(c => c.partner_id === partnerId);
-                    if (conv) conv.unread_count = 0;
-                }
-            } catch(e) {}
-        },
-
-        playChime() {
-            if (window.playTBSChime) {
-                window.playTBSChime();
-            }
-        },
-
-        async pollUpdates() {
-            if (this.isPolling) return;
-            this.isPolling = true;
-
-            try {
-                if (this.activeTab === 'global') {
-                    const res = await fetch(`{{ route("chat.public.messages") }}?channel=global&after_id=${this.lastPublicId}`);
-                    const data = await res.json();
-                    if (data.success && data.messages.length > 0) {
-                        const newOthers = data.messages.filter(m => !m.is_me);
-                        if (newOthers.length > 0) {
-                            const myNameLower = (this.authCharName || '').toLowerCase();
-                            const notifyMsg = newOthers.find(m => {
-                                const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                return isTagged || isReplied;
-                            });
-                            if (notifyMsg) this.playChime();
-                        }
-
-                        const existingIds = new Set(this.publicMessagesList.map(m => m.id));
-                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
-                        if (toAdd.length > 0) {
-                            this.publicMessagesList = [...this.publicMessagesList, ...toAdd];
-                            this.scrollToBottom();
-                        }
-                        if (data.last_id > this.lastPublicId) {
-                            this.lastPublicId = data.last_id;
-                        }
-                        if (this.publicMessagesList.length > 0) {
-                            const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
-                            if (maxId > this.lastPublicId) this.lastPublicId = maxId;
-                        }
-                    }
-                } else if (this.activeTab === 'gang' && this.hasGang && this.gangHasChat) {
-                    const res = await fetch(`{{ route("chat.public.messages") }}?channel=gang_${this.gangId}&after_id=${this.lastGangId}`);
-                    const data = await res.json();
-                    if (data.success && data.messages.length > 0) {
-                        const newOthers = data.messages.filter(m => !m.is_me);
-                        if (newOthers.length > 0) {
-                            const myNameLower = (this.authCharName || '').toLowerCase();
-                            const notifyMsg = newOthers.find(m => {
-                                const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                return isTagged || isReplied;
-                            });
-                            if (notifyMsg) this.playChime();
-                        }
-
-                        const existingIds = new Set(this.gangMessagesList.map(m => m.id));
-                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
-                        if (toAdd.length > 0) {
-                            this.gangMessagesList = [...this.gangMessagesList, ...toAdd];
-                            this.scrollToBottom();
-                        }
-                        if (data.last_id > this.lastGangId) {
-                            this.lastGangId = data.last_id;
-                        }
-                        if (this.gangMessagesList.length > 0) {
-                            const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
-                            if (maxId > this.lastGangId) this.lastGangId = maxId;
-                        }
-                    }
-                } else if (this.activeTab === 'direct') {
-                    const res = await fetch(`/chat/prive/${this.activePartnerId}`);
-                    const data = await res.json();
-                    if (data.success && data.messages) {
-                        const existingIds = new Set(this.directMessagesList.map(m => m.id));
-                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
-                        if (toAdd.length > 0) {
-                            if (toAdd.some(m => !m.is_me)) this.playChime();
-                            this.directMessagesList = [...this.directMessagesList, ...toAdd];
-                            this.scrollToBottom();
-                        }
-                    }
-                }
-            } catch(e) {
-            } finally {
-                this.isPolling = false;
-            }
-        },
-
-        async sendMessage() {
-            const text = this.messageInput.trim();
-            if (!text || this.isSending) return;
-
-            this.isSending = true;
-
-            try {
-                if (this.activeTab === 'global' || this.activeTab === 'gang') {
-                    const targetChannel = this.activeTab === 'gang' ? `gang_${this.gangId}` : 'global';
-                    const payload = {
-                        message: text,
-                        channel: targetChannel
-                    };
-                    if (this.replyingTo && this.replyingTo.id) {
-                        payload.reply_to_id = this.replyingTo.id;
-                    }
-
-                    const res = await fetch('{{ route("chat.public.send") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrf()
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        if (this.activeTab === 'global') {
-                            if (!this.publicMessagesList.some(m => m.id === data.message.id)) {
-                                this.publicMessagesList.push(data.message);
-                            }
-                            this.lastPublicId = Math.max(this.lastPublicId, data.message.id);
-                        } else {
-                            if (!this.gangMessagesList.some(m => m.id === data.message.id)) {
-                                this.gangMessagesList.push(data.message);
-                            }
-                            this.lastGangId = Math.max(this.lastGangId, data.message.id);
-                        }
-                        this.messageInput = '';
-                        this.replyingTo = null;
-                        this.scrollToBottom();
-                    } else {
-                        alert(data.message || 'Kon bericht niet versturen.');
-                    }
-                } else {
-                    const res = await fetch(`/chat/prive/${this.activePartnerId}/verzenden`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': this.getCsrf()
-                        },
-                        body: JSON.stringify({ message: text })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        if (!this.directMessagesList.some(m => m.id === data.message.id)) {
-                            this.directMessagesList.push(data.message);
-                        }
-                        this.messageInput = '';
-                        this.scrollToBottom();
-                        this.loadConversations();
-                    } else {
-                        alert(data.message || 'Kon bericht niet versturen.');
-                    }
-                }
-            } catch(e) {
-                alert('Netwerkfout bij verzenden.');
-            } finally {
-                this.isSending = false;
-            }
-        },
-
-        async togglePublicHeart(msg) {
-            try {
-                const res = await fetch(`/chat/openbaar/${msg.id}/hartje`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': this.getCsrf(),
-                        'Accept': 'application/json',
-                    }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    msg.hearts_count = data.hearts_count;
-                    msg.has_hearted = data.has_hearted;
-                }
-            } catch(e) {}
-        },
-
-        async deletePublicMessage(msgId) {
-            if (!confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) return;
-            try {
-                const res = await fetch(`/chat/openbaar/${msgId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': this.getCsrf(),
-                        'Accept': 'application/json',
-                    }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    this.publicMessagesList = this.publicMessagesList.filter(m => m.id !== msgId);
-                    this.gangMessagesList = this.gangMessagesList.filter(m => m.id !== msgId);
-                } else {
-                    alert(data.message || 'Kon bericht niet verwijderen.');
-                }
-            } catch(e) {}
-        },
-
-        async refreshActiveChat() {
-            this.isRefreshing = true;
-            if (this.activeTab === 'global') {
-                await this.loadPublicMessages();
-            } else if (this.activeTab === 'gang') {
-                await this.loadGangMessages();
-            } else {
-                await this.loadDirectMessages(this.activePartnerId);
-                await this.loadConversations();
-            }
-            setTimeout(() => { this.isRefreshing = false; }, 400);
-        },
-
-        scrollToBottom(smooth = false) {
-            const doScroll = () => {
-                const el = document.getElementById('tbsChatScrollContainer');
-                if (el) {
-                    if (smooth) {
-                        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
-                    } else {
-                        el.scrollTop = el.scrollHeight;
-                    }
-                }
-            };
-            doScroll();
-            this.$nextTick(() => {
-                doScroll();
-                requestAnimationFrame(() => {
-                    doScroll();
-                    setTimeout(doScroll, 40);
-                    setTimeout(doScroll, 100);
-                    setTimeout(doScroll, 200);
-                });
-            });
-        }
-    };
-}
-</script>
 @endsection

@@ -131,7 +131,18 @@ class ShopController extends Controller
         $unitPrice = $discountPct > 0 ? (int) round($item->price_kc * (1 - ($discountPct / 100))) : $item->price_kc;
         $totalCost = $unitPrice * $quantity;
 
-        if (! $character->canAddStorageItem($quantity)) {
+        // Stat boost items, combat equipment, masks and unopened packages do not take storage in inventory
+        $isDirectDelivery = in_array($item->slug, [
+            'bivakmuts-masker',
+            'smokkelpakketje',
+            'boksbeugel',
+            'stalen-neus-kisten',
+            'eiwitshake-bodybuilder',
+            'multivitaminen-focus',
+            'haloperidol-forte',
+        ], true) || ($item->attack_power > 0) || ($item->defense_power > 0);
+
+        if (! $isDirectDelivery && ! $character->canAddStorageItem($quantity)) {
             $storageUsed = $character->getStorageUsed();
             $storageCap = $character->getStorageCapacity();
             $storageRemaining = max(0, $storageCap - $storageUsed);
@@ -179,7 +190,7 @@ class ShopController extends Controller
             }
             $locked->save();
 
-            // Deliver item under lock
+            // Deliver item under lock - direct stats do NOT go into inventory
             if ($item->slug === 'bivakmuts-masker') {
                 $locked->masks = ($locked->masks ?? 0) + $quantity;
                 $locked->save();
@@ -190,6 +201,48 @@ class ShopController extends Controller
                 $locked->save();
                 $ownedCount = (int) $locked->unopened_bags;
                 $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$quantity} Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$locked->unopened_bags}).";
+            } elseif ($item->slug === 'boksbeugel') {
+                $gain = 5 * $quantity;
+                $locked->strength = ($locked->strength ?? 10) + $gain;
+                $locked->save();
+                $ownedCount = (int) $locked->strength;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Kracht 💪 toegekend aan je karakter (nu: {$locked->strength})!";
+            } elseif ($item->slug === 'stalen-neus-kisten') {
+                $gain = 6 * $quantity;
+                $locked->defense = ($locked->defense ?? 10) + $gain;
+                $locked->save();
+                $ownedCount = (int) $locked->defense;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Bescherming & Verdediging 🛡️ toegekend aan je karakter (nu: {$locked->defense})!";
+            } elseif ($item->slug === 'eiwitshake-bodybuilder') {
+                $gain = 1 * $quantity;
+                $locked->strength = ($locked->strength ?? 10) + $gain;
+                $locked->save();
+                $ownedCount = (int) $locked->strength;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Permanente Kracht 💪 toegekend aan je karakter (nu: {$locked->strength})!";
+            } elseif ($item->slug === 'multivitaminen-focus') {
+                $gain = 1 * $quantity;
+                $locked->stamina = ($locked->stamina ?? 10) + $gain;
+                $locked->save();
+                $ownedCount = (int) $locked->stamina;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Permanente Conditie 🏃 toegekend aan je karakter (nu: {$locked->stamina})!";
+            } elseif ($item->slug === 'haloperidol-forte') {
+                $gainStr = 12 * $quantity;
+                $gainDef = 8 * $quantity;
+                $gainHp = 60 * $quantity;
+                $locked->strength = ($locked->strength ?? 10) + $gainStr;
+                $locked->defense = ($locked->defense ?? 10) + $gainDef;
+                $locked->health = min($locked->max_health, $locked->health + $gainHp);
+                $locked->save();
+                $ownedCount = (int) $locked->strength;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gainStr} Kracht, +{$gainDef} Bescherming & +{$gainHp} HP 💥 toegekend aan je karakter!";
+            } elseif (($item->attack_power > 0) || ($item->defense_power > 0)) {
+                $gainStr = ($item->attack_power ?? 0) * $quantity;
+                $gainDef = ($item->defense_power ?? 0) * $quantity;
+                if ($gainStr > 0) $locked->strength = ($locked->strength ?? 10) + $gainStr;
+                if ($gainDef > 0) $locked->defense = ($locked->defense ?? 10) + $gainDef;
+                $locked->save();
+                $ownedCount = (int) $locked->strength;
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Directe combat stats toegekend aan je karakter!";
             } else {
                 $inv = CharacterItem::firstOrNew([
                     'character_id' => $locked->id,
@@ -206,6 +259,10 @@ class ShopController extends Controller
             $character->bank = $locked->bank;
             $character->masks = $locked->masks;
             $character->unopened_bags = $locked->unopened_bags;
+            $character->strength = $locked->strength;
+            $character->defense = $locked->defense;
+            $character->stamina = $locked->stamina;
+            $character->health = $locked->health;
 
             return true;
         });

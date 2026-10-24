@@ -2574,7 +2574,7 @@
                     this.rewardTitle = '+1 Respect 🔥';
                     this.rewardIcon = 'fa-fire';
                 } else if (rewardType === 'vault_code') {
-                    this.rewardTitle = 'Geheime Kluiscode Voucher (Monetag)';
+                    this.rewardTitle = 'Geheime Kluiscode Voucher (3 Ads)';
                     this.rewardIcon = 'fa-key';
                 } else if (rewardType === 'true_crime' || rewardType === 'cooldown:true_crime') {
                     this.rewardTitle = '🔍 Caroline Cold Case Dossier (5 Ads)';
@@ -2638,15 +2638,7 @@
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
 
-                    // 0. Priority: Monetag Vignette Ad Integration for Kluiscodes (Zone 12114258)
-                    if (this.rewardType === 'vault_code') {
-                        this.popupUrl = null;
-                        this.robinRewardId = null;
-                        this.adNetwork = 'monetag';
-                        this.statusMessage = 'Bekijk de Monetag advertentie. Je Geheime Kluiscode voortgang wordt na 15 seconden direct toegekend.';
-                        this.startInScreenFallback(data);
-                        return;
-                    }
+
 
                     // 1. First priority: In-Screen Rewarded Interstitial Video via Robins Ads
                     const robinSdk = await this.ensureRobinAdsSdk();
@@ -2682,30 +2674,10 @@
                 }
             };
         },
-                triggerMonetagVignette() {
-            try {
-                if (!document.querySelector('script[src*="vignette.min.js"]')) {
-                    (function(s){s.dataset.zone='12114258',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-                }
-                const triggerLink = document.createElement('a');
-                triggerLink.href = 'https://n6wxm.com/vignette.min.js';
-                triggerLink.target = '_blank';
-                triggerLink.rel = 'noopener';
-                triggerLink.style.display = 'none';
-                document.body.appendChild(triggerLink);
-                triggerLink.click();
-                setTimeout(() => triggerLink.remove(), 100);
-            } catch(e) {
-                console.warn('Monetag trigger error:', e);
-            }
-        },
+        
         startInScreenFallback(data) {
             this.status = 'watching_inscreen';
-            if (this.rewardType === 'vault_code') {
-                this.statusMessage = 'Bekijk de Monetag advertentie in het scherm. De Geheime Kluiscode voortgang wordt na 15 seconden direct toegekend.';
-            } else {
-                this.statusMessage = 'Bekijk de sponsoradvertentie hieronder in het scherm. De beloning wordt vrijgegeven zodra de advertentie volledig is bekeken.';
-            }
+            this.statusMessage = 'Bekijk de sponsor video. De beloning wordt automatisch ontgrendeld zodra de 15 seconden voorbij zijn!';
             this.secondsLeft = data.duration || 15;
             this.totalSeconds = data.duration || 15;
 
@@ -2786,9 +2758,7 @@
             <!-- Top Badges -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-[11px] font-black border border-purple-200">
-                    <template x-if="rewardType === 'vault_code'">
-                        <span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.2 rounded font-black mr-1">MONETAG</span>
-                    </template>
+
                     <i class="fa-solid fa-tv text-purple-600"></i> TBS Sponsorkamer (In-Scherm)
                 </div>
                 <button type="button" @click="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg transition cursor-pointer p-1">
@@ -2840,39 +2810,28 @@
                         </div>
                     </div>
 
-                    <!-- MONETAG DEDICATED IN-SCREEN DISPLAY (Vault Code) -->
-                    <template x-if="rewardType === 'vault_code'">
-                        <div class="w-full rounded-2xl overflow-hidden border-2 border-indigo-500/40 dark:border-indigo-500/60 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 p-6 text-white shadow-xl relative my-3 text-center space-y-4">
-                            <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 text-indigo-400 flex items-center justify-center text-2xl mx-auto shadow-inner">
-                                <i class="fa-solid fa-rectangle-ad"></i>
-                            </div>
-                            <div>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500 text-white shadow-xs">
-                                    Monetag Vignette (Zone 12114258)
-                                </span>
-                                <h4 class="text-base font-black text-white mt-2">Monetag Advertentie Actief</h4>
-                                <p class="text-xs text-indigo-200/80 mt-1 max-w-sm mx-auto leading-relaxed">
-                                    Klik hieronder om de fullscreen Monetag Vignette advertentie te openen of bekijk de sponsor in het scherm. Na 15 seconden kun je direct claimen!
-                                </p>
-                            </div>
-                            <div>
-                                <a href="javascript:void(0)"
-                                   @click="triggerMonetagVignette()"
-                                   class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-extrabold text-xs shadow-md transition transform hover:scale-105 active:scale-95 cursor-pointer">
-                                    <i class="fa-solid fa-play text-xs"></i>
-                                    <span>Bekijk / Open Monetag Advertentie</span>
+                    <!-- SPONSOR VIDEO CARD WITH TIMER -->
+                    <div class="w-full rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50/50 p-6 text-center space-y-3 my-3">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl mx-auto shadow-md animate-pulse">
+                            <i class="fa-solid fa-play"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-slate-900">Sponsor Video Wordt Afgespeeld</h4>
+                            <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
+                                De advertentie is actief. Na 15 seconden kun je direct je beloning verifiëren en innen!
+                            </p>
+                        </div>
+                        <template x-if="popupUrl">
+                            <div class="pt-1">
+                                <button type="button" 
+                                        @click="window.open(popupUrl, '_blank', 'width=600,height=700')"
+                                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer">
                                     <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                </a>
+                                    <span>Open / Heropen Sponsor Venster</span>
+                                </button>
                             </div>
-                        </div>
-                    </template>
-
-                    <!-- ROBIN ADS IFRAME (Only when NOT vault_code) -->
-                    <template x-if="rewardType !== 'vault_code' && popupUrl">
-                        <div class="w-full h-72 sm:h-80 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-inner relative my-2">
-                            <iframe :src="popupUrl" class="w-full h-full border-0" allow="autoplay; fullscreen; encrypted-media"></iframe>
-                        </div>
-                    </template>
+                        </template>
+                    </div>
 
                     <p class="text-xs text-slate-500 leading-relaxed" x-text="statusMessage"></p>
                 </div>
@@ -2881,25 +2840,7 @@
             <!-- READY TO CLAIM BUTTON -->
             <template x-if="status === 'ready_to_claim'">
                 <div class="space-y-4 animate-fade-in">
-                    <!-- MONETAG COMPLETED CARD (Vault Code) -->
-                    <template x-if="rewardType === 'vault_code'">
-                        <div class="w-full rounded-2xl overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 p-6 text-white shadow-xl relative my-3 text-center space-y-3">
-                            <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center text-2xl mx-auto shadow-inner">
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                            <h4 class="text-base font-black text-white">Monetag Advertentie Voltooid!</h4>
-                            <p class="text-xs text-emerald-200/80 max-w-sm mx-auto leading-relaxed">
-                                Je hebt de Monetag advertentie succesvol bekeken. Claim nu direct je Geheime Kluiscode voortgang!
-                            </p>
-                        </div>
-                    </template>
 
-                    <!-- ROBIN ADS IFRAME (Only when NOT vault_code) -->
-                    <template x-if="rewardType !== 'vault_code' && popupUrl">
-                        <div class="w-full h-64 sm:h-72 rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 shadow-inner relative mb-2">
-                            <iframe :src="popupUrl" class="w-full h-full border-0" allow="autoplay; fullscreen; encrypted-media"></iframe>
-                        </div>
-                    </template>
 
                     <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shadow-xs">
                         <i class="fa-solid fa-check"></i>
