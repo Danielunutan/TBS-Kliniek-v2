@@ -146,7 +146,7 @@ class SponsorAdController extends Controller
         $apiKey = config('services.robinads.api_key', 'rbads_live_7c596edc4ee5a05b9ca3a7e17a060143aa5c2a67');
         $websiteId = config('services.robinads.website_id', '6ad2b8e95f70fee0a42a5496');
 
-        if ($apiKey && $websiteId) {
+        if ($rewardType !== 'vault_code' && $apiKey && $websiteId) {
             try {
                 $response = Http::withoutVerifying()->withToken($apiKey)->timeout(5)->post('https://robinsads.com/api/v1/rewards', [
                     'website_id' => $websiteId,
@@ -186,11 +186,15 @@ class SponsorAdController extends Controller
             'success' => true,
             'token' => $token,
             'character_id' => $character->id,
-            'smartlink_url' => $smartlinkUrl,
-            'popup_url' => $popupUrl,
-            'robin_reward_id' => $robinRewardId,
+            'smartlink_url' => $rewardType === 'vault_code' ? null : $smartlinkUrl,
+            'popup_url' => $rewardType === 'vault_code' ? null : $popupUrl,
+            'ad_network' => $rewardType === 'vault_code' ? 'monetag' : 'robinads',
+            'monetag_zone' => $rewardType === 'vault_code' ? '12114258' : null,
+            'robin_reward_id' => $rewardType === 'vault_code' ? null : $robinRewardId,
             'duration' => self::WATCH_DURATION_SECONDS,
-            'message' => 'Sponsoropdracht gestart. Voltooi de opdracht om je beloning direct te ontvangen!',
+            'message' => $rewardType === 'vault_code'
+                ? 'Monetag sponsoropdracht gestart. Bekijk de advertentie en ontvang je kluiscode voortgang!'
+                : 'Sponsoropdracht gestart. Voltooi de opdracht om je beloning direct te ontvangen!',
         ]);
     }
 
@@ -213,6 +217,31 @@ class SponsorAdController extends Controller
         $targetUrl = "{$baseUrl}{$separator}ymid={$subid}_{$token}&subid={$subid}&subid2={$subid2}&requestVar={$subid2}";
 
         return redirect()->away($targetUrl);
+    }
+
+    /**
+     * Get player's current sponsor ad status.
+     */
+    public function status(Request $request): JsonResponse
+    {
+        /** @var Character|null $character */
+        $character = Auth::user()?->character;
+        if (! $character) {
+            return response()->json(['success' => false, 'message' => 'Niet ingelogd.'], 401);
+        }
+
+        return response()->json([
+            'success' => true,
+            'ads_enabled' => self::ADS_ENABLED,
+            'ads_today' => $character->getEffectiveAdsWatchedToday(),
+            'ads_left_today' => $character->getRemainingAdsToday(),
+            'ads_total' => $character->ads_watched_total,
+            'cooldown' => $character->getRemainingAdCooldownSeconds(),
+            'vip_progress' => $character->getVipAdMilestoneProgress(),
+            'ads_until_vip' => $character->getAdsUntilNextVip(),
+            'is_in_prison' => $character->isImprisoned(),
+            'daily_data' => $character->getAdDailyData(),
+        ]);
     }
 
     /**

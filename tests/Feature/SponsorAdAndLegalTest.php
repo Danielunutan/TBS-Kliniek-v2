@@ -343,7 +343,7 @@ class SponsorAdAndLegalTest extends TestCase
         // Check VaultCode created
         $code = VaultCode::where('character_id', $character->id)->where('code', 'LIKE', 'SPONSOR-%')->first();
         $this->assertNotNull($code);
-        $this->assertEquals(5000, $code->reward_cash);
-        $this->assertEquals(2, $code->reward_stars);
+        $this->assertEquals(15000, $code->reward_cash);
+        $this->assertEquals(3, $code->reward_stars);
     }
 }
