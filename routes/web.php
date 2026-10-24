@@ -14,6 +14,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CinemaController;
 use App\Http\Controllers\CombatTrainingController;
 use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\ConnectFourController;
 use App\Http\Controllers\ControlPointController;
 use App\Http\Controllers\CooldownController;
 use App\Http\Controllers\CpaleadPostbackController;
@@ -74,6 +75,7 @@ use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TrainingController;
 use App\Http\Controllers\TravelController;
 use App\Http\Controllers\TreatmentController;
+use App\Http\Controllers\TrueCrimeController;
 use App\Http\Controllers\TunnelController;
 use App\Http\Controllers\VaultController;
 use App\Http\Controllers\VipController;
@@ -85,16 +87,16 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function (): void {
     Route::get('/', [AuthController::class, 'showLogin'])->name('login');
     Route::get('/registreren', [AuthController::class, 'showLogin'])->name('register');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.post');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('register.post');
     Route::get('/auth/discord', [AuthController::class, 'discordLogin'])->name('login.discord');
     Route::get('/auth/discord/callback', [AuthController::class, 'discordCallback'])->name('login.discord.callback');
 
     // Wachtwoord Vergeten (E-mail)
     Route::get('/wachtwoord-vergeten', [AuthController::class, 'showForgotPassword'])->name('password.request');
-    Route::post('/wachtwoord-vergeten', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::post('/wachtwoord-vergeten', [AuthController::class, 'sendResetLinkEmail'])->middleware('throttle:3,1')->name('password.email');
     Route::get('/wachtwoord-reset/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
-    Route::post('/wachtwoord-reset', [AuthController::class, 'resetPassword'])->name('password.update');
+    Route::post('/wachtwoord-reset', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 });
 
 // Publieke Juridische Routes (AVG, Cookiewet, Voorwaarden)
@@ -148,10 +150,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/sponsorkamer/status', [SponsorAdController::class, 'status'])->name('sponsor.status');
     Route::post('/sponsorkamer/claim', [SponsorAdController::class, 'claim'])->name('sponsor.claim');
 
-    // E-mail Bevestiging
+    // E-mail Bevestiging (Code & Fallback Link)
     Route::get('/email/verify', [AuthController::class, 'verifyNotice'])->name('verification.notice');
+    Route::post('/email/verify/code', [AuthController::class, 'verifyWithCode'])->middleware('throttle:5,1')->name('verification.code');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
-    Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->name('verification.send');
+    Route::post('/email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:3,1')->name('verification.send');
 
     // Helptool: Support Ticketsysteem
     Route::get('/help/tickets', [SupportTicketController::class, 'index'])->name('help.tickets.index');
@@ -276,6 +279,15 @@ Route::middleware('auth')->group(function (): void {
 
     // Grote Heists & Kraak Missies
     Route::get('/heists', [HeistController::class, 'index'])->name('heists.index');
+    Route::get('/heist', fn () => redirect()->route('heists.index'));
+    Route::get('/heists/gang', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
+    Route::get('/bende/heist', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
+    Route::get('/bende/heists', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
+    Route::get('/bende-heist', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
+    Route::get('/bende-heists', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
+    Route::get('/gang/heists', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
+    Route::get('/gangs/heists', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
+    Route::get('/heists/start/{heist}', fn () => redirect()->route('heists.index', ['tab' => 'gang']));
     Route::post('/heists/start/{heist}', [HeistController::class, 'launch'])->name('heists.launch');
 
     // Extort (Afpersen)
@@ -413,13 +425,19 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/depot/verkopen/{characterItem}', [DepotController::class, 'sellItem'])->name('depot.sell-item');
     Route::post('/depot/maskers-verkopen', [DepotController::class, 'sellMasks'])->name('depot.sell-masks');
 
-    // Cinema & Watchparties (YouTube, Live Session Chat, Emojis, GIFs)
+    // Cinema & Watchparties (YouTube, Live Session Chat, Emojis, GIFs, Video Queue)
     Route::get('/cinema', [CinemaController::class, 'index'])->name('cinema.index');
+    Route::get('/cinema/search-youtube', [CinemaController::class, 'searchYoutube'])->name('cinema.search-youtube');
     Route::post('/cinema/rooms', [CinemaController::class, 'createRoom'])->name('cinema.create');
     Route::get('/cinema/{room:slug}', [CinemaController::class, 'show'])->name('cinema.show');
+    Route::post('/cinema/{room:slug}/close', [CinemaController::class, 'closeRoom'])->name('cinema.close');
     Route::post('/cinema/{room}/chat', [CinemaController::class, 'sendMessage'])->name('cinema.send-message');
     Route::get('/cinema/{room}/messages', [CinemaController::class, 'getMessages'])->name('cinema.get-messages');
     Route::post('/cinema/{room:slug}/video', [CinemaController::class, 'updateVideo'])->name('cinema.update-video');
+    Route::post('/cinema/{room:slug}/queue/add', [CinemaController::class, 'addToQueue'])->name('cinema.queue.add');
+    Route::post('/cinema/{room:slug}/queue/play/{queueId}', [CinemaController::class, 'playFromQueue'])->name('cinema.queue.play');
+    Route::post('/cinema/{room:slug}/queue/remove/{queueId}', [CinemaController::class, 'removeFromQueue'])->name('cinema.queue.remove');
+    Route::post('/cinema/{room:slug}/sync', [CinemaController::class, 'syncPlayback'])->name('cinema.sync');
 
     // Smokkel Garage & Wagenpark
     Route::get('/garage', [GarageController::class, 'index'])->name('garage.index');
@@ -448,6 +466,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/bende/{gang}', [GangController::class, 'show'])->name('gangs.show');
     Route::get('/gangs/bekijken/{gang}', [GangController::class, 'show']);
     Route::get('/gangs', [GangController::class, 'index'])->name('gangs.index');
+    Route::get('/gangs/depot', fn () => redirect()->route('gangs.index', ['tab' => 'depot']))->name('gangs.depot');
     Route::get('/gangs/leden', [GangController::class, 'leden'])->name('gangs.leden');
     Route::get('/gangs/beheer', [GangController::class, 'beheer'])->name('gangs.beheer');
     Route::get('/gangs/instellingen', [GangController::class, 'instellingen'])->name('gangs.instellingen');
@@ -526,6 +545,16 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/armpjedrukken/uitdaging/maken', [ArmWrestleController::class, 'createChallenge'])->name('armwrestling.challenge.create');
     Route::post('/armpjedrukken/uitdaging/{id}/annuleren', [ArmWrestleController::class, 'cancelChallenge'])->name('armwrestling.challenge.cancel');
     Route::post('/armpjedrukken/uitdaging/{id}/accepteren', [ArmWrestleController::class, 'acceptChallenge'])->name('armwrestling.challenge.accept');
+
+    // Partner Minigame 1: 4 op 'n Rij met OOHPA Arjan
+    Route::get('/vier-op-een-rij', [ConnectFourController::class, 'index'])->name('connect_four.index');
+    Route::post('/vier-op-een-rij/finish', [ConnectFourController::class, 'finishGame'])->name('connect_four.finish');
+    Route::post('/vier-op-een-rij/skip-cooldown-ad', [ConnectFourController::class, 'skipCooldownWithAd'])->name('connect_four.skip_cooldown_ad');
+
+    // Partner Minigame 2: True Crime Dossiers met Caroline (500 Cold Cases)
+    Route::get('/true-crime', [TrueCrimeController::class, 'index'])->name('true_crime.index');
+    Route::post('/true-crime/solve', [TrueCrimeController::class, 'solve'])->name('true_crime.solve');
+    Route::post('/true-crime/skip-cooldown-ad', [TrueCrimeController::class, 'skipCooldownWithAd'])->name('true_crime.skip_cooldown_ad');
 
     // Staff Medewerkers Admin Panel
     Route::middleware(EnsureUserIsStaff::class)->prefix('admin')->name('admin.')->group(function (): void {

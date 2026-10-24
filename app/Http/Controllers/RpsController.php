@@ -45,7 +45,9 @@ class RpsController extends Controller
         ]);
 
         $bet = (int) $validated['bet'];
-        if ($character->cash < $bet) {
+
+        // Atomic cash deduction before executing spin/round
+        if (! $this->economy->deductCash($character, $bet)) {
             return back()->with('error', 'Je hebt onvoldoende contant geld. Je inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
 
@@ -59,18 +61,18 @@ class RpsController extends Controller
         $labels = ['steen' => '🪨 Steen', 'papier' => '📄 Papier', 'schaar' => '✂️ Schaar'];
 
         if ($playerChoice === $houseChoice) {
+            $this->economy->addCash($character, $bet);
+
             return back()->with('success', "Gelijkspel! Jij koos {$labels[$playerChoice]}, huis koos {$labels[$houseChoice]}. Inzet terug.");
         }
 
         if ($wins[$playerChoice] === $houseChoice) {
-            $this->economy->addCash($character, $bet);
+            $payout = $bet * 2;
+            $this->economy->addCash($character, $payout);
             $this->level->addXp($character, 15);
 
             return back()->with('success', "Gewonnen! Jij: {$labels[$playerChoice]} vs Huis: {$labels[$houseChoice]}. Je wint €".number_format($bet, 0, ',', '.').'! +15 XP.');
         }
-
-        $character->cash -= $bet;
-        $character->save();
 
         return back()->with('error', "Verloren! Jij: {$labels[$playerChoice]} vs Huis: {$labels[$houseChoice]}. Je verliest €".number_format($bet, 0, ',', '.').'.');
     }

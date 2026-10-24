@@ -115,6 +115,13 @@ class AccountSettingsController extends Controller
             }
         }
 
+        if (! $request->has('display_name') && $request->has('name')) {
+            $request->merge(['display_name' => $request->input('name')]);
+        }
+        if (! $request->has('username') && $request->has('name')) {
+            $request->merge(['username' => $request->input('name')]);
+        }
+
         $rules = [
             'display_name' => ['required', 'string', 'min:2', 'max:30'],
             'profile_color' => ['nullable', 'string', 'in:purple,rose,emerald,amber,blue,indigo,dark'],
@@ -124,6 +131,10 @@ class AccountSettingsController extends Controller
         $newUsername = $request->input('username');
         $cleanUsername = $newUsername ? strtolower(trim((string) $newUsername)) : null;
         $wantsNewUsername = $cleanUsername && $cleanUsername !== $character->username;
+
+        if ($wantsNewUsername && $isUsernameLocked) {
+            return back()->with('error', "Je kunt je unieke @gebruikersnaam max 1x per 6 maanden aanpassen. Nog {$daysUntilChange} dagen resterend.");
+        }
 
         if ($wantsNewUsername && ! $isUsernameLocked) {
             $rules['username'] = [
@@ -159,10 +170,6 @@ class AccountSettingsController extends Controller
 
         $character->save();
 
-        if ($wantsNewUsername && $isUsernameLocked) {
-            return back()->with('success', "Je weergavenaam en profielkleur zijn succesvol bijgewerkt! (Let op: je unieke @gebruikersnaam staat nog {$daysUntilChange} dagen vast).");
-        }
-
         if ($usernameChanged) {
             return back()->with('success', 'Je gebruikersnaam, weergavenaam en profielkleur zijn succesvol bijgewerkt!');
         }
@@ -193,7 +200,23 @@ class AccountSettingsController extends Controller
             return response()->json(['success' => false, 'message' => 'Fout bij verwerken van foto.'], 422);
         }
 
-        $ext = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
+        // Security check: limit max decoded size to 3 MB
+        if (strlen($data) > 3 * 1024 * 1024) {
+            return response()->json(['success' => false, 'message' => 'Afbeelding is te groot (maximaal 3 MB toegestaan).'], 422);
+        }
+
+        // Security check: verify genuine image binary payload
+        $imageInfo = @getimagesizefromstring($data);
+        if ($imageInfo === false || ! in_array($imageInfo['mime'], ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return response()->json(['success' => false, 'message' => 'Ongeldige afbeeldingsdata gedetecteerd.'], 422);
+        }
+
+        $ext = match ($imageInfo['mime']) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => 'jpg',
+        };
         $filename = 'avatar_user_'.$user->id.'_'.time().'_'.Str::random(6).'.'.$ext;
         $uploadDir = public_path('uploads/avatars');
 

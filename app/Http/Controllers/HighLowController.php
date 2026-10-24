@@ -53,7 +53,9 @@ class HighLowController extends Controller
         ]);
 
         $bet = (int) $validated['bet'];
-        if ($character->cash < $bet) {
+
+        // Atomic cash deduction before card reveal
+        if (! $this->economy->deductCash($character, $bet)) {
             return back()->with('error', 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
 
@@ -80,9 +82,6 @@ class HighLowController extends Controller
 
         // In standard casino rules: Ties (gelijke kaart) are a house win
         if ($tie) {
-            $character->cash -= $bet;
-            $character->save();
-
             return back()->with('error', "Gelijkspel! Huidig: {$cardLabels[$currentCard]} tegen Nieuw: {$cardLabels[$nextCard]}. Bij gelijke kaart wint het huis! -€".number_format($bet, 0, ',', '.').'.');
         }
 
@@ -90,16 +89,14 @@ class HighLowController extends Controller
             // Dynamic odds calculation based on card difficulty:
             $favorable = $validated['choice'] === 'hoger' ? (13 - $currentCard) : ($currentCard - 1);
             $multiplier = round(max(1.15, min(4.5, (12 / max(1, $favorable)) * 0.95)), 2);
-            $profit = (int) round($bet * ($multiplier - 1.0));
+            $totalPayout = (int) round($bet * $multiplier);
+            $profit = max(0, $totalPayout - $bet);
 
-            $this->economy->addCash($character, $profit);
+            $this->economy->addCash($character, $totalPayout);
             $this->level->addXp($character, 15);
 
             return back()->with('success', "Gewonnen! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]} ({$multiplier}x)! +€".number_format($profit, 0, ',', '.').'! +15 XP.');
         }
-
-        $character->cash -= $bet;
-        $character->save();
 
         return back()->with('error', "Verloren! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]}. -€".number_format($bet, 0, ',', '.').'.');
     }
