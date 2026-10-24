@@ -454,6 +454,7 @@ Route::middleware('auth')->group(function (): void {
     // Player Profile & Guestbook
     Route::get('/profiel', [ProfileController::class, 'show'])->name('profile.me');
     Route::get('/speler/{name}', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/u/{name}', [ProfileController::class, 'show'])->name('profile');
     Route::post('/speler/{name}/respect', [ProfileController::class, 'giveRespect'])->name('profile.respect');
     Route::post('/speler/{name}/gastenboek', [ProfileController::class, 'postGuestbook'])->name('guestbook.post');
     Route::delete('/speler/gastenboek/{entry}', [ProfileController::class, 'destroyGuestbook'])->name('guestbook.destroy');

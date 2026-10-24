@@ -55,7 +55,7 @@
                     @elseif($cpPoint->holder)
                         <span class="flex items-center gap-1.5">
                             <span>Bezet door</span>
-                            <a href="{{ route('profile', $cpPoint->holder->name) }}" class="font-black text-slate-900 dark:text-slate-100 hover:text-amber-500 dark:hover:text-amber-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2 transition">
+                            <a href="{{ route('profile.show', $cpPoint->holder->name) }}" class="font-black text-slate-900 dark:text-slate-100 hover:text-amber-500 dark:hover:text-amber-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2 transition">
                                 {{ $cpPoint->holder->name }}
                             </a>
                             @if($cpPoint->holder->gang)
