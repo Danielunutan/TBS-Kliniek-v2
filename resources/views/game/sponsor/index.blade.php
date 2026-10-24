@@ -120,7 +120,7 @@
                         </button>
                     @else
                         <button type="button" onclick="window.tbsOpenSponsorAd('daily_stars')" 
-                                class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-star text-xs"></i>
                             <span>Kijk Ad voor 5 Sterren ({{ ($adDailyData['stars_progress'] ?? 0) + 1 }}/2{{ ($adDailyData['stars_progress'] ?? 0) === 1 ? ' - Claim!' : '' }})</span>
                         </button>
@@ -165,7 +165,7 @@
                         </button>
                     @else
                         <button type="button" onclick="window.tbsOpenSponsorAd('daily_cash')" 
-                                class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-sack-dollar text-xs"></i>
                             <span>Kijk Ad voor €50.000 ({{ ($adDailyData['cash_progress'] ?? 0) + 1 }}/3{{ ($adDailyData['cash_progress'] ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                         </button>
@@ -210,7 +210,7 @@
                         </button>
                     @else
                         <button type="button" onclick="window.tbsOpenSponsorAd('daily_xp')" 
-                                class="w-full py-2.5 px-4 rounded-xl bg-cyan-600 hover:bg-cyan-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-bolt text-xs"></i>
                             <span>Kijk Ad voor +50 XP ({{ ($adDailyData['xp_progress'] ?? 0) + 1 }}/3{{ ($adDailyData['xp_progress'] ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                         </button>
@@ -254,7 +254,7 @@
                         </button>
                     @else
                         <button type="button" onclick="window.tbsOpenSponsorAd('prison')" 
-                                class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-unlock text-xs"></i>
                             <span>Kijk Ad voor Direct Vrij</span>
                         </button>
@@ -289,7 +289,7 @@
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
                     <button type="button" onclick="window.tbsOpenSponsorAd('respect')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-fire text-xs"></i>
                         <span>Kijk Ad voor +1 Respect</span>
                     </button>
@@ -324,7 +324,7 @@
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <button type="button" onclick="window.tbsOpenSponsorAd('lottery_ticket')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-ticket text-xs"></i>
                         <span>Kijk Ad voor Lot ({{ ($character->ad_lottery_progress ?? 0) + 1 }}/15{{ ($character->ad_lottery_progress ?? 0) === 14 ? ' - Claim Lot!' : '' }})</span>
                     </button>
@@ -373,7 +373,7 @@
                         <i class="fa-solid fa-key"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 px-2 py-0.5 rounded font-extrabold">RobinAds &bull; 3 Ads per Code</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 px-2 py-0.5 rounded font-extrabold">3 Ads per Code</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">Geheime Kluiscode Voucher</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -394,9 +394,9 @@
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <button type="button" onclick="window.tbsOpenSponsorAd('vault_code')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-key text-xs"></i>
-                        <span>Kijk RobinAds voor Kluiscode ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
+                        <span>Kijk Ad voor Kluiscode ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                     </button>
                 </div>
             </div>
@@ -417,7 +417,7 @@
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <button type="button" onclick="window.tbsOpenSponsorAd('cash')" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-play text-xs"></i>
                         <span>Kijk Ad voor €2.500</span>
                     </button>
