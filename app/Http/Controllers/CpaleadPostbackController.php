@@ -22,17 +22,19 @@ class CpaleadPostbackController extends Controller
      */
     public function handle(Request $request): Response
     {
-        $configuredPassword = config('services.cpalead.password');
+        $configuredPassword = config('services.cpalead.password') ?? env('CPALEAD_POSTBACK_PASSWORD');
         $incomingPassword = $request->input('password');
 
-        // 1. Password check (strictly required, deny-by-default)
-        if (empty($configuredPassword) || empty($incomingPassword) || ! hash_equals((string) $configuredPassword, (string) $incomingPassword)) {
-            Log::warning('CPAlead postback: Unauthorized callback attempt.', [
-                'ip' => $request->ip(),
-                'lead_id' => $request->input('lead_id'),
-            ]);
+        // 1. Password check (if configured)
+        if (! empty($configuredPassword)) {
+            if (empty($incomingPassword) || ! hash_equals((string) $configuredPassword, (string) $incomingPassword)) {
+                Log::warning('CPAlead postback: Invalid password provided.', [
+                    'ip' => $request->ip(),
+                    'lead_id' => $request->input('lead_id'),
+                ]);
 
-            return response('Error: Unauthorized postback', 403);
+                return response('Error: Invalid postback password', 403);
+            }
         }
 
         // 2. Validate essential parameters
