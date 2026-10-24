@@ -418,6 +418,36 @@
 
     @if($character)
     <script>
+        function formatMoneyNL(val) {
+            return '€' + new Intl.NumberFormat('nl-NL').format(Math.max(0, Math.round(val)));
+        }
+
+        function animateNumber(start, end, duration, onUpdate, onComplete) {
+            start = Number(start) || 0;
+            end = Number(end) || 0;
+            if (start === end) {
+                onUpdate(end);
+                if (onComplete) onComplete();
+                return;
+            }
+            const startTime = performance.now();
+            const diff = end - start;
+            function frame(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1, elapsed / duration);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(start + (diff * ease));
+                onUpdate(current);
+                if (progress < 1) {
+                    requestAnimationFrame(frame);
+                } else {
+                    onUpdate(end);
+                    if (onComplete) onComplete();
+                }
+            }
+            requestAnimationFrame(frame);
+        }
+
         function tbsStatsTracker() {
             return {
                 mobileMenuOpen: false,
@@ -433,10 +463,10 @@
                     total_formatted: '€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}',
                     energy: {{ (int)$character->energy }},
                     max_energy: {{ (int)$character->max_energy }},
-                    energy_pct: {{ max(18, min(100, round(($character->energy / max(1, $character->max_energy)) * 100))) }},
+                    energy_pct: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }},
                     health: {{ (int)$character->health }},
                     max_health: {{ (int)$character->max_health }},
-                    health_pct: {{ max(18, min(100, round(($character->health / max(1, $character->max_health)) * 100))) }},
+                    health_pct: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }},
                     xp: {{ (int)$character->xp }},
                     req_xp: {{ (int)$reqXp }},
                     xp_pct: {{ (int)$pctXp }},
@@ -452,12 +482,92 @@
                     onlineCount: {{ (int)$onlineCount }}
                 },
                 init() {
+                    window.tbsStatsTrackerInstance = this;
+                    window.tbsApplyStats = (newStats) => this.applyStats(newStats);
+                    window.tbsRefreshStats = () => this.refresh();
+
                     setInterval(() => {
                         if (document.visibilityState === 'visible') {
                             this.refresh();
                         }
-                    }, 8000);
+                    }, 6000);
                     window.addEventListener('stats:refresh', () => this.refresh());
+                },
+                applyStats(data) {
+                    if (!data) return;
+
+                    const targetCash = (data.cash !== undefined) ? parseInt(data.cash) : this.stats.cash;
+                    const targetBank = (data.bank !== undefined) ? parseInt(data.bank) : this.stats.bank;
+                    const targetTotal = (data.total !== undefined) ? parseInt(data.total) : (targetCash + targetBank);
+                    const targetEnergy = (data.energy !== undefined) ? parseInt(data.energy) : this.stats.energy;
+                    const maxEnergy = (data.max_energy !== undefined) ? parseInt(data.max_energy) : this.stats.max_energy;
+                    const targetHealth = (data.health !== undefined) ? parseInt(data.health) : this.stats.health;
+                    const maxHealth = (data.max_health !== undefined) ? parseInt(data.max_health) : this.stats.max_health;
+                    const targetXp = (data.xp !== undefined) ? parseInt(data.xp) : this.stats.xp;
+                    const reqXp = (data.req_xp !== undefined || data.next_level_xp !== undefined) ? parseInt(data.req_xp || data.next_level_xp) : this.stats.req_xp;
+
+                    // Animate cash
+                    animateNumber(this.stats.cash, targetCash, 400, (val) => {
+                        this.stats.cash = val;
+                        this.stats.cashFormatted = formatMoneyNL(val);
+                        this.stats.cash_formatted = this.stats.cashFormatted;
+                    });
+
+                    // Animate bank
+                    animateNumber(this.stats.bank, targetBank, 400, (val) => {
+                        this.stats.bank = val;
+                        this.stats.bankFormatted = formatMoneyNL(val);
+                        this.stats.bank_formatted = this.stats.bankFormatted;
+                    });
+
+                    // Animate total
+                    animateNumber(this.stats.total, targetTotal, 400, (val) => {
+                        this.stats.total = val;
+                        this.stats.totalFormatted = formatMoneyNL(val);
+                        this.stats.total_formatted = this.stats.totalFormatted;
+                    });
+
+                    // Animate energy
+                    this.stats.max_energy = maxEnergy;
+                    animateNumber(this.stats.energy, targetEnergy, 400, (val) => {
+                        this.stats.energy = val;
+                        const calcPct = maxEnergy > 0 ? Math.min(100, Math.max(0, Math.round((val / maxEnergy) * 100))) : 0;
+                        this.stats.energy_pct = calcPct;
+                        this.stats.energy_percent = calcPct;
+                    });
+
+                    // Animate health
+                    this.stats.max_health = maxHealth;
+                    animateNumber(this.stats.health, targetHealth, 400, (val) => {
+                        this.stats.health = val;
+                        const calcPct = maxHealth > 0 ? Math.min(100, Math.max(0, Math.round((val / maxHealth) * 100))) : 0;
+                        this.stats.health_pct = calcPct;
+                        this.stats.health_percent = calcPct;
+                    });
+
+                    // Animate XP
+                    this.stats.req_xp = reqXp;
+                    animateNumber(this.stats.xp, targetXp, 400, (val) => {
+                        this.stats.xp = val;
+                        const pct = reqXp > 0 ? Math.min(100, Math.max(0, Math.round((val / reqXp) * 100))) : 0;
+                        this.stats.xp_pct = pct;
+                        this.stats.xpFormatted = new Intl.NumberFormat('nl-NL').format(val) + ' / ' + new Intl.NumberFormat('nl-NL').format(reqXp) + ' XP';
+                    });
+
+                    if (data.stars !== undefined) {
+                        this.stats.stars = data.stars;
+                        this.stats.starsFormatted = new Intl.NumberFormat('nl-NL').format(data.stars);
+                    }
+                    if (data.vip_points !== undefined) {
+                        this.stats.vip_points = data.vip_points;
+                        this.stats.vipPointsFormatted = new Intl.NumberFormat('nl-NL').format(data.vip_points);
+                    }
+                    if (data.respect !== undefined || data.formatted_respect !== undefined) {
+                        this.stats.respect = data.formatted_respect || data.respect;
+                    }
+                    if (data.onlineCount !== undefined) {
+                        this.stats.onlineCount = data.onlineCount;
+                    }
                 },
                 async refresh() {
                     try {
@@ -470,17 +580,7 @@
                         });
                         if (res.ok) {
                             const data = await res.json();
-                            this.stats = {
-                                ...this.stats,
-                                ...data,
-                                cashFormatted: data.cashFormatted || data.cash_formatted || this.stats.cashFormatted,
-                                bankFormatted: data.bankFormatted || data.bank_formatted || this.stats.bankFormatted,
-                                totalFormatted: data.totalFormatted || data.total_formatted || this.stats.totalFormatted,
-                                starsFormatted: data.starsFormatted || data.stars_formatted || this.stats.starsFormatted,
-                                vipPointsFormatted: data.vipPointsFormatted || data.vip_points_formatted || this.stats.vipPointsFormatted,
-                                respect: data.formatted_respect || data.respect || this.stats.respect,
-                                onlineCount: (data.onlineCount !== undefined) ? data.onlineCount : this.stats.onlineCount
-                            };
+                            this.applyStats(data);
                         }
                     } catch (e) {}
                 }
@@ -1217,7 +1317,7 @@
                     </span>
                 </div>
                 <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
-                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.energy_pct + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.energy <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                 </div>
             </a>
 
@@ -1234,7 +1334,7 @@
                     </span>
                 </div>
                 <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
-                    <div class="bg-rose-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.health_pct + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                    <div class="bg-rose-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.health <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
                 </div>
             </a>
 
@@ -1346,7 +1446,7 @@
                             </span>
                         </div>
                         <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
-                            <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.energy_pct + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                            <div class="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.energy <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                         </div>
                     </a>
 
@@ -1363,7 +1463,7 @@
                             </span>
                         </div>
                         <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
-                            <div class="bg-rose-500 h-full rounded-full transition-all duration-300" :style="'width: ' + stats.health_pct + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                            <div class="bg-rose-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.health <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
                         </div>
                     </a>
                 </div>
@@ -1591,7 +1691,7 @@
         @endif
 
         <!-- MAIN CONTENT CONTAINER (pt-4 sm:pt-8, pb-28 zodat mobiele bottom dock niets overlapt) -->
-        <main class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-28 lg:pb-12">
+        <main id="tbs-main-container" class="flex-1 w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-28 lg:pb-12">
             <!-- Active Warning Notification Alert Banner for User -->
             @if(Auth::check() && Auth::user()->unacknowledgedWarnings->isNotEmpty())
             @foreach(Auth::user()->unacknowledgedWarnings as $unackedWarning)
@@ -2950,6 +3050,188 @@
                 window.location.reload();
             }
         });
+    </script>
+
+    <!-- TBS IN-APP FLOATING TOAST NOTIFICATION CONTAINER (App Feel) -->
+    <div id="tbs-toast-container" 
+         x-data="{
+             toasts: [],
+             addToast(msg, type = 'success') {
+                 if (!msg) return;
+                 const id = Date.now() + Math.random();
+                 this.toasts.push({ id, msg, type });
+                 setTimeout(() => {
+                     this.removeToast(id);
+                 }, 4000);
+             },
+             removeToast(id) {
+                 this.toasts = this.toasts.filter(t => t.id !== id);
+             }
+         }"
+         x-init="
+             window.tbsToast = (msg, type) => addToast(msg, type);
+         "
+         class="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 pointer-events-none max-w-md w-[92%] sm:w-auto">
+        <template x-for="toast in toasts" :key="toast.id">
+            <div x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 -translate-y-3 scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
+                 @click="removeToast(toast.id)"
+                 :class="{
+                     'bg-emerald-600 text-white border-emerald-500 shadow-emerald-900/30': toast.type === 'success',
+                     'bg-rose-600 text-white border-rose-500 shadow-rose-900/30': toast.type === 'error' || toast.type === 'danger',
+                     'bg-amber-600 text-white border-amber-500 shadow-amber-900/30': toast.type === 'warning',
+                     'bg-indigo-600 text-white border-indigo-500 shadow-indigo-900/30': toast.type === 'info'
+                 }"
+                 class="pointer-events-auto cursor-pointer flex items-center gap-2.5 px-4 py-2.5 rounded-2xl shadow-xl border text-xs sm:text-sm font-bold tracking-tight select-none backdrop-blur-md">
+                <template x-if="toast.type === 'success'">
+                    <i class="fa-solid fa-circle-check text-base"></i>
+                </template>
+                <template x-if="toast.type === 'error' || toast.type === 'danger'">
+                    <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                </template>
+                <template x-if="toast.type === 'warning'">
+                    <i class="fa-solid fa-circle-exclamation text-base"></i>
+                </template>
+                <template x-if="toast.type === 'info'">
+                    <i class="fa-solid fa-circle-info text-base"></i>
+                </template>
+                <span class="leading-snug" x-text="toast.msg"></span>
+                <button type="button" @click.stop="removeToast(toast.id)" class="ml-2 text-white/80 hover:text-white p-0.5">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+        </template>
+    </div>
+
+    <!-- TBS IN-APP FORM ACTION INTERCEPTOR (Zero Reloads & Scroll Preservation) -->
+    <script>
+    document.addEventListener('submit', async function(e) {
+        const form = e.target;
+        if (!form || form.tagName !== 'FORM') return;
+
+        // Bypass standard navigation / non-action forms
+        if (form.hasAttribute('data-no-async') ||
+            form.method.toLowerCase() !== 'post' ||
+            form.action.includes('/logout') ||
+            form.action.includes('/login') ||
+            form.action.includes('/auth') ||
+            form.querySelector('input[type="file"]')) {
+            return;
+        }
+
+        e.preventDefault();
+
+        const savedScrollY = window.scrollY;
+        const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
+        let origHtml = null;
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            origHtml = submitBtn.innerHTML;
+            submitBtn.classList.add('opacity-75', 'cursor-wait');
+        }
+
+        try {
+            const formData = new FormData(form);
+            if (e.submitter && e.submitter.name && !formData.has(e.submitter.name)) {
+                formData.append(e.submitter.name, e.submitter.value);
+            }
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-TBS-Action': 'true',
+                    'Accept': 'application/json, text/html'
+                }
+            });
+
+            // 1. JSON response from PreserveSessionFlashOnAjax:
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+
+                // Redirect away if needed (solitary confinement / arena / logout)
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+
+                // Apply realtime smooth stats animation
+                if (data.character && window.tbsApplyStats) {
+                    window.tbsApplyStats(data.character);
+                }
+
+                // Display in-app toast notification
+                if (data.flash && data.flash.message && window.tbsToast) {
+                    window.tbsToast(data.flash.message, data.flash.type || 'success');
+                }
+
+                // Background refresh the main container to show updated counts/states without reload
+                try {
+                    const getRes = await fetch(window.location.href, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (getRes.ok) {
+                        const html = await getRes.text();
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
+                        const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
+                        if (newMain && curMain) {
+                            curMain.innerHTML = newMain.innerHTML;
+                            if (window.Alpine && window.Alpine.initTree) {
+                                window.Alpine.initTree(curMain);
+                            }
+                            window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+                        }
+                    }
+                } catch (fetchErr) {
+                    console.error('TBS Refresh Error:', fetchErr);
+                }
+
+                return;
+            }
+
+            // 2. Direct HTML redirect response fallback
+            const responseUrl = new URL(response.url);
+            if (responseUrl.pathname !== window.location.pathname) {
+                window.location.href = response.url;
+                return;
+            }
+
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
+            const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
+
+            if (newMain && curMain) {
+                curMain.innerHTML = newMain.innerHTML;
+                if (window.Alpine && window.Alpine.initTree) {
+                    window.Alpine.initTree(curMain);
+                }
+                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+            }
+
+            if (window.tbsRefreshStats) {
+                window.tbsRefreshStats();
+            }
+
+        } catch (err) {
+            console.error('TBS Interceptor Error:', err);
+            form.submit();
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-75', 'cursor-wait');
+                if (origHtml) submitBtn.innerHTML = origHtml;
+            }
+        }
+    });
     </script>
 </body>
 </html>
