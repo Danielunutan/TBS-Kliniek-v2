@@ -140,9 +140,14 @@ class GarageController extends Controller
         $this->energyService->refresh($character);
 
         $ownedVehicles = CharacterVehicle::where('character_id', $character->id)
+            ->where('in_gang_garage', false)
             ->with('vehicle')
             ->orderByDesc('is_active')
             ->get();
+
+        $gangStoredVehicles = $character->gang_id
+            ? CharacterVehicle::where('character_id', $character->id)->where('in_gang_garage', true)->with('vehicle')->get()
+            : collect();
 
         $activeVehicle = $ownedVehicles->firstWhere('is_active', true) ?? $ownedVehicles->first();
 
@@ -168,6 +173,7 @@ class GarageController extends Controller
         return view('game.garage.index', compact(
             'character',
             'ownedVehicles',
+            'gangStoredVehicles',
             'activeVehicle',
             'rotatingListings',
             'secondsUntilRotation',

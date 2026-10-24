@@ -2072,7 +2072,9 @@ class Character extends Model
      */
     public function getGarageUsed(): int
     {
-        return (int) CharacterVehicle::where('character_id', $this->id)->count();
+        return (int) CharacterVehicle::where('character_id', $this->id)
+            ->where('in_gang_garage', false)
+            ->count();
     }
 
     /**

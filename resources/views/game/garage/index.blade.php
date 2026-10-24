@@ -56,64 +56,71 @@
                     :class="tab === 'garage' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold'"
                     class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
                 <i class="fa-solid fa-key"></i>
-                <span>Mijn Wagenpark ({{ count($ownedVehicles) }})</span>
+                <span>Mijn Wagenpark ({{ count($ownedVehicles) }}/{{ $character->getGarageCapacity() }})</span>
             </button>
+            @if(isset($gangStoredVehicles) && $gangStoredVehicles->isNotEmpty())
+            <a href="{{ route('gangs.garage') }}" 
+               class="px-4 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0 bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 font-bold"
+               title="Voertuigen die je hebt gestald in de Bende Garage">
+                <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400"></i>
+                <span>In Bende Garage ({{ $gangStoredVehicles->count() }})</span>
+            </a>
+            @endif
         </div>
     </div>
 
     <!-- ACTIVE GETAWAY VEHICLE STATUS (IF OWNED) -->
     @if($activeVehicle)
-    <div class="rounded-2xl p-6 text-white shadow-lg border border-purple-800/60 relative overflow-hidden bg-slate-900"
-         style="background: linear-gradient(135deg, #0f172a 0%, #1e1136 50%, #0f172a 100%) !important;">
-        <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl text-white pointer-events-none">
+    <div class="rounded-2xl p-6 shadow-xs border border-purple-200 dark:border-purple-800/60 relative overflow-hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+        <div class="absolute -right-8 -bottom-8 opacity-5 dark:opacity-10 text-9xl text-slate-900 dark:text-white pointer-events-none">
             <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
         </div>
 
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div class="flex items-start gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-400/40 text-purple-300 flex items-center justify-center text-2xl shrink-0 backdrop-blur-md shadow-inner">
+                <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl shrink-0 shadow-2xs">
                     <i class="fa-solid {{ $activeVehicle->vehicle->icon }}"></i>
                 </div>
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Actief Vluchtvoertuig
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Actief Vluchtvoertuig
                         </span>
-                        <span class="text-xs text-purple-300/80 font-bold">{{ $activeVehicle->vehicle->type_label }} &bull; {{ $activeVehicle->vehicle->brand }}</span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">{{ $activeVehicle->vehicle->type_label }} &bull; {{ $activeVehicle->vehicle->brand }}</span>
                         @if($activeVehicle->tuned_speed && $activeVehicle->tuned_speed !== $activeVehicle->vehicle->speed_pct)
-                            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[10px] font-black uppercase tracking-wider">
+                            <span class="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider">
                                 ⚡ Tuned Engine ({{ $activeVehicle->tuned_speed }}%)
                             </span>
                         @endif
                     </div>
-                    <h3 class="text-lg font-black text-white tracking-tight">{{ $activeVehicle->vehicle->name }}</h3>
-                    <p class="text-xs text-purple-200/80 max-w-xl">{{ $activeVehicle->vehicle->description }}</p>
+                    <h3 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">{{ $activeVehicle->vehicle->name }}</h3>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 max-w-xl">{{ $activeVehicle->vehicle->description }}</p>
                 </div>
             </div>
 
             <!-- GAUGE METRICS & REPAIR BUTTON -->
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 shrink-0">
                 <!-- Snelheid Meter -->
-                <div class="bg-slate-950/70 border border-purple-400/20 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 backdrop-blur-sm">
-                    <div class="text-[10px] uppercase font-bold tracking-wider text-purple-300 flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-gauge-high text-amber-400"></i> Effectieve Snelheid
+                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 shadow-2xs">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-gauge-high text-amber-500"></i> Effectieve Snelheid
                     </div>
-                    <div class="text-xl font-black text-amber-300 font-mono">{{ $activeVehicle->effective_speed }}%</div>
-                    <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div class="bg-amber-400 h-full rounded-full" style="width: {{ $activeVehicle->effective_speed }}%"></div>
+                    <div class="text-xl font-black text-amber-600 dark:text-amber-400 font-mono">{{ $activeVehicle->effective_speed }}%</div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-amber-500 h-full rounded-full" style="width: {{ $activeVehicle->effective_speed }}%"></div>
                     </div>
                 </div>
 
                 <!-- Conditie Meter -->
-                <div class="bg-slate-950/70 border border-purple-400/20 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 backdrop-blur-sm">
-                    <div class="text-[10px] uppercase font-bold tracking-wider text-purple-300 flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-wrench text-emerald-400"></i> Conditie
+                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 min-w-[140px] text-center space-y-1 shadow-2xs">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-wrench text-emerald-500"></i> Conditie
                     </div>
-                    <div class="text-xl font-black {{ $activeVehicle->current_condition < 50 ? 'text-rose-400' : 'text-emerald-300' }} font-mono">
+                    <div class="text-xl font-black {{ $activeVehicle->current_condition < 50 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400' }} font-mono">
                         {{ $activeVehicle->current_condition }}%
                     </div>
-                    <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                        <div class="{{ $activeVehicle->current_condition < 50 ? 'bg-rose-500' : 'bg-emerald-400' }} h-full rounded-full" style="width: {{ $activeVehicle->current_condition }}%"></div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                        <div class="{{ $activeVehicle->current_condition < 50 ? 'bg-rose-500' : 'bg-emerald-500' }} h-full rounded-full" style="width: {{ $activeVehicle->current_condition }}%"></div>
                     </div>
                 </div>
 
@@ -137,7 +144,7 @@
     <div x-show="tab === 'showroom'" class="space-y-4">
 
         <!-- ROTATIE HEADER BANNER MET LIVE COUNTDOWN -->
-        <div class="bg-gradient-to-r from-slate-900 via-purple-950/70 to-slate-900 border border-purple-500/30 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-white"
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-900 dark:text-white"
              x-data="{
                  secondsLeft: {{ $secondsUntilRotation }},
                  formatTime(sec) {
@@ -156,30 +163,30 @@
                  }
              }">
             <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-xl bg-purple-600/30 border border-purple-400/30 text-purple-300 flex items-center justify-center text-xl shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
                     <i class="fa-solid fa-arrows-rotate animate-spin" style="animation-duration: 9s;"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-sm font-black text-white uppercase tracking-wider">30-Minuten Smokkelmarkt</span>
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black uppercase tracking-wider">
+                        <span class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">30-Minuten Smokkelmarkt</span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-black uppercase tracking-wider">
                             8 Unieke Deals Live
                         </span>
                     </div>
-                    <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
                         Elk half uur levert de smokkelaar een nieuwe lading van 8 voertuigen af met wisselende condities, project-koopjes en zeldzame getunede snelheden!
                     </p>
                 </div>
             </div>
 
             <!-- Timer Badge -->
-            <div class="flex items-center gap-3 shrink-0 bg-slate-950/80 border border-purple-500/30 rounded-xl px-4 py-2.5">
-                <i class="fa-regular fa-clock text-purple-400 text-sm"></i>
+            <div class="flex items-center gap-3 shrink-0 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 shadow-2xs">
+                <i class="fa-regular fa-clock text-purple-600 dark:text-purple-400 text-sm"></i>
                 <div>
-                    <span class="text-[9px] uppercase tracking-wider text-slate-400 font-extrabold block">Volgende Lading Binnen</span>
-                    <span class="font-mono text-base font-black text-white" x-text="formatTime(secondsLeft)">--:--</span>
+                    <span class="text-[9px] uppercase tracking-wider text-slate-400 dark:text-slate-400 font-extrabold block">Volgende Lading Binnen</span>
+                    <span class="font-mono text-base font-black text-slate-900 dark:text-white" x-text="formatTime(secondsLeft)">--:--</span>
                 </div>
-                <button type="button" onclick="window.location.reload()" title="Aanbod herladen" class="ml-2 w-8 h-8 rounded-lg bg-purple-600/40 hover:bg-purple-600 text-purple-200 hover:text-white flex items-center justify-center text-xs transition cursor-pointer">
+                <button type="button" onclick="window.location.reload()" title="Aanbod herladen" class="ml-2 w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer">
                     <i class="fa-solid fa-rotate-right"></i>
                 </button>
             </div>

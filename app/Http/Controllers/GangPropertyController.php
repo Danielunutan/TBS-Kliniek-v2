@@ -190,6 +190,10 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Alleen de eigenaar of een bendebeheerder kan dit voertuig uit de bende garage halen.');
         }
 
+        if (! $character->canAddVehicle()) {
+            return back()->with('error', "Je persoonlijke garage zit vol ({$character->getGarageUsed()}/{$character->getGarageCapacity()} plekken bezet)! Verkoop eerst een wagen of stal een andere wagen in de Bende Garage voordat je dit voertuig terughaalt.");
+        }
+
         DB::transaction(function () use ($characterVehicle): void {
             $characterVehicle->update([
                 'in_gang_garage' => false,
