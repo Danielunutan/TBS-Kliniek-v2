@@ -285,8 +285,15 @@ class GarageController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        if ($characterVehicle->character_id !== $character->id) {
-            return back()->with('error', 'Dit voertuig is niet in jouw bezit.');
+        // Check ownership or gang officer permission if the vehicle is stored in the gang garage
+        $isOwner = $characterVehicle->character_id === $character->id;
+        $isGangOfficer = $characterVehicle->in_gang_garage 
+            && $character->gang_id 
+            && (int) $characterVehicle->gang_id === (int) $character->gang_id 
+            && $character->gang?->isOfficer($character);
+
+        if (! ($isOwner || $isGangOfficer)) {
+            return back()->with('error', 'Dit voertuig is niet in jouw bezit en je hebt geen bevoegdheid binnen de bende om het te reviseren.');
         }
 
         if ($characterVehicle->current_condition >= 100) {

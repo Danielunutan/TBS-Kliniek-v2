@@ -1674,8 +1674,18 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-slate-700/60 text-[11px]">
                                     <div class="text-slate-500">Snelheid: <strong class="text-slate-900 dark:text-white font-mono">{{ $gv->effective_speed }} km/u</strong></div>
-                                    <div class="text-slate-500 text-right">Conditie: <strong class="text-emerald-600 font-mono">{{ $gv->current_condition }}%</strong></div>
+                                    <div class="text-slate-500 text-right">Conditie: <strong class="{{ $gv->current_condition < 50 ? 'text-rose-600' : 'text-emerald-600' }} font-mono">{{ $gv->current_condition }}%</strong></div>
                                 </div>
+                                @if(($gv->character_id === $character->id || ($myGang && $myGang->isOfficer($character))) && $gv->current_condition < 100)
+                                    <form action="{{ route('garage.repair', $gv->id) }}" method="POST" class="pt-1">
+                                        @csrf
+                                        <button type="submit" 
+                                                class="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-wider transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                            <i class="fa-solid fa-wrench text-[9px]"></i>
+                                            <span>Reviseren (€{{ number_format($gv->repair_cost, 0, ',', '.') }})</span>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                             @endforeach
                         </div>

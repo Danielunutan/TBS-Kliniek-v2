@@ -225,8 +225,19 @@
                             </div>
                         </div>
 
-                        <!-- Action: Terughalen -->
-                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <!-- Actions: Repareren & Terughalen -->
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            @if(($isOwner || $isOfficer) && $charVehicle->current_condition < 100)
+                                <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition shadow-2xs cursor-pointer flex items-center justify-center gap-2 active:scale-95">
+                                        <i class="fa-solid fa-wrench text-[11px]"></i>
+                                        <span>Direct Reviseren (€{{ number_format($charVehicle->repair_cost, 0, ',', '.') }})</span>
+                                    </button>
+                                </form>
+                            @endif
+
                             @if($isOwner || $isOfficer)
                                 <form action="{{ route('gangs.garage.retrieve-vehicle', $charVehicle) }}" method="POST">
                                     @csrf
@@ -237,7 +248,7 @@
                                 </form>
                             @else
                                 <div class="text-center py-1 text-slate-400 text-[11px] font-bold italic">
-                                    Alleen eigenaar of leiders kunnen dit voertuig terughalen
+                                    Alleen eigenaar of leiders kunnen dit voertuig beheren
                                 </div>
                             @endif
                         </div>
