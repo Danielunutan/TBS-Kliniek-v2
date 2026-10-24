@@ -123,6 +123,24 @@
         [x-cloak] {
             display: none !important;
         }
+
+        /* TBS Floating In-App Toast Countdown Animation */
+        @keyframes tbsToastCountdown {
+            from {
+                width: 100%;
+            }
+            to {
+                width: 0%;
+            }
+        }
+        .tbs-toast-progress-bar {
+            animation-name: tbsToastCountdown;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+        }
+        .tbs-toast-item:hover .tbs-toast-progress-bar {
+            animation-play-state: paused;
+        }
         html, body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -3140,26 +3158,53 @@
         });
     </script>
 
-    <!-- TBS IN-APP FLOATING TOAST NOTIFICATION CONTAINER (App Feel) -->
+    <!-- TBS IN-APP FLOATING TOAST NOTIFICATION CONTAINER (App Feel with Progress Bar & Close Action) -->
     <div id="tbs-toast-container" 
          x-data="{
              toasts: [],
-             addToast(msg, type = 'success') {
+             addToast(msg, type = 'success', duration = 4500) {
                  if (!msg) return;
-                 const id = Date.now() + Math.random();
-                 this.toasts.push({ id, msg, type });
-                 setTimeout(() => {
+                 const id = 'toast_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                 const toastObj = {
+                     id,
+                     msg,
+                     type,
+                     duration,
+                     createdAt: Date.now(),
+                     remaining: duration,
+                     timer: null
+                 };
+                 toastObj.timer = setTimeout(() => {
                      this.removeToast(id);
-                 }, 4000);
+                 }, duration);
+                 this.toasts.push(toastObj);
+             },
+             pauseToast(toast) {
+                 if (toast.timer) {
+                     clearTimeout(toast.timer);
+                     toast.timer = null;
+                     const elapsed = Date.now() - toast.createdAt;
+                     toast.remaining = Math.max(1000, toast.duration - elapsed);
+                 }
+             },
+             resumeToast(toast) {
+                 if (!toast.timer) {
+                     toast.createdAt = Date.now();
+                     toast.timer = setTimeout(() => {
+                         this.removeToast(toast.id);
+                     }, toast.remaining);
+                 }
              },
              removeToast(id) {
+                 const t = this.toasts.find(item => item.id === id);
+                 if (t && t.timer) clearTimeout(t.timer);
                  this.toasts = this.toasts.filter(t => t.id !== id);
              }
          }"
          x-init="
-             window.tbsToast = (msg, type) => addToast(msg, type);
+             window.tbsToast = (msg, type, duration) => addToast(msg, type, duration);
          "
-         class="fixed top-24 md:top-24 lg:top-24 left-1/2 -translate-x-1/2 z-[999999] flex flex-col items-center gap-2 pointer-events-none max-w-md w-[92%] sm:w-auto" style="position: fixed !important; top: 5.5rem !important; z-index: 999999 !important;">
+         class="fixed top-24 md:top-24 lg:top-24 left-1/2 -translate-x-1/2 z-[999999] flex flex-col items-center gap-2.5 pointer-events-none max-w-md w-[92%] sm:w-auto" style="position: fixed !important; top: 5.5rem !important; z-index: 999999 !important;">
         <template x-for="toast in toasts" :key="toast.id">
             <div x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 -translate-y-3 scale-95"
@@ -3167,30 +3212,48 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                  x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
-                 @click="removeToast(toast.id)"
+                 @mouseenter="pauseToast(toast)"
+                 @mouseleave="resumeToast(toast)"
                  :class="{
-                     'bg-emerald-600 text-white border-emerald-500 shadow-emerald-900/30': toast.type === 'success',
-                     'bg-rose-600 text-white border-rose-500 shadow-rose-900/30': toast.type === 'error' || toast.type === 'danger',
-                     'bg-amber-600 text-white border-amber-500 shadow-amber-900/30': toast.type === 'warning',
-                     'bg-indigo-600 text-white border-indigo-500 shadow-indigo-900/30': toast.type === 'info'
+                     'bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 text-white border-emerald-400/40 shadow-emerald-950/40': toast.type === 'success',
+                     'bg-gradient-to-r from-rose-600 via-rose-600 to-pink-700 text-white border-rose-400/40 shadow-rose-950/40': toast.type === 'error' || toast.type === 'danger',
+                     'bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white border-amber-300/40 shadow-amber-950/40': toast.type === 'warning',
+                     'bg-gradient-to-r from-purple-600 via-purple-600 to-indigo-700 text-white border-purple-400/40 shadow-purple-950/40': toast.type === 'info'
                  }"
-                 class="pointer-events-auto cursor-pointer flex items-center gap-2.5 px-4 py-2.5 rounded-2xl shadow-xl border text-xs sm:text-sm font-bold tracking-tight select-none backdrop-blur-md">
-                <template x-if="toast.type === 'success'">
-                    <i class="fa-solid fa-circle-check text-base"></i>
-                </template>
-                <template x-if="toast.type === 'error' || toast.type === 'danger'">
-                    <i class="fa-solid fa-triangle-exclamation text-base"></i>
-                </template>
-                <template x-if="toast.type === 'warning'">
-                    <i class="fa-solid fa-circle-exclamation text-base"></i>
-                </template>
-                <template x-if="toast.type === 'info'">
-                    <i class="fa-solid fa-circle-info text-base"></i>
-                </template>
-                <span class="leading-snug" x-text="toast.msg"></span>
-                <button type="button" @click.stop="removeToast(toast.id)" class="ml-2 text-white/80 hover:text-white p-0.5">
-                    <i class="fa-solid fa-xmark text-xs"></i>
+                 class="tbs-toast-item pointer-events-auto relative overflow-hidden flex items-center gap-3 pl-3.5 pr-2.5 py-3 rounded-2xl shadow-2xl border text-xs sm:text-sm font-bold tracking-tight select-none backdrop-blur-md max-w-full group">
+                
+                <!-- Type Icon Badge -->
+                <div class="w-6 h-6 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white text-xs shrink-0 shadow-2xs">
+                    <template x-if="toast.type === 'success'">
+                        <i class="fa-solid fa-check"></i>
+                    </template>
+                    <template x-if="toast.type === 'error' || toast.type === 'danger'">
+                        <i class="fa-solid fa-exclamation"></i>
+                    </template>
+                    <template x-if="toast.type === 'warning'">
+                        <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                    </template>
+                    <template x-if="toast.type === 'info'">
+                        <i class="fa-solid fa-info text-[11px]"></i>
+                    </template>
+                </div>
+
+                <!-- Message Content -->
+                <span class="leading-snug pr-2 drop-shadow-2xs" x-text="toast.msg"></span>
+
+                <!-- Kruisje (Close Button) with reliable hit area & hover feedback -->
+                <button type="button" 
+                        @click.stop.prevent="removeToast(toast.id)" 
+                        class="w-7 h-7 rounded-xl bg-black/15 hover:bg-black/30 active:scale-90 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer shrink-0 ml-auto p-0"
+                        title="Sluiten">
+                    <i class="fa-solid fa-xmark text-xs pointer-events-none"></i>
                 </button>
+
+                <!-- Tijdbalkje (Countdown Progress Bar) -->
+                <div class="absolute bottom-0 left-0 right-0 h-[3px] bg-black/25 overflow-hidden">
+                    <div class="h-full bg-white/80 shadow-[0_0_8px_rgba(255,255,255,0.9)] tbs-toast-progress-bar"
+                         :style="{ animationDuration: (toast.duration || 4500) + 'ms' }"></div>
+                </div>
             </div>
         </template>
     </div>
