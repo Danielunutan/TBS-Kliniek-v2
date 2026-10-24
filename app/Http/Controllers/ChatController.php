@@ -36,6 +36,8 @@ class ChatController extends Controller
         $initialRecipient = (int) $request->query('recipient', 0);
         if ($request->has('recipient') || $request->query('tab') === 'direct') {
             $initialTab = 'direct';
+        } elseif ($request->query('tab') === 'gang') {
+            $initialTab = 'gang';
         }
 
         // Friends list for quick starting new direct messages
@@ -51,18 +53,33 @@ class ChatController extends Controller
             ->where('is_read', false)
             ->count();
 
+        $gang = $character->gang;
+        $hasGang = (bool) $gang;
+        $gangHasChat = (bool) ($gang?->has_gang_chat);
+        $gangId = (int) ($gang?->id ?? 0);
+        $gangName = (string) ($gang?->name ?? 'Bende');
+        $gangTag = (string) ($gang?->tag ?? '');
+        $gangStars = (int) ($gang?->gang_stars ?? 0);
+        $characterStars = (int) ($character->stars ?? 0);
+        $canModerate = (bool) ($user->isStaff() || $user->canModerate() || $user->isModerator());
+
         return view('game.chat.index', compact(
             'character',
             'friends',
             'initialTab',
             'initialRecipient',
-            'totalUnreadDms'
+            'totalUnreadDms',
+            'hasGang',
+            'gangHasChat',
+            'gangId',
+            'gangName',
+            'gangTag',
+            'gangStars',
+            'characterStars',
+            'canModerate'
         ));
     }
 
-    /**
-     * Get public chat messages stream.
-     */
     public function publicMessages(Request $request): JsonResponse
     {
         /** @var User $user */

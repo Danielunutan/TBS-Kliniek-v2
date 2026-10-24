@@ -47,6 +47,24 @@ class LiveChatTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('game.chat.index');
         $response->assertSee('Kliniek Plein');
+        $response->assertSee('Bende Chat');
+
+        // And when in a gang
+        $gang = Gang::create([
+            'name' => 'Bloedbroeders',
+            'tag' => 'BB',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $character->id,
+            'gang_stars' => 150,
+            'has_gang_chat' => true,
+        ]);
+        $character->update(['gang_id' => $gang->id]);
+        $user->unsetRelation('character');
+
+        $responseGang = $this->actingAs($user)->get(route('chat.index', ['tab' => 'gang']));
+        $responseGang->assertOk();
+        $responseGang->assertSee('Bloedbroeders');
+        $responseGang->assertSee('[BB]');
     }
 
     public function test_player_can_send_and_retrieve_public_messages(): void
@@ -577,5 +595,32 @@ class LiveChatTest extends TestCase
         $dm = DirectMessage::where('recipient_id', $charVictim->id)->whereNull('sender_id')->latest('id')->first();
         $this->assertStringContainsString('Bestolen op de Luchtplaats!', $dm->message);
         $this->assertStringContainsString('€500', $dm->message);
+    }
+
+    public function test_player_can_search_players_for_mention_autocomplete(): void
+    {
+        [$user, $character] = $this->createInmate(['name' => 'MePlayer']);
+        [$user2, $char2] = $this->createInmate(['name' => 'ScarfaceDan', 'last_active_at' => now()]);
+        [$user3, $char3] = $this->createInmate(['name' => 'DonVito', 'last_active_at' => now()->subMinutes(2)]);
+
+        // 1. Search with query 'scar'
+        $response = $this->actingAs($user)->getJson(route('chat.search-players', ['q' => 'scar']));
+        $response->assertOk();
+        $response->assertJson(['success' => true]);
+        $players = $response->json('players');
+        $this->assertCount(1, $players);
+        $this->assertEquals('ScarfaceDan', $players[0]['name']);
+
+        // 2. Empty query returns active players
+        $emptyResponse = $this->actingAs($user)->getJson(route('chat.search-players', ['q' => '']));
+        $emptyResponse->assertOk();
+        $emptyResponse->assertJson(['success' => true]);
+        $emptyPlayers = $emptyResponse->json('players');
+        $this->assertNotEmpty($emptyPlayers);
+        $playerNames = collect($emptyPlayers)->pluck('name')->toArray();
+        $this->assertContains('ScarfaceDan', $playerNames);
+        $this->assertContains('DonVito', $playerNames);
+        // Should not include self
+        $this->assertNotContains('MePlayer', $playerNames);
     }
 }
