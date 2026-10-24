@@ -139,6 +139,37 @@
                     Kluiscodes die je koopt of scoort via drops en battles worden automatisch aan je account gekoppeld. Wissel ze hieronder direct in of kraak ze allemaal in één keer!
                 </p>
 
+                <!-- Monetag Rewarded Ad Banner voor Gratis Kluiscodes -->
+                <div class="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-transparent border border-purple-200 dark:border-purple-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-11 h-11 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+                                    Monetag Sponsor Ad
+                                </span>
+                                <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
+                                    Voortgang: {{ $character->ad_vault_progress ?? 0 }}/3 Ads
+                                </span>
+                            </div>
+                            <h4 class="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">
+                                Scoor een Gratis Geheime Kluiscode Voucher
+                            </h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                Kijk 3 korte sponsor ads en ontvang direct een kluiscode t.w.v. <strong>€5.000 bankgeld, 2 sterren en 2 kluismunten</strong>!
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" 
+                            onclick="window.tbsOpenSponsorAd('vault_code', () => window.location.reload())" 
+                            class="shrink-0 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Kijk Monetag Ad ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
+                    </button>
+                </div>
+
                 @if(isset($myCodes) && $myCodes->count() > 0)
                     <!-- Active Instant Batch Crack Banner -->
                     <div class="p-5 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/60 space-y-4">
@@ -324,4 +355,7 @@
     </div>
 
 </div>
+<!-- MONETAG VIGNETTE AD INTEGRATION (Zone 12114258) -->
+<script>(function(s){s.dataset.zone='12114258',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
 @endsection

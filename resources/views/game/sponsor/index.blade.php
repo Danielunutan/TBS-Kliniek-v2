@@ -373,7 +373,7 @@
                         <i class="fa-solid fa-key"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 px-2 py-0.5 rounded font-extrabold">3 Ads per Code</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/80 px-2 py-0.5 rounded font-extrabold">Monetag Ad &bull; 3 Ads per Code</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">Geheime Kluiscode Voucher</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -396,7 +396,7 @@
                     <button type="button" onclick="window.tbsOpenSponsorAd('vault_code')" 
                             class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-key text-xs"></i>
-                        <span>Kijk Ad voor Kluiscode ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
+                        <span>Kijk Monetag Ad voor Kluiscode ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
                     </button>
                 </div>
             </div>
@@ -441,4 +441,7 @@
     </div>
 
 </div>
+<!-- MONETAG VIGNETTE AD INTEGRATION (Zone 12114258) -->
+<script>(function(s){s.dataset.zone='12114258',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
 @endsection

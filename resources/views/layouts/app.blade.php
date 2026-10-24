@@ -2522,7 +2522,7 @@
                     this.rewardTitle = '+1 Respect 🔥';
                     this.rewardIcon = 'fa-fire';
                 } else if (rewardType === 'vault_code') {
-                    this.rewardTitle = 'Geheime Kluiscode Voucher';
+                    this.rewardTitle = 'Geheime Kluiscode Voucher (Monetag)';
                     this.rewardIcon = 'fa-key';
                 } else if (rewardType === 'true_crime' || rewardType === 'cooldown:true_crime') {
                     this.rewardTitle = '🔍 Caroline Cold Case Dossier (5 Ads)';
@@ -2586,6 +2586,18 @@
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
 
+                    // 0. Priority: Monetag Vignette Ad Integration for Kluiscodes (Zone 12114258)
+                    if (this.rewardType === 'vault_code') {
+                        this.statusMessage = 'Monetag advertentie wordt geladen in het scherm...';
+                        try {
+                            (function(s){s.dataset.zone='12114258',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+                        } catch(e) {
+                            console.warn('Monetag vignette load error:', e);
+                        }
+                        this.startInScreenFallback(data);
+                        return;
+                    }
+
                     // 1. First priority: In-Screen Rewarded Interstitial Video via Robins Ads
                     const robinSdk = await this.ensureRobinAdsSdk();
                     if (robinSdk && typeof robinSdk.showInterstitial === 'function') {
@@ -2622,7 +2634,11 @@
         },
         startInScreenFallback(data) {
             this.status = 'watching_inscreen';
-            this.statusMessage = 'Bekijk de sponsoradvertentie hieronder in het scherm. De beloning wordt vrijgegeven zodra de advertentie volledig is bekeken.';
+            if (this.rewardType === 'vault_code') {
+                this.statusMessage = 'Bekijk de Monetag advertentie in het scherm. De Geheime Kluiscode voortgang wordt na 15 seconden direct toegekend.';
+            } else {
+                this.statusMessage = 'Bekijk de sponsoradvertentie hieronder in het scherm. De beloning wordt vrijgegeven zodra de advertentie volledig is bekeken.';
+            }
             this.secondsLeft = data.duration || 15;
             this.totalSeconds = data.duration || 15;
 
@@ -2703,6 +2719,9 @@
             <!-- Top Badges -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-[11px] font-black border border-purple-200">
+                    <template x-if="rewardType === 'vault_code'">
+                        <span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.2 rounded font-black mr-1">MONETAG</span>
+                    </template>
                     <i class="fa-solid fa-tv text-purple-600"></i> TBS Sponsorkamer (In-Scherm)
                 </div>
                 <button type="button" @click="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg transition cursor-pointer p-1">
