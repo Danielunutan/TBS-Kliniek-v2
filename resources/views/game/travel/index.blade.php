@@ -3,19 +3,7 @@
 @section('content')
 <div class="space-y-6 mt-4">
 
-    @if(session('success'))
-        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-sm font-bold flex items-center gap-3">
-            <i class="fa-solid fa-circle-check text-emerald-500 text-base"></i>
-            <span>{{ session('success') }}</span>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 text-sm font-bold flex items-center gap-3">
-            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-base"></i>
-            <span>{{ session('error') }}</span>
-        </div>
-    @endif
+    
 
     <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div class="bg-slate-50 dark:bg-slate-800/60 p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-3">

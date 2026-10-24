@@ -15,19 +15,7 @@
     }
 }">
 
-    <!-- Flash Messages -->
-    @if(session('success'))
-    <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-200 text-xs font-bold flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-sm"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center gap-2 shadow-2xs">
-        <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-sm"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-    @endif
+    
 
     <!-- Clean TBS Kliniek Title Banner -->
     <div class="rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 text-slate-800 dark:text-slate-100 shadow-xs border border-slate-200 dark:border-slate-800 relative overflow-hidden">

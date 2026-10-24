@@ -47,19 +47,7 @@
     </div>
 
     <!-- Feedback Alerts -->
-    @if(session('success'))
-        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-300 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
-            <i class="fa-solid fa-circle-check text-emerald-500 mt-1 shrink-0"></i>
-            <span class="text-xs font-bold">{{ session('success') }}</span>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-300 dark:border-rose-800/60 text-rose-900 dark:text-rose-200 flex items-start gap-3">
-            <i class="fa-solid fa-circle-exclamation text-rose-500 mt-1 shrink-0"></i>
-            <span class="text-xs font-bold">{{ session('error') }}</span>
-        </div>
-    @endif
+    
 
     <!-- 2 Dropping Operations Cards (Clean TBS Kliniek Layout) -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

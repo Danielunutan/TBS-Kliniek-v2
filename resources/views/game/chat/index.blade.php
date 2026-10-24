@@ -21,18 +21,18 @@
 
 <div class="space-y-4" 
      x-data="tbsLiveMessenger({
-        authCharId: {{ $character->id }},
-        authCharName: @js($character->name),
-        initialTab: @js($initialTab),
-        initialRecipient: {{ $initialRecipient }},
-        hasGang: @js($hasGang),
-        gangId: {{ $gangId }},
-        gangName: @js($gangName),
-        gangTag: @js($gangTag),
-        gangHasChat: @js($gangHasChat),
-        gangStars: {{ $gangStars }},
-        characterStars: {{ $characterStars }},
-        canModerate: @js($canModerate)
+        authCharId: {{ $character->id ?? 0 }},
+        authCharName: @js($character->name ?? ''),
+        initialTab: @js($initialTab ?? 'global'),
+        initialRecipient: {{ $initialRecipient ?? 0 }},
+        hasGang: @js($hasGang ?? false),
+        gangId: {{ $gangId ?? 0 }},
+        gangName: @js($gangName ?? 'Bende'),
+        gangTag: @js($gangTag ?? ''),
+        gangHasChat: @js($gangHasChat ?? false),
+        gangStars: {{ $gangStars ?? 0 }},
+        characterStars: {{ $characterStars ?? 0 }},
+        canModerate: @js($canModerate ?? false)
      })"
      x-init="initMessenger()">
 
@@ -137,7 +137,7 @@
                             <div x-show="open" @click.away="open = false" x-cloak
                                  class="absolute right-0 top-8 z-30 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-purple-800/60 rounded-2xl shadow-xl p-2 space-y-1">
                                 <div class="px-2.5 py-1.5 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">Kies een vriend:</div>
-                                @forelse($friends as $fr)
+                                @forelse($friends ?? [] as $fr)
                                     <button type="button" 
                                             @click="selectPartner({{ $fr->id }}, @js($fr->name)); open = false;"
                                             class="w-full px-2.5 py-2 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-950/50 text-left transition flex items-center gap-2.5 cursor-pointer">
@@ -921,7 +921,7 @@
                     </div>
 
                     <!-- INPUT FORM WITH EMOJI DRAWER & MENTION AUTOCOMPLETE -->
-                    <form @submit.prevent="sendMessage()" class="flex items-center gap-2 relative">
+                    <form @submit.prevent="sendMessage()" data-no-async="true" class="flex items-center gap-2 relative">
                         
                         <!-- EMOJI DRAWER TOGGLE BUTTON & POPUP -->
                         <div class="relative">

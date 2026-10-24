@@ -1847,7 +1847,7 @@
                     session()->forget(['tbs_flash_success', 'tbs_flash_time']);
                 }
 
-                $flashError = session('error') ?? ($errors->any() ? $errors->first() : null);
+                $flashError = session('error') ?? (isset($errors) && $errors->any() ? $errors->first() : null);
                 if (!$flashError && session()->has('tbs_flash_error')) {
                     $flashTime = (int) (session('tbs_flash_time') ?? 0);
                     if ($flashTime === 0 || (now()->timestamp - $flashTime) <= 60) {
@@ -1863,33 +1863,41 @@
             @endphp
 
             @if($flashSuccess)
-            <div id="flash-success-alert" x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 p-4 rounded-xl shadow-xs flex items-start justify-between gap-3">
-                <div class="flex items-start gap-3">
-                    <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400 text-lg mt-0.5 shrink-0"></i>
-                    <div>
-                        <p class="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">Actie Geslaagd!</p>
-                        <p class="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5 leading-relaxed">{{ $flashSuccess }}</p>
-                    </div>
-                </div>
-                <button type="button" @click="show = false" class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 text-xs p-1 shrink-0 cursor-pointer" title="Sluiten">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+            <script>
+                (function() {
+                    function fireToast() {
+                        if (typeof window.tbsToast === 'function') {
+                            window.tbsToast(@json($flashSuccess), 'success');
+                        } else {
+                            setTimeout(fireToast, 50);
+                        }
+                    }
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', fireToast);
+                    } else {
+                        fireToast();
+                    }
+                })();
+            </script>
             @endif
 
             @if($flashError)
-            <div id="flash-error-alert" x-data="{ show: true }" x-show="show" x-transition.duration.300ms class="mb-6 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 p-4 rounded-xl shadow-xs flex items-start justify-between gap-3">
-                <div class="flex items-start gap-3">
-                    <i class="fa-solid fa-triangle-exclamation text-rose-600 dark:text-rose-400 text-lg mt-0.5 shrink-0"></i>
-                    <div>
-                        <p class="text-xs font-extrabold text-rose-900 dark:text-rose-200">Let op / Tegenwerking!</p>
-                        <p class="text-xs text-rose-800 dark:text-rose-300 mt-0.5 leading-relaxed">{{ $flashError }}</p>
-                    </div>
-                </div>
-                <button type="button" @click="show = false" class="text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-200 text-xs p-1 shrink-0 cursor-pointer" title="Sluiten">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+            <script>
+                (function() {
+                    function fireToast() {
+                        if (typeof window.tbsToast === 'function') {
+                            window.tbsToast(@json($flashError), 'error');
+                        } else {
+                            setTimeout(fireToast, 50);
+                        }
+                    }
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', fireToast);
+                    } else {
+                        fireToast();
+                    }
+                })();
+            </script>
             @endif
 
             @auth
@@ -3090,7 +3098,7 @@
          x-init="
              window.tbsToast = (msg, type) => addToast(msg, type);
          "
-         class="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 pointer-events-none max-w-md w-[92%] sm:w-auto">
+         class="fixed top-24 md:top-24 lg:top-24 left-1/2 -translate-x-1/2 z-[999999] flex flex-col items-center gap-2 pointer-events-none max-w-md w-[92%] sm:w-auto" style="position: fixed !important; top: 5.5rem !important; z-index: 999999 !important;">
         <template x-for="toast in toasts" :key="toast.id">
             <div x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 -translate-y-3 scale-95"
@@ -3132,12 +3140,24 @@
         const form = e.target;
         if (!form || form.tagName !== 'FORM') return;
 
-        // Bypass standard navigation / non-action forms
-        if (form.hasAttribute('data-no-async') ||
-            form.method.toLowerCase() !== 'post' ||
-            form.action.includes('/logout') ||
-            form.action.includes('/login') ||
-            form.action.includes('/auth') ||
+        // Strict guard: ONLY intercept explicit Laravel POST action forms
+        const actionAttr = form.getAttribute('action') || '';
+        const methodAttr = (form.getAttribute('method') || '').toLowerCase();
+        const hasCsrf = form.querySelector('input[name="_token"]');
+
+        if (!actionAttr ||
+            methodAttr !== 'post' ||
+            !hasCsrf ||
+            form.hasAttribute('@submit.prevent') ||
+            form.hasAttribute('x-on:submit.prevent') ||
+            form.hasAttribute('data-no-async') ||
+            window.location.pathname.startsWith('/chat') ||
+            actionAttr.includes('/chat') ||
+            actionAttr.includes('/logout') ||
+            actionAttr.includes('/login') ||
+            actionAttr.includes('/auth') ||
+            form.closest('[x-data*="Messenger"]') ||
+            form.closest('#chat-messages-container') ||
             form.querySelector('input[type="file"]')) {
             return;
         }

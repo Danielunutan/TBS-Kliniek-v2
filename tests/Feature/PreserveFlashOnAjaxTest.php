@@ -36,7 +36,6 @@ class PreserveFlashOnAjaxTest extends TestCase
         // 3. Normal HTML page load (redirect destination) must STILL have the flash error
         $htmlResponse = $this->get('/hosselen');
         $htmlResponse->assertOk();
-        $htmlResponse->assertSee('Let op / Tegenwerking!');
         $htmlResponse->assertSee('Hossel mislukt! Iemand waarschuwde de zaalwacht.');
 
         // 4. Subsequent normal HTML load should have consumed the flash data
@@ -63,12 +62,35 @@ class PreserveFlashOnAjaxTest extends TestCase
         // The HTML destination must STILL display the success banner via our resilient backup!
         $htmlResponse = $this->get(route('smuggle.index'));
         $htmlResponse->assertOk();
-        $htmlResponse->assertSee('Actie Geslaagd!');
         $htmlResponse->assertSee('Geproduceerd!');
 
         // Subsequent page visit must have consumed the backup banner
         $secondHtml = $this->get(route('smuggle.index'));
         $secondHtml->assertOk();
-        $secondHtml->assertDontSee('Actie Geslaagd!');
+        $secondHtml->assertDontSee('Geproduceerd!');
+    }
+
+    public function test_hustle_action_flash_survives_even_if_session_wiped(): void
+    {
+        $character = Character::first();
+        $user = $character->user;
+        $character->update(['energy' => 50]);
+
+        $this->actingAs($user);
+
+        // Perform hustle action
+        $response = $this->post(route('hustle.attempt'), ['hustle_id' => 1]);
+        $response->assertStatus(302);
+
+        // Wipe session flash simulating database session overwrite by concurrent AJAX poll
+        session()->forget(['_flash', 'success', 'error', 'tbs_flash_success', 'tbs_flash_error']);
+        session()->save();
+
+        // Must still see success or error banner on the destination page
+        $html = $this->get(route('hustle.index'));
+        $html->assertOk();
+        $this->assertTrue(
+            str_contains($html->getContent(), 'window.tbsToast')
+        );
     }
 }

@@ -25,7 +25,7 @@
                 </button>
             </div>
 
-            <form @submit.prevent="submitReport()" class="space-y-4 pt-4">
+            <form @submit.prevent="submitReport()" data-no-async="true" class="space-y-4 pt-4">
                 <div class="p-3 rounded-xl bg-slate-50 dark:bg-purple-950/30 border border-slate-200/80 dark:border-purple-800/40 text-xs">
                     <span class="text-[10px] font-black uppercase text-slate-400 block mb-0.5">Geraporteerd Onderwerp:</span>
                     <div class="font-extrabold text-slate-800 dark:text-white flex items-center gap-2">
@@ -101,10 +101,53 @@
     myAvatar: @js($authCharacter?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg')),
 })" class="z-[9990]">
 
-    <!-- FLOATING NEW MESSAGE TOAST BANNER -->
+<style>
+    .tbs-mini-chat-btn {
+        position: fixed;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+        right: 16px;
+        z-index: 9998;
+    }
+    .tbs-mini-chat-toast {
+        position: fixed;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 196px);
+        right: 16px;
+        z-index: 9999;
+    }
+    .tbs-mini-chat-popup {
+        position: fixed;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 68px);
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-width: calc(100vw - 24px);
+        height: 540px;
+        max-height: calc(100vh - env(safe-area-inset-bottom, 0px) - 80px);
+        z-index: 9999;
+    }
+    @media (min-width: 1024px) {
+        .tbs-mini-chat-btn {
+            bottom: 24px;
+            right: 24px;
+        }
+        .tbs-mini-chat-toast {
+            bottom: 148px;
+            right: 24px;
+        }
+        .tbs-mini-chat-popup {
+            bottom: 74px;
+            right: 24px;
+            left: auto;
+            width: 390px;
+            max-width: calc(100vw - 30px);
+            max-height: calc(100vh - 90px);
+        }
+    }
+</style>
+
+    <!-- FLOATING NEW MESSAGE TOAST BANNER (TBS Kliniek Website Styling) -->
     <template x-if="toastNotification && !isOpen">
-        <div style="position: fixed; bottom: 80px; right: 20px; z-index: 9999;"
-             x-transition:enter="transition ease-out duration-300"
+        <div x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-4 scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
              x-transition:leave="transition ease-in duration-200"
@@ -112,50 +155,82 @@
              x-transition:leave-end="opacity-0 scale-95"
              @click="openToastDestination()"
              :class="toastNotification.type === 'direct' 
-                ? (toastNotification.is_bot ? 'border-amber-500 shadow-amber-900/30 ring-1 ring-amber-400/40' : 'border-purple-500 shadow-purple-900/30') 
-                : 'border-emerald-500 shadow-emerald-900/30'"
-             class="bg-white dark:bg-[#160a33] border-2 rounded-2xl p-3 shadow-2xl flex items-center gap-3 cursor-pointer max-w-sm transform hover:scale-102 transition border-solid">
-            <div class="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-purple-800">
+                ? (toastNotification.is_bot ? 'border-amber-300 dark:border-amber-700/80 shadow-amber-900/10' : 'border-purple-300 dark:border-purple-800/80 shadow-purple-900/10') 
+                : 'border-emerald-300 dark:border-emerald-800/80 shadow-emerald-900/10'"
+             class="tbs-mini-chat-toast bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border rounded-2xl p-3.5 shadow-xl flex items-start gap-3.5 cursor-pointer max-w-sm w-[360px] transform hover:-translate-y-0.5 transition-all relative overflow-hidden group">
+            
+            <!-- Top Accent Gradient Line -->
+            <div class="absolute top-0 inset-x-4 h-[2px] rounded-full"
+                 :class="toastNotification.type === 'direct' 
+                    ? (toastNotification.is_bot ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600' : 'bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600') 
+                    : 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500'"></div>
+
+            <!-- Avatar / Icon Box -->
+            <div class="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border mt-0.5 shadow-2xs"
+                 :class="toastNotification.is_bot ? 'border-amber-200 dark:border-amber-800/80' : 'border-slate-200 dark:border-slate-700'">
                 <template x-if="toastNotification.is_bot">
-                    <div class="w-full h-full bg-gradient-to-br from-amber-500 to-amber-700 text-white flex items-center justify-center text-sm font-black shadow-inner">
+                    <div class="w-full h-full bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center text-lg shadow-inner">
                         <i class="fa-solid fa-hospital-user"></i>
                     </div>
                 </template>
                 <template x-if="!toastNotification.is_bot">
                     <img :src="toastNotification.avatar || '/characters/avatar-default.png'" class="w-full h-full object-cover">
                 </template>
-                <span class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"
-                      :class="toastNotification.type === 'direct' ? (toastNotification.is_bot ? 'bg-amber-500 ring-2 ring-white animate-ping' : 'bg-purple-500 ring-2 ring-white animate-ping') : 'bg-emerald-500 ring-2 ring-white animate-ping'"></span>
+                <span class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-slate-900"
+                      :class="toastNotification.type === 'direct' ? (toastNotification.is_bot ? 'bg-amber-500 animate-ping' : 'bg-purple-500 animate-ping') : 'bg-emerald-500 animate-ping'"></span>
             </div>
+
+            <!-- Content -->
             <div class="min-w-0 flex-1">
-                <div class="flex items-center justify-between gap-1.5 mb-0.5">
-                    <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="toastNotification.name"></span>
-                    
-                    <!-- Clear distinction badge: Directie vs PM vs Plein -->
-                    <template x-if="toastNotification.type === 'direct' && toastNotification.is_bot">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950 px-1.5 py-0.5 rounded-md border border-amber-300 dark:border-amber-700 flex items-center gap-1 shrink-0 animate-pulse">
-                            <i class="fa-solid fa-bullhorn text-[8px] text-amber-600"></i>
-                            <span>DIRECTIE</span>
-                        </span>
-                    </template>
-                    <template x-if="toastNotification.type === 'direct' && !toastNotification.is_bot">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950 px-1.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800 flex items-center gap-1 shrink-0">
-                            <i class="fa-solid fa-lock text-[8px]"></i>
-                            <span>PRIVÉ (PM)</span>
-                        </span>
-                    </template>
-                    <template x-if="toastNotification.type !== 'direct'">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 flex items-center gap-1 shrink-0">
-                            <i class="fa-solid fa-comments text-[8px]"></i>
-                            <span>PLEIN CHAT</span>
-                        </span>
-                    </template>
+                <div class="flex items-center justify-between gap-1.5">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-xs font-black text-slate-900 dark:text-white truncate tracking-tight" x-text="toastNotification.name"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1 shrink-0">
+                        <!-- Badges -->
+                        <template x-if="toastNotification.type === 'direct' && toastNotification.is_bot">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/80 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+                                <i class="fa-solid fa-bullhorn text-[8px] text-amber-600"></i>
+                                <span>Directie</span>
+                            </span>
+                        </template>
+                        <template x-if="toastNotification.type === 'direct' && !toastNotification.is_bot">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[8px]"></i>
+                                <span>Privé</span>
+                            </span>
+                        </template>
+                        <template x-if="toastNotification.type !== 'direct'">
+                            <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                                <i class="fa-solid fa-comments text-[8px]"></i>
+                                <span>Plein</span>
+                            </span>
+                        </template>
+
+                        <!-- Dismiss Cross Button -->
+                        <button type="button" 
+                                @click.stop="toastNotification = null" 
+                                title="Sluiten"
+                                class="w-5 h-5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer">
+                            &times;
+                        </button>
+                    </div>
                 </div>
-                <p class="text-[11px] text-slate-600 dark:text-purple-200 truncate" x-text="toastNotification.text"></p>
-                <div class="text-[9px] font-bold text-slate-400 dark:text-purple-400/80 flex items-center justify-between mt-0.5">
-                    <span x-text="toastNotification.time || 'Zojuist'"></span>
-                    <span :class="toastNotification.is_bot ? 'text-amber-600 dark:text-amber-400' : 'text-purple-600 dark:text-purple-400'" class="font-extrabold flex items-center gap-0.5">
-                        <span>Klik om te openen</span> &rarr;
+
+                <!-- Clean message text without raw markdown asterisks -->
+                <p class="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed mt-1 font-medium" 
+                   x-text="(toastNotification.text || '').replace(/\*\*/g, '')"></p>
+
+                <!-- Footer: Timestamp & Action Link -->
+                <div class="text-[10px] text-slate-400 dark:text-slate-500 font-bold flex items-center justify-between mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-800/80">
+                    <span class="flex items-center gap-1 font-mono">
+                        <i class="fa-regular fa-clock text-[9px]"></i>
+                        <span x-text="toastNotification.time || 'Zojuist'"></span>
+                    </span>
+                    <span :class="toastNotification.is_bot ? 'text-amber-600 dark:text-amber-400 group-hover:text-amber-700' : 'text-purple-600 dark:text-purple-400 group-hover:text-purple-700'" class="font-black text-[11px] flex items-center gap-1 transition-colors">
+                        <span>Klik om te openen</span>
+                        <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
                     </span>
                 </div>
             </div>
@@ -163,14 +238,14 @@
     </template>
 
     <!-- FLOATING CHAT WINDOW POPUP -->
-    <div x-show="isOpen" x-cloak style="display: none; position: fixed; bottom: 74px; right: 20px; width: 390px; max-width: calc(100vw - 30px); height: 540px; max-height: calc(100vh - 90px); z-index: 9999;"
+    <div x-show="isOpen" x-cloak style="display: none;"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-4 scale-95"
          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-         class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100">
+         class="tbs-mini-chat-popup bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100">
         
         <!-- HEADER WITH TABS -->
         <div class="bg-purple-700 dark:bg-purple-900/90 p-2.5 border-b border-purple-800 text-white shrink-0 space-y-2 shadow-xs">
@@ -379,7 +454,7 @@
                     </div>
                 </template>
 
-                <form @submit.prevent="sendPublicMessage()" class="flex items-center gap-1.5 relative">
+                <form @submit.prevent="sendPublicMessage()" data-no-async="true" class="flex items-center gap-1.5 relative">
                     <!-- Clean Emoji Picker Toggle Button -->
                     <div class="relative">
                         <button type="button" @click="showEmojiPicker = !showEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys & Emojis">
@@ -643,7 +718,7 @@
                             </div>
                         </template>
 
-                        <form @submit.prevent="sendGangMessage()" class="flex items-center gap-1.5 relative">
+                        <form @submit.prevent="sendGangMessage()" data-no-async="true" class="flex items-center gap-1.5 relative">
                             <!-- Clean Emoji Picker Toggle -->
                             <div class="relative">
                                 <button type="button" @click="showGangEmojiPicker = !showGangEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
@@ -1007,7 +1082,7 @@
                                 </div>
                             </template>
 
-                            <form @submit.prevent="sendDirectMessage()" class="flex items-center gap-1.5 relative">
+                            <form @submit.prevent="sendDirectMessage()" data-no-async="true" class="flex items-center gap-1.5 relative">
                                 <!-- Clean Emoji Toggle -->
                                 <div class="relative">
                                     <button type="button" @click="showDirectEmojiPicker = !showDirectEmojiPicker" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-purple-900/50 text-slate-600 dark:text-purple-300 flex items-center justify-center text-sm transition cursor-pointer" title="Smileys">
@@ -1152,7 +1227,7 @@
             </div>
 
             <!-- Help input -->
-            <form @submit.prevent="sendHelpQuery()" class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-1.5 shrink-0">
+            <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-1.5 shrink-0">
                 <input type="text" x-model="helpInput" placeholder="Stel een vraag aan de kennisbank..." 
                        class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                 <button type="submit" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
@@ -1164,9 +1239,8 @@
     </div>
 
     <!-- FLOATING LAUNCHER BUTTON (Bottom Right Corner) -->
-    <button type="button" @click="isOpen = !isOpen; if(isOpen) { $nextTick(() => { if(activeTab === 'global') scrollChatBottom(); else if(activeTab === 'gang') scrollGangBottom(); else if(activeTab === 'direct' && activeDirectPartner) scrollDirectBottom(); }); }"
-            style="position: fixed; bottom: 20px; right: 20px; z-index: 9998;"
-            class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/25 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-400">
+    <button type="button" @click="isOpen = !isOpen; const bmc = document.getElementById('bmc-wbtn'); if(bmc) bmc.style.display = isOpen ? 'none' : 'flex'; if(isOpen) { $nextTick(() => { if(activeTab === 'global') scrollChatBottom(); else if(activeTab === 'gang') scrollGangBottom(); else if(activeTab === 'direct' && activeDirectPartner) scrollDirectBottom(); }); }"
+            class="tbs-mini-chat-btn px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/25 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-400">
         <div class="relative w-5 h-5 shrink-0 flex items-center justify-center">
             <i class="fa-solid fa-comments text-white text-sm" x-show="!isOpen"></i>
             <i class="fa-solid fa-xmark text-white text-sm" x-show="isOpen"></i>
