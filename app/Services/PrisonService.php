@@ -39,14 +39,14 @@ class PrisonService
             'type' => 'prison',
             'icon' => 'fa-lock',
             'title' => 'Gepakt door de beveiliging!',
-            'message' => "Je bent opgesloten in de isoleercel voor {$timeLabel}. Reden: {$reason}.",
+            'message' => "Je bent opgesloten in de isoleercel voor {$timeLabel}. Reden: {$reason}. Bekijk een korte advertentie om direct vrij te komen!",
         ]);
 
         GameMessage::create([
             'recipient_id' => $character->id,
             'sender_name' => 'Hoofdbeveiliging & Cipiers',
             'subject' => '🚨 Arrestatierapport: Isoleercel Straf',
-            'content' => "Patiënt {$character->name},\n\nJe bent zojuist overmeesterd door het beveiligingsteam en overgebracht naar de gesloten isoleercel voor {$timeLabel}.\n\nOfficiële reden:\n\"{$reason}\"\n\nJe kunt je op elk moment direct vrijkopen met 25 Sterren ⭐ of je straftijd uitzitten.",
+            'content' => "Patiënt {$character->name},\n\nJe bent zojuist overmeesterd door het beveiligingsteam en overgebracht naar de gesloten isoleercel voor {$timeLabel}.\n\nOfficiële reden:\n\"{$reason}\"\n\nIn de gevangenis kun je direct een korte sponsoradvertentie bekijken om per direct vrijgelaten te worden, een ontsnappingspoging wagen of je straftijd uitzitten.",
             'type' => 'jail',
         ]);
     }

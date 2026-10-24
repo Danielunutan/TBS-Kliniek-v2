@@ -12,7 +12,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Gevangenis</h1>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Patiënten die betrapt zijn bij illegale acties of mislukte uitbraken zitten hier vast. Breek mede-patiënten uit voor respect en extra slay, of koop jezelf direct vrij!
+                    Patiënten die betrapt zijn bij illegale acties of mislukte uitbraken zitten hier vast. Breek mede-patiënten uit voor respect en extra slay, of bekijk een sponsoradvertentie om direct vrij te komen!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">

@@ -240,16 +240,20 @@ class FaqController extends Controller
                 ],
             ],
             'vip_sponsor' => [
-                'title' => ' VIP Lidmaatschap & Sponsorkamer',
+                'title' => '👑 VIP Lidmaatschap & Sponsorkamer',
                 'icon' => 'fa-crown',
                 'questions' => [
                     [
                         'q' => 'Wat kost VIP en welke voordelen krijg ik?',
-                        'a' => "VIP kost slechts €7,50 per maand via onze officiële Discord (discord.gg/tbs). Als VIP profiteer je van enorme voordelen:\n•  5 VIP Punten per speeluur (inwisselbaar in de VIP Shop voor zeldzame boosts en titels)\n•  2x Dagelijks draaien aan het Rad van Fortuin\n• ️ 50% Korting op alle reiskosten tussen afdelingen\n•  Gouden VIP-naamkleur en exclusieve statusbadge op je profiel\n•  Snellere energie-opbouw en toegang tot de VIP Lounge",
+                        'a' => "VIP is in TBS Kliniek 100% GRATIS te verdienen! Je hoeft nooit echt geld te betalen. Je activeert gratis VIP via de Sponsorkamer (bij elke 250 bekeken advertenties ontvang je automatisch 24 uur VIP) én door je account eenmalig te koppelen met onze officiële Discord (ontvang direct 3 dagen gratis VIP + €2.500 cash!).\n\nAls VIP profiteer je van enorme voordelen:\n• 👑 5 VIP Punten per actief speeluur (inwisselbaar in de VIP Shop voor cash protection, energy boosts, respect en koffers)\n• 🎰 2x Dagelijks draaien aan het Rad van Fortuin\n• 🗺️ 50% Korting op alle reiskosten tussen afdelingen\n• 🥊 1.000 gevechten per dag op de Luchtplaats (i.p.v. 100)\n• 🏦 Lager banktarief (3% i.p.v. 5% belasting bij contant opnemen)\n• 🚗 Extra garage- en opslagcapaciteit in het Depot\n• ⭐ Gouden VIP-badge en exclusieve status op je profiel\n• 🎁 Toegang tot de VIP Lounge & Shop",
                     ],
                     [
                         'q' => 'Hoe verdien ik 24 UUR GRATIS VIP via de Sponsorkamer?',
-                        'a' => "In de Sponsorkamer ('/sponsorkamer') kun je korte videoadvertenties van 15 seconden bekijken. Voor elke video ontvang je direct €2.500 zakgeld, maskers, kluismunten of -15 minuten strafvermindering in de isoleercel. Zodra je in totaal 50 advertenties hebt bekeken, ontgrendelt het systeem automatisch 24 UUR GRATIS VIP op jouw account!",
+                        'a' => "In de Sponsorkamer ('/sponsorkamer') kun je korte videoadvertenties van 15 seconden bekijken. Voor elke video ontvang je direct €2.500 zakgeld, maskers, kluismunten of -15 minuten strafvermindering in de isoleercel. Zodra je in totaal 250 advertenties hebt bekeken, ontgrendelt het systeem automatisch 24 UUR GRATIS VIP op jouw account! Dit kun je oneindig herhalen om je VIP status met 24 uur per keer te verlengen.",
+                    ],
+                    [
+                        'q' => 'Wat kan ik doen met VIP Punten in de VIP Shop?',
+                        'a' => "In de VIP Shop ('/vip-shop') kun je jouw verdiende VIP Punten inwisselen voor krachtige bonussen: 24 uur volledige cash bescherming tegen plunderingen, direct 100% herstel van Energie & Gezondheid, +50 kliniek respect, een VIP Buitpakket (2x XXL Cases + €500.000 contant), 100 Sterren of +24 uur VIP status verlenging!",
                     ],
                 ],
             ],
@@ -469,18 +473,18 @@ class FaqController extends Controller
                 ],
             ],
             [
-                'title' => '⭐ VIP Lidmaatschap (Binnenkort Gratis via Ads)',
-                'keywords' => ['vip', 'gratis', 'ads', 'advertenties', 'sponsorkamer', 'vip punten', 'gouden naam', 'voordelen'],
-                'answer' => "VIP lidmaatschap wordt binnenkort volledig gratis beschikbaar via het bekijken van sponsor-advertenties in de Sponsorkamer! Als VIP ontvang je:\n• 5 VIP Punten per speeluur (inwisselbaar in de VIP Shop voor zeldzame spullen).\n• 2x Dagelijks draaien aan het Rad van Fortuin.\n• 50% Korting op alle reiskosten.\n• Gouden VIP-badge en exclusieve rangtitels.",
+                'title' => '⭐ VIP Lidmaatschap (100% Gratis via Sponsorkamer & Discord)',
+                'keywords' => ['vip', 'gratis', 'ads', 'advertenties', 'sponsorkamer', 'vip punten', 'gouden naam', 'voordelen', 'kosten', 'prijs'],
+                'answer' => "VIP is in TBS Kliniek 100% GRATIS! Je hoeft nooit echt geld te betalen. Bekijk advertenties in de Sponsorkamer (24 uur gratis VIP per 250 ads) of koppel Discord (3 dagen gratis VIP). Als VIP ontvang je:\n• 5 VIP Punten per actief speeluur (inwisselbaar in de VIP Shop).\n• 2x Dagelijks draaien aan het Rad van Fortuin.\n• 1.000 max gevechten per dag i.p.v. 100.\n• 50% Korting op alle reiskosten.\n• 3% Banktax i.p.v. 5% bij contant opnemen.\n• Gouden VIP-kroon en exclusieve status.",
                 'links' => [
-                    ['text' => 'VIP Informatie', 'url' => route('vip.index')],
+                    ['text' => 'VIP Shop & Status', 'url' => route('vip.index')],
                     ['text' => 'Sponsorkamer', 'url' => route('sponsor.index')],
                 ],
             ],
             [
-                'title' => ' Sponsorkamer & 24 UUR GRATIS VIP',
-                'keywords' => ['sponsorkamer', 'sponsor', 'ad', 'advertentie', 'video', 'reclame', 'gratis vip', 'smartlink', 'beloning'],
-                'answer' => 'In de Sponsorkamer kun je korte 15s videoadvertenties bekijken voor €2.500 zakgeld, maskers, kluismunten of -15 minuten straftijd in de isoleercel. Na 50 bekeken advertenties ontgrendel je automatisch 24 UUR GRATIS VIP!',
+                'title' => '📺 Sponsorkamer & 24 UUR GRATIS VIP',
+                'keywords' => ['sponsorkamer', 'sponsor', 'ad', 'advertentie', 'video', 'reclame', 'gratis vip', 'smartlink', 'beloning', 'mijlpaal'],
+                'answer' => 'In de Sponsorkamer kun je korte 15s videoadvertenties bekijken voor €2.500 zakgeld, maskers, kluismunten of -15 minuten straftijd in de isoleercel. Na elke 250 bekeken advertenties ontgrendel je automatisch 24 UUR GRATIS VIP!',
                 'links' => [
                     ['text' => 'Naar Sponsorkamer', 'url' => route('sponsor.index')],
                 ],
