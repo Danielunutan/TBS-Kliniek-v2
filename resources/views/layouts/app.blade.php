@@ -604,11 +604,15 @@
     <!-- SIDEBAR NAVIGATION (Desktop & Tablet) - Clean Modern White Sidebar -->
     <aside class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
            x-data="{
-               openCategory: localStorage.getItem('tbs_sidebar_category') || '{{ $activeCategory }}',
+               openCategory: '{{ $activeCategory ?? '' }}',
                init() {
-                   const serverCat = '{{ $activeCategory }}';
-                   if (serverCat) {
-                       this.openCategory = serverCat;
+                   const serverCat = '{{ $activeCategory ?? '' }}';
+                   if (!serverCat) {
+                       const saved = localStorage.getItem('tbs_sidebar_category');
+                       if (saved) {
+                           this.openCategory = saved;
+                       }
+                   } else {
                        localStorage.setItem('tbs_sidebar_category', serverCat);
                    }
                },
@@ -677,9 +681,9 @@
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-slate-400"></i> Algemeen
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''"></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'algemeen'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'algemeen'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'algemeen') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('news.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-newspaper w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Kliniek Nieuws</span>
@@ -754,10 +758,10 @@
                                 [{{ $character->gang->tag }}]
                             </span>
                         @endif
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bende' ? 'rotate-180' : ''"></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bende' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bende') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
-                <div x-show="openCategory === 'bende'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'bende'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bende') style="display: none;" @endif class="space-y-0.5 pl-1">
                     @if($character->gang)
                         <a href="{{ route('gangs.index', ['tab' => 'mijn_gang']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'mijn_gang') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
@@ -832,10 +836,10 @@
                         <span class="text-[8px] font-black uppercase text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/80 px-1.5 py-0.5 rounded border border-orange-300 dark:border-orange-800 tracking-wider">
                             HALLOWEEN
                         </span>
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'event' ? 'rotate-180' : ''"></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'event' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'event') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
-                <div x-show="openCategory === 'event'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'event'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'event') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('halloween.quests') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*') ? 'nav-item-active bg-orange-500/10 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-scroll w-4 text-center text-orange-500"></i>
@@ -863,9 +867,9 @@
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-chart-line text-indigo-500"></i> Voortgang
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''"></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'voortgang'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'voortgang'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('depot.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('depot.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-boxes-stacked w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Depot (Inventaris)</span>
@@ -912,9 +916,9 @@
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-handcuffs text-slate-400"></i> Illegale Acties
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'misdaad' ? 'rotate-180' : ''"></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'misdaad' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'misdaad'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'misdaad'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'misdaad') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('hustle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-hand-holding-dollar w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>Hosselen</span>
@@ -959,9 +963,9 @@
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-gift text-purple-500"></i> Bonus & Kluizen
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''"></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'bonus'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'bonus'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bonus') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('daily.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500 dark:text-amber-400"></i>
@@ -1008,10 +1012,10 @@
                         <i class="fa-solid fa-gamepad text-purple-500"></i> Minigames
                     </span>
                     <div class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'specials' ? 'rotate-180' : ''"></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'specials' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'specials') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
-                <div x-show="openCategory === 'specials'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'specials'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'specials') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('connect_four.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-chess-board w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
@@ -1041,9 +1045,9 @@
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-fire text-slate-400"></i> Geweld & Strijd
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'geweld' ? 'rotate-180' : ''"></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'geweld' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'geweld'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'geweld'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'geweld') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-skull w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Respectlijst</span>
@@ -1087,9 +1091,9 @@
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-coins text-slate-400"></i> Economie & Gokken
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'economie' ? 'rotate-180' : ''"></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'economie' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'economie'" x-collapse class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'economie'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'economie') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('bank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-building-columns w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>De Bank</span>
