@@ -37,13 +37,15 @@
     </div>
 
     <!-- Top Hero Banner Card -->
+    <!-- Top Hero Banner Card (High-Contrast, Readable in Both Light and Dark Mode) -->
     <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
-        <div class="h-44 sm:h-56 w-full overflow-hidden relative bg-purple-950">
-            <img src="{{ $gang->banner_url }}" alt="{{ $gang->name }} Banner" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+        <div class="min-h-[220px] sm:min-h-[240px] md:h-64 w-full overflow-hidden relative bg-purple-950 flex flex-col justify-between p-4 sm:p-6">
+            <img src="{{ $gang->banner_url }}" alt="{{ $gang->name }} Banner" class="absolute inset-0 w-full h-full object-cover">
+            <!-- Dark gradient overlay ensuring text on banner is ALWAYS 100% crystal clear in both light and dark modes -->
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/50 to-black/30 pointer-events-none"></div>
 
             <!-- Top Right Action Controls -->
-            <div class="absolute top-4 right-4 flex items-center gap-2">
+            <div class="relative z-10 flex items-center justify-end gap-2">
                 <button type="button" 
                         @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $gang->id }}, name: '{{ addslashes($gang->name) }}' })"
                         class="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
@@ -52,13 +54,11 @@
                     <span class="hidden sm:inline">Rapporteer Bende</span>
                 </button>
             </div>
-        </div>
 
-        <!-- Gang Identity & Action Row -->
-        <div class="px-6 pb-6 pt-3 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div class="flex flex-col sm:flex-row sm:items-center gap-4 -mt-14 sm:-mt-16">
+            <!-- Gang Identity Hero Header on Banner (Always White & Sharp on dark banners) -->
+            <div class="relative z-10 flex flex-col sm:flex-row sm:items-end gap-4 pt-4">
                 <!-- Gang Emblem / Avatar -->
-                <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 border-4 border-white dark:border-slate-900 shadow-xl flex items-center justify-center text-4xl text-white shrink-0 overflow-hidden">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 border-2 border-white/90 shadow-2xl flex items-center justify-center text-3xl sm:text-4xl text-white shrink-0 overflow-hidden ring-4 ring-black/40 backdrop-blur-xs">
                     @if($gang->avatar)
                         <img src="{{ $gang->avatar_url }}" alt="{{ $gang->name }}" class="w-full h-full object-cover">
                     @else
@@ -66,24 +66,24 @@
                     @endif
                 </div>
 
-                <div class="pt-2 sm:pt-4 space-y-1.5">
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <div class="space-y-1.5 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
                             <span>{{ $gang->name }}</span>
-                            <span class="text-purple-600 dark:text-purple-400 font-mono text-sm sm:text-base font-extrabold bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-lg border border-purple-200 dark:border-purple-800">
+                            <span class="text-purple-200 font-mono text-xs sm:text-sm font-extrabold bg-purple-900/80 border border-purple-400/50 px-2.5 py-0.5 rounded-lg backdrop-blur-xs shadow-xs">
                                 [{{ $gang->tag }}]
                             </span>
-                            <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-base" title="Geverifieerde Bende"></i>
+                            <i class="fa-solid fa-circle-check text-purple-400 text-sm sm:text-base drop-shadow-sm" title="Geverifieerde Bende"></i>
                         </h1>
                     </div>
 
-                    <!-- Meta details: Leader, Members, Status -->
-                    <div class="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <!-- Meta details: Leader, Members, Status with crisp white text & drop shadow -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-bold text-white/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">
                         <span class="flex items-center gap-1.5">
-                            <i class="fa-solid fa-crown text-amber-500"></i>
-                            <span class="text-slate-400 dark:text-slate-500 font-medium">Leider:</span>
+                            <i class="fa-solid fa-crown text-amber-400"></i>
+                            <span class="text-slate-300 font-medium">Leider:</span>
                             @if($gang->leader)
-                                <a href="{{ route('profile.show', $gang->leader->name) }}" class="text-purple-600 dark:text-purple-400 hover:underline">
+                                <a href="{{ route('profile.show', $gang->leader->name) }}" class="text-purple-300 hover:text-white hover:underline transition">
                                     {{ $gang->leader->name }}
                                 </a>
                             @else
@@ -91,52 +91,60 @@
                             @endif
                         </span>
 
-                        <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+                        <span class="text-white/40">&bull;</span>
 
                         <span class="flex items-center gap-1.5">
-                            <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
+                            <i class="fa-solid fa-users text-purple-300"></i>
                             <span>{{ $gang->members->count() }} / {{ $gang->max_members ?? 10 }} leden</span>
                         </span>
 
-                        <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+                        <span class="text-white/40">&bull;</span>
 
-                        <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="inline-flex items-center gap-1.5 text-emerald-400">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                             <span>{{ $onlineMembersCount }} online</span>
                         </span>
 
                         @if((bool)($gang->is_open ?? true))
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 backdrop-blur-xs shadow-xs">
                                 <i class="fa-solid fa-lock-open text-[9px]"></i> Open Bende
                             </span>
                         @else
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/50 text-slate-300 border border-white/10 backdrop-blur-xs">
                                 <i class="fa-solid fa-lock text-[9px]"></i> Gesloten
                             </span>
                         @endif
 
                         @if(($gang->min_respect ?? 0) > 0)
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                <i class="fa-solid fa-fire text-amber-500 text-[9px]"></i> Min. {{ number_format($gang->min_respect, 0, ',', '.') }} Respect
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-500/25 text-amber-300 border border-amber-400/40 backdrop-blur-xs shadow-xs">
+                                <i class="fa-solid fa-fire text-amber-400 text-[9px]"></i> Min. {{ number_format($gang->min_respect, 0, ',', '.') }} Respect
                             </span>
                         @endif
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Call-to-action toolbar below banner -->
+        <div class="px-6 py-3.5 bg-slate-50/80 dark:bg-slate-900/60 border-t border-slate-200/80 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
+                <span>Openbaar Bende Profiel</span>
+            </div>
 
             <!-- Call-to-action buttons for the viewer -->
-            <div class="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
+            <div class="flex items-center gap-2.5 shrink-0">
                 @if($isMyGang)
-                    <span class="px-3.5 py-2 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-black text-xs inline-flex items-center gap-1.5 border border-purple-200 dark:border-purple-800">
+                    <span class="px-3.5 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-black text-xs inline-flex items-center gap-1.5 border border-purple-200 dark:border-purple-800">
                         <i class="fa-solid fa-check text-purple-600"></i> Jouw Bende
                     </span>
-                    <a href="{{ route('gangs.index') }}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
+                    <a href="{{ route('gangs.index') }}" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved"></i>
                         <span>Bende Dashboard</span>
                     </a>
                 @elseif(! $character->gang_id)
                     @if($hasPendingRequest)
-                        <span class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-extrabold text-xs inline-flex items-center gap-2 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                        <span class="px-3.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-extrabold text-xs inline-flex items-center gap-2 border border-amber-200 dark:border-amber-800 shadow-2xs">
                             <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
                             <span>Aanvraag In Behandeling</span>
                         </span>
@@ -144,19 +152,19 @@
                         @if(($character->respect ?? 0) >= ($gang->min_respect ?? 0))
                             <form action="{{ route('gangs.request-join', $gang->id) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                <button type="submit" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 cursor-pointer">
                                     <i class="fa-solid fa-user-plus"></i>
                                     <span>Lidmaatschap Aanvragen</span>
                                 </button>
                             </form>
                         @else
-                            <button type="button" disabled class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-not-allowed" title="Je hebt minimaal {{ number_format($gang->min_respect, 0, ',', '.') }} respect nodig">
+                            <button type="button" disabled class="px-4 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-not-allowed" title="Je hebt minimaal {{ number_format($gang->min_respect, 0, ',', '.') }} respect nodig">
                                 <i class="fa-solid fa-lock"></i>
                                 <span>Min. {{ number_format($gang->min_respect, 0, ',', '.') }} Respect Vereist</span>
                             </button>
                         @endif
                     @else
-                        <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs inline-flex items-center gap-2 border border-slate-200 dark:border-slate-700">
+                        <span class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs inline-flex items-center gap-2 border border-slate-200 dark:border-slate-700">
                             <i class="fa-solid fa-lock"></i>
                             <span>Lidmaatschap Gesloten</span>
                         </span>
@@ -164,12 +172,12 @@
                 @else
                     <!-- Viewer is member of another gang -->
                     @if($character->gang && in_array($character->gang_role, ['leader', 'co_leader']))
-                        <a href="{{ route('gangs.index', ['tab' => 'oorlog']) }}" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
+                        <a href="{{ route('gangs.index', ['tab' => 'oorlog']) }}" class="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2">
                             <i class="fa-solid fa-crosshairs"></i>
                             <span>Bende Oorlog</span>
                         </a>
                     @else
-                        <span class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold text-xs inline-flex items-center gap-2 border border-slate-200 dark:border-slate-800">
+                        <span class="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold text-xs inline-flex items-center gap-2 border border-slate-200 dark:border-slate-800">
                             <i class="fa-solid fa-shield text-purple-500"></i>
                             <span>Lid van [{{ $character->gang->tag }}]</span>
                         </span>
