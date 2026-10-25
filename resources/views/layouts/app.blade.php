@@ -2420,6 +2420,7 @@
     <!-- BUY ME A COFFEE WIDGET (Positioned cleanly above Live Chat) -->
     <style>
         #bmc-wbtn {
+            position: fixed !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -2434,9 +2435,10 @@
             border-radius: 9999px !important;
             border: 2px solid rgba(255, 255, 255, 0.35) !important;
             box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4), 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+            top: auto !important;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 120px) !important;
             right: 16px !important;
             left: auto !important;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 120px) !important;
             z-index: 9997 !important;
             transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.2s ease !important;
             cursor: pointer !important;
@@ -2467,9 +2469,11 @@
         }
         @media (min-width: 1024px) {
             #bmc-wbtn {
+                position: fixed !important;
+                top: auto !important;
+                bottom: 74px !important;
                 right: 24px !important;
                 left: auto !important;
-                bottom: 74px !important;
             }
         }
         /* When Live Chat popup is open, hide BMC button so it does not obstruct the chat window */
@@ -2493,6 +2497,10 @@
                     btn.target = '_blank';
                     btn.rel = 'noopener noreferrer';
                     btn.title = 'Steun TBS Kliniek op Buy Me a Coffee!';
+                    btn.style.position = 'fixed';
+                    btn.style.top = 'auto';
+                    btn.style.bottom = '74px';
+                    btn.style.right = '24px';
                     btn.innerHTML = '<img src="https://cdn.buymeacoffee.com/widget/assets/coffee%20cup.svg" alt="Buy Me a Coffee">';
                     document.body.appendChild(btn);
                 }
