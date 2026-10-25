@@ -928,7 +928,7 @@
                             <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="activeDirectPartner.name"></span>
                         </div>
                         <template x-if="!activeDirectPartner.is_bot && (activeDirectPartner.partner_id || activeDirectPartner.id) > 0">
-                            <a :href="'/speler/' + encodeURIComponent(activeDirectPartner.name)" target="_blank" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-purple-300 hover:text-purple-500 text-[10px] font-bold transition">
+                            <a :href="'/speler/' + encodeURIComponent(activeDirectPartner.name)" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-purple-300 hover:text-purple-500 text-[10px] font-bold transition">
                                 Dossier &raquo;
                             </a>
                         </template>
@@ -1628,16 +1628,19 @@
                 tempDiv.textContent = text;
                 let safe = tempDiv.innerHTML;
 
-                // Convert @username into clean, sleek clickable badges linking to dossier profile
-                const mentionRegex = /@([a-zA-Z0-9_\-]+)/g;
-                safe = safe.replace(mentionRegex, (match, username) => {
+                // Convert @username into clean, sleek clickable badges linking to dossier profile without opening new tab
+                const buildMentionPill = (username) => {
                     const url = '/speler/' + encodeURIComponent(username);
                     if (isMe) {
-                        return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition cursor-pointer tracking-tight shadow-xs"><span class="opacity-75 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
                     } else {
-                        return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-500 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                        return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-500 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
                     }
-                });
+                };
+
+                // Supports Unicode letters (e.g. ë, é, ï, etc.), digits, hyphens, underscores and dots
+                const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
+                safe = safe.replace(mentionRegex, (match, username) => buildMentionPill(username));
 
                 return safe;
             },
@@ -1660,7 +1663,7 @@
                 if (!inputEl) return;
                 const cursorPos = inputEl.selectionStart || 0;
                 const textBeforeCursor = text.slice(0, cursorPos);
-                const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+                const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
 
                 if (match) {
                     const query = match[1] || '';
@@ -1736,7 +1739,7 @@
                 const textBeforeCursor = currentText.slice(0, cursorPos);
                 const textAfterCursor = currentText.slice(cursorPos);
 
-                const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+                const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
                 if (match) {
                     const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
                     const prefix = textBeforeCursor.slice(0, atIndex);

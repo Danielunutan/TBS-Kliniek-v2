@@ -1128,7 +1128,6 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <div class="flex items-center gap-2 shrink-0">
                     <template x-if="activeTab === 'direct' && !activePartner.is_bot && activePartner.id > 0">
                         <a :href="'/speler/' + encodeURIComponent(activePartner.name)" 
-                           target="_blank"
                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5">
                             <i class="fa-solid fa-address-card text-xs"></i>
                             <span class="hidden sm:inline">Dossier</span>

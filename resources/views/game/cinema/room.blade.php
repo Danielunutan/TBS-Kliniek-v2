@@ -535,10 +535,10 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
             div.textContent = text;
             let safe = div.innerHTML;
 
-            const mentionRegex = /@([a-zA-Z0-9_\-]+)/g;
+            const mentionRegex = /(?<!<a[^>]*>)@([\p{L}\p{N}_\.\-]+)(?![^<]*<\/a>)/gu;
             safe = safe.replace(mentionRegex, (match, username) => {
                 const url = '/speler/' + encodeURIComponent(username);
-                return `<a href="${url}" target="_blank" rel="noopener" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
+                return `<a href="${url}" onclick="event.stopPropagation();" style="text-decoration:none;" class="inline-flex items-center font-bold no-underline px-1.5 py-0.5 mx-0.5 rounded-md bg-purple-100/90 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/90 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60 transition cursor-pointer tracking-tight shadow-2xs"><span class="text-purple-600 dark:text-purple-400 text-[11px] font-black mr-0.5">@</span><span>${username}</span></a>`;
             });
 
             return safe;
@@ -550,7 +550,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
 
             const cursorPos = inputEl.selectionStart || 0;
             const textBeforeCursor = this.chatInput.slice(0, cursorPos);
-            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
 
             if (match) {
                 const query = match[1] || '';
@@ -609,7 +609,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
             const textBeforeCursor = this.chatInput.slice(0, cursorPos);
             const textAfterCursor = this.chatInput.slice(cursorPos);
 
-            const match = textBeforeCursor.match(/(?:^|\s)@([a-zA-Z0-9_\-]*)$/);
+            const match = textBeforeCursor.match(/(?:^|\s)@([\p{L}\p{N}_\.\-]*)$/u);
             if (match) {
                 const atIndex = match.index + (match[0].startsWith('@') ? 0 : 1);
                 const prefix = textBeforeCursor.slice(0, atIndex);

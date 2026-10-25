@@ -1332,20 +1332,38 @@
     <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
         <!-- MOBILE TOP HEADER BAR -->
-        <div class="lg:hidden bg-white dark:bg-[#110726] text-slate-800 dark:text-slate-100 px-3.5 py-2.5 flex items-center justify-between border-b border-slate-200 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                <div class="w-8 h-8 shrink-0 drop-shadow-xs flex items-center justify-center">
-                    <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-xs font-black tracking-tight text-slate-900 dark:text-white leading-none">TBS <span class="text-purple-600 dark:text-purple-400">KLINIEK</span></span>
-                    <a href="{{ route('members.index', ['filter' => 'online']) }}" class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5 hover:underline" title="Online patiënten (klik voor online overzicht)">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 
-                        <span x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
-                    </a>
-                </div>
-            </a>
-            <div class="flex items-center gap-2">
+        <div class="lg:hidden bg-white dark:bg-[#110726] text-slate-800 dark:text-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs">
+            <div class="flex items-center gap-1.5 shrink-0 min-w-0">
+                <!-- WebApp Navigation Buttons (Back & Refresh) -->
+                <button type="button" 
+                        onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
+                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-95 border border-slate-200/60 dark:border-purple-800/40" 
+                        title="Vorige pagina (Terug)"
+                        aria-label="Terug">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button type="button" 
+                        onclick="const icon = this.querySelector('i'); if(icon) icon.classList.add('fa-spin'); window.location.reload();" 
+                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-95 border border-slate-200/60 dark:border-purple-800/40" 
+                        title="Pagina vernieuwen"
+                        aria-label="Vernieuwen">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-1.5 ml-0.5 min-w-0">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 drop-shadow-xs flex items-center justify-center">
+                        <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-xs font-black tracking-tight text-slate-900 dark:text-white leading-none truncate">TBS <span class="text-purple-600 dark:text-purple-400">KLINIEK</span></span>
+                        <a href="{{ route('members.index', ['filter' => 'online']) }}" class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5 hover:underline truncate" title="Online patiënten (klik voor online overzicht)">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span> 
+                            <span x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
+                        </a>
+                    </div>
+                </a>
+            </div>
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                 @php
                     $unreadChatCount = $character ? \App\Models\DirectMessage::where('recipient_id', $character->id)->where('is_read', false)->count() : 0;
                 @endphp
@@ -1492,8 +1510,26 @@
         <header class="hidden lg:block bg-white dark:bg-[#110726] border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-30 shadow-xs">
             <div class="w-full px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-10 h-20 flex items-center justify-between gap-2 xl:gap-4 min-w-0">
                 
-                <!-- 1. LEFT: Player Profile Summary (Avatar with ring, Name, LVL Badge, XP Bar & Handle) -->
-                <div class="flex items-center gap-3.5 shrink-0">
+                <!-- 1. LEFT: WebApp Navigation Controls & Player Profile Summary -->
+                <div class="flex items-center gap-3 shrink-0">
+                    <!-- WebApp Navigation Buttons (Back & Refresh for Standalone App) -->
+                    <div class="flex items-center gap-1 shrink-0 mr-0.5">
+                        <button type="button" 
+                                onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
+                                class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/60 dark:border-purple-800/40 active:scale-95 shadow-2xs" 
+                                title="Vorige pagina (Terug)"
+                                aria-label="Terug">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <button type="button" 
+                                onclick="const icon = this.querySelector('i'); if(icon) icon.classList.add('fa-spin'); window.location.reload();" 
+                                class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/60 dark:border-purple-800/40 active:scale-95 shadow-2xs" 
+                                title="Pagina vernieuwen"
+                                aria-label="Vernieuwen">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                    </div>
+
                     <a href="{{ route('profile.me') }}" class="relative group shrink-0" title="Bekijk mijn profiel">
                         @php
                             $headerBorder = $character->getEquippedBorderInfo();
@@ -2813,8 +2849,69 @@
             }
         })();
     </script>
-    @endif
-    @endif
+    <!-- Native Touch Pull-To-Refresh for WebApp / PWA -->
+    <div id="tbs-pull-refresh-indicator" 
+         class="fixed top-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-200 opacity-0 -translate-y-6 flex items-center gap-2 bg-slate-900/95 dark:bg-purple-950/95 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-purple-500/40">
+        <i class="fa-solid fa-rotate-right text-xs"></i>
+        <span id="tbs-pull-refresh-text">Trek omlaag om te vernieuwen</span>
+    </div>
+    <script>
+        (function() {
+            let startY = 0;
+            let currentY = 0;
+            let isPulling = false;
+            const threshold = 70;
+            const indicator = document.getElementById('tbs-pull-refresh-indicator');
+            const indicatorText = document.getElementById('tbs-pull-refresh-text');
+            const icon = indicator ? indicator.querySelector('i') : null;
 
+            window.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0 && e.touches.length === 1) {
+                    startY = e.touches[0].clientY;
+                    isPulling = true;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!isPulling || window.scrollY > 0) {
+                    isPulling = false;
+                    if (indicator) {
+                        indicator.style.opacity = '0';
+                        indicator.style.transform = 'translate(-50%, -24px)';
+                    }
+                    return;
+                }
+                currentY = e.touches[0].clientY;
+                const diff = currentY - startY;
+                if (diff > 15 && indicator) {
+                    const progress = Math.min(diff / threshold, 1);
+                    indicator.style.opacity = String(progress);
+                    indicator.style.transform = `translate(-50%, ${Math.min(diff * 0.4, 20)}px)`;
+                    if (icon) icon.style.transform = `rotate(${diff * 3}deg)`;
+                    if (diff >= threshold) {
+                        indicatorText.textContent = 'Laat los om te vernieuwen';
+                    } else {
+                        indicatorText.textContent = 'Trek omlaag om te vernieuwen';
+                    }
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!isPulling) return;
+                const diff = currentY - startY;
+                isPulling = false;
+                if (diff >= threshold && window.scrollY === 0) {
+                    if (indicatorText) indicatorText.textContent = 'Vernieuwen...';
+                    if (icon) icon.classList.add('fa-spin');
+                    setTimeout(() => window.location.reload(), 200);
+                } else if (indicator) {
+                    indicator.style.opacity = '0';
+                    indicator.style.transform = 'translate(-50%, -24px)';
+                }
+                startY = 0;
+                currentY = 0;
+            }, { passive: true });
+        })();
+    </script>
 </body>
 </html>
