@@ -15,7 +15,7 @@ class WeatherService
 
     public const DEFAULT_LON = 5.2900;
 
-    public const DEFAULT_LOCATION = 'TBS Kliniek Vught / Afdeling De Poort';
+    public const DEFAULT_LOCATION = 'Vught (TBS Kliniek)';
 
     /**
      * Get clinic weather data for default location (Vught).

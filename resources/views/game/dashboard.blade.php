@@ -647,21 +647,43 @@
                 <!-- Unlocked Live Content -->
                 <div id="widget-content-weather" x-show="isUnlocked('weather')" x-cloak @if(!$character->isWidgetUnlocked('weather')) style="display: none;" @endif>
                     <div class="p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 text-white flex items-center justify-between">
-                        <div>
-                            <div class="flex items-center gap-1.5">
+                        <div class="min-w-0 pr-3">
+                            <div class="flex items-center gap-1.5 mb-1">
                                 <span class="text-[10px] font-black uppercase tracking-wider text-amber-400">Live Weerstation</span>
                                 <template x-if="weather.is_gps">
-                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-sky-500/30 text-sky-300 border border-sky-400/30">GPS</span>
+                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-sky-500/30 text-sky-300 border border-sky-400/30">GPS Locatie</span>
+                                </template>
+                                <template x-if="!weather.is_gps">
+                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-slate-700/60 text-slate-300 border border-slate-600/40">Kliniek Vught</span>
                                 </template>
                             </div>
-                            <h4 class="text-sm font-bold text-slate-100 truncate" x-text="weather.location"></h4>
+                            <div class="flex items-center gap-1.5 text-slate-100 font-extrabold text-sm sm:text-base">
+                                <i class="fa-solid fa-location-dot text-rose-400 shrink-0 text-xs"></i>
+                                <span class="text-slate-400 font-medium text-xs">Plaats:</span>
+                                <span class="font-black text-white truncate text-sm sm:text-base tracking-tight" x-text="weather.location || 'Vught (TBS Kliniek)'"></span>
+                            </div>
                         </div>
-                        <div class="text-2xl text-amber-400">
+                        <div class="text-2xl sm:text-3xl text-amber-400 shrink-0">
                             <i class="fa-solid" :class="weather.icon"></i>
                         </div>
                     </div>
 
                     <div class="p-4 sm:p-5 space-y-4">
+                        <!-- Prominente Plaatsbadge in de widget -->
+                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/80 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2 truncate pr-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+                                <span class="text-slate-500 dark:text-slate-400 font-bold text-[11px]">Weerlocatie:</span>
+                                <span class="font-black text-slate-900 dark:text-white truncate text-xs" x-text="weather.location || 'Vught (TBS Kliniek)'"></span>
+                            </div>
+                            <button type="button" 
+                                    @click="showCityModal = true"
+                                    class="text-[10px] font-black text-sky-600 dark:text-sky-400 hover:underline shrink-0 cursor-pointer flex items-center gap-1">
+                                <i class="fa-solid fa-pen text-[9px]"></i>
+                                <span>Plaats Wijzigen</span>
+                            </button>
+                        </div>
+
                         <div class="flex items-center justify-between">
                             <div>
                                 <span class="text-3xl font-black text-slate-900 dark:text-white leading-none font-mono" x-text="weather.temp + '°C'"></span>
@@ -719,7 +741,7 @@
                                 <span class="hidden sm:inline text-[11px]">Woonplaats</span>
                             </button>
 
-                            <template x-if="weather.is_gps || weather.location !== 'TBS Kliniek Vught / Afdeling De Poort'">
+                            <template x-if="weather.is_gps || (weather.location && !weather.location.includes('Vught'))">
                                 <button type="button" 
                                         @click="resetToVught()" 
                                         class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white text-xs transition cursor-pointer"
