@@ -2849,6 +2849,9 @@
             }
         })();
     </script>
+    @endif
+    @endif
+
     <!-- Native Touch Pull-To-Refresh for WebApp / PWA -->
     <div id="tbs-pull-refresh-indicator" 
          class="fixed top-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-200 opacity-0 -translate-y-6 flex items-center gap-2 bg-slate-900/95 dark:bg-purple-950/95 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-purple-500/40">
