@@ -5,54 +5,60 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- Top Facility Hero Banner -->
-    <div class="rounded-2xl shadow-xs p-5 sm:p-7 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
+    <!-- Top Subterranean Workshop Hero -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-7 shadow-xs relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -left-10 -top-10 w-48 h-48 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
             <div class="flex items-start gap-4">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-100 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-xs">
+                <div class="w-13 h-13 sm:w-15 sm:h-15 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-md shadow-purple-600/20">
                     <i class="fa-solid fa-industry"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-2 mb-1 flex-wrap">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
-                            Smokkelnetwerk
+                    <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                            <i class="fa-solid fa-flask-vial mr-1"></i> Ondergronds Smokkelnetwerk
                         </span>
-                        <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
-                            +5% Rank XP Per Deal
+                        <span class="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-trend-up text-[9px]"></i> +5% Rank XP Per Deal
+                        </span>
+                        <span class="text-[10px] font-extrabold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800">
+                            Direct Wit Bankgeld
                         </span>
                     </div>
                     <h1 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                        Zwarte Markt & Productiekelder
+                        Productiekelder & Zwarte Markt
                     </h1>
-                    <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5 max-w-xl leading-relaxed">
-                        Rol peuken van gesmokkelde shag, ritsel zware ritalin strips en smokkel mini-smartphones binnen. Verkoop je voorraad direct aan hongerige patiënten voor contant geld en respect!
+                    <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
+                        Draai sigaretten van gesmokkelde shag, ritsel zware ritalin strips en smokkel mini-smartphones binnen. Verkoop je voorraad direct aan patiënten en bewakers voor contant geld en respect!
                     </p>
                 </div>
             </div>
 
-            <!-- Vitals Pills -->
+            <!-- Header Vitals Matrix -->
             <div class="grid grid-cols-2 sm:grid-cols-4 md:flex items-center gap-2 shrink-0">
-                <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/70 rounded-xl px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-400 block">Energie</span>
-                    <span class="text-xs sm:text-sm font-black text-emerald-800 dark:text-emerald-300 font-mono">
-                        {{ $character->energy }}<span class="text-[10px] text-emerald-500 font-semibold">/{{ $character->max_energy }}</span>
+                <div class="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">Energie</span>
+                    <span class="text-xs sm:text-sm font-black text-emerald-900 dark:text-emerald-300 font-mono">
+                        {{ $character->energy }}<span class="text-[10px] text-emerald-600/80 font-semibold">/{{ $character->max_energy }}</span>
                     </span>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-xl px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">Contant</span>
-                    <span class="text-xs sm:text-sm font-black text-amber-800 dark:text-amber-300 font-mono">
+                <div class="bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Contant</span>
+                    <span class="text-xs sm:text-sm font-black text-amber-900 dark:text-amber-300 font-mono">
                         €{{ $character->cash >= 1000000 ? number_format($character->cash / 1000000, 1) . 'M' : number_format($character->cash, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/70 rounded-xl px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-400 block">Respect</span>
-                    <span class="text-xs sm:text-sm font-black text-purple-800 dark:text-purple-300 font-mono">
+                <div class="bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200/90 dark:border-purple-800/70 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400 block">Respect</span>
+                    <span class="text-xs sm:text-sm font-black text-purple-900 dark:text-purple-300 font-mono">
                         {{ number_format($character->respect, 0, ',', '.') }}
                     </span>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-xl px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">Sterren</span>
-                    <span class="text-xs sm:text-sm font-black text-amber-800 dark:text-amber-300 font-mono flex items-center justify-center gap-1">
+                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-center shadow-xs">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Sterren</span>
+                    <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono flex items-center justify-center gap-1">
                         <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> {{ $character->stars ?? 0 }}
                     </span>
                 </div>
@@ -60,56 +66,56 @@
         </div>
     </div>
 
-    <!-- Live Inventory Stock Bar -->
+    <!-- Live Warehouse Inventory Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <!-- Sigaretten Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-amber-300 dark:hover:border-amber-700/60 transition group">
             <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-200/80 dark:border-amber-800/60 shrink-0">
+                <span class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl border border-amber-200/80 dark:border-amber-800/60 shrink-0 group-hover:scale-105 transition-transform">
                     <i class="fa-solid fa-smoking"></i>
                 </span>
                 <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Voorraad Sigaretten</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Gedraaide Shag</span>
                     <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($cigarettes, 0, ',', '.') }}</span>
-                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">stuks gereed</span>
+                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">stuks op voorraad</span>
                 </div>
             </div>
-            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                Lokaal Gerold
+            <span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/60 text-amber-700 dark:text-amber-300">
+                {{ $cigarettes > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
             </span>
         </div>
 
         <!-- Ritalin Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-purple-300 dark:hover:border-purple-700/60 transition group">
             <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl border border-purple-200/80 dark:border-purple-800/60 shrink-0">
+                <span class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl border border-purple-200/80 dark:border-purple-800/60 shrink-0 group-hover:scale-105 transition-transform">
                     <i class="fa-solid fa-pills"></i>
                 </span>
                 <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Voorraad Medicatie</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Medicatie Buit</span>
                     <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($ritalin, 0, ',', '.') }}</span>
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">strips Ritalin</span>
                 </div>
             </div>
-            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
-                Apotheek Buit
+            <span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-purple-700 dark:text-purple-300">
+                {{ $ritalin > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
             </span>
         </div>
 
         <!-- Telefoons Stock -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 flex items-center justify-between shadow-xs hover:border-indigo-300 dark:hover:border-indigo-700/60 transition group">
             <div class="flex items-center gap-3.5">
-                <span class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl border border-indigo-200/80 dark:border-indigo-800/60 shrink-0">
+                <span class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl border border-indigo-200/80 dark:border-indigo-800/60 shrink-0 group-hover:scale-105 transition-transform">
                     <i class="fa-solid fa-mobile-screen"></i>
                 </span>
                 <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Voorraad Telefoons</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">Smokkel Hardware</span>
                     <span class="text-xl font-black text-slate-900 dark:text-white font-mono">{{ number_format($phones, 0, ',', '.') }}</span>
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 block">mini toestellen</span>
                 </div>
             </div>
-            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
-                Binnengesmokkeld
+            <span class="text-[10px] font-black px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300">
+                {{ $phones > 0 ? 'Verkoopklaar' : 'Opgebruikt' }}
             </span>
         </div>
     </div>
@@ -135,7 +141,7 @@
                         </div>
                     </div>
                     <span class="text-xs font-black text-emerald-700 dark:text-emerald-400 font-mono">
-                        {{ $character->energy }}⚡ Energie
+                        {{ $character->energy }}⚡ Beschikbaar
                     </span>
                 </div>
                 
@@ -144,15 +150,15 @@
                     @php
                         $sigCooldown = $character->cooldownRemaining('produce_sigaretten');
                     @endphp
-                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition">
                         <div class="flex items-center gap-3">
-                            <span class="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-sm shrink-0 font-bold">
+                            <span class="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 flex items-center justify-center text-base shrink-0 font-bold">
                                 <i class="fa-solid fa-smoking"></i>
                             </span>
                             <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs">10x Peuken Rollen</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap">
-                                    <span>5⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+25 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 5 min</span>
+                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">10x Peuken Rollen</h4>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
+                                    <span class="text-emerald-700 dark:text-emerald-400">5⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+25 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 5 min</span>
                                 </span>
                             </div>
                         </div>
@@ -175,7 +181,7 @@
                             }
                         }">
                             <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $sigCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
+                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $sigCooldown) }}</span>
                                 </span>
                                 <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_sigaretten')" title="Kijk Ad (Reset Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
@@ -189,8 +195,8 @@
                                     <input type="hidden" name="type" value="sigaretten">
                                     <button type="submit" 
                                             @if($character->energy < 5) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2 rounded-lg transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-industry text-[11px]"></i>
+                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
                                     </button>
                                 </form>
@@ -202,15 +208,15 @@
                     @php
                         $ritCooldown = $character->cooldownRemaining('produce_ritalin');
                     @endphp
-                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition">
                         <div class="flex items-center gap-3">
-                            <span class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-sm shrink-0 font-bold">
+                            <span class="w-11 h-11 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base shrink-0 font-bold">
                                 <i class="fa-solid fa-pills"></i>
                             </span>
                             <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs">3x Ritalin Strips Onderscheppen</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap">
-                                    <span>10⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+50 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 10 min</span>
+                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">3x Ritalin Strips Onderscheppen</h4>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
+                                    <span class="text-emerald-700 dark:text-emerald-400">10⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+50 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 10 min</span>
                                 </span>
                             </div>
                         </div>
@@ -233,7 +239,7 @@
                             }
                         }">
                             <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $ritCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
+                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $ritCooldown) }}</span>
                                 </span>
                                 <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_ritalin')" title="Kijk Ad (Reset Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
@@ -247,8 +253,8 @@
                                     <input type="hidden" name="type" value="ritalin">
                                     <button type="submit" 
                                             @if($character->energy < 10) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2 rounded-lg transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-industry text-[11px]"></i>
+                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
                                     </button>
                                 </form>
@@ -260,15 +266,15 @@
                     @php
                         $phoneCooldown = max($character->cooldownRemaining('produce_telefoon'), $character->cooldownRemaining('produce_phone'));
                     @endphp
-                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-4 border border-slate-200/90 dark:border-slate-800 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition">
                         <div class="flex items-center gap-3">
-                            <span class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-sm shrink-0 font-bold">
+                            <span class="w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center text-base shrink-0 font-bold">
                                 <i class="fa-solid fa-mobile-screen"></i>
                             </span>
                             <div>
-                                <h4 class="font-black text-slate-900 dark:text-white text-xs">1x Mini Telefoon Binnensmokkelen</h4>
-                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap">
-                                    <span>20⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+120 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 20 min</span>
+                                <h4 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">1x Mini Telefoon Smokkelen</h4>
+                                <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1.5 flex-wrap mt-0.5">
+                                    <span class="text-emerald-700 dark:text-emerald-400">20⚡ Energie</span> &bull; <span class="text-purple-600 dark:text-purple-400">+120 XP</span> &bull; <span><i class="fa-solid fa-clock text-amber-500"></i> 20 min</span>
                                 </span>
                             </div>
                         </div>
@@ -291,7 +297,7 @@
                             }
                         }">
                             <div x-show="cd > 0" class="flex items-center gap-1.5" style="{{ $phoneCooldown > 0 ? '' : 'display: none;' }}">
-                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2 py-1 rounded-lg">
+                                <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $phoneCooldown) }}</span>
                                 </span>
                                 <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_telefoon')" title="Kijk Ad (Reset Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
@@ -305,8 +311,8 @@
                                     <input type="hidden" name="type" value="telefoon">
                                     <button type="submit" 
                                             @if($character->energy < 20) disabled @endif
-                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2 rounded-lg transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-industry text-[11px]"></i>
+                                            class="bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
                                     </button>
                                 </form>
@@ -318,7 +324,7 @@
 
             <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center justify-between">
                 <span>Bekijk een korte sponsor video om cooldowns direct te ontgrendelen!</span>
-                <span class="font-mono text-amber-500 font-bold">⚡ Snelle Doorloop</span>
+                <span class="font-mono text-amber-600 dark:text-amber-400 font-bold">⚡ Snelle Doorloop</span>
             </div>
         </div>
 
@@ -351,12 +357,12 @@
                 <!-- Deals List -->
                 <div class="mt-4 space-y-3">
                     @foreach($orders as $order)
-                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition hover:border-purple-300 dark:hover:border-purple-600">
+                    <div class="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/90 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition hover:border-purple-300 dark:hover:border-purple-600">
                         <!-- Buyer info -->
                         <div class="flex items-center gap-3.5 min-w-0">
                             <img src="{{ $order['avatar'] }}" alt="{{ $order['buyer'] }}" 
                                  onerror="this.onerror=null; this.src='{{ asset('assets/characters/henkie.jpg') }}';"
-                                 class="w-11 h-11 rounded-full object-cover border-2 border-purple-200 dark:border-purple-800 shrink-0 shadow-2xs ring-2 ring-purple-50 dark:ring-purple-950">
+                                 class="w-12 h-12 rounded-2xl object-cover border-2 border-purple-200 dark:border-purple-800 shrink-0 shadow-xs ring-2 ring-purple-50 dark:ring-purple-950">
                             <div class="min-w-0">
                                 <div class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
                                     {{ $order['amount'] }}x {{ strtolower($order['item_name']) }} voor <span class="text-emerald-700 dark:text-emerald-400 font-mono font-black">€{{ number_format($order['reward_cash'], 0, ',', '.') }}</span>
@@ -364,21 +370,21 @@
                                 <div class="text-[11px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-2 mt-0.5">
                                     <span>Koper: <strong class="text-slate-700 dark:text-slate-200">{{ $order['buyer'] }}</strong></span>
                                     <span>&bull;</span>
-                                    <span class="text-purple-700 dark:text-purple-400 font-black">+{{ $order['reward_respect'] }} Respect</span>
+                                    <span class="text-purple-700 dark:text-purple-400 font-black">+{{ $order['reward_respect'] }} Resp</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Action buttons -->
-                        <div class="flex items-center sm:flex-col gap-2 shrink-0 sm:w-28">
+                        <div class="flex items-center sm:flex-col gap-2 shrink-0 sm:w-32">
                             <!-- Verkopen -->
                             <form action="{{ route('smuggle.sell') }}" method="POST" class="flex-1 sm:w-full">
                                 @csrf
                                 <input type="hidden" name="order_id" value="{{ $order['id'] }}">
                                 <button type="submit" 
                                         @if(!$order['can_fulfill']) disabled @endif
-                                        class="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-check text-[10px]"></i>
+                                        class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-check text-[11px]"></i>
                                     <span>Verkopen</span>
                                 </button>
                             </form>
