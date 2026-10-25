@@ -2205,24 +2205,24 @@
     style="display: none;"
     class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         
-        <!-- Backdrop with Blur -->
-        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs transition-opacity" 
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-slate-950/80 transition-opacity" 
              x-show="isOpen"
-             x-transition:enter="ease-out duration-200"
+             x-transition:enter="ease-out duration-150"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
-             x-transition:leave="ease-in duration-150"
+             x-transition:leave="ease-in duration-100"
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              @click="cancel()"></div>
 
         <!-- Modal Dialog (Clean Light/Dark TBS Kliniek Styling) -->
-        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transform transition-all z-10"
+        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transform-gpu will-change-transform transition-all z-10"
              x-show="isOpen"
-             x-transition:enter="ease-out duration-200"
+             x-transition:enter="ease-out duration-150"
              x-transition:enter-start="opacity-0 scale-95 translate-y-2"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-             x-transition:leave="ease-in duration-150"
+             x-transition:leave="ease-in duration-100"
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
              x-transition:leave-end="opacity-0 scale-95 translate-y-2">
             

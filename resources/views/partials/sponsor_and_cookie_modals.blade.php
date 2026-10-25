@@ -253,11 +253,11 @@
 <div x-data="tbsSponsorAdModal()"
      x-show="isOpen"
      x-cloak
-     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs select-none">
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none">
         
         <div @click.away="if(status !== 'watching_interstitial' && status !== 'watching_inscreen') closeModal()"
              :class="(popupUrl && (status === 'watching_inscreen' || status === 'ready_to_claim')) ? 'max-w-xl' : 'max-w-md'"
-             class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 w-full shadow-2xl relative overflow-hidden text-center space-y-5 transition-all">
+             class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 w-full shadow-2xl relative overflow-hidden text-center space-y-5 transition-all transform-gpu will-change-transform">
             
             <!-- Top Badges -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -502,10 +502,10 @@
 
         <!-- COOKIE PREFERENCES MODAL (AVG Conform) -->
         <div x-show="showModal" x-cloak
-             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs select-none">
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none">
             
             <div @click.away="showModal = false"
-                 class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-slate-800">
+                 class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl space-y-5 text-slate-800 transform-gpu will-change-transform">
                 
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2.5">

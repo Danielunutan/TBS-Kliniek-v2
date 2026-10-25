@@ -7,26 +7,26 @@
 
     <!-- Backdrop & Modal Overlay -->
     <div x-show="isOpen"
-         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter="transition ease-out duration-150"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-12 overflow-y-auto bg-slate-950/70 backdrop-blur-md"
+         class="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-12 overflow-y-auto bg-slate-950/80"
          role="dialog"
          aria-modal="true"
          @click.self="closeModal()">
 
         <!-- Spotlight Dialog Card -->
         <div x-show="isOpen"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 scale-95 -translate-y-4"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave="transition ease-in duration-100"
              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-             x-transition:leave-end="opacity-0 scale-95 -translate-y-4"
-             class="w-full max-w-2xl bg-white dark:bg-[#110726] rounded-2xl shadow-2xl border border-slate-200 dark:border-purple-800/60 overflow-hidden text-slate-800 dark:text-slate-100 my-auto">
+             x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+             class="w-full max-w-2xl bg-white dark:bg-[#110726] rounded-2xl shadow-2xl border border-slate-200 dark:border-purple-800/60 overflow-hidden text-slate-800 dark:text-slate-100 my-auto transform-gpu will-change-transform">
 
             <!-- Search Header Bar -->
             <div class="relative flex items-center px-4 py-3.5 border-b border-slate-100 dark:border-purple-900/40 bg-slate-50/50 dark:bg-slate-900/40">

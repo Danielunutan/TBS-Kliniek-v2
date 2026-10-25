@@ -464,3 +464,39 @@ html.dark .news-content hr {
 html.dark .news-content li {
     color: #cbd5e1;
 }
+
+/* ======================================================== */
+/* HARDWARE ACCELERATION & ULTRA-FAST MODALS & POPUPS       */
+/* Fixes Microsoft Edge & Chromium full-screen blur lag     */
+/* ======================================================== */
+.fixed.inset-0[class*="backdrop-blur"],
+.fixed.inset-0 .backdrop-blur-xs,
+.fixed.inset-0 .backdrop-blur-sm,
+.fixed.inset-0 .backdrop-blur-md,
+.fixed.inset-0 .backdrop-blur-lg,
+.fixed.inset-0 .backdrop-blur-xl,
+[role="dialog"] [class*="backdrop-blur"],
+[role="dialog"].fixed.inset-0 {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Force hardware accelerated layer promotion on modal cards */
+.fixed.inset-0 > [class*="bg-white"],
+.fixed.inset-0 > [class*="dark:bg-"],
+[role="dialog"] > div,
+.modal-accelerated {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Snappy transitions */
+.will-change-transform {
+    will-change: transform;
+}
+
+.will-change-opacity {
+    will-change: opacity;
+}

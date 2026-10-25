@@ -1354,17 +1354,17 @@
 
     <!-- DASHBOARD CUSTOMIZER MODAL / DRAWER -->
     <div x-show="showCustomizer" 
-         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter="transition ease-out duration-150"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm select-none"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none"
          style="display: none;">
         
         <div @click.outside="showCustomizer = false"
-             class="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh]">
+             class="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] transform-gpu will-change-transform">
             
             <!-- Modal Header -->
             <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
@@ -1607,9 +1607,9 @@
     <!-- Woonplaats Kiezer Modal (Echt opslaan!) -->
     <div x-show="showCityModal" 
          x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80"
          @keydown.escape.window="showCityModal = false">
-        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4" @click.outside="showCityModal = false">
+        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 transform-gpu will-change-transform" @click.outside="showCityModal = false">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm">

@@ -6,10 +6,10 @@
      class="fixed inset-0 z-[99999] overflow-y-auto"
      aria-labelledby="modal-title" role="dialog" aria-modal="true">
     
-    <div class="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity" @click="close()"></div>
+    <div class="fixed inset-0 bg-black/80 transition-opacity" @click="close()"></div>
 
     <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div class="relative transform overflow-hidden rounded-2xl bg-white dark:bg-[#12072b] border border-slate-200 dark:border-purple-800/60 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
+        <div class="relative transform-gpu will-change-transform overflow-hidden rounded-2xl bg-white dark:bg-[#12072b] border border-slate-200 dark:border-purple-800/60 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md p-6">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-purple-900/40">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-base">
