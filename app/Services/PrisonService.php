@@ -66,14 +66,14 @@ class PrisonService
      */
     public function attemptEscape(Character $character, EnergyService $energyService): array
     {
-        if (! $character->is_in_prison) {
+        if (! $character->isImprisoned()) {
             return [
                 'success' => false,
-                'message' => 'Je zit helemaal niet in de gevangenis!',
+                'message' => 'Je zit momenteel niet in de isoleercel!',
             ];
         }
 
-        $escapeCost = 25;
+        $escapeCost = 20;
         if (! $energyService->consume($character, $escapeCost)) {
             return [
                 'success' => false,
@@ -97,10 +97,12 @@ class PrisonService
                 'is_in_prison' => false,
                 'prison_until' => null,
                 'prison_reason' => null,
+                'ad_prison_progress' => 0,
                 'prison_escapes' => $character->prison_escapes + 1,
                 'stamina' => $newStamina,
                 'respect' => $character->respect + 15,
             ]);
+            $character->refresh();
 
             GameNotification::create([
                 'character_id' => $character->id,
@@ -116,18 +118,22 @@ class PrisonService
             ];
         }
 
-        // Failed escape -> adds 5 extra minutes of sentence!
-        $currentUntil = $character->prison_until ?? now();
-        $newUntil = $currentUntil->copy()->addMinutes(5);
+        // Failed escape -> adds 90 extra seconds of sentence
+        $currentUntil = ($character->prison_until && now()->lt($character->prison_until))
+            ? $character->prison_until
+            : now();
+        $newUntil = $currentUntil->copy()->addSeconds(90);
 
         $character->update([
+            'is_in_prison' => true,
             'prison_until' => $newUntil,
-            'respect' => max(0, $character->respect - 3),
+            'respect' => max(0, $character->respect - 1),
         ]);
+        $character->refresh();
 
         return [
             'success' => false,
-            'message' => 'Mislukt! Bewaker Barry greep je bij je lurven. Je straftijd is met 5 minuten verlengd en je verliest 3 respect!',
+            'message' => 'Mislukt! Bewaker Barry greep je bij je lurven bij het luchtrooster. Je straftijd is met 90 seconden verlengd en je verliest 1 respect!',
         ];
     }
 }

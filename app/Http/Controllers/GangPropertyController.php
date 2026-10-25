@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class GangPropertyController extends Controller
@@ -302,7 +303,7 @@ class GangPropertyController extends Controller
         $property->update([
             'production_status' => 'producing',
             'production_started_at' => now(),
-            'production_completes_at' => $completesAt,
+            'production_ends_at' => $completesAt,
         ]);
 
         return back()->with('success', "🏭 Productie gestart in '{$property->name}'! Over {$durationMinutes} minuten kan de opbrengst worden geclaimd.");
@@ -332,13 +333,15 @@ class GangPropertyController extends Controller
         DB::transaction(function () use ($gang, $property, $cash, $respect): void {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             $lockedGang->treasury += $cash;
-            $lockedGang->respect += $respect;
+            if (Schema::hasColumn('gangs', 'respect')) {
+                $lockedGang->respect = ($lockedGang->respect ?? 0) + $respect;
+            }
             $lockedGang->save();
 
             $property->update([
                 'production_status' => 'idle',
                 'production_started_at' => null,
-                'production_completes_at' => null,
+                'production_ends_at' => null,
             ]);
         });
 

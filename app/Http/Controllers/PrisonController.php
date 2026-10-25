@@ -121,7 +121,7 @@ class PrisonController extends Controller
     }
 
     /**
-     * Attempt prison break for self.
+     * Attempt to escape from the isolation cell (isoleercel).
      */
     public function escape(Request $request): RedirectResponse
     {
@@ -129,19 +129,25 @@ class PrisonController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if (! $character->isImprisoned()) {
+            return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
+        }
+
         $result = $this->prisonService->attemptEscape($character, $this->energyService);
 
         if ($result['success']) {
-            $character->prison_escapes++;
+            $character->refresh();
             $character->breakout_slay = ($character->breakout_slay ?? 0) + 0.1;
             $character->save();
+
+            $this->levelService->addXp($character, 35);
 
             app(DailyBattleService::class)->record($character, 'breakouts', 1);
 
             return redirect()->route('dashboard')->with('success', $result['message']);
         }
 
-        return back()->with('error', $result['message']);
+        return redirect()->route('prison')->with('error', $result['message']);
     }
 
     /**
