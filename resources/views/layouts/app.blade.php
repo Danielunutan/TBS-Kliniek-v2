@@ -682,7 +682,68 @@
         </div>
 
         <!-- Navigation Sections with Collapsible Categories -->
-        <nav class="flex-1 px-3 py-4 space-y-2 text-xs font-semibold">
+        <nav class="flex-1 px-3 py-3 space-y-2 text-xs font-semibold">
+
+            <!-- 🔍 COMMAND PALETTE & DIRECT SEARCH (CTRL + K) -->
+            <div class="mb-2.5">
+                <button type="button" 
+                        onclick="if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
+                        class="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 hover:bg-purple-50/60 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 text-slate-500 hover:text-purple-700 dark:text-purple-300 dark:hover:text-white border border-slate-200/80 dark:border-purple-900/40 transition shadow-2xs group cursor-pointer text-left">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-magnifying-glass text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform text-xs"></i>
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-300">Zoek functie...</span>
+                    </span>
+                    <kbd class="text-[9px] font-black uppercase text-slate-400 dark:text-purple-400/80 bg-white dark:bg-purple-900/60 px-1.5 py-0.5 rounded border border-slate-200 dark:border-purple-800 shadow-2xs">Ctrl+K</kbd>
+                </button>
+            </div>
+
+            <!-- ⭐ SNELLE TOEGANG (Favorieten 6-Grid) -->
+            <div class="mb-2.5 p-2 rounded-xl bg-slate-50/80 dark:bg-purple-950/30 border border-slate-200/70 dark:border-purple-900/40">
+                <div class="flex items-center justify-between px-1 mb-1.5 text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-purple-400/80">
+                    <span class="flex items-center gap-1">
+                        <i class="fa-solid fa-star text-amber-400 text-[8px]"></i> Snelle Toegang
+                    </span>
+                    <span class="text-[8px] opacity-70">Favorieten</span>
+                </div>
+                <div class="grid grid-cols-3 gap-1">
+                    <a href="{{ route('hustle.index') }}" 
+                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-emerald-300 transition text-center group"
+                       title="Hosselen">
+                        <i class="fa-solid fa-hand-holding-dollar text-emerald-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
+                        <span class="text-[9px] font-bold truncate w-full">Hosselen</span>
+                    </a>
+                    <a href="{{ route('theft.index') }}" 
+                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-blue-300 transition text-center group"
+                       title="Diefstal">
+                        <i class="fa-solid fa-briefcase text-blue-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
+                        <span class="text-[9px] font-bold truncate w-full">Diefstal</span>
+                    </a>
+                    <a href="{{ route('bank.index') }}" 
+                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-emerald-300 transition text-center group"
+                       title="De Bank">
+                        <i class="fa-solid fa-building-columns text-emerald-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
+                        <span class="text-[9px] font-bold truncate w-full">Bank</span>
+                    </a>
+                    <a href="{{ route('gangs.index') }}" 
+                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-purple-300 transition text-center group"
+                       title="Mijn Bende">
+                        <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
+                        <span class="text-[9px] font-bold truncate w-full">Bende</span>
+                    </a>
+                    <a href="{{ route('daycare.index') }}" 
+                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-amber-300 transition text-center group"
+                       title="Dagbesteding">
+                        <i class="fa-solid fa-person-digging text-amber-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
+                        <span class="text-[9px] font-bold truncate w-full">Werken</span>
+                    </a>
+                    <a href="{{ route('infirmary.index') }}" 
+                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-teal-300 transition text-center group"
+                       title="Ziekenboeg">
+                        <i class="fa-solid fa-hospital-user text-teal-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
+                        <span class="text-[9px] font-bold truncate w-full">Kliniek</span>
+                    </a>
+                </div>
+            </div>
 
             <!-- Vaste Hoofdnavigatie Boven Dropdowns (Dashboard & Berichten & Post) -->
             <div class="space-y-1 pb-2 mb-1 border-b border-slate-100 dark:border-slate-800/60">
@@ -713,13 +774,14 @@
                 </a>
             </div>
 
-            <!-- 1. ALGEMEEN (Dropdown / Accordion) -->
+            <!-- 1. ALGEMEEN & INFO -->
             <div class="space-y-1">
                 <button @click="toggleCategory('algemeen')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-sky-50/50 dark:hover:bg-sky-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-shield-halved text-slate-400"></i> Algemeen
+                        <span class="w-5 h-5 rounded-md bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-shield-halved"></i></span>
+                        <span>Algemeen & Info</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
                 </button>
@@ -784,13 +846,14 @@
                 </div>
             </div>
 
-            <!-- 2. BENDE & GANGS (Eigen Apart Kopje met Dropdown Items) -->
+            <!-- 2. BENDE & GANGS -->
             <div class="space-y-1">
                 <button @click="toggleCategory('bende')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i> Bende & Gangs
+                        <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-users"></i></span>
+                        <span>Bende & Gangs</span>
                     </span>
                     <div class="flex items-center gap-1.5">
                         @if($character->gang)
@@ -863,13 +926,13 @@
                 </div>
             </div>
 
-            <!-- 🎃 EVENT: HALLOWEEN 2026 (Tot 5 November) -->
+            <!-- 🎃 EVENT: HALLOWEEN 2026 -->
             <div class="space-y-1">
                 <button @click="toggleCategory('event')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-orange-500 hover:text-orange-400 dark:hover:text-orange-300 transition group">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-orange-600 dark:text-orange-400 hover:text-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <span class="text-xs">🎃</span>
+                        <span class="w-5 h-5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-ghost"></i></span>
                         <span class="font-black">Event</span>
                     </span>
                     <div class="flex items-center gap-1.5">
@@ -899,13 +962,14 @@
                 </div>
             </div>
 
-            <!-- 3. VOORTGANG (Apart Kopje) -->
+            <!-- 3. VOORTGANG & GEZONDHEID -->
             <div class="space-y-1">
                 <button @click="toggleCategory('voortgang')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-indigo-500"></i> Voortgang
+                        <span class="w-5 h-5 rounded-md bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-chart-line"></i></span>
+                        <span>Voortgang & Gezondheid</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
                 </button>
@@ -948,13 +1012,14 @@
                 </div>
             </div>
 
-            <!-- 3. ILLEGALE ACTIES -->
+            <!-- 4. ILLEGALE ACTIES & MISDAAD -->
             <div class="space-y-1">
                 <button @click="toggleCategory('misdaad')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-handcuffs text-slate-400"></i> Illegale Acties
+                        <span class="w-5 h-5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-handcuffs"></i></span>
+                        <span>Illegale Acties</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'misdaad' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
                 </button>
@@ -995,13 +1060,14 @@
                 </div>
             </div>
 
-            <!-- 3. BONUS & KLUIZEN (Apart Onderdeel) -->
+            <!-- 5. BONUS & KLUIZEN -->
             <div class="space-y-1">
                 <button @click="toggleCategory('bonus')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-gift text-purple-500"></i> Bonus & Kluizen
+                        <span class="w-5 h-5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-gift"></i></span>
+                        <span>Bonus & Kluizen</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
                 </button>
@@ -1043,13 +1109,14 @@
                 </div>
             </div>
 
-            <!-- 4. MINIGAMES (OOHPA Arjan & Caroline) -->
+            <!-- 6. MINIGAMES & SPECIALS -->
             <div class="space-y-1">
                 <button @click="toggleCategory('specials')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition group">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-fuchsia-600 dark:hover:text-fuchsia-300 hover:bg-fuchsia-50/50 dark:hover:bg-fuchsia-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-gamepad text-purple-500"></i> Minigames
+                        <span class="w-5 h-5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-gamepad"></i></span>
+                        <span>Minigames & Specials</span>
                     </span>
                     <div class="flex items-center gap-1.5">
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'specials' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'specials') style="transform: rotate(180deg);" @endif></i>
@@ -1077,13 +1144,14 @@
                 </div>
             </div>
 
-            <!-- 4. GEWELD & STRIJD -->
+            <!-- 7. GEWELD & STRIJD -->
             <div class="space-y-1">
                 <button @click="toggleCategory('geweld')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50/50 dark:hover:bg-red-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-fire text-slate-400"></i> Geweld & Strijd
+                        <span class="w-5 h-5 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-fire"></i></span>
+                        <span>Geweld & Strijd</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'geweld' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
                 </button>
@@ -1123,13 +1191,14 @@
                 </div>
             </div>
 
-            <!-- 5. ECONOMIE & GOKKEN -->
+            <!-- 8. ECONOMIE & GOKKEN -->
             <div class="space-y-1">
                 <button @click="toggleCategory('economie')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                        class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-coins text-slate-400"></i> Economie & Gokken
+                        <span class="w-5 h-5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-coins"></i></span>
+                        <span>Economie & Gokken</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'economie' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
                 </button>
@@ -1583,8 +1652,18 @@
                 <!-- VERTICAL DIVIDER -->
                 <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
 
-                <!-- 5. FAR RIGHT: Radio, Theme Switch & Profile Icon -->
+                <!-- 5. FAR RIGHT: Search, Radio, Theme Switch & Profile Icon -->
                 <div class="flex items-center gap-2 xl:gap-2.5 shrink-0">
+                    <!-- Quick Spotlight Search Button -->
+                    <button type="button" 
+                            onclick="if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
+                            class="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-50/70 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-500 hover:text-purple-700 dark:text-purple-300 dark:hover:text-white border border-slate-200/70 dark:border-purple-900/40 text-xs font-semibold transition cursor-pointer shadow-2xs group"
+                            title="Zoek functie of pagina (Ctrl+K)">
+                        <i class="fa-solid fa-magnifying-glass text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform"></i>
+                        <span class="hidden xl:inline text-[11px] text-slate-600 dark:text-slate-300">Zoeken...</span>
+                        <kbd class="hidden xl:inline-flex items-center px-1.5 py-0.5 text-[9px] font-black uppercase text-slate-400 dark:text-purple-400/80 bg-white dark:bg-purple-900/50 rounded border border-slate-200 dark:border-purple-800 shadow-2xs">Ctrl+K</kbd>
+                    </button>
+
                     <!-- TBS RADIO TOPBAR WIDGET -->
                     @include('partials.radio_player', ['isMobile' => false])
 
@@ -2050,10 +2129,15 @@
                 <i class="fa-solid fa-hand-holding-dollar text-base"></i>
                 <span>Hosselen</span>
             </a>
-            <a href="{{ route('fight.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('fight.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-hand-fist text-base"></i>
-                <span>Luchtplaats</span>
-            </a>
+            <!-- Central Spotlight Search Button (Quick Open) -->
+            <button type="button" 
+                    onclick="if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
+                    class="relative -top-3 flex flex-col items-center justify-center cursor-pointer group">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-purple-600/30 group-active:scale-95 transition-transform border-2 border-white dark:border-[#110726]">
+                    <i class="fa-solid fa-magnifying-glass text-lg group-hover:scale-110 transition-transform"></i>
+                </div>
+                <span class="text-[10px] font-black text-purple-600 dark:text-purple-400 mt-0.5">Zoeken</span>
+            </button>
             <a href="{{ route('gangs.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
                 <i class="fa-solid fa-users text-base"></i>
                 <span>Bendes</span>
@@ -2410,6 +2494,8 @@
     <!-- FLOATING MINI LIVE CHAT & UNIVERSAL REPORT MODAL -->
     @auth
         @include('partials.mini_chat_and_report_modal')
+        <!-- GLOBAL SPOTLIGHT COMMAND PALETTE & FAST SEARCH (CTRL + K) -->
+        @include('partials.spotlight_modal')
     @endauth
 
     <!-- GLOBAL REWARDED SPONSOR AD WATCH MODAL & COOKIE CONSENT -->
