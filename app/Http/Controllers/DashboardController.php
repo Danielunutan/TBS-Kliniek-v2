@@ -14,7 +14,9 @@ use App\Models\User;
 use App\Services\AllowanceService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
+use App\Services\NuNlNewsService;
 use App\Services\ReferralService;
+use App\Services\WeatherService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +31,8 @@ class DashboardController extends Controller
         protected LevelService $levelService,
         protected AllowanceService $allowanceService,
         protected ReferralService $referralService,
+        protected NuNlNewsService $nuNlNewsService,
+        protected WeatherService $weatherService,
     ) {}
 
     /**
@@ -185,6 +189,9 @@ class DashboardController extends Controller
         $secondsRemainingInLoginBonus = Character::secondsRemainingInLoginBonus();
         $nextStreakDay = $character->getNextStreakDay();
 
+        $nuNlNews = $this->nuNlNewsService->getLatestNews(5);
+        $clinicWeather = $this->weatherService->getClinicWeather();
+
         return view('game.dashboard', compact(
             'character',
             'nextLevelXp',
@@ -202,7 +209,9 @@ class DashboardController extends Controller
             'hasClaimedStreakToday',
             'secondsUntilLoginBonus',
             'secondsRemainingInLoginBonus',
-            'nextStreakDay'
+            'nextStreakDay',
+            'nuNlNews',
+            'clinicWeather',
         ));
     }
 

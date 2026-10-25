@@ -2776,5 +2776,7 @@
         }
     });
     </script>
+
+    @include('partials.radio_player')
 </body>
 </html>

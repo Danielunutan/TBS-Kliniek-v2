@@ -394,6 +394,7 @@ Route::middleware('auth')->group(function (): void {
 
     // PvP (Luchtplaats)
     Route::get('/luchtplaats', [FightController::class, 'index'])->name('fight.index');
+    Route::get('/arena', fn () => redirect()->route('fight.index'))->name('arena');
     Route::get('/luchtplaats/arena/{defender}', [FightController::class, 'arena'])->name('fight.arena');
     Route::post('/luchtplaats/attack', [FightController::class, 'attack'])->middleware('throttle:60,1')->name('fight.attack');
 
