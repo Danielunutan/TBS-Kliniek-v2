@@ -640,9 +640,6 @@
 </head>
 <body class="min-h-full flex flex-col lg:flex-row bg-[#f8fafc] text-slate-800 antialiased selection:bg-slate-900 selection:text-white dark:bg-[#0b0f19] dark:text-slate-100" @if($character) x-data="tbsStatsTracker()" @else x-data="{ mobileMenuOpen: false }" @endif>
 
-    <!-- Global Permanent Audio Element (Preserved across Turbo Drive SPA navigation) -->
-    <audio id="tbs-global-audio" data-turbo-permanent preload="none"></audio>
-
     @if($character)
     <!-- SIDEBAR NAVIGATION (Desktop & Tablet) - Clean Modern White Sidebar -->
     <aside class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
@@ -2736,7 +2733,11 @@
 
                 // Redirect away if needed (solitary confinement / arena / logout)
                 if (data.redirect) {
-                    window.location.href = data.redirect;
+                    if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                        window.Turbo.visit(data.redirect);
+                    } else {
+                        window.location.href = data.redirect;
+                    }
                     return;
                 }
 
@@ -2778,7 +2779,11 @@
             // 2. Direct HTML redirect response fallback
             const responseUrl = new URL(response.url);
             if (responseUrl.pathname !== window.location.pathname) {
-                window.location.href = response.url;
+                if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                    window.Turbo.visit(response.url);
+                } else {
+                    window.location.href = response.url;
+                }
                 return;
             }
 

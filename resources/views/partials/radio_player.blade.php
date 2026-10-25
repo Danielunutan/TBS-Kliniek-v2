@@ -4,7 +4,6 @@
 @endphp
 
 <div id="{{ $containerId }}" 
-     data-turbo-permanent
      x-data="tbsRadioPlayer()" 
      x-init="initPlayer()"
      x-cloak
@@ -168,6 +167,53 @@
 
 @once
 <script>
+// Persistent in-memory HTML5 Audio instance that survives Turbo DOM swaps
+function getGlobalRadioAudio() {
+    if (!window.tbsRadioAudio) {
+        const audio = new Audio();
+        audio.preload = 'none';
+
+        audio.addEventListener('playing', () => {
+            window.dispatchEvent(new CustomEvent('tbs-radio-state-changed', {
+                detail: { isPlaying: true, isLoading: false }
+            }));
+        });
+        audio.addEventListener('waiting', () => {
+            window.dispatchEvent(new CustomEvent('tbs-radio-state-changed', {
+                detail: { isLoading: true }
+            }));
+        });
+        audio.addEventListener('pause', () => {
+            window.dispatchEvent(new CustomEvent('tbs-radio-state-changed', {
+                detail: { isPlaying: false, isLoading: false }
+            }));
+        });
+        audio.addEventListener('error', () => {
+            window.dispatchEvent(new CustomEvent('tbs-radio-state-changed', {
+                detail: { isPlaying: false, isLoading: false }
+            }));
+        });
+
+        window.tbsRadioAudio = audio;
+    }
+    return window.tbsRadioAudio;
+}
+
+// Synchronize state to newly rendered pages on Turbo page change
+document.addEventListener('turbo:load', () => {
+    const audio = window.tbsRadioAudio;
+    if (audio && audio.src && !audio.paused) {
+        window.dispatchEvent(new CustomEvent('tbs-radio-state-changed', {
+            detail: {
+                isPlaying: true,
+                isLoading: false,
+                volume: audio.volume,
+                isMuted: audio.muted
+            }
+        }));
+    }
+});
+
 function tbsRadioPlayer() {
     return {
         isExpanded: false,
@@ -196,72 +242,49 @@ function tbsRadioPlayer() {
                 this.volume = parseFloat(savedVol);
             }
 
-            const audio = document.getElementById('tbs-global-audio');
-            if (audio) {
-                // If audio is ALREADY playing across Turbo page navigation, maintain playback smoothly!
-                if (audio.src && !audio.paused) {
+            const audio = getGlobalRadioAudio();
+
+            // If audio is ALREADY playing across Turbo page navigation, maintain playback smoothly!
+            if (audio.src && !audio.paused) {
+                this.isPlaying = true;
+                this.isLoading = false;
+                this.volume = audio.volume;
+                this.isMuted = audio.muted;
+                window.tbsRadio = this;
+                return;
+            }
+
+            audio.volume = this.volume;
+            if (!audio.src || audio.src === '') {
+                audio.src = this.currentStation.stream;
+            }
+
+            const wasPlaying = localStorage.getItem('tbs_radio_playing') === 'true';
+            if (wasPlaying && audio.paused) {
+                this.isLoading = true;
+                audio.play().then(() => {
                     this.isPlaying = true;
                     this.isLoading = false;
-                    window.tbsRadio = this;
-                    return;
-                }
-
-                audio.volume = this.volume;
-                if (!audio.src || audio.src === '') {
-                    audio.src = this.currentStation.stream;
-                }
-
-                // Register event listeners once
-                if (!audio.dataset.tbsListenersAdded) {
-                    audio.dataset.tbsListenersAdded = 'true';
-                    audio.addEventListener('playing', () => {
-                        this.isPlaying = true;
-                        this.isLoading = false;
-                        this.broadcastState();
-                    });
-                    audio.addEventListener('waiting', () => {
-                        this.isLoading = true;
-                        this.broadcastState();
-                    });
-                    audio.addEventListener('pause', () => {
-                        this.isPlaying = false;
-                        this.isLoading = false;
-                        this.broadcastState();
-                    });
-                    audio.addEventListener('error', () => {
-                        this.isPlaying = false;
-                        this.isLoading = false;
-                        this.broadcastState();
-                    });
-                }
-
-                const wasPlaying = localStorage.getItem('tbs_radio_playing') === 'true';
-                if (wasPlaying && audio.paused) {
-                    this.isLoading = true;
-                    audio.play().then(() => {
-                        this.isPlaying = true;
-                        this.isLoading = false;
-                        this.broadcastState();
-                    }).catch(() => {
-                        this.isLoading = false;
-                        this.isPlaying = false;
-                        const resumeOnGesture = () => {
-                            if (localStorage.getItem('tbs_radio_playing') === 'true' && audio.paused) {
-                                audio.play().then(() => {
-                                    this.isPlaying = true;
-                                    this.isLoading = false;
-                                    this.broadcastState();
-                                }).catch(() => {});
-                            }
-                            window.removeEventListener('click', resumeOnGesture);
-                            window.removeEventListener('keydown', resumeOnGesture);
-                            window.removeEventListener('touchstart', resumeOnGesture);
-                        };
-                        window.addEventListener('click', resumeOnGesture, { once: true });
-                        window.addEventListener('keydown', resumeOnGesture, { once: true });
-                        window.addEventListener('touchstart', resumeOnGesture, { once: true });
-                    });
-                }
+                    this.broadcastState();
+                }).catch(() => {
+                    this.isLoading = false;
+                    this.isPlaying = false;
+                    const resumeOnGesture = () => {
+                        if (localStorage.getItem('tbs_radio_playing') === 'true' && audio.paused) {
+                            audio.play().then(() => {
+                                this.isPlaying = true;
+                                this.isLoading = false;
+                                this.broadcastState();
+                            }).catch(() => {});
+                        }
+                        window.removeEventListener('click', resumeOnGesture);
+                        window.removeEventListener('keydown', resumeOnGesture);
+                        window.removeEventListener('touchstart', resumeOnGesture);
+                    };
+                    window.addEventListener('click', resumeOnGesture, { once: true });
+                    window.addEventListener('keydown', resumeOnGesture, { once: true });
+                    window.addEventListener('touchstart', resumeOnGesture, { once: true });
+                });
             }
 
             window.tbsRadio = this;
@@ -294,7 +317,7 @@ function tbsRadioPlayer() {
         },
 
         togglePlay() {
-            const audio = document.getElementById('tbs-global-audio');
+            const audio = getGlobalRadioAudio();
             if (!audio) return;
 
             if (this.isPlaying) {
@@ -327,7 +350,7 @@ function tbsRadioPlayer() {
             this.currentStation = found;
             localStorage.setItem('tbs_radio_station', found.id);
 
-            const audio = document.getElementById('tbs-global-audio');
+            const audio = getGlobalRadioAudio();
             if (audio) {
                 audio.src = found.stream;
                 if (autoPlay) {
@@ -348,7 +371,7 @@ function tbsRadioPlayer() {
         },
 
         updateVolume() {
-            const audio = document.getElementById('tbs-global-audio');
+            const audio = getGlobalRadioAudio();
             if (audio) {
                 audio.volume = this.volume;
             }
@@ -360,7 +383,7 @@ function tbsRadioPlayer() {
         },
 
         toggleMute() {
-            const audio = document.getElementById('tbs-global-audio');
+            const audio = getGlobalRadioAudio();
             if (!audio) return;
 
             if (this.isMuted) {
