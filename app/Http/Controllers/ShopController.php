@@ -110,8 +110,12 @@ class ShopController extends Controller
         $inventory = CharacterItem::where('character_id', $character->id)->with('item')->get();
 
         $bundles = self::BUNDLES;
-        $otherPatients = Character::where('id', '!=', $character->id)->orderBy('name')->take(250)->get();
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $otherPatients = Character::where('id', '!=', $character->id)
+            ->select(['id', 'name', 'level', 'respect'])
+            ->orderBy('name')
+            ->take(150)
+            ->get();
+        $topRankings = Character::getTopRankings(10);
 
         return view('game.shop', compact(
             'character',

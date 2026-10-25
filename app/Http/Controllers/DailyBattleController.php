@@ -32,7 +32,7 @@ class DailyBattleController extends Controller
         $battleData = $this->battleService->getBattleData($character);
 
         // Top 10 for bottom podium ranglijst
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
 
         return view('game.battle.index', [
             'character' => $character,

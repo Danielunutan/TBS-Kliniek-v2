@@ -41,7 +41,7 @@ class TimelineController extends Controller
             ->latest()
             ->paginate(15);
 
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
 
         return view('game.timeline.index', compact('character', 'posts', 'topRankings'));
     }

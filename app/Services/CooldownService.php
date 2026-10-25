@@ -118,10 +118,17 @@ class CooldownService
     {
         $seconds = $seconds ?? $this->getDuration($action);
 
-        CharacterCooldown::updateOrCreate(
+        $cd = CharacterCooldown::updateOrCreate(
             ['character_id' => $character->id, 'action' => $action],
             ['cooldown_until' => now()->addSeconds($seconds)]
         );
+
+        if ($character->cooldownsMap !== null) {
+            $character->cooldownsMap->put($action, $cd);
+        }
+        if ($character->relationLoaded('cooldowns')) {
+            $character->unsetRelation('cooldowns');
+        }
     }
 
     public function clearCooldown(Character $character, string $action): void
@@ -129,6 +136,13 @@ class CooldownService
         CharacterCooldown::where('character_id', $character->id)
             ->where('action', $action)
             ->delete();
+
+        if ($character->cooldownsMap !== null) {
+            $character->cooldownsMap->forget($action);
+        }
+        if ($character->relationLoaded('cooldowns')) {
+            $character->unsetRelation('cooldowns');
+        }
     }
 
     /**

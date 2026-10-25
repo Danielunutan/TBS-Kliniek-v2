@@ -250,8 +250,11 @@ class DashboardController extends Controller
         $vaultTokens = (int) ($character->vault_tokens ?? 0);
         $packageCooldown = $this->cooldownService->getRemainingSeconds($character, 'package');
         $lockerCooldown = $this->cooldownService->getRemainingSeconds($character, 'locker');
-        $activeVaultCodes = VaultCode::where('character_id', $character->id)->where('is_redeemed', false)->count();
-        $redeemedVaultCodes = VaultCode::where('character_id', $character->id)->where('is_redeemed', true)->count();
+        $vaultCodeStats = VaultCode::where('character_id', $character->id)
+            ->selectRaw('count(case when is_redeemed = 0 then 1 end) as active_count, count(case when is_redeemed = 1 then 1 end) as redeemed_count')
+            ->first();
+        $activeVaultCodes = (int) ($vaultCodeStats->active_count ?? 0);
+        $redeemedVaultCodes = (int) ($vaultCodeStats->redeemed_count ?? 0);
 
         $unlockedWidgets = $character->unlocked_widgets ?? [];
         if (in_array('peuken_market', $unlockedWidgets, true) && ! in_array('tunnel', $unlockedWidgets, true)) {

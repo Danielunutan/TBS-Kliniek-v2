@@ -131,6 +131,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(SupportTicket::class);
     }
 
+    public function openSupportTicketsCount(): int
+    {
+        return $this->openSupportTicketsCountValue ??= $this->supportTickets()->where('status', 'beantwoord')->count();
+    }
+
     /**
      * Warnings issued to this user.
      */

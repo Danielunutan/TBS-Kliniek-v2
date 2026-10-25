@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -1039,6 +1040,11 @@ class Character extends Model
         return $this->hasMany(VaultCode::class, 'character_id')->where('is_redeemed', false);
     }
 
+    public function unreadDirectMessagesCount(): int
+    {
+        return $this->unreadDirectMessagesCountValue ??= DirectMessage::where('recipient_id', $this->id)->where('is_read', false)->count();
+    }
+
     /**
      * Check if currently serving prison time.
      */
@@ -1148,6 +1154,13 @@ class Character extends Model
     }
 
     /**
+     * In-memory cache for character cooldowns to eliminate N+1 queries.
+     *
+     * @var Collection<string, CharacterCooldown>|null
+     */
+    public ?Collection $cooldownsMap = null;
+
+    /**
      * Cooldown records for this character.
      */
     public function cooldowns(): HasMany
@@ -1160,7 +1173,15 @@ class Character extends Model
      */
     public function cooldownRemaining(string $action): int
     {
-        $cd = $this->cooldowns()->where('action', $action)->first();
+        if ($this->relationLoaded('cooldowns')) {
+            $cd = $this->cooldowns->firstWhere('action', $action);
+        } else {
+            if ($this->cooldownsMap === null) {
+                $this->cooldownsMap = $this->cooldowns()->get()->keyBy('action');
+            }
+            $cd = $this->cooldownsMap->get($action);
+        }
+
         if (! $cd || ! $cd->cooldown_until) {
             return 0;
         }
@@ -1168,6 +1189,18 @@ class Character extends Model
         $diff = now()->diffInSeconds($cd->cooldown_until, false);
 
         return max(0, (int) $diff);
+    }
+
+    /**
+     * Get cached top rankings by respect.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Character>
+     */
+    public static function getTopRankings(int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    {
+        return Cache::remember('tbs_top_rankings_'.$limit, 60, function () use ($limit) {
+            return static::orderByDesc('respect')->take($limit)->get();
+        });
     }
 
     /**

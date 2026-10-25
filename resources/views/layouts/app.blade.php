@@ -833,7 +833,7 @@
                         <span>Live Chat</span>
                     </div>
                     @php
-                        $unreadChatCount = $character ? \App\Models\DirectMessage::where('recipient_id', $character->id)->where('is_read', false)->count() : 0;
+                        $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
                     @endphp
                     @if($unreadChatCount > 0)
                         <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full animate-pulse">{{ $unreadChatCount }}</span>
@@ -1340,7 +1340,7 @@
                         <span>Support Tickets</span>
                     </div>
                     @php
-                        $userOpenTicketsDesk = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
+                        $userOpenTicketsDesk = Auth::check() ? Auth::user()->openSupportTicketsCount() : 0;
                     @endphp
                     @if($userOpenTicketsDesk > 0)
                     <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Reactie!</span>
@@ -1500,7 +1500,7 @@
 
                 <!-- Chat Button with Notification Ping -->
                 @php
-                    $unreadChatCount = $character ? \App\Models\DirectMessage::where('recipient_id', $character->id)->where('is_read', false)->count() : 0;
+                    $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
                 @endphp
                 <a href="{{ route('chat.index') }}" class="relative w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" title="Live Chat & DMs" aria-label="Live Chat">
                     <i class="fa-solid fa-comments text-xs"></i>

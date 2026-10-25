@@ -53,8 +53,8 @@ class BankController extends Controller
             ->get();
 
         $maxCapacity = Loan::calculateMaxCapacity($character);
-        $openstaandeSchuld = Loan::getOpenstaandeSchuld($character);
-        $beschikbareLening = Loan::getBeschikbareLening($character);
+        $openstaandeSchuld = (int) $activeLoans->sum('remaining_due');
+        $beschikbareLening = max(0, $maxCapacity - $openstaandeSchuld);
 
         $transactions = BankTransaction::where('character_id', $character->id)
             ->orderBy('id', 'desc')

@@ -155,22 +155,36 @@ class Gang extends Model
 
     public function getTotalStorageCapacityAttribute(): int
     {
+        if ($this->relationLoaded('properties')) {
+            return (int) $this->properties->sum('storage_capacity');
+        }
+
         return (int) $this->properties()->sum('storage_capacity');
     }
 
     public function getTotalVehicleSlotsAttribute(): int
     {
+        if ($this->relationLoaded('properties')) {
+            return (int) $this->properties->sum('vehicle_slots');
+        }
+
         return (int) $this->properties()->sum('vehicle_slots');
     }
 
     public function getTotalNpcCapacityAttribute(): int
     {
+        if ($this->relationLoaded('properties')) {
+            return (int) $this->properties->sum('npc_capacity');
+        }
+
         return (int) $this->properties()->sum('npc_capacity');
     }
 
     public function getStorageUsed(): int
     {
-        $itemsCount = (int) $this->items()->sum('quantity');
+        $itemsCount = $this->relationLoaded('items')
+            ? (int) $this->items->sum('quantity')
+            : (int) $this->items()->sum('quantity');
         $masksCount = (int) ($this->masks ?? 0);
 
         return $itemsCount + $masksCount;

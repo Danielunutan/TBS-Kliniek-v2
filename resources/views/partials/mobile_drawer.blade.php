@@ -636,7 +636,7 @@
                             <span>Support Tickets</span>
                         </div>
                         @php
-                            $userOpenTicketsMob = Auth::check() ? Auth::user()->supportTickets()->where('status', 'beantwoord')->count() : 0;
+                            $userOpenTicketsMob = Auth::check() ? Auth::user()->openSupportTicketsCount() : 0;
                         @endphp
                         @if($userOpenTicketsMob > 0)
                         <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Reactie!</span>

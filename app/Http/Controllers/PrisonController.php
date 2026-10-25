@@ -106,7 +106,7 @@ class PrisonController extends Controller
             ->get();
 
         // Top 10 for bottom podium ranglijst
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
 
         return view('game.prison', compact(
             'character',

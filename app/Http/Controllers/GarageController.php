@@ -162,7 +162,7 @@ class GarageController extends Controller
         }, $rotation['listings'] ?? []);
         $secondsUntilRotation = $rotation['seconds_left'];
 
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
 
         $starVehicles = Vehicle::where('is_available', true)
             ->where('price_cash', 0)

@@ -44,9 +44,16 @@ class AuthController extends Controller
         }
 
         try {
-            $totalPlayers = Character::count();
-            $totalCash = Character::sum('cash') + Character::sum('bank');
-            $topCharacters = Character::with('user')->orderByDesc('respect')->limit(4)->get();
+            $stats = Cache::remember('tbs_login_page_stats', 300, function () {
+                return [
+                    'totalPlayers' => Character::count(),
+                    'totalCash' => (int) (Character::sum('cash') + Character::sum('bank')),
+                    'topCharacters' => Character::with('user')->orderByDesc('respect')->limit(4)->get(),
+                ];
+            });
+            $totalPlayers = $stats['totalPlayers'];
+            $totalCash = $stats['totalCash'];
+            $topCharacters = $stats['topCharacters'];
         } catch (\Throwable) {
             $totalPlayers = 1420;
             $totalCash = 24800000;

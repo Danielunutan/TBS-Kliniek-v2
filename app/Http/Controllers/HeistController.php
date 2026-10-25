@@ -56,7 +56,7 @@ class HeistController extends Controller
             ->take(8)
             ->get();
 
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
 
         return view('game.heists.index', compact(
             'character',

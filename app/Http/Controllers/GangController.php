@@ -42,7 +42,6 @@ class GangController extends Controller
         $character = $user->character;
         $this->energyService->refresh($character);
 
-        $realGangs = Gang::with(['leader', 'members'])->withCount('members')->orderByDesc('treasury')->get();
         $myGang = $character->gang;
 
         if ($myGang) {
@@ -107,7 +106,7 @@ class GangController extends Controller
             ]);
         }
 
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
 
         $wagePayout = null;
         if ($myGang) {

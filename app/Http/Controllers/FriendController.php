@@ -69,7 +69,7 @@ class FriendController extends Controller
         $numB = rand(2, 8);
         session(['friend_captcha_ans' => $numA + $numB]);
 
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
 
         return view('game.friends.index', compact(
             'character',

@@ -102,7 +102,7 @@ class VaultController extends Controller
             ->where('is_redeemed', false)
             ->get();
 
-        $topRankings = Character::orderByDesc('respect')->take(10)->get();
+        $topRankings = Character::getTopRankings(10);
         $prefillCode = $request->query('code', '');
 
         return view('game.vault.index', compact(
