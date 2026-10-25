@@ -278,17 +278,17 @@
                         <i class="fa-solid fa-bomb"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2 py-0.5 rounded font-extrabold">Direct &bull; 1 Ad = +50 Kogels</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2 py-0.5 rounded font-extrabold">3 Ads &bull; [{{ (int)($character->ad_bullets_progress ?? 0) }}/3] Voortgang</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">+50 Scherpe Kogels 💣</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Laad je wapen door voor aanslagen en liquidaties op vijanden in de TBS kliniek. Momenteel in bezit: <strong class="text-rose-600">{{ number_format($character->bullets ?? 0, 0, ',', '.') }} kogels</strong>.
+                        Laad je wapen door voor aanslagen en liquidaties op vijanden in de TBS kliniek. Momenteel in bezit: <strong class="text-rose-600">{{ number_format($character->bullets ?? 0, 0, ',', '.') }} kogels</strong>. Bekijk 3 korte sponsor ads voor +50 kogels.
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <button type="button" onclick="window.tbsOpenSponsorAd('bullets')" class="w-full h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                         <i class="fa-solid fa-play text-xs"></i>
-                        <span>Kijk Ad (+50 Kogels)</span>
+                        <span>Kijk Ad ({{ (int)($character->ad_bullets_progress ?? 0) }}/3 Ads)</span>
                     </button>
                 </div>
             </div>
@@ -300,7 +300,7 @@
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 px-2 py-0.5 rounded font-extrabold">12 Uur Bescherming</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 px-2 py-0.5 rounded font-extrabold">3 Ads &bull; [{{ (int)($character->ad_vest_progress ?? 0) }}/3] &bull; 12 Uur</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 transition">Kogelwerend Vest 🛡️</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -310,7 +310,7 @@
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                     <button type="button" onclick="window.tbsOpenSponsorAd('vest')" class="w-full h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                         <i class="fa-solid fa-shield-halved text-xs"></i>
-                        <span>Kijk Ad (12u Vest)</span>
+                        <span>Kijk Ad ({{ (int)($character->ad_vest_progress ?? 0) }}/3 Ads)</span>
                     </button>
                 </div>
             </div>
@@ -322,18 +322,18 @@
                         <i class="fa-solid fa-heart-pulse"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded font-extrabold">Medische Hulp</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded font-extrabold">3 Ads &bull; [{{ (int)($character->ad_coma_progress ?? 0) }}/3] &bull; IC Hulp</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">Coma Ontwaken 💉</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Neergeschoten of ricochet gehad? Ontwaak per direct uit het 6-uurs Intensive Care Coma en herstel naar 50% gezondheid!
+                        Neergeschoten of ricochet gehad? Ontwaak direct uit het 6-uurs Intensive Care Coma en herstel naar 50% HP door 3 sponsor ads te kijken!
                     </p>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                     @if($character->isComatose())
                         <button type="button" onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
                             <i class="fa-solid fa-syringe text-xs"></i>
-                            <span>Kijk Ad (Direct Ontwaken)</span>
+                            <span>Kijk Ad ({{ (int)($character->ad_coma_progress ?? 0) }}/3 Ads)</span>
                         </button>
                     @else
                         <button type="button" disabled class="w-full h-11 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed whitespace-nowrap">

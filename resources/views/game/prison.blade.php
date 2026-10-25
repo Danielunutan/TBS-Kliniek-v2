@@ -77,12 +77,18 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <!-- Watch Ad to be instantly released from isolation (Onbeperkt) -->
+            <!-- Watch Ad to reduce sentence and gain instant release -->
+            @php
+                $reqPrisonAds = $character ? $character->getRequiredPrisonAds() : 1;
+                $currPrisonAds = $character ? (int) ($character->ad_prison_progress ?? 0) : 0;
+                $leftPrisonAds = max(1, $reqPrisonAds - $currPrisonAds);
+            @endphp
             <button type="button" 
                     onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                    class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                    class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                    title="Elke ad vermindert je straftijd met 3 minuten. Bij {{ $reqPrisonAds }} ads word je direct vrijgelaten!">
                 <i class="fa-solid fa-tv text-white text-[11px]"></i>
-                <span>Kijk Ad (Direct Vrij)</span>
+                <span>Kijk Ad ({{ $currPrisonAds }}/{{ $reqPrisonAds }} Ads Vrijlating)</span>
             </button>
 
 

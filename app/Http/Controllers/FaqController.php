@@ -93,7 +93,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Hoe kom ik sneller vrij uit de Isoleercel?',
-                        'a' => "Je hebt 4 opties om weer op vrije voeten te komen:\n1. ⏱️ Uitzitten: Wacht rustig tot de straftimer afloopt.\n2.  Sponsorkamer: Bekijk een 15-seconden videoadvertentie in de Sponsorkamer voor directe -15 minuten strafvermindering!\n3.  Celdeur forceren: Vraag een vriend of ganggenoot om jouw celdeur open te breken vanaf de gevangenispagina.\n4. ⭐ Vrijkopen met Sterren: Gebruik 2 Sterren om direct per direct vrijgelaten te worden.",
+                        'a' => "Je hebt 4 opties om weer op vrije voeten te komen:\n1. ⏱️ Uitzitten: Wacht rustig tot de straftimer afloopt.\n2. 📺 Sponsor Video Ads: Bekijk korte 15-seconden videoadvertenties in de isoleercel of Sponsorkamer! Elke advertentie haalt direct 3 minuten van je straftijd af. Afhankelijk van je strafduur (bijv. 1 tot 3-5 ads) word je direct volledig vrijgelaten!\n3. 🚪 Celdeur forceren: Vraag een vriend of ganggenoot om jouw celdeur open te breken vanaf de gevangenispagina.\n4. ⭐ Vrijkopen met Sterren: Gebruik Sterren om per direct vrijgelaten te worden.",
                     ],
                     [
                         'q' => 'Wat is de Uitbraaktunnel onder mijn cel?',
@@ -298,6 +298,56 @@ class FaqController extends Controller
                     [
                         'q' => 'Wat levert een geslaagde Heist op en wat is het risico?',
                         'a' => "Een geslaagde heist levert gigantische buitbedragen op (tot honderdduizenden euro's), flinke XP en zeldzame kluiscodes voor de Centrale Medicijnkluis! Mislukt de heist? Dan vlieg je direct de zwaar beveiligde isoleercel in voor langdurige hechtenis.",
+                    ],
+                ],
+            ],
+            'liquidatie_moord' => [
+                'title' => '🔫 Moord, Liquidatie, Kogels & Coma',
+                'icon' => 'fa-crosshairs',
+                'questions' => [
+                    [
+                        'q' => 'Hoe werkt het Moord & Liquidatie systeem?',
+                        'a' => "In de TBS Kliniek kun je vijanden definitief uitschakelen via 'Illegale Acties > Huurmoordenaar / Liquidatie'! Koop scherpe kogels bij de Wapenhandelaar of verdien ze gratis via de Sponsorkamer. Selecteer je doelwit, kies het aantal kogels en haal de trekker over! Als je liquidatie slaagt, schiet je het slachtoffer neer in een 6-uurs Intensive Care Coma en plunder je een flink deel van zijn contante geld en respect!",
+                    ],
+                    [
+                        'q' => 'Hoe kom ik aan kogels en wat kosten ze?',
+                        'a' => 'Kogels zijn kostbare en krachtige munitie in de kliniek. Je kunt kogels kopen bij de Hitman Wapenhandelaar met contant geld of 100% gratis verdienen in de Sponsorkamer! Voor elke 3 korte video-ads die je bekijkt in de Sponsorkamer ontvang je direct +50 kogels op je munitievoorraad.',
+                    ],
+                    [
+                        'q' => 'Wat doet het Kogelwerend Vest en wat is Ricochet / Backfire?',
+                        'a' => 'Een Kogelwerend Vest beschermt je 12 uur lang tegen aanslagen. Het vest verhoogt je verdediging met +150% én heeft een gevaarlijk 45% ricochet-effect: als een vijand jou beschiet terwijl je een vest draagt, kan de kogel afketsen en de schutter zélf neerschieten (Backfire)! De aanvaller belandt dan zelf direct in een 6-uurs coma! Je activeert een 12-uurs vest door 3 sponsor ads te kijken in de Sponsorkamer.',
+                    ],
+                    [
+                        'q' => 'Wat gebeurt er als ik in Coma lig (IC) en hoe ontwaak ik?',
+                        'a' => 'Als je bent neergeschoten of geraakt door een ricochet-backfire, beland je op de Intensive Care in een 6-uurs Coma. Terwijl je in coma ligt kun je geen misdaden plegen of aanvallen. Wil je niet 6 uur wachten? Bekijk dan 3 korte videoadvertenties via de rode comabalk bovenin of in de Sponsorkamer om direct medisch te ontwaken met 50% HP!',
+                    ],
+                ],
+            ],
+            'doel_bosses' => [
+                'title' => '🏆 Doel van het Spel, 24u Battle & Clan Bazen',
+                'icon' => 'fa-trophy',
+                'questions' => [
+                    [
+                        'q' => 'Wat is het hoofddoel van TBS Kliniek en waar strijd je voor?',
+                        'a' => "In TBS Kliniek strijd je om de absolute heerschappij van de forensische instelling! Je hoofddoelen zijn:\n1. 👑 De Respectlijst & Rangorde: Klim op van nieuwkomer naar de top door gevechten te winnen en bendes te leiden.\n2. ⚔️ De Dagelijkse 24u Kliniek Battle: Strijd elke 24 uur in diverse klassementen om de gigantische dagjackpot en zeldzame sterren.\n3. 👹 Clan Bazen Verslaan: Werk samen met je bendeleden om oppermachtige kliniekbazen (zoals de Hoofdbeveiliging en Corrupte Doktoren) neer te halen voor massieve gedeelde buit!\n4. 📦 XXL Koffers Verzamelen & Kraken: Verzamel en open de meest zeldzame buitkisten voor exclusieve wagens en privileges.",
+                    ],
+                    [
+                        'q' => 'Hoe werken Zaalwacht Bazen & Clan Gevechten?',
+                        'a' => "Met je bende kun je dagelijks epische Clan Bazen uitdagen. Deze bazen hebben enorme health pools (tot miljoenen HP). Ieder bendelid vecht mee en brengt schade toe. Zodra de baas bezwijkt, wordt de buit (honderdduizenden euro's, respect en XXL cases) verdeeld over de deelnemende bendeleden!",
+                    ],
+                ],
+            ],
+            'koffers_kraken' => [
+                'title' => '📦 Koffers Onderscheppen, Kraken & XXL Buit',
+                'icon' => 'fa-briefcase',
+                'questions' => [
+                    [
+                        'q' => 'Hoe werkt Koffers Onderscheppen en Kraken?',
+                        'a' => "Onder 'Voortgang & Opslag > Koffers' kun je smokkelkoffers onderscheppen die het terrein op worden gesmokkeld. Onderschepte koffers kun je direct forceren of kraken met breekijzers of lockpick sets. Lukt het kraken? Dan ontgrendel je de inhoud!",
+                    ],
+                    [
+                        'q' => 'Wat zijn XXL Koffers en wat zit erin?',
+                        'a' => 'XXL Koffers zijn de meest exclusieve, zwaarbewaakte koffers in het spel. Ze bevatten gegarandeerd topbeloningen: tot wel €250.000 contant geld, gratis Sterren ⭐, scherpe munitie, zeldzame bivakmutsen en unieke profielstickers die nergens anders verkrijgbaar zijn!',
                     ],
                 ],
             ],
@@ -548,6 +598,41 @@ class FaqController extends Controller
                 'links' => [
                     ['text' => 'Naar Grote Heists', 'url' => route('heists.index')],
                     ['text' => 'Smokkel Garage', 'url' => route('garage.index')],
+                ],
+            ],
+            [
+                'title' => '🔫 Moord, Liquidaties, Kogels & Coma',
+                'keywords' => ['moord', 'liquidatie', 'kogels', 'bullets', 'schieten', 'hitman', 'wapenhandelaar', 'coma', 'ic', 'ontwaken', 'vest', 'backfire', 'ricochet'],
+                'answer' => "Onder 'Illegale Acties > Huurmoordenaar' kun je vijanden liquideren met kogels! Slachtoffers belanden 6 uur in Intensive Care Coma. Draag een Kogelwerend Vest voor 12 uur bescherming en 45% ricochet-backfire kans. Ligt iemand in coma? Ontwaak direct door 3 korte sponsor ads te kijken!",
+                'links' => [
+                    ['text' => 'Naar Hitman & Moord', 'url' => route('hitman.index')],
+                    ['text' => 'Sponsorkamer (Kogels & Coma)', 'url' => route('sponsor.index')],
+                ],
+            ],
+            [
+                'title' => '🏆 Doel van het Spel & Clan Bazen',
+                'keywords' => ['doel', 'wat is het doel', 'waar speel je voor', 'baas', 'bazen', 'clan baas', 'battle', '24 uur battle', 'overwinning', 'jackpot'],
+                'answer' => 'In TBS Kliniek strijd je om de heerschappij! Doe dagelijks mee aan de 24-uurs Kliniek Battle voor gigantische jackpots, versla massieve Zaalwacht Bazen met je bende voor miljoenen aan gedeelde buit, en heers over de Respectlijst!',
+                'links' => [
+                    ['text' => '24-Uurs Battle', 'url' => route('battle.index')],
+                    ['text' => 'Mijn Bende (Gangs)', 'url' => route('gangs.index')],
+                ],
+            ],
+            [
+                'title' => '📦 Koffers Onderscheppen & XXL Koffers',
+                'keywords' => ['koffer', 'koffers', 'kraken', 'xxl koffer', 'onderscheppen', 'breekijzer', 'lockpick', 'buitkrat', 'buit'],
+                'answer' => "Onder 'Voortgang & Opslag > Koffers' onderschep je smokkelkoffers op het kliniekterrein. Kraak ze met breekijzers of lockpicks. Zeldzame XXL Koffers bevatten enorme cash bedragen tot €250.000, gratis Sterren ⭐, scherpe kogels en unieke stickers!",
+                'links' => [
+                    ['text' => 'Koffers Onderscheppen', 'url' => route('packages.index')],
+                ],
+            ],
+            [
+                'title' => '📺 Sponsor Ads & Snelle Vrijlating',
+                'keywords' => ['ads', 'advertenties', 'reclame', 'sponsorkamer', 'gratis kogels', 'gevangenisstraf', 'vrijlating', 'strafvermindering', 'isoleercel ads'],
+                'answer' => "In de Sponsorkamer en direct in de isoleercel kun je 15s sponsor video's bekijken. Elke ad haalt direct 3 minuten van je straftijd af (en bij 1 tot 3-5 ads ben je per direct vrij!). Ook kun je elke 3 ads gratis +50 kogels, 12u kogelwerend vest of direct coma-ontwaken claimen!",
+                'links' => [
+                    ['text' => 'Naar Sponsorkamer', 'url' => route('sponsor.index')],
+                    ['text' => 'Gevangenis', 'url' => route('prison')],
                 ],
             ],
         ];

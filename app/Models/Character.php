@@ -136,6 +136,10 @@ class Character extends Model
         'ad_mask_progress' => 'integer',
         'ad_vault_progress' => 'integer',
         'ad_lottery_progress' => 'integer',
+        'ad_bullets_progress' => 'integer',
+        'ad_coma_progress' => 'integer',
+        'ad_prison_progress' => 'integer',
+        'ad_vest_progress' => 'integer',
         'ad_daily_data' => 'array',
         'perks' => 'array',
         'bullets' => 'integer',
@@ -1055,9 +1059,48 @@ class Character extends Model
             'is_in_prison' => false,
             'prison_until' => null,
             'prison_reason' => null,
+            'ad_prison_progress' => 0,
         ]);
 
         return false;
+    }
+
+    /**
+     * Calculate how many sponsor ads are required to get an instant pardon based on sentence duration.
+     */
+    public function getRequiredPrisonAds(): int
+    {
+        if (! $this->isImprisoned()) {
+            return 1;
+        }
+
+        $sec = max(0, (int) now()->diffInSeconds($this->prison_until, false));
+
+        if ($sec <= 90) {
+            return 1;
+        }
+        if ($sec <= 240) {
+            return 2;
+        }
+        if ($sec <= 480) {
+            return 3;
+        }
+        if ($sec <= 720) {
+            return 4;
+        }
+
+        return 5;
+    }
+
+    /**
+     * Calculate remaining ads needed to get released from prison.
+     */
+    public function getRemainingPrisonAds(): int
+    {
+        $required = $this->getRequiredPrisonAds();
+        $progress = (int) ($this->ad_prison_progress ?? 0);
+
+        return max(1, $required - $progress);
     }
 
     /**

@@ -429,12 +429,29 @@ class SponsorAdController extends Controller
 
                 case 'prison':
                     if ($character->isImprisoned()) {
-                        $character->is_in_prison = false;
-                        $character->prison_until = null;
-                        $character->prison_reason = null;
-                        $rewardDetails = '🎉 Je hebt de sponsor ad bekeken en bent DIRECT VRIJGELATEN uit de isoleercel!';
+                        $required = $character->getRequiredPrisonAds();
+                        $current = ($character->ad_prison_progress ?? 0) + 1;
+
+                        if ($current >= $required) {
+                            $character->is_in_prison = false;
+                            $character->prison_until = null;
+                            $character->prison_reason = null;
+                            $character->ad_prison_progress = 0;
+                            $rewardDetails = "🎉 [{$current}/{$required} Ads] GEFELICITEERD: Je straftijd is volledig kwijtgescholden en je bent DIRECT VRIJGELATEN uit de isoleercel!";
+                        } else {
+                            $character->ad_prison_progress = $current;
+                            // Reduce remaining prison time by 3 minutes (180s) per ad watched
+                            if ($character->prison_until && now()->lt($character->prison_until)) {
+                                $remainingSec = max(0, (int) now()->diffInSeconds($character->prison_until, false));
+                                $newSec = max(10, $remainingSec - 180);
+                                $character->prison_until = now()->addSeconds($newSec);
+                            }
+                            $left = $required - $current;
+                            $rewardDetails = "⚖️ [{$current}/{$required} Ads] Voortgang opgeslagen! Je straftijd is met 3 minuten ingekort. Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om direct vrij te komen.';
+                        }
                     } else {
                         // Fallback to cash if not in prison
+                        $character->ad_prison_progress = 0;
                         $this->economy->addCash($character, 2500, 'sponsor_ad');
                         $rewardDetails = '💵 Je zat niet vast, dus je hebt € 2.500 zakgeld ontvangen!';
                     }
@@ -580,22 +597,43 @@ class SponsorAdController extends Controller
                     break;
 
                 case 'bullets':
-                    $character->bullets = ($character->bullets ?? 0) + 50;
-                    $character->save();
-                    $rewardDetails = '🔫 +50 Kogels ontvangen! Je munitievoorraad is nu '.number_format($character->bullets, 0, ',', '.').' kogels!';
+                    $currentProgress = ($character->ad_bullets_progress ?? 0) + 1;
+                    if ($currentProgress >= 3) {
+                        $character->ad_bullets_progress = 0;
+                        $character->bullets = ($character->bullets ?? 0) + 50;
+                        $rewardDetails = '🔫 [3/3 Ads] GEFELICITEERD: +50 Kogels ontvangen! Je munitievoorraad is nu '.number_format($character->bullets, 0, ',', '.').' kogels!';
+                    } else {
+                        $character->ad_bullets_progress = $currentProgress;
+                        $left = 3 - $currentProgress;
+                        $rewardDetails = "🔫 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor jouw voorraad van 50 kogels.';
+                    }
                     break;
 
                 case 'vest':
-                    $character->vest_until = now()->addHours(12);
-                    $character->save();
-                    $rewardDetails = '🛡️ Kogelwerend Vest geactiveerd voor 12 uur! Je bent zwaar beschermd tegen schutters en vijanden riskeren backfire!';
+                    $currentProgress = ($character->ad_vest_progress ?? 0) + 1;
+                    if ($currentProgress >= 3) {
+                        $character->ad_vest_progress = 0;
+                        $character->vest_until = now()->addHours(12);
+                        $rewardDetails = '🛡️ [3/3 Ads] GEFELICITEERD: Kogelwerend Vest geactiveerd voor 12 uur! Je bent zwaar beschermd tegen schutters en vijanden riskeren backfire!';
+                    } else {
+                        $character->ad_vest_progress = $currentProgress;
+                        $left = 3 - $currentProgress;
+                        $rewardDetails = "🛡️ [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' voor 12 uur Kogelwerend Vest bescherming.';
+                    }
                     break;
 
                 case 'coma_revive':
-                    $character->coma_until = null;
-                    $character->health = max(25, (int) ($character->max_health * 0.5));
-                    $character->save();
-                    $rewardDetails = '💉 Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met 50% HP!';
+                    $currentProgress = ($character->ad_coma_progress ?? 0) + 1;
+                    if ($currentProgress >= 3) {
+                        $character->ad_coma_progress = 0;
+                        $character->coma_until = null;
+                        $character->health = max(25, (int) ($character->max_health * 0.5));
+                        $rewardDetails = '💉 [3/3 Ads] GEFELICITEERD: Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met 50% HP!';
+                    } else {
+                        $character->ad_coma_progress = $currentProgress;
+                        $left = 3 - $currentProgress;
+                        $rewardDetails = "💉 [{$currentProgress}/3 Ads] Voortgang opgeslagen! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om per direct te ontwaken uit Intensive Care Coma.';
+                    }
                     break;
 
                 case 'cooldown':

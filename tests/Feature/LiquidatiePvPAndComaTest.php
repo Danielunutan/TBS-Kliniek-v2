@@ -42,25 +42,31 @@ class LiquidatiePvPAndComaTest extends TestCase
 
         $this->actingAs($user);
 
-        // Claim bullets
-        $start1 = $this->postJson(route('sponsor.start'), ['type' => 'bullets'])->json();
-        $resp1 = $this->postJson(route('sponsor.claim'), ['type' => 'bullets', 'token' => $start1['token'], 'robin_token' => 'verified_test']);
-        $resp1->assertJson(['success' => true]);
+        // Claim bullets (3 ads required)
+        for ($i = 1; $i <= 3; $i++) {
+            $start1 = $this->postJson(route('sponsor.start'), ['type' => 'bullets'])->json();
+            $resp1 = $this->postJson(route('sponsor.claim'), ['type' => 'bullets', 'token' => $start1['token'], 'robin_token' => 'verified_test']);
+            $resp1->assertJson(['success' => true]);
+        }
         $char->refresh();
         $this->assertEquals(60, $char->bullets);
 
-        // Claim vest
-        $start2 = $this->postJson(route('sponsor.start'), ['type' => 'vest'])->json();
-        $resp2 = $this->postJson(route('sponsor.claim'), ['type' => 'vest', 'token' => $start2['token'], 'robin_token' => 'verified_test']);
-        $resp2->assertJson(['success' => true]);
+        // Claim vest (3 ads required)
+        for ($i = 1; $i <= 3; $i++) {
+            $start2 = $this->postJson(route('sponsor.start'), ['type' => 'vest'])->json();
+            $resp2 = $this->postJson(route('sponsor.claim'), ['type' => 'vest', 'token' => $start2['token'], 'robin_token' => 'verified_test']);
+            $resp2->assertJson(['success' => true]);
+        }
         $char->refresh();
         $this->assertTrue($char->hasVest());
 
-        // Coma revive
+        // Coma revive (3 ads required)
         $this->assertTrue($char->isComatose());
-        $start3 = $this->postJson(route('sponsor.start'), ['type' => 'coma_revive'])->json();
-        $resp3 = $this->postJson(route('sponsor.claim'), ['type' => 'coma_revive', 'token' => $start3['token'], 'robin_token' => 'verified_test']);
-        $resp3->assertJson(['success' => true]);
+        for ($i = 1; $i <= 3; $i++) {
+            $start3 = $this->postJson(route('sponsor.start'), ['type' => 'coma_revive'])->json();
+            $resp3 = $this->postJson(route('sponsor.claim'), ['type' => 'coma_revive', 'token' => $start3['token'], 'robin_token' => 'verified_test']);
+            $resp3->assertJson(['success' => true]);
+        }
         $char->refresh();
         $this->assertFalse($char->isComatose());
     }

@@ -1889,7 +1889,7 @@
                             onclick="window.tbsOpenSponsorAd('coma_revive')" 
                             class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-95 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-md">
                         <i class="fa-solid fa-syringe text-sm"></i>
-                        <span>Kijk Video (Direct Ontwaken)</span>
+                        <span>Kijk Video ({{ (int)($character->ad_coma_progress ?? 0) }}/3 Ads Ontwaken)</span>
                     </button>
                 </div>
             </div>
@@ -1897,6 +1897,10 @@
 
             <!-- Active Prison / Isoleercel Alert Banner with Live Seconds Ticker & Star Buyout -->
             @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
+            @php
+                $topReqPrisonAds = $character->getRequiredPrisonAds();
+                $topCurrPrisonAds = (int) ($character->ad_prison_progress ?? 0);
+            @endphp
             <div x-data="{ 
                     sec: {{ $character->remainingPrisonSeconds() }},
                     reloaded: false,
@@ -1956,9 +1960,10 @@
                 <div class="flex items-center gap-2 w-full md:w-auto justify-end shrink-0">
                     <button type="button" 
                             onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                            class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap"
+                            title="Elke ad vermindert je straftijd met 3 minuten. Bij {{ $topReqPrisonAds }} ads word je direct vrijgelaten!">
                         <i class="fa-solid fa-tv text-white text-[11px]"></i>
-                        <span>Kijk Ad (Direct Vrij)</span>
+                        <span>Kijk Ad ({{ $topCurrPrisonAds }}/{{ $topReqPrisonAds }} Ads Vrijlating)</span>
                     </button>
                     <a href="{{ route('prison') }}" class="flex-1 md:flex-initial px-3.5 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-building-shield"></i>
