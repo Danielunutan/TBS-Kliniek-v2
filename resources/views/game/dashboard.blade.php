@@ -297,6 +297,10 @@
                         </p>
                     </div>
                     <div class="pt-2">
+                        <form id="unlock-form-radio" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                            @csrf
+                            <input type="hidden" name="widget_key" value="radio">
+                        </form>
                         <button type="button" 
                                 @click="unlockWidget('radio')"
                                 :disabled="unlockingKey === 'radio'"
@@ -308,7 +312,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('radio')" x-cloak @if(!$character->isWidgetUnlocked('radio')) style="display: none;" @endif>
+                <div id="widget-content-radio" x-show="isUnlocked('radio')" x-cloak @if(!$character->isWidgetUnlocked('radio')) style="display: none;" @endif>
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-3">
                             <div class="w-11 h-11 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
@@ -628,6 +632,10 @@
                         </p>
                     </div>
                     <div class="pt-2">
+                        <form id="unlock-form-weather" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                            @csrf
+                            <input type="hidden" name="widget_key" value="weather">
+                        </form>
                         <button type="button" 
                                 @click="unlockWidget('weather')"
                                 :disabled="unlockingKey === 'weather'"
@@ -639,7 +647,7 @@
                 </div>
 
                 <!-- Unlocked Live Content -->
-                <div x-show="isUnlocked('weather')" x-cloak @if(!$character->isWidgetUnlocked('weather')) style="display: none;" @endif>
+                <div id="widget-content-weather" x-show="isUnlocked('weather')" x-cloak @if(!$character->isWidgetUnlocked('weather')) style="display: none;" @endif>
                     <div class="p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 text-white flex items-center justify-between">
                         <div>
                             <div class="flex items-center gap-1.5">
@@ -742,6 +750,10 @@
                         </p>
                     </div>
                     <div class="pt-2">
+                        <form id="unlock-form-nunl" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                            @csrf
+                            <input type="hidden" name="widget_key" value="nunl">
+                        </form>
                         <button type="button" 
                                 @click="unlockWidget('nunl')"
                                 :disabled="unlockingKey === 'nunl'"
@@ -753,7 +765,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('nunl')" x-cloak @if(!$character->isWidgetUnlocked('nunl')) style="display: none;" @endif>
+                <div id="widget-content-nunl" x-show="isUnlocked('nunl')" x-cloak @if(!$character->isWidgetUnlocked('nunl')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs border border-indigo-200 dark:border-indigo-800">
@@ -820,6 +832,10 @@
                         </p>
                     </div>
                     <div class="pt-2">
+                        <form id="unlock-form-peuken_market" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                            @csrf
+                            <input type="hidden" name="widget_key" value="peuken_market">
+                        </form>
                         <button type="button" 
                                 @click="unlockWidget('peuken_market')"
                                 :disabled="unlockingKey === 'peuken_market'"
@@ -831,7 +847,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('peuken_market')" x-cloak @if(!$character->isWidgetUnlocked('peuken_market')) style="display: none;" @endif>
+                <div id="widget-content-peuken_market" x-show="isUnlocked('peuken_market')" x-cloak @if(!$character->isWidgetUnlocked('peuken_market')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
@@ -901,6 +917,10 @@
                         </p>
                     </div>
                     <div class="pt-2">
+                        <form id="unlock-form-security" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                            @csrf
+                            <input type="hidden" name="widget_key" value="security">
+                        </form>
                         <button type="button" 
                                 @click="unlockWidget('security')"
                                 :disabled="unlockingKey === 'security'"
@@ -912,7 +932,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('security')" x-cloak @if(!$character->isWidgetUnlocked('security')) style="display: none;" @endif>
+                <div id="widget-content-security" x-show="isUnlocked('security')" x-cloak @if(!$character->isWidgetUnlocked('security')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-gradient-to-r from-rose-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs">
@@ -972,18 +992,22 @@
                         </p>
                     </div>
                     <div class="pt-2">
+                        <form id="unlock-form-roulette" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                            @csrf
+                            <input type="hidden" name="widget_key" value="roulette">
+                        </form>
                         <button type="button" 
                                 @click="unlockWidget('roulette')"
                                 :disabled="unlockingKey === 'roulette'"
                                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
                             <i class="fa-solid" :class="unlockingKey === 'roulette' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                            <span x-text="unlockingKey === 'roulette' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
+                            <span x-text="unlockingKey === 'roulette' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 25 Sterren'"></span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('roulette')" x-cloak @if(!$character->isWidgetUnlocked('roulette')) style="display: none;" @endif>
+                <div id="widget-content-roulette" x-show="isUnlocked('roulette')" x-cloak @if(!$character->isWidgetUnlocked('roulette')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
@@ -1395,7 +1419,7 @@ function tbsDashboardCustomizer() {
         weather: @js($clinicWeather),
         isLocating: false,
         unlockingKey: null,
-        unlockedWidgets: @js($unlockedWidgets),
+        unlockedWidgets: @js(array_values($unlockedWidgets ?? [])),
         widgetPrices: @js($widgetPrices),
         userStars: {{ (int) ($character->stars ?? 0) }},
 
@@ -1491,7 +1515,8 @@ function tbsDashboardCustomizer() {
             if (this.unlockingKey) return;
             const cost = (this.widgetPrices && this.widgetPrices[key]) || 15;
             if (this.userStars < cost) {
-                alert('Je hebt ' + this.userStars + ' sterren, maar deze widget kost ' + cost + ' sterren. Verdien of koop eerst meer sterren!');
+                const msg = 'Je hebt ' + this.userStars + ' sterren, maar deze widget kost ' + cost + ' sterren. Koop of verdien eerst meer sterren!';
+                if (window.tbsToast) window.tbsToast(msg, 'error'); else alert(msg);
                 return;
             }
             if (!confirm('Wil je deze widget permanent ontgrendelen voor ' + cost + ' ⭐ sterren?')) {
@@ -1504,26 +1529,27 @@ function tbsDashboardCustomizer() {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
                 const unlockUrl = '{{ route("dashboard.widgets.unlock", [], false) }}';
 
+                const formData = new FormData();
+                formData.append('widget_key', key);
+                formData.append('_token', csrfToken);
+
                 const resp = await fetch(unlockUrl, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: JSON.stringify({ widget_key: key })
+                    body: formData
                 });
 
-                let data;
+                let data = null;
                 try {
                     data = await resp.json();
-                } catch(parseErr) {
-                    throw new Error('Onverwacht serverantwoord. Vernieuw de pagina en probeer opnieuw.');
-                }
+                } catch(e) {}
 
-                if (resp.ok && data.success) {
+                if (resp.ok && data && data.success) {
                     if (Array.isArray(data.unlocked_widgets)) {
                         this.unlockedWidgets = [...new Set([...(this.unlockedWidgets || []), ...data.unlocked_widgets])];
                     } else if (Array.isArray(this.unlockedWidgets) && !this.unlockedWidgets.includes(key)) {
@@ -1533,12 +1559,30 @@ function tbsDashboardCustomizer() {
                     this.widgets[key] = true;
                     localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
                     window.dispatchEvent(new CustomEvent('character-stats-updated', { detail: { stars: data.stars } }));
-                    alert('🎉 ' + (data.message || 'Widget succesvol ontgrendeld!'));
+
+                    const contentEl = document.getElementById('widget-content-' + key);
+                    if (contentEl) {
+                        contentEl.style.display = '';
+                    }
+
+                    const succMsg = data.message || '🎉 Widget succesvol ontgrendeld!';
+                    if (window.tbsToast) window.tbsToast(succMsg, 'success'); else alert(succMsg);
                 } else {
-                    alert(data.error || data.message || 'Er is een fout opgetreden bij het ontgrendelen.');
+                    const fallbackForm = document.getElementById('unlock-form-' + key);
+                    if (fallbackForm) {
+                        fallbackForm.submit();
+                        return;
+                    }
+                    const errMsg = (data && (data.error || data.message)) || 'Er is een fout opgetreden bij het ontgrendelen.';
+                    if (window.tbsToast) window.tbsToast(errMsg, 'error'); else alert(errMsg);
                 }
             } catch (e) {
-                alert(e.message || 'Netwerkfout bij het ontgrendelen van de widget.');
+                const fallbackForm = document.getElementById('unlock-form-' + key);
+                if (fallbackForm) {
+                    fallbackForm.submit();
+                    return;
+                }
+                if (window.tbsToast) window.tbsToast('Netwerkfout: ' + (e.message || 'Probeer opnieuw.'), 'error'); else alert('Netwerkfout bij het ontgrendelen.');
             } finally {
                 this.unlockingKey = null;
             }

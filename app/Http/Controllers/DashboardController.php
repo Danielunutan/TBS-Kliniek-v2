@@ -337,15 +337,15 @@ class DashboardController extends Controller
     /**
      * Unlock a premium widget permanently with character stars.
      */
-    public function unlockWidget(Request $request): JsonResponse
+    public function unlockWidget(Request $request): JsonResponse|RedirectResponse
     {
-        $validated = $request->validate([
-            'widget_key' => 'required|string',
-        ]);
+        $key = (string) ($request->input('widget_key') ?? '');
 
-        $key = $validated['widget_key'];
+        if (empty($key) || ! array_key_exists($key, self::WIDGET_PRICES)) {
+            if (! $request->expectsJson() && ! $request->ajax()) {
+                return back()->with('error', 'Ongeldige of niet-gespecificeerde widget.');
+            }
 
-        if (! array_key_exists($key, self::WIDGET_PRICES)) {
             return response()->json(['error' => 'Ongeldige widget.'], 422);
         }
 
@@ -356,10 +356,14 @@ class DashboardController extends Controller
         $character = $user?->character;
 
         if (! $character) {
+            if (! $request->expectsJson() && ! $request->ajax()) {
+                return back()->with('error', 'Geen personage gevonden.');
+            }
+
             return response()->json(['error' => 'Geen karakter gevonden.'], 404);
         }
 
-        return DB::transaction(function () use ($character, $key, $cost) {
+        return DB::transaction(function () use ($character, $key, $cost, $request) {
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
             $unlocked = $lockedCharacter->unlocked_widgets;
@@ -371,6 +375,10 @@ class DashboardController extends Controller
             }
 
             if (in_array($key, $unlocked, true)) {
+                if (! $request->expectsJson() && ! $request->ajax()) {
+                    return back()->with('info', 'Deze widget is al ontgrendeld!');
+                }
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Deze widget is al ontgrendeld!',
@@ -381,9 +389,12 @@ class DashboardController extends Controller
             }
 
             if (($lockedCharacter->stars ?? 0) < $cost) {
-                return response()->json([
-                    'error' => "Niet genoeg sterren! Deze widget kost {$cost} sterren (je hebt er {$lockedCharacter->stars}).",
-                ], 400);
+                $errMsg = "Niet genoeg sterren! Deze widget kost {$cost} sterren (je hebt er {$lockedCharacter->stars}).";
+                if (! $request->expectsJson() && ! $request->ajax()) {
+                    return back()->with('error', $errMsg);
+                }
+
+                return response()->json(['error' => $errMsg], 400);
             }
 
             $lockedCharacter->stars = max(0, (int) $lockedCharacter->stars - $cost);
@@ -391,9 +402,14 @@ class DashboardController extends Controller
             $lockedCharacter->unlocked_widgets = array_values(array_unique($unlocked));
             $lockedCharacter->save();
 
+            $successMsg = "Widget succesvol ontgrendeld voor {$cost} sterren! ⭐";
+            if (! $request->expectsJson() && ! $request->ajax()) {
+                return back()->with('success', $successMsg);
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => "Widget succesvol ontgrendeld voor {$cost} sterren! ⭐",
+                'message' => $successMsg,
                 'stars' => (int) $lockedCharacter->stars,
                 'unlocked_widgets' => $lockedCharacter->unlocked_widgets,
                 'widget_key' => $key,

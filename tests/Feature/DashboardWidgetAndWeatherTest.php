@@ -88,6 +88,13 @@ class DashboardWidgetAndWeatherTest extends TestCase
         ]);
         $insufficientResponse->assertStatus(400);
         $this->assertFalse($character->isWidgetUnlocked('weather'));
+
+        // 4. Test standard HTML form POST fallback redirect
+        $formPostResponse = $this->actingAs($user)->from(route('dashboard'))->post(route('dashboard.widgets.unlock'), [
+            'widget_key' => 'weather',
+        ]);
+        $formPostResponse->assertRedirect(route('dashboard'));
+        $formPostResponse->assertSessionHas('error');
     }
 
     public function test_weather_by_coordinates_endpoint_returns_data(): void

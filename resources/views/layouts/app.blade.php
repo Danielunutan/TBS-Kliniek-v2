@@ -2518,8 +2518,9 @@
                 bottom: 76px !important;
             }
         }
-        /* When Live Chat popup is open, hide BMC button so it does not obstruct the chat window */
-        body:has(.tbs-mini-chat-popup:not([style*="display: none"])) #bmc-wbtn {
+        /* When Live Chat popup is open, hide BMC button & Radio player so they do not obstruct the chat window */
+        body:has(.tbs-mini-chat-popup:not([style*="display: none"])) #bmc-wbtn,
+        body:has(.tbs-mini-chat-popup:not([style*="display: none"])) #tbs-global-radio-container {
             opacity: 0 !important;
             pointer-events: none !important;
             transform: scale(0.8) !important;
