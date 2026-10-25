@@ -2417,28 +2417,59 @@
     <!-- PWA NATIVE APP PROMPT & BANNER -->
     @include('partials.pwa_prompt')
 
-    <!-- BUY ME A COFFEE WIDGET (Positioned directly above the Live Chat button) -->
+    <!-- BUY ME A COFFEE WIDGET (Positioned cleanly above Live Chat) -->
     <style>
         #bmc-wbtn {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            max-width: 44px !important;
+            max-height: 44px !important;
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%) !important;
+            color: #ffffff !important;
+            border-radius: 9999px !important;
+            border: 2px solid rgba(255, 255, 255, 0.35) !important;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4), 0 2px 4px rgba(0, 0, 0, 0.15) !important;
             right: 16px !important;
             left: auto !important;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 124px) !important;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 120px) !important;
             z-index: 9997 !important;
-            box-shadow: 0 4px 14px rgba(189, 95, 255, 0.45) !important;
-            transition: transform 0.2s ease, opacity 0.2s ease !important;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, opacity 0.2s ease !important;
             cursor: pointer !important;
+            overflow: hidden !important;
+            text-decoration: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
         #bmc-wbtn:hover {
-            transform: scale(1.08) !important;
+            transform: scale(1.1) !important;
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6) !important;
+        }
+        #bmc-wbtn:active {
+            transform: scale(0.95) !important;
+        }
+        #bmc-wbtn img {
+            width: 24px !important;
+            height: 24px !important;
+            min-width: 24px !important;
+            min-height: 24px !important;
+            max-width: 24px !important;
+            max-height: 24px !important;
+            display: block !important;
+            margin: auto !important;
+            object-fit: contain !important;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25)) !important;
+            pointer-events: none !important;
         }
         @media (min-width: 1024px) {
             #bmc-wbtn {
                 right: 24px !important;
                 left: auto !important;
-                bottom: 76px !important;
+                bottom: 74px !important;
             }
         }
         /* When Live Chat popup is open, hide BMC button so it does not obstruct the chat window */
@@ -2451,45 +2482,31 @@
             z-index: 99999 !important;
         }
     </style>
-    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="tbskliniek" data-description="Support me on Buy me a coffee!" data-message="" data-color="#BD5FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="tbskliniek" data-description="Support me on Buy me a coffee!" data-message="" data-color="#7c3aed" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
     <script>
         (function() {
-            // Trigger BMC initialization if script loaded after DOMContentLoaded fired
-            function initBmc() {
-                if (!document.getElementById('bmc-wbtn')) {
-                    if (document.readyState === 'interactive' || document.readyState === 'complete') {
-                        try {
-                            window.dispatchEvent(new Event('DOMContentLoaded'));
-                        } catch (e) {}
-                    }
-                }
-            }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initBmc);
-            } else {
-                initBmc();
-                setTimeout(initBmc, 300);
-                setTimeout(initBmc, 1000);
-            }
-
-            // Guaranteed resilient fallback: if external CDN was blocked, render button directly
-            setTimeout(function() {
+            function ensureBmcButton() {
                 if (!document.getElementById('bmc-wbtn')) {
                     var btn = document.createElement('a');
                     btn.id = 'bmc-wbtn';
                     btn.href = 'https://www.buymeacoffee.com/tbskliniek';
                     btn.target = '_blank';
                     btn.rel = 'noopener noreferrer';
-                    btn.title = 'Support me on Buy me a coffee!';
-                    btn.style.width = '64px';
-                    btn.style.height = '64px';
-                    btn.style.background = '#BD5FFF';
-                    btn.style.borderRadius = '32px';
-                    btn.style.position = 'fixed';
-                    btn.innerHTML = '<img src="https://cdn.buymeacoffee.com/widget/assets/coffee%20cup.svg" alt="Buy Me a Coffee" style="height: 36px; width: 36px; margin: 0; padding: 0;">';
+                    btn.title = 'Steun TBS Kliniek op Buy Me a Coffee!';
+                    btn.innerHTML = '<img src="https://cdn.buymeacoffee.com/widget/assets/coffee%20cup.svg" alt="Buy Me a Coffee">';
                     document.body.appendChild(btn);
                 }
-            }, 1200);
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', ensureBmcButton);
+            } else {
+                ensureBmcButton();
+            }
+            document.addEventListener('turbo:load', function() {
+                setTimeout(ensureBmcButton, 300);
+            });
+
+            setTimeout(ensureBmcButton, 1000);
         })();
     </script>
 
