@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\User;
 use App\Services\EnergyService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -31,7 +32,15 @@ class LeaderboardController extends Controller
             $type = 'level';
         }
 
-        $leaderboard = Cache::remember("tbs_leaderboard_{$type}", 60, function () use ($type) {
+        $cacheKey = "tbs_leaderboard_{$type}_v3";
+        $cached = Cache::get($cacheKey);
+        if ($cached instanceof \__PHP_Incomplete_Class || ! ($cached instanceof Collection)) {
+            Cache::forget($cacheKey);
+            Cache::forget("tbs_leaderboard_{$type}");
+            $cached = null;
+        }
+
+        $leaderboard = $cached ?? (function () use ($type, $cacheKey) {
             $query = Character::query()->with('gang');
 
             match ($type) {
@@ -41,8 +50,11 @@ class LeaderboardController extends Controller
                 default => $query->orderByDesc('level')->orderByDesc('xp'),
             };
 
-            return $query->take(50)->get();
-        });
+            $result = $query->take(50)->get();
+            Cache::put($cacheKey, $result, 60);
+
+            return $result;
+        })();
 
         $topCharacters = $leaderboard;
 

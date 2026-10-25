@@ -65,7 +65,7 @@
                     <i class="fa-solid fa-list-ol text-slate-400"></i>
                     <span>Volledige Top 50</span>
                 </span>
-                <span class="text-[10px] font-bold opacity-80">{{ count($leaderboard ?? $topCharacters ?? []) }}</span>
+                <span class="text-[10px] font-bold opacity-80">{{ is_countable($leaderboard ?? null) ? count($leaderboard) : (is_countable($topCharacters ?? null) ? count($topCharacters) : 0) }}</span>
             </button>
 
             <button @click="activeTab = 'top10'" 
