@@ -1388,14 +1388,14 @@
     <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
         <!-- NATIVE MOBILE TOP-HUD (Compact Single-Line, Max Gaming Screen Space) -->
-        <header class="lg:hidden bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md text-slate-800 dark:text-slate-100 px-2.5 py-2 flex items-center justify-between border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs select-none" style="padding-top: max(0.5rem, env(safe-area-inset-top));">
+        <header class="lg:hidden bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md text-slate-800 dark:text-slate-100 px-2 py-2 flex items-center justify-between border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs select-none" style="padding-top: max(0.5rem, env(safe-area-inset-top));">
             
-            <!-- 1. Left: Back, Reload, & Player Avatar / Level -->
+            <!-- 1. Left: Back, Avatar, & Level/Name -->
             <div class="flex items-center gap-1.5 shrink-0 min-w-0">
                 <!-- WebApp Terug Knop -->
                 <button type="button" 
                         onclick="window.tbsGoBack()" 
-                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" 
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" 
                         title="Vorige pagina (Terug)"
                         aria-label="Terug">
                     <i class="fa-solid fa-arrow-left text-[11px]"></i>
@@ -1412,43 +1412,63 @@
                         </div>
                         <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#110726]"></span>
                     </div>
-                    <div class="flex flex-col min-w-0 max-w-[55px] xs:max-w-[80px]">
+                    <div class="flex flex-col min-w-0 max-w-[50px] xs:max-w-[70px]">
                         <span class="text-[11px] font-black text-slate-900 dark:text-white truncate leading-none">{{ $character->name }}</span>
                         <span class="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 leading-none mt-0.5">LVL {{ $character->level }}</span>
                     </div>
                 </a>
             </div>
 
-            <!-- 2. Center: Live Quick-Gaming Stats Pills (Energy & Cash) -->
-            <div class="flex items-center gap-1.5 shrink-0">
-                <!-- Energy Pill (Tap opens quick sheet) -->
+            <!-- 2. Center: Core Vitals (⚡ Energy, ❤️ Health, 💰 Cash) -->
+            <div class="flex items-center gap-1 shrink-0">
+                <!-- Energy Pill (Tap = Quick sheet of boost) -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition"
+                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
                         title="Energie (klik voor acties)">
                     <div class="flex items-center gap-1 text-[10px] leading-none font-extrabold text-emerald-600 dark:text-emerald-400">
                         <i class="fa-solid fa-bolt text-[9px] text-emerald-500"></i>
                         <span class="font-mono text-[10px]" x-text="stats.energy">{{ $character->energy }}</span><span class="text-[8px] text-slate-400 dark:text-purple-300/60 font-mono">/<span x-text="stats.max_energy">{{ $character->max_energy }}</span></span>
                     </div>
-                    <div class="w-12 bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1 mt-1 overflow-hidden">
+                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1 mt-1 overflow-hidden">
                         <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                     </div>
                 </button>
 
-                <!-- Cash Pill (Tap opens quick sheet / bank) -->
+                <!-- Health Pill (Tap = Quick sheet of ziekenhuis) -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="flex items-center gap-1 bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-2 py-1.5 rounded-xl cursor-pointer active:scale-95 transition"
+                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
+                        title="Gezondheid (klik voor genezen)">
+                    <div class="flex items-center gap-1 text-[10px] leading-none font-extrabold text-rose-600 dark:text-rose-400">
+                        <i class="fa-solid fa-heart text-[9px] text-rose-500"></i>
+                        <span class="font-mono text-[10px]" x-text="stats.health">{{ $character->health }}</span><span class="text-[8px] text-slate-400 dark:text-purple-300/60 font-mono">/<span x-text="stats.max_health">{{ $character->max_health }}</span></span>
+                    </div>
+                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1 mt-1 overflow-hidden">
+                        <div class="bg-rose-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                    </div>
+                </button>
+
+                <!-- Cash Pill (Tap = Quick sheet of bank storten) -->
+                <button type="button" 
+                        @click="mobileQuickSheetOpen = true"
+                        class="hidden xs:flex items-center gap-1 bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-1.5 py-1.5 rounded-xl cursor-pointer active:scale-95 transition"
                         title="Contant geld (klik om te storten)">
                     <i class="fa-solid fa-money-bill-wave text-[10px] text-emerald-500"></i>
-                    <span class="font-black text-slate-900 dark:text-white text-[11px] font-mono leading-none tracking-tight" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                    <span class="font-black text-slate-900 dark:text-white text-[10px] font-mono leading-none tracking-tight" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
                 </button>
             </div>
 
-            <!-- 3. Right: Radio, Live Chat & Menu Toggle -->
+            <!-- 3. Right: Refresh, Live Chat & Menu Toggle -->
             <div class="flex items-center gap-1 shrink-0">
-                <!-- Mobile Radio Pill -->
-                @include('partials.radio_player', ['isMobile' => true])
+                <!-- Direct Soft Reload Button -->
+                <button type="button" 
+                        onclick="window.tbsReloadPage(this)" 
+                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" 
+                        title="Pagina vernieuwen" 
+                        aria-label="Vernieuwen">
+                    <i class="fa-solid fa-rotate-right text-[11px]"></i>
+                </button>
 
                 <!-- Chat Button with Notification Ping -->
                 @php
@@ -2764,6 +2784,11 @@
         }
         #bmc-iframe {
             z-index: 999999 !important;
+        }
+        @media (max-width: 1023px) {
+            #bmc-wbtn, #bmc-iframe, #bmc-permanent-holder, #tbs-floating-mini-chat {
+                display: none !important;
+            }
         }
     </style>
     <div id="bmc-permanent-holder" data-turbo-permanent></div>
