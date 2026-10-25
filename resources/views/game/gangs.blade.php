@@ -214,10 +214,11 @@
             </div>
         </div>
 
-        <!-- Horizontale Navigatie Tabs (Optimized, Fits on Screen) -->
-        <div class="relative px-2.5 sm:px-3 py-2 bg-white dark:bg-[#111827] border-t border-slate-100 dark:border-slate-800/80">
-            <div class="flex items-center gap-1.5 overflow-x-auto scroll-smooth py-0.5 no-scrollbar [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]" style="-webkit-overflow-scrolling: touch;">
-                @if($myGang)
+        <!-- Horizontale Navigatie Tabs (2 Nette Rijen Onder Elkaar) -->
+        <div class="px-2.5 sm:px-3 py-2.5 bg-white dark:bg-[#111827] border-t border-slate-100 dark:border-slate-800/80 flex flex-col gap-2">
+            @if($myGang)
+            <!-- Rij 1: Bende Operaties & Bezittingen -->
+            <div class="flex items-center gap-1.5 flex-wrap">
                 <!-- 1. Mijn Bende -->
                 <button type="button" @click="setGangTab('mijn_gang')" 
                         :class="activeGangTab === 'mijn_gang' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-extrabold' : 'bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 font-bold'"
@@ -289,7 +290,10 @@
                         {{ $myGang->getStorageUsed() }}
                     </span>
                 </button>
+            </div>
 
+            <!-- Rij 2: Acties, Financiën, Beheer & Overzichten -->
+            <div class="flex items-center gap-1.5 flex-wrap pt-1.5 border-t border-slate-100/90 dark:border-slate-800/60">
                 <!-- 8. Doneren -->
                 <button type="button" @click="setGangTab('doneren')" 
                         :class="activeGangTab === 'doneren' ? 'bg-emerald-600 text-white shadow-xs border-emerald-600 font-extrabold' : 'bg-slate-50 dark:bg-slate-800/70 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 font-bold'"
@@ -320,6 +324,7 @@
                     @endif
                 </button>
 
+                <!-- 11. Instellingen -->
                 <button type="button" @click="setGangTab('instellingen')" 
                         :class="activeGangTab === 'instellingen' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-extrabold' : 'bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 font-bold'"
                         class="px-2.5 py-1.5 rounded-lg text-xs shrink-0 flex items-center gap-1.5 border transition cursor-pointer group">
@@ -328,7 +333,7 @@
                 </button>
                 @endif
 
-                <!-- 11. Alle Bendes -->
+                <!-- 12. Alle Bendes -->
                 <button type="button" @click="setGangTab('alle_bendes')" 
                         :class="activeGangTab === 'alle_bendes' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-extrabold' : 'bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 font-bold'"
                         class="px-2.5 py-1.5 rounded-lg text-xs shrink-0 flex items-center gap-1.5 border transition cursor-pointer group">
@@ -336,7 +341,7 @@
                     <span>Alle Bendes</span>
                 </button>
 
-                <!-- 12. Ranglijst -->
+                <!-- 13. Ranglijst -->
                 <button type="button" @click="setGangTab('ranglijst')" 
                         :class="activeGangTab === 'ranglijst' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-extrabold' : 'bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 font-bold'"
                         class="px-2.5 py-1.5 rounded-lg text-xs shrink-0 flex items-center gap-1.5 border transition cursor-pointer group">
@@ -344,16 +349,17 @@
                     <span>Ranglijst</span>
                 </button>
 
-                <!-- 13. Logboek -->
+                <!-- 14. Logboek -->
                 <button type="button" @click="setGangTab('logboek')" 
                         :class="activeGangTab === 'logboek' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-extrabold' : 'bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 font-bold'"
                         class="px-2.5 py-1.5 rounded-lg text-xs shrink-0 flex items-center gap-1.5 border transition cursor-pointer group">
                     <i class="fa-solid fa-book-bookmark text-xs" :class="activeGangTab === 'logboek' ? 'text-white' : 'text-blue-500 group-hover:scale-110 transition-transform'"></i>
                     <span>Logboek</span>
                 </button>
-
-                @else
-                <!-- Spelers zonder bende: Alle Bendes & Ranglijst -->
+            </div>
+            @else
+            <!-- Spelers zonder bende: Alle Bendes & Ranglijst -->
+            <div class="flex items-center gap-1.5 flex-wrap">
                 <button type="button" @click="setGangTab('alle_bendes')" 
                         :class="activeGangTab === 'alle_bendes' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-extrabold' : 'bg-slate-50 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 font-bold'"
                         class="px-2.5 py-1.5 rounded-lg text-xs shrink-0 flex items-center gap-1.5 border transition cursor-pointer group">
@@ -367,8 +373,8 @@
                     <i class="fa-solid fa-trophy text-xs" :class="activeGangTab === 'ranglijst' ? 'text-white' : 'text-amber-500 group-hover:scale-110 transition-transform'"></i>
                     <span>Ranglijst</span>
                 </button>
-                @endif
             </div>
+            @endif
         </div>
     </div>
 
