@@ -88,12 +88,18 @@ class GangController extends Controller
                 'slay' => $totalSlay >= 1000000 ? number_format($totalSlay / 1000000, 2).'M' : ($totalSlay >= 1000 ? number_format($totalSlay / 1000, 1).'K' : number_format($totalSlay, 0, ',', '.')),
                 'raw_slay' => $totalSlay,
                 'cash' => '€'.number_format($g->treasury, 0, ',', '.'),
+                'raw_cash' => (int) $g->treasury,
                 'icon' => $g->emblem ?? 'fa-crown',
+                'avatar_url' => $g->avatar_url,
+                'banner_url' => $g->banner_url,
                 'members_count' => $g->members_count,
+                'max_members' => $g->max_members ?? 10,
                 'is_real' => true,
                 'is_open' => (bool) ($g->is_open ?? true),
                 'min_respect' => (int) ($g->min_respect ?? 0),
                 'has_pending_request' => isset($pendingGangRequestIds[$g->id]),
+                'profile_url' => route('gangs.show', $g->tag ?? $g->id),
+                'description' => $g->description,
                 'model' => $g,
             ]);
         }
@@ -134,7 +140,31 @@ class GangController extends Controller
 
         $recentAttacks = GangAttack::with(['attackerGang', 'targetGang', 'character'])->latest()->take(15)->get();
 
-        $gangMembersData = $myGang ? $myGang->members->map(function ($m) {
+        $warsWon = $myGang ? (GangAttack::where('attacker_gang_id', $myGang->id)->where('won', true)->count()
+            + GangAttack::where('target_gang_id', $myGang->id)->where('won', false)->count()) : 0;
+
+        $warsLost = $myGang ? (GangAttack::where('attacker_gang_id', $myGang->id)->where('won', false)->count()
+            + GangAttack::where('target_gang_id', $myGang->id)->where('won', true)->count()) : 0;
+
+        $totalRespect = $myGang ? (float) $myGang->members->sum('respect') : 0;
+
+        $gangMembersData = $myGang ? $myGang->members->sortByDesc('respect')->values()->map(function ($m) use ($myGang) {
+            $isShopper = (int) $myGang->personal_shopper === (int) $m->id;
+            $isMoneyMagnet = (int) $myGang->money_magnet === (int) $m->id;
+
+            $roleLabel = 'Bendelid';
+            if ($m->gang_role === 'leader' || (int) $myGang->leader_character_id === (int) $m->id) {
+                $roleLabel = 'Boss / Leider';
+            } elseif ($isShopper && $isMoneyMagnet) {
+                $roleLabel = 'Kantine & Kas (Co-Leider)';
+            } elseif ($isShopper) {
+                $roleLabel = 'Kantine Smokkelaar (Co-Leider)';
+            } elseif ($isMoneyMagnet) {
+                $roleLabel = 'Kasbeheerder (Co-Leider)';
+            } elseif ($m->gang_role === 'co_leader') {
+                $roleLabel = 'Co-Leider';
+            }
+
             return [
                 'id' => $m->id,
                 'name' => $m->name,
@@ -143,7 +173,9 @@ class GangController extends Controller
                 'respect' => (float) $m->respect,
                 'respect_formatted' => number_format($m->respect, 0, ',', '.'),
                 'gang_role' => $m->gang_role,
-                'role_label' => $m->gang_role === 'leader' ? 'Boss / Leider' : ($m->gang_role === 'co_leader' ? 'Co-Leider' : 'Bendelid'),
+                'role_label' => $roleLabel,
+                'is_shopper' => $isShopper,
+                'is_money_magnet' => $isMoneyMagnet,
                 'is_online' => $m->isOnline(),
                 'online_label' => $m->online_status_label,
                 'profile_url' => route('profile.show', $m->name),
@@ -158,7 +190,7 @@ class GangController extends Controller
         $defaultTab = $myGang ? 'mijn_gang' : 'ranglijst';
         $activeTab = $forceTab ?? $request->query('tab', session('active_gang_tab', $defaultTab));
 
-        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems'));
+        return view('game.gangs', compact('character', 'realGangs', 'myGang', 'gangRankings', 'topRankings', 'hourlyWage', 'dailyWage', 'wageDetails', 'todayDonations', 'totalDonatedToday', 'todayRecentLogs', 'memberDonations', 'inboundAlliances', 'recentAttacks', 'gangMembersData', 'onlineMembersCount', 'activeTab', 'myInventoryItems', 'warsWon', 'warsLost', 'totalRespect'));
     }
 
     /**

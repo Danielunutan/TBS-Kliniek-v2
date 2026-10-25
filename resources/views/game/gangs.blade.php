@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="space-y-6" x-data="{ 
-    activeGangTab: '{{ $activeTab ?? session('active_gang_tab', request('tab', ($myGang ? 'mijn_gang' : 'ranglijst'))) }}',
+    activeGangTab: '{{ $activeTab ?? session('active_gang_tab', request('tab', ($myGang ? 'mijn_gang' : 'alle_bendes'))) }}',
     beheerTab: '{{ session('beheer_tab', request('beheer_tab', 'leden')) }}',
     showCreateModal: false,
     attackCooldown: {{ (int) ($myGang ? $myGang->attackCooldownRemaining() : 0) }},
@@ -36,8 +36,8 @@
     }
 }">
 
-    <!-- Top Hero Banner (Rich TBS Kliniek Style) -->
-    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
+    <!-- Top Hero Banner (Rich TBS Kliniek Style - Hidden on Mijn Gang since it has full profile banner) -->
+    <div x-show="activeGangTab !== 'mijn_gang'" class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
         @if($myGang)
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5 sm:gap-4">
@@ -150,7 +150,14 @@
                         :class="activeGangTab === 'mijn_gang' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
                         class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
                     <i class="fa-solid fa-shield-halved text-xs"></i>
-                    <span>Overzicht</span>
+                    <span>Mijn Bende</span>
+                </button>
+
+                <button type="button" @click="setGangTab('alle_bendes')" 
+                        :class="activeGangTab === 'alle_bendes' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-address-book text-xs"></i>
+                    <span>Alle Bendes</span>
                 </button>
 
                 <button type="button" @click="setGangTab('leden')" 
@@ -222,6 +229,13 @@
                     <span>Instellingen</span>
                 </button>
                 @endif
+                @else
+                <button type="button" @click="setGangTab('alle_bendes')" 
+                        :class="activeGangTab === 'alle_bendes' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-address-book text-xs"></i>
+                    <span>Alle Bendes</span>
+                </button>
                 @endif
 
                 <button type="button" @click="setGangTab('ranglijst')" 
@@ -281,9 +295,19 @@
                                     class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
                                 <span class="flex items-center gap-2.5">
                                     <i class="fa-solid fa-shield-halved w-4 text-center" :class="activeGangTab === 'mijn_gang' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
-                                    <span>Mijn Gang</span>
+                                    <span>Mijn Bende</span>
                                 </span>
                                 <span class="text-[10px] font-mono font-black" :class="activeGangTab === 'mijn_gang' ? 'text-purple-200' : 'text-purple-600 dark:text-purple-400'">[{{ $myGang->tag }}]</span>
+                            </button>
+
+                            <button type="button" @click="setGangTab('alle_bendes')" 
+                                    :class="activeGangTab === 'alle_bendes' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-address-book w-4 text-center" :class="activeGangTab === 'alle_bendes' ? 'text-white' : 'text-purple-500 dark:text-purple-400'"></i>
+                                    <span>Alle Bendes</span>
+                                </span>
+                                <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded" :class="activeGangTab === 'alle_bendes' ? 'bg-purple-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'">Lijst</span>
                             </button>
 
                             <button type="button" @click="setGangTab('leden')" 
@@ -316,6 +340,16 @@
                                     <i class="fa-solid fa-stopwatch text-[10px]"></i> <span x-text="formatTime(attackCooldown)"></span>
                                 </span>
                                 <span x-show="attackCooldown <= 0" class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                            </button>
+                            @else
+                            <button type="button" @click="setGangTab('alle_bendes')" 
+                                    :class="activeGangTab === 'alle_bendes' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-address-book w-4 text-center" :class="activeGangTab === 'alle_bendes' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
+                                    <span>Alle Bendes</span>
+                                </span>
+                                <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded" :class="activeGangTab === 'alle_bendes' ? 'bg-purple-700 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'">Overzicht</span>
                             </button>
                             @endif
 
@@ -514,308 +548,722 @@
         <!-- Right Content Area: Tabs -->
         <div class="lg:col-span-9 space-y-6">
 
-            <!-- TAB 1: MIJN GANG -->
+            <!-- TAB 1: MIJN GANG (RICH PUBLIC PROFILE STYLE) -->
             @if($myGang)
-            <div x-show="activeGangTab === 'mijn_gang'" class="space-y-6">
-                <!-- Gang Profile Top Banner -->
-                <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white">
-                    <div class="h-40 sm:h-48 w-full overflow-hidden relative bg-purple-950">
-                        <img src="{{ $myGang->banner_url }}" alt="Gang Header" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
-                        <button type="button" 
-                                @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $myGang->id }}, name: '{{ addslashes($myGang->name) }}' })"
-                                class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-black/50 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
-                                title="Rapporteer deze bende bij moderatie">
-                            <i class="fa-solid fa-flag text-rose-400"></i> Rapporteer Bende
-                        </button>
+            <div x-show="activeGangTab === 'mijn_gang'" class="space-y-6" x-data="{
+                memberSearch: '',
+                onlyOnline: false,
+                members: {{ Js::from($gangMembersData ?? []) }},
+                get list() {
+                    let q = this.memberSearch.toLowerCase().trim();
+                    return this.members.filter(m => {
+                        if (q && !m.name.toLowerCase().includes(q) && !m.role_label.toLowerCase().includes(q)) return false;
+                        if (this.onlyOnline && !m.is_online) return false;
+                        return true;
+                    });
+                }
+            }">
+
+                <!-- Top Hero Banner Card (Exact rich style from public gang profile) -->
+                <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+                    <div class="h-44 sm:h-56 w-full overflow-hidden relative bg-purple-950">
+                        <img src="{{ $myGang->banner_url }}" alt="{{ $myGang->name }} Banner" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+
+                        <!-- Top Right Action Controls -->
+                        <div class="absolute top-4 right-4 flex items-center gap-2">
+                            <button type="button" 
+                                    @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $myGang->id }}, name: '{{ addslashes($myGang->name) }}' })"
+                                    class="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
+                                    title="Rapporteer deze bende bij moderatie">
+                                <i class="fa-solid fa-flag text-rose-400"></i>
+                                <span class="hidden sm:inline">Rapporteer</span>
+                            </button>
+                            <form action="{{ route('gangs.leave') }}" method="POST"
+                                  onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
+                                @csrf
+                                <button type="submit" 
+                                        class="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
+                                        title="Bende verlaten">
+                                    <i class="fa-solid fa-arrow-right-from-bracket text-rose-400"></i>
+                                    <span class="hidden sm:inline">Verlaten</span>
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
-                    <!-- Gang Emblem and Tag Badge -->
-                    <div class="px-6 pb-6 pt-3 relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                        <div class="flex items-center gap-4 -mt-12 sm:-mt-14">
-                            <div class="w-20 h-20 rounded-2xl bg-purple-600 border-4 border-white shadow-lg flex items-center justify-center text-3xl text-white shrink-0 overflow-hidden">
+                    <!-- Gang Identity & Action Row -->
+                    <div class="px-6 pb-6 pt-3 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 -mt-14 sm:-mt-16">
+                            <!-- Gang Emblem / Avatar -->
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 border-4 border-white dark:border-slate-900 shadow-xl flex items-center justify-center text-4xl text-white shrink-0 overflow-hidden">
                                 @if($myGang->avatar)
                                     <img src="{{ $myGang->avatar_url }}" alt="{{ $myGang->name }}" class="w-full h-full object-cover">
                                 @else
                                     <i class="fa-solid {{ $myGang->emblem ?? 'fa-crown' }}"></i>
                                 @endif
                             </div>
-                            <div class="pt-8 sm:pt-0">
-                                <h2 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                                    <span>{{ $myGang->name }}</span>
-                                    <span class="text-purple-700 text-xs font-mono font-bold bg-purple-50 px-2 py-0.5 rounded border border-purple-200">[{{ $myGang->tag }}]</span>
-                                    <i class="fa-solid fa-circle-check text-purple-600 text-sm"></i>
-                                </h2>
-                                <span class="text-xs font-black text-slate-950 flex items-center gap-1.5 mt-0.5">
-                                    <i class="fa-solid fa-users text-xs text-purple-600"></i> {{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden
-                                </span>
+
+                            <div class="pt-2 sm:pt-4 space-y-1.5">
+                                <div class="flex flex-wrap items-center gap-2.5">
+                                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                        <span>{{ $myGang->name }}</span>
+                                        <span class="text-purple-600 dark:text-purple-400 font-mono text-sm sm:text-base font-extrabold bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-lg border border-purple-200 dark:border-purple-800">
+                                            [{{ $myGang->tag }}]
+                                        </span>
+                                        <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-base" title="Geverifieerde Bende"></i>
+                                    </h1>
+                                </div>
+
+                                <!-- Meta details: Leader, Members, Status -->
+                                <div class="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-crown text-amber-500"></i>
+                                        <span class="text-slate-400 dark:text-slate-500 font-medium">Leider:</span>
+                                        @if($myGang->leader)
+                                            <a href="{{ route('profile.show', $myGang->leader->name) }}" class="text-purple-600 dark:text-purple-400 hover:underline">
+                                                {{ $myGang->leader->name }}
+                                            </a>
+                                        @else
+                                            <span class="text-slate-400 italic">Onbekend</span>
+                                        @endif
+                                    </span>
+
+                                    <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
+                                        <span>{{ $myGang->members->count() }} / {{ $myGang->max_members ?? 10 }} leden</span>
+                                    </span>
+
+                                    <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+
+                                    <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        <span>{{ $onlineMembersCount }} online</span>
+                                    </span>
+
+                                    @if((bool)($myGang->is_open ?? true))
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                            <i class="fa-solid fa-lock-open text-[9px]"></i> Open Bende
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                            <i class="fa-solid fa-lock text-[9px]"></i> Gesloten
+                                        </span>
+                                    @endif
+
+                                    @if(($myGang->min_respect ?? 0) > 0)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                            <i class="fa-solid fa-fire text-amber-500 text-[9px]"></i> Min. {{ number_format($myGang->min_respect, 0, ',', '.') }} Respect
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Top Quick Leave Button -->
-                        <div class="flex items-center gap-2">
-                            <form action="{{ route('gangs.leave') }}" method="POST"
-                                  onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
-                                @csrf
-                                <button type="submit" 
-                                        class="px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
-                                    <i class="fa-solid fa-arrow-right-from-bracket text-rose-500"></i>
-                                    <span>Bende Verlaten</span>
-                                </button>
-                            </form>
+                        <!-- Action Toolbar -->
+                        <div class="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-auto">
+                            <button type="button" @click="setGangTab('doneren')" 
+                                    class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-vault"></i>
+                                <span>Doneren</span>
+                            </button>
+                            <button type="button" @click="setGangTab('oorlog')" 
+                                    class="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-crosshairs"></i>
+                                <span>Oorlog</span>
+                            </button>
+                            @if($myGang->isOfficer($character))
+                            <button type="button" @click="setGangTab('beheer')" 
+                                    class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs flex items-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-users-gear"></i>
+                                <span>Beheer</span>
+                            </button>
+                            @endif
                         </div>
                     </div>
                 </div>
 
-                <!-- Gang Details Grid -->
-                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8 text-xs font-medium border-b border-slate-100 pb-6">
-                        <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                            <span class="text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-crown text-amber-500"></i> Bende Leider
-                            </span>
-                            <a href="{{ route('profile.show', $myGang->leader?->name ?? 'onbekend') }}" class="font-bold text-purple-700 hover:underline flex items-center gap-1">
-                                {{ $myGang->leader?->name ?? 'Onbekend' }}
-                                <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
+                <!-- 6 KEY STATS CARDS (Exact match with public gang page) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <!-- Totaal Respect -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
+                        <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BENDE RESPECT</span>
+                        <div class="flex items-center justify-center gap-1.5 text-purple-700 dark:text-purple-400 text-lg font-black font-mono">
+                            <i class="fa-solid fa-fire text-xs text-purple-500"></i>
+                            <span>{{ number_format($totalRespect, 0, ',', '.') }}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 block font-medium">Collectieve reputatie</span>
+                    </div>
+
+                    <!-- Bende Kas (Treasury) -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
+                        <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BENDE KAS</span>
+                        <div class="flex items-center justify-center gap-1.5 text-emerald-700 dark:text-emerald-400 text-lg font-black font-mono">
+                            <i class="fa-solid fa-vault text-xs text-emerald-600"></i>
+                            <span>€{{ number_format($myGang->treasury, 0, ',', '.') }}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 block font-medium">Gezamenlijke kluis</span>
+                    </div>
+
+                    <!-- Uurloon Bonus -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
+                        <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">UURLOON</span>
+                        <div class="flex items-center justify-center gap-1 text-amber-700 dark:text-amber-400 text-lg font-black font-mono">
+                            <i class="fa-solid fa-coins text-xs text-amber-500"></i>
+                            <span>€{{ number_format($hourlyWage, 0, ',', '.') }}</span>
+                        </div>
+                        @if(isset($wageDetails) && $wageDetails['pending_hours'] > 0)
+                            <form action="{{ route('gangs.claim-wage') }}" method="POST" class="pt-0.5">
+                                @csrf
+                                <button type="submit" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition shadow-2xs">
+                                    Claim €{{ number_format($wageDetails['pending_amount'], 0, ',', '.') }}
+                                </button>
+                            </form>
+                        @else
+                            <span class="text-[10px] text-slate-400 block font-medium">Dag: €{{ number_format($dailyWage, 0, ',', '.') }}</span>
+                        @endif
+                    </div>
+
+                    <!-- Leden & Online -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
+                        <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">LEDEN</span>
+                        <div class="flex items-center justify-center gap-1.5 text-blue-700 dark:text-blue-400 text-lg font-black font-mono">
+                            <i class="fa-solid fa-users text-xs text-blue-500"></i>
+                            <span>{{ $myGang->members->count() }}/{{ $myGang->max_members ?? 10 }}</span>
+                        </div>
+                        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 block font-bold">{{ $onlineMembersCount }} nu actief</span>
+                    </div>
+
+                    <!-- Smokkelkiosken -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
+                        <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">SMOKKELKIOSKEN</span>
+                        <div class="flex items-center justify-center gap-1.5 text-purple-700 dark:text-purple-400 text-lg font-black font-mono">
+                            <i class="fa-solid fa-store text-xs text-purple-500"></i>
+                            <span>{{ $myGang->bling_shops ?? 0 }}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 block font-medium">+€100/u per kiosk</span>
+                    </div>
+
+                    <!-- Panden / Vastgoed -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
+                        <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BENDE PANDEN</span>
+                        <div class="flex items-center justify-center gap-1.5 text-indigo-700 dark:text-indigo-400 text-lg font-black font-mono">
+                            <i class="fa-solid fa-building text-xs text-indigo-500"></i>
+                            <span>{{ $myGang->properties->count() }}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-400 block font-medium">Kliniek vastgoed</span>
+                    </div>
+                </div>
+
+                <!-- MAIN TWO COLUMN DETAILS LAYOUT (Exact match with gang_show.blade.php) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                    <!-- Left / Main Column (lg:col-span-8): Manifest, Shortcuts, Members Roster & Wars -->
+                    <div class="lg:col-span-8 space-y-6">
+
+                        <!-- Bende Manifest / Beschrijving -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-scroll text-purple-600 dark:text-purple-400"></i>
+                                    <span>Bende Manifest & Omschrijving</span>
+                                </h3>
+                                <span class="text-[10px] font-mono font-bold text-slate-400">
+                                    Specialiteit: {{ $myGang->specialty ?: 'Kantine Controle' }}
+                                </span>
+                            </div>
+                            <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed italic bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                                {{ $myGang->description ?: 'Deze bende heeft nog geen publiek manifest of omschrijving achtergelaten, medepatiënt.' }}
+                            </div>
+                        </div>
+
+                        <!-- Snelle Bende Acties Hub -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <button type="button" @click="setGangTab('doneren')" 
+                                    class="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 transition text-left group shadow-xs">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-circle-plus"></i>
+                                </div>
+                                <div class="text-xs font-black text-slate-900 dark:text-white">Kluis Doneren</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Stort geld of sterren</div>
+                            </button>
+
+                            <button type="button" @click="setGangTab('oorlog')" 
+                                    class="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-rose-400 dark:hover:border-rose-600 transition text-left group shadow-xs">
+                                <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                </div>
+                                <div class="text-xs font-black text-slate-900 dark:text-white">Bende Oorlog</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Val rivaliserende bendes aan</div>
+                            </button>
+
+                            <button type="button" @click="setGangTab('depot')" 
+                                    class="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-600 transition text-left group shadow-xs">
+                                <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-boxes-stacked"></i>
+                                </div>
+                                <div class="text-xs font-black text-slate-900 dark:text-white">Bende Depot</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Opslag van smokkelwaar</div>
+                            </button>
+
+                            <a href="{{ route('gangs.panden') }}" 
+                               class="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-600 transition text-left group shadow-xs">
+                                <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-building"></i>
+                                </div>
+                                <div class="text-xs font-black text-slate-900 dark:text-white">Bende Panden</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">{{ $myGang->properties->count() }} panden in bezit</div>
+                            </a>
+
+                            <a href="{{ route('gangs.garage') }}" 
+                               class="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 transition text-left group shadow-xs">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-warehouse"></i>
+                                </div>
+                                <div class="text-xs font-black text-slate-900 dark:text-white">Bende Garage</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Voertuigen & ontsnapping</div>
+                            </a>
+
+                            <a href="{{ route('heists.index', ['tab' => 'gang']) }}" 
+                               class="p-4 rounded-xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 hover:border-rose-400 dark:hover:border-rose-600 transition text-left group shadow-xs">
+                                <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm font-bold mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-masks-theater"></i>
+                                </div>
+                                <div class="text-xs font-black text-slate-900 dark:text-white">Bende Heists</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">Co-Op overvallen plannen</div>
                             </a>
                         </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                            <span class="text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-box-open text-purple-600"></i> Kantine Smokkelaar
-                            </span>
-                            <span class="text-slate-700 font-bold">{{ $myGang->personalShopper?->name ?? 'Nog niet aangewezen' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                            <span class="text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-vault text-emerald-600"></i> Kasbeheerder
-                            </span>
-                            <span class="text-slate-700 font-bold">{{ $myGang->moneyMagnet?->name ?? 'Nog niet aangewezen' }}</span>
-                        </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                            <span class="text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-euro-sign text-emerald-600"></i> Bende Kas (Cash)
-                            </span>
-                            <span class="font-extrabold text-emerald-700 font-mono">€{{ number_format($myGang->treasury, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-                            <div>
-                                <span class="text-slate-500 flex items-center gap-2">
-                                    <i class="fa-solid fa-money-bill-wave text-amber-500"></i> Uurloon / Dagloon
-                                </span>
-                                <span class="text-[9px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
-                                    <i class="fa-solid fa-circle-check"></i> Automatisch elk uur op je bank
-                                </span>
-                            </div>
-                            <div class="text-right">
-                                <div class="flex items-center justify-end gap-1.5">
-                                    <span class="font-extrabold text-amber-700">UURLOON €{{ number_format($hourlyWage, 0, ',', '.') }}</span>
-                                    <span class="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-full" title="Wordt automatisch elk uur gestort op je bank">
-                                        <i class="fa-solid fa-circle text-[5px] text-emerald-500 animate-pulse"></i> Auto
-                                    </span>
+
+                        <!-- ALLE LEDEN Table with Live Search & Online Toggle -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                                    <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
+                                    <span>ALLE LEDEN</span>
+                                    <span class="text-slate-400 dark:text-slate-500 font-normal">({{ $myGang->members->count() }})</span>
                                 </div>
-                                <span class="text-[10px] text-slate-400 block font-bold">DAGLOON €{{ number_format($dailyWage, 0, ',', '.') }}</span>
-                                @if(isset($wageDetails))
-                                    <span class="text-[9px] text-purple-600 font-semibold block">
-                                        Volgende uitbetaling over: {{ $wageDetails['next_payout_human'] }}
-                                    </span>
-                                    @if($wageDetails['pending_hours'] > 0)
-                                        <form action="{{ route('gangs.claim-wage') }}" method="POST" class="mt-1">
-                                            @csrf
-                                            <button type="submit" class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition shadow-2xs">
-                                                Claim Nu (€{{ number_format($wageDetails['pending_amount'], 0, ',', '.') }})
-                                            </button>
-                                        </form>
-                                    @endif
-                                @endif
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                            <span class="text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-skull text-rose-500"></i> Moorden vandaag
-                            </span>
-                            <span class="text-slate-700 font-bold">Van ons: 0 &bull; Op ons: 0</span>
-                        </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                            <span class="text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-fire text-purple-600"></i> Bende Respect
-                            </span>
-                            <span class="font-extrabold text-purple-700">{{ number_format($myGang->members->sum('respect'), 0, ',', '.') }}</span>
-                        </div>
-                        <div class="flex items-center justify-between py-1 border-b border-slate-100">
-                            <span class="text-slate-500 flex items-center gap-2">
-                                <i class="fa-solid fa-handshake text-blue-500"></i> Bondgenoten
-                            </span>
-                            <span class="text-slate-700 font-bold">
-                                {{ $myGang->alliances->isEmpty() ? 'Geen' : $myGang->alliances->map(fn($a) => $a->allyGang->name)->join(', ') }}
-                            </span>
-                        </div>
-                    </div>
 
-                    <!-- 5 Stat Cards -->
-                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center space-y-1">
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">SMOKKELKIOSKEN</span>
-                            <div class="flex items-center justify-center gap-1.5 text-purple-700 text-lg font-extrabold font-mono">
-                                <i class="fa-solid fa-store text-xs"></i>
-                                <span>{{ $myGang->bling_shops ?? 0 }}</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center space-y-1">
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">AANVALSPUNTEN</span>
-                            <div class="flex items-center justify-center gap-1.5 text-amber-600 text-lg font-extrabold font-mono">
-                                <i class="fa-solid fa-bolt text-xs"></i>
-                                <span>{{ number_format(($myGang->attack_power ?? 500) / 10, 2, ',', '.') }}</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center space-y-1">
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">VERDEDIGING</span>
-                            <div class="flex items-center justify-center gap-1.5 text-indigo-700 text-lg font-extrabold font-mono">
-                                <i class="fa-solid fa-shield text-xs"></i>
-                                <span>{{ number_format($myGang->protection_points ?? 1000, 2, ',', '.') }}</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center space-y-1">
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">POWER</span>
-                            <div class="flex items-center justify-center gap-1.5 text-purple-700 text-lg font-extrabold font-mono">
-                                <i class="fa-solid fa-bolt text-xs"></i>
-                                <span>{{ number_format($myGang->attack_power ?? 500, 2, ',', '.') }}</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center space-y-1">
-                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BESCHERMING</span>
-                            <div class="flex items-center justify-center gap-1.5 text-emerald-700 text-lg font-extrabold font-mono">
-                                <i class="fa-solid fa-shield text-xs"></i>
-                                <span>{{ number_format(($myGang->protection_points ?? 1000) * 1.5, 2, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Profile Bio -->
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-600 leading-relaxed">
-                        {{ $myGang->description ?: 'Dit profiel is nog leeg, medepatiënt.' }}
-                    </div>
-
-                    <!-- ALLE LEDEN Table with Realtime Search & Online Filter -->
-                    <div class="space-y-3 pt-2"
-                         x-data="{
-                             memberSearch: '',
-                             onlyOnline: false,
-                             members: {{ Js::from($gangMembersData ?? []) }},
-                             get list() {
-                                 let q = this.memberSearch.toLowerCase().trim();
-                                 return this.members.filter(m => {
-                                     if (q && !m.name.toLowerCase().includes(q) && !m.role_label.toLowerCase().includes(q)) return false;
-                                     if (this.onlyOnline && !m.is_online) return false;
-                                     return true;
-                                 });
-                             }
-                         }">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
-                            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-slate-900">
-                                <i class="fa-solid fa-users text-purple-600"></i>
-                                <span>ALLE LEDEN</span>
-                                <span class="text-slate-400 font-normal">({{ $myGang->members->count() }})</span>
-                            </div>
-
-                            <div class="flex items-center gap-2">
-                                <button type="button" 
-                                        @click="onlyOnline = !onlyOnline" 
-                                        :class="onlyOnline ? 'bg-emerald-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                        class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full" :class="onlyOnline ? 'bg-white' : 'bg-emerald-500 animate-pulse'"></span>
-                                    <span>Online ({{ $onlineMembersCount ?? 0 }})</span>
-                                </button>
-                                <div class="relative w-44">
-                                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
-                                    <input type="text" 
-                                           x-model="memberSearch" 
-                                           placeholder="Zoek lid..." 
-                                           class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:border-purple-600 transition">
-                                    <button type="button" x-show="memberSearch" @click="memberSearch = ''" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-[10px]">
-                                        <i class="fa-solid fa-xmark"></i>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" 
+                                            @click="onlyOnline = !onlyOnline" 
+                                            :class="onlyOnline ? 'bg-emerald-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                                            class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full" :class="onlyOnline ? 'bg-white' : 'bg-emerald-500 animate-pulse'"></span>
+                                        <span>Online ({{ $onlineMembersCount }})</span>
                                     </button>
+                                    <div class="relative w-44">
+                                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]"></i>
+                                        <input type="text" 
+                                               x-model="memberSearch" 
+                                               placeholder="Zoek bendelid..." 
+                                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg pl-7 pr-6 py-1 text-xs focus:outline-none focus:border-purple-600 transition">
+                                        <button type="button" x-show="memberSearch" @click="memberSearch = ''" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-[10px]">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                            <th class="py-2.5 px-3">PATIËNT</th>
+                                            <th class="py-2.5 px-3">ROL</th>
+                                            <th class="py-2.5 px-3 text-right">LEVEL</th>
+                                            <th class="py-2.5 px-3 text-right">RESPECT</th>
+                                            <th class="py-2.5 px-3 text-right">ACTIE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
+                                        <template x-for="member in list" :key="member.id">
+                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                                <td class="py-3 px-3">
+                                                    <div class="flex items-center gap-3">
+                                                        <a :href="member.profile_url" class="relative shrink-0">
+                                                            <img :src="member.avatar_url" :alt="member.name" class="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700">
+                                                            <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white dark:border-slate-900"
+                                                                  :class="member.is_online ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'"
+                                                                  :title="member.online_label">
+                                                            </span>
+                                                        </a>
+                                                        <div>
+                                                            <a :href="member.profile_url" class="font-bold text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition" x-text="member.name"></a>
+                                                            <span class="text-[10px] text-slate-400 block" x-text="member.is_online ? 'Nu online' : ('Actief ' + member.last_active_at)"></span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-3">
+                                                    <span class="text-xs font-bold"
+                                                          :class="{
+                                                              'text-amber-600 dark:text-amber-400': member.gang_role === 'leader',
+                                                              'text-purple-700 dark:text-purple-400': member.gang_role === 'co_leader',
+                                                              'text-slate-500 dark:text-slate-400': member.gang_role !== 'leader' && member.gang_role !== 'co_leader'
+                                                          }"
+                                                          x-text="member.role_label">
+                                                    </span>
+                                                </td>
+                                                <td class="py-3 px-3 text-right font-bold text-slate-700 dark:text-slate-200" x-text="member.level"></td>
+                                                <td class="py-3 px-3 text-right font-extrabold text-purple-700 dark:text-purple-400 font-mono" x-text="member.respect_formatted"></td>
+                                                <td class="py-3 px-3 text-right">
+                                                    <div class="inline-flex items-center gap-1.5 justify-end">
+                                                        <a :href="member.message_url" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition inline-flex items-center gap-1" title="Stuur privébericht">
+                                                            <i class="fa-solid fa-envelope text-[9px] text-purple-600"></i>
+                                                            <span class="hidden sm:inline">Bericht</span>
+                                                        </a>
+                                                        <a :href="member.profile_url" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-bold transition inline-flex items-center gap-1" title="Bekijk dossier">
+                                                            <i class="fa-solid fa-id-card text-[9px]"></i>
+                                                            <span class="hidden sm:inline">Dossier</span>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                                <div x-show="list.length === 0" class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                                    Geen bendeleden gevonden die voldoen aan je zoekcriteria.
                                 </div>
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead>
-                                    <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
-                                        <th class="py-2.5 px-3">PATIËNT</th>
-                                        <th class="py-2.5 px-3">ROL</th>
-                                        <th class="py-2.5 px-3 text-right">LEVEL</th>
-                                        <th class="py-2.5 px-3 text-right">RESPECT</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 font-medium">
-                                    <template x-for="member in list" :key="member.id">
-                                        <tr class="hover:bg-slate-50 transition">
-                                            <td class="py-3 px-3">
-                                                <div class="flex items-center gap-3">
-                                                    <a :href="member.profile_url" class="relative shrink-0">
-                                                        <img :src="member.avatar_url" :alt="member.name" class="w-8 h-8 rounded-full object-cover border border-slate-200">
-                                                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white"
-                                                              :class="member.is_online ? 'bg-emerald-500' : 'bg-slate-300'"
-                                                              :title="member.online_label">
-                                                        </span>
-                                                    </a>
-                                                    <a :href="member.profile_url" class="font-bold text-slate-900 hover:text-purple-600 transition" x-text="member.name"></a>
-                                                </div>
-                                            </td>
-                                            <td class="py-3 px-3">
-                                                <span class="text-xs font-bold"
-                                                      :class="{
-                                                          'text-amber-600': member.gang_role === 'leader',
-                                                          'text-purple-700': member.gang_role === 'co_leader',
-                                                          'text-slate-500': member.gang_role !== 'leader' && member.gang_role !== 'co_leader'
-                                                      }"
-                                                      x-text="member.role_label">
-                                                </span>
-                                            </td>
-                                            <td class="py-3 px-3 text-right font-bold text-slate-700" x-text="member.level"></td>
-                                            <td class="py-3 px-3 text-right font-extrabold text-purple-700 font-mono" x-text="member.respect_formatted"></td>
+                        <!-- Recente Bende Oorlogen / Veldslagen -->
+                        @if($recentAttacks->isNotEmpty())
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-crosshairs text-rose-600 dark:text-rose-400"></i>
+                                    <span>Recente Veldslagen & Oorlogsgeschiedenis</span>
+                                </h3>
+                                <span class="text-[10px] font-bold text-slate-400">
+                                    Totaal: {{ $warsWon }} Overwinningen &bull; {{ $warsLost }} Nederlagen
+                                </span>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                            <th class="py-2.5 px-3">AANVALLER</th>
+                                            <th class="py-2.5 px-3">VERDEDIGER</th>
+                                            <th class="py-2.5 px-3">UITSLAG</th>
+                                            <th class="py-2.5 px-3 text-right">BUIT</th>
+                                            <th class="py-2.5 px-3 text-right">TIJD</th>
                                         </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                            <div x-show="list.length === 0" class="py-6 text-center text-xs text-slate-400">
-                                Geen leden gevonden die voldoen aan je zoekopdracht.
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
+                                        @foreach($recentAttacks->take(8) as $att)
+                                            @php
+                                                $isThisGangAttacker = $att->attacker_gang_id === $myGang->id;
+                                                $thisGangWon = ($isThisGangAttacker && $att->won) || (! $isThisGangAttacker && ! $att->won);
+                                            @endphp
+                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                                <td class="py-2.5 px-3">
+                                                    @if($att->attackerGang)
+                                                        <a href="{{ route('gangs.show', $att->attackerGang->id) }}" class="font-bold {{ $att->attacker_gang_id === $myGang->id ? 'text-purple-600 dark:text-purple-400' : 'text-slate-800 dark:text-slate-200' }} hover:underline">
+                                                            [{{ $att->attackerGang->tag }}] {{ $att->attackerGang->name }}
+                                                        </a>
+                                                    @else
+                                                        <span class="text-slate-400 italic">Onbekend</span>
+                                                    @endif
+                                                </td>
+                                                <td class="py-2.5 px-3">
+                                                    @if($att->targetGang)
+                                                        <a href="{{ route('gangs.show', $att->targetGang->id) }}" class="font-bold {{ $att->target_gang_id === $myGang->id ? 'text-purple-600 dark:text-purple-400' : 'text-slate-800 dark:text-slate-200' }} hover:underline">
+                                                            [{{ $att->targetGang->tag }}] {{ $att->targetGang->name }}
+                                                        </a>
+                                                    @else
+                                                        <span class="text-slate-400 italic">Onbekend</span>
+                                                    @endif
+                                                </td>
+                                                <td class="py-2.5 px-3">
+                                                    @if($thisGangWon)
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                                            <i class="fa-solid fa-trophy text-[9px]"></i> Overwinning
+                                                        </span>
+                                                    @else
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                                            <i class="fa-solid fa-skull text-[9px]"></i> Nederlaag
+                                                        </span>
+                                                    @endif
+                                                </td>
+                                                <td class="py-2.5 px-3 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                                                    @if($att->stolen_cash > 0)
+                                                        €{{ number_format($att->stolen_cash, 0, ',', '.') }}
+                                                    @else
+                                                        <span class="text-slate-400 font-normal">Geen</span>
+                                                    @endif
+                                                </td>
+                                                <td class="py-2.5 px-3 text-right text-[10px] text-slate-400">
+                                                    {{ $att->created_at ? $att->created_at->diffForHumans() : '-' }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+                        @endif
+
                     </div>
 
-                    <!-- Bende Verlaten Box -->
-                    <div class="bg-rose-50/50 border border-rose-200 rounded-xl p-5 space-y-3">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <!-- Right Column (lg:col-span-4): Factsheet, Alliances, Panden, & Verlaten -->
+                    <div class="lg:col-span-4 space-y-6">
+
+                        <!-- Bende Factsheet & Gegevens -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-id-card-clip text-purple-600 dark:text-purple-400"></i>
+                                    <span>Bende Gegevens</span>
+                                </h4>
+                                <span class="text-[10px] font-mono text-purple-600 dark:text-purple-400 font-extrabold">
+                                    [{{ $myGang->tag }}]
+                                </span>
+                            </div>
+
+                            <div class="divide-y divide-slate-100 dark:divide-slate-800/80 text-xs">
+                                <!-- Bende Leider -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-crown text-amber-500"></i> Bende Leider
+                                    </span>
+                                    @if($myGang->leader)
+                                        <a href="{{ route('profile.show', $myGang->leader->name) }}" class="font-bold text-purple-700 dark:text-purple-400 hover:underline flex items-center gap-1">
+                                            {{ $myGang->leader->name }}
+                                            <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
+                                        </a>
+                                    @else
+                                        <span class="text-slate-400 italic">Onbekend</span>
+                                    @endif
+                                </div>
+
+                                <!-- Kantine Smokkelaar -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-box-open text-purple-600 dark:text-purple-400"></i> Kantine Smokkelaar
+                                    </span>
+                                    @if($myGang->personalShopper)
+                                        <a href="{{ route('profile.show', $myGang->personalShopper->name) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600">
+                                            {{ $myGang->personalShopper->name }}
+                                        </a>
+                                    @else
+                                        <span class="text-slate-400 italic">Nog niet aangewezen</span>
+                                    @endif
+                                </div>
+
+                                <!-- Kasbeheerder -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-vault text-emerald-600"></i> Kasbeheerder
+                                    </span>
+                                    @if($myGang->moneyMagnet)
+                                        <a href="{{ route('profile.show', $myGang->moneyMagnet->name) }}" class="font-bold text-slate-800 dark:text-slate-200 hover:text-purple-600">
+                                            {{ $myGang->moneyMagnet->name }}
+                                        </a>
+                                    @else
+                                        <span class="text-slate-400 italic">Nog niet aangewezen</span>
+                                    @endif
+                                </div>
+
+                                <!-- Uurloon / Dagloon -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                            <i class="fa-solid fa-money-bill-wave text-amber-500"></i> Uurloon / Dagloon
+                                        </span>
+                                        <span class="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 mt-0.5">
+                                            <i class="fa-solid fa-circle text-[5px] text-emerald-500 animate-pulse"></i> Actief per uur
+                                        </span>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <span class="font-extrabold text-amber-700 dark:text-amber-400">UURLOON €{{ number_format($hourlyWage, 0, ',', '.') }}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-mono block">Dag: €{{ number_format($dailyWage, 0, ',', '.') }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Aanvalspunten -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt text-amber-500"></i> Aanvalspunten
+                                    </span>
+                                    <span class="font-bold text-slate-900 dark:text-white font-mono">
+                                        {{ number_format(($myGang->attack_power ?? 500) / 10, 2, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <!-- Verdediging -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-shield text-indigo-500"></i> Verdediging
+                                    </span>
+                                    <span class="font-bold text-slate-900 dark:text-white font-mono">
+                                        {{ number_format($myGang->protection_points ?? 1000, 2, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <!-- Power -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt-lightning text-purple-600"></i> Power
+                                    </span>
+                                    <span class="font-bold text-purple-700 dark:text-purple-400 font-mono">
+                                        {{ number_format($myGang->attack_power ?? 500, 2, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <!-- Bescherming -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-shield-halved text-emerald-600"></i> Totale Bescherming
+                                    </span>
+                                    <span class="font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+                                        {{ number_format(($myGang->protection_points ?? 1000) * 1.5, 2, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <!-- Oorlogsbalans -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-skull text-rose-500"></i> Oorlogsbalans
+                                    </span>
+                                    <span class="font-bold text-slate-900 dark:text-white">
+                                        <span class="text-emerald-600">{{ $warsWon }} W</span> &bull; <span class="text-rose-600">{{ $warsLost }} V</span>
+                                    </span>
+                                </div>
+
+                                <!-- Minimum Respect -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-star text-amber-500"></i> Min. Respect
+                                    </span>
+                                    <span class="font-extrabold text-amber-700 dark:text-amber-400 font-mono">
+                                        {{ number_format($myGang->min_respect ?? 0, 0, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <!-- Oprichtingsdatum -->
+                                <div class="py-2.5 flex items-center justify-between">
+                                    <span class="text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                        <i class="fa-solid fa-calendar-days text-slate-400"></i> Opgericht op
+                                    </span>
+                                    <span class="font-bold text-slate-700 dark:text-slate-300">
+                                        {{ $myGang->created_at ? $myGang->created_at->format('d-m-Y') : 'Onbekend' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bondgenoten / Allianties Card -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-handshake text-blue-500"></i>
+                                    <span>Bondgenoten</span>
+                                </h4>
+                                <span class="text-[10px] font-bold text-slate-400">
+                                    {{ $myGang->alliances->count() }} actieve pacten
+                                </span>
+                            </div>
+
+                            @if($myGang->alliances->isNotEmpty())
+                                <div class="space-y-2">
+                                    @foreach($myGang->alliances as $alliance)
+                                        @if($alliance->allyGang)
+                                            <a href="{{ route('gangs.show', $alliance->allyGang->id) }}" class="flex items-center justify-between p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                                <div class="flex items-center gap-2.5">
+                                                    <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center text-xs font-bold shrink-0">
+                                                        <i class="fa-solid {{ $alliance->allyGang->emblem ?? 'fa-crown' }}"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-xs font-extrabold text-slate-900 dark:text-white leading-tight flex items-center gap-1">
+                                                            <span>{{ $alliance->allyGang->name }}</span>
+                                                            <span class="text-purple-600 dark:text-purple-400 font-mono text-[10px]">[{{ $alliance->allyGang->tag }}]</span>
+                                                        </div>
+                                                        <span class="text-[10px] text-slate-400">{{ $alliance->allyGang->members->count() }} leden</span>
+                                                    </div>
+                                                </div>
+                                                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                                            </a>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="py-6 text-center text-xs text-slate-400 dark:text-slate-500">
+                                    <i class="fa-solid fa-handshake-slash text-xl mb-1.5 opacity-60 block"></i>
+                                    Deze bende heeft momenteel geen bondgenootschappen gesloten.
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Bende Panden & Vastgoed Preview -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-xs space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-building text-indigo-600 dark:text-indigo-400"></i>
+                                    <span>Vastgoed & Panden</span>
+                                </h4>
+                                <a href="{{ route('gangs.panden') }}" class="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                    {{ $myGang->properties->count() }} Panden &rarr;
+                                </a>
+                            </div>
+
+                            @if($myGang->properties->isNotEmpty())
+                                <div class="space-y-2">
+                                    @foreach($myGang->properties->take(5) as $prop)
+                                        <div class="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between text-xs">
+                                            <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                                                <i class="fa-solid fa-building-wheat text-indigo-500 text-xs"></i>
+                                                {{ $prop->name }}
+                                            </span>
+                                            <span class="text-[10px] font-mono text-purple-600 dark:text-purple-400 font-extrabold">
+                                                Lvl {{ $prop->level }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                    @if($myGang->properties->count() > 5)
+                                        <a href="{{ route('gangs.panden') }}" class="text-[10px] text-slate-400 text-center block pt-1 hover:text-purple-600">
+                                            +{{ $myGang->properties->count() - 5 }} meer panden in eigendom
+                                        </a>
+                                    @endif
+                                </div>
+                            @else
+                                <div class="py-4 text-center text-xs text-slate-400 dark:text-slate-500">
+                                    Geen vastgoed in bezit.
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Bende Verlaten Box (Danger Zone) -->
+                        <div class="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/60 rounded-xl p-5 space-y-3">
                             <div class="space-y-1">
-                                <h4 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 flex items-center gap-2">
                                     <i class="fa-solid fa-arrow-right-from-bracket text-rose-600"></i>
                                     <span>Bende Verlaten</span>
                                 </h4>
                                 @if($character->gang_role === 'leader')
-                                    <p class="text-xs text-slate-600">
-                                        Als leider kun je de bende verlaten. Het leiderschap wordt dan overgedragen aan het volgende bendelid, of de factie wordt opgeheven als je het enige lid bent.
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        Als bendeleider kun je vertrekken. Het leiderschap wordt overgedragen aan een ander bendelid, of de factie wordt opgeheven als je het enige lid bent.
                                     </p>
                                 @else
-                                    <p class="text-xs text-slate-600 leading-relaxed">
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                                         @if($myLeaveFee > 0)
-                                            De vertrekboete (verlatingskosten) bedraagt <strong class="text-rose-700 font-bold font-mono">€{{ number_format($myLeaveFee, 0, ',', '.') }}</strong> ({{ $myLeaveMultiplier }}x het uurloon van €{{ number_format($hourlyWage, 0, ',', '.') }}). Deze boete betaal je aan de gezamenlijke kluis wanneer je vertrekt.
+                                            De vertrekboete bedraagt <strong class="text-rose-700 dark:text-rose-400 font-mono font-bold">€{{ number_format($myLeaveFee, 0, ',', '.') }}</strong> ({{ $myLeaveMultiplier }}x uurloon) en wordt overgemaakt naar de bende kluis.
                                         @else
-                                            Er is momenteel geen vertrekboete ingesteld door de leiding. Je kunt direct en kosteloos vertrekken.
+                                            Er is geen vertrekboete ingesteld. Je kunt kosteloos vertrekken.
                                         @endif
                                     </p>
                                     @if($myLeaveFee > 0)
-                                        <div class="flex flex-wrap items-center gap-3 text-xs pt-1">
-                                            <span class="text-slate-500">Contant op zak: <strong class="font-mono {{ $hasEnoughCashToLeave ? 'text-emerald-700 font-bold' : 'text-rose-600 font-extrabold' }}">€{{ number_format($character->cash, 0, ',', '.') }}</strong></span>
+                                        <div class="text-[11px] pt-1">
+                                            <span class="text-slate-500 dark:text-slate-400">Cash op zak: <strong class="font-mono {{ $hasEnoughCashToLeave ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">€{{ number_format($character->cash, 0, ',', '.') }}</strong></span>
                                             @if(! $hasEnoughCashToLeave)
-                                                <span class="text-rose-600 font-bold flex items-center gap-1">
-                                                    <i class="fa-solid fa-circle-exclamation text-rose-500"></i> Te weinig cash op zak! Neem minimaal €{{ number_format($myLeaveFee - $character->cash, 0, ',', '.') }} op van je <a href="{{ route('bank.index') }}" class="underline font-bold text-purple-700">bank</a>.
-                                                </span>
+                                                <div class="text-rose-600 dark:text-rose-400 font-bold mt-1 text-[10px] flex items-center gap-1">
+                                                    <i class="fa-solid fa-circle-exclamation"></i> Minimaal €{{ number_format($myLeaveFee - $character->cash, 0, ',', '.') }} tekort.
+                                                </div>
                                             @endif
                                         </div>
                                     @endif
@@ -826,17 +1274,328 @@
                                   onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? Er wordt een vertrekboete van €' . number_format($myLeaveFee, 0, ',', '.') . ' overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
                                 @csrf
                                 <button type="submit" 
-                                        class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                                        class="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
                                     <span>Bende Verlaten</span>
                                 </button>
                             </form>
                         </div>
+
                     </div>
 
                 </div>
+
             </div>
             @endif
+
+            <!-- TAB: ALLE BENDES (MAKKELLIJKE OVERZICHTSLIJST MET FILTERS & KAARTEN) -->
+            <div x-show="activeGangTab === 'alle_bendes'" class="space-y-6" x-data="{
+                search: '',
+                filter: 'all', // 'all', 'open', 'closed'
+                viewMode: 'grid', // 'grid', 'table'
+                gangs: {{ Js::from($gangRankings) }},
+                get filteredGangs() {
+                    let q = this.search.toLowerCase().trim();
+                    return this.gangs.filter(g => {
+                        if (q && !g.name.toLowerCase().includes(q) && !g.tag.toLowerCase().includes(q) && !g.leader_name.toLowerCase().includes(q)) return false;
+                        if (this.filter === 'open' && !g.is_open) return false;
+                        if (this.filter === 'closed' && g.is_open) return false;
+                        return true;
+                    });
+                }
+            }">
+                <!-- Top Header & Search Banner -->
+                <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-[10px] font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-300 mb-2">
+                                <i class="fa-solid fa-address-book text-purple-600 dark:text-purple-400"></i> Overzicht
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                                <span>Alle Kliniek Bendes</span>
+                                <span class="text-xs font-mono text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-lg border border-purple-200 dark:border-purple-800 font-bold" x-text="filteredGangs.length + ' Facties'"></span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+                                Bekijk alle bendes van de TBS kliniek. Inspecteer publieke dossiers, check toelatingseisen of dien direct een aanvraag in.
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                            <!-- View mode toggle -->
+                            <div class="inline-flex p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                <button type="button" 
+                                        @click="viewMode = 'grid'" 
+                                        :class="viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-400 shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400'"
+                                        class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-grip text-[11px]"></i>
+                                    <span class="hidden sm:inline">Kaarten</span>
+                                </button>
+                                <button type="button" 
+                                        @click="viewMode = 'table'" 
+                                        :class="viewMode === 'table' ? 'bg-white dark:bg-slate-700 text-purple-600 dark:text-purple-400 shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400'"
+                                        class="px-2.5 py-1 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-list text-[11px]"></i>
+                                    <span class="hidden sm:inline">Lijst</span>
+                                </button>
+                            </div>
+
+                            @if(!$character->gang_id)
+                            <button type="button" @click="showCreateModal = true" 
+                                    class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Bende Oprichten</span>
+                            </button>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Search and Filters Bar -->
+                    <div class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="relative flex-1 max-w-md">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   x-model="search" 
+                                   placeholder="Zoek op bendenaam, tag of leider..." 
+                                   class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl pl-9 pr-8 py-2 text-xs focus:outline-none focus:border-purple-600 transition">
+                            <button type="button" x-show="search" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                            <button type="button" 
+                                    @click="filter = 'all'" 
+                                    :class="filter === 'all' ? 'bg-purple-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap">
+                                Alle Bendes ({{ $gangRankings->count() }})
+                            </button>
+                            <button type="button" 
+                                    @click="filter = 'open'" 
+                                    :class="filter === 'open' ? 'bg-emerald-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap flex items-center gap-1.5">
+                                <i class="fa-solid fa-lock-open text-[10px]"></i>
+                                <span>Open voor toelating</span>
+                            </button>
+                            <button type="button" 
+                                    @click="filter = 'closed'" 
+                                    :class="filter === 'closed' ? 'bg-slate-700 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+                                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer whitespace-nowrap flex items-center gap-1.5">
+                                <i class="fa-solid fa-lock text-[10px]"></i>
+                                <span>Gesloten</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARDS GRID VIEW -->
+                <div x-show="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <template x-for="g in filteredGangs" :key="g.id">
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:border-purple-300 dark:hover:border-purple-700 transition flex flex-col justify-between group">
+                            <div>
+                                <!-- Mini Banner Header -->
+                                <div class="h-24 w-full overflow-hidden relative bg-purple-950">
+                                    <img :src="g.banner_url" :alt="g.name" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+
+                                    <!-- Top Right Status Pill -->
+                                    <div class="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                                        <template x-if="g.is_open">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-500/90 text-white backdrop-blur-xs shadow-2xs">
+                                                <i class="fa-solid fa-lock-open text-[8px]"></i> Open
+                                            </span>
+                                        </template>
+                                        <template x-if="!g.is_open">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/60 text-slate-300 backdrop-blur-xs border border-white/10">
+                                                <i class="fa-solid fa-lock text-[8px]"></i> Gesloten
+                                            </span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Body with overlapping avatar -->
+                                <div class="p-4 pt-0 relative z-10 space-y-3">
+                                    <div class="flex items-end justify-between -mt-7">
+                                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-700 border-2 border-white dark:border-slate-900 shadow-md flex items-center justify-center text-xl text-white shrink-0 overflow-hidden">
+                                            <template x-if="g.avatar_url">
+                                                <img :src="g.avatar_url" :alt="g.name" class="w-full h-full object-cover">
+                                            </template>
+                                            <template x-if="!g.avatar_url">
+                                                <i class="fa-solid" :class="g.icon"></i>
+                                            </template>
+                                        </div>
+
+                                        <div class="flex items-center gap-1.5">
+                                            <template x-if="g.min_respect > 0">
+                                                <span class="text-[9px] font-extrabold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+                                                    <i class="fa-solid fa-fire text-[8px] text-amber-500"></i> Min. <span x-text="g.min_respect"></span>
+                                                </span>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <a :href="g.profile_url" class="text-base font-black text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition flex items-center gap-1.5 leading-tight">
+                                            <span x-text="g.name"></span>
+                                            <span class="text-purple-600 dark:text-purple-400 font-mono text-xs font-extrabold" x-text="'[' + g.tag + ']'"></span>
+                                            <i class="fa-solid fa-circle-check text-purple-600 text-xs" title="Geverifieerd"></i>
+                                        </a>
+
+                                        <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5 font-medium">
+                                            <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i>
+                                            <span>Leider:</span>
+                                            <span class="font-bold text-slate-700 dark:text-slate-300" x-text="g.leader_name"></span>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 italic" x-text="g.description || 'Geen bende manifest ingevuld.'"></p>
+
+                                    <!-- Quick Stats Grid in Card -->
+                                    <div class="grid grid-cols-3 gap-1.5 pt-1 text-center">
+                                        <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                                            <span class="text-[8px] font-extrabold uppercase text-slate-400 block">Respect</span>
+                                            <span class="text-xs font-mono font-black text-purple-600 dark:text-purple-400" x-text="g.slay"></span>
+                                        </div>
+                                        <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                                            <span class="text-[8px] font-extrabold uppercase text-slate-400 block">Kas</span>
+                                            <span class="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400" x-text="g.cash"></span>
+                                        </div>
+                                        <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                                            <span class="text-[8px] font-extrabold uppercase text-slate-400 block">Leden</span>
+                                            <span class="text-xs font-mono font-black text-slate-700 dark:text-slate-200" x-text="g.members_count + '/' + g.max_members"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Actions -->
+                            <div class="px-4 pb-4 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                                <a :href="g.profile_url" 
+                                   class="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition text-center inline-flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-eye text-[10px]"></i>
+                                    <span>Bekijk Bende</span>
+                                </a>
+
+                                @if($myGang)
+                                    <template x-if="g.id === {{ $myGang->id }}">
+                                        <span class="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-extrabold text-xs inline-flex items-center gap-1 border border-purple-200 dark:border-purple-800">
+                                            <i class="fa-solid fa-check text-[10px]"></i> Jouw Bende
+                                        </span>
+                                    </template>
+                                @else
+                                    <template x-if="g.has_pending_request">
+                                        <span class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold text-xs inline-flex items-center gap-1 border border-amber-200 dark:border-amber-800">
+                                            <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> In Behandeling
+                                        </span>
+                                    </template>
+                                    <template x-if="!g.has_pending_request && g.is_open">
+                                        <form :action="'{{ url('/gangs') }}/' + g.id + '/aanvragen'" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="py-1.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
+                                                <i class="fa-solid fa-user-plus text-[10px]"></i>
+                                                <span>Aanmelden</span>
+                                            </button>
+                                        </form>
+                                    </template>
+                                    <template x-if="!g.has_pending_request && !g.is_open">
+                                        <span class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs inline-flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+                                            <i class="fa-solid fa-lock text-[10px]"></i> Gesloten
+                                        </span>
+                                    </template>
+                                @endif
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- TABLE LIST VIEW -->
+                <div x-show="viewMode === 'table'" class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                    <th class="py-3 px-3">BENDE & LEIDER</th>
+                                    <th class="py-3 px-3">STATUS</th>
+                                    <th class="py-3 px-3 text-center">LEDEN</th>
+                                    <th class="py-3 px-3 text-right">RESPECT</th>
+                                    <th class="py-3 px-3 text-right">KAS</th>
+                                    <th class="py-3 px-3 text-right">ACTIE</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-medium">
+                                <template x-for="g in filteredGangs" :key="g.id">
+                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                                        <td class="py-3.5 px-3">
+                                            <div class="flex items-center gap-3">
+                                                <a :href="g.profile_url" class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-base shrink-0 font-bold shadow-xs overflow-hidden">
+                                                    <template x-if="g.avatar_url">
+                                                        <img :src="g.avatar_url" :alt="g.name" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!g.avatar_url">
+                                                        <i class="fa-solid" :class="g.icon"></i>
+                                                    </template>
+                                                </a>
+                                                <div>
+                                                    <div class="font-extrabold text-slate-900 dark:text-white text-xs leading-tight flex items-center gap-1.5">
+                                                        <a :href="g.profile_url" class="hover:text-purple-600 dark:hover:text-purple-400 transition" x-text="g.name"></a>
+                                                        <span class="text-purple-600 dark:text-purple-400 font-mono text-[10px] font-bold" x-text="'[' + g.tag + ']'"></span>
+                                                        <i class="fa-solid fa-circle-check text-purple-600 text-[10px]"></i>
+                                                    </div>
+                                                    <div class="text-[11px] text-slate-400 font-medium">
+                                                        Leider: <span class="font-semibold text-slate-700 dark:text-slate-300" x-text="g.leader_name"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3.5 px-3">
+                                            <template x-if="g.is_open">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                                    <i class="fa-solid fa-lock-open text-[8px]"></i> Open
+                                                </span>
+                                            </template>
+                                            <template x-if="!g.is_open">
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                    <i class="fa-solid fa-lock text-[8px]"></i> Gesloten
+                                                </span>
+                                            </template>
+                                        </td>
+                                        <td class="py-3.5 px-3 text-center font-mono font-bold text-slate-700 dark:text-slate-300" x-text="g.members_count + '/' + g.max_members"></td>
+                                        <td class="py-3.5 px-3 text-right font-extrabold text-purple-700 dark:text-purple-400 font-mono" x-text="g.slay"></td>
+                                        <td class="py-3.5 px-3 text-right font-bold text-emerald-700 dark:text-emerald-400 font-mono" x-text="g.cash"></td>
+                                        <td class="py-3.5 px-3 text-right">
+                                            <div class="inline-flex items-center gap-1.5 justify-end">
+                                                <a :href="g.profile_url" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition inline-flex items-center gap-1">
+                                                    <i class="fa-solid fa-eye text-[10px]"></i>
+                                                    <span>Bekijk</span>
+                                                </a>
+                                                @if(!$character->gang_id)
+                                                    <template x-if="g.has_pending_request">
+                                                        <span class="px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-bold text-xs border border-amber-200 dark:border-amber-800">
+                                                            In Behandeling
+                                                        </span>
+                                                    </template>
+                                                    <template x-if="!g.has_pending_request && g.is_open">
+                                                        <form :action="'{{ url('/gangs') }}/' + g.id + '/aanvragen'" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs">
+                                                                Aanmelden
+                                                            </button>
+                                                        </form>
+                                                    </template>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div x-show="filteredGangs.length === 0" class="py-12 text-center text-xs text-slate-400 dark:text-slate-500 bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-800">
+                    <i class="fa-solid fa-users-slash text-2xl mb-2 opacity-50 block"></i>
+                    Geen bendes gevonden die voldoen aan je zoekcriteria.
+                </div>
+            </div>
 
             <!-- TAB: DEDICATED LEDENLIJST & ONLINE (REALTIME ZOEKBALK) -->
             @if($myGang)
