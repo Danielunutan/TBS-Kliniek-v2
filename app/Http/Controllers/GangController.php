@@ -21,6 +21,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class GangController extends Controller
@@ -409,8 +410,8 @@ class GangController extends Controller
             return back()->with('error', "Bende '{$gang->name}' accepteert momenteel geen nieuwe lidmaatschapsverzoeken (gesloten).");
         }
 
-        if (($gang->min_respect ?? 0) > 0 && ($character->respect ?? 0) < $gang->min_respect) {
-            return back()->with('error', "Je hebt minimaal {$gang->min_respect} respect nodig om je aan te melden bij {$gang->name}.");
+        if (($gang->min_respect ?? 0) > 0 && ($character->respect ?? 0) < (int) $gang->min_respect) {
+            return back()->with('error', 'Je hebt minimaal '.number_format($gang->min_respect, 0, ',', '.')." respect nodig om je aan te melden bij {$gang->name}. (Jij hebt: ".number_format($character->respect ?? 0, 0, ',', '.').' respect)');
         }
 
         $exists = GangRequest::where('gang_id', $gang->id)
@@ -507,6 +508,13 @@ class GangController extends Controller
                     ->with('active_gang_tab', 'beheer')
                     ->with('beheer_tab', 'verzoeken')
                     ->with('error', "{$candidate->name} is inmiddels al lid van een andere bende.");
+            }
+
+            if (($gang->min_respect ?? 0) > 0 && ($candidate->respect ?? 0) < (int) $gang->min_respect) {
+                return back()
+                    ->with('active_gang_tab', 'beheer')
+                    ->with('beheer_tab', 'verzoeken')
+                    ->with('error', 'Deze kandidaat voldoet niet meer aan de toelatingseis van '.number_format($gang->min_respect, 0, ',', '.').' respect! (Kandidaat heeft: '.number_format($candidate->respect ?? 0, 0, ',', '.').' respect)');
             }
 
             DB::transaction(function () use ($candidate, $gang, $requestRecord, $character) {
@@ -703,6 +711,60 @@ class GangController extends Controller
 
         $actionType = $request->input('action_type');
 
+        if ($actionType === 'name' || $actionType === 'rename') {
+            if ($character->gang_role !== 'leader') {
+                return back()
+                    ->with('active_gang_tab', 'instellingen')
+                    ->with('settings_tab', 'algemeen')
+                    ->with('error', 'Alleen de Bendeleider (oprichter) kan de naam en tag van de bende wijzigen!');
+            }
+
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'min:3', 'max:35', Rule::unique('gangs', 'name')->ignore($gang->id)],
+                'tag' => ['required', 'string', 'min:2', 'max:5', 'alpha_num', Rule::unique('gangs', 'tag')->ignore($gang->id)],
+            ], [
+                'name.required' => 'Vul een geldige bendenaam in.',
+                'name.min' => 'De bendenaam moet minimaal 3 tekens lang zijn.',
+                'name.max' => 'De bendenaam mag maximaal 35 tekens lang zijn.',
+                'name.unique' => 'Deze bendenaam is al in gebruik door een andere factie.',
+                'tag.required' => 'Vul een geldige bende tag in.',
+                'tag.min' => 'De bende tag moet minimaal 2 tekens lang zijn.',
+                'tag.max' => 'De bende tag mag maximaal 5 tekens lang zijn.',
+                'tag.alpha_num' => 'De bende tag mag alleen letters en cijfers bevatten.',
+                'tag.unique' => 'Deze tag is al in gebruik door een andere bende.',
+            ]);
+
+            $oldName = $gang->name;
+            $gang->update([
+                'name' => trim($validated['name']),
+                'tag' => strtoupper(trim($validated['tag'])),
+            ]);
+
+            return back()
+                ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'algemeen')
+                ->with('success', "Bendenaam succesvol bijgewerkt van '{$oldName}' naar '{$gang->name}' [{$gang->tag}]!");
+        }
+
+        if ($actionType === 'general_info' || $actionType === 'general') {
+            $validated = $request->validate([
+                'motd' => ['nullable', 'string', 'max:150'],
+                'specialty' => ['nullable', 'string', 'max:50'],
+                'emblem' => ['nullable', 'string', 'max:50'],
+            ]);
+
+            $gang->update([
+                'motd' => strip_tags($validated['motd'] ?? ''),
+                'specialty' => strip_tags($validated['specialty'] ?? $gang->specialty),
+                'emblem' => strip_tags($validated['emblem'] ?? $gang->emblem),
+            ]);
+
+            return back()
+                ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'algemeen')
+                ->with('success', 'Bende gegevens & slogan succesvol bijgewerkt!');
+        }
+
         if ($actionType === 'avatar') {
             $request->validate([
                 'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:4096'],
@@ -712,6 +774,7 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'visueel')
                 ->with('success', 'Bende avatar succesvol bijgewerkt!');
         }
 
@@ -724,12 +787,16 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'visueel')
                 ->with('success', 'Bende achtergrond succesvol bijgewerkt!');
         }
 
         if ($actionType === 'management') {
             if ($character->gang_role !== 'leader') {
-                return back()->with('error', 'Alleen de Bendeleider (oprichter) kan het management wijzigen!');
+                return back()
+                    ->with('active_gang_tab', 'instellingen')
+                    ->with('settings_tab', 'rollen')
+                    ->with('error', 'Alleen de Bendeleider (oprichter) kan het management wijzigen!');
             }
 
             $validated = $request->validate([
@@ -791,6 +858,7 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'rollen')
                 ->with('success', 'Bende rollen en management succesvol bijgewerkt! Aangewezen leden hebben direct co-op rechten.');
         }
 
@@ -805,6 +873,7 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'toelating')
                 ->with('success', 'Verlatingskosten succesvol gewijzigd (maximaal 50x uurloon)!');
         }
 
@@ -819,7 +888,8 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
-                ->with('success', 'Minimaal respect voor toetreding succesvol ingesteld!');
+                ->with('settings_tab', 'toelating')
+                ->with('success', 'Toelatingseis (Minimaal Respect) succesvol ingesteld op '.number_format((int) $validated['min_respect'], 0, ',', '.').' respect!');
         }
 
         if ($actionType === 'profile') {
@@ -833,6 +903,7 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'manifest')
                 ->with('success', 'Bende profieltekst succesvol opgeslagen!');
         }
 
@@ -844,6 +915,7 @@ class GangController extends Controller
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
+                ->with('settings_tab', 'toelating')
                 ->with('success', $isOpen
                     ? 'Lidmaatschapsverzoeken zijn ingeschakeld. Spelers kunnen zich nu aanmelden via de ranglijst!'
                     : 'Lidmaatschapsverzoeken zijn uitgeschakeld. Je bende is nu gesloten voor nieuwe aanmeldingen.'
@@ -868,6 +940,7 @@ class GangController extends Controller
 
         return back()
             ->with('active_gang_tab', 'instellingen')
+            ->with('settings_tab', 'algemeen')
             ->with('success', 'Bende instellingen zijn succesvol bijgewerkt!');
     }
 

@@ -1362,7 +1362,7 @@
                                             <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> In Behandeling
                                         </span>
                                     </template>
-                                    <template x-if="!g.has_pending_request && g.is_open">
+                                    <template x-if="!g.has_pending_request && g.is_open && {{ (int) ($character->respect ?? 0) }} >= (g.min_respect || 0)">
                                         <form :action="'{{ url('/gangs') }}/' + g.id + '/aanvragen'" method="POST" class="inline">
                                             @csrf
                                             <button type="submit" class="py-1.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1.5">
@@ -1370,6 +1370,12 @@
                                                 <span>Aanmelden</span>
                                             </button>
                                         </form>
+                                    </template>
+                                    <template x-if="!g.has_pending_request && g.is_open && {{ (int) ($character->respect ?? 0) }} < (g.min_respect || 0)">
+                                        <span class="py-1.5 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs inline-flex items-center gap-1 border border-slate-200 dark:border-slate-700 cursor-not-allowed" :title="'Je hebt minimaal ' + g.min_respect + ' respect nodig om lid te worden'">
+                                            <i class="fa-solid fa-lock text-[10px]"></i>
+                                            <span>Min. <span x-text="g.min_respect"></span> Respect</span>
+                                        </span>
                                     </template>
                                     <template x-if="!g.has_pending_request && !g.is_open">
                                         <span class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs inline-flex items-center gap-1 border border-slate-200 dark:border-slate-700">
@@ -1448,13 +1454,19 @@
                                                             In Behandeling
                                                         </span>
                                                     </template>
-                                                    <template x-if="!g.has_pending_request && g.is_open">
+                                                    <template x-if="!g.has_pending_request && g.is_open && {{ (int) ($character->respect ?? 0) }} >= (g.min_respect || 0)">
                                                         <form :action="'{{ url('/gangs') }}/' + g.id + '/aanvragen'" method="POST" class="inline">
                                                             @csrf
                                                             <button type="submit" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer shadow-xs">
                                                                 Aanmelden
                                                             </button>
                                                         </form>
+                                                    </template>
+                                                    <template x-if="!g.has_pending_request && g.is_open && {{ (int) ($character->respect ?? 0) }} < (g.min_respect || 0)">
+                                                        <span class="px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs inline-flex items-center gap-1 border border-slate-200 dark:border-slate-700 cursor-not-allowed" :title="'Minimaal ' + g.min_respect + ' respect vereist'">
+                                                            <i class="fa-solid fa-lock text-[9px]"></i>
+                                                            <span>Min. <span x-text="g.min_respect"></span></span>
+                                                        </span>
                                                     </template>
                                                 @endif
                                             </div>
@@ -3198,247 +3210,228 @@
             </div>
             @endif
 
-            <!-- DEDICATED TAB: BENDE INSTELLINGEN (EIGEN PAGINA) -->
+            <!-- DEDICATED TAB: BENDE INSTELLINGEN (EIGEN PAGINA MET SUB-TABS) -->
             @if($myGang && $myGang->isOfficer($character))
-            <div x-show="activeGangTab === 'instellingen'" class="space-y-6">
+            <div x-show="activeGangTab === 'instellingen'" 
+                 x-data="{ 
+                     settingsTab: '{{ session('settings_tab', 'algemeen') }}',
+                     previewName: '{{ addslashes($myGang->name) }}',
+                     previewTag: '{{ addslashes($myGang->tag) }}'
+                 }" 
+                 class="space-y-5">
 
                 <!-- Header Banner -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-black uppercase tracking-wider mb-1.5">
-                            <i class="fa-solid fa-sliders"></i> Configuratie
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-[10px] font-black uppercase tracking-wider mb-1.5">
+                            <i class="fa-solid fa-sliders"></i> Factie Beheer
                         </div>
-                        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-gear text-purple-600"></i>
+                        <h2 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-gear text-purple-600 dark:text-purple-400"></i>
                             <span>Bende Instellingen</span>
                         </h2>
-                        <p class="text-xs text-slate-500 mt-1 max-w-xl">
-                            Beheer de visuele identiteit, sleutelfuncties, toegangseisen en het publieke manifest van <strong>{{ $myGang->name }}</strong>.
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+                            Beheer de naam, toelatingseisen, rollen, visuele identiteit en het manifest van <strong>{{ $myGang->name }}</strong>.
                         </p>
                     </div>
 
                     <div class="flex items-center gap-2 shrink-0">
                         <button type="button" @click="setGangTab('beheer')" 
-                                class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5">
+                                class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-extrabold transition cursor-pointer flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
                             <i class="fa-solid fa-users-gear text-slate-500"></i>
-                            <span>Naar Beheer</span>
+                            <span>Naar Ledenbeheer</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- 1. VISUELE VORMGEVING (AVATAR & BANNER) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Avatar Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                        <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
-                            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-image text-purple-600"></i>
-                                <span>Bende Embleem / Avatar</span>
-                            </h3>
-                            <span class="text-[11px] text-slate-400 font-medium">JPG, PNG (max. 2MB)</span>
+                <!-- SUB-TABS NAVIGATIE BALK -->
+                <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-2 shadow-xs">
+                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+                        <!-- Tab 1: Naam & Algemeen -->
+                        <button type="button" @click="settingsTab = 'algemeen'" 
+                                :class="settingsTab === 'algemeen' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold border-transparent'"
+                                class="px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-slate-700/60">
+                            <i class="fa-solid fa-tag text-xs" :class="settingsTab === 'algemeen' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
+                            <span>Naam & Algemeen</span>
+                        </button>
+
+                        <!-- Tab 2: Toelating & Regels -->
+                        <button type="button" @click="settingsTab = 'toelating'" 
+                                :class="settingsTab === 'toelating' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold border-transparent'"
+                                class="px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-slate-700/60">
+                            <i class="fa-solid fa-door-open text-xs" :class="settingsTab === 'toelating' ? 'text-white' : 'text-emerald-500'"></i>
+                            <span>Toelating & Regels</span>
+                            @if(($myGang->min_respect ?? 0) > 0)
+                                <span class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-black" :class="settingsTab === 'toelating' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'">
+                                    {{ $myGang->min_respect }}
+                                </span>
+                            @endif
+                        </button>
+
+                        <!-- Tab 3: Rollen & Management -->
+                        <button type="button" @click="settingsTab = 'rollen'" 
+                                :class="settingsTab === 'rollen' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold border-transparent'"
+                                class="px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-slate-700/60">
+                            <i class="fa-solid fa-id-badge text-xs" :class="settingsTab === 'rollen' ? 'text-white' : 'text-indigo-500'"></i>
+                            <span>Rollen & Management</span>
+                        </button>
+
+                        <!-- Tab 4: Banner & Embleem -->
+                        <button type="button" @click="settingsTab = 'visueel'" 
+                                :class="settingsTab === 'visueel' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold border-transparent'"
+                                class="px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-slate-700/60">
+                            <i class="fa-solid fa-palette text-xs" :class="settingsTab === 'visueel' ? 'text-white' : 'text-rose-500'"></i>
+                            <span>Banner & Embleem</span>
+                        </button>
+
+                        <!-- Tab 5: Publiek Manifest -->
+                        <button type="button" @click="settingsTab = 'manifest'" 
+                                :class="settingsTab === 'manifest' ? 'bg-purple-600 text-white shadow-xs font-black' : 'bg-slate-50 dark:bg-slate-800/70 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold border-transparent'"
+                                class="px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition cursor-pointer shrink-0 border border-slate-200/60 dark:border-slate-700/60">
+                            <i class="fa-solid fa-pen-nib text-xs" :class="settingsTab === 'manifest' ? 'text-white' : 'text-amber-500'"></i>
+                            <span>Publiek Manifest</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ======================================================== -->
+                <!-- SUBTAB 1: NAAM & ALGEMEEN                                 -->
+                <!-- ======================================================== -->
+                <div x-show="settingsTab === 'algemeen'" class="space-y-5">
+                    <!-- Bendenaam en Tag Wijzigen Card -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-pen-to-square text-purple-600 dark:text-purple-400"></i>
+                                    <span>Bendenaam & Tag Aanpassen</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Pas de officiële naam en de factie tag van je bende aan. Dit wordt overal in de kliniek en ranglijsten direct zichtbaar.
+                                </p>
+                            </div>
+                            @if($character->gang_role === 'leader')
+                                <span class="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-black uppercase tracking-wider self-start sm:self-auto">
+                                    <i class="fa-solid fa-crown text-amber-500"></i> Bendeleider Bevoegdheid
+                                </span>
+                            @else
+                                <span class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold self-start sm:self-auto">
+                                    <i class="fa-solid fa-lock text-slate-400"></i> Alleen Bendeleider
+                                </span>
+                            @endif
                         </div>
 
-                        <div class="flex items-center gap-4">
-                            <img src="{{ $myGang->avatar_url }}" alt="Gang Avatar" 
-                                 class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shadow-sm shrink-0">
-                            
-                            <form action="{{ route('gangs.settings') }}" method="POST" enctype="multipart/form-data" class="flex-1 space-y-3">
-                                @csrf
-                                <input type="hidden" name="action_type" value="avatar">
-                                <input type="file" name="avatar" accept="image/*" required 
-                                       class="block w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 bg-slate-50 border border-slate-200 rounded-xl p-1.5 cursor-pointer">
-                                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
-                                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                                    <span>Avatar Uploaden</span>
-                                </button>
-                            </form>
+                        <!-- Live Badge Preview -->
+                        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between flex-wrap gap-3">
+                            <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Voorbeeld weergave:</span>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md bg-purple-600 text-white font-mono text-xs font-black uppercase shadow-2xs" x-text="'[' + (previewTag || 'TAG').toUpperCase() + ']'"></span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white" x-text="previewName || 'Bendenaam'"></span>
+                            </div>
                         </div>
+
+                        @if($character->gang_role === 'leader')
+                        <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="action_type" value="name">
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Bendenaam (3 - 35 tekens)
+                                    </label>
+                                    <input type="text" name="name" x-model="previewName" value="{{ $myGang->name }}" minlength="3" maxlength="35" required 
+                                           class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Bende Tag (2 - 5 letters/cijfers)
+                                    </label>
+                                    <input type="text" name="tag" x-model="previewTag" value="{{ $myGang->tag }}" minlength="2" maxlength="5" required 
+                                           class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white uppercase font-mono rounded-xl px-3.5 py-2.5 text-xs font-black focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Bendenaam & Tag Opslaan</span>
+                            </button>
+                        </form>
+                        @else
+                        <p class="text-xs text-slate-400 dark:text-slate-500 italic py-2">
+                            Alleen de oprichter/bendeleider kan de naam of de tag van de bende wijzigen.
+                        </p>
+                        @endif
                     </div>
 
-                    <!-- Banner Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                        <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
-                            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-panorama text-purple-600"></i>
-                                <span>Achtergrond Banner</span>
+                    <!-- MOTD / Slogan & Embleem Card -->
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-bullhorn text-purple-600 dark:text-purple-400"></i>
+                                <span>Bende Slogan & Specialiteit</span>
                             </h3>
-                            <span class="text-[11px] text-slate-400 font-medium">Bovenzijde bende profiel</span>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Korte factieleus en specialiteit die getoond worden op het bendedashboard en in de lijsten.
+                            </p>
                         </div>
 
-                        @if($myGang->banner)
-                        <div class="h-28 w-full rounded-xl overflow-hidden border border-slate-200 shadow-2xs">
-                            <img src="{{ $myGang->banner_url }}" alt="Huidige Banner" class="w-full h-full object-cover">
-                        </div>
-                        @endif
-
-                        <form action="{{ route('gangs.settings') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                        <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
                             @csrf
-                            <input type="hidden" name="action_type" value="banner">
-                            <p class="text-xs text-slate-500">Kies een sfeervolle achtergrondafbeelding die getoond wordt op de profielpagina van je bende.</p>
-                            <input type="file" name="banner" accept="image/*" required 
-                                   class="block w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 bg-slate-50 border border-slate-200 rounded-xl p-1.5 cursor-pointer">
-                            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
-                                <i class="fa-solid fa-cloud-arrow-up"></i>
-                                <span>Banner Uploaden</span>
+                            <input type="hidden" name="action_type" value="general_info">
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Bende Slogan / Bericht van de Dag (MOTD)
+                                    </label>
+                                    <input type="text" name="motd" value="{{ $myGang->motd ?? '' }}" maxlength="150" placeholder="Bijv. Wie niet sterk is moet slim zijn..."
+                                           class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Bende Specialiteit / Focus
+                                    </label>
+                                    <input type="text" name="specialty" value="{{ $myGang->specialty ?? 'Smokkel & Handel' }}" maxlength="50"
+                                           class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Embleem Icoon (FontAwesome class)
+                                    </label>
+                                    <input type="text" name="emblem" value="{{ $myGang->emblem ?? 'fa-crown' }}" maxlength="50"
+                                           class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Algemene Gegevens Opslaan</span>
                             </button>
                         </form>
                     </div>
                 </div>
 
-                <!-- 2. BENDE ROLLEN & SLEUTELFUNCTIES -->
-                <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
-                    <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                                <i class="fa-solid fa-id-badge text-purple-600 dark:text-purple-400"></i>
-                                <span>Bende Rollen & Sleutelfuncties</span>
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                Wijs sleutelposities toe aan betrouwbare bendeleden. Aangewezen leden krijgen direct <strong>Co-Leider bevoegdheden</strong> binnen de kliniek.
-                            </p>
-                        </div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 shrink-0 self-start sm:self-auto">
-                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
-                            <span>Co-Op Management</span>
-                        </span>
-                    </div>
-
-                    <!-- Information callout banner with rich styling -->
-                    <div class="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 text-xs text-purple-950 dark:text-purple-200 space-y-2">
-                        <div class="font-black flex items-center gap-2 text-purple-900 dark:text-purple-200">
-                            <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400"></i>
-                            <span>Sleutelfuncties Toelichting & Rechten:</span>
-                        </div>
-                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
-                            <li class="flex items-start gap-1.5">
-                                <span class="text-amber-500 shrink-0">👑</span>
-                                <div><strong class="text-slate-900 dark:text-white">Bendeleider:</strong> Volledige controle over upgrades, oorlogen, bondgenoten, instellingen en leden.</div>
-                            </li>
-                            <li class="flex items-start gap-1.5">
-                                <span class="text-purple-500 shrink-0">🎖️</span>
-                                <div><strong class="text-slate-900 dark:text-white">Co-Leider / Onderbaas:</strong> Directe operationele leiding, toelatingen, oorlogscommando en dagelijks beheer.</div>
-                            </li>
-                            <li class="flex items-start gap-1.5">
-                                <span class="text-indigo-500 shrink-0">📦</span>
-                                <div><strong class="text-slate-900 dark:text-white">Kantine Smokkelaar:</strong> Beheert smokkelkiosken & depot. <span class="text-purple-600 dark:text-purple-400 font-bold">(Automatisch Co-Leider)</span></div>
-                            </li>
-                            <li class="flex items-start gap-1.5">
-                                <span class="text-emerald-500 shrink-0">💷</span>
-                                <div><strong class="text-slate-900 dark:text-white">Kasbeheerder:</strong> Beheert de kluisdonaties & geldreserves. <span class="text-purple-600 dark:text-purple-400 font-bold">(Automatisch Co-Leider)</span></div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-5">
-                        @csrf
-                        <input type="hidden" name="action_type" value="management">
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- 1. Bendeleider -->
-                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
-                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                                    <span class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-crown text-amber-500"></i> Bendeleider
-                                    </span>
-                                    <span class="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">Opperbaas</span>
-                                </label>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Oprichter & hoogste baas van de bende.</p>
-                                <select name="boss_babe_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
-                                    @foreach($myGang->members as $m)
-                                        <option value="{{ $m->id }}" {{ (int) $myGang->leader_character_id === (int) $m->id ? 'selected' : '' }}>
-                                            {{ $m->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- 2. Co-Leider / Onderbaas -->
-                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
-                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                                    <span class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i> Co-Leider
-                                    </span>
-                                    <span class="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase">Onderbaas</span>
-                                </label>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Tweede bevelvoerder met co-op rechten.</p>
-                                <select name="co_leader_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
-                                    <option value="">Geen aangewezen</option>
-                                    @foreach($myGang->members as $m)
-                                        @if((int) $myGang->leader_character_id !== (int) $m->id)
-                                            <option value="{{ $m->id }}" {{ $m->gang_role === 'co_leader' && (int) $myGang->personal_shopper !== (int) $m->id && (int) $myGang->money_magnet !== (int) $m->id ? 'selected' : '' }}>
-                                                {{ $m->name }}
-                                            </option>
-                                        @endif
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- 3. Kantine Smokkelaar -->
-                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
-                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                                    <span class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-box text-indigo-500"></i> Kantine Smokkelaar
-                                    </span>
-                                    <span class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Kiosken</span>
-                                </label>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Beheert kiosks & bevoorrading. (Co-op)</p>
-                                <select name="personal_shopper_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
-                                    <option value="">Geen aangewezen</option>
-                                    @foreach($myGang->members as $m)
-                                        <option value="{{ $m->id }}" {{ (int) $myGang->personal_shopper === (int) $m->id ? 'selected' : '' }}>
-                                            {{ $m->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- 4. Kasbeheerder -->
-                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
-                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
-                                    <span class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-vault text-emerald-600 dark:text-emerald-400"></i> Kasbeheerder
-                                    </span>
-                                    <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Kluis</span>
-                                </label>
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Heeft toezicht & opnamerechten. (Co-op)</p>
-                                <select name="money_magnet_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
-                                    <option value="">Geen aangewezen</option>
-                                    @foreach($myGang->members as $m)
-                                        <option value="{{ $m->id }}" {{ (int) $myGang->money_magnet === (int) $m->id ? 'selected' : '' }}>
-                                            {{ $m->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 flex items-center justify-between flex-wrap gap-3">
-                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-md transition cursor-pointer flex items-center gap-2">
-                                <i class="fa-solid fa-check"></i>
-                                <span>Sleutelfuncties Opslaan</span>
-                            </button>
-                            <span class="text-[11px] text-slate-400 flex items-center gap-1">
-                                <i class="fa-solid fa-bolt text-amber-500"></i> Wijzigingen worden direct van kracht
-                            </span>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- 3. TOELATINGSEISEN & VERZOEKEN INSTELLINGEN -->
-                <div class="space-y-6">
+                <!-- ======================================================== -->
+                <!-- SUBTAB 2: TOELATING & REGELS                              -->
+                <!-- ======================================================== -->
+                <div x-show="settingsTab === 'toelating'" class="space-y-5">
                     <!-- Lidmaatschapsverzoeken Toggle Card -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                        <div class="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <div>
-                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                    <i class="fa-solid fa-user-shield text-purple-600"></i>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-user-shield text-purple-600 dark:text-purple-400"></i>
                                     <span>Lidmaatschapsverzoeken (Toelating)</span>
                                 </h3>
-                                <p class="text-xs text-slate-500 mt-1">
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                     Bepaal of nieuwe patiënten een verzoek mogen indienen om lid te worden van <strong>{{ $myGang->name }}</strong>.
                                 </p>
                             </div>
-                            <span class="px-3 py-1 rounded-full text-[11px] font-black self-start sm:self-auto {{ $myGang->is_open ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
+                            <span class="px-3 py-1 rounded-full text-[11px] font-black self-start sm:self-auto {{ $myGang->is_open ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800' }}">
                                 <i class="fa-solid {{ $myGang->is_open ? 'fa-circle-check' : 'fa-circle-xmark' }}"></i>
                                 {{ $myGang->is_open ? 'Verzoeken Toegestaan (Open)' : 'Verzoeken Uitgeschakeld (Gesloten)' }}
                             </span>
@@ -3449,28 +3442,28 @@
                             <input type="hidden" name="action_type" value="requests_toggle">
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <label class="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition {{ $myGang->is_open ? 'border-purple-400 bg-purple-50/40 shadow-2xs' : 'border-slate-200 bg-slate-50 hover:border-slate-300' }}">
+                                <label class="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition {{ $myGang->is_open ? 'border-purple-400 dark:border-purple-600 bg-purple-50/40 dark:bg-purple-950/30 shadow-2xs' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-slate-300' }}">
                                     <input type="radio" name="is_open" value="1" {{ $myGang->is_open ? 'checked' : '' }} class="mt-0.5 text-purple-600 focus:ring-purple-500">
                                     <div class="text-xs">
-                                        <span class="font-extrabold text-slate-900 flex items-center gap-1.5">
-                                            <i class="fa-solid fa-door-open text-emerald-600"></i>
+                                        <span class="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                            <i class="fa-solid fa-door-open text-emerald-600 dark:text-emerald-400"></i>
                                             <span>Verzoeken Inschakelen (Open)</span>
                                         </span>
-                                        <span class="text-slate-500 block text-[11px] mt-1 leading-relaxed">
-                                            Spelers kunnen via de benderanglijst een lidmaatschapsverzoek indienen. De leiding kan verzoeken goedkeuren of weigeren.
+                                        <span class="text-slate-500 dark:text-slate-400 block text-[11px] mt-1 leading-relaxed">
+                                            Spelers die aan de toelatingseis voldoen kunnen via de benderanglijst een verzoek indienen. De leiding kan verzoeken goedkeuren of afwijzen.
                                         </span>
                                     </div>
                                 </label>
 
-                                <label class="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition {{ ! $myGang->is_open ? 'border-purple-400 bg-purple-50/40 shadow-2xs' : 'border-slate-200 bg-slate-50 hover:border-slate-300' }}">
+                                <label class="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition {{ ! $myGang->is_open ? 'border-purple-400 dark:border-purple-600 bg-purple-50/40 dark:bg-purple-950/30 shadow-2xs' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-slate-300' }}">
                                     <input type="radio" name="is_open" value="0" {{ ! $myGang->is_open ? 'checked' : '' }} class="mt-0.5 text-purple-600 focus:ring-purple-500">
                                     <div class="text-xs">
-                                        <span class="font-extrabold text-slate-900 flex items-center gap-1.5">
+                                        <span class="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
                                             <i class="fa-solid fa-lock text-rose-500"></i>
                                             <span>Verzoeken Uitschakelen (Gesloten)</span>
                                         </span>
-                                        <span class="text-slate-500 block text-[11px] mt-1 leading-relaxed">
-                                            Nieuwe patiënten kunnen geen aanvraag indienen. Je bende toont de badge 'Gesloten' in het overzicht.
+                                        <span class="text-slate-500 dark:text-slate-400 block text-[11px] mt-1 leading-relaxed">
+                                            Niemand kan een aanvraag indienen. Je bende toont de badge 'Gesloten' in alle ranglijsten.
                                         </span>
                                     </div>
                                 </label>
@@ -3484,16 +3477,26 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Minimaal Respect -->
-                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                            <div class="border-b border-slate-100 pb-3">
-                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                    <i class="fa-solid fa-shield-halved text-purple-600"></i>
-                                    <span>Toelatingseis (Minimaal Respect)</span>
-                                </h3>
-                                <p class="text-xs text-slate-500 mt-1">
-                                    Minimale respectscore die een patiënt moet hebben om een aanvraag te kunnen doen om lid te worden.
-                                </p>
+                        <!-- Toelatingseis (Minimaal Respect) -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-fire text-amber-500"></i>
+                                        <span>Toelatingseis (Minimaal Respect)</span>
+                                    </h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        Minimale respectscore die een patiënt moet hebben om lid te kunnen worden.
+                                    </p>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 font-mono text-xs font-black">
+                                    Min. {{ number_format($myGang->min_respect ?? 0, 0, ',', '.') }}
+                                </span>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                                <i class="fa-solid fa-circle-info text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"></i>
+                                <span>Patiënten met minder respect zien direct een vergrendelde knop met <em>"Min. Respect Vereist"</em> en kunnen geen aanvraag verzenden. Vul <strong>0</strong> in voor vrije toelating.</span>
                             </div>
 
                             <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
@@ -3501,9 +3504,16 @@
                                 <input type="hidden" name="action_type" value="min_respect">
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Minimaal vereist respect</label>
-                                    <input type="number" name="min_respect" value="{{ $myGang->min_respect ?? 0 }}" min="0" step="100"
-                                           class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                                        Minimaal vereist respect (0 voor geen eis)
+                                    </label>
+                                    <div class="relative">
+                                        <input type="number" name="min_respect" value="{{ $myGang->min_respect ?? 0 }}" min="0" step="50" required
+                                               class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition pr-20">
+                                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-amber-600 dark:text-amber-400 font-mono">
+                                            RESPECT
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
@@ -3514,13 +3524,14 @@
                         </div>
 
                         <!-- Verlatingskosten -->
-                        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4" x-data="{ multiplier: {{ min(50, (int) ($myGang->leave_fee_multiplier ?? 48)) }}, hourly: {{ $hourlyWage }} }">
-                            <div class="border-b border-slate-100 pb-3">
-                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                    <i class="fa-solid fa-door-open text-purple-600"></i>
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4" 
+                             x-data="{ multiplier: {{ min(50, (int) ($myGang->leave_fee_multiplier ?? 48)) }}, hourly: {{ $hourlyWage ?? 0 }} }">
+                            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-door-open text-purple-600 dark:text-purple-400"></i>
                                     <span>Verlatingskosten (Vertrekboete)</span>
                                 </h3>
-                                <p class="text-xs text-slate-500 mt-1">
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                     Boete die een bendelid betaalt aan de kluis wanneer hij/zij besluit de factie te verlaten (maximaal 50x het uurloon).
                                 </p>
                             </div>
@@ -3530,16 +3541,16 @@
                                 <input type="hidden" name="action_type" value="leave_fee">
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Factor van het Uurloon (0 - 50x)</label>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Factor van het Uurloon (0 - 50x)</label>
                                     <div class="relative">
                                         <input type="number" name="leave_fee_multiplier" x-model.number="multiplier" min="0" max="50"
-                                               class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition pr-28">
-                                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-purple-700 font-mono" 
+                                               class="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition pr-28">
+                                        <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-purple-700 dark:text-purple-400 font-mono" 
                                               x-text="'€' + ((multiplier || 0) * hourly).toLocaleString('nl-NL')">
                                         </span>
                                     </div>
                                     <p class="text-[11px] text-slate-400 mt-1">
-                                        Huidig uurloon: €{{ number_format($hourlyWage, 0, ',', '.') }}. Maximaal 50x = €{{ number_format($hourlyWage * 50, 0, ',', '.') }}.
+                                        Huidig uurloon: €{{ number_format($hourlyWage ?? 0, 0, ',', '.') }}. Maximaal 50x = €{{ number_format(($hourlyWage ?? 0) * 50, 0, ',', '.') }}.
                                     </p>
                                 </div>
 
@@ -3552,75 +3563,285 @@
                     </div>
                 </div>
 
-                <!-- 4. BENDE MANIFEST / PROFIELTEKST -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                    <div class="border-b border-slate-100 pb-3">
-                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-pen-nib text-purple-600"></i>
-                            <span>Publiek Bende Manifest & Regels</span>
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-1">
-                            Schrijf het officiële manifest van de bende. Dit wordt getoond op de publieke bende pagina voor alle patiënten in de kliniek.
-                        </p>
-                    </div>
+                <!-- ======================================================== -->
+                <!-- SUBTAB 3: ROLLEN & MANAGEMENT                             -->
+                <!-- ======================================================== -->
+                <div x-show="settingsTab === 'rollen'" class="space-y-5">
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-id-badge text-purple-600 dark:text-purple-400"></i>
+                                    <span>Bende Rollen & Sleutelfuncties</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    Wijs sleutelposities toe aan betrouwbare bendeleden. Aangewezen leden krijgen direct <strong>Co-Leider bevoegdheden</strong> binnen de kliniek.
+                                </p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 shrink-0 self-start sm:self-auto">
+                                <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
+                                <span>Co-Op Management</span>
+                            </span>
+                        </div>
 
-                    <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
-                        @csrf
-                        <input type="hidden" name="action_type" value="profile">
+                        <!-- Information callout banner with rich styling -->
+                        <div class="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 text-xs text-purple-950 dark:text-purple-200 space-y-2">
+                            <div class="font-black flex items-center gap-2 text-purple-900 dark:text-purple-200">
+                                <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400"></i>
+                                <span>Sleutelfuncties Toelichting & Rechten:</span>
+                            </div>
+                            <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
+                                <li class="flex items-start gap-1.5">
+                                    <span class="text-amber-500 shrink-0">👑</span>
+                                    <div><strong class="text-slate-900 dark:text-white">Bendeleider:</strong> Volledige controle over upgrades, oorlogen, bondgenoten, instellingen en leden.</div>
+                                </li>
+                                <li class="flex items-start gap-1.5">
+                                    <span class="text-purple-500 shrink-0">🎖️</span>
+                                    <div><strong class="text-slate-900 dark:text-white">Co-Leider / Onderbaas:</strong> Directe operationele leiding, toelatingen, oorlogscommando en dagelijks beheer.</div>
+                                </li>
+                                <li class="flex items-start gap-1.5">
+                                    <span class="text-indigo-500 shrink-0">📦</span>
+                                    <div><strong class="text-slate-900 dark:text-white">Kantine Smokkelaar:</strong> Beheert smokkelkiosken & depot. <span class="text-purple-600 dark:text-purple-400 font-bold">(Automatisch Co-Leider)</span></div>
+                                </li>
+                                <li class="flex items-start gap-1.5">
+                                    <span class="text-emerald-500 shrink-0">💷</span>
+                                    <div><strong class="text-slate-900 dark:text-white">Kasbeheerder:</strong> Beheert de kluisdonaties & geldreserves. <span class="text-purple-600 dark:text-purple-400 font-bold">(Automatisch Co-Leider)</span></div>
+                                </li>
+                            </ul>
+                        </div>
 
-                        <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
-                            <!-- Clean BBCode Toolbar -->
-                            <div class="flex flex-wrap items-center gap-1 p-2 bg-slate-50 border-b border-slate-200 text-slate-700 text-xs">
-                                <button type="button" onclick="insertGangBbcode('[img]', '[/img]')" title="Afbeelding" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    <i class="fa-regular fa-image"></i>
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('[video]', '[/video]')" title="Video" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    <i class="fa-regular fa-circle-play"></i>
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('[url]', '[/url]')" title="Link" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    <i class="fa-solid fa-link"></i>
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('😊', '')" title="Emoji" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    <i class="fa-regular fa-face-smile"></i>
-                                </button>
-                                <div class="w-px h-4 bg-slate-200 mx-1"></div>
-                                <button type="button" onclick="insertGangBbcode('[b]', '[/b]')" title="Vetgedrukt" class="w-7 h-7 font-black rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    B
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('[i]', '[/i]')" title="Cursief" class="w-7 h-7 italic font-serif rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    I
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('[u]', '[/u]')" title="Onderstreept" class="w-7 h-7 underline rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    U
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('[s]', '[/s]')" title="Doorgehaald" class="w-7 h-7 line-through rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    S
-                                </button>
-                                <div class="w-px h-4 bg-slate-200 mx-1"></div>
-                                <button type="button" onclick="insertGangBbcode('[left]', '[/left]')" title="Links uitlijnen" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    <i class="fa-solid fa-align-left"></i>
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('[center]', '[/center]')" title="Centreren" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    <i class="fa-solid fa-align-center"></i>
-                                </button>
-                                <button type="button" onclick="insertGangBbcode('[right]', '[/right]')" title="Rechts uitlijnen" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center transition cursor-pointer">
-                                    <i class="fa-solid fa-align-right"></i>
-                                </button>
+                        <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-5">
+                            @csrf
+                            <input type="hidden" name="action_type" value="management">
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <!-- 1. Bendeleider -->
+                                <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                    <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5">
+                                            <i class="fa-solid fa-crown text-amber-500"></i> Bendeleider
+                                        </span>
+                                        <span class="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">Opperbaas</span>
+                                    </label>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Oprichter & hoogste baas van de bende.</p>
+                                    <select name="boss_babe_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
+                                        @foreach($myGang->members as $m)
+                                            <option value="{{ $m->id }}" {{ (int) $myGang->leader_character_id === (int) $m->id ? 'selected' : '' }}>
+                                                {{ $m->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- 2. Co-Leider / Onderbaas -->
+                                <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                    <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5">
+                                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i> Co-Leider
+                                        </span>
+                                        <span class="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase">Onderbaas</span>
+                                    </label>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Tweede bevelvoerder met co-op rechten.</p>
+                                    <select name="co_leader_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
+                                        <option value="">Geen aangewezen</option>
+                                        @foreach($myGang->members as $m)
+                                            @if((int) $myGang->leader_character_id !== (int) $m->id)
+                                                <option value="{{ $m->id }}" {{ $m->gang_role === 'co_leader' && (int) $myGang->personal_shopper !== (int) $m->id && (int) $myGang->money_magnet !== (int) $m->id ? 'selected' : '' }}>
+                                                    {{ $m->name }}
+                                                </option>
+                                            @endif
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- 3. Kantine Smokkelaar -->
+                                <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                    <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5">
+                                            <i class="fa-solid fa-box text-indigo-500"></i> Kantine Smokkelaar
+                                        </span>
+                                        <span class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Kiosken</span>
+                                    </label>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Beheert kiosks & bevoorrading. (Co-op)</p>
+                                    <select name="personal_shopper_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
+                                        <option value="">Geen aangewezen</option>
+                                        @foreach($myGang->members as $m)
+                                            <option value="{{ $m->id }}" {{ (int) $myGang->personal_shopper === (int) $m->id ? 'selected' : '' }}>
+                                                {{ $m->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- 4. Kasbeheerder -->
+                                <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                    <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5">
+                                            <i class="fa-solid fa-vault text-emerald-600 dark:text-emerald-400"></i> Kasbeheerder
+                                        </span>
+                                        <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Kluis</span>
+                                    </label>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Heeft toezicht & opnamerechten. (Co-op)</p>
+                                    <select name="money_magnet_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
+                                        <option value="">Geen aangewezen</option>
+                                        @foreach($myGang->members as $m)
+                                            <option value="{{ $m->id }}" {{ (int) $myGang->money_magnet === (int) $m->id ? 'selected' : '' }}>
+                                                {{ $m->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
 
-                            <!-- Textarea -->
-                            <textarea id="gangProfileEditor" name="description" rows="8" placeholder="Schrijf hier het manifest van je factie..." 
-                                      class="w-full bg-white p-4 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none resize-y leading-relaxed">{{ $myGang->description }}</textarea>
+                            <div class="pt-2 flex items-center justify-between flex-wrap gap-3">
+                                <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-md transition cursor-pointer flex items-center gap-2">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Sleutelfuncties Opslaan</span>
+                                </button>
+                                <span class="text-[11px] text-slate-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i> Wijzigingen worden direct van kracht
+                                </span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ======================================================== -->
+                <!-- SUBTAB 4: HUISSTIJL & BANNER                              -->
+                <!-- ======================================================== -->
+                <div x-show="settingsTab === 'visueel'" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Avatar Card -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-image text-purple-600 dark:text-purple-400"></i>
+                                    <span>Bende Embleem / Avatar</span>
+                                </h3>
+                                <span class="text-[11px] text-slate-400 font-medium">JPG, PNG (max. 4MB)</span>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <img src="{{ $myGang->avatar_url }}" alt="Gang Avatar" 
+                                     class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
+                                
+                                <form action="{{ route('gangs.settings') }}" method="POST" enctype="multipart/form-data" class="flex-1 space-y-3">
+                                    @csrf
+                                    <input type="hidden" name="action_type" value="avatar">
+                                    <input type="file" name="avatar" accept="image/*" required 
+                                           class="block w-full text-xs text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 dark:file:bg-purple-950 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-100 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 cursor-pointer">
+                                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <span>Avatar Uploaden</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
 
-                        <div class="flex justify-end pt-2">
-                            <button type="submit" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-2">
-                                <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Manifest Opslaan</span>
-                            </button>
+                        <!-- Banner Card -->
+                        <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                                <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-panorama text-purple-600 dark:text-purple-400"></i>
+                                    <span>Achtergrond Banner</span>
+                                </h3>
+                                <span class="text-[11px] text-slate-400 font-medium">Bovenzijde bende profiel</span>
+                            </div>
+
+                            @if($myGang->banner)
+                            <div class="h-24 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-2xs">
+                                <img src="{{ $myGang->banner_url }}" alt="Huidige Banner" class="w-full h-full object-cover">
+                            </div>
+                            @endif
+
+                            <form action="{{ route('gangs.settings') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                                @csrf
+                                <input type="hidden" name="action_type" value="banner">
+                                <input type="file" name="banner" accept="image/*" required 
+                                       class="block w-full text-xs text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 dark:file:bg-purple-950 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-100 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 cursor-pointer">
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span>Banner Uploaden</span>
+                                </button>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                 </div>
+
+                <!-- ======================================================== -->
+                <!-- SUBTAB 5: PUBLIEK MANIFEST                                -->
+                <!-- ======================================================== -->
+                <div x-show="settingsTab === 'manifest'" class="space-y-5">
+                    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4">
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-pen-nib text-purple-600 dark:text-purple-400"></i>
+                                <span>Publiek Bende Manifest & Regels</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Schrijf het officiële manifest van de bende. Dit wordt getoond op de publieke bende pagina voor alle patiënten in de kliniek.
+                            </p>
+                        </div>
+
+                        <form action="{{ route('gangs.settings') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="action_type" value="profile">
+
+                            <div class="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
+                                <!-- Clean BBCode Toolbar -->
+                                <div class="flex flex-wrap items-center gap-1 p-2 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs">
+                                    <button type="button" onclick="insertGangBbcode('[img]', '[/img]')" title="Afbeelding" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        <i class="fa-regular fa-image"></i>
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('[video]', '[/video]')" title="Video" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        <i class="fa-regular fa-circle-play"></i>
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('[url]', '[/url]')" title="Link" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        <i class="fa-solid fa-link"></i>
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('😊', '')" title="Emoji" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        <i class="fa-regular fa-face-smile"></i>
+                                    </button>
+                                    <div class="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                                    <button type="button" onclick="insertGangBbcode('[b]', '[/b]')" title="Vetgedrukt" class="w-7 h-7 font-black rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        B
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('[i]', '[/i]')" title="Cursief" class="w-7 h-7 italic font-serif rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        I
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('[u]', '[/u]')" title="Onderstreept" class="w-7 h-7 underline rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        U
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('[s]', '[/s]')" title="Doorgehaald" class="w-7 h-7 line-through rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        S
+                                    </button>
+                                    <div class="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                                    <button type="button" onclick="insertGangBbcode('[left]', '[/left]')" title="Links uitlijnen" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        <i class="fa-solid fa-align-left"></i>
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('[center]', '[/center]')" title="Centreren" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        <i class="fa-solid fa-align-center"></i>
+                                    </button>
+                                    <button type="button" onclick="insertGangBbcode('[right]', '[/right]')" title="Rechts uitlijnen" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer">
+                                        <i class="fa-solid fa-align-right"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Textarea -->
+                                <textarea id="gangProfileEditor" name="description" rows="8" placeholder="Schrijf hier het manifest van je factie..." 
+                                          class="w-full bg-white dark:bg-slate-900 p-4 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none resize-y leading-relaxed">{{ $myGang->description }}</textarea>
+                            </div>
+
+                            <div class="flex justify-end pt-2">
+                                <button type="submit" class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-2">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Manifest Opslaan</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             </div>
             @endif
 
