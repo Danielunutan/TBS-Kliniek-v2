@@ -284,16 +284,7 @@
             <!-- IN-DASHBOARD RADIO KLINIEK FM WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.radio" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden"
-                 x-data="{
-                     playStation(stId) {
-                         if (window.tbsRadio) {
-                             window.tbsRadio.changeStation(stId, true);
-                         } else {
-                             window.dispatchEvent(new CustomEvent('tbs-play-station', { detail: { id: stId } }));
-                         }
-                     }
-                 }">
+                 class="bg-white dark:bg-[#111827] rounded-2xl p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden">
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('radio')" class="text-center py-4 space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-rose-200 dark:border-rose-800/80">
@@ -308,9 +299,10 @@
                     <div class="pt-2">
                         <button type="button" 
                                 @click="unlockWidget('radio')"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-950"></i>
-                            <span>Ontgrendel voor 20 Sterren</span>
+                                :disabled="unlockingKey === 'radio'"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                            <i class="fa-solid" :class="unlockingKey === 'radio' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                            <span x-text="unlockingKey === 'radio' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                         </button>
                     </div>
                 </div>
@@ -638,9 +630,10 @@
                     <div class="pt-2">
                         <button type="button" 
                                 @click="unlockWidget('weather')"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-950"></i>
-                            <span>Ontgrendel voor 15 Sterren</span>
+                                :disabled="unlockingKey === 'weather'"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                            <i class="fa-solid" :class="unlockingKey === 'weather' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                            <span x-text="unlockingKey === 'weather' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
                         </button>
                     </div>
                 </div>
@@ -751,9 +744,10 @@
                     <div class="pt-2">
                         <button type="button" 
                                 @click="unlockWidget('nunl')"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-950"></i>
-                            <span>Ontgrendel voor 15 Sterren</span>
+                                :disabled="unlockingKey === 'nunl'"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                            <i class="fa-solid" :class="unlockingKey === 'nunl' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                            <span x-text="unlockingKey === 'nunl' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
                         </button>
                     </div>
                 </div>
@@ -828,9 +822,10 @@
                     <div class="pt-2">
                         <button type="button" 
                                 @click="unlockWidget('peuken_market')"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-950"></i>
-                            <span>Ontgrendel voor 20 Sterren</span>
+                                :disabled="unlockingKey === 'peuken_market'"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                            <i class="fa-solid" :class="unlockingKey === 'peuken_market' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                            <span x-text="unlockingKey === 'peuken_market' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                         </button>
                     </div>
                 </div>
@@ -908,9 +903,10 @@
                     <div class="pt-2">
                         <button type="button" 
                                 @click="unlockWidget('security')"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-950"></i>
-                            <span>Ontgrendel voor 20 Sterren</span>
+                                :disabled="unlockingKey === 'security'"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                            <i class="fa-solid" :class="unlockingKey === 'security' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                            <span x-text="unlockingKey === 'security' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                         </button>
                     </div>
                 </div>
@@ -978,9 +974,10 @@
                     <div class="pt-2">
                         <button type="button" 
                                 @click="unlockWidget('roulette')"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-950"></i>
-                            <span>Ontgrendel voor 20 Sterren</span>
+                                :disabled="unlockingKey === 'roulette'"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                            <i class="fa-solid" :class="unlockingKey === 'roulette' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                            <span x-text="unlockingKey === 'roulette' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                         </button>
                     </div>
                 </div>
@@ -1319,8 +1316,9 @@
                             <template x-if="item.isPremium && !isUnlocked(item.key)">
                                 <button type="button" 
                                         @click="unlockWidget(item.key)"
-                                        class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[10px] shadow-xs transition cursor-pointer shrink-0 inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-star text-[8px]"></i>
+                                        :disabled="unlockingKey === item.key"
+                                        class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[10px] shadow-xs transition cursor-pointer shrink-0 inline-flex items-center gap-1 disabled:opacity-60">
+                                    <i class="fa-solid" :class="unlockingKey === item.key ? 'fa-spinner fa-spin' : 'fa-star text-[8px]'"></i>
                                     <span>Koop (<span x-text="item.cost"></span>)</span>
                                 </button>
                             </template>
@@ -1396,9 +1394,18 @@ function tbsDashboardCustomizer() {
 
         weather: @js($clinicWeather),
         isLocating: false,
+        unlockingKey: null,
         unlockedWidgets: @js($unlockedWidgets),
         widgetPrices: @js($widgetPrices),
         userStars: {{ (int) ($character->stars ?? 0) }},
+
+        playStation(stId) {
+            if (window.tbsRadio) {
+                window.tbsRadio.changeStation(stId, true);
+            } else {
+                window.dispatchEvent(new CustomEvent('tbs-play-station', { detail: { id: stId } }));
+            }
+        },
 
         widgets: {
             betaNotice: true,
@@ -1481,7 +1488,8 @@ function tbsDashboardCustomizer() {
         },
 
         async unlockWidget(key) {
-            const cost = this.widgetPrices[key] || 15;
+            if (this.unlockingKey) return;
+            const cost = (this.widgetPrices && this.widgetPrices[key]) || 15;
             if (this.userStars < cost) {
                 alert('Je hebt ' + this.userStars + ' sterren, maar deze widget kost ' + cost + ' sterren. Verdien of koop eerst meer sterren!');
                 return;
@@ -1490,12 +1498,18 @@ function tbsDashboardCustomizer() {
                 return;
             }
 
+            this.unlockingKey = key;
+
             try {
-                const resp = await fetch('{{ route("dashboard.widgets.unlock") }}', {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+                const unlockUrl = '{{ route("dashboard.widgets.unlock", [], false) }}';
+
+                const resp = await fetch(unlockUrl, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
@@ -1510,16 +1524,23 @@ function tbsDashboardCustomizer() {
                 }
 
                 if (resp.ok && data.success) {
-                    this.unlockedWidgets = data.unlocked_widgets;
+                    if (Array.isArray(data.unlocked_widgets)) {
+                        this.unlockedWidgets = [...new Set([...(this.unlockedWidgets || []), ...data.unlocked_widgets])];
+                    } else if (Array.isArray(this.unlockedWidgets) && !this.unlockedWidgets.includes(key)) {
+                        this.unlockedWidgets.push(key);
+                    }
                     this.userStars = data.stars;
                     this.widgets[key] = true;
                     localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
-                    alert('🎉 ' + data.message);
+                    window.dispatchEvent(new CustomEvent('character-stats-updated', { detail: { stars: data.stars } }));
+                    alert('🎉 ' + (data.message || 'Widget succesvol ontgrendeld!'));
                 } else {
                     alert(data.error || data.message || 'Er is een fout opgetreden bij het ontgrendelen.');
                 }
             } catch (e) {
                 alert(e.message || 'Netwerkfout bij het ontgrendelen van de widget.');
+            } finally {
+                this.unlockingKey = null;
             }
         },
 
@@ -1535,7 +1556,8 @@ function tbsDashboardCustomizer() {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     try {
-                        const res = await fetch(`{{ route('dashboard.weather.coords') }}?lat=${lat}&lon=${lon}`);
+                        const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
+                        const res = await fetch(`${weatherUrl}?lat=${lat}&lon=${lon}`);
                         const data = await res.json();
                         if (data.success && data.weather) {
                             this.weather = data.weather;
@@ -1562,7 +1584,8 @@ function tbsDashboardCustomizer() {
         async resetToVught() {
             this.isLocating = true;
             try {
-                const res = await fetch(`{{ route('dashboard.weather.coords') }}?lat=51.65&lon=5.29`);
+                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
+                const res = await fetch(`${weatherUrl}?lat=51.65&lon=5.29`);
                 const data = await res.json();
                 if (data.success && data.weather) {
                     this.weather = data.weather;
@@ -1584,7 +1607,8 @@ function tbsDashboardCustomizer() {
         async fetchCityWeather(city) {
             this.isLocating = true;
             try {
-                const res = await fetch(`{{ route('dashboard.weather.coords') }}?city=` + encodeURIComponent(city));
+                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
+                const res = await fetch(`${weatherUrl}?city=` + encodeURIComponent(city));
                 const data = await res.json();
                 if (data.success && data.weather) {
                     this.weather = data.weather;
