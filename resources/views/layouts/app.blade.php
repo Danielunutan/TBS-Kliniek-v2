@@ -2240,7 +2240,7 @@
                             <span class="text-[10px] truncate w-full">Kluis</span>
                         </a>
 
-                        <a href="{{ route('market.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-indigo-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('marketplace.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-indigo-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-store"></i>
                             </div>
