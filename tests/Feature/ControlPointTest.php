@@ -161,10 +161,10 @@ class ControlPointTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
-        // Check Char A payout: 12 minutes * 50 = €600, 12 minutes * 1 = 12 stars
+        // Check Char A payout: 12 minutes * 50 = €600, stars capped to preserve scarcity (0 stars under 30m)
         $charA->refresh();
         $this->assertEquals(100 + 600, $charA->cash);
-        $this->assertEquals(5 + 12, $charA->stars);
+        $this->assertEquals(5, $charA->stars);
 
         // Check Point holder is now Char B
         $point->refresh();
@@ -176,7 +176,7 @@ class ControlPointTest extends TestCase
         $this->assertNotNull($log);
         $this->assertEquals(12, $log->duration_minutes);
         $this->assertEquals(600, $log->reward_cash);
-        $this->assertEquals(12, $log->reward_stars);
+        $this->assertEquals(0, $log->reward_stars);
         $this->assertEquals($charB->id, $log->overtaken_by_character_id);
 
         // Check notification for Char A

@@ -198,7 +198,7 @@ class TunnelController extends Controller
         $cashReward = 25000;
         $xpReward = 500;
         $respectReward = 15;
-        $starsReward = 25;
+        $starsReward = 10;
 
         $this->economy->addCash($character, $cashReward);
         $this->level->addXp($character, $xpReward);
@@ -206,6 +206,6 @@ class TunnelController extends Controller
         $character->stars = ($character->stars ?? 0) + $starsReward;
         $character->save();
 
-        return back()->with('success', '🏆 HET GROTE UITBRAAKCOMPLOT IS VOLTOOID! Midden in de nacht kroop je door de lepel-gegraven tunnel onder de buitenmuur door! Beloning: €'.number_format($cashReward, 0, ',', '.')." buit, +{$xpReward} XP, +{$respectReward} Respect en 25 Sterren ⭐!");
+        return back()->with('success', '🏆 HET GROTE UITBRAAKCOMPLOT IS VOLTOOID! Midden in de nacht kroop je door de lepel-gegraven tunnel onder de buitenmuur door! Beloning: €'.number_format($cashReward, 0, ',', '.')." buit, +{$xpReward} XP, +{$respectReward} Respect en 10 Sterren ⭐!");
     }
 }

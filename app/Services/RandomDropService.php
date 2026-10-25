@@ -32,7 +32,7 @@ class RandomDropService
             VaultCode::create([
                 'code' => $uniqueCode,
                 'reward_cash' => rand(1500, 4000),
-                'reward_stars' => 1,
+                'reward_stars' => (rand(1, 100) <= 20 ? 1 : 0),
                 'reward_tokens' => 2,
                 'character_id' => $character->id,
                 'is_redeemed' => false,

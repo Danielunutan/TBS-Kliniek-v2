@@ -251,7 +251,7 @@ class DailyBattleService
                 VaultCode::create([
                     'code' => 'BATTLE-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6)),
                     'reward_cash' => rand(2500, 7500),
-                    'reward_stars' => 1,
+                    'reward_stars' => (rand(1, 100) <= 25 ? 1 : 0),
                     'reward_tokens' => 3,
                     'character_id' => $character->id,
                     'is_redeemed' => false,

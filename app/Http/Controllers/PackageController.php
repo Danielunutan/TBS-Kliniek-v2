@@ -165,8 +165,8 @@ class PackageController extends Controller
             $xpReward = rand(80, 180);
             $this->level->addXp($character, $xpReward);
 
-            // Chance for stars
-            $starsFound = (rand(1, 100) <= 40) ? rand(1, 2) : 0;
+            // Rare chance for stars (exclusive premium currency: 8% chance for 1 star)
+            $starsFound = (rand(1, 100) <= 8) ? 1 : 0;
             if ($starsFound > 0) {
                 $character->stars = ($character->stars ?? 0) + $starsFound;
             }
@@ -186,7 +186,7 @@ class PackageController extends Controller
                 VaultCode::create([
                     'code' => $voucherCode,
                     'reward_cash' => rand(1000, 2500),
-                    'reward_stars' => 1,
+                    'reward_stars' => 0,
                     'reward_tokens' => 2,
                     'character_id' => $character->id,
                     'is_redeemed' => false,
@@ -278,7 +278,7 @@ class PackageController extends Controller
             $xpReward = rand(600, 1500);
             $this->level->addXp($character, $xpReward);
 
-            $starsFound = rand(10, 25);
+            $starsFound = rand(2, 4);
             $character->stars = ($character->stars ?? 0) + $starsFound;
 
             $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
@@ -296,7 +296,7 @@ class PackageController extends Controller
                 VaultCode::create([
                     'code' => $codeStr,
                     'reward_cash' => rand(5000, 15000),
-                    'reward_stars' => rand(1, 3),
+                    'reward_stars' => (rand(1, 100) <= 20 ? 1 : 0),
                     'reward_tokens' => rand(3, 6),
                     'character_id' => $character->id,
                     'is_redeemed' => false,

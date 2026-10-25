@@ -55,7 +55,8 @@ class ControlPointService
             if ($prevHolderId && $lockedPoint->captured_at) {
                 $heldMinutes = max(1, (int) $lockedPoint->captured_at->diffInMinutes($now));
                 $rewardCash = $heldMinutes * $lockedPoint->cash_per_minute;
-                $rewardStars = $heldMinutes * $lockedPoint->stars_per_minute;
+                // Cap maximum stars from control points to max 1 star total to preserve star scarcity
+                $rewardStars = ($lockedPoint->stars_per_minute > 0 && $heldMinutes >= 30) ? 1 : 0;
 
                 $prevHolder = Character::where('id', $prevHolderId)->lockForUpdate()->first();
                 if ($prevHolder) {
@@ -82,16 +83,17 @@ class ControlPointService
                         'type' => 'control_point',
                         'icon' => 'fa-flag',
                         'title' => 'Controlepunt Overgenomen!',
-                        'message' => "Patiënt {$character->name} heeft controlepunt '{$lockedPoint->name}' overgenomen! Je hebt het punt {$heldMinutes} minuten behouden en ontvangt direct €".number_format($rewardCash, 0, ',', '.')." contant en +{$rewardStars} Sterren ⭐!",
+                        'message' => "Patiënt {$character->name} heeft controlepunt '{$lockedPoint->name}' overgenomen! Je hebt het punt {$heldMinutes} minuten behouden en ontvangt direct €".number_format($rewardCash, 0, ',', '.').' contant'.($rewardStars > 0 ? " en +{$rewardStars} Sterren ⭐!" : '!'),
                     ]);
 
                     // Send official in-game mail
+                    $starLine = $rewardStars > 0 ? "\n• Exclusieve Sterren: +{$rewardStars} ⭐" : '';
                     GameMessage::create([
                         'recipient_id' => $prevHolder->id,
                         'sender_id' => $character->id,
                         'sender_name' => 'Kliniek Controlepunt Beheer',
                         'subject' => "🚩 Uitbetaling Controlepunt: {$lockedPoint->name}",
-                        'content' => "Beste {$prevHolder->name},\n\nPatiënt {$character->name} heeft zojuist controlepunt '{$lockedPoint->name}' ({$lockedPoint->location_name}) van je overgenomen.\n\nTotale bezettingstijd: {$heldMinutes} minuten.\nUitbetaalde buit:\n• Contant geld: €".number_format($rewardCash, 0, ',', '.')."\n• Exclusieve Sterren: +{$rewardStars} ⭐\n\nHet geld en de sterren zijn direct bijgeschreven op je saldo!",
+                        'content' => "Beste {$prevHolder->name},\n\nPatiënt {$character->name} heeft zojuist controlepunt '{$lockedPoint->name}' ({$lockedPoint->location_name}) van je overgenomen.\n\nTotale bezettingstijd: {$heldMinutes} minuten.\nUitbetaalde buit:\n• Contant geld: €".number_format($rewardCash, 0, ',', '.')."{$starLine}\n\nDe buit is direct bijgeschreven op je saldo!",
                         'type' => 'system',
                     ]);
 
@@ -118,9 +120,11 @@ class ControlPointService
 
         $point->refresh();
 
+        $rateMsg = "+€{$point->cash_per_minute} contanten";
+
         $msg = $payoutData
-            ? "🚩 Controlepunt '{$point->name}' veroverd van {$payoutData['prev_name']}! Je bouwt nu elke minuut +€{$point->cash_per_minute} en +{$point->stars_per_minute}⭐ op!"
-            : "🚩 Controlepunt '{$point->name}' succesvol ingenomen! Je bouwt nu elke minuut +€{$point->cash_per_minute} en +{$point->stars_per_minute}⭐ op totdat iemand anders het overneemt!";
+            ? "🚩 Controlepunt '{$point->name}' veroverd van {$payoutData['prev_name']}! Je bouwt nu elke minuut {$rateMsg} op!"
+            : "🚩 Controlepunt '{$point->name}' succesvol ingenomen! Je bouwt nu elke minuut {$rateMsg} op totdat iemand anders het overneemt!";
 
         return [
             'success' => true,

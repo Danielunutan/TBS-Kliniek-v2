@@ -57,7 +57,7 @@ class EveningVaultDropService
             $codes[] = VaultCode::create([
                 'code' => $uniqueCode,
                 'reward_cash' => rand(2500, 5000),
-                'reward_stars' => rand(1, 2),
+                'reward_stars' => ($i === 1 && rand(1, 100) <= 25) ? 1 : 0,
                 'reward_tokens' => 2,
                 'character_id' => $character->id,
                 'is_redeemed' => false,

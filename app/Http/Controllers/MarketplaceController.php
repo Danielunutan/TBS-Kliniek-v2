@@ -427,7 +427,7 @@ class MarketplaceController extends Controller
                         VaultCode::create([
                             'code' => 'KLUIS-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8)),
                             'reward_cash' => 2500,
-                            'reward_stars' => 2,
+                            'reward_stars' => 1,
                             'reward_tokens' => 4,
                             'character_id' => $lockedBuyer->id,
                             'is_redeemed' => false,

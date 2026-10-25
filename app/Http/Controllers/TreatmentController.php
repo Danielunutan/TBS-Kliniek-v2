@@ -234,10 +234,10 @@ class TreatmentController extends Controller
         'station' => [
             'id' => 'station',
             'name' => 'Onderwereld Contact op het Station',
-            'desc' => 'Op het stationsplein ontmoet je stiekem een oude contactpersoon voor exclusieve Sterren en buit.',
+            'desc' => 'Op het stationsplein ontmoet je stiekem een oude contactpersoon voor contanten en zeldzame buit.',
             'energy' => 16,
-            'min_stars' => 1,
-            'max_stars' => 3,
+            'min_stars' => 0,
+            'max_stars' => 1,
             'min_cash' => 1500,
             'max_cash' => 4000,
             'xp' => 140,
@@ -484,11 +484,13 @@ class TreatmentController extends Controller
             $this->economy->addCash($character, $cash);
             $rewards[] = '€'.number_format($cash, 0, ',', '.').' contant geld gerold 💵';
         } elseif ($action['id'] === 'station') {
-            $stars = rand($action['min_stars'], $action['max_stars']);
+            $stars = (rand(1, 100) <= 25) ? 1 : 0;
             $cash = rand($action['min_cash'], $action['max_cash']);
-            $character->stars = ($character->stars ?? 0) + $stars;
+            if ($stars > 0) {
+                $character->stars = ($character->stars ?? 0) + $stars;
+                $rewards[] = "{$stars} Exclusieve Ster ⭐";
+            }
             $this->economy->addCash($character, $cash);
-            $rewards[] = "{$stars} Exclusieve Sterren ⭐";
             $rewards[] = '€'.number_format($cash, 0, ',', '.').' contanten 💵';
         } elseif ($action['id'] === 'locker') {
             $cash = rand($action['min_cash'], $action['max_cash']);
@@ -501,7 +503,7 @@ class TreatmentController extends Controller
                 VaultCode::create([
                     'code' => $codeStr,
                     'reward_cash' => rand(3000, 8000),
-                    'reward_stars' => rand(1, 2),
+                    'reward_stars' => (rand(1, 100) <= 20 ? 1 : 0),
                     'reward_tokens' => 2,
                     'character_id' => $character->id,
                     'is_redeemed' => false,
