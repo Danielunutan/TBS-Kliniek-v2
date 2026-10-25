@@ -48,8 +48,9 @@ class DashboardWidgetAndWeatherTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Kliniek Weerstation');
         $response->assertSee('Algemeen Buitenwereld Nieuws');
-        $response->assertSee('Peuken Beurs');
-        $response->assertSee('Bewakingsradar');
+        $response->assertSee('Geheime Ontsnappingstunnel');
+        $response->assertSee('Dossier Dr. H. van Beek');
+        $response->assertSee('Smokkelkoffers');
     }
 
     public function test_player_can_unlock_premium_widget_with_stars(): void
@@ -66,21 +67,21 @@ class DashboardWidgetAndWeatherTest extends TestCase
         ]);
         $failResponse->assertStatus(422);
 
-        // 2. Unlock radio widget (cost: 20 stars)
+        // 2. Unlock tunnel widget (cost: 20 stars)
         $successResponse = $this->actingAs($user)->postJson(route('dashboard.widgets.unlock'), [
-            'widget_key' => 'radio',
+            'widget_key' => 'tunnel',
         ]);
 
         $successResponse->assertStatus(200);
         $successResponse->assertJson([
             'success' => true,
             'stars' => 5,
-            'widget_key' => 'radio',
+            'widget_key' => 'tunnel',
         ]);
 
         $character->refresh();
         $this->assertEquals(5, $character->stars);
-        $this->assertTrue($character->isWidgetUnlocked('radio'));
+        $this->assertTrue($character->isWidgetUnlocked('tunnel'));
 
         // 3. Try to unlock again with insufficient stars (5 remaining, requires 15 for weather)
         $insufficientResponse = $this->actingAs($user)->postJson(route('dashboard.widgets.unlock'), [
@@ -95,6 +96,44 @@ class DashboardWidgetAndWeatherTest extends TestCase
         ]);
         $formPostResponse->assertRedirect(route('dashboard'));
         $formPostResponse->assertSessionHas('error');
+    }
+
+    public function test_legacy_unlocked_widgets_map_to_new_system_widgets(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'unlocked_widgets' => ['peuken_market', 'security', 'roulette'],
+        ]);
+
+        $this->assertTrue($character->isWidgetUnlocked('tunnel'));
+        $this->assertTrue($character->isWidgetUnlocked('treatment'));
+        $this->assertTrue($character->isWidgetUnlocked('packages'));
+    }
+
+    public function test_weather_location_persists_to_character_database(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user);
+
+        $response = $this->actingAs($user)->getJson(route('dashboard.weather.coords', [
+            'city' => 'Eindhoven',
+        ]));
+
+        $response->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals('Eindhoven', $character->weather_location);
+        $this->assertNotNull($character->weather_lat);
+        $this->assertNotNull($character->weather_lon);
+
+        // Reset clears DB fields
+        $resetResponse = $this->actingAs($user)->getJson(route('dashboard.weather.coords', [
+            'reset' => 1,
+        ]));
+        $resetResponse->assertStatus(200);
+        $character->refresh();
+        $this->assertNull($character->weather_location);
+        $this->assertNull($character->weather_lat);
+        $this->assertNull($character->weather_lon);
     }
 
     public function test_weather_by_coordinates_endpoint_returns_data(): void

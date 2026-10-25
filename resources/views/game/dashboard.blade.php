@@ -700,7 +700,8 @@
                             <button type="button" 
                                     @click="fetchUserLocation()" 
                                     :disabled="isLocating"
-                                    class="flex-1 py-2 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-extrabold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50">
+                                    class="flex-1 py-2 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-extrabold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                    title="Haal automatisch jouw actuele locatie op via GPS of IP">
                                 <template x-if="isLocating">
                                     <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
                                 </template>
@@ -711,13 +712,14 @@
                             </button>
 
                             <button type="button" 
-                                    @click="promptCity()" 
-                                    class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white text-xs transition cursor-pointer"
-                                    title="Typ je eigen woonplaats (bijv. Rotterdam, Amsterdam, Utrecht)">
+                                    @click="showCityModal = true" 
+                                    class="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                                    title="Kies of typ je eigen woonplaats (bijv. Rotterdam, Amsterdam, Utrecht)">
                                 <i class="fa-solid fa-city"></i>
+                                <span class="hidden sm:inline text-[11px]">Woonplaats</span>
                             </button>
 
-                            <template x-if="weather.is_gps">
+                            <template x-if="weather.is_gps || weather.location !== 'TBS Kliniek Vught / Afdeling De Poort'">
                                 <button type="button" 
                                         @click="resetToVught()" 
                                         class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white text-xs transition cursor-pointer"
@@ -812,224 +814,350 @@
 
             </div>
 
-            <!-- 2B. FUN WIDGET: PEUKEN BEURS & ZWARTE MARKT (Toggleable & Premium) -->
-            <div x-show="widgets.peuken_market" 
+            <!-- 2B. WIDGET: GEHEIME ONTSNAPPINGSTUNNEL (Toggleable & Premium) -->
+            <div x-show="widgets.tunnel" 
                  x-transition
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-amber-200/90 dark:border-amber-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('peuken_market')" x-cloak @if($character->isWidgetUnlocked('peuken_market')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
+                <div x-show="!isUnlocked('tunnel')" x-cloak @if($character->isWidgetUnlocked('tunnel')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-amber-200 dark:border-amber-800/80">
-                        <i class="fa-solid fa-smoking"></i>
+                        <i class="fa-solid fa-person-digging"></i>
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Peuken Beurs & Zwarte Markt</h4>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Geheime Ontsnappingstunnel</h4>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-                            Volg de live koersen van Shag, Sloffen Smokkelsigaretten en Vloeitjes op de afdeling!
+                            Graaf een vluchtroute onder je cel, dump heimelijk zand op de luchtplaats en ontsnap uit de kliniek!
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'peuken_market', 20)">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'tunnel', 20)">
                             @csrf
-                            <input type="hidden" name="widget_key" value="peuken_market">
+                            <input type="hidden" name="widget_key" value="tunnel">
                             <button type="submit" 
-                                    :disabled="unlockingKey === 'peuken_market'"
+                                    :disabled="unlockingKey === 'tunnel'"
                                     class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'peuken_market' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                                <span x-text="unlockingKey === 'peuken_market' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
+                                <i class="fa-solid" :class="unlockingKey === 'tunnel' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'tunnel' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                             </button>
                         </form>
                     </div>
                 </div>
 
                 <!-- Unlocked Content -->
-                <div id="widget-content-peuken_market" x-show="isUnlocked('peuken_market')" x-cloak @if(!$character->isWidgetUnlocked('peuken_market')) style="display: none;" @endif>
+                <div id="widget-content-tunnel" x-show="isUnlocked('tunnel')" x-cloak @if(!$character->isWidgetUnlocked('tunnel')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
-                                <i class="fa-solid fa-smoking"></i>
+                                <i class="fa-solid fa-person-digging"></i>
                             </span>
-                            <span>Peuken Beurs (Bajes Ticker)</span>
+                            <span>Ontsnappingstunnel</span>
                         </div>
                         <span class="text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
-                            Volatiel 🔥
+                            Fase {{ $tunnel->stage }}: {{ $tunnelStageInfo['name'] }}
                         </span>
                     </div>
 
-                    <div class="p-4 space-y-3">
-                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Marktsituatie:</span>
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                {{ $peukenMarket['status'] }}
-                            </span>
-                        </div>
-
-                        <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                            @foreach($peukenMarket['items'] as $item)
-                                <div class="py-2.5 flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-2.5 truncate">
-                                        <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs shrink-0">
-                                            <i class="fa-solid {{ $item['icon'] }}"></i>
-                                        </div>
-                                        <div class="truncate">
-                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate">{{ $item['name'] }}</span>
-                                            <span class="text-[9px] text-slate-400 block truncate">{{ $item['tip'] }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="text-right shrink-0">
-                                        <span class="text-xs font-black font-mono text-slate-900 dark:text-white block">{{ $item['price'] }}</span>
-                                        <span class="text-[10px] font-bold {{ $item['is_up'] ? 'text-emerald-500' : 'text-rose-500' }}">
-                                            {{ $item['change'] }}
-                                        </span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <a href="{{ route('marketplace.index') }}" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
-                            <i class="fa-solid fa-store"></i>
-                            <span>Handelen op de Markt</span>
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- 2C. FUN WIDGET: BEWAKINGSRADAR & PATROUILLE ALARM (Toggleable & Premium) -->
-            <div x-show="widgets.security" 
-                 x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-rose-200/90 dark:border-rose-900/50 overflow-hidden">
-                
-                <!-- Locked State -->
-                <div x-show="!isUnlocked('security')" x-cloak @if($character->isWidgetUnlocked('security')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
-                    <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-rose-200 dark:border-rose-800/80">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Bewakingsradar & Patrouille Alarm</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-                            Tactische kliniekradar: live dreigingsniveau, hondenpatrouilles en risico op celcontrole!
-                        </p>
-                    </div>
-                    <div class="pt-2">
-                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'security', 20)">
-                            @csrf
-                            <input type="hidden" name="widget_key" value="security">
-                            <button type="submit" 
-                                    :disabled="unlockingKey === 'security'"
-                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'security' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                                <span x-text="unlockingKey === 'security' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Unlocked Content -->
-                <div id="widget-content-security" x-show="isUnlocked('security')" x-cloak @if(!$character->isWidgetUnlocked('security')) style="display: none;" @endif>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-rose-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
-                            <span class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs">
-                                <i class="fa-solid fa-radar"></i>
-                            </span>
-                            <span>Bewakingsradar</span>
-                        </div>
-                        <span class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border flex items-center gap-1.5"
-                              :class="'{{ $securityRadar['threat_color'] }}' === 'rose' ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300'">
-                            <span class="w-1.5 h-1.5 rounded-full {{ $securityRadar['threat_color'] === 'rose' ? 'bg-rose-500 animate-ping' : 'bg-amber-500' }}"></span>
-                            {{ $securityRadar['threat_level'] }}
-                        </span>
-                    </div>
-
-                    <div class="p-4 space-y-3">
-                        <div class="grid grid-cols-2 gap-2 text-center">
-                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                                <span class="text-[9px] font-black uppercase text-slate-400 block">Cipiers Zaal</span>
-                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $securityRadar['guard_count'] }} bewakers</span>
-                            </div>
-                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                                <span class="text-[9px] font-black uppercase text-slate-400 block">Speurhonden</span>
-                                <span class="text-xs font-black text-slate-900 dark:text-white">{{ $securityRadar['dog_patrol'] }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Celcontrole risico meter -->
-                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-1.5">
+                    <div class="p-4 space-y-3.5">
+                        <!-- Voortgangsbalk van de graafroute -->
+                        <div class="space-y-1.5">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="text-slate-600 dark:text-slate-300">Risico op Celcontrole:</span>
-                                <span class="text-rose-600 dark:text-rose-400 font-mono">{{ $securityRadar['cell_check_risk'] }}%</span>
+                                <span class="text-slate-600 dark:text-slate-400 text-[11px]">Totale Graafvoortgang</span>
+                                <span class="font-mono font-black text-amber-600 dark:text-amber-400">{{ $tunnel->progress_pct }}%</span>
                             </div>
-                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                                <div class="bg-gradient-to-r from-amber-500 to-rose-600 h-full rounded-full transition-all" style="width: {{ $securityRadar['cell_check_risk'] }}%"></div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
+                                <div class="bg-gradient-to-r from-amber-500 to-yellow-500 h-full rounded-full transition-all duration-500" style="width: {{ $tunnel->progress_pct }}%"></div>
                             </div>
-                            <span class="text-[9px] text-slate-400 block">{{ $securityRadar['camera_coverage'] }}</span>
+                        </div>
+
+                        <!-- 3 Stats Tegels -->
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60">
+                                <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 block">Fase</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $tunnel->stage }} / 5</span>
+                            </div>
+                            <div class="p-2 rounded-xl border {{ $tunnel->sand_in_socks >= 5 ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60' }}">
+                                <span class="text-[9px] font-black uppercase {{ $tunnel->sand_in_socks >= 5 ? 'text-rose-600' : 'text-slate-500' }} block">Zandsokken</span>
+                                <span class="text-sm font-black {{ $tunnel->sand_in_socks >= 5 ? 'text-rose-600' : 'text-slate-900 dark:text-white' }}">{{ $tunnel->sand_in_socks }} / 5</span>
+                            </div>
+                            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
+                                <span class="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400 block">Lepels</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $tunnel->spoons_used }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Directe Actieknoppen -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            @if($tunnel->is_completed)
+                                <a href="{{ route('tunnel.index') }}" class="col-span-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-95 text-white font-black text-xs transition text-center shadow-md flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-person-running"></i>
+                                    <span>Tunnel Voltooid &bull; Uitbreken!</span>
+                                </a>
+                            @else
+                                <!-- Knop 1: Graven -->
+                                @if($tunnelDigCooldown > 0)
+                                    <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[11px] text-center flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-clock text-amber-500"></i>
+                                        <span>Graven over {{ ceil($tunnelDigCooldown / 60) }}m</span>
+                                    </div>
+                                @elseif($tunnel->sand_in_socks >= 5)
+                                    <div class="py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 font-bold text-[11px] text-center flex items-center justify-center gap-1.5 border border-rose-200 dark:border-rose-800">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        <span>Sokken vol! Dump zand</span>
+                                    </div>
+                                @else
+                                    <form method="POST" action="{{ route('tunnel.dig') }}">
+                                        @csrf
+                                        <button type="submit" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[11px] transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                            <i class="fa-solid fa-spoon"></i>
+                                            <span>Graaf 1 Meter (5 E)</span>
+                                        </button>
+                                    </form>
+                                @endif
+
+                                <!-- Knop 2: Zand Dumpen -->
+                                @if($tunnel->sand_in_socks <= 0)
+                                    <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-[11px] text-center">
+                                        Geen zand in sokken
+                                    </div>
+                                @elseif($tunnelDumpCooldown > 0)
+                                    <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[11px] text-center flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-clock text-sky-500"></i>
+                                        <span>Dumpen over {{ ceil($tunnelDumpCooldown / 60) }}m</span>
+                                    </div>
+                                @else
+                                    <form method="POST" action="{{ route('tunnel.dump') }}">
+                                        @csrf
+                                        <button type="submit" class="w-full py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-black text-[11px] transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                            <i class="fa-solid fa-socks"></i>
+                                            <span>Dump Zand (Luchtplaats)</span>
+                                        </button>
+                                    </form>
+                                @endif
+                            @endif
+                        </div>
+
+                        <!-- Link naar de tunnelpagina -->
+                        <div class="text-center pt-1 border-t border-slate-100 dark:border-slate-800">
+                            <a href="{{ route('tunnel.index') }}" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline inline-flex items-center gap-1">
+                                <span>Volledig Uitgraafplan & Houtbalken Bekijken</span>
+                                <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
 
             </div>
 
-            <!-- 2D. FUN WIDGET: BAJES KRASLOT & GELUKSRAD (Toggleable & Premium) -->
-            <div x-show="widgets.roulette" 
+            <!-- 2C. WIDGET: BEHANDELING & VERLOFTRAJECT (Toggleable & Premium) -->
+            <div x-show="widgets.treatment" 
                  x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-emerald-200/90 dark:border-emerald-900/50 overflow-hidden">
+                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-teal-200/90 dark:border-teal-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('roulette')" x-cloak @if($character->isWidgetUnlocked('roulette')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-emerald-500/5 to-transparent">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-emerald-200 dark:border-emerald-800/80">
-                        <i class="fa-solid fa-clover"></i>
+                <div x-show="!isUnlocked('treatment')" x-cloak @if($character->isWidgetUnlocked('treatment')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-teal-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-teal-200 dark:border-teal-800/80">
+                        <i class="fa-solid fa-user-doctor"></i>
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Bajes Kraslot & Geluksrad</h4>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Behandeling & Verloftraject</h4>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-                            Draai dagelijks aan het rad voor gratis buit, koffers, energie en zakgeld op je dashboard!
+                            Houd toezicht op je psychiatrisch dossier, verhoog je behandelscore en bemachtig begeleid verlof buiten de hekken!
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'roulette', 25)">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'treatment', 20)">
                             @csrf
-                            <input type="hidden" name="widget_key" value="roulette">
+                            <input type="hidden" name="widget_key" value="treatment">
                             <button type="submit" 
-                                    :disabled="unlockingKey === 'roulette'"
+                                    :disabled="unlockingKey === 'treatment'"
                                     class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'roulette' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                                <span x-text="unlockingKey === 'roulette' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 25 Sterren'"></span>
+                                <i class="fa-solid" :class="unlockingKey === 'treatment' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'treatment' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                             </button>
                         </form>
                     </div>
                 </div>
 
                 <!-- Unlocked Content -->
-                <div id="widget-content-roulette" x-show="isUnlocked('roulette')" x-cloak @if(!$character->isWidgetUnlocked('roulette')) style="display: none;" @endif>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div id="widget-content-treatment" x-show="isUnlocked('treatment')" x-cloak @if(!$character->isWidgetUnlocked('treatment')) style="display: none;" @endif>
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-teal-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
-                            <span class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
-                                <i class="fa-solid fa-dharmachakra"></i>
+                            <span class="w-6 h-6 rounded-lg bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-user-doctor"></i>
                             </span>
-                            <span>Dagelijks Kraslot & Rad</span>
+                            <span>Dossier Dr. H. van Beek</span>
                         </div>
-                        <span class="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                            Gratis Dagelijks
-                        </span>
+                        @if($isOnLeave)
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 animate-pulse">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Op Verlof (nog {{ $leaveRemainingMinutes }}m)
+                            </span>
+                        @elseif($treatmentScore >= 70)
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Positief Advies
+                            </span>
+                        @elseif($treatmentScore >= 35)
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                Observatiestatus
+                            </span>
+                        @else
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                Verhoogd Risico
+                            </span>
+                        @endif
                     </div>
 
-                    <div class="p-4 space-y-3 text-center">
-                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
-                            <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block">Prijzenpot Vandaag:</span>
-                            <div class="flex items-center justify-center gap-3 mt-1.5 text-xs font-black">
-                                <span class="text-amber-500">💰 € 10.000</span>
-                                <span class="text-slate-300 dark:text-slate-600">&bull;</span>
-                                <span class="text-sky-500">⚡ +50 Energie</span>
-                                <span class="text-slate-300 dark:text-slate-600">&bull;</span>
-                                <span class="text-purple-500">💼 XXL Koffers</span>
+                    <div class="p-4 space-y-3.5">
+                        <!-- Behandelscore Voortgang -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-xs font-bold">
+                                <span class="text-slate-600 dark:text-slate-400 text-[11px]">Behandelscore & Ziekte-inzicht</span>
+                                <span class="font-mono font-black {{ $treatmentScore >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ($treatmentScore >= 35 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400') }}">
+                                    {{ $treatmentScore }}/100
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-200/60 dark:border-slate-700/60">
+                                <div class="h-full rounded-full transition-all duration-500 {{ $treatmentScore >= 70 ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : ($treatmentScore >= 35 ? 'bg-gradient-to-r from-amber-500 to-yellow-500' : 'bg-gradient-to-r from-rose-500 to-red-500') }}" style="width: {{ min(100, max(5, $treatmentScore)) }}%"></div>
                             </div>
                         </div>
 
-                        <a href="{{ route('daily.index') }}" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-95 text-white font-black text-xs transition flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 cursor-pointer block">
-                            <i class="fa-solid fa-gift"></i>
-                            <span>Open Dagelijks Kraslot & Rad &rarr;</span>
-                        </a>
+                        <!-- 2 Status Kaartjes -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                            <div class="p-2.5 rounded-xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200/70 dark:border-teal-800/50">
+                                <span class="text-[9px] font-black uppercase tracking-wider text-teal-700 dark:text-teal-300 block mb-0.5">Verloftraject</span>
+                                @if($isOnLeave)
+                                    <span class="font-bold text-emerald-600 dark:text-emerald-400 block truncate">Actief buiten de hekken!</span>
+                                @else
+                                    <span class="text-slate-600 dark:text-slate-300 text-[11px] block">Scoor &ge; 70 voor 3u verlof</span>
+                                @endif
+                            </div>
+
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60">
+                                <span class="text-[9px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Spreekkamer</span>
+                                @if($treatmentCooldown > 0)
+                                    <span class="font-bold text-slate-500 dark:text-slate-400 block truncate">Sessie over {{ ceil($treatmentCooldown / 60) }}m</span>
+                                @else
+                                    <span class="font-bold text-teal-600 dark:text-teal-400 block truncate">Psychiater beschikbaar</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Actieknop -->
+                        <div class="pt-1">
+                            @if($isOnLeave)
+                                <a href="{{ route('treatment.index') }}" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-95 text-white font-black text-xs transition text-center shadow-md flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-person-walking-arrow-right"></i>
+                                    <span>Verlof Activiteiten Uitvoeren (Koffie/Winkels) &rarr;</span>
+                                </a>
+                            @else
+                                <a href="{{ route('treatment.index') }}" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 active:scale-95 text-white font-black text-xs transition text-center shadow-md flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-couch"></i>
+                                    <span>Naar Behandelkamer (Sessie Voeren) &rarr;</span>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 2D. WIDGET: SMOKKELKOFFERS & POSTKAMER (Toggleable & Premium) -->
+            <div x-show="widgets.packages" 
+                 x-transition
+                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-purple-200/90 dark:border-purple-900/50 overflow-hidden">
+                
+                <!-- Locked State -->
+                <div x-show="!isUnlocked('packages')" x-cloak @if($character->isWidgetUnlocked('packages')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-purple-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-purple-200 dark:border-purple-800/80">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Smokkelkoffers & Postkamer</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                            Onderschep smokkeltassen in de postkamer, beheer XXL koffers en kraak kluistokens voor brute buit!
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'packages', 20)">
+                            @csrf
+                            <input type="hidden" name="widget_key" value="packages">
+                            <button type="submit" 
+                                    :disabled="unlockingKey === 'packages'"
+                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'packages' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'packages' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Unlocked Content -->
+                <div id="widget-content-packages" x-show="isUnlocked('packages')" x-cloak @if(!$character->isWidgetUnlocked('packages')) style="display: none;" @endif>
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-purple-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
+                            <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-box-open"></i>
+                            </span>
+                            <span>Smokkelkoffers & Postkamer</span>
+                        </div>
+                        <span class="text-[9px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
+                            {{ $unopenedBags + $xxlCases }} Koffers op Voorraad
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-3.5">
+                        <!-- 3 Stats Tegels -->
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60">
+                                <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 block">Tassen</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $unopenedBags }}</span>
+                            </div>
+                            <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60">
+                                <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 block">XXL Koffers</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $xxlCases }}</span>
+                            </div>
+                            <div class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60">
+                                <span class="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-300 block">Tokens</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $vaultTokens }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Directe Acties -->
+                        <div class="space-y-2">
+                            @if($unopenedBags > 0)
+                                <form method="POST" action="{{ route('packages.open-bag') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 text-white font-black text-xs transition shadow-md shadow-purple-600/20 flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-gift"></i>
+                                        <span>Open 1 Smokkeltas Direct (+Items & Buit!)</span>
+                                    </button>
+                                </form>
+                            @elseif($packageCooldown === 0)
+                                <form method="POST" action="{{ route('packages.intercept') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-box-archive"></i>
+                                        <span>Onderschep Koffer in Postkamer (10 E)</span>
+                                    </button>
+                                </form>
+                            @else
+                                <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[11px] text-center flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-clock text-purple-500"></i>
+                                    <span>Postkamer bewaakt (klaar over {{ ceil($packageCooldown / 60) }}m)</span>
+                                </div>
+                            @endif
+
+                            <div class="text-center pt-1 border-t border-slate-100 dark:border-slate-800">
+                                <a href="{{ route('packages.index') }}" class="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1">
+                                    <span>Bekijk Postkamer, Kluis & XXL Koffers</span>
+                                    <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1403,6 +1531,54 @@
         </div>
     </div>
 
+    <!-- Woonplaats Kiezer Modal (Echt opslaan!) -->
+    <div x-show="showCityModal" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
+         @keydown.escape.window="showCityModal = false">
+        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4" @click.outside="showCityModal = false">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-cloud-sun"></i>
+                    </span>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white">Kies jouw Woonplaats / Regio</h3>
+                </div>
+                <button type="button" @click="showCityModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Kies je woonplaats of typ een stad. Jouw weer en actuele buienverwachting worden direct permanent opgeslagen!
+            </p>
+
+            <form @submit.prevent="if(citySearchQuery.trim()) fetchCityWeather(citySearchQuery.trim())" class="flex gap-2">
+                <input type="text" 
+                       x-model="citySearchQuery"
+                       placeholder="Bijv. Amsterdam, Tilburg, Zwolle..." 
+                       class="flex-1 px-3.5 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-hidden focus:border-sky-500">
+                <button type="submit" 
+                        class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black text-xs transition cursor-pointer">
+                    Opslaan
+                </button>
+            </form>
+
+            <div>
+                <span class="text-[10px] font-black uppercase text-slate-400 block mb-2">Populaire steden in Nederland:</span>
+                <div class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto pr-1">
+                    @foreach(['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven', 'Groningen', 'Tilburg', 'Almere', 'Breda', 'Nijmegen', 'Apeldoorn', 'Haarlem', 'Arnhem', 'Enschede', 'Amersfoort', 'Den Bosch', 'Vught', 'Maastricht', 'Dordrecht', 'Leiden', 'Zwolle', 'Deventer', 'Delft', 'Alkmaar', 'Venlo'] as $topCity)
+                        <button type="button" 
+                                @click="fetchCityWeather('{{ $topCity }}')"
+                                class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800/80 hover:bg-sky-100 dark:hover:bg-sky-950/60 hover:text-sky-700 dark:hover:text-sky-300 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60 transition cursor-pointer">
+                            {{ $topCity }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Alpine Dashboard Customizer Script -->
@@ -1415,6 +1591,8 @@ function tbsDashboardCustomizer() {
 
         weather: @js($clinicWeather),
         isLocating: false,
+        showCityModal: false,
+        citySearchQuery: '',
         unlockingKey: null,
         unlockedWidgets: @js(array_values($unlockedWidgets ?? [])),
         widgetPrices: @js($widgetPrices),
@@ -1443,9 +1621,9 @@ function tbsDashboardCustomizer() {
             clinicNews: true,
             gang: true,
             missions: true,
-            peuken_market: true,
-            security: true,
-            roulette: true,
+            tunnel: true,
+            treatment: true,
+            packages: true,
         },
 
         widgetList: [
@@ -1453,9 +1631,9 @@ function tbsDashboardCustomizer() {
             { key: 'weather', title: 'Kliniek Weerstation & Buienradar', desc: 'Actueel GPS weer en neerslag buienradar', icon: 'fa-cloud-sun-rain', bg: 'bg-sky-100 text-sky-700', isPremium: true, cost: 15 },
             { key: 'nunl', title: 'Algemeen Buitenwereld Nieuws', desc: 'Actuele krantenkoppen en Teletekst updates', icon: 'fa-newspaper', bg: 'bg-indigo-100 text-indigo-700', isPremium: true, cost: 15 },
             { key: 'radio', title: 'Radio Kliniek FM Deck', desc: 'In-dashboard speler voor FunX, SLAM!, 538, Sky & NPO', icon: 'fa-radio', bg: 'bg-rose-100 text-rose-700', isPremium: true, cost: 20 },
-            { key: 'peuken_market', title: 'Peuken Beurs & Zwarte Markt', desc: 'Live koersindex van Shag, Sigaretten en Vloeitjes', icon: 'fa-smoking', bg: 'bg-amber-100 text-amber-700', isPremium: true, cost: 20 },
-            { key: 'security', title: 'Bewakingsradar & Patrouille Alarm', desc: 'Actuele status van bewakers, honden en controle risico', icon: 'fa-shield-halved', bg: 'bg-red-100 text-red-700', isPremium: true, cost: 20 },
-            { key: 'roulette', title: 'Bajes Kraslot & Geluksrad', desc: 'Dagelijks kraslot en Rad van Fortuin kansen', icon: 'fa-clover', bg: 'bg-emerald-100 text-emerald-700', isPremium: true, cost: 20 },
+            { key: 'tunnel', title: 'Geheime Ontsnappingstunnel', desc: 'Graafvoortgang, zandsokken legen en uitbraakroute', icon: 'fa-person-digging', bg: 'bg-amber-100 text-amber-700', isPremium: true, cost: 20 },
+            { key: 'treatment', title: 'Behandeling & Verloftraject', desc: 'Dossier van Dr. Van Beek, behandelscore en verlof', icon: 'fa-user-doctor', bg: 'bg-teal-100 text-teal-700', isPremium: true, cost: 20 },
+            { key: 'packages', title: 'Smokkelkoffers & Postkamer', desc: 'Onderschepte tassen, XXL koffers en kluistokens', icon: 'fa-box-open', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
             { key: 'lottery', title: 'Afdelingsloterij Jackpot', desc: 'De 14-daagse jackpot en trekkingsklok', icon: 'fa-ticket', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
             { key: 'referral', title: 'Gratis VIP & Referral Kaart', desc: 'Vrienden uitnodigen voor gratis VIP lidmaatschap', icon: 'fa-crown', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
             { key: 'loginBonus', title: 'Avond Inlog Bonus (22:00)', desc: '7-daagse streak beloning en gratis kluiscodes', icon: 'fa-gift', bg: 'bg-emerald-100 text-emerald-700', isPremium: false, cost: 0 },
@@ -1498,6 +1676,16 @@ function tbsDashboardCustomizer() {
             if (savedActions) {
                 try {
                     this.quickActions = JSON.parse(savedActions);
+                } catch(e) {}
+            }
+
+            const savedWeather = localStorage.getItem('tbs_weather_data');
+            if (savedWeather && (!this.weather || !this.weather.is_gps)) {
+                try {
+                    const parsed = JSON.parse(savedWeather);
+                    if (parsed && parsed.location) {
+                        this.weather = parsed;
+                    }
                 } catch(e) {}
             }
         },
@@ -1585,77 +1773,130 @@ function tbsDashboardCustomizer() {
             return this.unlockWidgetSubmit(null, key);
         },
 
-        fetchUserLocation() {
+        async fetchUserLocation() {
+            this.isLocating = true;
+
+            const tryIpFallback = async (reason) => {
+                try {
+                    const ipRes = await fetch('https://freeipapi.com/api/json');
+                    if (ipRes.ok) {
+                        const ipData = await ipRes.json();
+                        if (ipData && ipData.latitude && ipData.longitude) {
+                            await this.fetchCoordsWeather(ipData.latitude, ipData.longitude, ipData.cityName || ipData.regionName);
+                            if (window.tbsToast) {
+                                window.tbsToast('📍 Locatie bepaald via IP: ' + (ipData.cityName || 'Nederland'), 'success');
+                            }
+                            return true;
+                        }
+                    }
+                } catch(e) {}
+
+                try {
+                    const ipRes2 = await fetch('https://ipapi.co/json/');
+                    if (ipRes2.ok) {
+                        const ipData2 = await ipRes2.json();
+                        if (ipData2 && ipData2.latitude && ipData2.longitude) {
+                            await this.fetchCoordsWeather(ipData2.latitude, ipData2.longitude, ipData2.city || ipData2.region);
+                            if (window.tbsToast) {
+                                window.tbsToast('📍 Locatie bepaald via IP: ' + (ipData2.city || 'Nederland'), 'success');
+                            }
+                            return true;
+                        }
+                    }
+                } catch(e) {}
+
+                this.showCityModal = true;
+                if (window.tbsToast) {
+                    window.tbsToast(reason || 'Kies je woonplaats uit de lijst.', 'info');
+                }
+                return false;
+            };
+
             if (!navigator.geolocation) {
-                alert('Geolocatie wordt helaas niet ondersteund door je browser.');
+                await tryIpFallback('Geolocatie wordt niet ondersteund door je browser.');
+                this.isLocating = false;
                 return;
             }
-            this.isLocating = true;
 
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    try {
-                        const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
-                        const res = await fetch(`${weatherUrl}?lat=${lat}&lon=${lon}`);
-                        const data = await res.json();
-                        if (data.success && data.weather) {
-                            this.weather = data.weather;
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        alert('Kon live weerdata voor jouw locatie niet ophalen.');
-                    } finally {
-                        this.isLocating = false;
-                    }
-                },
-                (error) => {
+                    await this.fetchCoordsWeather(lat, lon);
                     this.isLocating = false;
-                    let msg = 'Locatietoegang niet beschikbaar of geweigerd.';
-                    if (error.code === 1) {
-                        msg = 'Geef toestemming voor locatie in je browser om het actuele weer en buienradar voor jouw woonplaats te laden.';
-                    }
-                    alert(msg);
                 },
-                { timeout: 10000, enableHighAccuracy: false }
+                async (error) => {
+                    let reason = 'GPS niet beschikbaar';
+                    if (error.code === 1) reason = 'GPS toestemming geweigerd';
+                    await tryIpFallback(reason);
+                    this.isLocating = false;
+                },
+                { timeout: 7000, enableHighAccuracy: false }
             );
         },
 
-        async resetToVught() {
-            this.isLocating = true;
+        async fetchCoordsWeather(lat, lon, locationName) {
             try {
                 const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
-                const res = await fetch(`${weatherUrl}?lat=51.65&lon=5.29`);
+                const url = `${weatherUrl}?lat=${lat}&lon=${lon}` + (locationName ? `&location=${encodeURIComponent(locationName)}` : '');
+                const res = await fetch(url);
                 const data = await res.json();
                 if (data.success && data.weather) {
                     this.weather = data.weather;
+                    localStorage.setItem('tbs_weather_data', JSON.stringify(data.weather));
+                    localStorage.setItem('tbs_weather_lat', lat);
+                    localStorage.setItem('tbs_weather_lon', lon);
+                    if (data.weather.location) {
+                        localStorage.setItem('tbs_weather_location', data.weather.location);
+                    }
+                    if (window.tbsToast) window.tbsToast('🌤️ Weerstation bijgewerkt naar ' + data.weather.location, 'success');
                 }
-            } catch (e) {
-                // ignore
-            } finally {
-                this.isLocating = false;
-            }
-        },
-
-        promptCity() {
-            const city = prompt('Voer je gewenste Nederlandse stad of gemeente in (bijv. Amsterdam, Rotterdam, Utrecht, Eindhoven):');
-            if (city && city.trim()) {
-                this.fetchCityWeather(city.trim());
+            } catch (err) {
+                console.error(err);
+                if (window.tbsToast) window.tbsToast('Kon weerdata niet ophalen.', 'error');
             }
         },
 
         async fetchCityWeather(city) {
             this.isLocating = true;
+            this.showCityModal = false;
             try {
                 const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
                 const res = await fetch(`${weatherUrl}?city=` + encodeURIComponent(city));
                 const data = await res.json();
                 if (data.success && data.weather) {
                     this.weather = data.weather;
+                    localStorage.setItem('tbs_weather_data', JSON.stringify(data.weather));
+                    localStorage.setItem('tbs_weather_city', city);
+                    if (data.weather.location) {
+                        localStorage.setItem('tbs_weather_location', data.weather.location);
+                    }
+                    if (window.tbsToast) window.tbsToast('🌤️ Weerstation ingesteld op ' + data.weather.location + '!', 'success');
                 }
             } catch(e) {
-                alert('Kon live weer niet ophalen voor ' + city);
+                if (window.tbsToast) window.tbsToast('Kon weer niet ophalen voor ' + city, 'error'); else alert('Kon weer niet ophalen voor ' + city);
+            } finally {
+                this.isLocating = false;
+            }
+        },
+
+        async resetToVught() {
+            this.isLocating = true;
+            try {
+                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
+                const res = await fetch(`${weatherUrl}?reset=1`);
+                const data = await res.json();
+                if (data.success && data.weather) {
+                    this.weather = data.weather;
+                    localStorage.removeItem('tbs_weather_data');
+                    localStorage.removeItem('tbs_weather_lat');
+                    localStorage.removeItem('tbs_weather_lon');
+                    localStorage.removeItem('tbs_weather_city');
+                    localStorage.removeItem('tbs_weather_location');
+                    if (window.tbsToast) window.tbsToast('TBS Kliniek Vught weer hersteld.', 'info');
+                }
+            } catch (e) {
+                // ignore
             } finally {
                 this.isLocating = false;
             }
@@ -1718,9 +1959,9 @@ function tbsDashboardCustomizer() {
                 clinicNews: true,
                 gang: true,
                 missions: true,
-                peuken_market: true,
-                security: true,
-                roulette: true,
+                tunnel: true,
+                treatment: true,
+                packages: true,
             };
             this.quickActions = ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'];
         }

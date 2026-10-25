@@ -168,6 +168,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/widgets/ontgrendelen', [DashboardController::class, 'unlockWidget'])->middleware('throttle:30,1')->name('dashboard.widgets.unlock');
     Route::get('/dashboard/weer-locatie', [DashboardController::class, 'weatherByCoords'])->middleware('throttle:30,1')->name('dashboard.weather.coords');
+    Route::post('/dashboard/peuken/verkopen', [DashboardController::class, 'sellPeuken'])->name('dashboard.peuken.sell');
+    Route::post('/dashboard/radar/sweep', [DashboardController::class, 'radarSweep'])->name('dashboard.radar.sweep');
 
     // Halloween Event 🎃 (Quests & Shop) - Active until 5 November
     Route::get('/event/quests', [HalloweenController::class, 'quests'])->name('halloween.quests');

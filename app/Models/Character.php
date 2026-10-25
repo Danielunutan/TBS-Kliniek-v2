@@ -146,6 +146,8 @@ class Character extends Model
         'unlocked_borders' => 'array',
         'unlocked_stickers' => 'array',
         'unlocked_widgets' => 'array',
+        'weather_lat' => 'decimal:4',
+        'weather_lon' => 'decimal:4',
         'last_hack_at' => 'datetime',
         'hacks_completed_total' => 'integer',
     ];
@@ -180,6 +182,16 @@ class Character extends Model
         }
 
         $unlocked = $this->unlocked_widgets ?? [];
+
+        $aliases = [
+            'tunnel' => 'peuken_market',
+            'treatment' => 'security',
+            'packages' => 'roulette',
+        ];
+
+        if (isset($aliases[$widgetKey]) && in_array($aliases[$widgetKey], $unlocked, true)) {
+            return true;
+        }
 
         return in_array($widgetKey, $unlocked, true);
     }

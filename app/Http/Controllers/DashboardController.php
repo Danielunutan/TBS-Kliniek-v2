@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\CharacterItem;
 use App\Models\CharacterMission;
+use App\Models\EscapeTunnel;
 use App\Models\GameNotification;
+use App\Models\Item;
 use App\Models\LotteryRound;
 use App\Models\Mission;
 use App\Models\NewsArticle;
@@ -12,6 +15,9 @@ use App\Models\TheftRecord;
 use App\Models\TrainingLog;
 use App\Models\User;
 use App\Services\AllowanceService;
+use App\Services\CooldownService;
+use App\Services\DailyBattleService;
+use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use App\Services\NuNlNewsService;
@@ -36,9 +42,9 @@ class DashboardController extends Controller
         'weather' => 15,
         'nunl' => 15,
         'radio' => 20,
-        'peuken_market' => 20,
-        'roulette' => 25,
-        'security' => 20,
+        'tunnel' => 20,
+        'treatment' => 20,
+        'packages' => 20,
     ];
 
     public function __construct(
@@ -48,6 +54,8 @@ class DashboardController extends Controller
         protected ReferralService $referralService,
         protected NuNlNewsService $nuNlNewsService,
         protected WeatherService $weatherService,
+        protected EconomyService $economyService,
+        protected CooldownService $cooldownService,
     ) {}
 
     /**
@@ -205,66 +213,51 @@ class DashboardController extends Controller
 
         $nuNlNews = $this->nuNlNewsService->getLatestNews(5);
 
-        // Load custom GPS weather if user previously detected location
-        $sessionLat = session('user_weather_lat');
-        $sessionLon = session('user_weather_lon');
-        $clinicWeather = ($sessionLat !== null && $sessionLon !== null)
-            ? $this->weatherService->getWeather((float) $sessionLat, (float) $sessionLon)
+        // Load custom GPS weather if user previously detected location (persisted in DB or session)
+        $userLat = $character->weather_lat ?? session('user_weather_lat');
+        $userLon = $character->weather_lon ?? session('user_weather_lon');
+        $userLoc = $character->weather_location ?? null;
+
+        $clinicWeather = ($userLat !== null && $userLon !== null)
+            ? $this->weatherService->getWeather((float) $userLat, (float) $userLon, $userLoc)
             : $this->weatherService->getClinicWeather();
 
-        // 🚬 Peuken Beurs (Zwarte markt koers index)
-        $peukenMarket = [
-            'status' => 'Schaarste op Afdeling B (Prijzen stijgen!)',
-            'status_type' => 'bullish',
-            'items' => [
-                [
-                    'name' => 'Van Nelle Zware Shag (50g)',
-                    'price' => '€ 15,20',
-                    'change' => '+14.2%',
-                    'is_up' => true,
-                    'tip' => 'Zeer gewild op de luchtplaats',
-                    'icon' => 'fa-smoking text-amber-500',
-                ],
-                [
-                    'name' => 'Slof Marlboro Smokkel (200 stuks)',
-                    'price' => '€ 88,50',
-                    'change' => '-4.1%',
-                    'is_up' => false,
-                    'tip' => 'Aanvoer via drone geslaagd',
-                    'icon' => 'fa-box-archive text-rose-500',
-                ],
-                [
-                    'name' => 'Mascotte / Rizla Vloeitjes',
-                    'price' => '€ 2,60',
-                    'change' => '+8.5%',
-                    'is_up' => true,
-                    'tip' => 'Kantine voorraad is uitgeput',
-                    'icon' => 'fa-scroll text-blue-400',
-                ],
-                [
-                    'name' => 'Aansteker met Vuursteentje',
-                    'price' => '€ 5,00',
-                    'change' => '0.0%',
-                    'is_up' => true,
-                    'tip' => 'Vaste ruilwaarde tegen 2 peuken',
-                    'icon' => 'fa-fire-flame-curved text-orange-500',
-                ],
-            ],
-        ];
+        // ⛏️ 1. Ontsnappingstunnel (Echte graafvoortgang, zandsokken & lepels)
+        $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id], [
+            'stage' => 1,
+            'progress_pct' => 0,
+            'sand_in_socks' => 0,
+            'spoons_used' => 1,
+            'wood_planks' => 0,
+            'is_completed' => false,
+        ]);
+        $tunnelDigCooldown = $this->cooldownService->getRemainingSeconds($character, 'tunnel_dig');
+        $tunnelDumpCooldown = $this->cooldownService->getRemainingSeconds($character, 'tunnel_dump_sand');
+        $tunnelStages = EscapeTunnel::STAGES;
+        $tunnelStageInfo = $tunnelStages[$tunnel->stage] ?? $tunnelStages[1];
 
-        // 🚨 Bewakingsradar & Patrouille Alarm
-        $hour = (int) now()->format('H');
-        $isHighAlert = $hour >= 22 || $hour < 6;
-        $securityRadar = [
-            'threat_level' => $isHighAlert ? 'Code Rood (Nachtlockdown)' : 'Code Geel (Regulier Toezicht)',
-            'threat_color' => $isHighAlert ? 'rose' : 'amber',
-            'guard_count' => $isHighAlert ? 14 : 8,
-            'dog_patrol' => ($hour % 3 === 0) ? 'Actief op Binnenplaats' : 'In Kennel (Rustig)',
-            'cell_check_risk' => min(95, max(12, (($character->respect ?? 50) % 35) + 15)),
-            'camera_coverage' => '94% (Dode hoek bij container & linnenkamer)',
-        ];
+        // 🛋️ 2. Behandeling & Verloftraject (Dossier, behandelscore & psychiater sessies)
+        $treatmentScore = (int) ($character->treatment_score ?? 50);
+        $isOnLeave = $character->leave_until && $character->leave_until->isFuture();
+        $leaveRemainingMinutes = $isOnLeave ? (int) ceil(now()->diffInSeconds($character->leave_until) / 60) : 0;
+        $treatmentCooldown = $this->cooldownService->getRemainingSeconds($character, 'treatment_session');
+
+        // 📦 3. Smokkelkoffers & Postkamer Onderscheppingen
+        $unopenedBags = (int) ($character->unopened_bags ?? 0);
+        $xxlCases = (int) ($character->xxl_cases ?? 0);
+        $vaultTokens = (int) ($character->vault_tokens ?? 0);
+        $packageCooldown = $this->cooldownService->getRemainingSeconds($character, 'package');
 
         $unlockedWidgets = $character->unlocked_widgets ?? [];
+        if (in_array('peuken_market', $unlockedWidgets, true) && ! in_array('tunnel', $unlockedWidgets, true)) {
+            $unlockedWidgets[] = 'tunnel';
+        }
+        if (in_array('security', $unlockedWidgets, true) && ! in_array('treatment', $unlockedWidgets, true)) {
+            $unlockedWidgets[] = 'treatment';
+        }
+        if (in_array('roulette', $unlockedWidgets, true) && ! in_array('packages', $unlockedWidgets, true)) {
+            $unlockedWidgets[] = 'packages';
+        }
         $widgetPrices = self::WIDGET_PRICES;
 
         return view('game.dashboard', compact(
@@ -287,8 +280,18 @@ class DashboardController extends Controller
             'nextStreakDay',
             'nuNlNews',
             'clinicWeather',
-            'peukenMarket',
-            'securityRadar',
+            'tunnel',
+            'tunnelDigCooldown',
+            'tunnelDumpCooldown',
+            'tunnelStageInfo',
+            'treatmentScore',
+            'isOnLeave',
+            'leaveRemainingMinutes',
+            'treatmentCooldown',
+            'unopenedBags',
+            'xxlCases',
+            'vaultTokens',
+            'packageCooldown',
             'unlockedWidgets',
             'widgetPrices',
         ));
@@ -299,13 +302,48 @@ class DashboardController extends Controller
      */
     public function weatherByCoords(Request $request): JsonResponse
     {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user?->character;
+
+        // Reset to default clinic location
+        if ($request->boolean('reset') || $request->input('city') === 'vught_reset') {
+            session()->forget(['user_weather_lat', 'user_weather_lon']);
+            if ($character) {
+                $character->update([
+                    'weather_location' => null,
+                    'weather_lat' => null,
+                    'weather_lon' => null,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'weather' => $this->weatherService->getClinicWeather(),
+            ]);
+        }
+
         $city = $request->input('city');
         if (! empty($city) && is_string($city)) {
             $weather = $this->weatherService->getWeatherByCity($city);
-            session([
-                'user_weather_lat' => $weather['latitude'] ?? null,
-                'user_weather_lon' => $weather['longitude'] ?? null,
-            ]);
+            $lat = $weather['latitude'] ?? null;
+            $lon = $weather['longitude'] ?? null;
+            $resolvedLoc = $weather['location'] ?? $city;
+
+            if ($lat !== null && $lon !== null) {
+                session([
+                    'user_weather_lat' => $lat,
+                    'user_weather_lon' => $lon,
+                ]);
+
+                if ($character) {
+                    $character->update([
+                        'weather_location' => $resolvedLoc,
+                        'weather_lat' => $lat,
+                        'weather_lon' => $lon,
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,
@@ -316,17 +354,27 @@ class DashboardController extends Controller
         $validated = $request->validate([
             'lat' => 'required|numeric|between:-90,90',
             'lon' => 'required|numeric|between:-180,180',
+            'location' => 'nullable|string|max:100',
         ]);
 
         $lat = (float) $validated['lat'];
         $lon = (float) $validated['lon'];
+        $customLoc = $validated['location'] ?? null;
 
         session([
             'user_weather_lat' => $lat,
             'user_weather_lon' => $lon,
         ]);
 
-        $weather = $this->weatherService->getWeather($lat, $lon);
+        $weather = $this->weatherService->getWeather($lat, $lon, $customLoc);
+
+        if ($character) {
+            $character->update([
+                'weather_location' => $weather['location'] ?? $customLoc,
+                'weather_lat' => $lat,
+                'weather_lon' => $lon,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -474,5 +522,166 @@ class DashboardController extends Controller
             'is_in_prison' => (bool) $character->is_in_prison,
             'prison_seconds' => (int) $character->remainingPrisonSeconds(),
         ]);
+    }
+
+    /**
+     * Sell cigarettes directly from the Peuken Beurs widget.
+     */
+    public function sellPeuken(Request $request): JsonResponse|RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['error' => 'Geen personage gevonden.'], 404);
+        }
+
+        if ($character->isImprisoned()) {
+            $msg = 'In de isoleercel heb je geen toegang tot de Peuken Beurs!';
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg], 403)
+                : back()->with('error', $msg);
+        }
+
+        $validated = $request->validate([
+            'amount' => ['required', 'string', 'in:5,10,all'],
+        ]);
+
+        $sigItem = Item::where('slug', 'sigaretten')->first();
+        if (! $sigItem) {
+            return response()->json(['error' => 'Sigaretten item niet geconfigureerd.'], 500);
+        }
+
+        $charItem = CharacterItem::where('character_id', $character->id)
+            ->where('item_id', $sigItem->id)
+            ->first();
+
+        $currentStock = $charItem ? (int) $charItem->quantity : 0;
+
+        $hour = (int) now()->format('H');
+        $wave = (sin($hour * 0.52) * 11) + (cos($hour * 0.3) * 5);
+        $peukPrice = max(28, (int) round(42 + $wave));
+
+        $requestedAmount = $validated['amount'];
+        $toSell = $requestedAmount === 'all' ? $currentStock : (int) $requestedAmount;
+
+        if ($toSell <= 0 || $currentStock < $toSell) {
+            $msg = "Je hebt minimaal {$toSell} peuken nodig om te verkopen (je hebt er {$currentStock})!";
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg], 400)
+                : back()->with('error', $msg);
+        }
+
+        $totalCash = $toSell * $peukPrice;
+        $xpGain = max(10, (int) round($toSell * 3.5));
+        $respectGain = max(1, (int) floor($toSell / 5));
+
+        // Deduct cigarettes & reward cash, xp, respect
+        $charItem->decrement('quantity', $toSell);
+        $this->economyService->addCash($character, $totalCash);
+        $this->levelService->addXp($character, $xpGain);
+        $character->addRespect($respectGain);
+        $character->save();
+
+        if (class_exists(DailyBattleService::class)) {
+            app(DailyBattleService::class)->record($character, 'drugs_sold', $toSell);
+        }
+
+        $msg = "🚬 DEAL GESLOTEN! {$toSell}x Peuken verkocht op de zwarte markt voor €".number_format($totalCash, 0, ',', '.')." (+{$xpGain} XP, +{$respectGain} Respect)!";
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'cash' => (int) $character->cash,
+                'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),
+                'peuken_left' => max(0, $currentStock - $toSell),
+                'cash_gained' => $totalCash,
+                'xp_gained' => $xpGain,
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Perform an active blind-spot radar sweep to uncover contraband/cash.
+     */
+    public function radarSweep(Request $request): JsonResponse|RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['error' => 'Geen personage gevonden.'], 404);
+        }
+
+        if (! $character->isWidgetUnlocked('security')) {
+            $msg = 'Ontgrendel eerst de Bewakingsradar widget voor 20 sterren!';
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg], 403)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isImprisoned()) {
+            $msg = 'Je zit in de isoleercel en kunt de bewakingsradar niet bedienen!';
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg], 403)
+                : back()->with('error', $msg);
+        }
+
+        if ($this->cooldownService->isOnCooldown($character, 'radar_sweep')) {
+            $rem = $this->cooldownService->getRemainingSeconds($character, 'radar_sweep');
+            $mins = ceil($rem / 60);
+            $msg = "⏳ Radar scanner herlaadt zijn frequenties. Wacht nog {$rem}s (~{$mins} min)!";
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg, 'remaining_seconds' => $rem], 400)
+                : back()->with('error', $msg);
+        }
+
+        // Radar sweep success!
+        $cashFound = mt_rand(180, 480);
+        $peukenFound = mt_rand(1, 3);
+        $xpGain = 30;
+
+        $this->economyService->addCash($character, $cashFound);
+        $this->levelService->addXp($character, $xpGain);
+        $character->addRespect(1);
+        $character->save();
+
+        // Add cigarettes to stash
+        $sigItem = Item::where('slug', 'sigaretten')->first();
+        if ($sigItem) {
+            $ci = CharacterItem::firstOrCreate(
+                ['character_id' => $character->id, 'item_id' => $sigItem->id],
+                ['quantity' => 0]
+            );
+            $ci->increment('quantity', $peukenFound);
+        }
+
+        $this->cooldownService->setCooldown($character, 'radar_sweep', 1800);
+
+        $msg = '📡 RADAR SWEEP SUCCES! Dode hoek gescand bij container 4. Buit: €'.number_format($cashFound, 0, ',', '.')." contant en {$peukenFound}x Sigaretten meegesmokkeld (+{$xpGain} XP)!";
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'cash' => (int) $character->cash,
+                'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),
+                'cash_found' => $cashFound,
+                'peuken_found' => $peukenFound,
+                'cooldown_seconds' => 1800,
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 }

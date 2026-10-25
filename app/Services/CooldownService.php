@@ -32,6 +32,7 @@ class CooldownService
         // Nieuwe Functies
         'dropping_tennisball' => 600,     // 10 min
         'dropping_drone' => 1800,         // 30 min
+        'radar_sweep' => 1800,            // 30 min
         'radio_shoutout' => 90,           // 1.5 min
         'tunnel_dig' => 180,              // 3 min
         'tunnel_dump_sand' => 120,        // 2 min
@@ -60,6 +61,7 @@ class CooldownService
         'infirmary_palm' => 10,
         'tunnel_dig' => 15,
         'dropping_tennisball' => 15,
+        'radar_sweep' => 10,
         'extort' => 20,
         'produce_sigaretten' => 20,
         'produce_ritalin' => 35,
