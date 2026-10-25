@@ -9,7 +9,7 @@ use SimpleXMLElement;
 
 class NuNlNewsService
 {
-    public const RSS_URL = 'https://www.nu.nl/rss/Algemeen';
+    public const RSS_URL = 'https://www.nu.nl/rss';
 
     /**
      * Get top articles from Nu.nl RSS feed with caching (15 minutes).
@@ -20,7 +20,7 @@ class NuNlNewsService
     {
         return Cache::remember('tbs_nunl_latest_news_'.$limit, 900, function () use ($limit): array {
             try {
-                $response = Http::timeout(5)->get(self::RSS_URL);
+                $response = Http::withoutVerifying()->timeout(5)->get(self::RSS_URL);
 
                 if (! $response->successful()) {
                     return $this->getFallbackNews();
@@ -41,16 +41,19 @@ class NuNlNewsService
 
                     $title = (string) $item->title;
                     $link = (string) $item->link;
-                    $description = strip_tags((string) $item->description);
-                    $category = (string) ($item->category ?? 'Nieuws');
-                    $pubDateStr = (string) $item->pubDate;
+                    $description = strip_tags((string) ($item->description ?? ''));
+                    $category = (string) ($item->category ?? 'Algemeen');
+                    $pubDateStr = (string) ($item->pubDate ?? now()->toRfc2822String());
 
                     $timestamp = strtotime($pubDateStr) ?: time();
                     $timeAgo = now()->setTimestamp($timestamp)->diffForHumans();
 
                     $image = null;
-                    if (isset($item->enclosure) && (string) $item->enclosure['type'] === 'image/jpeg') {
-                        $image = (string) $item->enclosure['url'];
+                    if (isset($item->enclosure)) {
+                        $encType = (string) ($item->enclosure['type'] ?? '');
+                        if (str_starts_with($encType, 'image/') || empty($encType)) {
+                            $image = (string) $item->enclosure['url'];
+                        }
                     }
 
                     $articles[] = [

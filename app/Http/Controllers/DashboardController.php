@@ -21,7 +21,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -109,12 +108,11 @@ class DashboardController extends Controller
         $notifications = $character->notifications()->take(5)->get();
         $recentGuestbook = $character->guestbookEntries()->with('author')->take(3)->get();
 
-        $latestNews = Cache::remember('tbs_latest_published_news', 60, fn () => NewsArticle::where('is_published', true)
+        $latestNews = NewsArticle::where('is_published', true)
             ->orderByDesc('is_pinned')
             ->latest()
             ->take(4)
-            ->get()
-        );
+            ->get();
 
         // Dynamische Recente Activiteiten samenstellen
         $activities = collect();
@@ -197,7 +195,7 @@ class DashboardController extends Controller
         $recentActivities = $activities->sortByDesc('time')->take(5)->values();
 
         $referralStats = $this->referralService->getStats($character);
-        $lotteryRound = Cache::remember('tbs_current_lottery_round', 30, fn () => LotteryRound::current());
+        $lotteryRound = LotteryRound::current();
 
         $isLoginBonusActive = Character::isLoginBonusWindowActive();
         $hasClaimedStreakToday = $character->hasClaimedStreakToday();
@@ -364,13 +362,19 @@ class DashboardController extends Controller
         return DB::transaction(function () use ($character, $key, $cost) {
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            $unlocked = $lockedCharacter->unlocked_widgets ?? [];
+            $unlocked = $lockedCharacter->unlocked_widgets;
+            if (is_string($unlocked)) {
+                $unlocked = json_decode($unlocked, true) ?: [];
+            }
+            if (! is_array($unlocked)) {
+                $unlocked = [];
+            }
 
             if (in_array($key, $unlocked, true)) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Deze widget is al ontgrendeld!',
-                    'stars' => $lockedCharacter->stars,
+                    'stars' => (int) $lockedCharacter->stars,
                     'unlocked_widgets' => $unlocked,
                     'widget_key' => $key,
                 ]);
@@ -382,7 +386,7 @@ class DashboardController extends Controller
                 ], 400);
             }
 
-            $lockedCharacter->decrement('stars', $cost);
+            $lockedCharacter->stars = max(0, (int) $lockedCharacter->stars - $cost);
             $unlocked[] = $key;
             $lockedCharacter->unlocked_widgets = array_values(array_unique($unlocked));
             $lockedCharacter->save();
@@ -390,7 +394,7 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Widget succesvol ontgrendeld voor {$cost} sterren! ⭐",
-                'stars' => $lockedCharacter->stars,
+                'stars' => (int) $lockedCharacter->stars,
                 'unlocked_widgets' => $lockedCharacter->unlocked_widgets,
                 'widget_key' => $key,
             ]);

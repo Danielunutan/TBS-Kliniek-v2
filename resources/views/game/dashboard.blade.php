@@ -1035,14 +1035,16 @@
 
                 <div class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse($latestNews as $newsItem)
+                        @if(is_object($newsItem) && !empty($newsItem->slug))
                         <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
                             <div class="flex items-center justify-between gap-2">
                                 <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate">
                                     {{ $newsItem->title }}
                                 </h4>
-                                <span class="text-[10px] text-slate-400 shrink-0">{{ $newsItem->created_at->diffForHumans() }}</span>
+                                <span class="text-[10px] text-slate-400 shrink-0">{{ $newsItem->created_at?->diffForHumans() }}</span>
                             </div>
                         </a>
+                        @endif
                     @empty
                         <div class="p-6 text-center text-xs text-slate-400">
                             Nog geen berichten geplaatst.
@@ -1494,22 +1496,30 @@ function tbsDashboardCustomizer() {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: JSON.stringify({ widget_key: key })
                 });
-                const data = await resp.json();
-                if (data.success) {
+
+                let data;
+                try {
+                    data = await resp.json();
+                } catch(parseErr) {
+                    throw new Error('Onverwacht serverantwoord. Vernieuw de pagina en probeer opnieuw.');
+                }
+
+                if (resp.ok && data.success) {
                     this.unlockedWidgets = data.unlocked_widgets;
                     this.userStars = data.stars;
                     this.widgets[key] = true;
                     localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
                     alert('🎉 ' + data.message);
                 } else {
-                    alert(data.error || 'Er is een fout opgetreden.');
+                    alert(data.error || data.message || 'Er is een fout opgetreden bij het ontgrendelen.');
                 }
             } catch (e) {
-                alert('Netwerkfout bij het ontgrendelen van de widget.');
+                alert(e.message || 'Netwerkfout bij het ontgrendelen van de widget.');
             }
         },
 
