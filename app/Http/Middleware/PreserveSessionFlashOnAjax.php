@@ -33,10 +33,12 @@ class PreserveSessionFlashOnAjax
         $session = $request->hasSession() ? $request->session() : null;
 
         $isAction = $request->header('X-TBS-Action') === 'true';
+        $isBackgroundRefresh = $request->header('X-TBS-Background-Refresh') === 'true';
 
         $isAjaxOrPolling = $request->ajax()
             || $request->expectsJson()
             || $isAction
+            || $isBackgroundRefresh
             || $request->is('chat/*')
             || $request->is('cinema/*')
             || $request->is('api/*')
@@ -49,9 +51,17 @@ class PreserveSessionFlashOnAjax
             || ! $request->acceptsHtml();
 
         // 1. Before next middleware: If this is an AJAX / polling request, immediately restore any flash messages aged by StartSession
-        if ($session && $isAjaxOrPolling && ! $isAction) {
+        // But if this is a background container refresh right after an action, do NOT reflash since the flash was already consumed in the action JSON
+        if ($session && $isAjaxOrPolling && ! $isAction && ! $isBackgroundRefresh) {
             $session->reflash();
             $session->keep(['success', 'error', 'status', 'warning', 'info']);
+        }
+
+        if ($session && $isBackgroundRefresh) {
+            $user = $request->user();
+            $identifier = $user?->id ?? $session->getId();
+            app(FlashNotificationService::class)->consume($identifier);
+            $session->forget(['tbs_flash_success', 'tbs_flash_error', 'tbs_flash_time', 'success', 'error', 'status']);
         }
 
         $response = $next($request);

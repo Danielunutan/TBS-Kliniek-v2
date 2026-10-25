@@ -2588,10 +2588,28 @@
              toasts: [],
              addToast(msg, type = 'success', duration = 4500) {
                  if (!msg) return;
+                 const trimmed = String(msg).trim();
+                 if (!trimmed) return;
+
+                 // Deduplicate: ignore if an identical message is already currently displayed
+                 if (this.toasts.some(t => t.msg === trimmed)) return;
+
+                 // Rate-limit identical messages within 2 seconds
+                 if (window._tbsLastToast && window._tbsLastToast.msg === trimmed && (Date.now() - window._tbsLastToast.time) < 2000) {
+                     return;
+                 }
+                 window._tbsLastToast = { msg: trimmed, time: Date.now() };
+
+                 // Keep maximum 2 toasts visible at any time to prevent flooding the screen
+                 if (this.toasts.length >= 2) {
+                     const oldest = this.toasts.shift();
+                     if (oldest && oldest.timer) clearTimeout(oldest.timer);
+                 }
+
                  const id = 'toast_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
                  const toastObj = {
                      id: id,
-                     msg: msg,
+                     msg: trimmed,
                      type: type,
                      duration: duration,
                      timer: null
@@ -2672,149 +2690,166 @@
 
     <!-- TBS IN-APP FORM ACTION INTERCEPTOR (Zero Reloads & Scroll Preservation) -->
     <script>
-    document.addEventListener('submit', async function(e) {
-        const form = e.target;
-        if (!form || form.tagName !== 'FORM') return;
+    if (!window.tbsFormInterceptorAdded) {
+        window.tbsFormInterceptorAdded = true;
 
-        // Strict guard: ONLY intercept explicit Laravel POST action forms
-        const actionAttr = form.getAttribute('action') || '';
-        const methodAttr = (form.getAttribute('method') || '').toLowerCase();
-        const hasCsrf = form.querySelector('input[name="_token"]');
+        document.addEventListener('submit', async function(e) {
+            const form = e.target;
+            if (!form || form.tagName !== 'FORM') return;
 
-        if (!actionAttr ||
-            methodAttr !== 'post' ||
-            !hasCsrf ||
-            form.hasAttribute('@submit.prevent') ||
-            form.hasAttribute('x-on:submit.prevent') ||
-            form.hasAttribute('data-no-async') ||
-            window.location.pathname.startsWith('/chat') ||
-            actionAttr.includes('/chat') ||
-            actionAttr.includes('/logout') ||
-            actionAttr.includes('/login') ||
-            actionAttr.includes('/auth') ||
-            form.closest('[x-data*="Messenger"]') ||
-            form.closest('#chat-messages-container') ||
-            form.querySelector('input[type="file"]')) {
-            return;
-        }
+            // Strict guard: ONLY intercept explicit Laravel POST action forms
+            const actionAttr = form.getAttribute('action') || '';
+            const methodAttr = (form.getAttribute('method') || '').toLowerCase();
+            const hasCsrf = form.querySelector('input[name="_token"]');
 
-        e.preventDefault();
-
-        const savedScrollY = window.scrollY;
-        const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
-        let origHtml = null;
-
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            origHtml = submitBtn.innerHTML;
-            submitBtn.classList.add('opacity-75', 'cursor-wait');
-        }
-
-        try {
-            const formData = new FormData(form);
-            if (e.submitter && e.submitter.name && !formData.has(e.submitter.name)) {
-                formData.append(e.submitter.name, e.submitter.value);
+            if (!actionAttr ||
+                methodAttr !== 'post' ||
+                !hasCsrf ||
+                form.hasAttribute('@submit.prevent') ||
+                form.hasAttribute('x-on:submit.prevent') ||
+                form.hasAttribute('data-no-async') ||
+                window.location.pathname.startsWith('/chat') ||
+                actionAttr.includes('/chat') ||
+                actionAttr.includes('/logout') ||
+                actionAttr.includes('/login') ||
+                actionAttr.includes('/auth') ||
+                form.closest('[x-data*="Messenger"]') ||
+                form.closest('#chat-messages-container') ||
+                form.querySelector('input[type="file"]')) {
+                return;
             }
 
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-TBS-Action': 'true',
-                    'Accept': 'application/json, text/html'
+            // Guard against duplicate concurrent submissions on the same form
+            if (form.dataset.tbsSubmitting === 'true') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return;
+            }
+            form.dataset.tbsSubmitting = 'true';
+
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            const savedScrollY = window.scrollY;
+            const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
+            let origHtml = null;
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                origHtml = submitBtn.innerHTML;
+                submitBtn.classList.add('opacity-75', 'cursor-wait');
+            }
+
+            try {
+                const formData = new FormData(form);
+                if (e.submitter && e.submitter.name && !formData.has(e.submitter.name)) {
+                    formData.append(e.submitter.name, e.submitter.value);
                 }
-            });
 
-            // 1. JSON response from PreserveSessionFlashOnAjax:
-            const contentType = response.headers.get('content-type') || '';
-            if (contentType.includes('application/json')) {
-                const data = await response.json();
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-TBS-Action': 'true',
+                        'Accept': 'application/json, text/html'
+                    }
+                });
 
-                // Redirect away if needed (solitary confinement / arena / logout)
-                if (data.redirect) {
+                // 1. JSON response from PreserveSessionFlashOnAjax:
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json')) {
+                    const data = await response.json();
+
+                    // Redirect away if needed (solitary confinement / arena / logout)
+                    if (data.redirect) {
+                        if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                            window.Turbo.visit(data.redirect);
+                        } else {
+                            window.location.href = data.redirect;
+                        }
+                        return;
+                    }
+
+                    // Apply realtime smooth stats animation
+                    if (data.character && window.tbsApplyStats) {
+                        window.tbsApplyStats(data.character);
+                    }
+
+                    // Display in-app toast notification
+                    if (data.flash && data.flash.message && window.tbsToast) {
+                        window.tbsToast(data.flash.message, data.flash.type || 'success');
+                    }
+
+                    // Background refresh the main container to show updated counts/states without reload
+                    try {
+                        const getRes = await fetch(window.location.href, {
+                            headers: { 
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-TBS-Background-Refresh': 'true'
+                            }
+                        });
+                        if (getRes.ok) {
+                            const html = await getRes.text();
+                            const doc = new DOMParser().parseFromString(html, 'text/html');
+                            const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
+                            const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
+                            if (newMain && curMain) {
+                                curMain.innerHTML = newMain.innerHTML;
+                                if (window.Alpine && window.Alpine.initTree) {
+                                    window.Alpine.initTree(curMain);
+                                }
+                                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
+                            }
+                        }
+                    } catch (fetchErr) {
+                        console.error('TBS Refresh Error:', fetchErr);
+                    }
+
+                    return;
+                }
+
+                // 2. Direct HTML redirect response fallback
+                const responseUrl = new URL(response.url);
+                if (responseUrl.pathname !== window.location.pathname) {
                     if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                        window.Turbo.visit(data.redirect);
+                        window.Turbo.visit(response.url);
                     } else {
-                        window.location.href = data.redirect;
+                        window.location.href = response.url;
                     }
                     return;
                 }
 
-                // Apply realtime smooth stats animation
-                if (data.character && window.tbsApplyStats) {
-                    window.tbsApplyStats(data.character);
-                }
+                const html = await response.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
+                const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
 
-                // Display in-app toast notification
-                if (data.flash && data.flash.message && window.tbsToast) {
-                    window.tbsToast(data.flash.message, data.flash.type || 'success');
-                }
-
-                // Background refresh the main container to show updated counts/states without reload
-                try {
-                    const getRes = await fetch(window.location.href, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    if (getRes.ok) {
-                        const html = await getRes.text();
-                        const doc = new DOMParser().parseFromString(html, 'text/html');
-                        const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
-                        const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
-                        if (newMain && curMain) {
-                            curMain.innerHTML = newMain.innerHTML;
-                            if (window.Alpine && window.Alpine.initTree) {
-                                window.Alpine.initTree(curMain);
-                            }
-                            window.scrollTo({ top: savedScrollY, behavior: 'instant' });
-                        }
+                if (newMain && curMain) {
+                    curMain.innerHTML = newMain.innerHTML;
+                    if (window.Alpine && window.Alpine.initTree) {
+                        window.Alpine.initTree(curMain);
                     }
-                } catch (fetchErr) {
-                    console.error('TBS Refresh Error:', fetchErr);
+                    window.scrollTo({ top: savedScrollY, behavior: 'instant' });
                 }
 
-                return;
-            }
-
-            // 2. Direct HTML redirect response fallback
-            const responseUrl = new URL(response.url);
-            if (responseUrl.pathname !== window.location.pathname) {
-                if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                    window.Turbo.visit(response.url);
-                } else {
-                    window.location.href = response.url;
+                if (window.tbsRefreshStats) {
+                    window.tbsRefreshStats();
                 }
-                return;
-            }
 
-            const html = await response.text();
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-            const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
-            const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
-
-            if (newMain && curMain) {
-                curMain.innerHTML = newMain.innerHTML;
-                if (window.Alpine && window.Alpine.initTree) {
-                    window.Alpine.initTree(curMain);
+            } catch (err) {
+                console.error('TBS Interceptor Error:', err);
+                form.submit();
+            } finally {
+                form.dataset.tbsSubmitting = 'false';
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-75', 'cursor-wait');
+                    if (origHtml) submitBtn.innerHTML = origHtml;
                 }
-                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
             }
-
-            if (window.tbsRefreshStats) {
-                window.tbsRefreshStats();
-            }
-
-        } catch (err) {
-            console.error('TBS Interceptor Error:', err);
-            form.submit();
-        } finally {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-75', 'cursor-wait');
-                if (origHtml) submitBtn.innerHTML = origHtml;
-            }
-        }
-    });
+        });
+    }
     </script>
 
 </body>
