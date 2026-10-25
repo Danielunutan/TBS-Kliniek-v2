@@ -145,4 +145,36 @@ class DailyBattleAndXxlCasesTest extends TestCase
         $this->assertGreaterThan(20, $char->stars); // gained 10-25 stars
         $this->assertGreaterThan(2, $char->masks); // gained 5-12 masks
     }
+
+    public function test_open_regular_bags_and_multiple_xxl_cases(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'unopened_bags' => 10,
+            'xxl_cases' => 5,
+            'bank' => 0,
+        ]);
+
+        $this->actingAs($user);
+
+        // Open 5 regular bags in a row
+        for ($i = 0; $i < 5; $i++) {
+            $resp = $this->post(route('packages.open-bag'));
+            $resp->assertSessionHas('success');
+        }
+
+        $char->refresh();
+        $this->assertEquals(5, $char->unopened_bags);
+        $this->assertGreaterThan(0, $char->bank);
+
+        // Crack 3 XXL cases in a row
+        for ($i = 0; $i < 3; $i++) {
+            $resp = $this->post(route('packages.open-xxl'));
+            $resp->assertSessionHas('success');
+        }
+
+        $char->refresh();
+        $this->assertEquals(2, $char->xxl_cases);
+    }
 }

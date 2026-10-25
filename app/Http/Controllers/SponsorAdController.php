@@ -99,8 +99,8 @@ class SponsorAdController extends Controller
             ], 422);
         }
 
-        $rewardType = $request->input('reward_type', 'cash');
-        $validTypes = ['cash', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars', 'lottery_ticket', 'true_crime'];
+        $rewardType = $request->input('reward_type') ?: $request->input('type', 'cash');
+        $validTypes = ['cash', 'bullets', 'vest', 'coma_revive', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars', 'lottery_ticket', 'true_crime'];
         $isSpecificCooldown = is_string($rewardType) && str_starts_with($rewardType, 'cooldown:');
         if (! in_array($rewardType, $validTypes, true) && ! $isSpecificCooldown) {
             $rewardType = 'cash';
@@ -108,7 +108,14 @@ class SponsorAdController extends Controller
 
         $dailyData = $character->getAdDailyData();
 
-        if ($rewardType === 'prison') {
+        if ($rewardType === 'coma_revive') {
+            if (! $character->isComatose()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je ligt momenteel niet in de Intensive Care Coma.',
+                ], 422);
+            }
+        } elseif ($rewardType === 'prison') {
             if (! $character->isImprisoned()) {
                 return response()->json([
                     'success' => false,
@@ -190,7 +197,7 @@ class SponsorAdController extends Controller
             'popup_url' => $popupUrl,
             'robin_reward_id' => $robinRewardId,
             'duration' => self::WATCH_DURATION_SECONDS,
-            'message' => 'Sponsoropdracht gestart. Voltooi de opdracht om je beloning direct te ontvangen!',]);
+            'message' => 'Sponsoropdracht gestart. Voltooi de opdracht om je beloning direct te ontvangen!', ]);
     }
 
     /**
@@ -572,6 +579,25 @@ class SponsorAdController extends Controller
                     }
                     break;
 
+                case 'bullets':
+                    $character->bullets = ($character->bullets ?? 0) + 50;
+                    $character->save();
+                    $rewardDetails = '🔫 +50 Kogels ontvangen! Je munitievoorraad is nu '.number_format($character->bullets, 0, ',', '.').' kogels!';
+                    break;
+
+                case 'vest':
+                    $character->vest_until = now()->addHours(12);
+                    $character->save();
+                    $rewardDetails = '🛡️ Kogelwerend Vest geactiveerd voor 12 uur! Je bent zwaar beschermd tegen schutters en vijanden riskeren backfire!';
+                    break;
+
+                case 'coma_revive':
+                    $character->coma_until = null;
+                    $character->health = max(25, (int) ($character->max_health * 0.5));
+                    $character->save();
+                    $rewardDetails = '💉 Medisch ontwaakt uit Intensive Care Coma! Je bent weer op de been met 50% HP!';
+                    break;
+
                 case 'cooldown':
                     CharacterCooldown::where('character_id', $character->id)->delete();
                     $rewardDetails = '⚡ Alle actieve cooldowns (Hosselen, Zakkenrollen, Kluisjes, Smokkelen, etc.) zijn direct gewist!';
@@ -587,7 +613,7 @@ class SponsorAdController extends Controller
 
         // Check 10-ad milestone bonus: Dispatch a secret VaultCode to player chat & inbox
         if ($totalAds % 10 === 0) {
-            $bonusCode = 'SPONSOR-'.strtoupper(Str::random(6));
+            $bonusCode = VaultCode::generateUniqueCode('SPONSOR');
             VaultCode::create([
                 'code' => $bonusCode,
                 'reward_cash' => 15000,

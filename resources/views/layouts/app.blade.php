@@ -1850,6 +1850,56 @@
             @endforeach
             @endif
 
+            <!-- Active Intensive Care Coma Alert Banner -->
+            @if(isset($character) && $character->isComatose())
+            <div x-data="{ 
+                    sec: {{ $character->getComaRemainingSeconds() }},
+                    formatTime(s) {
+                        if (s <= 0) return '00:00';
+                        const h = Math.floor(s / 3600);
+                        const m = Math.floor((s % 3600) / 60);
+                        const remainder = s % 60;
+                        return (h > 0 ? h + 'u ' : '') + (m < 10 ? '0' : '') + m + 'm ' + (remainder < 10 ? '0' : '') + remainder + 's';
+                    },
+                    init() {
+                        if (this.sec > 0) {
+                            const timer = setInterval(() => {
+                                this.sec--;
+                                if (this.sec <= 0) {
+                                    clearInterval(timer);
+                                    window.location.reload();
+                                }
+                            }, 1000);
+                        }
+                    }
+                 }" 
+                 x-show="sec > 0"
+                 class="mb-6 bg-red-950/90 text-white border-2 border-red-500 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 relative z-20">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center text-xl shadow-md shrink-0 animate-pulse">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-500 text-white">Noodgeval</span>
+                            <h3 class="text-sm sm:text-base font-black tracking-tight text-white">Intensive Care: Je ligt in Coma!</h3>
+                        </div>
+                        <p class="text-xs text-red-200 mt-0.5">
+                            Je bent neergeschoten of geraakt door backfire. Resterende comatijd: <span class="font-mono font-black text-amber-300" x-text="formatTime(sec)"></span>.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <button type="button" 
+                            onclick="window.tbsOpenSponsorAd('coma_revive')" 
+                            class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-95 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-md">
+                        <i class="fa-solid fa-syringe text-sm"></i>
+                        <span>Kijk Video (Direct Ontwaken)</span>
+                    </button>
+                </div>
+            </div>
+            @endif
+
             <!-- Active Prison / Isoleercel Alert Banner with Live Seconds Ticker & Star Buyout -->
             @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
             <div x-data="{ 
@@ -2290,52 +2340,66 @@
                     </div>
                 </div>
 
-                <!-- 🚀 Snelle Acties Grid (Large 3-Column Touch Buttons) -->
+                <!-- 🚀 Snelle Acties Grid (Large Touch Buttons) -->
                 <div>
                     <span class="text-[10px] font-black uppercase text-slate-400 dark:text-purple-300/70 tracking-wider mb-2 block">Direct Naar</span>
-                    <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
-                        <a href="{{ route('hustle.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                    <div class="grid grid-cols-4 gap-2 text-center text-xs font-bold">
+                        <a href="{{ route('hustle.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-hand-holding-dollar"></i>
                             </div>
-                            <span class="text-[10px] truncate w-full">Hosselen</span>
+                            <span class="text-[9px] truncate w-full">Hosselen</span>
                         </a>
 
-                        <a href="{{ route('fight.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-rose-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
-                            <div class="w-8 h-8 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
+                        <a href="{{ route('fight.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-emerald-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-hand-fist"></i>
                             </div>
-                            <span class="text-[10px] truncate w-full">Vechten</span>
+                            <span class="text-[9px] truncate w-full">Stelen</span>
                         </a>
 
-                        <a href="{{ route('vault.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-amber-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('hitman.index') }}" class="p-2 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-crosshairs"></i>
+                            </div>
+                            <span class="text-[9px] truncate w-full text-rose-700 dark:text-rose-300 font-black">Liquidatie</span>
+                        </a>
+
+                        <a href="{{ route('packages.index') }}" class="p-2 rounded-2xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <span class="text-[9px] truncate w-full text-amber-800 dark:text-amber-300 font-black">Koffers</span>
+                        </a>
+
+                        <a href="{{ route('vault.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-amber-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-key"></i>
                             </div>
-                            <span class="text-[10px] truncate w-full">Kluis</span>
+                            <span class="text-[9px] truncate w-full">Kluis</span>
                         </a>
 
-                        <a href="{{ route('marketplace.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-indigo-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                        <a href="{{ route('marketplace.index') }}" class="p-2 rounded-2xl bg-slate-100 hover:bg-indigo-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-store"></i>
                             </div>
-                            <span class="text-[10px] truncate w-full">Markt</span>
+                            <span class="text-[9px] truncate w-full">Markt</span>
                         </a>
 
-                        <a href="{{ route('leaderboard') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-amber-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
-                            <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-trophy"></i>
+                        <a href="{{ route('sponsor.index') }}" class="p-2 rounded-2xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-tv"></i>
                             </div>
-                            <span class="text-[10px] truncate w-full">Ranglijst</span>
+                            <span class="text-[9px] truncate w-full text-purple-700 dark:text-purple-300 font-black">Sponsor Ads</span>
                         </a>
 
                         <button type="button" 
                                 @click="mobileQuickSheetOpen = false; if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
-                                class="p-2.5 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95 cursor-pointer">
+                                class="p-2 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95 cursor-pointer">
                             <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </div>
-                            <span class="text-[10px] truncate w-full">Zoeken</span>
+                            <span class="text-[9px] truncate w-full">Zoeken</span>
                         </button>
                     </div>
                 </div>

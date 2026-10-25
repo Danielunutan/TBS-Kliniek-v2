@@ -1,29 +1,45 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6" x-data="{ searchQuery: '' }">
+<div class="space-y-4 sm:space-y-6" x-data="{ searchQuery: '' }">
+
+    <!-- Combat Mode App Tab Switcher -->
+    <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+        <a href="{{ route('fight.index') }}" class="py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 font-black text-xs text-center shadow-xs flex items-center justify-center gap-2 border border-purple-200 dark:border-purple-800">
+            <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
+            <span>Geld Stelen (Luchtplaats)</span>
+        </a>
+        <a href="{{ route('hitman.index') }}" class="py-2.5 px-3 rounded-xl hover:bg-white/60 dark:hover:bg-slate-900/60 text-slate-600 dark:text-slate-300 font-extrabold text-xs text-center transition flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-crosshairs text-rose-600"></i>
+            <span>Liquidatie & Kogels</span>
+            <span class="text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-black px-1.5 py-0.5 rounded-full">NIEUW</span>
+        </a>
+    </div>
 
     <!-- Controlepunt: Het Bankje bij het Hek -->
     @include('game.control_points.banner', ['slug' => 'luchtplaats'])
 
-    <!-- Top Hero Banner (Clean TBS White Style) -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <!-- Top Hero Banner (Mobile-First Style) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-2">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800 mb-1.5">
                     <i class="fa-solid fa-sack-dollar text-emerald-600"></i> De Luchtplaats • Geld Stelen & Beroven
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Geld Stelen op de Luchtplaats</h1>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Beroof andere patiënten van hun contante euro's door ze te overmeesteren op de luchtplaats. Jat hun contanten, verdien respect en rank-XP om de hiërarchie te domineren!
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Geld Stelen op de Luchtplaats</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs mt-0.5 max-w-xl leading-relaxed">
+                    Beroof andere patiënten van hun contante euro's door ze te overmeesteren op de luchtplaats. Jat hun contanten, verdien respect en rank-XP!
                 </p>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-bolt text-emerald-600"></i> {{ $character->energy }} / {{ $character->max_energy }} Energie
+            <div class="grid grid-cols-3 sm:flex items-center gap-2 shrink-0">
+                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] sm:text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center justify-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-bolt text-emerald-600"></i> {{ $character->energy }}⚡
                 </span>
-                <span class="px-3.5 py-2 rounded-xl bg-purple-50 border border-purple-200 text-xs font-bold text-purple-700 flex items-center gap-1.5 shadow-xs">
-                    <i class="fa-solid fa-fire text-purple-600"></i> {{ number_format($character->respect, 0, ',', '.') }} Respect
+                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[11px] sm:text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center justify-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-fire text-purple-600"></i> {{ number_format($character->respect, 0, ',', '.') }}
+                </span>
+                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-bomb text-rose-500"></i> {{ number_format($character->bullets ?? 0, 0, ',', '.') }} 💣
                 </span>
             </div>
         </div>
@@ -272,7 +288,87 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
+            <!-- MOBILE TOUCH CARDS (block on mobile, hidden on md+) -->
+            <div class="block md:hidden space-y-2.5">
+                @forelse($opponents as $index => $opp)
+                <div x-show="!searchQuery || '{{ strtolower($opp->name) }}'.includes(searchQuery.toLowerCase())"
+                     class="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 space-y-2.5 shadow-2xs">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-mono font-black text-xs flex items-center justify-center shrink-0">
+                                #{{ $index + 1 }}
+                            </span>
+                            <div class="relative shrink-0">
+                                <img src="{{ $opp->avatar_url }}" alt="{{ $opp->name }}" class="w-9 h-9 rounded-full object-cover border border-slate-200 shadow-2xs">
+                                <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-900 {{ $opp->isOnline() ? 'bg-emerald-500' : 'bg-slate-300' }}"></span>
+                            </div>
+                            <div class="min-w-0">
+                                <a href="{{ route('profile.show', $opp->name) }}" class="font-black text-xs text-slate-900 dark:text-white hover:text-purple-600 truncate block">
+                                    {{ $opp->name }}
+                                </a>
+                                <span class="text-[10px] text-slate-400 block truncate">
+                                    {{ $opp->gang ? $opp->gang->name : 'Geen gang' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                            <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Respect</span>
+                            <span class="text-xs font-black text-purple-700 dark:text-purple-400 font-mono">
+                                {{ $opp->respect >= 1000000 ? number_format($opp->respect / 1000000, 2) . 'M' : ($opp->respect >= 1000 ? number_format($opp->respect / 1000, 1) . 'K' : $opp->respect) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <div class="flex items-center gap-1.5 text-xs font-black text-emerald-600 dark:text-emerald-400">
+                            <i class="fa-solid fa-money-bill-wave text-[11px]"></i>
+                            <span>€{{ $opp->cash >= 1000000 ? number_format($opp->cash / 1000000, 1) . 'M' : number_format($opp->cash, 0, ',', '.') }}</span>
+                            <span class="text-[9px] text-slate-400 font-normal">op zak</span>
+                        </div>
+
+                        <form action="{{ route('fight.attack') }}" method="POST"
+                              @submit="
+                                if(globalCd > 0) { $event.preventDefault(); return false; }
+                                const token = window.tbsTurnstileToken 
+                                    || (document.querySelector('.cf-turnstile [name=cf-turnstile-response]') ? document.querySelector('.cf-turnstile [name=cf-turnstile-response]').value : '')
+                                    || (window.turnstile ? window.turnstile.getResponse() : '');
+                                if (token) {
+                                    $el.querySelector('input.turnstile-token-input').value = token;
+                                }
+                              ">
+                            @csrf
+                            <input type="hidden" name="opponent_id" value="{{ $opp->id }}">
+                            <input type="hidden" name="cf-turnstile-response" class="turnstile-token-input" value="">
+
+                            <button type="submit"
+                                    :disabled="globalCd > 0"
+                                    class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-2xs cursor-pointer flex items-center gap-1.5">
+                                <template x-if="globalCd <= 0">
+                                    <span class="inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-sack-dollar text-[11px]"></i>
+                                        <span>Steel (20 EP)</span>
+                                    </span>
+                                </template>
+                                <template x-if="globalCd > 0">
+                                    <span class="inline-flex items-center gap-1 font-mono">
+                                        <i class="fa-solid fa-stopwatch text-xs"></i>
+                                        <span x-text="globalCd + 's'"></span>
+                                    </span>
+                                </template>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @empty
+                <div class="py-6 text-center text-slate-400 text-xs">
+                    Geen patiënten gevonden.
+                </div>
+                @endforelse
+            </div>
+
+            <!-- DESKTOP TABLE (hidden on mobile, block on md+) -->
+            <div class="hidden md:block overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">

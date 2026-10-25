@@ -261,6 +261,91 @@
         </div>
     </div>
 
+    <!-- COMBAT & LIQUIDATIE SPONSOR REWARDS -->
+    <div class="space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <i class="fa-solid fa-crosshairs text-rose-600 dark:text-rose-400"></i> Liquidatie & Wapenarsenaal (Onbeperkt):
+            </h2>
+            <span class="text-[11px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950 px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800">Geen echt geld nodig &bull; 100% via Sponsor Ads</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Card 1: +50 Kogels -->
+            <div class="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800/80 hover:border-rose-400 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between transition group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-bomb"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2 py-0.5 rounded font-extrabold">Direct &bull; 1 Ad = +50 Kogels</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">+50 Scherpe Kogels 💣</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Laad je wapen door voor aanslagen en liquidaties op vijanden in de TBS kliniek. Momenteel in bezit: <strong class="text-rose-600">{{ number_format($character->bullets ?? 0, 0, ',', '.') }} kogels</strong>.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('bullets')" class="w-full h-11 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <i class="fa-solid fa-play text-xs"></i>
+                        <span>Kijk Ad (+50 Kogels)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 2: 12u Kogelwerend Vest -->
+            <div class="bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800/80 hover:border-blue-400 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between transition group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 px-2 py-0.5 rounded font-extrabold">12 Uur Bescherming</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 transition">Kogelwerend Vest 🛡️</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Verhoogt je verdediging met +150% en zorgt voor 45% ricochet-backfire gevaar voor schutters! Status: <strong class="{{ $character->hasVest() ? 'text-emerald-600' : 'text-slate-400' }}">{{ $character->hasVest() ? 'Actief (' . gmdate('H:i', $character->getVestRemainingSeconds()) . 'u)' : 'Niet actief' }}</strong>.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="window.tbsOpenSponsorAd('vest')" class="w-full h-11 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <i class="fa-solid fa-shield-halved text-xs"></i>
+                        <span>Kijk Ad (12u Vest)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card 3: Coma Ontwaken -->
+            <div class="bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800/80 hover:border-emerald-400 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col justify-between transition group">
+                <div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded font-extrabold">Medische Hulp</span>
+                    </div>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">Coma Ontwaken 💉</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        Neergeschoten of ricochet gehad? Ontwaak per direct uit het 6-uurs Intensive Care Coma en herstel naar 50% gezondheid!
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                    @if($character->isComatose())
+                        <button type="button" onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                            <i class="fa-solid fa-syringe text-xs"></i>
+                            <span>Kijk Ad (Direct Ontwaken)</span>
+                        </button>
+                    @else
+                        <button type="button" disabled class="w-full h-11 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed whitespace-nowrap">
+                            <i class="fa-solid fa-check text-xs text-emerald-500"></i>
+                            <span>Je bent niet in Coma</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ONGOING SPONSOR REWARDS (HERHAALBAAR) -->
     <div class="space-y-3">
         <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">

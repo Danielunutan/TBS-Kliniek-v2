@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class VaultCode extends Model
 {
@@ -18,6 +19,15 @@ class VaultCode extends Model
         'reward_tokens' => 'integer',
         'is_redeemed' => 'boolean',
     ];
+
+    public static function generateUniqueCode(string $prefix = 'TBS'): string
+    {
+        do {
+            $code = $prefix.'-'.strtoupper(Str::random(8));
+        } while (static::where('code', $code)->exists());
+
+        return $code;
+    }
 
     public function character(): BelongsTo
     {

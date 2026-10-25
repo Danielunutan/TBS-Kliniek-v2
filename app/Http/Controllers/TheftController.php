@@ -56,6 +56,12 @@ class TheftController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isComatose()) {
+            $mins = ceil($character->getComaRemainingSeconds() / 60);
+
+            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
+        }
+
         $victim = null;
         if (! empty($validated['victim_id'])) {
             $victim = Character::find($validated['victim_id']);

@@ -138,6 +138,11 @@ class Character extends Model
         'ad_lottery_progress' => 'integer',
         'ad_daily_data' => 'array',
         'perks' => 'array',
+        'bullets' => 'integer',
+        'vest_until' => 'datetime',
+        'coma_until' => 'datetime',
+        'kills_count' => 'integer',
+        'deaths_count' => 'integer',
         'last_ad_watched_at' => 'datetime',
         'last_ad_date' => 'string',
         'birthdate' => 'date',
@@ -2082,6 +2087,46 @@ class Character extends Model
         }
 
         return $cap;
+    }
+
+    /**
+     * Check if the character is in Intensive Care Coma.
+     */
+    public function isComatose(): bool
+    {
+        return $this->coma_until !== null && $this->coma_until->isFuture();
+    }
+
+    /**
+     * Remaining seconds in Intensive Care Coma.
+     */
+    public function getComaRemainingSeconds(): int
+    {
+        if (! $this->isComatose()) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($this->coma_until, false));
+    }
+
+    /**
+     * Check if the character has an active bulletproof vest.
+     */
+    public function hasVest(): bool
+    {
+        return $this->vest_until !== null && $this->vest_until->isFuture();
+    }
+
+    /**
+     * Remaining seconds of bulletproof vest protection.
+     */
+    public function getVestRemainingSeconds(): int
+    {
+        if (! $this->hasVest()) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($this->vest_until, false));
     }
 
     /**

@@ -156,10 +156,6 @@ class PackageController extends Controller
                 return back()->with('error', 'Je hebt geen ongeopende tassen liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
             }
 
-            if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
-                return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
-            }
-
             $character->unopened_bags -= 1;
 
             // Clean white money deposited directly to bank!
@@ -186,7 +182,7 @@ class PackageController extends Controller
             // Chance for a secret voucher code
             $voucherCode = null;
             if (rand(1, 100) <= 30) {
-                $voucherCode = 'TAS-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+                $voucherCode = VaultCode::generateUniqueCode('TAS');
                 VaultCode::create([
                     'code' => $voucherCode,
                     'reward_cash' => rand(1000, 2500),
@@ -273,10 +269,6 @@ class PackageController extends Controller
                 return back()->with('error', 'Je hebt geen XXL koffers in je bezit! Win ze in de 24 Uur Battle of koop er een met sterren.');
             }
 
-            if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
-                return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
-            }
-
             $character->xxl_cases -= 1;
 
             // Big rewards!
@@ -300,7 +292,7 @@ class PackageController extends Controller
             $codeCount = rand(2, 4);
             $generatedCodes = [];
             for ($i = 0; $i < $codeCount; $i++) {
-                $codeStr = 'XXL-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+                $codeStr = VaultCode::generateUniqueCode('XXL');
                 VaultCode::create([
                     'code' => $codeStr,
                     'reward_cash' => rand(5000, 15000),

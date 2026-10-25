@@ -1,25 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-4 sm:space-y-6">
 
-    <!-- Top Hero Banner (Clean TBS White Style) -->
-    <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+    <!-- Top Hero Banner (Mobile-First Style) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 mb-3">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800 mb-1.5">
                     <i class="fa-solid fa-briefcase"></i> Smokkelkoffers & Pakketten
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Koffers & Pakketjes</h1>
-                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Onderschep pakketjes in de wandelgangen of scoor smokkelkoffers vol wit bankgeld, maskers, sterren en geheime kluiscodes!
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Koffers & Pakketjes</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs mt-0.5 max-w-xl leading-relaxed">
+                    Onderschep pakketjes in de wandelgangen of kraak smokkelkoffers vol wit bankgeld, maskers, sterren en geheime kluiscodes!
                 </p>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <span class="px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800 flex items-center gap-1.5 shadow-xs">
+            <div class="grid grid-cols-2 sm:flex items-center gap-2 shrink-0">
+                <span class="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-[11px] sm:text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center justify-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-briefcase text-amber-600"></i> {{ $character->unopened_bags ?? 0 }} Koffers
                 </span>
-                <span class="px-3.5 py-2 rounded-xl bg-purple-50 border border-purple-200 text-xs font-bold text-purple-700 flex items-center gap-1.5 shadow-xs">
+                <span class="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[11px] sm:text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center justify-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-crown text-purple-600"></i> {{ $character->xxl_cases ?? 0 }} XXL Koffers
                 </span>
             </div>
@@ -27,10 +27,10 @@
     </div>
 
     <!-- MAIN TWO COLUMN SECTION -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
         <!-- Left Card: Koffers & XXL Koffers -->
-        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col justify-between space-y-5">
+        <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between space-y-4">
             <div>
                 <div class="flex items-center gap-2 text-base font-extrabold text-slate-900 mb-1">
                     <i class="fa-solid fa-briefcase text-purple-600"></i>

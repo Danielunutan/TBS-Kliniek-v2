@@ -127,6 +127,12 @@ class HustleController extends Controller
             return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet hosselen!');
         }
 
+        if ($character->isComatose()) {
+            $mins = ceil($character->getComaRemainingSeconds() / 60);
+
+            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
+        }
+
         if ($this->cooldownService->isOnCooldown($character, 'hustle')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'hustle');
             $mins = ceil($remaining / 60);
@@ -183,6 +189,14 @@ class HustleController extends Controller
                 $character->charisma = ($character->charisma ?? 10) + 1;
                 $statGainMsg = ' 😎 Gladde praatjes beloond: +1 Charisma!';
             }
+            // 15% chance to drop illegal bullets from a successful hustle
+            $bulletDrop = (rand(1, 100) <= 15) ? rand(5, 12) : 0;
+            $bulletTxt = '';
+            if ($bulletDrop > 0) {
+                $character->bullets = ($character->bullets ?? 0) + $bulletDrop;
+                $bulletTxt = " +{$bulletDrop} Kogels 🔫";
+            }
+
             $character->save();
 
             app(DailyBattleService::class)->record($character, 'hustles', 1);
@@ -190,7 +204,7 @@ class HustleController extends Controller
             HalloweenService::record($character, 'cash_earned', $cash);
 
             $dropMsg = RandomDropService::roll($character);
-            $successMsg = 'Hossel gelukt! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$statGainMsg}";
+            $successMsg = 'Hossel gelukt! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$bulletTxt}{$statGainMsg}";
             if ($dropMsg) {
                 $successMsg .= ' '.$dropMsg;
             }

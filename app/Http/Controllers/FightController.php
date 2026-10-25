@@ -94,6 +94,12 @@ class FightController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand beroven!');
         }
 
+        if ($attacker->isComatose()) {
+            $mins = ceil($attacker->getComaRemainingSeconds() / 60);
+
+            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
+        }
+
         // 1. 3-second cooldown check
         if ($this->cooldownService->isOnCooldown($attacker, 'fight_attack')) {
             $remaining = $this->cooldownService->getRemainingSeconds($attacker, 'fight_attack');
@@ -151,6 +157,10 @@ class FightController extends Controller
 
         if ($defender->isImprisoned()) {
             return back()->with('error', 'Deze patiënt zit veilig in de isoleercel en kan niet worden bestolen.');
+        }
+
+        if ($defender->isComatose()) {
+            return back()->with('error', "{$defender->name} ligt in Intensive Care Coma en kan niet worden bestolen.");
         }
 
         if ($defender->isProtected()) {

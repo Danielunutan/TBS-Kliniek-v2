@@ -346,9 +346,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/vechtoefening', [CombatTrainingController::class, 'index'])->name('combat_training.index');
     Route::post('/vechtoefening/trainen', [CombatTrainingController::class, 'train'])->name('combat_training.train');
 
-    // Hitman (Liquidatie)
+    // Hitman (Liquidatie & Kogels)
     Route::get('/liquidatie', [HitmanController::class, 'index'])->name('hitman.index');
     Route::post('/liquidatie/contract', [HitmanController::class, 'contract'])->name('hitman.contract');
+    Route::post('/liquidatie/schieten', [HitmanController::class, 'shoot'])->name('hitman.shoot');
 
     // Kopgeld & Opsporingsbord (Bounty Hunter)
     Route::get('/kopgeld', [BountyController::class, 'index'])->name('bounties.index');
