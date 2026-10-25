@@ -640,6 +640,9 @@
 </head>
 <body class="min-h-full flex flex-col lg:flex-row bg-[#f8fafc] text-slate-800 antialiased selection:bg-slate-900 selection:text-white dark:bg-[#0b0f19] dark:text-slate-100" @if($character) x-data="tbsStatsTracker()" @else x-data="{ mobileMenuOpen: false }" @endif>
 
+    <!-- Global Permanent Audio Element (Preserved across Turbo Drive SPA navigation) -->
+    <audio id="tbs-global-audio" data-turbo-permanent preload="none"></audio>
+
     @if($character)
     <!-- SIDEBAR NAVIGATION (Desktop & Tablet) - Clean Modern White Sidebar -->
     <aside class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
@@ -1300,14 +1303,11 @@
                             <span class="absolute -bottom-1 -right-1 text-[8px] leading-none select-none drop-shadow">{{ $mobileTopBorder['emoji'] }}</span>
                         @endif
                     </div>
-                    <span class="text-[11px] font-extrabold text-slate-800 dark:text-purple-200 max-w-[70px] truncate leading-none">{{ $character->name }}</span>
+                    <span class="hidden sm:inline text-[11px] font-extrabold text-slate-800 dark:text-purple-200 max-w-[70px] truncate leading-none">{{ $character->name }}</span>
                 </a>
 
-                @if(Auth::check() && Auth::user()->isStaff())
-                <a href="{{ route('admin.dashboard') }}" class="p-2 rounded-xl text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition border border-transparent dark:border-purple-800/40" title="Medewerkers Admin">
-                    <i class="fa-solid fa-shield-halved text-sm"></i>
-                </a>
-                @endif
+                <!-- Mobile Radio Player Pill -->
+                @include('partials.radio_player', ['isMobile' => true])
 
                 <!-- Mobile Dark Mode Animated Switch -->
                 <button type="button" onclick="window.tbsToggleTheme()" 
@@ -1424,7 +1424,7 @@
 
         <!-- TOP MODERN WHITE HEADER BAR (DESKTOP) - Styled after Reference Design in Site Colors -->
         <header class="hidden lg:block bg-white dark:bg-[#110726] border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-30 shadow-xs">
-            <div class="w-full px-4 sm:px-6 lg:px-8 xl:px-10 h-20 flex items-center justify-between gap-4">
+            <div class="w-full px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-10 h-20 flex items-center justify-between gap-2 xl:gap-4 min-w-0">
                 
                 <!-- 1. LEFT: Player Profile Summary (Avatar with ring, Name, LVL Badge, XP Bar & Handle) -->
                 <div class="flex items-center gap-3.5 shrink-0">
@@ -1473,10 +1473,10 @@
                 </div>
 
                 <!-- VERTICAL DIVIDER -->
-                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0 hidden xl:block"></div>
 
                 <!-- 2. CENTER-LEFT: Clean Energy & Health Dual Filled Pill Bars -->
-                <div class="flex flex-col justify-center gap-2 w-44 sm:w-48 shrink-0">
+                <div class="hidden xl:flex flex-col justify-center gap-1.5 w-36 2xl:w-44 shrink-0">
                     <!-- Energy (Clickable to Inventory) -->
                     <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
                        class="group cursor-pointer block"
@@ -1513,7 +1513,7 @@
                 </div>
 
                 <!-- VERTICAL DIVIDER -->
-                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0 hidden xl:block"></div>
 
                 <!-- 3. CENTER-RIGHT: Financial Overview (Wallet Icon, Total + Cash & Bank Subtitle) -->
                 <a href="{{ route('bank.index') }}" class="flex items-center gap-3 group cursor-pointer shrink-0 hover:opacity-90 transition select-none" title="Totaal Vermogen &bull; Klik voor De Bank">
@@ -1524,17 +1524,17 @@
                         <span class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none group-hover:text-indigo-600 dark:group-hover:text-purple-400 transition" x-text="stats.totalFormatted">
                             €{{ number_format($character->cash + $character->bank, 0, ',', '.') }}
                         </span>
-                        <span class="text-[10px] font-medium text-slate-400 dark:text-purple-300/70 mt-1 leading-none">
+                        <span class="hidden 2xl:inline text-[10px] font-medium text-slate-400 dark:text-purple-300/70 mt-1 leading-none">
                             <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span> contant &middot; <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span> bank
                         </span>
                     </div>
                 </a>
 
                 <!-- VERTICAL DIVIDER -->
-                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
+                <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0 hidden xl:block"></div>
 
                 <!-- 4. RIGHT: VIP, STARS & RESPECT -->
-                <div class="flex items-center gap-4 shrink-0">
+                <div class="flex items-center gap-3 xl:gap-4 shrink-0">
                     <!-- VIP -->
                     <a href="{{ route('vip.index') }}" class="flex flex-col items-center gap-1 group" title="VIP Punten">
                         <span class="text-[8px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-purple-800/40">
@@ -1558,7 +1558,7 @@
                     </a>
 
                     <!-- RESPECT -->
-                    <div class="flex flex-col items-center gap-1 cursor-default select-none" title="Respect: {{ $character->formatted_respect }} (Vandaag: +{{ $character->formatted_today_respect }})">
+                    <div class="hidden xl:flex flex-col items-center gap-1 cursor-default select-none" title="Respect: {{ $character->formatted_respect }} (Vandaag: +{{ $character->formatted_today_respect }})">
                         <span class="text-[8px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded shadow-2xs border border-transparent dark:border-indigo-800/40">
                             RESPECT
                         </span>
@@ -1586,23 +1586,10 @@
                 <!-- VERTICAL DIVIDER -->
                 <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0"></div>
 
-                <!-- 5. FAR RIGHT: Online status, Admin button & Profile Icon -->
-                <div class="flex items-center gap-2.5 shrink-0">
-                    <!-- Online Indicator -->
-                    <a href="{{ route('members.index', ['filter' => 'online']) }}" class="flex items-center gap-1.5 text-[10px] font-black text-emerald-800 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/50 border border-emerald-200/80 dark:border-emerald-800/50 px-2.5 py-1.5 rounded-xl shadow-2xs select-none transition cursor-pointer" title="Bekijk alle patiënten die nu online zijn">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span class="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-400" x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
-                    </a>
-
-                    @if(Auth::check() && Auth::user()->isStaff())
-                    <a href="{{ route('admin.dashboard') }}" class="px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 font-extrabold text-xs flex items-center gap-1.5 transition shadow-2xs" title="Medewerkers Admin Panel">
-                        <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
-                        <span class="hidden xl:inline">Admin</span>
-                    </a>
-                    @endif
-
+                <!-- 5. FAR RIGHT: Radio, Theme Switch & Profile Icon -->
+                <div class="flex items-center gap-2 xl:gap-2.5 shrink-0">
                     <!-- TBS RADIO TOPBAR WIDGET -->
-                    @include('partials.radio_player')
+                    @include('partials.radio_player', ['isMobile' => false])
 
                     <!-- Sleek Animated Dark/Light Switch Slider -->
                     <button type="button" onclick="window.tbsToggleTheme()" 
