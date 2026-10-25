@@ -2146,7 +2146,7 @@
             <!-- 3. CENTER GLOWING QUICK-ACTION FAB -->
             <div class="flex-1 flex flex-col items-center justify-center -mt-5">
                 <button type="button" 
-                        @click="mobileQuickSheetOpen = !mobileQuickSheetOpen"
+                        @click="mobileQuickSheetOpen = !mobileQuickSheetOpen; if(window.tbsVibrate) window.tbsVibrate(15);"
                         class="relative w-13 h-13 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-3 border-white dark:border-[#110726] group"
                         aria-label="Snelmenu Acties">
                     <span class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping"></span>
@@ -2156,13 +2156,13 @@
             </div>
 
             <!-- 4. Bendes -->
-            <a href="{{ route('gangs.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
+            <a href="{{ route('gangs.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
                 <i class="fa-solid fa-users text-base"></i>
                 <span>Bendes</span>
             </a>
 
             <!-- 5. Chat / Berichten -->
-            <a href="{{ route('chat.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('chat.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition relative">
+            <a href="{{ route('chat.index') }}" @click="if(window.tbsVibrate) window.tbsVibrate(10);" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('chat.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition relative">
                 <div class="relative">
                     <i class="fa-solid fa-comments text-base"></i>
                     @if(isset($unreadChatCount) && $unreadChatCount > 0)
@@ -2202,8 +2202,14 @@
                  class="relative bg-white dark:bg-[#0f172a] rounded-t-3xl shadow-2xl border-t border-purple-500/30 max-h-[85vh] overflow-y-auto p-4 z-10 flex flex-col gap-4 text-slate-800 dark:text-slate-100"
                  style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
                 
-                <!-- Pull Bar Handle -->
-                <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-purple-900/80 mx-auto shrink-0 cursor-pointer" @click="mobileQuickSheetOpen = false"></div>
+                <!-- Pull Bar Handle (Tap or Swipe Down to Dismiss) -->
+                <div class="py-2 -my-2 flex justify-center cursor-pointer select-none touch-none"
+                     x-data="{ touchStartY: 0 }"
+                     @touchstart="touchStartY = $event.touches[0].clientY"
+                     @touchmove="if ($event.touches[0].clientY - touchStartY > 40) { mobileQuickSheetOpen = false; if(window.tbsVibrate) window.tbsVibrate(15); }"
+                     @click="mobileQuickSheetOpen = false">
+                    <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-purple-900/80 shrink-0"></div>
+                </div>
 
                 <!-- Header / Player Summary -->
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-purple-900/40 pb-3">

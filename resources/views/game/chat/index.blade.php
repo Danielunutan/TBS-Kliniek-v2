@@ -12,9 +12,9 @@
     }
     @media (max-width: 768px) {
         .tbs-chat-wrapper {
-            height: calc(100dvh - 175px);
-            max-height: none;
-            min-height: 460px;
+            height: calc(100dvh - 225px) !important;
+            max-height: calc(100dvh - 200px) !important;
+            min-height: 380px !important;
         }
     }
 </style>
@@ -44,7 +44,7 @@ function tbsLiveMessenger(config) {
         authCharId: config.authCharId,
         authCharName: config.authCharName,
         activeTab: config.initialTab || 'global',
-        mobileView: (config.initialRecipient > 0 || config.initialTab === 'direct') ? 'chat' : 'list',
+        mobileView: (config.initialTab === 'direct' && !config.initialRecipient) ? 'list' : 'chat',
         searchQuery: '',
 
         // Gang configuration
@@ -296,7 +296,7 @@ function tbsLiveMessenger(config) {
 
         switchTab(tab) {
             this.activeTab = tab;
-            this.mobileView = 'chat';
+            this.mobileView = (tab === 'direct' && !this.activePartnerId) ? 'list' : 'chat';
             this.replyingTo = null;
             if (tab === 'global') {
                 this.loadPublicMessages();
@@ -684,56 +684,56 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
 <div class="space-y-4" x-data="tbsLiveMessenger(window.tbsChatConfig)" x-init="initMessenger()">
 
-    <!-- HEADER BAR -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-            <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-2xl bg-purple-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+    <!-- HEADER BAR (Mobile-Optimized Compact & Desktop Rich) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-2.5 sm:p-5 shadow-xs relative overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 relative z-10">
+            <div class="flex items-center gap-2.5 sm:gap-3.5">
+                <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-600 text-white flex items-center justify-center text-base sm:text-xl shadow-md shrink-0">
                     <i class="fa-solid fa-comments"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-lg font-black text-slate-900 dark:text-white tracking-tight">Kliniek Live Chat & DMs</h1>
-                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                        <h1 class="text-sm sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">Kliniek Live Chat & DMs</h1>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold text-[9px] sm:text-[10px] uppercase tracking-wider flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
                         </span>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p class="hidden sm:block text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         Praat realtime met alle inmates in de kliniek, stem af met je bende via de portofoon en chat 1-op-1 via privéberichten.
                     </p>
                 </div>
             </div>
 
-            <!-- TAB SWITCHER -->
-            <div class="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl shrink-0">
+            <!-- TAB SWITCHER (Full-Width Touch Pills on Mobile) -->
+            <div class="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl shrink-0 w-full sm:w-auto">
                 <!-- KLINIEK PLEIN TAB -->
                 <button type="button" 
                         @click="switchTab('global')" 
                         :class="activeTab === 'global' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="px-3.5 py-2 rounded-lg text-xs transition cursor-pointer flex items-center gap-2">
-                    <i class="fa-solid fa-bullhorn text-xs"></i>
-                    <span>Kliniek Plein</span>
+                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-bullhorn text-[11px]"></i>
+                    <span>Plein</span>
                 </button>
 
                 <!-- BENDE CHAT TAB -->
                 <button type="button" 
                         @click="switchTab('gang')" 
                         :class="activeTab === 'gang' ? 'bg-white dark:bg-slate-900 text-amber-500 dark:text-amber-400 font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="px-3.5 py-2 rounded-lg text-xs transition cursor-pointer flex items-center gap-2 relative">
-                    <i class="fa-solid fa-walkie-talkie text-xs"></i>
-                    <span>Bende Chat</span>
+                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative">
+                    <i class="fa-solid fa-walkie-talkie text-[11px]"></i>
+                    <span>Bende</span>
                     @if($hasGang)
                         @if($gangHasChat)
-                            <span class="px-1.5 py-0.2 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-mono text-[9px] font-black">
+                            <span class="px-1 py-0.2 rounded-full bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-mono text-[8px] font-black hidden xs:inline">
                                 [{{ $gangTag }}]
                             </span>
                         @else
-                            <span class="text-amber-500 text-[10px]" title="Portofoon niet geactiveerd (500 ⭐)">
+                            <span class="text-amber-500 text-[9px]" title="Portofoon niet geactiveerd (500 ⭐)">
                                 <i class="fa-solid fa-lock"></i>
                             </span>
                         @endif
                     @else
-                        <span class="text-slate-400 text-[10px]" title="Geen bende">
+                        <span class="text-slate-400 text-[9px]" title="Geen bende">
                             <i class="fa-solid fa-lock"></i>
                         </span>
                     @endif
@@ -743,12 +743,12 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 <button type="button" 
                         @click="switchTab('direct')" 
                         :class="activeTab === 'direct' ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 font-bold hover:text-slate-900 dark:hover:text-white'"
-                        class="px-3.5 py-2 rounded-lg text-xs transition cursor-pointer flex items-center gap-2 relative">
-                    <i class="fa-solid fa-user-lock text-xs"></i>
-                    <span>Privé Chats</span>
+                        class="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs transition cursor-pointer flex items-center justify-center gap-1.5 relative">
+                    <i class="fa-solid fa-user-lock text-[11px]"></i>
+                    <span>Privé</span>
                     <span x-show="totalUnread > 0" 
                           x-text="totalUnread" 
-                          class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[10px] font-black animate-pulse">
+                          class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black animate-pulse">
                         {{ $totalUnreadDms }}
                     </span>
                 </button>
@@ -757,8 +757,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
     </div>
 
     <!-- MAIN MESSENGER CARD (CONSTRAINED HEIGHT & INTERNALLY SCROLLABLE) -->
-    <div class="tbs-chat-wrapper bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/40 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row relative"
-         style="height: 740px; max-height: calc(100vh - 210px); min-height: 520px;">
+    <div class="tbs-chat-wrapper bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/40 rounded-3xl shadow-lg overflow-hidden flex flex-col md:flex-row relative">
         
         <!-- ========================================== -->
         <!-- LEFT COLUMN: CHANNELS & CONVERSATIONS LIST -->
@@ -1042,11 +1041,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
             <!-- CHAT TOP BAR -->
             <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-purple-900/40 flex items-center justify-between bg-white dark:bg-[#12072b] shrink-0">
                 <div class="flex items-center gap-3 min-w-0">
-                    <!-- Mobile Back Button -->
+                    <!-- Mobile Back Button (Direct Chats) -->
                     <button type="button" 
-                            @click="mobileView = 'list'"
-                            class="md:hidden w-8 h-8 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-purple-300 flex items-center justify-center text-xs cursor-pointer">
-                        <i class="fa-solid fa-chevron-left"></i>
+                            x-show="activeTab === 'direct'"
+                            @click="mobileView = 'list'; if(window.tbsVibrate) window.tbsVibrate(10);"
+                            class="md:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-purple-950/70 text-slate-700 dark:text-purple-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer shrink-0 border border-slate-200/60 dark:border-purple-800/40 shadow-2xs">
+                        <i class="fa-solid fa-chevron-left text-[11px]"></i>
+                        <span class="text-[11px]">Gesprekken</span>
                     </button>
 
                     <!-- GLOBAL HEADER -->
@@ -1670,18 +1671,22 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                             </div>
                         </div>
 
-                        <!-- TEXT INPUT FIELD -->
+                        <!-- TEXT INPUT FIELD (text-base on mobile prevents iOS auto-zoom, text-xs on desktop) -->
                         <div class="relative flex-1 flex items-center min-w-0">
                             <input type="text" 
                                    x-model="messageInput"
                                    x-ref="messageInputField"
                                    @input="onMessageInput($event)"
                                    @keydown="onMessageKeydown($event)"
+                                   inputmode="text"
+                                   enterkeyhint="send"
+                                   autocomplete="off"
+                                   autocorrect="on"
                                    :placeholder="activeTab === 'direct' ? 'Stuur een privébericht of @speler... (max 500 tekens)' : (activeTab === 'gang' ? 'Typ een bericht voor je bende... (max 250 tekens)' : 'Typ een bericht of @speler... (max 250 tekens)')"
                                    :maxlength="activeTab === 'direct' ? 500 : 250"
-                                   class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-[#0f0524] rounded-xl px-4 py-2.5 sm:py-3 pr-16 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
+                                   class="w-full bg-slate-100 dark:bg-slate-900 border border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-[#0f0524] rounded-xl px-3.5 sm:px-4 py-2 sm:py-3 pr-14 sm:pr-16 text-base sm:text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition">
                             <span x-show="messageInput.length > (activeTab === 'direct' ? 350 : 150)" x-cloak
-                                  class="absolute right-3 text-[11px] font-mono pointer-events-none"
+                                  class="absolute right-3 text-[10px] sm:text-[11px] font-mono pointer-events-none"
                                   :class="messageInput.length >= (activeTab === 'direct' ? 500 : 250) ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
                                   x-text="messageInput.length + '/' + (activeTab === 'direct' ? 500 : 250)"></span>
                         </div>
@@ -1689,7 +1694,8 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                         <!-- SEND BUTTON -->
                         <button type="submit" 
                                 :disabled="isSending || messageInput.trim() === ''"
-                                class="px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
+                                @click="if(window.tbsVibrate) window.tbsVibrate(15);"
+                                class="px-3.5 sm:px-5 py-2 sm:py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-2 cursor-pointer shrink-0">
                             <i class="fa-solid fa-paper-plane" :class="isSending ? 'animate-pulse' : ''"></i>
                             <span class="hidden sm:inline">Verstuur</span>
                         </button>

@@ -35,6 +35,17 @@ if (!window.AlpineInitialized) {
     window.AlpineInitialized = true;
 }
 
+// Native Haptic Vibration helper for mobile touch feedback
+window.tbsVibrate = function(pattern = 15) {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try {
+            navigator.vibrate(pattern);
+        } catch (e) {
+            // Silently ignore if unsupported or permission not granted
+        }
+    }
+};
+
 // Global In-App Form Action Interceptor (Zero Reloads, Debounced, No Duplicate Submits)
 if (!window.tbsFormInterceptorInitialized) {
     window.tbsFormInterceptorInitialized = true;
@@ -84,6 +95,7 @@ if (!window.tbsFormInterceptorInitialized) {
 
         e.preventDefault();
         e.stopImmediatePropagation();
+        window.tbsVibrate(15);
 
         const savedScrollY = window.scrollY;
         const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
@@ -133,9 +145,14 @@ if (!window.tbsFormInterceptorInitialized) {
                     window.tbsApplyStats(data.character);
                 }
 
-                // Display in-app toast notification
+                // Display in-app toast notification with haptic feedback
                 if (data.flash && data.flash.message && window.tbsToast) {
                     window.tbsToast(data.flash.message, data.flash.type || 'success');
+                    if (data.flash.type === 'error') {
+                        window.tbsVibrate([30, 40, 30]);
+                    } else {
+                        window.tbsVibrate(25);
+                    }
                 }
 
                 // Background refresh the main container to show updated counts/states without reload
