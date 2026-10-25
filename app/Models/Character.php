@@ -1194,13 +1194,19 @@ class Character extends Model
     /**
      * Get cached top rankings by respect.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Character>
+     * @return \Illuminate\Database\Eloquent\Collection<int, Character>|\Illuminate\Support\Collection<int, Character>
      */
-    public static function getTopRankings(int $limit = 10): \Illuminate\Database\Eloquent\Collection
+    public static function getTopRankings(int $limit = 10)
     {
-        return Cache::remember('tbs_top_rankings_'.$limit, 60, function () use ($limit) {
-            return static::orderByDesc('respect')->take($limit)->get();
-        });
+        $cached = Cache::get('tbs_top_rankings_'.$limit);
+        if ($cached instanceof \Illuminate\Database\Eloquent\Collection || $cached instanceof \Illuminate\Support\Collection) {
+            return $cached;
+        }
+
+        $rankings = static::orderByDesc('respect')->take($limit)->get();
+        Cache::put('tbs_top_rankings_'.$limit, $rankings, 60);
+
+        return $rankings;
     }
 
     /**
