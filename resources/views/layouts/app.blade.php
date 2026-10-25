@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TBS Kliniek">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0b0f19" media="(prefers-color-scheme: dark)">
@@ -104,11 +104,6 @@
 
     <!-- PWA & MOBILE NATIVE APP CAPABILITIES -->
     <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
-    <meta name="theme-color" content="#6d28d9">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="TBS Kliniek">
     <link rel="apple-touch-icon" href="{{ asset('assets/icons/icon-192x192.png') }}">
     <script>
         if ('serviceWorker' in navigator) {
@@ -2964,7 +2959,7 @@
          x-init="
              window.tbsToast = (msg, type, duration) => addToast(msg, type, duration);
          "
-         class="fixed top-5 left-1/2 -translate-x-1/2 lg:left-[calc(50%+8rem)] z-[9999999] flex flex-col items-center gap-3 pointer-events-none max-w-lg w-[92%] sm:w-auto">
+         class="tbs-toast-container fixed left-1/2 -translate-x-1/2 lg:left-[calc(50%+8rem)] z-[9999999] flex flex-col items-center gap-2.5 pointer-events-none max-w-lg w-[94%] sm:w-auto">
         <template x-for="toast in toasts" :key="toast.id">
             <div x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
@@ -2972,7 +2967,7 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                  x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
-                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl backdrop-blur-md min-w-[320px] sm:min-w-[380px] max-w-md w-full bg-white/95 dark:bg-[#120a2e]/95 text-slate-900 dark:text-white transition-all select-none border-slate-200/90 dark:border-purple-800/80">
+                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl min-w-[300px] sm:min-w-[380px] max-w-md w-full bg-white dark:bg-[#120a2e] text-slate-900 dark:text-white transition-all select-none border-slate-200 dark:border-purple-800">
                 
                 <div class="flex items-center gap-3 p-3.5 sm:p-4">
                     <!-- Icon Badge -->
@@ -3101,7 +3096,8 @@
 
     <!-- Native Touch Pull-To-Refresh for WebApp / PWA -->
     <div id="tbs-pull-refresh-indicator" 
-         class="fixed top-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-200 opacity-0 -translate-y-6 flex items-center gap-2 bg-slate-900/95 dark:bg-purple-950/95 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-purple-500/40">
+         class="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-200 opacity-0 -translate-y-6 flex items-center gap-2 bg-slate-900/95 dark:bg-purple-950/95 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-purple-500/40"
+         style="top: calc(env(safe-area-inset-top, 0px) + 0.65rem);">
         <i class="fa-solid fa-rotate-right text-xs"></i>
         <span id="tbs-pull-refresh-text">Trek omlaag om te vernieuwen</span>
     </div>

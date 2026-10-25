@@ -536,6 +536,16 @@ html, body, button, a, input, select, textarea {
     bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Safe toast container positioning: clear of iPhone notch, dynamic island, and mobile HUD header */
+.tbs-toast-container {
+    top: calc(env(safe-area-inset-top, 0px) + 3.85rem);
+}
+@media (min-width: 640px) {
+    .tbs-toast-container {
+        top: 1.25rem;
+    }
+}
+
 /* Native feel for touch interactions */
 @media (hover: none) and (pointer: coarse) {
     button, a, [role="button"] {
