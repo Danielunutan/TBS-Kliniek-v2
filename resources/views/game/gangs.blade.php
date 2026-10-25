@@ -86,7 +86,7 @@
                         @if(($onlineMembersCount ?? 0) > 0)
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span>{{ $onlineMembersCount }} online</span>
+                                <span>{{ $onlineMembersCount ?? 0 }} online</span>
                             </span>
                         @endif
                     </div>
@@ -522,7 +522,7 @@
 
                                     <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        <span>{{ $onlineMembersCount }} online</span>
+                                        <span>{{ $onlineMembersCount ?? 0 }} online</span>
                                     </span>
 
                                     @if((bool)($myGang->is_open ?? true))
