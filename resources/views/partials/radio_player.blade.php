@@ -1,12 +1,13 @@
 <div id="tbs-global-radio-container" 
+     data-turbo-permanent
      x-data="tbsRadioPlayer()" 
      x-init="initPlayer()"
      x-cloak
      class="relative select-none font-sans"
      @tbs-play-station.window="changeStation($event.detail.id, true)">
 
-    <!-- Hidden Audio Element -->
-    <audio id="tbs-global-audio" preload="none"></audio>
+    <!-- Hidden Audio Element (Permanent across Turbo navigation) -->
+    <audio id="tbs-global-audio" data-turbo-permanent preload="none"></audio>
 
     <!-- Topbar Radio Pill -->
     <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/50 shadow-2xs transition">
@@ -192,6 +193,14 @@ function tbsRadioPlayer() {
 
             const audio = document.getElementById('tbs-global-audio');
             if (audio) {
+                // If audio is ALREADY playing (preserved across Turbo page transition), do NOT restart or re-assign stream!
+                if (audio.src && !audio.paused) {
+                    this.isPlaying = true;
+                    this.isLoading = false;
+                    window.tbsRadio = this;
+                    return;
+                }
+
                 audio.volume = this.volume;
                 audio.src = this.currentStation.stream;
 
