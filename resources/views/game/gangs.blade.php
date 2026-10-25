@@ -16,6 +16,9 @@
         if (!'{{ session('active_gang_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_active_gang_tab')) {
             this.activeGangTab = sessionStorage.getItem('tbs_active_gang_tab');
         }
+        if (!'{{ session('beheer_tab') }}' && !'{{ request('beheer_tab') }}' && sessionStorage.getItem('tbs_gang_beheer_tab')) {
+            this.beheerTab = sessionStorage.getItem('tbs_gang_beheer_tab');
+        }
         if (this.attackCooldown > 0) {
             const timer = setInterval(() => {
                 if (this.attackCooldown > 0) this.attackCooldown--;
@@ -29,6 +32,7 @@
     },
     setBeheerTab(tab) {
         this.beheerTab = tab;
+        sessionStorage.setItem('tbs_gang_beheer_tab', tab);
     }
 }">
 
@@ -2082,6 +2086,7 @@
                                 <form action="{{ route('gangs.handle-request', $req) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="action" value="accept">
+                                    <input type="hidden" name="decision" value="accept">
                                     <button type="submit" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
                                         <i class="fa-solid fa-check"></i> Accepteren
                                     </button>
@@ -2089,6 +2094,7 @@
                                 <form action="{{ route('gangs.handle-request', $req) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="decision" value="reject">
                                     <button type="submit" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl font-bold text-xs transition cursor-pointer flex items-center gap-1.5">
                                         <i class="fa-solid fa-xmark"></i> Weigeren
                                     </button>

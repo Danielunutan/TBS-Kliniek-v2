@@ -421,15 +421,43 @@ class GangController extends Controller
         $character = $user->character;
 
         $gang = $character->gang;
-        if (! $gang || ! $gang->isOfficer($character) || $requestRecord->gang_id !== $gang->id) {
+        if (! $gang || ! $gang->isOfficer($character) || (int) $requestRecord->gang_id !== (int) $gang->id) {
             return back()->with('error', 'Geen bevoegdheid.');
         }
 
-        $action = $request->input('action'); // 'accept' or 'reject'
+        $action = $request->input('action') ?? $request->input('decision'); // 'accept' or 'reject'
 
         if ($action === 'accept') {
+            $maxMembers = (int) ($gang->max_members ?? 10);
+            if ($gang->members()->count() >= $maxMembers) {
+                return back()
+                    ->with('active_gang_tab', 'beheer')
+                    ->with('beheer_tab', 'verzoeken')
+                    ->with('error', "De bende zit vol! De maximale capaciteit is {$maxMembers} leden.");
+            }
+
             $candidate = $requestRecord->character;
-            if ($candidate && ! $candidate->gang_id) {
+            if (! $candidate) {
+                $requestRecord->status = 'rejected';
+                $requestRecord->save();
+
+                return back()
+                    ->with('active_gang_tab', 'beheer')
+                    ->with('beheer_tab', 'verzoeken')
+                    ->with('error', 'Kandidaat niet gevonden.');
+            }
+
+            if ($candidate->gang_id) {
+                $requestRecord->status = 'rejected';
+                $requestRecord->save();
+
+                return back()
+                    ->with('active_gang_tab', 'beheer')
+                    ->with('beheer_tab', 'verzoeken')
+                    ->with('error', "{$candidate->name} is inmiddels al lid van een andere bende.");
+            }
+
+            DB::transaction(function () use ($candidate, $gang, $requestRecord, $character) {
                 $candidate->gang_id = $gang->id;
                 $candidate->gang_role = 'member';
                 $candidate->last_gang_wage_at = now();
@@ -451,18 +479,16 @@ class GangController extends Controller
                     'title' => 'Toegelaten tot bende!',
                     'message' => "Gefeliciteerd! Je aanvraag voor '{$gang->name}' is geaccepteerd. Je bent nu lid!",
                 ]);
-            }
 
-            $requestRecord->status = 'accepted';
-            $requestRecord->save();
+                $requestRecord->status = 'accepted';
+                $requestRecord->save();
 
-            // Cancel any other pending requests for this character
-            if ($candidate) {
+                // Cancel any other pending requests for this character
                 GangRequest::where('character_id', $candidate->id)
                     ->where('id', '!=', $requestRecord->id)
                     ->where('status', 'pending')
                     ->update(['status' => 'rejected']);
-            }
+            });
 
             return back()
                 ->with('active_gang_tab', 'beheer')

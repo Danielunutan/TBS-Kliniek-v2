@@ -101,7 +101,9 @@ if (!window.tbsFormInterceptorInitialized) {
                 formData.append(e.submitter.name, e.submitter.value);
             }
 
-            const response = await fetch(form.action, {
+            const formTargetUrl = actionAttr || (typeof form.action === 'string' ? form.action : window.location.href);
+
+            const response = await fetch(formTargetUrl, {
                 method: 'POST',
                 body: formData,
                 headers: {

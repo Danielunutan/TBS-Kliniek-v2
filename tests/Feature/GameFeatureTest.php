@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Character;
 use App\Models\Friend;
 use App\Models\GameMessage;
+use App\Models\Gang;
+use App\Models\GangRequest;
 use App\Models\Mission;
 use App\Models\User;
 use App\Models\VaultCode;
@@ -347,5 +349,65 @@ class GameFeatureTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Patiënten Ranglijst');
         $response->assertSee($user->character->name);
+    }
+
+    public function test_gang_leader_can_accept_membership_request(): void
+    {
+        $leader = User::where('email', 'demo@tbskliniek.nl')->first();
+        $leaderChar = $leader->character;
+
+        $gang = Gang::create([
+            'name' => 'Test Syndicate',
+            'tag' => 'TSYND',
+            'leader_character_id' => $leaderChar->id,
+            'treasury' => 1000,
+            'specialty' => 'combat',
+            'emblem' => 'fa-skull',
+        ]);
+
+        $leaderChar->gang_id = $gang->id;
+        $leaderChar->gang_role = 'leader';
+        $leaderChar->save();
+
+        $candidateUser = User::create([
+            'name' => 'Candidate',
+            'email' => 'candidate@tbskliniek.nl',
+            'password' => bcrypt('password'),
+        ]);
+        $candidateChar = Character::create([
+            'user_id' => $candidateUser->id,
+            'name' => 'KandidaatSpeler',
+            'title' => 'Patiënt',
+            'gender' => 'male',
+            'level' => 1,
+            'cash' => 500,
+            'bank' => 0,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'strength' => 10,
+            'defense' => 10,
+            'speed' => 10,
+            'respect' => 50,
+        ]);
+
+        $req = GangRequest::create([
+            'gang_id' => $gang->id,
+            'character_id' => $candidateChar->id,
+            'status' => 'pending',
+            'message' => 'Ik wil graag bij jullie bende!',
+        ]);
+
+        $this->actingAs($leader);
+
+        $response = $this->post(route('gangs.handle-request', $req), [
+            'action' => 'accept',
+        ]);
+
+        $response->assertSessionHas('success');
+        $this->assertEquals('accepted', $req->fresh()->status);
+        $this->assertEquals($gang->id, $candidateChar->fresh()->gang_id);
+        $this->assertEquals('member', $candidateChar->fresh()->gang_role);
     }
 }
