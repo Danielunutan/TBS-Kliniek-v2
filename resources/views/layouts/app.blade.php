@@ -2575,8 +2575,23 @@
                 let btn = (el && el.dataset && el.dataset.confirmBtn) || 'Ja, doorgaan';
                 let title = (el && el.dataset && el.dataset.confirmTitle) || 'Bevestiging Vereist';
 
+                // If explicit title or btn is set on element, prefer it
+                if (el?.dataset?.confirmTitle) {
+                    return { type, icon, btn, title };
+                }
+
                 const lower = (msg || '').toLowerCase();
-                if (lower.includes('heist') || lower.includes('onderschepping') || lower.includes('overval')) {
+                if (lower.includes('kopen') || lower.includes('aanschaffen') || lower.includes('investeren') || lower.includes('aankoop')) {
+                    type = el?.dataset?.confirmType || 'success';
+                    icon = el?.dataset?.confirmIcon || 'fa-building-circle-check';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Kopen';
+                    title = el?.dataset?.confirmTitle || (lower.includes('pand') || lower.includes('hangar') || lower.includes('complex') ? 'Bendepand Kopen' : 'Aankoop Bevestigen');
+                } else if (lower.includes('aannemen') || lower.includes('inhuren') || lower.includes('recruteren')) {
+                    type = el?.dataset?.confirmType || 'success';
+                    icon = el?.dataset?.confirmIcon || 'fa-user-plus';
+                    btn = el?.dataset?.confirmBtn || 'Ja, Aannemen';
+                    title = el?.dataset?.confirmTitle || 'Specialist Aannemen';
+                } else if (lower.includes('heist') || lower.includes('onderschepping') || lower.includes('overval')) {
                     type = el?.dataset?.confirmType || 'attack';
                     icon = el?.dataset?.confirmIcon || 'fa-bomb';
                     btn = el?.dataset?.confirmBtn || 'Ja, Start Heist!';
@@ -2601,7 +2616,7 @@
                     icon = el?.dataset?.confirmIcon || 'fa-lock';
                     btn = el?.dataset?.confirmBtn || 'Ja, Sluiten';
                     title = el?.dataset?.confirmTitle || 'Ticket Sluiten';
-                } else if (lower.includes('verlaten')) {
+                } else if (lower.includes('bende verlaten') || lower.includes('gang verlaten') || (lower.includes('verlaten') && !lower.includes('kopen') && !lower.includes('aanschaffen') && !lower.includes('hangar') && !lower.includes('pand'))) {
                     type = el?.dataset?.confirmType || 'warning';
                     icon = el?.dataset?.confirmIcon || 'fa-right-from-bracket';
                     btn = el?.dataset?.confirmBtn || 'Ja, Bende Verlaten';

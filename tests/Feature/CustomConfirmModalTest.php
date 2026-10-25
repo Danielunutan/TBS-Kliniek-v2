@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\CharacterVehicle;
+use App\Models\Gang;
 use App\Models\User;
 use App\Models\Vehicle;
 use Database\Seeders\VehicleAndHeistSeeder;
@@ -73,5 +74,40 @@ class CustomConfirmModalTest extends TestCase
         $response->assertSee('window.tbsConfirm', false);
         $response->assertSee('window.tbsAlert', false);
         $response->assertSee('GLOBAL TBS CONFIRMATION & ALERT MODAL', false);
+    }
+
+    public function test_gang_panden_page_has_bendepand_kopen_confirm_attributes(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'OfficerBoss',
+            'level' => 10,
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'cash' => 50000,
+            'bank' => 100000,
+            'is_onboarded' => true,
+        ]);
+
+        $gang = Gang::create([
+            'name' => 'TestGangConfirm',
+            'tag' => 'TGC',
+            'specialty' => 'smuggle',
+            'treasury' => 50000000,
+            'leader_character_id' => $character->id,
+        ]);
+
+        $character->update(['gang_id' => $gang->id]);
+
+        $response = $this->actingAs($user)->get(route('gangs.panden'));
+        $response->assertStatus(200);
+
+        // Verify panden buy button has Bendepand Kopen attributes
+        $response->assertSee('data-confirm-title="Bendepand Kopen"', false);
+        $response->assertSee('data-confirm-btn="Ja, Pand Kopen"', false);
+        $response->assertSee('Bendepand Kopen', false);
     }
 }

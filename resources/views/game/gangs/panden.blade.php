@@ -235,6 +235,11 @@
                                 <input type="hidden" name="dynamic_price" value="{{ $dynPrice }}">
                                 <button type="submit" 
                                         @if(!$canAffordRot) disabled @endif
+                                        data-confirm="Koop {{ $p['name'] }} voor €{{ number_format($dynPrice, 0, ',', '.') }} uit de bendekas?"
+                                        data-confirm-title="Bendepand Kopen"
+                                        data-confirm-btn="Ja, Pand Kopen"
+                                        data-confirm-type="success"
+                                        data-confirm-icon="fa-building-circle-check"
                                         onclick="return confirm('Koop {{ $p['name'] }} voor €{{ number_format($dynPrice, 0, ',', '.') }} uit de bendekas?')"
                                         class="px-3 py-1.5 rounded-xl {{ $canAffordRot ? 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' }} text-[11px] font-black transition">
                                     Kopen
@@ -424,6 +429,11 @@
                         @csrf
                         <button type="submit"
                                 @if(! $canAfford) disabled @endif
+                                data-confirm="Weet je zeker dat je {{ $prop['name'] }} wilt kopen voor €{{ number_format($prop['price'], 0, ',', '.') }} uit de bendekas?"
+                                data-confirm-title="Bendepand Kopen"
+                                data-confirm-btn="Ja, Pand Kopen"
+                                data-confirm-type="success"
+                                data-confirm-icon="fa-building-circle-check"
                                 onclick="return confirm('Weet je zeker dat je {{ $prop['name'] }} wilt kopen voor €{{ number_format($prop['price'], 0, ',', '.') }} uit de bendekas?')"
                                 class="w-full py-3 px-4 rounded-2xl {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
                             <i class="fa-solid fa-building-circle-check"></i>
@@ -549,6 +559,11 @@
                             @csrf
                             <button type="submit"
                                     @if(! $hasFreeSlot || ! $canAffordNpc) disabled @endif
+                                    data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
+                                    data-confirm-title="NPC Specialist Aannemen"
+                                    data-confirm-btn="Ja, Aannemen"
+                                    data-confirm-type="success"
+                                    data-confirm-icon="fa-user-plus"
                                     onclick="return confirm('Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?')"
                                     class="w-full py-3 px-4 rounded-2xl {{ $hasFreeSlot && $canAffordNpc ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
