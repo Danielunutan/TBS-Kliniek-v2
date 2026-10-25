@@ -1690,16 +1690,6 @@
 
                 <!-- 5. FAR RIGHT: Search, Radio, Theme Switch & Profile Icon -->
                 <div class="flex items-center gap-2 xl:gap-2.5 shrink-0">
-                    <!-- Quick Spotlight Search Button -->
-                    <button type="button" 
-                            onclick="if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
-                            class="hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-50/70 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-500 hover:text-purple-700 dark:text-purple-300 dark:hover:text-white border border-slate-200/70 dark:border-purple-900/40 text-xs font-semibold transition cursor-pointer shadow-2xs group"
-                            title="Zoek functie of pagina (Ctrl+K)">
-                        <i class="fa-solid fa-magnifying-glass text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform"></i>
-                        <span class="hidden xl:inline text-[11px] text-slate-600 dark:text-slate-300">Zoeken...</span>
-                        <kbd class="hidden xl:inline-flex items-center px-1.5 py-0.5 text-[9px] font-black uppercase text-slate-400 dark:text-purple-400/80 bg-white dark:bg-purple-900/50 rounded border border-slate-200 dark:border-purple-800 shadow-2xs">Ctrl+K</kbd>
-                    </button>
-
                     <!-- TBS RADIO TOPBAR WIDGET -->
                     @include('partials.radio_player', ['isMobile' => false])
 
