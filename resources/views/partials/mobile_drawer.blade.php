@@ -72,13 +72,13 @@
             <!-- ⚡ WEBAPP NAVIGATIE ACTIEBALK (Terug & Vernieuwen) -->
             <div class="grid grid-cols-2 gap-2">
                 <button type="button" 
-                        onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
+                        onclick="window.tbsGoBack()" 
                         class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 font-extrabold text-xs transition cursor-pointer border border-slate-200/80 dark:border-purple-800/40 active:scale-95 shadow-2xs">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span>Pagina Terug</span>
                 </button>
                 <button type="button" 
-                        onclick="const icon = this.querySelector('i'); if(icon) icon.classList.add('fa-spin'); window.location.reload();" 
+                        onclick="window.tbsReloadPage(this)" 
                         class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 font-extrabold text-xs transition cursor-pointer border border-slate-200/80 dark:border-purple-800/40 active:scale-95 shadow-2xs">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>Vernieuwen</span>

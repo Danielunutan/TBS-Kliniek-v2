@@ -280,6 +280,22 @@ input::-webkit-calendar-picker-indicator {
     box-shadow: 0 0 8px rgba(79, 70, 229, 0.6);
 }
 
+/* App-like smooth page transitions for Turbo */
+main#tbs-main-container {
+    animation: tbsPageIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tbsPageIn {
+    from {
+        opacity: 0.88;
+        transform: translateY(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* ======================================================== */
 /* UNIVERSAL SLEEK SCROLLBARS FOR TBS KLINIEK               */
 /* ======================================================== */

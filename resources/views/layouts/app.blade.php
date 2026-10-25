@@ -633,6 +633,32 @@
                 }
             };
         }
+
+        window.tbsGoBack = function() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                window.Turbo.visit('{{ route('dashboard') }}');
+            } else {
+                window.location.href = '{{ route('dashboard') }}';
+            }
+        };
+
+        window.tbsReloadPage = function(btn) {
+            if (btn) {
+                const icon = (btn instanceof HTMLElement) ? btn.querySelector('i') : null;
+                if (icon) icon.classList.add('fa-spin');
+            }
+            if (typeof window.tbsRefreshStats === 'function') {
+                window.tbsRefreshStats();
+            }
+            if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                window.Turbo.clearCache();
+                window.Turbo.visit(window.location.href, { action: 'replace' });
+            } else {
+                window.location.reload();
+            }
+        };
     </script>
     @else
     <script>
@@ -642,6 +668,29 @@
                 stats: {}
             };
         }
+
+        window.tbsGoBack = function() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                window.Turbo.visit('/');
+            } else {
+                window.location.href = '/';
+            }
+        };
+
+        window.tbsReloadPage = function(btn) {
+            if (btn) {
+                const icon = (btn instanceof HTMLElement) ? btn.querySelector('i') : null;
+                if (icon) icon.classList.add('fa-spin');
+            }
+            if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                window.Turbo.clearCache();
+                window.Turbo.visit(window.location.href, { action: 'replace' });
+            } else {
+                window.location.reload();
+            }
+        };
     </script>
     @endif
 </head>
@@ -1345,7 +1394,7 @@
             <div class="flex items-center gap-1.5 shrink-0 min-w-0">
                 <!-- WebApp Terug Knop -->
                 <button type="button" 
-                        onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
+                        onclick="window.tbsGoBack()" 
                         class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" 
                         title="Vorige pagina (Terug)"
                         aria-label="Terug">
@@ -1429,14 +1478,14 @@
                     <!-- WebApp Navigation Buttons (Back & Refresh for Standalone App) -->
                     <div class="flex items-center gap-1 shrink-0 mr-0.5">
                         <button type="button" 
-                                onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
+                                onclick="window.tbsGoBack()" 
                                 class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/60 dark:border-purple-800/40 active:scale-95 shadow-2xs" 
                                 title="Vorige pagina (Terug)"
                                 aria-label="Terug">
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
                         <button type="button" 
-                                onclick="const icon = this.querySelector('i'); if(icon) icon.classList.add('fa-spin'); window.location.reload();" 
+                                onclick="window.tbsReloadPage(this)" 
                                 class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-slate-700 dark:text-purple-300 flex items-center justify-center text-xs transition cursor-pointer border border-slate-200/60 dark:border-purple-800/40 active:scale-95 shadow-2xs" 
                                 title="Pagina vernieuwen"
                                 aria-label="Vernieuwen">
@@ -2268,12 +2317,12 @@
                 <!-- Navigation Controls (Terug, Vernieuwen & Thema Wissel) -->
                 <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-purple-900/40">
                     <button type="button" 
-                            onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
+                            onclick="window.tbsGoBack()" 
                             class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
                         <i class="fa-solid fa-arrow-left"></i> Terug
                     </button>
                     <button type="button" 
-                            onclick="const icon = this.querySelector('i'); if(icon) icon.classList.add('fa-spin'); window.location.reload();" 
+                            onclick="window.tbsReloadPage(this)" 
                             class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
                         <i class="fa-solid fa-rotate-right"></i> Refresh
                     </button>
