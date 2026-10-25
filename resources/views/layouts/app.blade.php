@@ -1859,78 +1859,6 @@
             </div>
             @endif
 
-            @php
-                $flashService = app(\App\Services\FlashNotificationService::class);
-                $flashUserIdentifier = Auth::id() ?? session()->getId();
-                $resilientAlert = $flashService->consume($flashUserIdentifier);
-
-                $flashSuccess = session('success') ?? session('status');
-                if (!$flashSuccess && session()->has('tbs_flash_success')) {
-                    $flashTime = (int) (session('tbs_flash_time') ?? 0);
-                    if ($flashTime === 0 || (now()->timestamp - $flashTime) <= 60) {
-                        $flashSuccess = session('tbs_flash_success');
-                    }
-                }
-                if (!$flashSuccess && $resilientAlert && $resilientAlert['type'] === 'success') {
-                    $flashSuccess = $resilientAlert['message'];
-                }
-                if (session()->has('tbs_flash_success')) {
-                    session()->forget(['tbs_flash_success', 'tbs_flash_time']);
-                }
-
-                $flashError = session('error') ?? (isset($errors) && $errors->any() ? $errors->first() : null);
-                if (!$flashError && session()->has('tbs_flash_error')) {
-                    $flashTime = (int) (session('tbs_flash_time') ?? 0);
-                    if ($flashTime === 0 || (now()->timestamp - $flashTime) <= 60) {
-                        $flashError = session('tbs_flash_error');
-                    }
-                }
-                if (!$flashError && $resilientAlert && $resilientAlert['type'] === 'error') {
-                    $flashError = $resilientAlert['message'];
-                }
-                if (session()->has('tbs_flash_error')) {
-                    session()->forget(['tbs_flash_error', 'tbs_flash_time']);
-                }
-            @endphp
-
-            @if($flashSuccess)
-            <script>
-                (function() {
-                    function fireToast() {
-                        if (typeof window.tbsToast === 'function') {
-                            window.tbsToast(@json($flashSuccess), 'success');
-                        } else {
-                            setTimeout(fireToast, 50);
-                        }
-                    }
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', fireToast);
-                    } else {
-                        fireToast();
-                    }
-                })();
-            </script>
-            @endif
-
-            @if($flashError)
-            <script>
-                (function() {
-                    function fireToast() {
-                        if (typeof window.tbsToast === 'function') {
-                            window.tbsToast(@json($flashError), 'error');
-                        } else {
-                            setTimeout(fireToast, 50);
-                        }
-                    }
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', fireToast);
-                    } else {
-                        fireToast();
-                    }
-                })();
-            </script>
-            @endif
-
             @auth
             @php
                 $navChar = Auth::user()?->character;
@@ -2276,6 +2204,9 @@
     <!-- GLOBAL SCRIPT FOR CONFIRM & ALERT INTERCEPTION -->
     <script>
         (function() {
+            if (window.tbsConfirmInitialized) return;
+            window.tbsConfirmInitialized = true;
+
             function parseConfirmOptions(msg, el) {
                 let type = (el && el.dataset && el.dataset.confirmType) || 'danger';
                 let icon = (el && el.dataset && el.dataset.confirmIcon) || 'fa-triangle-exclamation';
@@ -2688,169 +2619,79 @@
         </template>
     </div>
 
-    <!-- TBS IN-APP FORM ACTION INTERCEPTOR (Zero Reloads & Scroll Preservation) -->
+    @if(!request()->header('X-TBS-Background-Refresh') && !request()->header('X-TBS-Action'))
+    @php
+        $flashService = app(\App\Services\FlashNotificationService::class);
+        $flashUserIdentifier = Auth::id() ?? session()->getId();
+        $resilientAlert = $flashService->consume($flashUserIdentifier);
+
+        $flashSuccess = session('success') ?? session('status');
+        if (!$flashSuccess && session()->has('tbs_flash_success')) {
+            $flashTime = (int) (session('tbs_flash_time') ?? 0);
+            if ($flashTime === 0 || (now()->timestamp - $flashTime) <= 60) {
+                $flashSuccess = session('tbs_flash_success');
+            }
+        }
+        if (!$flashSuccess && $resilientAlert && $resilientAlert['type'] === 'success') {
+            $flashSuccess = $resilientAlert['message'];
+        }
+        if (session()->has('tbs_flash_success')) {
+            session()->forget(['tbs_flash_success', 'tbs_flash_time']);
+        }
+
+        $flashError = session('error') ?? (isset($errors) && $errors->any() ? $errors->first() : null);
+        if (!$flashError && session()->has('tbs_flash_error')) {
+            $flashTime = (int) (session('tbs_flash_time') ?? 0);
+            if ($flashTime === 0 || (now()->timestamp - $flashTime) <= 60) {
+                $flashError = session('tbs_flash_error');
+            }
+        }
+        if (!$flashError && $resilientAlert && $resilientAlert['type'] === 'error') {
+            $flashError = $resilientAlert['message'];
+        }
+        if (session()->has('tbs_flash_error')) {
+            session()->forget(['tbs_flash_error', 'tbs_flash_time']);
+        }
+    @endphp
+
+    @if($flashSuccess)
     <script>
-    if (!window.tbsFormInterceptorAdded) {
-        window.tbsFormInterceptorAdded = true;
-
-        document.addEventListener('submit', async function(e) {
-            const form = e.target;
-            if (!form || form.tagName !== 'FORM') return;
-
-            // Strict guard: ONLY intercept explicit Laravel POST action forms
-            const actionAttr = form.getAttribute('action') || '';
-            const methodAttr = (form.getAttribute('method') || '').toLowerCase();
-            const hasCsrf = form.querySelector('input[name="_token"]');
-
-            if (!actionAttr ||
-                methodAttr !== 'post' ||
-                !hasCsrf ||
-                form.hasAttribute('@submit.prevent') ||
-                form.hasAttribute('x-on:submit.prevent') ||
-                form.hasAttribute('data-no-async') ||
-                window.location.pathname.startsWith('/chat') ||
-                actionAttr.includes('/chat') ||
-                actionAttr.includes('/logout') ||
-                actionAttr.includes('/login') ||
-                actionAttr.includes('/auth') ||
-                form.closest('[x-data*="Messenger"]') ||
-                form.closest('#chat-messages-container') ||
-                form.querySelector('input[type="file"]')) {
-                return;
-            }
-
-            // Guard against duplicate concurrent submissions on the same form
-            if (form.dataset.tbsSubmitting === 'true') {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                return;
-            }
-            form.dataset.tbsSubmitting = 'true';
-
-            e.preventDefault();
-            e.stopImmediatePropagation();
-
-            const savedScrollY = window.scrollY;
-            const submitBtn = e.submitter || form.querySelector('button[type="submit"]');
-            let origHtml = null;
-
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                origHtml = submitBtn.innerHTML;
-                submitBtn.classList.add('opacity-75', 'cursor-wait');
-            }
-
-            try {
-                const formData = new FormData(form);
-                if (e.submitter && e.submitter.name && !formData.has(e.submitter.name)) {
-                    formData.append(e.submitter.name, e.submitter.value);
-                }
-
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-TBS-Action': 'true',
-                        'Accept': 'application/json, text/html'
-                    }
-                });
-
-                // 1. JSON response from PreserveSessionFlashOnAjax:
-                const contentType = response.headers.get('content-type') || '';
-                if (contentType.includes('application/json')) {
-                    const data = await response.json();
-
-                    // Redirect away if needed (solitary confinement / arena / logout)
-                    if (data.redirect) {
-                        if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                            window.Turbo.visit(data.redirect);
-                        } else {
-                            window.location.href = data.redirect;
-                        }
-                        return;
-                    }
-
-                    // Apply realtime smooth stats animation
-                    if (data.character && window.tbsApplyStats) {
-                        window.tbsApplyStats(data.character);
-                    }
-
-                    // Display in-app toast notification
-                    if (data.flash && data.flash.message && window.tbsToast) {
-                        window.tbsToast(data.flash.message, data.flash.type || 'success');
-                    }
-
-                    // Background refresh the main container to show updated counts/states without reload
-                    try {
-                        const getRes = await fetch(window.location.href, {
-                            headers: { 
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-TBS-Background-Refresh': 'true'
-                            }
-                        });
-                        if (getRes.ok) {
-                            const html = await getRes.text();
-                            const doc = new DOMParser().parseFromString(html, 'text/html');
-                            const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
-                            const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
-                            if (newMain && curMain) {
-                                curMain.innerHTML = newMain.innerHTML;
-                                if (window.Alpine && window.Alpine.initTree) {
-                                    window.Alpine.initTree(curMain);
-                                }
-                                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
-                            }
-                        }
-                    } catch (fetchErr) {
-                        console.error('TBS Refresh Error:', fetchErr);
-                    }
-
-                    return;
-                }
-
-                // 2. Direct HTML redirect response fallback
-                const responseUrl = new URL(response.url);
-                if (responseUrl.pathname !== window.location.pathname) {
-                    if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                        window.Turbo.visit(response.url);
-                    } else {
-                        window.location.href = response.url;
-                    }
-                    return;
-                }
-
-                const html = await response.text();
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const newMain = doc.querySelector('main#tbs-main-container') || doc.querySelector('main');
-                const curMain = document.querySelector('main#tbs-main-container') || document.querySelector('main');
-
-                if (newMain && curMain) {
-                    curMain.innerHTML = newMain.innerHTML;
-                    if (window.Alpine && window.Alpine.initTree) {
-                        window.Alpine.initTree(curMain);
-                    }
-                    window.scrollTo({ top: savedScrollY, behavior: 'instant' });
-                }
-
-                if (window.tbsRefreshStats) {
-                    window.tbsRefreshStats();
-                }
-
-            } catch (err) {
-                console.error('TBS Interceptor Error:', err);
-                form.submit();
-            } finally {
-                form.dataset.tbsSubmitting = 'false';
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-75', 'cursor-wait');
-                    if (origHtml) submitBtn.innerHTML = origHtml;
+        (function() {
+            function fireToast() {
+                if (typeof window.tbsToast === 'function') {
+                    window.tbsToast(@json($flashSuccess), 'success');
+                } else {
+                    setTimeout(fireToast, 50);
                 }
             }
-        });
-    }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fireToast);
+            } else {
+                fireToast();
+            }
+        })();
     </script>
+    @endif
+
+    @if($flashError)
+    <script>
+        (function() {
+            function fireToast() {
+                if (typeof window.tbsToast === 'function') {
+                    window.tbsToast(@json($flashError), 'error');
+                } else {
+                    setTimeout(fireToast, 50);
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fireToast);
+            } else {
+                fireToast();
+            }
+        })();
+    </script>
+    @endif
+    @endif
 
 </body>
 </html>

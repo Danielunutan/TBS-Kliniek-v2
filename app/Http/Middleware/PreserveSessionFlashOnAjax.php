@@ -61,7 +61,7 @@ class PreserveSessionFlashOnAjax
             $user = $request->user();
             $identifier = $user?->id ?? $session->getId();
             app(FlashNotificationService::class)->consume($identifier);
-            $session->forget(['tbs_flash_success', 'tbs_flash_error', 'tbs_flash_time', 'success', 'error', 'status']);
+            $session->forget(['tbs_flash_success', 'tbs_flash_error', 'tbs_flash_time', 'success', 'error', 'status', 'errors']);
         }
 
         $response = $next($request);
@@ -101,15 +101,20 @@ class PreserveSessionFlashOnAjax
                     }
                 }
 
-                // Persist to bulletproof cache store
-                if ($successMsg) {
-                    app(FlashNotificationService::class)->store($identifier, 'success', (string) $successMsg);
-                    $session->put('tbs_flash_success', $successMsg);
-                    $session->put('tbs_flash_time', now()->timestamp);
-                } elseif ($errorMsg) {
-                    app(FlashNotificationService::class)->store($identifier, 'error', (string) $errorMsg);
-                    $session->put('tbs_flash_error', $errorMsg);
-                    $session->put('tbs_flash_time', now()->timestamp);
+                // Persist to bulletproof cache store for traditional full-page redirects.
+                // For in-app AJAX actions (isAction), the flash is delivered directly in the JSON payload!
+                if (! $isAction) {
+                    if ($successMsg) {
+                        app(FlashNotificationService::class)->store($identifier, 'success', (string) $successMsg);
+                        $session->put('tbs_flash_success', $successMsg);
+                        $session->put('tbs_flash_time', now()->timestamp);
+                    } elseif ($errorMsg) {
+                        app(FlashNotificationService::class)->store($identifier, 'error', (string) $errorMsg);
+                        $session->put('tbs_flash_error', $errorMsg);
+                        $session->put('tbs_flash_time', now()->timestamp);
+                    }
+                } else {
+                    $session->forget(['tbs_flash_success', 'tbs_flash_error', 'tbs_flash_time', 'success', 'error', 'status', 'errors']);
                 }
 
                 // If this action was dispatched via in-app AJAX (X-TBS-Action: true):
