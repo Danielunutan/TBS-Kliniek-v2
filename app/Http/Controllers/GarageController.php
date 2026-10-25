@@ -287,9 +287,9 @@ class GarageController extends Controller
 
         // Check ownership or gang officer permission if the vehicle is stored in the gang garage
         $isOwner = $characterVehicle->character_id === $character->id;
-        $isGangOfficer = $characterVehicle->in_gang_garage 
-            && $character->gang_id 
-            && (int) $characterVehicle->gang_id === (int) $character->gang_id 
+        $isGangOfficer = $characterVehicle->in_gang_garage
+            && $character->gang_id
+            && (int) $characterVehicle->gang_id === (int) $character->gang_id
             && $character->gang?->isOfficer($character);
 
         if (! ($isOwner || $isGangOfficer)) {

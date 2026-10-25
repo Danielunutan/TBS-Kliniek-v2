@@ -18,6 +18,117 @@ use Illuminate\View\View;
 
 class HustleController extends Controller
 {
+    public const HUSTLES = [
+        1 => [
+            'id' => 1,
+            'name' => 'Bewaker afleiden bij de sluis',
+            'tier_name' => 'Routine Klus',
+            'description' => 'Maak een gezellig praatje over voetbal om wat kleingeld of sigaretten te bietsen.',
+            'cost' => 5,
+            'rate' => 85,
+            'cooldown' => 45,
+            'cash_min' => 400,
+            'cash_max' => 1100,
+            'xp' => 45,
+            'respect' => 2,
+            'jail_chance' => 0,
+            'jail_minutes' => 0,
+            'risk_label' => 'Zeer Veilig (0% celkans)',
+            'risk_level' => 'low',
+            'icon' => 'fa-comments',
+        ],
+        2 => [
+            'id' => 2,
+            'name' => 'Keukenpersoneel omkopen voor snacks',
+            'tier_name' => 'Kantine Deal',
+            'description' => 'Ritsel versgebakken frikandelbroodjes en snacks die je direct kan doorverkopen.',
+            'cost' => 8,
+            'rate' => 75,
+            'cooldown' => 75,
+            'cash_min' => 1200,
+            'cash_max' => 2800,
+            'xp' => 90,
+            'respect' => 4,
+            'jail_chance' => 0,
+            'jail_minutes' => 0,
+            'risk_label' => 'Laag Risico (0% celkans)',
+            'risk_level' => 'low',
+            'icon' => 'fa-burger',
+        ],
+        3 => [
+            'id' => 3,
+            'name' => 'Medicijnen achteroverdrukken bij de zuster',
+            'tier_name' => 'Farmacie Smokkel',
+            'description' => 'Grijp snel een doordrukstrip temazepam als zuster Ingrid haar dossier invult.',
+            'cost' => 12,
+            'rate' => 65,
+            'cooldown' => 120,
+            'cash_min' => 3200,
+            'cash_max' => 7500,
+            'xp' => 150,
+            'respect' => 7,
+            'jail_chance' => 20,
+            'jail_minutes' => 3,
+            'risk_label' => 'Gemiddeld (20% celkans)',
+            'risk_level' => 'medium',
+            'icon' => 'fa-pills',
+        ],
+        4 => [
+            'id' => 4,
+            'name' => 'Gokpool organiseren in de recreatieruimte',
+            'tier_name' => 'Recreatie Bookie',
+            'description' => 'Laat medepatiënten wedden op pingpong en darten met 15% huisvoordeel.',
+            'cost' => 16,
+            'rate' => 55,
+            'cooldown' => 150,
+            'cash_min' => 7500,
+            'cash_max' => 16500,
+            'xp' => 240,
+            'respect' => 12,
+            'jail_chance' => 25,
+            'jail_minutes' => 5,
+            'risk_label' => 'Verhoogd (25% celkans)',
+            'risk_level' => 'high',
+            'icon' => 'fa-dice',
+        ],
+        5 => [
+            'id' => 5,
+            'name' => 'Kantine sigaretten kartel opzetten',
+            'tier_name' => 'Shag Kartel',
+            'description' => 'Controleer de aanvoer van zware shag, vapes en aanstekers over alle afdelingen.',
+            'cost' => 20,
+            'rate' => 45,
+            'cooldown' => 180,
+            'cash_min' => 15000,
+            'cash_max' => 32000,
+            'xp' => 350,
+            'respect' => 18,
+            'jail_chance' => 30,
+            'jail_minutes' => 8,
+            'risk_label' => 'Hoog Risico (30% celkans)',
+            'risk_level' => 'high',
+            'icon' => 'fa-smoking',
+        ],
+        6 => [
+            'id' => 6,
+            'name' => 'Illegale smartphone lijn verhuren',
+            'tier_name' => 'Kliniek Telecom',
+            'description' => 'Verhuur een binnengesmokkelde mini-smartphone voor 15 minuten per belbeurt.',
+            'cost' => 24,
+            'rate' => 38,
+            'cooldown' => 210,
+            'cash_min' => 26000,
+            'cash_max' => 65000,
+            'xp' => 500,
+            'respect' => 28,
+            'jail_chance' => 35,
+            'jail_minutes' => 12,
+            'risk_label' => 'Extreem Risico (35% celkans)',
+            'risk_level' => 'extreme',
+            'icon' => 'fa-mobile-screen',
+        ],
+    ];
+
     public function __construct(
         protected EconomyService $economy,
         protected EnergyService $energy,
@@ -33,88 +144,18 @@ class HustleController extends Controller
         $character = $user->character;
         $this->energy->refresh($character);
 
-        $hustles = [
-            1 => [
-                'id' => 1,
-                'name' => 'Bewaker afleiden bij de sluis',
-                'description' => 'Maak een praatje over voetbal om wat kleingeld of sigaretten te bietsen.',
-                'cost' => 5,
-                'rate' => 55,
-                'cooldown' => $this->cooldownService->calculateBySuccessRate(55),
-                'cash_min' => 350,
-                'cash_max' => 950,
-                'xp' => 40,
-                'respect' => 2,
-                'risk' => 'Gemiddeld (45% mislukkingskans)',
-            ],
-            2 => [
-                'id' => 2,
-                'name' => 'Keukenpersoneel omkopen voor warme snacks',
-                'description' => 'Ritsel versgebakken snacks die je direct kan doorverkopen.',
-                'cost' => 10,
-                'rate' => 45,
-                'cooldown' => $this->cooldownService->calculateBySuccessRate(45),
-                'cash_min' => 1000,
-                'cash_max' => 2500,
-                'xp' => 80,
-                'respect' => 4,
-                'risk' => 'Verhoogd (55% risico)',
-            ],
-            3 => [
-                'id' => 3,
-                'name' => 'Medicijnen achteroverdrukken bij de zuster',
-                'description' => 'Grijp snel een doordrukstrip uit het mandje als zuster Ingrid wegkijkt.',
-                'cost' => 15,
-                'rate' => 35,
-                'cooldown' => $this->cooldownService->calculateBySuccessRate(35),
-                'cash_min' => 2800,
-                'cash_max' => 6500,
-                'xp' => 140,
-                'respect' => 7,
-                'risk' => 'Hoog (65% risico, kans op isoleercel)',
-            ],
-            4 => [
-                'id' => 4,
-                'name' => 'Gokpool organiseren in de recreatieruimte',
-                'description' => 'Laat medegevangenen wedden op pingpong en pak het huisvoordeel.',
-                'cost' => 20,
-                'rate' => 25,
-                'cooldown' => $this->cooldownService->calculateBySuccessRate(25),
-                'cash_min' => 6000,
-                'cash_max' => 14000,
-                'xp' => 220,
-                'respect' => 12,
-                'risk' => 'Zeer Hoog (75% risico op betrapping)',
-            ],
-            5 => [
-                'id' => 5,
-                'name' => 'Kantine sigaretten kartels opzetten',
-                'description' => 'Controleer de aanvoer van zware shag en vapes over alle drie de afdelingen.',
-                'cost' => 24,
-                'rate' => 18,
-                'cooldown' => $this->cooldownService->calculateBySuccessRate(18),
-                'cash_min' => 12000,
-                'cash_max' => 28000,
-                'xp' => 320,
-                'respect' => 18,
-                'risk' => 'Extreem Hoog (82% risico, direct isoleercel)',
-            ],
-            6 => [
-                'id' => 6,
-                'name' => 'Illegale smartphone verhuren',
-                'description' => 'Verhuur een binnengesmokkelde prepaid telefoon voor 15 minuten per belbeurt.',
-                'cost' => 28,
-                'rate' => 14,
-                'cooldown' => $this->cooldownService->calculateBySuccessRate(14),
-                'cash_min' => 22000,
-                'cash_max' => 55000,
-                'xp' => 450,
-                'respect' => 28,
-                'risk' => 'Kliniekalarm (86% risico, zware straf)',
-            ],
-        ];
+        $statBonus = min(25, (int) floor(($character->getEffectiveCharisma() * 1.5 + $character->getEffectiveIntelligence() * 1.2) / 7));
 
-        return view('game.hustle.index', compact('character', 'hustles'));
+        $hustles = [];
+        foreach (self::HUSTLES as $id => $h) {
+            $effectiveRate = min(95, $h['rate'] + $statBonus);
+            $hustles[$id] = array_merge($h, [
+                'effective_rate' => $effectiveRate,
+                'stat_bonus' => $statBonus,
+            ]);
+        }
+
+        return view('game.hustle.index', compact('character', 'hustles', 'statBonus'));
     }
 
     public function attempt(Request $request): RedirectResponse
@@ -144,34 +185,27 @@ class HustleController extends Controller
             'hustle_id' => 'required|integer|between:1,6',
         ]);
 
-        $hustles = [
-            1 => ['cost' => 5,  'rate' => 55, 'cash_min' => 350,   'cash_max' => 950,   'xp' => 40,  'respect' => 2,  'jail_minutes' => 0],
-            2 => ['cost' => 10, 'rate' => 45, 'cash_min' => 1000,  'cash_max' => 2500,  'xp' => 80,  'respect' => 4,  'jail_minutes' => 0],
-            3 => ['cost' => 15, 'rate' => 35, 'cash_min' => 2800,  'cash_max' => 6500,  'xp' => 140, 'respect' => 7,  'jail_minutes' => 6],
-            4 => ['cost' => 20, 'rate' => 25, 'cash_min' => 6000,  'cash_max' => 14000, 'xp' => 220, 'respect' => 12, 'jail_minutes' => 14],
-            5 => ['cost' => 24, 'rate' => 18, 'cash_min' => 12000, 'cash_max' => 28000, 'xp' => 320, 'respect' => 18, 'jail_minutes' => 20],
-            6 => ['cost' => 28, 'rate' => 14, 'cash_min' => 22000, 'cash_max' => 55000, 'xp' => 450, 'respect' => 28, 'jail_minutes' => 30],
-        ];
-
-        $hustle = $hustles[$validated['hustle_id']];
+        $hustle = self::HUSTLES[$validated['hustle_id']] ?? null;
+        if (! $hustle) {
+            return back()->with('error', 'Ongeldige hossel gekozen.');
+        }
 
         if (! $this->energy->consume($character, $hustle['cost'])) {
             return back()->with('error', 'Niet genoeg energie! Je hebt minstens '.$hustle['cost'].' energie nodig.');
         }
 
-        // Dynamic cooldown duration based on success rate (55% = 75s, 14% = 360s)
-        $cooldownSeconds = $this->cooldownService->calculateBySuccessRate($hustle['rate']);
-        $this->cooldownService->setCooldown($character, 'hustle', $cooldownSeconds);
+        // Set cooldown for hustle
+        $this->cooldownService->setCooldown($character, 'hustle', $hustle['cooldown']);
 
         // Stat bonus: Charisma & Intelligence boost hustle success rate
-        $statBonus = min(20, (int) floor(($character->getEffectiveCharisma() * 1.5 + $character->getEffectiveIntelligence()) / 15));
-        $effectiveRate = min(85, $hustle['rate'] + $statBonus);
+        $statBonus = min(25, (int) floor(($character->getEffectiveCharisma() * 1.5 + $character->getEffectiveIntelligence() * 1.2) / 7));
+        $effectiveRate = min(95, $hustle['rate'] + $statBonus);
 
         $roll = rand(1, 100);
 
         if ($roll <= $effectiveRate) {
             // Charisma bonus on cash reward
-            $cashMultiplier = 1 + min(0.30, ($character->getEffectiveCharisma() * 0.005));
+            $cashMultiplier = 1 + min(0.35, ($character->getEffectiveCharisma() * 0.006));
             $cash = (int) round(rand($hustle['cash_min'], $hustle['cash_max']) * $cashMultiplier);
 
             if ($character->hasPerk('grotere_broekzakken')) {
@@ -183,14 +217,14 @@ class HustleController extends Controller
             $this->level->addXp($character, $hustle['xp']);
             $character->addRespect($hustle['respect']);
 
-            // 20% chance to gain +1 permanent Charisma from smooth hustling
+            // 25% chance to gain +1 permanent Charisma from smooth hustling
             $statGainMsg = '';
-            if (rand(1, 100) <= 20) {
+            if (rand(1, 100) <= 25) {
                 $character->charisma = ($character->charisma ?? 10) + 1;
-                $statGainMsg = ' 😎 Gladde praatjes beloond: +1 Charisma!';
+                $statGainMsg = ' 😎 Gladde babbel beloond: +1 Charisma!';
             }
-            // 15% chance to drop illegal bullets from a successful hustle
-            $bulletDrop = (rand(1, 100) <= 15) ? rand(5, 12) : 0;
+            // 20% chance to drop illegal bullets from a successful hustle
+            $bulletDrop = (rand(1, 100) <= 20) ? rand(5, 15) : 0;
             $bulletTxt = '';
             if ($bulletDrop > 0) {
                 $character->bullets = ($character->bullets ?? 0) + $bulletDrop;
@@ -204,7 +238,7 @@ class HustleController extends Controller
             HalloweenService::record($character, 'cash_earned', $cash);
 
             $dropMsg = RandomDropService::roll($character);
-            $successMsg = 'Hossel gelukt! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$bulletTxt}{$statGainMsg}";
+            $successMsg = '🎉 Hossel geslaagd! Je scoorde €'.number_format($cash, 0, ',', '.')." contant, +{$hustle['xp']} XP en +{$hustle['respect']} respect!{$bulletTxt}{$statGainMsg}";
             if ($dropMsg) {
                 $successMsg .= ' '.$dropMsg;
             }
@@ -212,18 +246,24 @@ class HustleController extends Controller
             return back()->with('success', $successMsg);
         }
 
+        // Failure handling
         // Check if high stamina allows escaping isolation
-        $escapeChance = min(35, (int) floor($character->getEffectiveStamina() / 15));
-        if ($hustle['jail_minutes'] > 0 && rand(1, 100) <= 60) {
+        $escapeChance = min(40, (int) floor($character->getEffectiveStamina() / 12));
+        $jailChance = $hustle['jail_chance'] ?? 0;
+
+        if ($jailChance > 0 && rand(1, 100) <= $jailChance) {
             if (rand(1, 100) <= $escapeChance) {
-                return back()->with('error', 'Hossel mislukt! De zaalwacht sloeg alarm, maar dankzij je snelle conditie wist je hem af te schudden en ontliep je de isolatie!');
+                return back()->with('error', '⚠️ Hossel mislukt! De zaalwacht sloeg alarm, maar dankzij je snelle conditie wist je hem af te schudden en ontliep je de isolatie!');
             }
 
             $jailReduction = min(45, (int) floor($character->getEffectiveDiscipline() / 5));
-            $jailSeconds = max(50, random_int(80, 150) - $jailReduction);
+            $jailSeconds = max(45, random_int(60, 110) - $jailReduction);
+
+            // Clear hustle cooldown if sent to jail so they don't get double punished
+            $this->cooldownService->clearCooldown($character, 'hustle');
             $this->prison->jailSeconds($character, $jailSeconds, 'Gepakt tijdens hosselen.');
 
-            return redirect()->route('prison')->with('error', "Poging mislukt! {$jailSeconds} sec vast in isolatie! (Gepakt door bewakers)");
+            return redirect()->route('prison')->with('error', "🚨 Betrapt tijdens het hosselen! {$jailSeconds} sec in de isoleercel. Bekijk een korte ad om direct vrij te komen!");
         }
 
         return back()->with('error', 'Hossel mislukt! Iemand waarschuwde de zaalwacht en je moest snel maken dat je wegkwam.');

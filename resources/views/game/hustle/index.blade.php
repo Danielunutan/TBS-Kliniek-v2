@@ -5,9 +5,8 @@
 @section('content')
 @php
     $hustleCooldown = $character->cooldownRemaining('hustle');
-    $hustleSkipCost = app(\App\Services\CooldownService::class)->getSkipCost('hustle');
 @endphp
-<div class="space-y-4 sm:space-y-6" x-data="{
+<div class="space-y-6" x-data="{
     seconds: {{ (int) $hustleCooldown }},
     format(s) {
         if (s <= 0) return '00:00';
@@ -29,119 +28,183 @@
     }
 }">
 
-    <!-- Mobile-First App Header & Vitals Bar -->
-    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-4 sm:p-6 overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-2xs">
-                    <i class="fa-solid fa-comments-dollar"></i>
+    <!-- Top Forensic Dossier Header -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
+            <div class="flex items-start gap-4">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-100 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-xs">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
                 </div>
                 <div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">TBS Hossels</span>
-                        <span class="text-[9px] font-extrabold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800 inline-flex items-center gap-1">
-                            <i class="fa-solid fa-bomb text-[8px]"></i> 15% Kogel Drop
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                            Gangencorridors
+                        </span>
+                        <span class="text-[9px] font-extrabold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 px-2.5 py-0.5 rounded-md border border-amber-200 dark:border-amber-800 inline-flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-[8px]"></i> +{{ $statBonus ?? 0 }}% Slagingskans Bonus
+                        </span>
+                        <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                            20% Kogel Drop
                         </span>
                     </div>
-                    <h1 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">Hosselen & Klussen</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">Scharrel bij tussen de corridors voor contanten, respect en zeldzame kogels.</p>
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                        Hosselen & Klussen
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5 max-w-xl leading-relaxed">
+                        Scharrel contanten, respect en munitie bij in de hoeken van de inrichting. Je <strong>Charisma ({{ $character->getEffectiveCharisma() }})</strong> en <strong>Intelligentie ({{ $character->getEffectiveIntelligence() }})</strong> verhogen je slagingskans aanzienlijk!
+                    </p>
                 </div>
             </div>
 
-            <!-- Mobile Touch Vitals Pills -->
-            <div class="grid grid-cols-4 sm:flex items-center gap-1.5 sm:gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 shrink-0">
-                <div class="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 rounded-xl px-2 sm:px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-extrabold uppercase text-emerald-800 dark:text-emerald-400 block leading-tight">Energie</span>
-                    <span class="text-xs sm:text-sm font-black text-emerald-700 dark:text-emerald-300">{{ $character->energy }}<span class="text-[9px] text-emerald-500 font-semibold">/{{ $character->max_energy }}</span></span>
+            <!-- Vitals Pills -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:flex items-center gap-2 shrink-0">
+                <div class="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/70 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-400 block">Energie</span>
+                    <span class="text-xs sm:text-sm font-black text-emerald-800 dark:text-emerald-300 font-mono">
+                        {{ $character->energy }}<span class="text-[10px] text-emerald-500 font-semibold">/{{ $character->max_energy }}</span>
+                    </span>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 rounded-xl px-2 sm:px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-extrabold uppercase text-amber-800 dark:text-amber-400 block leading-tight">Contant</span>
-                    <span class="text-xs sm:text-sm font-black text-amber-700 dark:text-amber-300 font-mono">€{{ $character->cash >= 1000000 ? number_format($character->cash / 1000000, 1) . 'M' : number_format($character->cash, 0, ',', '.') }}</span>
+                <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 block">Contant</span>
+                    <span class="text-xs sm:text-sm font-black text-amber-800 dark:text-amber-300 font-mono">
+                        €{{ $character->cash >= 1000000 ? number_format($character->cash / 1000000, 1) . 'M' : number_format($character->cash, 0, ',', '.') }}
+                    </span>
                 </div>
-                <div class="bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/80 rounded-xl px-2 sm:px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-extrabold uppercase text-purple-800 dark:text-purple-400 block leading-tight">Respect</span>
-                    <span class="text-xs sm:text-sm font-black text-purple-700 dark:text-purple-300">{{ number_format($character->respect, 0, ',', '.') }}</span>
+                <div class="bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/70 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-400 block">Respect</span>
+                    <span class="text-xs sm:text-sm font-black text-purple-800 dark:text-purple-300 font-mono">
+                        {{ number_format($character->respect, 0, ',', '.') }}
+                    </span>
                 </div>
-                <div class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2 sm:px-3 py-1.5 text-center">
-                    <span class="text-[9px] font-extrabold uppercase text-slate-600 dark:text-slate-400 block leading-tight">Kogels</span>
-                    <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono">{{ number_format($character->bullets ?? 0, 0, ',', '.') }}</span>
+                <div class="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400 block">Kogels</span>
+                    <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono">
+                        {{ number_format($character->bullets ?? 0, 0, ',', '.') }}
+                    </span>
                 </div>
             </div>
         </div>
 
         <!-- Cooldown Notification Banner -->
-        <div x-show="seconds > 0" class="mt-4 p-3 sm:p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="{{ $hustleCooldown > 0 ? '' : 'display: none;' }}">
+        <div x-show="seconds > 0" class="mt-5 p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3" style="{{ $hustleCooldown > 0 ? '' : 'display: none;' }}">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-xs">
                     <i class="fa-solid fa-clock"></i>
                 </div>
                 <div>
                     <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Hossel Cooldown Actief</h4>
-                    <p class="text-[11px] text-amber-800 dark:text-amber-300">Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-200 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $hustleCooldown) }}</strong> om opnieuw te klussen.</p>
+                    <p class="text-[11px] text-amber-800 dark:text-amber-300">
+                        Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-200 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $hustleCooldown) }}</strong> om opnieuw te klussen.
+                    </p>
                 </div>
             </div>
-            <div class="w-full sm:w-auto shrink-0">
-                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="w-full sm:w-auto h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                    <i class="fa-solid fa-tv text-[11px]"></i>
-                    <span>Kijk Ad (Reset Cooldown)</span>
-                </button>
-            </div>
+            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="w-full sm:w-auto h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <i class="fa-solid fa-tv text-[11px]"></i>
+                <span>Kijk Ad (Reset Cooldown)</span>
+            </button>
         </div>
     </div>
 
-    <!-- MAIN HUSTLE SELECTION FORM -->
-    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 p-4 sm:p-6">
-        <form action="{{ route('hustle.attempt') }}" method="POST">
-            @csrf
+    <!-- HUSTLE OPERATION CARDS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @foreach($hustles as $h)
+        @php
+            $hasEnergy = $character->energy >= $h['cost'];
+            $riskBg = match($h['risk_level'] ?? 'medium') {
+                'low' => 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+                'medium' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+                'high' => 'bg-orange-50 dark:bg-orange-950/60 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800',
+                'extreme' => 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800',
+                default => 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+            };
+        @endphp
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/80 rounded-2xl p-5 shadow-xs transition flex flex-col justify-between gap-4 group">
             
-            <div class="space-y-2.5 sm:space-y-3 mb-5">
-                @foreach($hustles as $h)
-                <label class="block p-3.5 sm:p-4 border rounded-xl cursor-pointer transition group border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800/80 has-[:checked]:border-purple-600 dark:has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50/70 dark:has-[:checked]:bg-purple-950/50 has-[:checked]:ring-2 has-[:checked]:ring-purple-500/20"
-                       :class="seconds > 0 ? 'opacity-60 cursor-not-allowed' : ''">
-                    <div class="flex items-start gap-3">
-                        <input type="radio" name="hustle_id" value="{{ $h['id'] }}" 
-                               class="w-4 h-4 mt-1 text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shrink-0" 
-                               {{ $loop->first ? 'checked' : '' }} 
-                               :disabled="seconds > 0" 
-                               {{ $hustleCooldown > 0 ? 'disabled' : '' }} required>
-
-                        <div class="flex-1 min-w-0">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                                <span class="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate">
-                                    {{ $h['name'] }}
-                                </span>
-                                <div class="flex flex-wrap items-center gap-1 sm:gap-1.5 shrink-0">
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">{{ $h['cost'] }}⚡ Energie</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono">€{{ $h['cash_min'] }}-€{{ $h['cash_max'] }}</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">{{ $h['rate'] }}% kans</span>
-                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300" title="Cooldown wachttijd">⏳ {{ gmdate('i:s', $h['cooldown']) }}</span>
-                                </div>
-                            </div>
-                            <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug">
-                                {{ $h['description'] }}
-                            </p>
+            <div class="space-y-3">
+                <!-- Header with Icon & Tier -->
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
+                            <i class="fa-solid {{ $h['icon'] ?? 'fa-handshake' }}"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block">
+                                {{ $h['tier_name'] ?? 'Klus' }}
+                            </span>
+                            <h3 class="font-black text-sm text-slate-900 dark:text-white leading-tight">
+                                {{ $h['name'] }}
+                            </h3>
                         </div>
                     </div>
-                </label>
-                @endforeach
+                </div>
+
+                <!-- Description -->
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed min-h-[34px]">
+                    {{ $h['description'] }}
+                </p>
+
+                <!-- Slagingskans Meter Bar -->
+                <div class="space-y-1 pt-1">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                            <i class="fa-solid fa-bullseye text-purple-600 dark:text-purple-400"></i> Slagingskans:
+                        </span>
+                        <span class="font-black font-mono text-purple-700 dark:text-purple-300">
+                            {{ $h['effective_rate'] }}%
+                            <span class="text-[9px] text-slate-400 font-normal">({{ $h['rate'] }}% + {{ $statBonus }}%)</span>
+                        </span>
+                    </div>
+                    <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500 {{ $h['effective_rate'] >= 75 ? 'bg-emerald-500' : ($h['effective_rate'] >= 50 ? 'bg-purple-600' : 'bg-amber-500') }}"
+                             style="width: {{ $h['effective_rate'] }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Reward Badges -->
+                <div class="grid grid-cols-2 gap-1.5 pt-1 text-[11px]">
+                    <div class="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 font-black text-emerald-700 dark:text-emerald-400 font-mono flex items-center gap-1.5">
+                        <i class="fa-solid fa-sack-dollar text-[10px]"></i>
+                        <span>€{{ number_format($h['cash_min'], 0, ',', '.') }} - €{{ number_format($h['cash_max'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="px-2.5 py-1 rounded-lg bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 font-black text-purple-700 dark:text-purple-300 font-mono flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-[10px]"></i>
+                        <span>+{{ $h['xp'] }} XP &bull; +{{ $h['respect'] }} Resp</span>
+                    </div>
+                </div>
+
+                <!-- Risk & Requirements Chips -->
+                <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-100 dark:border-slate-800">
+                    <span class="px-2 py-0.5 rounded border font-extrabold {{ $riskBg }}">
+                        <i class="fa-solid fa-shield-halved text-[9px] mr-0.5"></i> {{ $h['risk_label'] }}
+                    </span>
+                    <span class="font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                        <i class="fa-solid fa-clock text-amber-500"></i> {{ gmdate('i:s', $h['cooldown']) }}
+                    </span>
+                </div>
             </div>
 
-            <!-- Sticky / Action Bottom Bar for Mobile Ergonomics -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <span class="text-[11px] font-bold text-slate-400 dark:text-slate-500 inline-flex items-center gap-1.5">
-                    <i class="fa-solid fa-stopwatch text-amber-500"></i> Cooldown wachttijd varieert van 1 tot 6 minuten.
-                </span>
+            <!-- Direct Submit Button -->
+            <form action="{{ route('hustle.attempt') }}" method="POST" class="pt-2">
+                @csrf
+                <input type="hidden" name="hustle_id" value="{{ $h['id'] }}">
                 <button type="submit" 
-                        :disabled="seconds > 0"
-                        :class="seconds > 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer active:scale-95 shadow-md'"
-                        {{ $hustleCooldown > 0 ? 'disabled' : '' }}
-                        class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider py-3.5 px-8 rounded-xl transition flex items-center justify-center gap-2">
-                    <span>Actie Uitvoeren</span>
-                    <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                        :disabled="seconds > 0 || {{ $hasEnergy ? 'false' : 'true' }}"
+                        :class="seconds > 0 || !{{ $hasEnergy ? 'true' : 'false' }} ? 'opacity-40 cursor-not-allowed bg-slate-300 dark:bg-slate-800 text-slate-500' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer active:scale-95 shadow-xs'"
+                        class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                    <span class="flex items-center gap-1">
+                        <i class="fa-solid fa-bolt text-[10px]"></i> {{ $h['cost'] }} Energie
+                    </span>
+                    <span>&bull;</span>
+                    <span>Hossel Nu</span>
                 </button>
-            </div>
-        </form>
+            </form>
+
+        </div>
+        @endforeach
     </div>
 
 </div>
+
+<!-- MONETAG VIGNETTE AD INTEGRATION (Zone 12114258) -->
+<script>(function(s){s.dataset.zone='12114258',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 @endsection
