@@ -62,9 +62,9 @@ class NewsSystemTest extends TestCase
 
         $response = $this->get(route('dashboard'));
         $response->assertStatus(200);
-        $response->assertSee('Laatste nieuws');
+        $response->assertSee('TBS Kliniek Berichten');
         $response->assertSee('Hyves');
-        $response->assertSee('Meer nieuws');
+        $response->assertSee('Alle berichten bekijken');
     }
 
     public function test_news_show_displays_article_content_and_increases_views(): void
@@ -78,7 +78,7 @@ class NewsSystemTest extends TestCase
         $response = $this->get(route('news.show', $article->slug));
         $response->assertStatus(200);
         $response->assertSee('Hyves');
-        $response->assertSee('Baddie zit nu op Hyves');
+        $response->assertSee('TBS Kliniek zit nu op Hyves');
 
         $article->refresh();
         $this->assertEquals($initialViews + 1, $article->views_count);

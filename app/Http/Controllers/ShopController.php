@@ -21,8 +21,8 @@ use Illuminate\View\View;
 class ShopController extends Controller
 {
     public const BUNDLES = [
-        'deluluknaller' => [
-            'id' => 'deluluknaller',
+        'kliniek_starter' => [
+            'id' => 'kliniek_starter',
             'name' => 'Kliniek Starterspakket 🏥',
             'category' => 'smokkel',
             'cost_stars' => 75,
@@ -31,8 +31,8 @@ class ShopController extends Controller
             'cash' => 150000,
             'masks' => 10,
         ],
-        'snel_schaamteloos' => [
-            'id' => 'snel_schaamteloos',
+        'smokkel_buit' => [
+            'id' => 'smokkel_buit',
             'name' => 'Smokkel & Buitkoffer Pack 📦',
             'category' => 'smokkel',
             'cost_stars' => 150,
@@ -41,8 +41,8 @@ class ShopController extends Controller
             'cash' => 500000,
             'masks' => 25,
         ],
-        'big_bucks' => [
-            'id' => 'big_bucks',
+        'afdelingsbaas_deal' => [
+            'id' => 'afdelingsbaas_deal',
             'name' => 'Afdelingsbaas Buitdeal 💼',
             'category' => 'kluisbuit',
             'cost_stars' => 250,
@@ -51,8 +51,8 @@ class ShopController extends Controller
             'cash' => 1500000,
             'masks' => 40,
         ],
-        'sprinkle_sprinkle' => [
-            'id' => 'sprinkle_sprinkle',
+        'syndicaat_pack' => [
+            'id' => 'syndicaat_pack',
             'name' => 'Kliniek Maffia Syndicaat Pack 👑',
             'category' => 'syndicaat',
             'cost_stars' => 500,
@@ -71,8 +71,8 @@ class ShopController extends Controller
             'cash' => 15000000,
             'masks' => 250,
         ],
-        'rijk_roekeloos_xxl' => [
-            'id' => 'rijk_roekeloos_xxl',
+        'eindbaas_kluis_xxl' => [
+            'id' => 'eindbaas_kluis_xxl',
             'name' => 'TBS Kliniek Eindbaas Kluis XXL 🏆',
             'category' => 'syndicaat',
             'cost_stars' => 2500,
@@ -81,6 +81,14 @@ class ShopController extends Controller
             'cash' => 50000000,
             'masks' => 600,
         ],
+    ];
+
+    public const BUNDLE_ALIASES = [
+        'deluluknaller' => 'kliniek_starter',
+        'snel_schaamteloos' => 'smokkel_buit',
+        'big_bucks' => 'afdelingsbaas_deal',
+        'sprinkle_sprinkle' => 'syndicaat_pack',
+        'rijk_roekeloos_xxl' => 'eindbaas_kluis_xxl',
     ];
 
     public function __construct(
@@ -238,8 +246,12 @@ class ShopController extends Controller
             } elseif (($item->attack_power > 0) || ($item->defense_power > 0)) {
                 $gainStr = ($item->attack_power ?? 0) * $quantity;
                 $gainDef = ($item->defense_power ?? 0) * $quantity;
-                if ($gainStr > 0) $locked->strength = ($locked->strength ?? 10) + $gainStr;
-                if ($gainDef > 0) $locked->defense = ($locked->defense ?? 10) + $gainDef;
+                if ($gainStr > 0) {
+                    $locked->strength = ($locked->strength ?? 10) + $gainStr;
+                }
+                if ($gainDef > 0) {
+                    $locked->defense = ($locked->defense ?? 10) + $gainDef;
+                }
                 $locked->save();
                 $ownedCount = (int) $locked->strength;
                 $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Directe combat stats toegekend aan je karakter!";
@@ -610,12 +622,16 @@ class ShopController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        $allowedBundleIds = array_unique(array_merge(array_keys(self::BUNDLES), array_keys(self::BUNDLE_ALIASES)));
         $validated = $request->validate([
-            'bundle_id' => ['required', 'string', 'in:deluluknaller,snel_schaamteloos,big_bucks,sprinkle_sprinkle,koffer_booster_xl,rijk_roekeloos_xxl'],
+            'bundle_id' => ['required', 'string', 'in:'.implode(',', $allowedBundleIds)],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
             'recipient_id' => ['nullable'],
             'recipient_name' => ['nullable', 'string'],
         ]);
+
+        $rawBundleId = $validated['bundle_id'];
+        $resolvedBundleId = self::BUNDLE_ALIASES[$rawBundleId] ?? $rawBundleId;
 
         $recipientId = $validated['recipient_id'] ?? null;
         if (empty($recipientId) && ! empty($validated['recipient_name'])) {
@@ -628,7 +644,7 @@ class ShopController extends Controller
             }
         }
 
-        $bundle = self::BUNDLES[$validated['bundle_id']];
+        $bundle = self::BUNDLES[$resolvedBundleId];
         $quantity = (int) $validated['quantity'];
         $totalCost = $bundle['cost_stars'] * $quantity;
 

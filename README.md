@@ -2,7 +2,7 @@
 
 > **Respect verdien je. Frikandelbroodjes moet je bevechten.**
 
-Een complete Nederlandstalige multiplayer-browsergame gebouwd met Laravel. Geïnspireerd door klassieke Nederlandse webgames zoals Baddies.nl en CrimeClub, met een geheel eigen identiteit, Nederlandse humor, absurde personages, gangs, economie, missies en misdaad.
+Een complete Nederlandstalige multiplayer-browsergame gebouwd met Laravel. Geïnspireerd door klassieke Nederlandse text-based browsergames zoals CrimeClub en Boevenbende, met een geheel eigen unieke identiteit rondom forensische psychiatrie, absurde personages, gangs, economie, missies en smokkel.
 
 ## Tech Stack
 - **Backend:** Laravel 12 / PHP 8.3+

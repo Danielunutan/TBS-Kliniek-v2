@@ -112,7 +112,7 @@ class IsolationProtectionAndPackagePrisonTest extends TestCase
         $res2->assertSessionHas('error');
     }
 
-    public function test_failed_package_interception_sends_to_prison_with_baddie_message(): void
+    public function test_failed_package_interception_sends_to_prison_with_isolation_message(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $char = $user->character;

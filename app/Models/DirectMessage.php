@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class DirectMessage extends Model
 {
@@ -19,6 +20,21 @@ class DirectMessage extends Model
         'hearts_users' => 'array',
         'hearts_count' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $model) {
+            if ($model->recipient_id) {
+                Cache::forget("dm_unread_count_{$model->recipient_id}");
+            }
+        });
+
+        static::deleted(function (self $model) {
+            if ($model->recipient_id) {
+                Cache::forget("dm_unread_count_{$model->recipient_id}");
+            }
+        });
+    }
 
     public function replyTo(): BelongsTo
     {

@@ -76,17 +76,20 @@ class GangController extends Controller
         }
 
         $gangRankings = collect();
-
         foreach ($realGangs as $g) {
-            $totalSlay = $g->members->sum('respect');
+            $totalRespect = $g->members->sum('respect');
+            $formattedRespect = $totalRespect >= 1000000 ? number_format($totalRespect / 1000000, 2).'M' : ($totalRespect >= 1000 ? number_format($totalRespect / 1000, 1).'K' : number_format($totalRespect, 0, ',', '.'));
             $gangRankings->push([
                 'id' => $g->id,
                 'name' => $g->name,
                 'tag' => $g->tag,
                 'leader_name' => $g->leader?->name ?? 'Onbekend',
                 'leader_tag' => '@'.($g->leader?->name ?? 'onbekend'),
-                'slay' => $totalSlay >= 1000000 ? number_format($totalSlay / 1000000, 2).'M' : ($totalSlay >= 1000 ? number_format($totalSlay / 1000, 1).'K' : number_format($totalSlay, 0, ',', '.')),
-                'raw_slay' => $totalSlay,
+                'respect' => $formattedRespect,
+                'respect_formatted' => $formattedRespect,
+                'slay' => $formattedRespect,
+                'raw_respect' => $totalRespect,
+                'raw_slay' => $totalRespect,
                 'cash' => '€'.number_format($g->treasury, 0, ',', '.'),
                 'raw_cash' => (int) $g->treasury,
                 'icon' => $g->emblem ?? 'fa-crown',

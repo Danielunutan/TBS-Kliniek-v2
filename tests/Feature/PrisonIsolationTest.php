@@ -9,7 +9,7 @@ use App\Services\PrisonService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class PrisonBaddieTest extends TestCase
+class PrisonIsolationTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -19,7 +19,7 @@ class PrisonBaddieTest extends TestCase
         $this->seed();
     }
 
-    public function test_failed_breakout_jails_character_with_baddie_message(): void
+    public function test_failed_breakout_jails_character_with_isolation_message(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $char = $user->character;
@@ -83,7 +83,7 @@ class PrisonBaddieTest extends TestCase
 
         /** @var PrisonService $service */
         $service = app(PrisonService::class);
-        $service->jailSeconds($char, 126, '126 sec vast baddie test');
+        $service->jailSeconds($char, 126, '126 sec vast isolatie test');
 
         $char->refresh();
         $this->assertTrue($char->isImprisoned());

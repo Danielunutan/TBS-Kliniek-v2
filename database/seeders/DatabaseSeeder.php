@@ -331,11 +331,11 @@ class DatabaseSeeder extends Seeder
             [
                 'title' => 'Hyves',
                 'slug' => 'hyves',
-                'emoji' => '💖',
+                'emoji' => '🏥',
                 'is_pinned' => true,
                 'comments_enabled' => false,
                 'is_published' => true,
-                'content' => "Hey girls! Baddie zit nu op Hyves!\n\nJoin onze Hyve voor winacties die op Facebook niet mogen... Meta controleert ons harder dan een baddie die z'n Snapscore niet vertrouwt. 🙈\n\nDownload de Hyves app, zoek naar de Baddie Hyve en join us.\n\nXOXO,\nBaddie",
+                'content' => "TBS Kliniek zit nu op Hyves!\n\nJoin onze Hyve voor exclusieve kliniek-updates, winacties en geheime smokkelcodes. Houd je dossier in de gaten en respecteer de afdelingsregels!\n\nGroeten,\nKliniek Directie",
                 'created_at' => now()->subDays(12),
                 'published_at' => now()->subDays(12),
             ],

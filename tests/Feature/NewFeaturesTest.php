@@ -272,7 +272,9 @@ class NewFeaturesTest extends TestCase
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $char = $user->character;
-        $char->update(['bank' => 0, 'stars' => 0, 'masks' => 0]);
+        $char->update(['stars' => 0, 'masks' => 0, 'last_allowance_at' => now()]);
+        $char->refresh();
+        $beforeBank = $char->bank;
 
         $this->actingAs($user);
 
@@ -303,7 +305,7 @@ class NewFeaturesTest extends TestCase
 
         $this->assertTrue($c1->fresh()->is_redeemed);
         $this->assertTrue($c2->fresh()->is_redeemed);
-        $this->assertEquals(5000, $char->bank);
+        $this->assertEquals($beforeBank + 5000, $char->bank);
         $this->assertEquals(3, $char->stars);
         $this->assertEquals(2, $char->masks);
     }
@@ -384,9 +386,9 @@ class NewFeaturesTest extends TestCase
 
         // Create gang
         $this->post(route('gangs.create'), [
-            'name' => 'Baddie Alliance Gang',
-            'tag' => 'BAG',
-            'specialty' => 'Moord & Slay',
+            'name' => 'TBS Syndicaat Gang',
+            'tag' => 'TSG',
+            'specialty' => 'Kantine Controle',
         ]);
 
         $leader->refresh();

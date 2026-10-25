@@ -490,45 +490,50 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Geen karakter gevonden.'], 404);
         }
 
-        $this->energyService->refresh($character);
+        $cacheKey = "char_realtime_stats_{$character->id}";
+        $data = Cache::remember($cacheKey, 3, function () use ($character) {
+            $this->energyService->refresh($character);
 
-        $nextLevelXp = $this->levelService->getXpRequiredForNextLevel($character->level);
-        $xpPercentage = min(100, max(0, (int) round(($character->xp / max(1, $nextLevelXp)) * 100)));
+            $nextLevelXp = $this->levelService->getXpRequiredForNextLevel($character->level);
+            $xpPercentage = min(100, max(0, (int) round(($character->xp / max(1, $nextLevelXp)) * 100)));
 
-        return response()->json([
-            'cash' => (int) $character->cash,
-            'bank' => (int) $character->bank,
-            'total' => (int) ($character->cash + $character->bank),
-            'total_money' => (int) ($character->cash + $character->bank),
-            'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),
-            'cashFormatted' => '€'.number_format($character->cash, 0, ',', '.'),
-            'bank_formatted' => '€'.number_format($character->bank, 0, ',', '.'),
-            'bankFormatted' => '€'.number_format($character->bank, 0, ',', '.'),
-            'total_formatted' => '€'.number_format($character->cash + $character->bank, 0, ',', '.'),
-            'totalFormatted' => '€'.number_format($character->cash + $character->bank, 0, ',', '.'),
-            'energy' => (int) $character->energy,
-            'max_energy' => (int) $character->max_energy,
-            'energy_percent' => min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))),
-            'health' => (int) $character->health,
-            'max_health' => (int) $character->max_health,
-            'health_percent' => min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))),
-            'stars' => (int) ($character->stars ?? 0),
-            'stars_formatted' => number_format($character->stars ?? 0, 0, ',', '.'),
-            'starsFormatted' => number_format($character->stars ?? 0, 0, ',', '.'),
-            'vip_points' => (int) ($character->vip_points ?? 0),
-            'vip_points_formatted' => number_format($character->vip_points ?? 0, 0, ',', '.'),
-            'vipPointsFormatted' => number_format($character->vip_points ?? 0, 0, ',', '.'),
-            'respect' => (string) $character->formatted_respect,
-            'formatted_respect' => (string) $character->formatted_respect,
-            'level' => (int) $character->level,
-            'xp' => (int) $character->xp,
-            'next_level_xp' => (int) $nextLevelXp,
-            'xpFormatted' => number_format($character->xp, 0, ',', '.').' / '.number_format($nextLevelXp, 0, ',', '.').' XP',
-            'xp_percentage' => $xpPercentage,
-            'onlineCount' => Character::getOnlineCount(),
-            'is_in_prison' => (bool) $character->is_in_prison,
-            'prison_seconds' => (int) $character->remainingPrisonSeconds(),
-        ]);
+            return [
+                'cash' => (int) $character->cash,
+                'bank' => (int) $character->bank,
+                'total' => (int) ($character->cash + $character->bank),
+                'total_money' => (int) ($character->cash + $character->bank),
+                'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),
+                'cashFormatted' => '€'.number_format($character->cash, 0, ',', '.'),
+                'bank_formatted' => '€'.number_format($character->bank, 0, ',', '.'),
+                'bankFormatted' => '€'.number_format($character->bank, 0, ',', '.'),
+                'total_formatted' => '€'.number_format($character->cash + $character->bank, 0, ',', '.'),
+                'totalFormatted' => '€'.number_format($character->cash + $character->bank, 0, ',', '.'),
+                'energy' => (int) $character->energy,
+                'max_energy' => (int) $character->max_energy,
+                'energy_percent' => min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))),
+                'health' => (int) $character->health,
+                'max_health' => (int) $character->max_health,
+                'health_percent' => min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))),
+                'stars' => (int) ($character->stars ?? 0),
+                'stars_formatted' => number_format($character->stars ?? 0, 0, ',', '.'),
+                'starsFormatted' => number_format($character->stars ?? 0, 0, ',', '.'),
+                'vip_points' => (int) ($character->vip_points ?? 0),
+                'vip_points_formatted' => number_format($character->vip_points ?? 0, 0, ',', '.'),
+                'vipPointsFormatted' => number_format($character->vip_points ?? 0, 0, ',', '.'),
+                'respect' => (string) $character->formatted_respect,
+                'formatted_respect' => (string) $character->formatted_respect,
+                'level' => (int) $character->level,
+                'xp' => (int) $character->xp,
+                'next_level_xp' => (int) $nextLevelXp,
+                'xpFormatted' => number_format($character->xp, 0, ',', '.').' / '.number_format($nextLevelXp, 0, ',', '.').' XP',
+                'xp_percentage' => $xpPercentage,
+                'onlineCount' => Character::getOnlineCount(),
+                'is_in_prison' => (bool) $character->is_in_prison,
+                'prison_seconds' => (int) $character->remainingPrisonSeconds(),
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**

@@ -12,7 +12,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Gevangenis</h1>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Patiënten die betrapt zijn bij illegale acties of mislukte uitbraken zitten hier vast. Breek mede-patiënten uit voor respect en extra slay, of bekijk een sponsoradvertentie om direct vrij te komen!
+                    Patiënten die betrapt zijn bij illegale acties of mislukte uitbraken zitten hier vast. Breek mede-patiënten uit voor respect en aanzien, of bekijk een sponsoradvertentie om direct vrij te komen!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -238,14 +238,14 @@
         <!-- Right Column: Breakout Stats & Top Breakers -->
         <div class="lg:col-span-4 space-y-6">
 
-            <!-- Card 1: Stats & Slay rules -->
+            <!-- Card 1: Stats & Aanzien regels -->
             <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-4">
                 <div class="text-xs font-extrabold uppercase tracking-wide text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-2.5">
                     <i class="fa-solid fa-fire text-purple-600"></i>
                     <span>Uitbraak Statistieken</span>
                 </div>
                 <p class="text-xs text-slate-500 leading-relaxed font-medium">
-                    Help mede-patiënten ontsnappen en verdien aanzien! Per succesvolle uitbraak scoor je <strong>0.1 slay & respect</strong>.
+                    Help mede-patiënten ontsnappen en verdien aanzien! Per succesvolle uitbraak scoor je <strong>0.1 respect & aanzien</strong>.
                 </p>
 
                 <div class="pt-2 space-y-2.5 text-xs">
@@ -270,8 +270,8 @@
 
                     <div class="flex items-center justify-between">
                         <span class="text-slate-500 font-medium flex items-center gap-2">
-                            <i class="fa-solid fa-fire text-amber-500 text-xs"></i>
-                            <span>Slay:</span>
+                            <i class="fa-solid fa-star text-amber-500 text-xs"></i>
+                            <span>Aanzien:</span>
                         </span>
                         <span class="font-extrabold text-purple-700 font-mono">{{ $stats['slay'] }}</span>
                     </div>

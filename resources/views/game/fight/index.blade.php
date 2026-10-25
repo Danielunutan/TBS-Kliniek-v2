@@ -67,13 +67,13 @@
     </div>
     @endif
 
-    <!-- MAIN TWO COLUMN SLAYLIST LAYOUT -->
+    <!-- MAIN TWO COLUMN RESPECTLIJST LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Left Column: Slaylist Sidebar Card -->
+        <!-- Left Column: Respectlijst Sidebar Card -->
         <div class="lg:col-span-3 space-y-4">
             <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
-                <!-- Slaylist Header Tab -->
+                <!-- Respectlijst Header Tab -->
                 <div class="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200">
                     <span class="text-xs font-extrabold tracking-wider uppercase text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-list text-purple-600 text-xs"></i> Respectlijst

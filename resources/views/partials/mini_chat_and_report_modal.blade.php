@@ -2262,8 +2262,13 @@
             },
 
             pollLoop() {
+                if (window.tbsMiniChatInterval) {
+                    clearInterval(window.tbsMiniChatInterval);
+                    window.tbsMiniChatInterval = null;
+                }
+
                 let pollCounter = 0;
-                setInterval(() => {
+                window.tbsMiniChatInterval = setInterval(() => {
                     // 1. If tab is in background, skip completely to save server resources & battery
                     if (document.visibilityState === 'hidden') {
                         return;
@@ -2271,14 +2276,15 @@
 
                     pollCounter++;
 
-                    // 2. Direct Messages & Badges: poll every ~6 seconds when closed, or every ~3 seconds when open
-                    const dmIntervalTicks = this.isOpen ? 1 : 2;
-                    if (pollCounter % dmIntervalTicks === 0) {
+                    // 2. Direct Messages & Badges:
+                    // When chat is OPEN: check every 4 seconds. When chat is CLOSED: check every 16 seconds (4 ticks * 4s).
+                    const checkDms = this.isOpen || (pollCounter % 4 === 0);
+                    if (checkDms) {
                         const pollDmUrl = '{{ route('chat.poll-incoming') }}' + (this.lastDirectDmId > 0 ? ('?after_dm_id=' + this.lastDirectDmId) : '');
                         fetch(pollDmUrl, { headers: { 'Accept': 'application/json' } })
                             .then(r => r.json())
                             .then(data => {
-                                if (data.success) {
+                                if (data && data.success) {
                                     if (data.unread_dms !== undefined) {
                                         this.unreadDmsCount = data.unread_dms;
                                     }
@@ -2350,24 +2356,15 @@
                     }
 
                     // 3. Public Messages & Gang Messages:
-                    // If chat modal is OPEN:
-                    // - if activeTab is 'global', poll public messages every 3s
-                    // - if activeTab is 'gang', poll gang messages every 3s
-                    // If chat modal is CLOSED:
-                    // - only poll for public/gang @mentions occasionally (every ~9 seconds = 3 ticks)
+                    // ONLY poll if chat modal is explicitly OPEN! (Saves massive server CPU when players are just browsing)
                     if (this.isOpen) {
                         if (this.activeTab === 'global') {
                             this.loadPublicMessages();
                         } else if (this.activeTab === 'gang' && this.hasGang && this.gangHasChat) {
                             this.loadGangMessages();
                         }
-                    } else if (pollCounter % 3 === 0) {
-                        this.loadPublicMessages();
-                        if (this.hasGang && this.gangHasChat) {
-                            this.loadGangMessages();
-                        }
                     }
-                }, 3000);
+                }, 4000);
             }
         };
     }

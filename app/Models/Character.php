@@ -1369,7 +1369,7 @@ class Character extends Model
      */
     public static function getOnlineCount(): int
     {
-        return Cache::remember('tbs_online_count', 15, function () {
+        return Cache::remember('tbs_online_count', 45, function () {
             $count = static::where('last_active_at', '>=', now()->subMinutes(5))->count();
 
             return max(1, $count);

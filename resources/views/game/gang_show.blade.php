@@ -181,7 +181,7 @@
 
     <!-- 6 KEY STATS CARDS -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <!-- Totaal Respect (Slay) -->
+        <!-- Totaal Respect -->
         <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-center space-y-1 shadow-xs">
             <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">BENDE RESPECT</span>
             <div class="flex items-center justify-center gap-1.5 text-purple-700 dark:text-purple-400 text-lg font-black font-mono">

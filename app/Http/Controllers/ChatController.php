@@ -738,8 +738,8 @@ class ChatController extends Controller
 
         $afterDmId = (int) $request->query('after_dm_id', 0);
 
-        // Fast unread count cache (5 seconds)
-        $unreadCount = Cache::remember("dm_unread_count_{$character->id}", 5, function () use ($character) {
+        // Fast unread count cache (30 seconds, auto-invalidated on DM changes)
+        $unreadCount = Cache::remember("dm_unread_count_{$character->id}", 30, function () use ($character) {
             return DirectMessage::where('recipient_id', $character->id)
                 ->where('is_read', false)
                 ->count();

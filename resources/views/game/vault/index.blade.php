@@ -90,14 +90,14 @@
                         </div>
                     </div>
 
-                    <!-- Reward 3: Slay / Respect -->
+                    <!-- Reward 3: Respect -->
                     <div class="flex items-center gap-3.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                         <div class="w-11 h-11 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0">
                             <i class="fa-solid fa-fire"></i>
                         </div>
                         <div>
                             <div class="text-base font-extrabold text-slate-900 dark:text-white">748.44</div>
-                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-400">Slay & Respect</div>
+                            <div class="text-[10px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-400">Kliniek Respect</div>
                         </div>
                     </div>
 

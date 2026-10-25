@@ -1453,7 +1453,7 @@
                                     <div class="grid grid-cols-3 gap-1.5 pt-1 text-center">
                                         <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                                             <span class="text-[8px] font-extrabold uppercase text-slate-400 block">Respect</span>
-                                            <span class="text-xs font-mono font-black text-purple-600 dark:text-purple-400" x-text="g.slay"></span>
+                                            <span class="text-xs font-mono font-black text-purple-600 dark:text-purple-400" x-text="g.respect_formatted || g.slay"></span>
                                         </div>
                                         <div class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                                             <span class="text-[8px] font-extrabold uppercase text-slate-400 block">Kas</span>
@@ -1559,7 +1559,7 @@
                                             </template>
                                         </td>
                                         <td class="py-3.5 px-3 text-center font-mono font-bold text-slate-700 dark:text-slate-300" x-text="g.members_count + '/' + g.max_members"></td>
-                                        <td class="py-3.5 px-3 text-right font-extrabold text-purple-700 dark:text-purple-400 font-mono" x-text="g.slay"></td>
+                                        <td class="py-3.5 px-3 text-right font-extrabold text-purple-700 dark:text-purple-400 font-mono" x-text="g.respect_formatted || g.slay"></td>
                                         <td class="py-3.5 px-3 text-right font-bold text-emerald-700 dark:text-emerald-400 font-mono" x-text="g.cash"></td>
                                         <td class="py-3.5 px-3 text-right">
                                             <div class="inline-flex items-center gap-1.5 justify-end">

@@ -193,46 +193,58 @@
                 </div>
             </div>
 
-            <!-- 1. ALGEMEEN & INFO -->
-            <div class="space-y-0.5">
+            <!-- 01 // DOSSIER & INFORMATIE -->
+            <div class="space-y-1">
                 <button @click="toggleCategory('algemeen')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-sky-50/50 dark:hover:bg-sky-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-shield-halved"></i></span>
-                        <span>Algemeen & Info</span>
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-300 hover:bg-sky-50/50 dark:hover:bg-sky-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-hospital"></i></span>
+                        <span>01 // Dossier & Info</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'algemeen'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'algemeen') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('news.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-newspaper w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                <div x-show="openCategory === 'algemeen'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'algemeen') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('news.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('news.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </div>
                         <span>Kliniek Nieuws</span>
                     </a>
-                    <a href="{{ route('newspaper.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('newspaper.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-file-lines w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                    <a href="{{ route('newspaper.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('newspaper.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-file-lines"></i>
+                        </div>
                         <span>Het Afdelingsblad</span>
                     </a>
-                    <a href="{{ route('radio.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('radio.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('radio.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('radio.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-radio w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-radio"></i>
+                            </div>
                             <span>TBS FM (Radio)</span>
                         </div>
                         <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-200/60 dark:border-rose-900">
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span> Live
                         </span>
                     </a>
-                    <a href="{{ route('timeline.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('timeline.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-bullhorn w-4 text-center text-sky-500 dark:text-sky-400"></i>
+                    <a href="{{ route('timeline.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('timeline.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-500 dark:text-sky-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
                         <span>Tijdlijn (Feed)</span>
                     </a>
-                    <a href="{{ route('friends.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('friends.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-user-group w-4 text-center text-pink-500 dark:text-pink-400"></i>
-                        <span>Vrienden & BFF</span>
+                    <a href="{{ route('friends.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('friends.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-pink-50 dark:bg-pink-950/60 text-pink-500 dark:text-pink-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-user-group"></i>
+                        </div>
+                        <span>Vrienden & Connecties</span>
                     </a>
-                    <a href="{{ route('members.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('members.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('members.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('members.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-users w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
                             <span>Leden & Online</span>
                         </div>
                         <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
@@ -240,33 +252,41 @@
                             <span x-text="stats.onlineCount || {{ $onlineCount }}">{{ $onlineCount }}</span>
                         </span>
                     </a>
-                    <a href="{{ route('leaderboard.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('leaderboard.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                    <a href="{{ route('leaderboard.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('leaderboard.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
                         <span>Ranglijsten</span>
                     </a>
-                    <a href="{{ route('battle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('battle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-bolt w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                    <a href="{{ route('battle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('battle.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
                         <span>24 Uur Battle</span>
                     </a>
-                    <a href="{{ route('prison') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-dungeon w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                    <a href="{{ route('prison') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('prison') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-dungeon"></i>
+                        </div>
                         <span>Isoleercel</span>
                     </a>
-                    <a href="{{ route('roadmap.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-compass w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                    <a href="{{ route('roadmap.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
                         <span>Toekomst & Roadmap</span>
                     </a>
                 </div>
             </div>
 
-            <!-- 2. BENDE & GANGS -->
-            <div class="space-y-0.5">
+            <!-- 02 // BENDES & SYNDICATEN -->
+            <div class="space-y-1">
                 <button @click="toggleCategory('bende')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-users"></i></span>
-                        <span>Bende & Gangs</span>
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-shield-halved"></i></span>
+                        <span>02 // Bendes & Syndicaten</span>
                     </span>
                     <div class="flex items-center gap-1.5">
                         @if($character && $character->gang)
@@ -274,67 +294,89 @@
                                 [{{ $character->gang->tag }}]
                             </span>
                         @endif
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bende' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bende') style="transform: rotate(180deg);" @endif></i>
+                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'bende' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bende') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
-                <div x-show="openCategory === 'bende'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bende') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="openCategory === 'bende'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bende') style="display: none;" @endif class="space-y-1 pl-1">
                     @if($character && $character->gang)
-                        <a href="{{ route('gangs.index', ['tab' => 'mijn_gang']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'mijn_gang') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'mijn_gang']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'mijn_gang') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
-                                <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                                <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
                                 <span>Mijn Bende</span>
                             </div>
-                            <span class="text-[10px] font-extrabold text-purple-600 dark:text-purple-400">{{ $character->gang->name }}</span>
+                            <span class="text-[11px] font-extrabold text-purple-600 dark:text-purple-400">{{ $character->gang->name }}</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'leden']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'leden' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-user-group w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                        <a href="{{ route('gangs.index', ['tab' => 'leden']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.*') && request('tab') === 'leden' ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-user-group"></i>
+                            </div>
                             <span>Bende Leden</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'oorlog']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'oorlog' ? 'nav-item-active bg-rose-50/90 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('gangs.index', ['tab' => 'oorlog']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.*') && request('tab') === 'oorlog' ? 'nav-item-active bg-rose-50 dark:bg-rose-950/60 text-rose-950 dark:text-white font-extrabold border-l-4 border-rose-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
-                                <i class="fa-solid fa-crosshairs w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                                <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                </div>
                                 <span>Bende Oorlog</span>
                             </div>
-                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
                         </a>
-                        <a href="{{ route('gangs.panden') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.panden*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-building w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                        <a href="{{ route('gangs.panden') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.panden*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-building"></i>
+                            </div>
                             <span>Bende Panden</span>
                         </a>
-                        <a href="{{ route('gangs.garage') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.garage*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-warehouse w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                        <a href="{{ route('gangs.garage') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.garage*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-warehouse"></i>
+                            </div>
                             <span>Bende Garage</span>
                         </a>
-                        <a href="{{ route('heists.index', ['tab' => 'gang']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('heists.*') && request('tab') === 'gang' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <a href="{{ route('heists.index', ['tab' => 'gang']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('heists.*') && request('tab') === 'gang' ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
-                                <i class="fa-solid fa-masks-theater w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                                <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                                    <i class="fa-solid fa-masks-theater"></i>
+                                </div>
                                 <span>Bende Heists</span>
                             </div>
                             <span class="text-[9px] font-black uppercase text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Co-Op</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
                             <span>Bende Ranglijst</span>
                         </a>
                         @if($character->gang->isOfficer($character))
-                        <a href="{{ route('gangs.index', ['tab' => 'beheer']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'beheer' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-users-gear w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                        <a href="{{ route('gangs.index', ['tab' => 'beheer']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.*') && request('tab') === 'beheer' ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-users-gear"></i>
+                            </div>
                             <span>Bende Beheer</span>
                         </a>
                         @endif
                     @else
-                        <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && !request('tab') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                        <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.*') && !request('tab') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
                             <span>Bendes Overzicht</span>
                         </a>
-                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                        <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
                             <span>Bende Ranglijst</span>
                         </a>
                     @endif
-                    <a href="{{ route('control-points.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('control-points.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('control-points.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('control-points.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-extrabold border-l-4 border-amber-500 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-flag w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-flag"></i>
+                            </div>
                             <span>Controlepunten</span>
                         </div>
                         <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide border border-amber-300/40 animate-pulse">
@@ -344,80 +386,115 @@
                 </div>
             </div>
 
-            <!-- 3. VOORTGANG & GEZONDHEID -->
-            <div class="space-y-0.5">
+            <!-- 03 // BEHANDELING & HERSTEL -->
+            <div class="space-y-1">
                 <button @click="toggleCategory('voortgang')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-chart-line"></i></span>
-                        <span>Voortgang & Gezondheid</span>
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-notes-medical"></i></span>
+                        <span>03 // Behandeling & Herstel</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'voortgang'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-list-check w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                <div x-show="openCategory === 'voortgang'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('treatment.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('treatment.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-brain"></i>
+                            </div>
+                            <span>Behandelaarsgesprek</span>
+                        </div>
+                        @if($character->isOnLeave())
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                            Verlof!
+                        </span>
+                        @elseif($character->isSedated())
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Sedatie
+                        </span>
+                        @endif
+                    </a>
+                    <a href="{{ route('infirmary.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('infirmary.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-500 dark:text-teal-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-hospital-user"></i>
+                        </div>
+                        <span>Ziekenboeg & Medicatie</span>
+                    </a>
+                    <a href="{{ route('daycare.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('daycare.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-person-digging"></i>
+                        </div>
+                        <span>Dagbesteding & Arbeid</span>
+                    </a>
+                    <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('missions.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
                         <span>Missies & Opdrachten</span>
                     </a>
-                    <a href="{{ route('training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('training.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-dumbbell w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                    <a href="{{ route('training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('training.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-dumbbell"></i>
+                        </div>
                         <span>Krachttraining</span>
-                    </a>
-                    <a href="{{ route('treatment.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('treatment.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-brain w-4 text-center text-rose-500 dark:text-rose-400"></i>
-                        <span>Behandelaarsgesprek</span>
-                    </a>
-                    <a href="{{ route('infirmary.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('infirmary.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-hospital-user w-4 text-center text-teal-500 dark:text-teal-400"></i>
-                        <span>Ziekenboeg & Pillen</span>
-                    </a>
-                    <a href="{{ route('daycare.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('daycare.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                        <span>Dagbesteding</span>
                     </a>
                 </div>
             </div>
 
-            <!-- 4. ILLEGALE ACTIES & MISDAAD -->
-            <div class="space-y-0.5">
+            <!-- 04 // MISDAAD & SMOKKEL -->
+            <div class="space-y-1">
                 <button @click="toggleCategory('misdaad')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-handcuffs"></i></span>
-                        <span>Illegale Acties</span>
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-handcuffs"></i></span>
+                        <span>04 // Misdaad & Smokkel</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'misdaad' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'misdaad' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'misdaad'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'misdaad') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('hustle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-hand-holding-dollar w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                <div x-show="openCategory === 'misdaad'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'misdaad') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('hustle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
                         <span>Hosselen</span>
                     </a>
-                    <a href="{{ route('smuggle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('smuggle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-capsules w-4 text-center text-teal-500 dark:text-teal-400"></i>
-                        <span>Dealen & Smokkel</span>
+                    <a href="{{ route('smuggle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('smuggle.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-500 dark:text-teal-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-capsules"></i>
+                        </div>
+                        <span>Smokkel & Dealen</span>
                     </a>
-                    <a href="{{ route('extort.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('extort.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-person-military-pointing w-4 text-center text-orange-500 dark:text-orange-400"></i>
+                    <a href="{{ route('extort.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('extort.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-orange-50 dark:bg-orange-950/60 text-orange-500 dark:text-orange-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-person-military-pointing"></i>
+                        </div>
                         <span>Afpersen</span>
                     </a>
-                    <a href="{{ route('lockers.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('lockers.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-id-card w-4 text-center text-blue-500 dark:text-blue-400"></i>
+                    <a href="{{ route('lockers.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('lockers.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
                         <span>Kluisjes Kraken</span>
                     </a>
-                    <a href="{{ route('droppings.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('droppings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-plane-arrival w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                    <a href="{{ route('droppings.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('droppings.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-plane-arrival"></i>
+                        </div>
                         <span>Tennisbal & Drones</span>
                     </a>
-                    <a href="{{ route('tunnel.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('tunnel.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                    <a href="{{ route('tunnel.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('tunnel.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-person-digging"></i>
+                        </div>
                         <span>Uitbraaktunnel</span>
                     </a>
-                    <a href="{{ route('heists.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('heists.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('heists.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('heists.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-masks-theater w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-masks-theater"></i>
+                            </div>
                             <span>Grote Heists</span>
                         </div>
                         <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
@@ -427,21 +504,23 @@
                 </div>
             </div>
 
-            <!-- 5. BONUS & KLUIZEN -->
-            <div class="space-y-0.5">
+            <!-- 05 // KLUISBUREAU & DROPS -->
+            <div class="space-y-1">
                 <button @click="toggleCategory('bonus')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-gift"></i></span>
-                        <span>Bonus & Kluizen</span>
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-vault"></i></span>
+                        <span>05 // Kluisbureau & Drops</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'bonus'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bonus') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('daily.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <div x-show="openCategory === 'bonus'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bonus') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('daily.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('daily.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-dharmachakra"></i>
+                            </div>
                             <span>Rad van Fortuin</span>
                         </div>
                         @if($character && $character->canDailySpin())
@@ -450,21 +529,29 @@
                         </span>
                         @endif
                     </a>
-                    <a href="{{ route('vault.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('vault.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-vault w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                    <a href="{{ route('vault.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('vault.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-vault"></i>
+                        </div>
                         <span>MedicijnKluis (Kraak)</span>
                     </a>
-                    <a href="{{ route('packages.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('packages.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-box-open w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                    <a href="{{ route('packages.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('packages.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
                         <span>Koffers & Pakketjes</span>
                     </a>
-                    <a href="{{ route('pickpocket.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('pickpocket.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-mask w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                    <a href="{{ route('pickpocket.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('pickpocket.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-mask"></i>
+                        </div>
                         <span>Zakkenrollen</span>
                     </a>
-                    <a href="{{ route('hacking.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('hacking.*') ? 'nav-item-active bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('hacking.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('hacking.*') ? 'nav-item-active bg-emerald-50 dark:bg-emerald-950/60 text-emerald-950 dark:text-white font-extrabold border-l-4 border-emerald-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-terminal w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-terminal"></i>
+                            </div>
                             <span>Kliniek Terminal</span>
                         </div>
                         @if($character && $character->canDailyHack())
@@ -476,30 +563,168 @@
                 </div>
             </div>
 
-            <!-- 6. MINIGAMES & SPECIALS -->
-            <div class="space-y-0.5">
+            <!-- 06 // LUCHTPLAATS & ARENA -->
+            <div class="space-y-1">
+                <button @click="toggleCategory('geweld')" 
+                        type="button" 
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50/50 dark:hover:bg-red-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-red-100 dark:bg-red-950/70 text-red-600 dark:text-red-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-fire"></i></span>
+                        <span>06 // Luchtplaats & Arena</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'geweld' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
+                </button>
+                <div x-show="openCategory === 'geweld'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'geweld') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('fight.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('fight.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-skull"></i>
+                        </div>
+                        <span>Respectlijst (Gevecht)</span>
+                    </a>
+                    <a href="{{ route('theft.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('theft.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <span>Klusjes & Diefstal</span>
+                    </a>
+                    <a href="{{ route('combat_training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('combat_training.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-bullseye"></i>
+                        </div>
+                        <span>Vechtoefening</span>
+                    </a>
+                    <a href="{{ route('armwrestling.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('armwrestling.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-hand-back-fist"></i>
+                        </div>
+                        <span>Armpjedruk Arena</span>
+                    </a>
+                    <a href="{{ route('hitman.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('hitman.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-crosshairs"></i>
+                        </div>
+                        <span>Liquidatie Contract</span>
+                    </a>
+                    <a href="{{ route('bounties.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('bounties.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-skull-crossbones"></i>
+                        </div>
+                        <span>Kopgeld & Premies</span>
+                    </a>
+                    <a href="{{ route('informants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('informants.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-user-secret"></i>
+                        </div>
+                        <span>Informanten</span>
+                    </a>
+                    <a href="{{ route('isolation.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('isolation.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-ghost"></i>
+                        </div>
+                        <span>Vrijwillige Isolatie</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 07 // FINANCIËN & MARKT -->
+            <div class="space-y-1">
+                <button @click="toggleCategory('economie')" 
+                        type="button" 
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-coins"></i></span>
+                        <span>07 // Financiën & Markt</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'economie' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
+                </button>
+                <div x-show="openCategory === 'economie'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'economie') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('bank.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </div>
+                        <span>De Bank</span>
+                    </a>
+                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('shop.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                        <span>Kliniek Winkel</span>
+                    </a>
+                    <a href="{{ route('marketplace.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('marketplace.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-shop"></i>
+                        </div>
+                        <span>Marktplaats</span>
+                    </a>
+                    <a href="{{ route('garage.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('garage.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-cyan-50 dark:bg-cyan-950/60 text-cyan-500 dark:text-cyan-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-warehouse"></i>
+                        </div>
+                        <span>Smokkel Garage</span>
+                    </a>
+                    <a href="{{ route('travel.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('travel.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-500 dark:text-teal-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-signs-post"></i>
+                        </div>
+                        <span>Verplaatsen (Vleugels)</span>
+                    </a>
+                    <a href="{{ route('casino.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-dice"></i>
+                        </div>
+                        <span>Casino & Gokhal</span>
+                    </a>
+                    <a href="{{ route('lottery.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('lottery.*') ? 'nav-item-active bg-amber-50 dark:bg-amber-950/60 text-amber-950 dark:text-white font-extrabold border-l-4 border-amber-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <span>Afdelingsloterij</span>
+                        </div>
+                        <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">Pot</span>
+                    </a>
+                    <a href="{{ route('perks.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('perks.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-award"></i>
+                            </div>
+                            <span>Karakter Perks</span>
+                        </div>
+                        <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            ⭐ Perks
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 08 // MINIGAMES & SPECIALS -->
+            <div class="space-y-1">
                 <button @click="toggleCategory('specials')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-fuchsia-600 dark:hover:text-fuchsia-300 hover:bg-fuchsia-50/50 dark:hover:bg-fuchsia-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-gamepad"></i></span>
-                        <span>Minigames & Specials</span>
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-fuchsia-600 dark:hover:text-fuchsia-300 hover:bg-fuchsia-50/50 dark:hover:bg-fuchsia-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-950/70 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-gamepad"></i></span>
+                        <span>08 // Minigames & Specials</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'specials' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'specials') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'specials' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'specials') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'specials'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'specials') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('connect_four.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                <div x-show="openCategory === 'specials'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'specials') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('connect_four.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-chess-board w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-500 dark:text-emerald-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-chess-board"></i>
+                            </div>
                             <span>4 op 'n Rij (Arjan)</span>
                         </div>
                         <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
                             OOHPA
                         </span>
                     </a>
-                    <a href="{{ route('true_crime.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('true_crime.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('true_crime.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('true_crime.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-fingerprint w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-fingerprint"></i>
+                            </div>
                             <span>True Crime (Caroline)</span>
                         </div>
                         <span class="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
@@ -509,127 +734,29 @@
                 </div>
             </div>
 
-            <!-- 7. GEWELD & STRIJD -->
-            <div class="space-y-0.5">
-                <button @click="toggleCategory('geweld')" 
-                        type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50/50 dark:hover:bg-red-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-fire"></i></span>
-                        <span>Geweld & Strijd</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'geweld' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
-                </button>
-                <div x-show="openCategory === 'geweld'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'geweld') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('fight.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-skull w-4 text-center text-rose-500 dark:text-rose-400"></i>
-                        <span>Respectlijst</span>
-                    </a>
-                    <a href="{{ route('theft.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('theft.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-briefcase w-4 text-center text-slate-500 dark:text-slate-400"></i>
-                        <span>Klusjes & Diefstal</span>
-                    </a>
-                    <a href="{{ route('combat_training.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('combat_training.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-bullseye w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
-                        <span>Vechtoefening</span>
-                    </a>
-                    <a href="{{ route('armwrestling.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('armwrestling.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-hand-back-fist w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                        <span>Armpjedruk Arena</span>
-                    </a>
-                    <a href="{{ route('hitman.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hitman.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-crosshairs w-4 text-center text-rose-600 dark:text-rose-400"></i>
-                        <span>Liquidatie</span>
-                    </a>
-                    <a href="{{ route('bounties.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bounties.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-skull-crossbones w-4 text-center text-rose-500 dark:text-rose-400"></i>
-                        <span>Kopgeld & Premies</span>
-                    </a>
-                    <a href="{{ route('informants.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('informants.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-user-secret w-4 text-center text-slate-500 dark:text-slate-400"></i>
-                        <span>Informanten</span>
-                    </a>
-                    <a href="{{ route('isolation.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('isolation.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-ghost w-4 text-center text-purple-500 dark:text-purple-400"></i>
-                        <span>Vrijwillige Isolatie</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 8. ECONOMIE & GOKKEN -->
-            <div class="space-y-0.5">
-                <button @click="toggleCategory('economie')" 
-                        type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-coins"></i></span>
-                        <span>Economie & Gokken</span>
-                    </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'economie' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
-                </button>
-                <div x-show="openCategory === 'economie'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'economie') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-building-columns w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
-                        <span>De Bank</span>
-                    </a>
-                    <a href="{{ route('travel.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('travel.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-signs-post w-4 text-center text-teal-500 dark:text-teal-400"></i>
-                        <span>Verplaatsen</span>
-                    </a>
-                    <a href="{{ route('casino.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('casino.*', 'rps.*', 'highlow.*', 'numbergame.*', 'roulette.*', 'slots.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-dice w-4 text-center text-rose-500 dark:text-rose-400"></i>
-                        <span>Casino & Gokhal</span>
-                    </a>
-                    <a href="{{ route('lottery.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('lottery.*') ? 'nav-item-active bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-crown w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                            <span>Afdelingsloterij</span>
-                        </div>
-                        <span class="bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wider">Pot</span>
-                    </a>
-                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-cart-shopping w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                        <span>Kliniek Winkel</span>
-                    </a>
-                    <a href="{{ route('garage.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('garage.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-warehouse w-4 text-center text-cyan-500 dark:text-cyan-400"></i>
-                        <span>Smokkel Garage</span>
-                    </a>
-                    <a href="{{ route('perks.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('perks.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-award w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                            <span>Karakter Perks</span>
-                        </div>
-                        <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
-                            ⭐ Perks
-                        </span>
-                    </a>
-                    <a href="{{ route('marketplace.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('marketplace.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-shop w-4 text-center text-purple-600 dark:text-purple-400"></i>
-                        <span>Marktplaats</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 9. HELPTOOL, PROFIEL & ACCOUNT -->
-            <div class="space-y-0.5 pt-1 border-t border-slate-100 dark:border-slate-800/60">
+            <!-- 09 // ACCOUNT, VIP & ONDERSTEUNING -->
+            <div class="space-y-1 pt-1 border-t border-slate-100 dark:border-slate-800/60">
                 <button @click="toggleCategory('account')" 
                         type="button" 
-                        class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 rounded-xl transition cursor-pointer group">
-                    <span class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-user-gear"></i></span>
-                        <span>Helptool & Profiel</span>
+                        class="w-full flex items-center justify-between px-3 py-2.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 rounded-xl transition cursor-pointer group">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs group-hover:scale-105 transition-transform"><i class="fa-solid fa-user-gear"></i></span>
+                        <span>09 // Account & Veiligheid</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'account' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'account') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-200" :class="openCategory === 'account' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'account') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'account'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'account') style="display: none;" @endif class="space-y-0.5 pl-1">
-                    <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-headset w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                <div x-show="openCategory === 'account'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'account') style="display: none;" @endif class="space-y-1 pl-1">
+                    <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('faq.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-500 dark:text-indigo-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
                         <span>Helptool & FAQ</span>
                     </a>
-                    <a href="{{ route('help.tickets.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <a href="{{ route('help.tickets.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('help.tickets.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-ticket w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-500 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-ticket"></i>
+                            </div>
                             <span>Support Tickets</span>
                         </div>
                         @php
@@ -639,35 +766,41 @@
                         <span class="text-[9px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Reactie!</span>
                         @endif
                     </a>
-                    <a href="{{ route('help.tickets.create') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('help.tickets.create') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-plus w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
-                        <span>Nieuw Ticket Aanmaken</span>
+                    <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('profile.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-500 dark:text-blue-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </div>
+                        <span>Mijn Dossier (Profiel)</span>
                     </a>
-                    <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('profile.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-id-badge w-4 text-center text-blue-500 dark:text-blue-400"></i>
-                        <span>Mijn Profiel</span>
-                    </a>
-                    <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('vip.*') ? 'nav-item-active bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : 'text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' }}">
+                    <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('vip.*') ? 'nav-item-active bg-amber-50 dark:bg-amber-950/60 text-amber-950 dark:text-white font-extrabold border-l-4 border-amber-500 pl-2 shadow-2xs' : 'text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-crown w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
                             <span class="font-extrabold">VIP Shop & Punten</span>
                         </div>
                     </a>
-                    <a href="{{ route('sponsor.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
+                    <a href="{{ route('sponsor.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-tv w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-tv"></i>
+                            </div>
                             <span class="font-extrabold">Sponsorkamer</span>
                         </div>
                         <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Gratis VIP</span>
                     </a>
-                    <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-gear w-4 text-center text-slate-500 dark:text-slate-400"></i>
+                    <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-[13px] font-bold {{ request()->routeIs('settings.*') ? 'nav-item-active bg-purple-50 dark:bg-purple-950/60 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs' : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center shrink-0 text-xs">
+                            <i class="fa-solid fa-gear"></i>
+                        </div>
                         <span>Account Instellingen</span>
                     </a>
                     @if(Auth::check() && Auth::user()->isStaff())
-                    <a href="{{ route('admin.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg bg-purple-100/90 dark:bg-purple-950/70 text-purple-900 dark:text-purple-300 font-bold">
+                    <a href="{{ route('admin.dashboard') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-purple-100 dark:bg-purple-950/70 text-purple-950 dark:text-white font-extrabold border-l-4 border-purple-600 pl-2 shadow-2xs">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                            <div class="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xs">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
                             <span class="font-black">Medewerkers Admin</span>
                         </div>
                         <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Staff</span>
