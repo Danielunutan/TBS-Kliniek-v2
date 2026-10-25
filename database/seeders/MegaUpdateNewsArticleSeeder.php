@@ -86,7 +86,7 @@ MARKDOWN;
 
         // Find system/admin character or first character to post Plein Chat message
         $senderChar = Character::whereHas('user', function ($q) {
-            $q->where('is_admin', true)->orWhere('role', 'admin');
+            $q->where('role', 'admin');
         })->first() ?? Character::first();
 
         if ($senderChar) {
