@@ -2,7 +2,13 @@
 <html lang="nl" class="h-full">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TBS Kliniek">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0b0f19" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="turbo-cache-control" content="no-cache">
     <!-- ANTI-FOUC DARK MODE THEME SCRIPT -->
@@ -491,6 +497,7 @@
         function tbsStatsTracker() {
             return {
                 mobileMenuOpen: false,
+                mobileQuickSheetOpen: false,
                 stats: {
                     cash: {{ (int)$character->cash }},
                     cashFormatted: '€{{ number_format($character->cash, 0, ',', '.') }}',
@@ -1331,180 +1338,87 @@
     <!-- MAIN APP WRAPPER -->
     <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
-        <!-- MOBILE TOP HEADER BAR -->
-        <div class="lg:hidden bg-white dark:bg-[#110726] text-slate-800 dark:text-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs">
+        <!-- NATIVE MOBILE TOP-HUD (Compact Single-Line, Max Gaming Screen Space) -->
+        <header class="lg:hidden bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md text-slate-800 dark:text-slate-100 px-2.5 py-2 flex items-center justify-between border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-40 shadow-xs select-none" style="padding-top: max(0.5rem, env(safe-area-inset-top));">
+            
+            <!-- 1. Left: Back, Reload, & Player Avatar / Level -->
             <div class="flex items-center gap-1.5 shrink-0 min-w-0">
-                <!-- WebApp Navigation Buttons (Back & Refresh) -->
+                <!-- WebApp Terug Knop -->
                 <button type="button" 
                         onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
-                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-95 border border-slate-200/60 dark:border-purple-800/40" 
+                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" 
                         title="Vorige pagina (Terug)"
                         aria-label="Terug">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </button>
-                <button type="button" 
-                        onclick="const icon = this.querySelector('i'); if(icon) icon.classList.add('fa-spin'); window.location.reload();" 
-                        class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-95 border border-slate-200/60 dark:border-purple-800/40" 
-                        title="Pagina vernieuwen"
-                        aria-label="Vernieuwen">
-                    <i class="fa-solid fa-rotate-right"></i>
+                    <i class="fa-solid fa-arrow-left text-[11px]"></i>
                 </button>
 
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-1.5 ml-0.5 min-w-0">
-                    <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 drop-shadow-xs flex items-center justify-center">
-                        <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Logo" class="w-full h-full object-contain">
+                <!-- Avatar + Level & Naam (Tap = Profiel) -->
+                @php
+                    $mobileTopBorder = $character ? $character->getEquippedBorderInfo() : null;
+                @endphp
+                <a href="{{ route('profile.me') }}" class="flex items-center gap-1.5 min-w-0 group" title="Bekijk profiel">
+                    <div class="relative shrink-0 flex items-center justify-center">
+                        <div class="w-7 h-7 rounded-full p-[1px] flex items-center justify-center overflow-hidden {{ $mobileTopBorder ? str_replace('ring-4', 'ring-2', $mobileTopBorder['ring']) : 'ring-1 ring-purple-300 dark:ring-purple-700' }}">
+                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#110726]"></span>
                     </div>
-                    <div class="flex flex-col min-w-0">
-                        <span class="text-xs font-black tracking-tight text-slate-900 dark:text-white leading-none truncate">TBS <span class="text-purple-600 dark:text-purple-400">KLINIEK</span></span>
-                        <a href="{{ route('members.index', ['filter' => 'online']) }}" class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5 hover:underline truncate" title="Online patiënten (klik voor online overzicht)">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span> 
-                            <span x-text="stats.onlineCount + ' Online'">{{ $onlineCount }} Online</span>
-                        </a>
+                    <div class="flex flex-col min-w-0 max-w-[55px] xs:max-w-[80px]">
+                        <span class="text-[11px] font-black text-slate-900 dark:text-white truncate leading-none">{{ $character->name }}</span>
+                        <span class="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 leading-none mt-0.5">LVL {{ $character->level }}</span>
                     </div>
                 </a>
             </div>
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+
+            <!-- 2. Center: Live Quick-Gaming Stats Pills (Energy & Cash) -->
+            <div class="flex items-center gap-1.5 shrink-0">
+                <!-- Energy Pill (Tap opens quick sheet) -->
+                <button type="button" 
+                        @click="mobileQuickSheetOpen = true"
+                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition"
+                        title="Energie (klik voor acties)">
+                    <div class="flex items-center gap-1 text-[10px] leading-none font-extrabold text-emerald-600 dark:text-emerald-400">
+                        <i class="fa-solid fa-bolt text-[9px] text-emerald-500"></i>
+                        <span class="font-mono text-[10px]" x-text="stats.energy">{{ $character->energy }}</span><span class="text-[8px] text-slate-400 dark:text-purple-300/60 font-mono">/<span x-text="stats.max_energy">{{ $character->max_energy }}</span></span>
+                    </div>
+                    <div class="w-12 bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1 mt-1 overflow-hidden">
+                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                    </div>
+                </button>
+
+                <!-- Cash Pill (Tap opens quick sheet / bank) -->
+                <button type="button" 
+                        @click="mobileQuickSheetOpen = true"
+                        class="flex items-center gap-1 bg-slate-100/90 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200/80 dark:border-purple-800/40 px-2 py-1.5 rounded-xl cursor-pointer active:scale-95 transition"
+                        title="Contant geld (klik om te storten)">
+                    <i class="fa-solid fa-money-bill-wave text-[10px] text-emerald-500"></i>
+                    <span class="font-black text-slate-900 dark:text-white text-[11px] font-mono leading-none tracking-tight" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                </button>
+            </div>
+
+            <!-- 3. Right: Radio, Live Chat & Menu Toggle -->
+            <div class="flex items-center gap-1 shrink-0">
+                <!-- Mobile Radio Pill -->
+                @include('partials.radio_player', ['isMobile' => true])
+
+                <!-- Chat Button with Notification Ping -->
                 @php
                     $unreadChatCount = $character ? \App\Models\DirectMessage::where('recipient_id', $character->id)->where('is_read', false)->count() : 0;
                 @endphp
-                <a href="{{ route('chat.index') }}" class="relative p-2 rounded-xl text-slate-500 dark:text-purple-300 hover:text-emerald-500 hover:bg-slate-100 dark:hover:bg-purple-950/60 transition" title="Live Chat & DMs">
-                    <i class="fa-solid fa-comments text-sm"></i>
+                <a href="{{ route('chat.index') }}" class="relative w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" title="Live Chat & DMs" aria-label="Live Chat">
+                    <i class="fa-solid fa-comments text-xs"></i>
                     @if($unreadChatCount > 0)
                         <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white animate-ping"></span>
                         <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
                     @endif
                 </a>
 
-                @php
-                    $mobileTopBorder = $character ? $character->getEquippedBorderInfo() : null;
-                @endphp
-                <a href="{{ route('profile.me') }}" class="h-8 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 px-2 rounded-full transition border border-slate-200/70 dark:border-purple-800/40 shrink-0 select-none">
-                    <div class="relative shrink-0 flex items-center justify-center">
-                        <div class="w-6 h-6 rounded-full p-[1px] flex items-center justify-center overflow-hidden {{ $mobileTopBorder ? str_replace('ring-4', 'ring-2', $mobileTopBorder['ring']) : 'ring-1 ring-purple-300 dark:ring-purple-700' }}">
-                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
-                        </div>
-                        @if($mobileTopBorder)
-                            <span class="absolute -bottom-1 -right-1 text-[8px] leading-none select-none drop-shadow">{{ $mobileTopBorder['emoji'] }}</span>
-                        @endif
-                    </div>
-                    <span class="hidden sm:inline text-[11px] font-extrabold text-slate-800 dark:text-purple-200 max-w-[70px] truncate leading-none">{{ $character->name }}</span>
-                </a>
-
-                <!-- Mobile Radio Player Pill -->
-                @include('partials.radio_player', ['isMobile' => true])
-
-                <!-- Mobile Dark Mode Animated Switch -->
-                <button type="button" onclick="window.tbsToggleTheme()" 
-                        class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-300 dark:bg-purple-950/80 transition-colors duration-200 ease-in-out focus:outline-none shadow-inner overflow-hidden" 
-                        title="Wissel Thema"
-                        aria-label="Wissel Thema">
-                    <span class="theme-toggle-knob pointer-events-none inline-flex h-5 w-5 transform rounded-full bg-white dark:bg-purple-900 shadow-md ring-0 transition duration-200 ease-in-out translate-x-0 dark:translate-x-5 items-center justify-center overflow-hidden">
-                        <span class="theme-toggle-sun items-center justify-center">
-                            <i class="fa-solid fa-sun text-amber-500 text-[9px]"></i>
-                        </span>
-                        <span class="theme-toggle-moon items-center justify-center">
-                            <i class="fa-solid fa-moon text-indigo-300 text-[9px]"></i>
-                        </span>
-                    </span>
-                </button>
-
-                <button @click="mobileMenuOpen = true" class="text-slate-700 dark:text-purple-200 p-2 focus:outline-none rounded-xl hover:bg-slate-100 dark:hover:bg-purple-950/60 cursor-pointer active:scale-95 transition" aria-label="Open menu">
-                    <i class="fa-solid fa-bars text-base"></i>
+                <!-- Hamburger Drawer Trigger -->
+                <button @click="mobileMenuOpen = true" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/70 text-slate-700 dark:text-purple-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/60 dark:border-purple-800/40" aria-label="Open menu">
+                    <i class="fa-solid fa-bars text-sm"></i>
                 </button>
             </div>
-        </div>
-
-        <!-- MOBILE QUICK STATS STRIP (Modern Desktop-Matching Widgets) -->
-        <div class="lg:hidden bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-purple-900/40 px-3 py-2 flex items-center gap-2 overflow-x-auto text-xs font-bold scrollbar-none sticky top-[53px] z-30 shadow-xs">
-            
-            <!-- 1. Vermogen / Saldo (Matches Desktop Financial Card) -->
-            <a href="{{ route('bank.index') }}" 
-               class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 border border-slate-200/80 dark:border-purple-800/40 px-2.5 py-1.5 rounded-xl shrink-0 transition active:scale-95 shadow-2xs select-none" 
-               title="Naar De Bank">
-                <div class="w-7 h-7 rounded-lg bg-indigo-500/10 dark:bg-purple-900/40 text-indigo-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0">
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
-                <div class="flex flex-col leading-tight">
-                    <span class="font-black text-slate-900 dark:text-white text-xs tracking-tight" x-text="stats.totalFormatted">€{{ number_format($character->cash + $character->bank, 0, ',', '.') }}</span>
-                    <span class="text-[9px] text-slate-400 dark:text-purple-300/70 font-medium">
-                        <span x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span> c &middot; <span x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span> b
-                    </span>
-                </div>
-            </a>
-
-            <!-- 2. Energie (Matches Desktop Pill Bar) -->
-            <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
-               class="flex flex-col justify-center gap-1 bg-slate-50 hover:bg-slate-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 border border-slate-200/80 dark:border-purple-800/40 px-2.5 py-1.5 rounded-xl shrink-0 w-28 transition active:scale-95 shadow-2xs select-none" 
-               title="Energie: klik voor Inventaris">
-                <div class="flex items-center justify-between text-[9px] leading-none font-bold">
-                    <span class="text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-bolt text-emerald-500 text-[8px]"></i> EP
-                    </span>
-                    <span class="text-emerald-600 dark:text-emerald-400 font-extrabold font-mono text-[10px]" x-text="stats.energy + '/' + stats.max_energy">
-                        {{ $character->energy }}/{{ $character->max_energy }}
-                    </span>
-                </div>
-                <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
-                    <div class="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.energy <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
-                </div>
-            </a>
-
-            <!-- 3. Gezondheid (Matches Desktop Pill Bar) -->
-            <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
-               class="flex flex-col justify-center gap-1 bg-slate-50 hover:bg-slate-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 border border-slate-200/80 dark:border-purple-800/40 px-2.5 py-1.5 rounded-xl shrink-0 w-28 transition active:scale-95 shadow-2xs select-none" 
-               title="Gezondheid: klik voor Inventaris">
-                <div class="flex items-center justify-between text-[9px] leading-none font-bold">
-                    <span class="text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1">
-                        <i class="fa-solid fa-heart text-rose-500 text-[8px]"></i> HP
-                    </span>
-                    <span class="text-rose-600 dark:text-rose-400 font-extrabold font-mono text-[10px]" x-text="stats.health + '/' + stats.max_health">
-                        {{ $character->health }}/{{ $character->max_health }}
-                    </span>
-                </div>
-                <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
-                    <div class="bg-rose-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.health <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
-                </div>
-            </a>
-
-            <!-- 4. VIP Punten Chip (Matches Desktop VIP) -->
-            <a href="{{ route('vip.index') }}" 
-               class="flex items-center gap-2 bg-purple-50/90 hover:bg-purple-100 dark:bg-purple-950/50 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/50 px-2.5 py-1.5 rounded-xl shrink-0 transition active:scale-95 shadow-2xs select-none" 
-               title="VIP Shop & Punten">
-                <div class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0">
-                    <i class="fa-solid fa-crown text-[10px]"></i>
-                </div>
-                <div class="flex flex-col leading-tight pr-1">
-                    <span class="text-[8px] font-black uppercase text-purple-700 dark:text-purple-300 tracking-wider">VIP</span>
-                    <span class="text-xs font-black text-slate-900 dark:text-white" x-text="stats.vipPointsFormatted">{{ number_format($character->vip_points ?? 0, 0, ',', '.') }}</span>
-                </div>
-            </a>
-
-            <!-- 5. Sterren Chip (Matches Desktop Stars) -->
-            <a href="{{ route('vip.index') }}" 
-               class="flex items-center gap-2 bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/50 px-2.5 py-1.5 rounded-xl shrink-0 transition active:scale-95 shadow-2xs select-none" 
-               title="Sterren">
-                <div class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs shrink-0">
-                    <i class="fa-solid fa-star text-[10px]"></i>
-                </div>
-                <div class="flex flex-col leading-tight pr-1">
-                    <span class="text-[8px] font-black uppercase text-amber-800 dark:text-amber-400 tracking-wider">Sterren</span>
-                    <span class="text-xs font-black text-slate-900 dark:text-white" x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
-                </div>
-            </a>
-
-            <!-- 6. Respect Chip (Matches Desktop Respect) -->
-            <div class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/50 border border-slate-200/80 dark:border-purple-800/40 px-2.5 py-1.5 rounded-xl shrink-0 shadow-2xs select-none" 
-                 title="Totaal Respect">
-                <div class="w-6 h-6 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-500 flex items-center justify-center text-xs shrink-0">
-                    <i class="fa-solid fa-fire-flame-curved text-[10px]"></i>
-                </div>
-                <div class="flex flex-col leading-tight pr-1">
-                    <span class="text-[8px] font-black uppercase text-slate-400 dark:text-purple-300/70 tracking-wider">Respect</span>
-                    <span class="text-xs font-black text-slate-900 dark:text-white" x-text="stats.respect">{{ $character->formatted_respect }}</span>
-                </div>
-            </div>
-
-        </div>
+        </header>
 
         <!-- TOP MODERN WHITE HEADER BAR (DESKTOP) - Styled after Reference Design in Site Colors -->
         <header class="hidden lg:block bg-white dark:bg-[#110726] border-b border-slate-200/90 dark:border-purple-900/40 sticky top-0 z-30 shadow-xs">
@@ -2145,34 +2059,233 @@
         </footer>
 
         @if(isset($character))
-        <!-- MOBILE BOTTOM DOCK NAV (Native Mobile/Tablet Navigation) -->
-        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-purple-900/50 z-30 flex items-center justify-around py-2 px-3 shadow-lg select-none">
-            <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
+        <!-- NATIVE MOBILE APP BOTTOM DOCK -->
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#110726]/95 backdrop-blur-md border-t border-slate-200/90 dark:border-purple-900/50 z-30 flex items-center justify-around py-1.5 px-2 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
+            
+            <!-- 1. Home / Dashboard -->
+            <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
                 <i class="fa-solid fa-house text-base"></i>
                 <span>Home</span>
             </a>
-            <a href="{{ route('hustle.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('hustle.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
+
+            <!-- 2. Hosselen / Misdaad -->
+            <a href="{{ route('hustle.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('hustle.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
                 <i class="fa-solid fa-hand-holding-dollar text-base"></i>
                 <span>Hosselen</span>
             </a>
-            <!-- Central Spotlight Search Button (Quick Open) -->
-            <button type="button" 
-                    onclick="if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
-                    class="relative -top-3 flex flex-col items-center justify-center cursor-pointer group">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-purple-600/30 group-active:scale-95 transition-transform border-2 border-white dark:border-[#110726]">
-                    <i class="fa-solid fa-magnifying-glass text-lg group-hover:scale-110 transition-transform"></i>
-                </div>
-                <span class="text-[10px] font-black text-purple-600 dark:text-purple-400 mt-0.5">Zoeken</span>
-            </button>
-            <a href="{{ route('gangs.index') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
+
+            <!-- 3. CENTER GLOWING QUICK-ACTION FAB -->
+            <div class="flex-1 flex flex-col items-center justify-center -mt-5">
+                <button type="button" 
+                        @click="mobileQuickSheetOpen = !mobileQuickSheetOpen"
+                        class="relative w-13 h-13 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-3 border-white dark:border-[#110726] group"
+                        aria-label="Snelmenu Acties">
+                    <span class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping"></span>
+                    <i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
+                </button>
+                <span class="text-[9px] font-black text-purple-600 dark:text-purple-400 mt-0.5 tracking-tight">Acties</span>
+            </div>
+
+            <!-- 4. Bendes -->
+            <a href="{{ route('gangs.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('gangs.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition">
                 <i class="fa-solid fa-users text-base"></i>
                 <span>Bendes</span>
             </a>
-            <a href="{{ route('profile.me') }}" class="flex flex-col items-center gap-1 text-[11px] font-bold {{ request()->routeIs('profile.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }}">
-                <i class="fa-solid fa-user text-base"></i>
-                <span>Profiel</span>
+
+            <!-- 5. Chat / Berichten -->
+            <a href="{{ route('chat.index') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('chat.*') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700' }} active:scale-90 transition relative">
+                <div class="relative">
+                    <i class="fa-solid fa-comments text-base"></i>
+                    @if(isset($unreadChatCount) && $unreadChatCount > 0)
+                        <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#110726]"></span>
+                    @endif
+                </div>
+                <span>Chat</span>
             </a>
         </nav>
+
+        <!-- NATIVE SLIDE-UP QUICK ACTIONS BOTTOM SHEET -->
+        <div x-show="mobileQuickSheetOpen" 
+             x-cloak 
+             class="lg:hidden fixed inset-0 z-50 flex flex-col justify-end" 
+             role="dialog" 
+             aria-modal="true">
+            
+            <!-- Backdrop -->
+            <div x-show="mobileQuickSheetOpen"
+                 x-transition:enter="transition-opacity ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition-opacity ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 @click="mobileQuickSheetOpen = false"
+                 class="fixed inset-0 bg-slate-950/75 backdrop-blur-xs"></div>
+
+            <!-- Slide-Up Card -->
+            <div x-show="mobileQuickSheetOpen"
+                 x-transition:enter="transition ease-out duration-250 transform-gpu"
+                 x-transition:enter-start="translate-y-full"
+                 x-transition:enter-end="translate-y-0"
+                 x-transition:leave="transition ease-in duration-200 transform-gpu"
+                 x-transition:leave-start="translate-y-0"
+                 x-transition:leave-end="translate-y-full"
+                 class="relative bg-white dark:bg-[#0f172a] rounded-t-3xl shadow-2xl border-t border-purple-500/30 max-h-[85vh] overflow-y-auto p-4 z-10 flex flex-col gap-4 text-slate-800 dark:text-slate-100"
+                 style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
+                
+                <!-- Pull Bar Handle -->
+                <div class="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-purple-900/80 mx-auto shrink-0 cursor-pointer" @click="mobileQuickSheetOpen = false"></div>
+
+                <!-- Header / Player Summary -->
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-purple-900/40 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-full p-0.5 bg-purple-100 dark:bg-purple-950 ring-2 ring-purple-500/30 overflow-hidden">
+                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <div>
+                            <div class="font-black text-sm text-slate-900 dark:text-white leading-tight">{{ $character->name }}</div>
+                            <div class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold">LVL {{ $character->level }} &bull; {{ $character->formatted_respect }} Respect</div>
+                        </div>
+                    </div>
+                    <button @click="mobileQuickSheetOpen = false" class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white flex items-center justify-center text-sm transition cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Stats Overview Grid (Cards) -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <!-- Cash & Deposit -->
+                    <div class="p-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-wallet"></i> Contant</span>
+                            <span class="font-mono font-black text-xs" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                        </div>
+                        @if($character->cash > 0)
+                        <form action="{{ route('bank.deposit') }}" method="POST" class="mt-2">
+                            @csrf
+                            <input type="hidden" name="amount" value="{{ (int)$character->cash }}">
+                            <button type="submit" class="w-full py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-building-columns text-[9px]"></i> Alles Storten
+                            </button>
+                        </form>
+                        @else
+                        <a href="{{ route('bank.index') }}" class="mt-2 w-full py-1 px-2 rounded-lg bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10px] text-center block">
+                            Naar Bank &raquo;
+                        </a>
+                        @endif
+                    </div>
+
+                    <!-- Bank Balance -->
+                    <div class="p-2.5 rounded-2xl bg-indigo-50 dark:bg-purple-950/40 border border-indigo-200/80 dark:border-purple-800/40 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] font-bold text-indigo-800 dark:text-purple-300">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-building-columns"></i> Bank Saldo</span>
+                            <span class="font-mono font-black text-xs" x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span>
+                        </div>
+                        <a href="{{ route('bank.index') }}" class="mt-2 w-full py-1 px-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-vault text-[9px]"></i> Bank Beheer
+                        </a>
+                    </div>
+
+                    <!-- Energy -->
+                    <div class="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-bolt text-amber-500"></i> Energie</span>
+                            <span class="font-mono font-black text-xs text-emerald-600 dark:text-emerald-400" x-text="stats.energy + '/' + stats.max_energy">{{ $character->energy }}/{{ $character->max_energy }}</span>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 my-1.5 overflow-hidden">
+                            <div class="bg-emerald-500 h-full rounded-full transition-all" :style="'width: ' + stats.energy_pct + '%'"></div>
+                        </div>
+                        <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" class="w-full py-1 px-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-pills text-[9px]"></i> Booster Nemen
+                        </a>
+                    </div>
+
+                    <!-- Health -->
+                    <div class="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-800/40 flex flex-col justify-between">
+                        <div class="flex items-center justify-between text-[10px] font-bold text-rose-800 dark:text-rose-300">
+                            <span class="flex items-center gap-1"><i class="fa-solid fa-heart text-rose-500"></i> Gezondheid</span>
+                            <span class="font-mono font-black text-xs text-rose-600 dark:text-rose-400" x-text="stats.health + '/' + stats.max_health">{{ $character->health }}/{{ $character->max_health }}</span>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 my-1.5 overflow-hidden">
+                            <div class="bg-rose-500 h-full rounded-full transition-all" :style="'width: ' + stats.health_pct + '%'"></div>
+                        </div>
+                        <a href="{{ route('infirmary.index') }}" class="w-full py-1 px-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-kit-medical text-[9px]"></i> Genezen
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 🚀 Snelle Acties Grid (Large 3-Column Touch Buttons) -->
+                <div>
+                    <span class="text-[10px] font-black uppercase text-slate-400 dark:text-purple-300/70 tracking-wider mb-2 block">Direct Naar</span>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold">
+                        <a href="{{ route('hustle.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                            </div>
+                            <span class="text-[10px] truncate w-full">Hosselen</span>
+                        </a>
+
+                        <a href="{{ route('fight.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-rose-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-hand-fist"></i>
+                            </div>
+                            <span class="text-[10px] truncate w-full">Vechten</span>
+                        </a>
+
+                        <a href="{{ route('vault.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-amber-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                            <span class="text-[10px] truncate w-full">Kluis</span>
+                        </a>
+
+                        <a href="{{ route('market.index') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-indigo-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-store"></i>
+                            </div>
+                            <span class="text-[10px] truncate w-full">Markt</span>
+                        </a>
+
+                        <a href="{{ route('leaderboard') }}" class="p-2.5 rounded-2xl bg-slate-100 hover:bg-amber-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-trophy"></i>
+                            </div>
+                            <span class="text-[10px] truncate w-full">Ranglijst</span>
+                        </a>
+
+                        <button type="button" 
+                                @click="mobileQuickSheetOpen = false; if(window.tbsOpenSpotlight){window.tbsOpenSpotlight();}"
+                                class="p-2.5 rounded-2xl bg-slate-100 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-slate-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95 cursor-pointer">
+                            <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <span class="text-[10px] truncate w-full">Zoeken</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls (Terug, Vernieuwen & Thema Wissel) -->
+                <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-100 dark:border-purple-900/40">
+                    <button type="button" 
+                            onclick="if(window.history.length > 1){ window.history.back(); } else { window.location.href = '{{ route('dashboard') }}'; }" 
+                            class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
+                        <i class="fa-solid fa-arrow-left"></i> Terug
+                    </button>
+                    <button type="button" 
+                            onclick="const icon = this.querySelector('i'); if(icon) icon.classList.add('fa-spin'); window.location.reload();" 
+                            class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i> Refresh
+                    </button>
+                    <button type="button" 
+                            onclick="window.tbsToggleTheme()" 
+                            class="py-2 rounded-xl bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 font-extrabold text-[11px] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer">
+                        <i class="fa-solid fa-circle-half-stroke"></i> Thema
+                    </button>
+                </div>
+
+            </div>
+        </div>
         @endif
     </div>
 

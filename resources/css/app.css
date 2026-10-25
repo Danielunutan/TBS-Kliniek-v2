@@ -500,3 +500,37 @@ html.dark .news-content li {
 .will-change-opacity {
     will-change: opacity;
 }
+
+/* ======================================================== */
+/* NATIVE MOBILE APP TOUCH & PERFORMANCE OPTIMIZATIONS      */
+/* ======================================================== */
+html, body, button, a, input, select, textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe-area insets helper classes for iPhone notch / home bar */
+.pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.inset-safe-bottom {
+    bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Native feel for touch interactions */
+@media (hover: none) and (pointer: coarse) {
+    button, a, [role="button"] {
+        -webkit-touch-callout: none;
+    }
+    
+    /* Native game control active feedback */
+    .active\:scale-90:active {
+        transform: scale(0.90);
+    }
+    .active\:scale-95:active {
+        transform: scale(0.95);
+    }
+}
