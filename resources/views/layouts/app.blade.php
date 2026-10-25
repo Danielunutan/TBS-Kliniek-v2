@@ -2477,44 +2477,56 @@
             }
         }
         /* When Live Chat popup is open, hide BMC button so it does not obstruct the chat window */
+        #bmc-wbtn svg {
+            width: 18px !important;
+            height: 18px !important;
+            display: block !important;
+            margin: auto !important;
+        }
         body.tbs-chat-open #bmc-wbtn {
             opacity: 0 !important;
             pointer-events: none !important;
             transform: scale(0.8) !important;
         }
         #bmc-iframe {
-            z-index: 99999 !important;
+            z-index: 999999 !important;
         }
     </style>
-    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="tbskliniek" data-description="Support me on Buy me a coffee!" data-message="" data-color="#7c3aed" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+    <div id="bmc-permanent-holder" data-turbo-permanent></div>
+    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="tbskliniek" data-description="Support me on Buy me a coffee!" data-message="" data-color="#7c3aed" data-position="Right" data-x_margin="24" data-y_margin="74"></script>
     <script>
         (function() {
-            function ensureBmcButton() {
-                if (!document.getElementById('bmc-wbtn')) {
-                    var btn = document.createElement('a');
-                    btn.id = 'bmc-wbtn';
-                    btn.href = 'https://www.buymeacoffee.com/tbskliniek';
-                    btn.target = '_blank';
-                    btn.rel = 'noopener noreferrer';
-                    btn.title = 'Steun TBS Kliniek op Buy Me a Coffee!';
-                    btn.style.position = 'fixed';
-                    btn.style.top = 'auto';
-                    btn.style.bottom = '74px';
-                    btn.style.right = '24px';
-                    btn.innerHTML = '<img src="https://cdn.buymeacoffee.com/widget/assets/coffee%20cup.svg" alt="Buy Me a Coffee">';
-                    document.body.appendChild(btn);
+            function adoptBmcElements() {
+                const holder = document.getElementById('bmc-permanent-holder');
+                if (!holder) return;
+
+                const bmcBtn = document.getElementById('bmc-wbtn');
+                const bmcIframe = document.getElementById('bmc-iframe');
+
+                if (bmcBtn && bmcBtn.parentNode !== holder) {
+                    holder.appendChild(bmcBtn);
+                }
+                if (bmcIframe) {
+                    const overlay = bmcIframe.parentElement || bmcIframe;
+                    if (overlay && overlay !== holder && overlay.parentNode !== holder) {
+                        holder.appendChild(overlay);
+                    }
                 }
             }
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', ensureBmcButton);
-            } else {
-                ensureBmcButton();
-            }
-            document.addEventListener('turbo:load', function() {
-                setTimeout(ensureBmcButton, 300);
-            });
 
-            setTimeout(ensureBmcButton, 1000);
+            // Run check periodically to preserve BMC widget elements across Turbo navigations
+            let checkCount = 0;
+            const timer = setInterval(() => {
+                adoptBmcElements();
+                checkCount++;
+                if (document.getElementById('bmc-wbtn') && document.getElementById('bmc-iframe')) {
+                    clearInterval(timer);
+                } else if (checkCount > 30) {
+                    clearInterval(timer);
+                }
+            }, 300);
+
+            document.addEventListener('turbo:load', adoptBmcElements);
         })();
     </script>
 
