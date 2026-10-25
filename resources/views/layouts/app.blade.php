@@ -421,6 +421,16 @@
             width: 0 !important;
             height: 0 !important;
         }
+
+        /* Prevent mobile swipe/pull-to-refresh reload in all chat stream containers */
+        #tbsChatScrollContainer,
+        #tbsMiniChatScroll,
+        #tbsMiniGangScroll,
+        #tbsMiniDirectScroll,
+        .tbs-chat-wrapper {
+            overscroll-behavior-y: contain !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
     </style>
 
     @php
@@ -3135,71 +3145,5 @@
     </script>
     @endif
     @endif
-
-    <!-- Native Touch Pull-To-Refresh for WebApp / PWA -->
-    <div id="tbs-pull-refresh-indicator" 
-         class="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-200 opacity-0 -translate-y-6 flex items-center gap-2 bg-slate-900/95 dark:bg-purple-950/95 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg border border-purple-500/40"
-         style="top: calc(env(safe-area-inset-top, 0px) + 0.65rem);">
-        <i class="fa-solid fa-rotate-right text-xs"></i>
-        <span id="tbs-pull-refresh-text">Trek omlaag om te vernieuwen</span>
-    </div>
-    <script>
-        (function() {
-            let startY = 0;
-            let currentY = 0;
-            let isPulling = false;
-            const threshold = 70;
-            const indicator = document.getElementById('tbs-pull-refresh-indicator');
-            const indicatorText = document.getElementById('tbs-pull-refresh-text');
-            const icon = indicator ? indicator.querySelector('i') : null;
-
-            window.addEventListener('touchstart', (e) => {
-                if (window.scrollY === 0 && e.touches.length === 1) {
-                    startY = e.touches[0].clientY;
-                    isPulling = true;
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!isPulling || window.scrollY > 0) {
-                    isPulling = false;
-                    if (indicator) {
-                        indicator.style.opacity = '0';
-                        indicator.style.transform = 'translate(-50%, -24px)';
-                    }
-                    return;
-                }
-                currentY = e.touches[0].clientY;
-                const diff = currentY - startY;
-                if (diff > 15 && indicator) {
-                    const progress = Math.min(diff / threshold, 1);
-                    indicator.style.opacity = String(progress);
-                    indicator.style.transform = `translate(-50%, ${Math.min(diff * 0.4, 20)}px)`;
-                    if (icon) icon.style.transform = `rotate(${diff * 3}deg)`;
-                    if (diff >= threshold) {
-                        indicatorText.textContent = 'Laat los om te vernieuwen';
-                    } else {
-                        indicatorText.textContent = 'Trek omlaag om te vernieuwen';
-                    }
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchend', (e) => {
-                if (!isPulling) return;
-                const diff = currentY - startY;
-                isPulling = false;
-                if (diff >= threshold && window.scrollY === 0) {
-                    if (indicatorText) indicatorText.textContent = 'Vernieuwen...';
-                    if (icon) icon.classList.add('fa-spin');
-                    setTimeout(() => window.location.reload(), 200);
-                } else if (indicator) {
-                    indicator.style.opacity = '0';
-                    indicator.style.transform = 'translate(-50%, -24px)';
-                }
-                startY = 0;
-                currentY = 0;
-            }, { passive: true });
-        })();
-    </script>
 </body>
 </html>

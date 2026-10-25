@@ -9,6 +9,11 @@
         height: 740px;
         max-height: calc(100vh - 210px);
         min-height: 520px;
+        overscroll-behavior: contain;
+    }
+    #tbsChatScrollContainer {
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
     }
     @media (max-width: 768px) {
         .tbs-chat-wrapper {
