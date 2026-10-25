@@ -711,6 +711,13 @@
                                 <span x-text="isLocating ? 'Locatie zoeken...' : '📍 Mijn Locatie Ophalen'"></span>
                             </button>
 
+                            <button type="button" 
+                                    @click="promptCity()" 
+                                    class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white text-xs transition cursor-pointer"
+                                    title="Typ je eigen woonplaats (bijv. Rotterdam, Amsterdam, Utrecht)">
+                                <i class="fa-solid fa-city"></i>
+                            </button>
+
                             <template x-if="weather.is_gps">
                                 <button type="button" 
                                         @click="resetToVught()" 
@@ -1552,6 +1559,28 @@ function tbsDashboardCustomizer() {
                 }
             } catch (e) {
                 // ignore
+            } finally {
+                this.isLocating = false;
+            }
+        },
+
+        promptCity() {
+            const city = prompt('Voer je gewenste Nederlandse stad of gemeente in (bijv. Amsterdam, Rotterdam, Utrecht, Eindhoven):');
+            if (city && city.trim()) {
+                this.fetchCityWeather(city.trim());
+            }
+        },
+
+        async fetchCityWeather(city) {
+            this.isLocating = true;
+            try {
+                const res = await fetch(`{{ route('dashboard.weather.coords') }}?city=` + encodeURIComponent(city));
+                const data = await res.json();
+                if (data.success && data.weather) {
+                    this.weather = data.weather;
+                }
+            } catch(e) {
+                alert('Kon live weer niet ophalen voor ' + city);
             } finally {
                 this.isLocating = false;
             }

@@ -120,4 +120,20 @@ class DashboardWidgetAndWeatherTest extends TestCase
             ],
         ]);
     }
+
+    public function test_weather_by_city_endpoint_returns_data(): void
+    {
+        $user = User::factory()->create();
+        $this->createCharacter($user);
+
+        $response = $this->actingAs($user)->getJson(route('dashboard.weather.coords', [
+            'city' => 'Rotterdam',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+        ]);
+        $response->assertJsonPath('weather.location', 'Rotterdam');
+    }
 }

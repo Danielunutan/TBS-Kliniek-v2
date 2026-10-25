@@ -297,10 +297,24 @@ class DashboardController extends Controller
     }
 
     /**
-     * Fetch real-time weather by browser GPS coordinates and cache for user.
+     * Fetch real-time weather by browser GPS coordinates or city name.
      */
     public function weatherByCoords(Request $request): JsonResponse
     {
+        $city = $request->input('city');
+        if (! empty($city) && is_string($city)) {
+            $weather = $this->weatherService->getWeatherByCity($city);
+            session([
+                'user_weather_lat' => $weather['latitude'] ?? null,
+                'user_weather_lon' => $weather['longitude'] ?? null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'weather' => $weather,
+            ]);
+        }
+
         $validated = $request->validate([
             'lat' => 'required|numeric|between:-90,90',
             'lon' => 'required|numeric|between:-180,180',

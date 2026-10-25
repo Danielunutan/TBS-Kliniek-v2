@@ -28,6 +28,43 @@ class WeatherService
     }
 
     /**
+     * Get live weather data for any Dutch city or town name.
+     *
+     * @return array<string, mixed>
+     */
+    public function getWeatherByCity(string $city): array
+    {
+        $city = trim($city);
+        if ($city === '') {
+            return $this->getClinicWeather();
+        }
+
+        try {
+            $resp = Http::withoutVerifying()
+                ->timeout(4)
+                ->get('https://geocoding-api.open-meteo.com/v1/search', [
+                    'name' => $city,
+                    'count' => 1,
+                    'language' => 'nl',
+                    'format' => 'json',
+                ]);
+
+            if ($resp->successful() && ! empty($resp->json('results'))) {
+                $first = $resp->json('results')[0];
+                $lat = (float) ($first['latitude'] ?? self::DEFAULT_LAT);
+                $lon = (float) ($first['longitude'] ?? self::DEFAULT_LON);
+                $resolvedName = (string) ($first['name'] ?? $city);
+
+                return $this->getWeather($lat, $lon, $resolvedName);
+            }
+        } catch (Throwable $e) {
+            // ignore
+        }
+
+        return $this->getClinicWeather();
+    }
+
+    /**
      * Get real live weather data from Open-Meteo for coordinates.
      * Cached for 15 minutes per approximate coordinate (2 decimals ~ 1km).
      *
