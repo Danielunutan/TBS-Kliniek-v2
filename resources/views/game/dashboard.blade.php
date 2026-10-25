@@ -286,7 +286,7 @@
                  x-transition
                  class="bg-white dark:bg-[#111827] rounded-2xl p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden">
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('radio')" class="text-center py-4 space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
+                <div x-show="!isUnlocked('radio')" x-cloak @if($character->isWidgetUnlocked('radio')) style="display: none;" @endif class="text-center py-4 space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-rose-200 dark:border-rose-800/80">
                         <i class="fa-solid fa-radio"></i>
                     </div>
@@ -308,7 +308,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('radio')">
+                <div x-show="isUnlocked('radio')" x-cloak @if(!$character->isWidgetUnlocked('radio')) style="display: none;" @endif>
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-3">
                             <div class="w-11 h-11 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
@@ -617,7 +617,7 @@
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('weather')" class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
+                <div x-show="!isUnlocked('weather')" x-cloak @if($character->isWidgetUnlocked('weather')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-amber-200 dark:border-amber-800/80">
                         <i class="fa-solid fa-lock"></i>
                     </div>
@@ -639,7 +639,7 @@
                 </div>
 
                 <!-- Unlocked Live Content -->
-                <div x-show="isUnlocked('weather')">
+                <div x-show="isUnlocked('weather')" x-cloak @if(!$character->isWidgetUnlocked('weather')) style="display: none;" @endif>
                     <div class="p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 text-white flex items-center justify-between">
                         <div>
                             <div class="flex items-center gap-1.5">
@@ -731,7 +731,7 @@
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('nunl')" class="p-6 text-center space-y-3 bg-gradient-to-b from-indigo-500/5 to-transparent">
+                <div x-show="!isUnlocked('nunl')" x-cloak @if($character->isWidgetUnlocked('nunl')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-indigo-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-indigo-200 dark:border-indigo-800/80">
                         <i class="fa-solid fa-newspaper"></i>
                     </div>
@@ -753,7 +753,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('nunl')">
+                <div x-show="isUnlocked('nunl')" x-cloak @if(!$character->isWidgetUnlocked('nunl')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs border border-indigo-200 dark:border-indigo-800">
@@ -809,7 +809,7 @@
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-amber-200/90 dark:border-amber-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('peuken_market')" class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
+                <div x-show="!isUnlocked('peuken_market')" x-cloak @if($character->isWidgetUnlocked('peuken_market')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-amber-200 dark:border-amber-800/80">
                         <i class="fa-solid fa-smoking"></i>
                     </div>
@@ -831,7 +831,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('peuken_market')">
+                <div x-show="isUnlocked('peuken_market')" x-cloak @if(!$character->isWidgetUnlocked('peuken_market')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
@@ -890,7 +890,7 @@
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-rose-200/90 dark:border-rose-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('security')" class="p-6 text-center space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
+                <div x-show="!isUnlocked('security')" x-cloak @if($character->isWidgetUnlocked('security')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-rose-200 dark:border-rose-800/80">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
@@ -912,7 +912,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('security')">
+                <div x-show="isUnlocked('security')" x-cloak @if(!$character->isWidgetUnlocked('security')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-gradient-to-r from-rose-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs">
@@ -961,7 +961,7 @@
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-emerald-200/90 dark:border-emerald-900/50 overflow-hidden">
                 
                 <!-- Locked State -->
-                <div x-show="!isUnlocked('roulette')" class="p-6 text-center space-y-3 bg-gradient-to-b from-emerald-500/5 to-transparent">
+                <div x-show="!isUnlocked('roulette')" x-cloak @if($character->isWidgetUnlocked('roulette')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-emerald-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-emerald-200 dark:border-emerald-800/80">
                         <i class="fa-solid fa-clover"></i>
                     </div>
@@ -983,7 +983,7 @@
                 </div>
 
                 <!-- Unlocked Content -->
-                <div x-show="isUnlocked('roulette')">
+                <div x-show="isUnlocked('roulette')" x-cloak @if(!$character->isWidgetUnlocked('roulette')) style="display: none;" @endif>
                     <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">

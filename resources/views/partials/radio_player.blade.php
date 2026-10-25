@@ -1,6 +1,7 @@
 <div id="tbs-global-radio-container" 
      x-data="tbsRadioPlayer()" 
      x-init="initPlayer()"
+     x-cloak
      class="fixed bottom-20 left-4 lg:bottom-6 lg:left-6 z-40 select-none font-sans"
      @tbs-play-station.window="changeStation($event.detail.id, true)">
 
@@ -57,6 +58,8 @@
 
     <!-- 2. Expanded Full Mini-Player Card -->
     <div x-show="isExpanded" 
+         x-cloak
+         style="display: none;"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0 translate-y-3 scale-95"
          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
