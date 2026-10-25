@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\EnergyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class LeaderboardController extends Controller
@@ -26,17 +27,23 @@ class LeaderboardController extends Controller
         $this->energyService->refresh($character);
 
         $type = $request->query('type', 'level');
+        if (! in_array($type, ['level', 'respect', 'wealth', 'crimes'], true)) {
+            $type = 'level';
+        }
 
-        $query = Character::query()->with('gang');
+        $leaderboard = Cache::remember("tbs_leaderboard_{$type}", 60, function () use ($type) {
+            $query = Character::query()->with('gang');
 
-        match ($type) {
-            'respect' => $query->orderByDesc('respect')->orderByDesc('level'),
-            'wealth' => $query->selectRaw('*, (cash + bank) as total_wealth')->orderByDesc('total_wealth'),
-            'crimes' => $query->orderByDesc('thefts_succeeded')->orderByDesc('respect'),
-            default => $query->orderByDesc('level')->orderByDesc('xp'),
-        };
+            match ($type) {
+                'respect' => $query->orderByDesc('respect')->orderByDesc('level'),
+                'wealth' => $query->selectRaw('*, (cash + bank) as total_wealth')->orderByDesc('total_wealth'),
+                'crimes' => $query->orderByDesc('thefts_succeeded')->orderByDesc('respect'),
+                default => $query->orderByDesc('level')->orderByDesc('xp'),
+            };
 
-        $leaderboard = $query->take(20)->get();
+            return $query->take(50)->get();
+        });
+
         $topCharacters = $leaderboard;
 
         return view('game.leaderboard', compact('character', 'leaderboard', 'topCharacters', 'type'));

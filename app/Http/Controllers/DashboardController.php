@@ -18,6 +18,7 @@ use App\Services\ReferralService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -88,11 +89,12 @@ class DashboardController extends Controller
         $notifications = $character->notifications()->take(5)->get();
         $recentGuestbook = $character->guestbookEntries()->with('author')->take(3)->get();
 
-        $latestNews = NewsArticle::where('is_published', true)
+        $latestNews = Cache::remember('tbs_latest_published_news', 60, fn () => NewsArticle::where('is_published', true)
             ->orderByDesc('is_pinned')
             ->latest()
             ->take(4)
-            ->get();
+            ->get()
+        );
 
         // Dynamische Recente Activiteiten samenstellen
         $activities = collect();
@@ -175,7 +177,7 @@ class DashboardController extends Controller
         $recentActivities = $activities->sortByDesc('time')->take(5)->values();
 
         $referralStats = $this->referralService->getStats($character);
-        $lotteryRound = LotteryRound::current();
+        $lotteryRound = Cache::remember('tbs_current_lottery_round', 30, fn () => LotteryRound::current());
 
         $isLoginBonusActive = Character::isLoginBonusWindowActive();
         $hasClaimedStreakToday = $character->hasClaimedStreakToday();

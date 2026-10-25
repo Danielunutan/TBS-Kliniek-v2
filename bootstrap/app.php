@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Middleware\EnsureUserIsOnboarded;
 use App\Http\Middleware\PreserveSessionFlashOnAjax;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\UpdateUserOnlineStatus;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            SecurityHeaders::class,
             UpdateUserOnlineStatus::class,
             EnsureUserIsNotBanned::class,
             EnsureUserIsOnboarded::class,

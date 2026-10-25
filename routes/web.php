@@ -292,23 +292,23 @@ Route::middleware('auth')->group(function (): void {
 
     // Extort (Afpersen)
     Route::get('/afpersen', [ExtortController::class, 'index'])->name('extort.index');
-    Route::post('/afpersen/uitvoeren', [ExtortController::class, 'extort'])->name('extort.extort');
+    Route::post('/afpersen/uitvoeren', [ExtortController::class, 'extort'])->name('extort.extort')->middleware('throttle:30,1');
 
     // Pickpocket (Zakkenrollen)
     Route::get('/zakkenrollen', [PickpocketController::class, 'index'])->name('pickpocket.index');
-    Route::post('/zakkenrollen/stelen', [PickpocketController::class, 'steal'])->name('pickpocket.steal');
+    Route::post('/zakkenrollen/stelen', [PickpocketController::class, 'steal'])->name('pickpocket.steal')->middleware('throttle:30,1');
 
     // Lockers (Kluisjes)
     Route::get('/kluisjes', [LockerController::class, 'index'])->name('lockers.index');
-    Route::post('/kluisjes/kraken', [LockerController::class, 'crack'])->name('lockers.crack');
+    Route::post('/kluisjes/kraken', [LockerController::class, 'crack'])->name('lockers.crack')->middleware('throttle:30,1');
 
     // Packages (Pakketjes)
     Route::get('/pakketjes', [PackageController::class, 'index'])->name('packages.index');
-    Route::post('/pakketjes/onderscheppen', [PackageController::class, 'intercept'])->name('packages.intercept');
-    Route::post('/pakketjes/tas-openen', [PackageController::class, 'openBag'])->name('packages.open-bag');
-    Route::post('/pakketjes/tas-verkopen', [PackageController::class, 'sellBag'])->name('packages.sell-bag');
-    Route::post('/pakketjes/xxl-openen', [PackageController::class, 'openXxl'])->name('packages.open-xxl');
-    Route::post('/pakketjes/xxl-kopen', [PackageController::class, 'buyXxl'])->name('packages.buy-xxl');
+    Route::post('/pakketjes/onderscheppen', [PackageController::class, 'intercept'])->name('packages.intercept')->middleware('throttle:30,1');
+    Route::post('/pakketjes/tas-openen', [PackageController::class, 'openBag'])->name('packages.open-bag')->middleware('throttle:30,1');
+    Route::post('/pakketjes/tas-verkopen', [PackageController::class, 'sellBag'])->name('packages.sell-bag')->middleware('throttle:30,1');
+    Route::post('/pakketjes/xxl-openen', [PackageController::class, 'openXxl'])->name('packages.open-xxl')->middleware('throttle:30,1');
+    Route::post('/pakketjes/xxl-kopen', [PackageController::class, 'buyXxl'])->name('packages.buy-xxl')->middleware('throttle:30,1');
 
     // 24 Uur Battle (Dagelijkse Battle)
     Route::get('/24-uur-battle', [DailyBattleController::class, 'index'])->name('battle.index');
@@ -316,27 +316,27 @@ Route::middleware('auth')->group(function (): void {
 
     // Rad van Fortuin & Dagelijkse Beloningen
     Route::get('/rad-van-fortuin', [DailyRewardController::class, 'index'])->name('daily.index');
-    Route::post('/rad-van-fortuin/spin', [DailyRewardController::class, 'spin'])->name('daily.spin');
-    Route::post('/rad-van-fortuin/streak', [DailyRewardController::class, 'claimStreak'])->name('daily.claim-streak');
+    Route::post('/rad-van-fortuin/spin', [DailyRewardController::class, 'spin'])->name('daily.spin')->middleware('throttle:30,1');
+    Route::post('/rad-van-fortuin/streak', [DailyRewardController::class, 'claimStreak'])->name('daily.claim-streak')->middleware('throttle:30,1');
 
     // Cyber Terminal Hacking Minigame
     Route::get('/hacking', [HackingController::class, 'index'])->name('hacking.index');
-    Route::post('/hacking/puzzle', [HackingController::class, 'solvePuzzle'])->name('hacking.puzzle');
-    Route::post('/hacking/spin', [HackingController::class, 'spin'])->name('hacking.spin');
+    Route::post('/hacking/puzzle', [HackingController::class, 'solvePuzzle'])->name('hacking.puzzle')->middleware('throttle:30,1');
+    Route::post('/hacking/spin', [HackingController::class, 'spin'])->name('hacking.spin')->middleware('throttle:30,1');
 
     // Vault (Kluis Kraak & Codes)
     Route::get('/kluis-kraak', [VaultController::class, 'index'])->name('vault.index');
-    Route::post('/kluis-kraak/raden', [VaultController::class, 'guess'])->name('vault.guess');
-    Route::post('/kluis-kraak/koop-code', [VaultController::class, 'buyCode'])->name('vault.buy-code');
-    Route::post('/kluis-kraak/koop-hint', [VaultController::class, 'buyHint'])->name('vault.buy-hint');
-    Route::post('/kluis-kraak/koop-jammer', [VaultController::class, 'buyJammer'])->name('vault.buy-jammer');
-    Route::post('/kluis-kraak/inwisselen', [VaultController::class, 'redeemCode'])->name('vault.redeem');
-    Route::post('/kluis-kraak/code-verkopen', [VaultController::class, 'sellCode'])->name('vault.sell-code');
-    Route::post('/kluis-kraak/maskers-verkopen', [VaultController::class, 'sellMask'])->name('vault.sell-mask');
+    Route::post('/kluis-kraak/raden', [VaultController::class, 'guess'])->name('vault.guess')->middleware('throttle:30,1');
+    Route::post('/kluis-kraak/koop-code', [VaultController::class, 'buyCode'])->name('vault.buy-code')->middleware('throttle:30,1');
+    Route::post('/kluis-kraak/koop-hint', [VaultController::class, 'buyHint'])->name('vault.buy-hint')->middleware('throttle:30,1');
+    Route::post('/kluis-kraak/koop-jammer', [VaultController::class, 'buyJammer'])->name('vault.buy-jammer')->middleware('throttle:30,1');
+    Route::post('/kluis-kraak/inwisselen', [VaultController::class, 'redeemCode'])->name('vault.redeem')->middleware('throttle:30,1');
+    Route::post('/kluis-kraak/code-verkopen', [VaultController::class, 'sellCode'])->name('vault.sell-code')->middleware('throttle:30,1');
+    Route::post('/kluis-kraak/maskers-verkopen', [VaultController::class, 'sellMask'])->name('vault.sell-mask')->middleware('throttle:30,1');
 
     // VIP Punten Shop (Diamanten)
     Route::get('/vip-shop', [VipController::class, 'index'])->name('vip.index');
-    Route::post('/vip-shop/inwisselen', [VipController::class, 'redeem'])->name('vip.redeem');
+    Route::post('/vip-shop/inwisselen', [VipController::class, 'redeem'])->name('vip.redeem')->middleware('throttle:30,1');
 
     // Combat Training (Schietoefening)
     Route::get('/vechtoefening', [CombatTrainingController::class, 'index'])->name('combat_training.index');
@@ -519,6 +519,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Leaderboard & Leden / Patiëntenlijst
     Route::get('/ranglijst', [LeaderboardController::class, 'index'])->name('leaderboard.index');
+    Route::get('/leaderboard', fn () => redirect()->route('leaderboard.index'))->name('leaderboard');
     Route::get('/leden', [MembersController::class, 'index'])->name('members.index');
     Route::get('/online', fn () => redirect()->route('members.index', ['filter' => 'online']))->name('online.index');
 

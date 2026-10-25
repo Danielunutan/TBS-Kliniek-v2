@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\KofferLog;
 use App\Models\VaultCode;
 use App\Services\CooldownService;
@@ -13,6 +14,7 @@ use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PackageController extends Controller
@@ -140,81 +142,86 @@ class PackageController extends Controller
      */
     public function openBag(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $user = Auth::user();
 
-        if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
-        }
+        return DB::transaction(function () use ($user) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        if (($character->unopened_bags ?? 0) <= 0) {
-            return back()->with('error', 'Je hebt geen ongeopende tassen liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
-        }
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
+            }
 
-        if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
-            return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
-        }
+            if (($character->unopened_bags ?? 0) <= 0) {
+                return back()->with('error', 'Je hebt geen ongeopende tassen liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
+            }
 
-        $character->unopened_bags -= 1;
+            if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
+                return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
+            }
 
-        // Clean white money deposited directly to bank!
-        $bankReward = rand(1250, 3750);
-        $character->bank += $bankReward;
+            $character->unopened_bags -= 1;
 
-        $xpReward = rand(80, 180);
-        $this->level->addXp($character, $xpReward);
+            // Clean white money deposited directly to bank!
+            $bankReward = rand(1250, 3750);
+            $character->bank += $bankReward;
 
-        // Chance for stars
-        $starsFound = (rand(1, 100) <= 40) ? rand(1, 2) : 0;
-        if ($starsFound > 0) {
-            $character->stars = ($character->stars ?? 0) + $starsFound;
-        }
+            $xpReward = rand(80, 180);
+            $this->level->addXp($character, $xpReward);
 
-        // Chance for a mask (40% chance, if storage has room)
-        $maskFound = (rand(1, 100) <= 40);
-        if ($maskFound && $character->getStorageUsed() < $character->getStorageCapacity()) {
-            $character->masks = ($character->masks ?? 0) + 1;
-        } else {
-            $maskFound = false;
-        }
+            // Chance for stars
+            $starsFound = (rand(1, 100) <= 40) ? rand(1, 2) : 0;
+            if ($starsFound > 0) {
+                $character->stars = ($character->stars ?? 0) + $starsFound;
+            }
 
-        // Chance for a secret voucher code
-        $voucherCode = null;
-        if (rand(1, 100) <= 30) {
-            $voucherCode = 'TAS-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
-            VaultCode::create([
-                'code' => $voucherCode,
-                'reward_cash' => rand(1000, 2500),
-                'reward_stars' => 1,
-                'reward_tokens' => 2,
+            // Chance for a mask (40% chance, if storage has room)
+            $maskFound = (rand(1, 100) <= 40);
+            if ($maskFound && $character->getStorageUsed() < $character->getStorageCapacity()) {
+                $character->masks = ($character->masks ?? 0) + 1;
+            } else {
+                $maskFound = false;
+            }
+
+            // Chance for a secret voucher code
+            $voucherCode = null;
+            if (rand(1, 100) <= 30) {
+                $voucherCode = 'TAS-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+                VaultCode::create([
+                    'code' => $voucherCode,
+                    'reward_cash' => rand(1000, 2500),
+                    'reward_stars' => 1,
+                    'reward_tokens' => 2,
+                    'character_id' => $character->id,
+                    'is_redeemed' => false,
+                ]);
+            }
+
+            $character->respect += 2;
+            $character->save();
+
+            $logParts = ['€'.number_format($bankReward, 0, ',', '.').' contant'];
+            if ($starsFound > 0) {
+                $logParts[] = "{$starsFound} sterren";
+            }
+            if ($maskFound) {
+                $logParts[] = '1 masker';
+            }
+            if ($voucherCode) {
+                $logParts[] = '1 kluiscode';
+            }
+
+            KofferLog::create([
                 'character_id' => $character->id,
-                'is_redeemed' => false,
+                'loot_summary' => implode(', ', $logParts),
             ]);
-        }
 
-        $character->respect += 2;
-        $character->save();
+            $starTxt = $starsFound > 0 ? " +{$starsFound} Exclusieve Sterren ⭐" : '';
+            $maskTxt = $maskFound ? ' +1 Masker 🎭' : '';
+            $voucherTxt = $voucherCode ? " 🔐 Geheime Kluiscode gevonden: {$voucherCode} (opgeslagen in je postvak/kluis!)" : '';
 
-        $logParts = ['€'.number_format($bankReward, 0, ',', '.').' contant'];
-        if ($starsFound > 0) {
-            $logParts[] = "{$starsFound} sterren";
-        }
-        if ($maskFound) {
-            $logParts[] = '1 masker';
-        }
-        if ($voucherCode) {
-            $logParts[] = '1 kluiscode';
-        }
-
-        KofferLog::create([
-            'character_id' => $character->id,
-            'loot_summary' => implode(', ', $logParts),
-        ]);
-
-        $starTxt = $starsFound > 0 ? " +{$starsFound} Exclusieve Sterren ⭐" : '';
-        $maskTxt = $maskFound ? ' +1 Masker 🎭' : '';
-        $voucherTxt = $voucherCode ? " 🔐 Geheime Kluiscode gevonden: {$voucherCode} (opgeslagen in je postvak/kluis!)" : '';
-
-        return back()->with('success', '🧳 RRRITSS! Je hebt de koffer geopend! Buit: €'.number_format($bankReward, 0, ',', '.')." wit geld direct op je bank 🏦! +{$xpReward} XP{$starTxt}{$maskTxt}{$voucherTxt}");
+            return back()->with('success', '🧳 RRRITSS! Je hebt de koffer geopend! Buit: €'.number_format($bankReward, 0, ',', '.')." wit geld direct op je bank 🏦! +{$xpReward} XP{$starTxt}{$maskTxt}{$voucherTxt}");
+        });
     }
 
     /**
@@ -222,25 +229,29 @@ class PackageController extends Controller
      */
     public function sellBag(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
-
-        if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen koffers verkopen!');
-        }
-
+        $user = Auth::user();
         $amount = max(1, (int) $request->input('amount', 1));
 
-        if (($character->unopened_bags ?? 0) < $amount) {
-            return back()->with('error', 'Je hebt niet genoeg ongeopende koffers om te verkopen.');
-        }
+        return DB::transaction(function () use ($user, $amount) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        $character->unopened_bags -= $amount;
-        $rewardPerBag = 2500;
-        $totalReward = $rewardPerBag * $amount;
-        $character->bank += $totalReward;
-        $character->save();
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen koffers verkopen!');
+            }
 
-        return back()->with('success', "💰 Verkocht! Je hebt {$amount}x Smokkelkoffer verkocht voor €".number_format($totalReward, 0, ',', '.').' wit bankgeld 🏦!');
+            if (($character->unopened_bags ?? 0) < $amount) {
+                return back()->with('error', 'Je hebt niet genoeg ongeopende koffers om te verkopen.');
+            }
+
+            $character->unopened_bags -= $amount;
+            $rewardPerBag = 2500;
+            $totalReward = $rewardPerBag * $amount;
+            $character->bank += $totalReward;
+            $character->save();
+
+            return back()->with('success', "💰 Verkocht! Je hebt {$amount}x Smokkelkoffer verkocht voor €".number_format($totalReward, 0, ',', '.').' wit bankgeld 🏦!');
+        });
     }
 
     /**
@@ -248,68 +259,73 @@ class PackageController extends Controller
      */
     public function openXxl(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $user = Auth::user();
 
-        if ($character->isImprisoned()) {
-            return back()->with('error', 'Vanuit de isoleercel kun je geen XXL koffers openen!');
-        }
+        return DB::transaction(function () use ($user) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        if (($character->xxl_cases ?? 0) <= 0) {
-            return back()->with('error', 'Je hebt geen XXL koffers in je bezit! Win ze in de 24 Uur Battle of koop er een met sterren.');
-        }
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen XXL koffers openen!');
+            }
 
-        if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
-            return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
-        }
+            if (($character->xxl_cases ?? 0) <= 0) {
+                return back()->with('error', 'Je hebt geen XXL koffers in je bezit! Win ze in de 24 Uur Battle of koop er een met sterren.');
+            }
 
-        $character->xxl_cases -= 1;
+            if ($character->getStorageUsed() >= $character->getStorageCapacity()) {
+                return back()->with('error', "⚠️ Je opbergplaats zit overvol ({$character->getStorageUsed()}/{$character->getStorageCapacity()} plaatsen)! Verkoop eerst wat maskers of spullen in je Depot om weer buit te kunnen ontvangen.");
+            }
 
-        // Big rewards!
-        $bankReward = rand(25000, 75000);
-        $character->bank += $bankReward;
+            $character->xxl_cases -= 1;
 
-        $xpReward = rand(600, 1500);
-        $this->level->addXp($character, $xpReward);
+            // Big rewards!
+            $bankReward = rand(25000, 75000);
+            $character->bank += $bankReward;
 
-        $starsFound = rand(10, 25);
-        $character->stars = ($character->stars ?? 0) + $starsFound;
+            $xpReward = rand(600, 1500);
+            $this->level->addXp($character, $xpReward);
 
-        $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
-        $masksFound = min(rand(5, 12), $spaceLeft);
-        $character->masks = ($character->masks ?? 0) + $masksFound;
+            $starsFound = rand(10, 25);
+            $character->stars = ($character->stars ?? 0) + $starsFound;
 
-        $respectGain = rand(15, 30);
-        $character->respect += $respectGain;
+            $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
+            $masksFound = min(rand(5, 12), $spaceLeft);
+            $character->masks = ($character->masks ?? 0) + $masksFound;
 
-        // Generate 2-4 secret vault codes
-        $codeCount = rand(2, 4);
-        $generatedCodes = [];
-        for ($i = 0; $i < $codeCount; $i++) {
-            $codeStr = 'XXL-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
-            VaultCode::create([
-                'code' => $codeStr,
-                'reward_cash' => rand(5000, 15000),
-                'reward_stars' => rand(1, 3),
-                'reward_tokens' => rand(3, 6),
+            $respectGain = rand(15, 30);
+            $character->respect += $respectGain;
+
+            // Generate 2-4 secret vault codes
+            $codeCount = rand(2, 4);
+            $generatedCodes = [];
+            for ($i = 0; $i < $codeCount; $i++) {
+                $codeStr = 'XXL-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 6));
+                VaultCode::create([
+                    'code' => $codeStr,
+                    'reward_cash' => rand(5000, 15000),
+                    'reward_stars' => rand(1, 3),
+                    'reward_tokens' => rand(3, 6),
+                    'character_id' => $character->id,
+                    'is_redeemed' => false,
+                ]);
+                $generatedCodes[] = $codeStr;
+            }
+
+            $character->save();
+
+            // Record battle slay progress
+            app(DailyBattleService::class)->record($character, 'slay', $respectGain);
+
+            KofferLog::create([
                 'character_id' => $character->id,
-                'is_redeemed' => false,
+                'loot_summary' => '[XXL KOFFER] €'.number_format($bankReward, 0, ',', '.').", {$starsFound} sterren, {$masksFound} maskers, {$codeCount} kluiscodes",
             ]);
-            $generatedCodes[] = $codeStr;
-        }
 
-        $character->save();
+            $codesStr = implode(', ', $generatedCodes);
 
-        // Record battle slay progress
-        app(DailyBattleService::class)->record($character, 'slay', $respectGain);
-
-        KofferLog::create([
-            'character_id' => $character->id,
-            'loot_summary' => '[XXL KOFFER] €'.number_format($bankReward, 0, ',', '.').", {$starsFound} sterren, {$masksFound} maskers, {$codeCount} kluiscodes",
-        ]);
-
-        $codesStr = implode(', ', $generatedCodes);
-
-        return back()->with('success', '💎💥 BOOM! XXL KOFFER GEKRAAKT! Buit: €'.number_format($bankReward, 0, ',', '.')." direct op je bank 🏦, +{$starsFound} Sterren ⭐, +{$masksFound} Maskers 🎭, +{$respectGain} Respect en {$codeCount} geheime kluiscodes: ({$codesStr})!");
+            return back()->with('success', '💎💥 BOOM! XXL KOFFER GEKRAAKT! Buit: €'.number_format($bankReward, 0, ',', '.')." direct op je bank 🏦, +{$starsFound} Sterren ⭐, +{$masksFound} Maskers 🎭, +{$respectGain} Respect en {$codeCount} geheime kluiscodes: ({$codesStr})!");
+        });
     }
 
     /**
@@ -317,20 +333,25 @@ class PackageController extends Controller
      */
     public function buyXxl(Request $request): RedirectResponse
     {
-        $character = Auth::user()->character;
+        $user = Auth::user();
         $cost = 100; // 100 Sterren for XXL Koffer
 
-        if (($character->stars ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om een XXL Koffer te kopen (je hebt er {$character->stars}).");
-        }
+        return DB::transaction(function () use ($user, $cost) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
 
-        $character->stars -= $cost;
-        $character->xxl_cases = ($character->xxl_cases ?? 0) + 1;
-        $character->save();
+            if (($character->stars ?? 0) < $cost) {
+                return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om een XXL Koffer te kopen (je hebt er {$character->stars}).");
+            }
 
-        // Record payments in battle
-        app(DailyBattleService::class)->record($character, 'payments', $cost * 500);
+            $character->stars -= $cost;
+            $character->xxl_cases = ($character->xxl_cases ?? 0) + 1;
+            $character->save();
 
-        return back()->with('success', "🎉 XXL Koffer aangeschaft voor {$cost} Sterren ⭐! Je kunt hem direct openen voor monsterlijke buit!");
+            // Record payments in battle
+            app(DailyBattleService::class)->record($character, 'payments', $cost * 500);
+
+            return back()->with('success', "🎉 XXL Koffer aangeschaft voor {$cost} Sterren ⭐! Je kunt hem direct openen voor monsterlijke buit!");
+        });
     }
 }
