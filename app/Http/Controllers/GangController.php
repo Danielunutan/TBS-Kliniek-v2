@@ -213,7 +213,7 @@ class GangController extends Controller
         $dailyWage = $this->wageService->calculateDailyWage($gangModel);
 
         $isMyGang = (int) $character->gang_id === (int) $gangModel->id;
-        $isOfficer = $isMyGang && in_array($character->gang_role, ['leader', 'co_leader']);
+        $isOfficer = $isMyGang && $gangModel->isOfficer($character);
 
         $hasPendingRequest = false;
         if (! $character->gang_id) {
@@ -223,7 +223,23 @@ class GangController extends Controller
                 ->exists();
         }
 
-        $gangMembersData = $gangModel->members->sortByDesc('respect')->values()->map(function ($m) {
+        $gangMembersData = $gangModel->members->sortByDesc('respect')->values()->map(function ($m) use ($gangModel) {
+            $isShopper = (int) $gangModel->personal_shopper === (int) $m->id;
+            $isMoneyMagnet = (int) $gangModel->money_magnet === (int) $m->id;
+
+            $roleLabel = 'Bendelid';
+            if ($m->gang_role === 'leader' || (int) $gangModel->leader_character_id === (int) $m->id) {
+                $roleLabel = 'Boss / Leider';
+            } elseif ($isShopper && $isMoneyMagnet) {
+                $roleLabel = 'Kantine & Kas (Co-Leider)';
+            } elseif ($isShopper) {
+                $roleLabel = 'Kantine Smokkelaar (Co-Leider)';
+            } elseif ($isMoneyMagnet) {
+                $roleLabel = 'Kasbeheerder (Co-Leider)';
+            } elseif ($m->gang_role === 'co_leader') {
+                $roleLabel = 'Co-Leider';
+            }
+
             return [
                 'id' => $m->id,
                 'name' => $m->name,
@@ -232,7 +248,9 @@ class GangController extends Controller
                 'respect' => (float) $m->respect,
                 'respect_formatted' => number_format($m->respect, 0, ',', '.'),
                 'gang_role' => $m->gang_role,
-                'role_label' => $m->gang_role === 'leader' ? 'Boss / Leider' : ($m->gang_role === 'co_leader' ? 'Co-Leider' : 'Bendelid'),
+                'role_label' => $roleLabel,
+                'is_shopper' => $isShopper,
+                'is_money_magnet' => $isMoneyMagnet,
                 'is_online' => $m->isOnline(),
                 'online_label' => $m->online_status_label,
                 'profile_url' => route('profile.show', $m->name),
@@ -683,12 +701,13 @@ class GangController extends Controller
             $validated = $request->validate([
                 'leader_id' => ['nullable', 'exists:characters,id'],
                 'boss_babe_id' => ['nullable', 'exists:characters,id'],
+                'co_leader_id' => ['nullable', 'exists:characters,id'],
                 'personal_shopper_id' => ['nullable', 'exists:characters,id'],
                 'money_magnet_id' => ['nullable', 'exists:characters,id'],
             ]);
 
             $newLeaderId = (int) ($validated['leader_id'] ?? $validated['boss_babe_id'] ?? $gang->leader_character_id);
-            if ($newLeaderId && $newLeaderId !== $gang->leader_character_id) {
+            if ($newLeaderId && $newLeaderId !== (int) $gang->leader_character_id) {
                 $newLeader = Character::where('id', $newLeaderId)->where('gang_id', $gang->id)->first();
                 if ($newLeader) {
                     $character->gang_role = 'co_leader';
@@ -699,13 +718,46 @@ class GangController extends Controller
                 }
             }
 
-            $gang->personal_shopper = ! empty($validated['personal_shopper_id']) ? (int) $validated['personal_shopper_id'] : null;
-            $gang->money_magnet = ! empty($validated['money_magnet_id']) ? (int) $validated['money_magnet_id'] : null;
+            $oldShopperId = (int) $gang->personal_shopper;
+            $oldMagnetId = (int) $gang->money_magnet;
+
+            $newShopperId = ! empty($validated['personal_shopper_id']) ? (int) $validated['personal_shopper_id'] : null;
+            $newMagnetId = ! empty($validated['money_magnet_id']) ? (int) $validated['money_magnet_id'] : null;
+            $newCoLeaderId = ! empty($validated['co_leader_id']) ? (int) $validated['co_leader_id'] : null;
+
+            $gang->personal_shopper = $newShopperId;
+            $gang->money_magnet = $newMagnetId;
             $gang->save();
+
+            // All members assigned to key roles must be co_leader (unless they are the gang leader)
+            $targetCoLeaderIds = array_filter(
+                [$newCoLeaderId, $newShopperId, $newMagnetId],
+                fn ($id) => ! empty($id) && (int) $id !== (int) $gang->leader_character_id
+            );
+
+            foreach ($targetCoLeaderIds as $cid) {
+                $c = Character::where('id', $cid)->where('gang_id', $gang->id)->first();
+                if ($c && $c->gang_role !== 'leader') {
+                    $c->gang_role = 'co_leader';
+                    $c->save();
+                }
+            }
+
+            // Demote previously appointed role holders if they are no longer in any key role
+            $prevKeyOfficers = array_unique(array_filter([$oldShopperId, $oldMagnetId]));
+            foreach ($prevKeyOfficers as $pid) {
+                if (! in_array($pid, $targetCoLeaderIds, true) && (int) $pid !== (int) $gang->leader_character_id) {
+                    $prevChar = Character::where('id', $pid)->where('gang_id', $gang->id)->first();
+                    if ($prevChar && $prevChar->gang_role === 'co_leader') {
+                        $prevChar->gang_role = 'member';
+                        $prevChar->save();
+                    }
+                }
+            }
 
             return back()
                 ->with('active_gang_tab', 'instellingen')
-                ->with('success', 'Bende rollen en management succesvol bijgewerkt!');
+                ->with('success', 'Bende rollen en management succesvol bijgewerkt! Aangewezen leden hebben direct co-op rechten.');
         }
 
         if ($actionType === 'leave_fee') {

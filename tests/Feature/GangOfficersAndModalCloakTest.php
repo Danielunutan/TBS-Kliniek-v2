@@ -119,4 +119,70 @@ class GangOfficersAndModalCloakTest extends TestCase
         $gang->refresh();
         $this->assertEquals('Nieuwe MOTD door Kasbeheerder!', $gang->motd);
     }
+
+    public function test_assigning_management_roles_automatically_promotes_members_to_co_leader(): void
+    {
+        $leaderUser = User::where('email', 'demo@tbskliniek.nl')->first();
+        $leader = $leaderUser->character;
+
+        $gang = Gang::create([
+            'name' => 'Management Syndicaat',
+            'tag' => 'MGT',
+            'specialty' => 'Rollen Test',
+            'leader_character_id' => $leader->id,
+            'is_open' => true,
+        ]);
+
+        $leader->gang_id = $gang->id;
+        $leader->gang_role = 'leader';
+        $leader->save();
+
+        $memberA = $this->createCharacter('MemberA', $gang->id);
+        $memberB = $this->createCharacter('MemberB', $gang->id);
+        $memberC = $this->createCharacter('MemberC', $gang->id);
+
+        $this->assertEquals('member', $memberA->gang_role);
+        $this->assertEquals('member', $memberB->gang_role);
+        $this->assertEquals('member', $memberC->gang_role);
+
+        // Leader assigns MemberA as Kantine Smokkelaar, MemberB as Kasbeheerder, MemberC as Co-Leider
+        $this->actingAs($leaderUser);
+        $response = $this->post(route('gangs.settings'), [
+            'action_type' => 'management',
+            'boss_babe_id' => $leader->id,
+            'co_leader_id' => $memberC->id,
+            'personal_shopper_id' => $memberA->id,
+            'money_magnet_id' => $memberB->id,
+        ]);
+        $response->assertSessionHas('success');
+
+        $gang->refresh();
+        $this->assertSame($memberA->id, $gang->personal_shopper);
+        $this->assertSame($memberB->id, $gang->money_magnet);
+        $this->assertIsInt($gang->personal_shopper);
+        $this->assertIsInt($gang->money_magnet);
+
+        // All 3 assigned members must automatically have gang_role = 'co_leader'
+        $this->assertEquals('co_leader', $memberA->fresh()->gang_role);
+        $this->assertEquals('co_leader', $memberB->fresh()->gang_role);
+        $this->assertEquals('co_leader', $memberC->fresh()->gang_role);
+
+        // Now remove MemberA as Kantine Smokkelaar
+        $response2 = $this->post(route('gangs.settings'), [
+            'action_type' => 'management',
+            'boss_babe_id' => $leader->id,
+            'co_leader_id' => $memberC->id,
+            'personal_shopper_id' => '',
+            'money_magnet_id' => $memberB->id,
+        ]);
+        $response2->assertSessionHas('success');
+
+        $gang->refresh();
+        $this->assertNull($gang->personal_shopper);
+        // MemberA should be demoted back to member
+        $this->assertEquals('member', $memberA->fresh()->gang_role);
+        // MemberB and MemberC remain co_leader
+        $this->assertEquals('co_leader', $memberB->fresh()->gang_role);
+        $this->assertEquals('co_leader', $memberC->fresh()->gang_role);
+    }
 }

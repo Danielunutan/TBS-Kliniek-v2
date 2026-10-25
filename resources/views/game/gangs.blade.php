@@ -36,8 +36,88 @@
     }
 }">
 
-    <!-- Top Hero Banner (Clean TBS White Style) -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <!-- Top Hero Banner (Rich TBS Kliniek Style) -->
+    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
+        @if($myGang)
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+            <div class="flex items-center gap-3.5 sm:gap-4">
+                <div class="relative shrink-0">
+                    <img src="{{ $myGang->avatar_url }}" alt="{{ $myGang->name }}" 
+                         class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-purple-500/40 shadow-sm">
+                    <span class="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-purple-600 text-white font-mono text-[9px] font-black uppercase shadow-2xs">
+                        {{ $myGang->tag }}
+                    </span>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 text-[10px] font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-300">
+                            <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i> Factie
+                        </span>
+                        @php
+                            $myRoleBadge = 'Bendelid';
+                            $myRoleIcon = 'fa-user';
+                            $myRoleClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+                            if ($character->gang_role === 'leader') {
+                                $myRoleBadge = 'Bendeleider';
+                                $myRoleIcon = 'fa-crown text-amber-500';
+                                $myRoleClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+                            } elseif ((int) $myGang->personal_shopper === (int) $character->id && (int) $myGang->money_magnet === (int) $character->id) {
+                                $myRoleBadge = 'Kantine & Kas (Co-Leider)';
+                                $myRoleIcon = 'fa-shield-halved text-purple-600 dark:text-purple-400';
+                                $myRoleClass = 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+                            } elseif ((int) $myGang->personal_shopper === (int) $character->id) {
+                                $myRoleBadge = 'Kantine Smokkelaar (Co-Leider)';
+                                $myRoleIcon = 'fa-box text-indigo-500';
+                                $myRoleClass = 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800';
+                            } elseif ((int) $myGang->money_magnet === (int) $character->id) {
+                                $myRoleBadge = 'Kasbeheerder (Co-Leider)';
+                                $myRoleIcon = 'fa-vault text-emerald-600 dark:text-emerald-400';
+                                $myRoleClass = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+                            } elseif ($character->gang_role === 'co_leader') {
+                                $myRoleBadge = 'Co-Leider';
+                                $myRoleIcon = 'fa-star text-purple-600 dark:text-purple-400';
+                                $myRoleClass = 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+                            }
+                        @endphp
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border {{ $myRoleClass }}">
+                            <i class="fa-solid {{ $myRoleIcon }} text-[9px]"></i>
+                            <span>{{ $myRoleBadge }}</span>
+                        </span>
+                        @if(($onlineMembersCount ?? 0) > 0)
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>{{ $onlineMembersCount }} online</span>
+                            </span>
+                        @endif
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                        <span>{{ $myGang->name }}</span>
+                        <span class="text-sm font-extrabold text-purple-600 dark:text-purple-400 font-mono">[{{ $myGang->tag }}]</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Vitals Pills Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:flex items-center gap-2 shrink-0">
+                <div class="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/70 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block">Kluis</span>
+                    <span class="text-xs sm:text-sm font-black text-emerald-800 dark:text-emerald-300 font-mono">€{{ number_format($gangTreasury ?? $myGang->treasury, 0, ',', '.') }}</span>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-950/50 border border-purple-200 dark:border-purple-800/70 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400 block">Respect</span>
+                    <span class="text-xs sm:text-sm font-black text-purple-800 dark:text-purple-300 font-mono">{{ number_format($totalRespect ?? $myGang->respect, 0, ',', '.') }}</span>
+                </div>
+                <div class="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/70 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 block">Uurloon</span>
+                    <span class="text-xs sm:text-sm font-black text-amber-800 dark:text-amber-300 font-mono">+€{{ number_format($hourlyWage ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Leden</span>
+                    <span class="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200 font-mono">{{ $myGang->members->count() }}/{{ $myGang->max_members ?? 10 }}</span>
+                </div>
+            </div>
+        </div>
+        @else
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div>
                 <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60 mb-2">
@@ -45,17 +125,118 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Kliniek Gangs</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Verenig je met andere gevangenen in een bende. Doneer aan de gezamenlijke kas, verhoog het collectieve uurloon, koop smokkelkiosken en voer oorlog om de vleugels van de kliniek!
+                    Verenig je met andere patiënten in een bende. Doneer aan de gezamenlijke kas, verhoog het collectieve uurloon, koop smokkelkiosken en heers over de kliniek!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <span class="px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-star text-amber-600 dark:text-amber-400"></i> {{ $character->stars ?? 0 }} Sterren
                 </span>
-                @if(!$character->gang_id)
                 <button type="button" @click="showCreateModal = true" 
                         class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-plus"></i> Bende Oprichten
+                </button>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    <!-- MOBILE HORIZONTAL QUICK-NAVIGATION BAR (Sticky, Touch-Friendly, Horizontal Scroll) -->
+    <div class="block lg:hidden">
+        <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-1.5 shadow-xs">
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-1">
+                @if($myGang)
+                <button type="button" @click="setGangTab('mijn_gang')" 
+                        :class="activeGangTab === 'mijn_gang' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-shield-halved text-xs"></i>
+                    <span>Overzicht</span>
+                </button>
+
+                <button type="button" @click="setGangTab('leden')" 
+                        :class="activeGangTab === 'leden' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-users text-xs"></i>
+                    <span>Leden</span>
+                    @if(($onlineMembersCount ?? 0) > 0)
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    @endif
+                </button>
+
+                <button type="button" @click="setGangTab('oorlog')" 
+                        :class="activeGangTab === 'oorlog' ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-crosshairs text-xs"></i>
+                    <span>Oorlog</span>
+                    <span x-show="attackCooldown > 0" class="text-[9px] font-mono" x-text="formatTime(attackCooldown)"></span>
+                </button>
+
+                <a href="{{ route('gangs.panden') }}" 
+                   class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 transition">
+                    <i class="fa-solid fa-building text-purple-500 text-xs"></i>
+                    <span>Panden ({{ $myGang->properties->count() }})</span>
+                </a>
+
+                <a href="{{ route('gangs.garage') }}" 
+                   class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80 transition">
+                    <i class="fa-solid fa-warehouse text-purple-500 text-xs"></i>
+                    <span>Garage</span>
+                </a>
+
+                <button type="button" @click="setGangTab('depot')" 
+                        :class="activeGangTab === 'depot' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-boxes-stacked text-amber-500 text-xs"></i>
+                    <span>Depot</span>
+                </button>
+
+                <button type="button" @click="setGangTab('doneren')" 
+                        :class="activeGangTab === 'doneren' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-circle-plus text-emerald-500 text-xs"></i>
+                    <span>Doneren</span>
+                </button>
+
+                <button type="button" @click="setGangTab('winkel')" 
+                        :class="activeGangTab === 'winkel' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-store text-purple-500 text-xs"></i>
+                    <span>Winkel</span>
+                </button>
+
+                @if($myGang->isOfficer($character))
+                <button type="button" @click="setGangTab('beheer')" 
+                        :class="activeGangTab === 'beheer' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-users-gear text-purple-500 text-xs"></i>
+                    <span>Beheer</span>
+                    @if($myGang->requests->where('status', 'pending')->count() > 0)
+                        <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                    @endif
+                </button>
+
+                <button type="button" @click="setGangTab('instellingen')" 
+                        :class="activeGangTab === 'instellingen' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-sliders text-slate-400 text-xs"></i>
+                    <span>Instellingen</span>
+                </button>
+                @endif
+                @endif
+
+                <button type="button" @click="setGangTab('ranglijst')" 
+                        :class="activeGangTab === 'ranglijst' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-trophy text-amber-500 text-xs"></i>
+                    <span>Ranglijst</span>
+                </button>
+
+                @if($myGang)
+                <button type="button" @click="setGangTab('logboek')" 
+                        :class="activeGangTab === 'logboek' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80'"
+                        class="px-3 py-1.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-book-bookmark text-blue-500 text-xs"></i>
+                    <span>Logboek</span>
                 </button>
                 @endif
             </div>
@@ -71,10 +252,10 @@
     <!-- MAIN TWO COLUMN GANGS LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Left Column: Gangs Menu Navigation -->
-        <div class="lg:col-span-3 space-y-4">
-            <div class="bg-white dark:bg-[#111827] border border-slate-200/80 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
-                <!-- Gangs Header Tab with Pink + Button -->
+        <!-- Left Column: Gangs Menu Navigation (Desktop Sidebar) -->
+        <div class="hidden lg:block lg:col-span-3 space-y-4">
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+                <!-- Gangs Header Tab with Plus Button -->
                 <div class="bg-slate-50 dark:bg-slate-800/80 px-4 py-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-extrabold uppercase text-xs tracking-wider">
                     <span class="flex items-center gap-2">
                         <i class="fa-solid fa-users text-purple-600 dark:text-purple-400 text-xs"></i> Gangs Menu
@@ -86,174 +267,202 @@
                     @endif
                 </div>
 
-                <!-- Navigation List -->
-                <div class="p-2 space-y-1 text-xs font-bold text-slate-700 dark:text-slate-200">
-                    <button type="button" @click="setGangTab('ranglijst')" 
-                            :class="activeGangTab === 'ranglijst' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-trophy text-amber-500 w-4 text-center"></i>
-                            <span>Ranglijst</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
-                    </button>
+                <!-- Categorized Navigation List -->
+                <div class="p-2 space-y-3 text-xs font-bold text-slate-700 dark:text-slate-200">
+                    <!-- Category 1: Overzicht & Strijd -->
+                    <div>
+                        <div class="px-3 pt-1 pb-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Overzicht & Strijd
+                        </div>
+                        <div class="space-y-0.5">
+                            @if($myGang)
+                            <button type="button" @click="setGangTab('mijn_gang')" 
+                                    :class="activeGangTab === 'mijn_gang' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-shield-halved w-4 text-center" :class="activeGangTab === 'mijn_gang' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
+                                    <span>Mijn Gang</span>
+                                </span>
+                                <span class="text-[10px] font-mono font-black" :class="activeGangTab === 'mijn_gang' ? 'text-purple-200' : 'text-purple-600 dark:text-purple-400'">[{{ $myGang->tag }}]</span>
+                            </button>
+
+                            <button type="button" @click="setGangTab('leden')" 
+                                    :class="activeGangTab === 'leden' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-users w-4 text-center" :class="activeGangTab === 'leden' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
+                                    <span>Ledenlijst</span>
+                                </span>
+                                <div class="flex items-center gap-1.5">
+                                    @if(($onlineMembersCount ?? 0) > 0)
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold" :class="activeGangTab === 'leden' ? 'bg-purple-700 text-white' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900'">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            <span>{{ $onlineMembersCount }}</span>
+                                        </span>
+                                    @else
+                                        <span class="text-[10px] font-bold" :class="activeGangTab === 'leden' ? 'text-purple-200' : 'text-slate-400'">{{ $myGang->members->count() }}</span>
+                                    @endif
+                                </div>
+                            </button>
+
+                            <button type="button" @click="setGangTab('oorlog')" 
+                                    :class="activeGangTab === 'oorlog' ? 'bg-rose-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-crosshairs w-4 text-center" :class="activeGangTab === 'oorlog' ? 'text-white' : 'text-rose-600 dark:text-rose-400'"></i>
+                                    <span>Bende Oorlog</span>
+                                </span>
+                                <span x-show="attackCooldown > 0" class="text-[10px] font-mono font-extrabold flex items-center gap-1" :class="activeGangTab === 'oorlog' ? 'text-white' : 'text-amber-600 dark:text-amber-400'">
+                                    <i class="fa-solid fa-stopwatch text-[10px]"></i> <span x-text="formatTime(attackCooldown)"></span>
+                                </span>
+                                <span x-show="attackCooldown <= 0" class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                            </button>
+                            @endif
+
+                            <button type="button" @click="setGangTab('ranglijst')" 
+                                    :class="activeGangTab === 'ranglijst' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-trophy w-4 text-center" :class="activeGangTab === 'ranglijst' ? 'text-white' : 'text-amber-500'"></i>
+                                    <span>Ranglijst</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                            </button>
+                        </div>
+                    </div>
 
                     @if($myGang)
-                    <button type="button" @click="setGangTab('mijn_gang')" 
-                            :class="activeGangTab === 'mijn_gang' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                            <span>Mijn Gang</span>
-                        </span>
-                        <span class="text-[10px] text-purple-700 dark:text-purple-300 font-extrabold">[{{ $myGang->tag }}]</span>
-                    </button>
-
-                    <!-- Ledenlijst & Online Tab -->
-                    <button type="button" @click="setGangTab('leden')" 
-                            :class="activeGangTab === 'leden' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-users text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                            <span>Ledenlijst</span>
-                        </span>
-                        <div class="flex items-center gap-1.5">
-                            @if(($onlineMembersCount ?? 0) > 0)
-                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900" title="{{ $onlineMembersCount ?? 0 }} leden nu online">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    <span>{{ $onlineMembersCount ?? 0 }} online</span>
-                                </span>
-                            @else
-                                <span class="text-[10px] text-slate-400 font-bold">{{ $myGang->members->count() }}</span>
-                            @endif
-                            <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                    <!-- Category 2: HQ & Operaties -->
+                    <div>
+                        <div class="px-3 pt-1 pb-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            HQ & Operaties
                         </div>
-                    </button>
+                        <div class="space-y-0.5">
+                            <a href="{{ route('gangs.panden') }}" 
+                               class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-building text-purple-600 dark:text-purple-400 w-4 text-center"></i>
+                                    <span>Bende Panden</span>
+                                </span>
+                                <span class="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
+                                    {{ $myGang->properties->count() }}
+                                </span>
+                            </a>
 
-                    <!-- Bende Oorlog Tab -->
-                    <button type="button" @click="setGangTab('oorlog')" 
-                            :class="activeGangTab === 'oorlog' ? 'bg-rose-50/90 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-crosshairs text-rose-600 dark:text-rose-400 w-4 text-center"></i>
-                            <span class="font-black">Bende Oorlog</span>
-                        </span>
-                        <span x-show="attackCooldown > 0" class="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-extrabold flex items-center gap-1" style="{{ ($myGang && $myGang->attackCooldownRemaining() > 0) ? '' : 'display: none;' }}">
-                            <i class="fa-solid fa-stopwatch text-amber-500 text-[10px]"></i> <span x-text="formatTime(attackCooldown)">{{ $myGang ? gmdate('i:s', $myGang->attackCooldownRemaining()) : '' }}</span>
-                        </span>
-                        <span x-show="attackCooldown <= 0" class="w-2 h-2 rounded-full bg-rose-500 animate-pulse" style="{{ ($myGang && $myGang->attackCooldownRemaining() <= 0) ? '' : 'display: none;' }}"></span>
-                    </button>
+                            <a href="{{ route('gangs.garage') }}" 
+                               class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400 w-4 text-center"></i>
+                                    <span>Bende Garage</span>
+                                </span>
+                                <span class="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
+                                    {{ $myGang->storedVehicles->count() }}/{{ $myGang->total_vehicle_slots }}
+                                </span>
+                            </a>
 
-                    <!-- Bende Panden & Vastgoed -->
-                    <a href="{{ route('gangs.panden') }}" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-building text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                            <span class="font-extrabold text-purple-700 dark:text-purple-300">Bende Panden</span>
-                        </span>
-                        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
-                            {{ $myGang->properties->count() }}
-                        </span>
-                    </a>
+                            <button type="button" @click="setGangTab('depot')" 
+                                    :class="activeGangTab === 'depot' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-boxes-stacked w-4 text-center" :class="activeGangTab === 'depot' ? 'text-white' : 'text-amber-500'"></i>
+                                    <span>Bende Depot</span>
+                                </span>
+                                <span class="text-[10px] font-mono font-black" :class="activeGangTab === 'depot' ? 'text-white' : 'text-amber-600 dark:text-amber-400'">
+                                    {{ $myGang->getStorageUsed() }}/{{ $myGang->total_storage_capacity }}
+                                </span>
+                            </button>
 
-                    <!-- Bende Garage & Wagenpark -->
-                    <a href="{{ route('gangs.garage') }}" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                            <span class="font-extrabold text-purple-700 dark:text-purple-300">Bende Garage</span>
-                        </span>
-                        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">
-                            {{ $myGang->storedVehicles->count() }}/{{ $myGang->total_vehicle_slots }}
-                        </span>
-                    </a>
+                            <button type="button" @click="setGangTab('doneren')" 
+                                    :class="activeGangTab === 'doneren' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-circle-plus w-4 text-center" :class="activeGangTab === 'doneren' ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'"></i>
+                                    <span>Doneren</span>
+                                </span>
+                                <i class="fa-solid fa-plus text-[10px] opacity-60"></i>
+                            </button>
 
-                    @if($myGang && $myGang->isOfficer($character))
-                    <button type="button" @click="setGangTab('beheer')" 
-                            :class="activeGangTab === 'beheer' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-users-gear text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                            <span>Bende Beheer</span>
-                        </span>
-                        @if($myGang->requests->where('status', 'pending')->count() > 0)
-                            <span class="px-1.5 py-0.2 rounded-full bg-purple-600 text-white text-[9px] font-black">
-                                {{ $myGang->requests->where('status', 'pending')->count() }}
-                            </span>
-                        @endif
-                    </button>
+                            <button type="button" @click="setGangTab('winkel')" 
+                                    :class="activeGangTab === 'winkel' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-store w-4 text-center" :class="activeGangTab === 'winkel' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
+                                    <span>Winkel & Kiosken</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                            </button>
+                        </div>
+                    </div>
 
-                    <button type="button" @click="setGangTab('instellingen')" 
-                            :class="activeGangTab === 'instellingen' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-sliders text-slate-500 dark:text-slate-400 w-4 text-center"></i>
-                            <span>Instellingen</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
-                    </button>
+                    @if($myGang->isOfficer($character))
+                    <!-- Category 3: Leiding & Beheer -->
+                    <div>
+                        <div class="px-3 pt-1 pb-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Leiding & Beheer
+                        </div>
+                        <div class="space-y-0.5">
+                            <button type="button" @click="setGangTab('beheer')" 
+                                    :class="activeGangTab === 'beheer' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-users-gear w-4 text-center" :class="activeGangTab === 'beheer' ? 'text-white' : 'text-purple-600 dark:text-purple-400'"></i>
+                                    <span>Bende Beheer</span>
+                                </span>
+                                @if($myGang->requests->where('status', 'pending')->count() > 0)
+                                    <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">
+                                        {{ $myGang->requests->where('status', 'pending')->count() }}
+                                    </span>
+                                @else
+                                    <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                                @endif
+                            </button>
+
+                            <button type="button" @click="setGangTab('instellingen')" 
+                                    :class="activeGangTab === 'instellingen' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-sliders w-4 text-center" :class="activeGangTab === 'instellingen' ? 'text-white' : 'text-slate-500 dark:text-slate-400'"></i>
+                                    <span>Instellingen & Rollen</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                            </button>
+                        </div>
+                    </div>
                     @endif
 
-                    <!-- Winkel Tab -->
-                    <button type="button" @click="setGangTab('winkel')" 
-                            :class="activeGangTab === 'winkel' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-store text-purple-600 dark:text-purple-400 w-4 text-center"></i>
-                            <span>Winkel & Kiosken</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
-                    </button>
+                    <!-- Category 4: Info & Statistieken -->
+                    <div>
+                        <div class="px-3 pt-1 pb-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                            Informatie
+                        </div>
+                        <div class="space-y-0.5">
+                            <button type="button" @click="setGangTab('logboek')" 
+                                    :class="activeGangTab === 'logboek' ? 'bg-purple-600 text-white font-black shadow-xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'"
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl transition cursor-pointer">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-book-bookmark w-4 text-center" :class="activeGangTab === 'logboek' ? 'text-white' : 'text-blue-500'"></i>
+                                    <span>Bende Logboek</span>
+                                </span>
+                                <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
+                            </button>
 
-                    <!-- Doneren Tab -->
-                    <button type="button" @click="setGangTab('doneren')" 
-                            :class="activeGangTab === 'doneren' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-circle-plus text-emerald-600 dark:text-emerald-400 w-4 text-center"></i>
-                            <span>Doneren</span>
-                        </span>
-                        <i class="fa-solid fa-plus text-[10px] opacity-60"></i>
-                    </button>
+                            <a href="{{ route('murder_stats.index') }}" 
+                               class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 transition">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-skull text-rose-500 w-4 text-center"></i>
+                                    <span>Moorden</span>
+                                </span>
+                            </a>
 
-                    <!-- Bende Depot Tab -->
-                    <button type="button" @click="setGangTab('depot')" 
-                            :class="activeGangTab === 'depot' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-boxes-stacked text-amber-500 w-4 text-center"></i>
-                            <span>Bende Depot</span>
-                        </span>
-                        <span class="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-black">
-                            {{ $myGang->getStorageUsed() }}/{{ $myGang->total_storage_capacity }}
-                        </span>
-                    </button>
-
-                    <button type="button" @click="setGangTab('logboek')" 
-                            :class="activeGangTab === 'logboek' ? 'bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold border border-transparent shadow-2xs' : 'hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 border border-transparent'"
-                            class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition cursor-pointer">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-book-bookmark text-blue-500 w-4 text-center"></i>
-                            <span>Logboek</span>
-                        </span>
-                        <i class="fa-solid fa-chevron-right text-[10px] opacity-60"></i>
-                    </button>
-
-                    <a href="{{ route('murder_stats.index') }}" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 transition border border-transparent">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-skull text-rose-500 w-4 text-center"></i>
-                            <span>Moorden</span>
-                        </span>
-                    </a>
-
-                    <a href="{{ route('leaderboard.index') }}" 
-                       class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 transition border border-transparent">
-                        <span class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-chart-column text-indigo-500 w-4 text-center"></i>
-                            <span>Algemene stats</span>
-                        </span>
-                    </a>
+                            <a href="{{ route('leaderboard.index') }}" 
+                               class="w-full flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 transition">
+                                <span class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-chart-column text-indigo-500 w-4 text-center"></i>
+                                    <span>Algemene stats</span>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
 
                     <!-- Bende Verlaten Knop in Menu -->
                     <div class="pt-2 mt-1 border-t border-slate-100 dark:border-slate-800">
@@ -261,7 +470,7 @@
                               onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
                             @csrf
                             <button type="submit" 
-                                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 transition cursor-pointer font-bold text-xs group">
+                                    class="w-full flex items-center justify-between px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 transition cursor-pointer font-bold text-xs group">
                                 <span class="flex items-center gap-2.5">
                                     <i class="fa-solid fa-arrow-right-from-bracket text-rose-500 w-4 text-center group-hover:translate-x-0.5 transition"></i>
                                     <span>Bende Verlaten</span>
@@ -278,24 +487,24 @@
 
             <!-- Create gang shortcut card -->
             @if(!$character->gang_id)
-            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
-                <span class="text-xs font-extrabold text-slate-900 uppercase tracking-wider block">Bende Oprichten</span>
-                <p class="text-xs text-slate-500 leading-relaxed font-medium">
+            <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-3">
+                <span class="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider block">Bende Oprichten</span>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
                     Richt je eigen factie op en heers over de oostvleugel van de TBS kliniek.
                 </p>
                 <div class="flex items-center justify-between pt-1">
-                    <span class="text-xs font-bold text-amber-600 flex items-center gap-1">25 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></span>
-                    <button type="button" @click="showCreateModal = true" class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">
+                    <span class="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">25 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></span>
+                    <button type="button" @click="showCreateModal = true" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition cursor-pointer">
                         Oprichten
                     </button>
                 </div>
             </div>
 
-            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 shadow-xs space-y-2">
-                <span class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
-                    <i class="fa-solid fa-hand-holding-dollar text-emerald-600"></i> TBS Patiënten Uitkering
+            <div class="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-5 shadow-xs space-y-2">
+                <span class="text-xs font-extrabold text-emerald-900 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-hand-holding-dollar text-emerald-600 dark:text-emerald-400"></i> TBS Patiënten Uitkering
                 </span>
-                <p class="text-xs text-emerald-800 leading-relaxed font-medium">
+                <p class="text-xs text-emerald-800 dark:text-emerald-200 leading-relaxed font-medium">
                     Zolang je geen bende hebt, ontvang je automatisch elk kwartier (15 min) <strong class="font-bold">€1.000</strong> direct op je <a href="{{ route('bank.index') }}" class="underline font-bold">bank</a>!
                 </p>
             </div>
@@ -1991,12 +2200,12 @@
                                             </span>
                                         @endif
 
-                                        @if($myGang->personal_shopper === $mem->id)
+                                        @if((int) $myGang->personal_shopper === (int) $mem->id)
                                             <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold inline-flex items-center gap-1">
                                                 <i class="fa-solid fa-box text-indigo-500 text-[9px]"></i> Kantine Smokkelaar
                                             </span>
                                         @endif
-                                        @if($myGang->money_magnet === $mem->id)
+                                        @if((int) $myGang->money_magnet === (int) $mem->id)
                                             <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold inline-flex items-center gap-1">
                                                 <i class="fa-solid fa-vault text-emerald-600 text-[9px]"></i> Kasbeheerder
                                             </span>
@@ -2443,26 +2652,46 @@
                 </div>
 
                 <!-- 2. BENDE ROLLEN & SLEUTELFUNCTIES -->
-                <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
-                    <div class="border-b border-slate-100 pb-3">
-                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-id-badge text-purple-600"></i>
-                            <span>Bende Rollen & Sleutelfuncties</span>
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-1">
-                            Wijs sleutelposities toe aan loyale bendeleden om speciale bevoegdheden en voordelen in de kliniek te activeren.
-                        </p>
+                <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-id-badge text-purple-600 dark:text-purple-400"></i>
+                                <span>Bende Rollen & Sleutelfuncties</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                Wijs sleutelposities toe aan betrouwbare bendeleden. Aangewezen leden krijgen direct <strong>Co-Leider bevoegdheden</strong> binnen de kliniek.
+                            </p>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 shrink-0 self-start sm:self-auto">
+                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
+                            <span>Co-Op Management</span>
+                        </span>
                     </div>
 
-                    <!-- Information callout banner -->
-                    <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 space-y-2">
-                        <div class="font-bold flex items-center gap-1.5 text-purple-800">
-                            <i class="fa-solid fa-circle-info"></i> Sleutelfuncties Toelichting:
+                    <!-- Information callout banner with rich styling -->
+                    <div class="p-4 rounded-xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/80 text-xs text-purple-950 dark:text-purple-200 space-y-2">
+                        <div class="font-black flex items-center gap-2 text-purple-900 dark:text-purple-200">
+                            <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400"></i>
+                            <span>Sleutelfuncties Toelichting & Rechten:</span>
                         </div>
-                        <ul class="list-disc list-inside space-y-1 text-slate-700 text-[11px]">
-                            <li><strong>Bendeleider:</strong> Heeft volledige autoriteit over bende upgrades, oorlogen, bondgenoten en leden.</li>
-                            <li><strong>Kantine Smokkelaar:</strong> Beheert de bende-smokkelkiosken en zorgt voor gunstige voorraden.</li>
-                            <li><strong>Kasbeheerder:</strong> Houdt toezicht op de kluisdonaties en financiële reserves van de bende.</li>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-amber-500 shrink-0">👑</span>
+                                <div><strong class="text-slate-900 dark:text-white">Bendeleider:</strong> Volledige controle over upgrades, oorlogen, bondgenoten, instellingen en leden.</div>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-purple-500 shrink-0">🎖️</span>
+                                <div><strong class="text-slate-900 dark:text-white">Co-Leider / Onderbaas:</strong> Directe operationele leiding, toelatingen, oorlogscommando en dagelijks beheer.</div>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-indigo-500 shrink-0">📦</span>
+                                <div><strong class="text-slate-900 dark:text-white">Kantine Smokkelaar:</strong> Beheert smokkelkiosken & depot. <span class="text-purple-600 dark:text-purple-400 font-bold">(Automatisch Co-Leider)</span></div>
+                            </li>
+                            <li class="flex items-start gap-1.5">
+                                <span class="text-emerald-500 shrink-0">💷</span>
+                                <div><strong class="text-slate-900 dark:text-white">Kasbeheerder:</strong> Beheert de kluisdonaties & geldreserves. <span class="text-purple-600 dark:text-purple-400 font-bold">(Automatisch Co-Leider)</span></div>
+                            </li>
                         </ul>
                     </div>
 
@@ -2470,45 +2699,78 @@
                         @csrf
                         <input type="hidden" name="action_type" value="management">
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <!-- Bendeleider -->
-                            <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-crown text-amber-500"></i> Bendeleider
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- 1. Bendeleider -->
+                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-crown text-amber-500"></i> Bendeleider
+                                    </span>
+                                    <span class="text-[9px] font-bold text-amber-600 dark:text-amber-400 uppercase">Opperbaas</span>
                                 </label>
-                                <select name="boss_babe_id" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Oprichter & hoogste baas van de bende.</p>
+                                <select name="boss_babe_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
                                     @foreach($myGang->members as $m)
-                                        <option value="{{ $m->id }}" {{ $myGang->leader_character_id === $m->id ? 'selected' : '' }}>
+                                        <option value="{{ $m->id }}" {{ (int) $myGang->leader_character_id === (int) $m->id ? 'selected' : '' }}>
                                             {{ $m->name }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <!-- Kantine Smokkelaar -->
-                            <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-box text-indigo-500"></i> Kantine Smokkelaar
+                            <!-- 2. Co-Leider / Onderbaas -->
+                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i> Co-Leider
+                                    </span>
+                                    <span class="text-[9px] font-bold text-purple-600 dark:text-purple-400 uppercase">Onderbaas</span>
                                 </label>
-                                <select name="personal_shopper_id" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Tweede bevelvoerder met co-op rechten.</p>
+                                <select name="co_leader_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
                                     <option value="">Geen aangewezen</option>
                                     @foreach($myGang->members as $m)
-                                        <option value="{{ $m->id }}" {{ $myGang->personal_shopper === $m->id ? 'selected' : '' }}>
+                                        @if((int) $myGang->leader_character_id !== (int) $m->id)
+                                            <option value="{{ $m->id }}" {{ $m->gang_role === 'co_leader' && (int) $myGang->personal_shopper !== (int) $m->id && (int) $myGang->money_magnet !== (int) $m->id ? 'selected' : '' }}>
+                                                {{ $m->name }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- 3. Kantine Smokkelaar -->
+                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-box text-indigo-500"></i> Kantine Smokkelaar
+                                    </span>
+                                    <span class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">Kiosken</span>
+                                </label>
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Beheert kiosks & bevoorrading. (Co-op)</p>
+                                <select name="personal_shopper_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
+                                    <option value="">Geen aangewezen</option>
+                                    @foreach($myGang->members as $m)
+                                        <option value="{{ $m->id }}" {{ (int) $myGang->personal_shopper === (int) $m->id ? 'selected' : '' }}>
                                             {{ $m->name }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <!-- Kasbeheerder -->
-                            <div class="space-y-1.5">
-                                <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                    <i class="fa-solid fa-vault text-emerald-600"></i> Kasbeheerder
+                            <!-- 4. Kasbeheerder -->
+                            <div class="space-y-1.5 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+                                <label class="text-xs font-black text-slate-900 dark:text-slate-100 flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-vault text-emerald-600 dark:text-emerald-400"></i> Kasbeheerder
+                                    </span>
+                                    <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Kluis</span>
                                 </label>
-                                <select name="money_magnet_id" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 focus:bg-white transition">
+                                <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">Heeft toezicht & opnamerechten. (Co-op)</p>
+                                <select name="money_magnet_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-purple-600 transition">
                                     <option value="">Geen aangewezen</option>
                                     @foreach($myGang->members as $m)
-                                        <option value="{{ $m->id }}" {{ $myGang->money_magnet === $m->id ? 'selected' : '' }}>
+                                        <option value="{{ $m->id }}" {{ (int) $myGang->money_magnet === (int) $m->id ? 'selected' : '' }}>
                                             {{ $m->name }}
                                         </option>
                                     @endforeach
@@ -2516,11 +2778,14 @@
                             </div>
                         </div>
 
-                        <div class="pt-2">
-                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-2">
+                        <div class="pt-2 flex items-center justify-between flex-wrap gap-3">
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-md transition cursor-pointer flex items-center gap-2">
                                 <i class="fa-solid fa-check"></i>
                                 <span>Sleutelfuncties Opslaan</span>
                             </button>
+                            <span class="text-[11px] text-slate-400 flex items-center gap-1">
+                                <i class="fa-solid fa-bolt text-amber-500"></i> Wijzigingen worden direct van kracht
+                            </span>
                         </div>
                     </form>
                 </div>

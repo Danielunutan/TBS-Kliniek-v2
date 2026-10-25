@@ -117,11 +117,15 @@ class AllowanceAndGangCapacityTest extends TestCase
         // Visiting dashboard triggers energyService->refresh which pays allowance
         $response = $this->get(route('dashboard'));
         $response->assertStatus(200);
-        $response->assertSee('TBS Patiënten Uitkering');
-        $response->assertSee('€1.000');
 
         $character->refresh();
         $this->assertEquals(4000, $character->bank); // 2000 + 2000
+
+        // Visiting gangs page shows uitkering banner for unassigned players
+        $gangsResponse = $this->get(route('gangs.index'));
+        $gangsResponse->assertStatus(200);
+        $gangsResponse->assertSee('TBS Patiënten Uitkering');
+        $gangsResponse->assertSee('€1.000');
 
         // Visiting bank also shows uitkering overview
         $bankResponse = $this->get(route('bank.index'));

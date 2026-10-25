@@ -330,13 +330,17 @@ class GangPropertyController extends Controller
         $cash = $property->effective_reward_cash;
         $respect = $property->effective_reward_respect;
 
-        DB::transaction(function () use ($gang, $property, $cash, $respect): void {
+        DB::transaction(function () use ($gang, $character, $property, $cash, $respect): void {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             $lockedGang->treasury += $cash;
             if (Schema::hasColumn('gangs', 'respect')) {
                 $lockedGang->respect = ($lockedGang->respect ?? 0) + $respect;
             }
             $lockedGang->save();
+
+            if ($respect > 0) {
+                $character->increment('respect', $respect);
+            }
 
             $property->update([
                 'production_status' => 'idle',

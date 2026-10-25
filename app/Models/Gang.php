@@ -49,6 +49,9 @@ class Gang extends Model
         'min_respect' => 'integer',
         'masks' => 'integer',
         'has_gang_chat' => 'boolean',
+        'leader_character_id' => 'integer',
+        'personal_shopper' => 'integer',
+        'money_magnet' => 'integer',
     ];
 
     public function hasActiveVipBoost(): bool

@@ -120,7 +120,7 @@ class GangPropertiesTest extends TestCase
         $this->assertTrue($property->isReadyToClaim());
 
         $initialTreasury = $gang->fresh()->treasury;
-        $initialRespect = $character->fresh()->respect;
+        $initialRespect = (int) $character->fresh()->respect;
 
         // 4. Claim production rewards
         $claimRes = $this->actingAs($user)->post(route('gangs.panden.claim-production', $property->id));
@@ -130,9 +130,9 @@ class GangPropertiesTest extends TestCase
         $this->assertEquals('idle', $property->production_status);
         $this->assertNull($property->production_ends_at);
 
-        // Treasury increased by €75.000 and player respect increased by 30
-        $this->assertEquals($initialTreasury + 75000, $gang->fresh()->treasury);
-        $this->assertEquals($initialRespect + 30, $character->fresh()->respect);
+        // Treasury increased by €90.000 and claiming character respect increased by 35
+        $this->assertEquals($initialTreasury + 90000, $gang->fresh()->treasury);
+        $this->assertEquals($initialRespect + 35, (int) $character->fresh()->respect);
 
         Carbon::setTestNow();
     }
@@ -145,10 +145,10 @@ class GangPropertiesTest extends TestCase
         $failHire = $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'productie_manager'));
         $failHire->assertSessionHas('error');
 
-        // 2. Buy Penthouse (gives 3 NPC slots)
+        // 2. Buy Penthouse (gives 4 NPC slots)
         $this->actingAs($user)->post(route('gangs.panden.buy', 'luxe_penthouse'));
         $gang->refresh();
-        $this->assertEquals(3, $gang->total_npc_capacity);
+        $this->assertEquals(4, $gang->total_npc_capacity);
 
         // 3. Hire NPC 'productie_manager' (cost €250.000, +25% cash bonus)
         $hireRes = $this->actingAs($user)->post(route('gangs.panden.hire-npc', 'productie_manager'));
@@ -161,8 +161,8 @@ class GangPropertiesTest extends TestCase
         $this->actingAs($user)->post(route('gangs.panden.buy', 'valsgeld_drukkerij'));
         $property = GangProperty::where('gang_id', $gang->id)->where('property_key', 'valsgeld_drukkerij')->first();
 
-        // Base reward is €75.000
-        $this->assertEquals(75000, $property->getEffectiveRewards()['cash']);
+        // Base reward is €90.000
+        $this->assertEquals(90000, $property->getEffectiveRewards()['cash']);
 
         // 5. Assign NPC to printing facility
         $assignRes = $this->actingAs($user)->post(route('gangs.panden.assign-npc', $property->id), [
@@ -170,7 +170,7 @@ class GangPropertiesTest extends TestCase
         ]);
         $assignRes->assertSessionHas('success');
 
-        // Effective cash reward now has +25% bonus (€75.000 * 1.25 = €93.750)
-        $this->assertEquals(93750, $property->fresh()->getEffectiveRewards()['cash']);
+        // Effective cash reward now has +25% bonus (€90.000 * 1.25 = €112.500)
+        $this->assertEquals(112500, $property->fresh()->getEffectiveRewards()['cash']);
     }
 }
