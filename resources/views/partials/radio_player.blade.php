@@ -1,8 +1,7 @@
-<!-- TBS GLOBAL LIVE RADIO PLAYER -->
 <div id="tbs-global-radio-container" 
      x-data="tbsRadioPlayer()" 
      x-init="initPlayer()"
-     class="fixed bottom-4 right-4 z-50 select-none font-sans"
+     class="fixed bottom-20 left-4 lg:bottom-6 lg:left-6 z-40 select-none font-sans"
      @tbs-play-station.window="changeStation($event.detail.id, true)">
 
     <!-- Hidden Audio Element -->
@@ -208,6 +207,38 @@ function tbsRadioPlayer() {
                     this.isPlaying = false;
                     this.isLoading = false;
                 });
+
+                // Auto-resume playback across page navigation if user had radio on
+                const wasPlaying = localStorage.getItem('tbs_radio_playing') === 'true';
+                if (wasPlaying) {
+                    this.isLoading = true;
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            this.isPlaying = true;
+                            this.isLoading = false;
+                        }).catch(err => {
+                            // Autoplay was prevented by browser policy on fresh page:
+                            // Resume on very first user interaction anywhere on the screen!
+                            this.isLoading = false;
+                            this.isPlaying = false;
+                            const resumeOnGesture = () => {
+                                if (localStorage.getItem('tbs_radio_playing') === 'true' && !this.isPlaying) {
+                                    audio.play().then(() => {
+                                        this.isPlaying = true;
+                                        this.isLoading = false;
+                                    }).catch(() => {});
+                                }
+                                window.removeEventListener('click', resumeOnGesture);
+                                window.removeEventListener('keydown', resumeOnGesture);
+                                window.removeEventListener('touchstart', resumeOnGesture);
+                            };
+                            window.addEventListener('click', resumeOnGesture, { once: true });
+                            window.addEventListener('keydown', resumeOnGesture, { once: true });
+                            window.addEventListener('touchstart', resumeOnGesture, { once: true });
+                        });
+                    }
+                }
             }
 
             // Expose globally so other pages/widgets can interact
@@ -225,6 +256,7 @@ function tbsRadioPlayer() {
             if (this.isPlaying) {
                 audio.pause();
                 this.isPlaying = false;
+                localStorage.setItem('tbs_radio_playing', 'false');
                 sessionStorage.removeItem('tbs_radio_autoplay');
             } else {
                 this.isLoading = true;
@@ -232,6 +264,7 @@ function tbsRadioPlayer() {
                 audio.play().then(() => {
                     this.isPlaying = true;
                     this.isLoading = false;
+                    localStorage.setItem('tbs_radio_playing', 'true');
                     sessionStorage.setItem('tbs_radio_autoplay', 'true');
                 }).catch(err => {
                     console.warn('Playback error:', err);
@@ -256,6 +289,7 @@ function tbsRadioPlayer() {
                     audio.play().then(() => {
                         this.isPlaying = true;
                         this.isLoading = false;
+                        localStorage.setItem('tbs_radio_playing', 'true');
                         sessionStorage.setItem('tbs_radio_autoplay', 'true');
                     }).catch(() => {
                         this.isPlaying = false;

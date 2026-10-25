@@ -19,13 +19,29 @@ use App\Services\ReferralService;
 use App\Services\WeatherService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    /**
+     * Permanent unlock prices for premium dashboard widgets in stars.
+     *
+     * @var array<string, int>
+     */
+    public const WIDGET_PRICES = [
+        'weather' => 15,
+        'nunl' => 15,
+        'radio' => 20,
+        'peuken_market' => 20,
+        'roulette' => 25,
+        'security' => 20,
+    ];
+
     public function __construct(
         protected EnergyService $energyService,
         protected LevelService $levelService,
@@ -190,7 +206,68 @@ class DashboardController extends Controller
         $nextStreakDay = $character->getNextStreakDay();
 
         $nuNlNews = $this->nuNlNewsService->getLatestNews(5);
-        $clinicWeather = $this->weatherService->getClinicWeather();
+
+        // Load custom GPS weather if user previously detected location
+        $sessionLat = session('user_weather_lat');
+        $sessionLon = session('user_weather_lon');
+        $clinicWeather = ($sessionLat !== null && $sessionLon !== null)
+            ? $this->weatherService->getWeather((float) $sessionLat, (float) $sessionLon)
+            : $this->weatherService->getClinicWeather();
+
+        // 🚬 Peuken Beurs (Zwarte markt koers index)
+        $peukenMarket = [
+            'status' => 'Schaarste op Afdeling B (Prijzen stijgen!)',
+            'status_type' => 'bullish',
+            'items' => [
+                [
+                    'name' => 'Van Nelle Zware Shag (50g)',
+                    'price' => '€ 15,20',
+                    'change' => '+14.2%',
+                    'is_up' => true,
+                    'tip' => 'Zeer gewild op de luchtplaats',
+                    'icon' => 'fa-smoking text-amber-500',
+                ],
+                [
+                    'name' => 'Slof Marlboro Smokkel (200 stuks)',
+                    'price' => '€ 88,50',
+                    'change' => '-4.1%',
+                    'is_up' => false,
+                    'tip' => 'Aanvoer via drone geslaagd',
+                    'icon' => 'fa-box-archive text-rose-500',
+                ],
+                [
+                    'name' => 'Mascotte / Rizla Vloeitjes',
+                    'price' => '€ 2,60',
+                    'change' => '+8.5%',
+                    'is_up' => true,
+                    'tip' => 'Kantine voorraad is uitgeput',
+                    'icon' => 'fa-scroll text-blue-400',
+                ],
+                [
+                    'name' => 'Aansteker met Vuursteentje',
+                    'price' => '€ 5,00',
+                    'change' => '0.0%',
+                    'is_up' => true,
+                    'tip' => 'Vaste ruilwaarde tegen 2 peuken',
+                    'icon' => 'fa-fire-flame-curved text-orange-500',
+                ],
+            ],
+        ];
+
+        // 🚨 Bewakingsradar & Patrouille Alarm
+        $hour = (int) now()->format('H');
+        $isHighAlert = $hour >= 22 || $hour < 6;
+        $securityRadar = [
+            'threat_level' => $isHighAlert ? 'Code Rood (Nachtlockdown)' : 'Code Geel (Regulier Toezicht)',
+            'threat_color' => $isHighAlert ? 'rose' : 'amber',
+            'guard_count' => $isHighAlert ? 14 : 8,
+            'dog_patrol' => ($hour % 3 === 0) ? 'Actief op Binnenplaats' : 'In Kennel (Rustig)',
+            'cell_check_risk' => min(95, max(12, (($character->respect ?? 50) % 35) + 15)),
+            'camera_coverage' => '94% (Dode hoek bij container & linnenkamer)',
+        ];
+
+        $unlockedWidgets = $character->unlocked_widgets ?? [];
+        $widgetPrices = self::WIDGET_PRICES;
 
         return view('game.dashboard', compact(
             'character',
@@ -212,7 +289,98 @@ class DashboardController extends Controller
             'nextStreakDay',
             'nuNlNews',
             'clinicWeather',
+            'peukenMarket',
+            'securityRadar',
+            'unlockedWidgets',
+            'widgetPrices',
         ));
+    }
+
+    /**
+     * Fetch real-time weather by browser GPS coordinates and cache for user.
+     */
+    public function weatherByCoords(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lon' => 'required|numeric|between:-180,180',
+        ]);
+
+        $lat = (float) $validated['lat'];
+        $lon = (float) $validated['lon'];
+
+        session([
+            'user_weather_lat' => $lat,
+            'user_weather_lon' => $lon,
+        ]);
+
+        $weather = $this->weatherService->getWeather($lat, $lon);
+
+        return response()->json([
+            'success' => true,
+            'weather' => $weather,
+        ]);
+    }
+
+    /**
+     * Unlock a premium widget permanently with character stars.
+     */
+    public function unlockWidget(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'widget_key' => 'required|string',
+        ]);
+
+        $key = $validated['widget_key'];
+
+        if (! array_key_exists($key, self::WIDGET_PRICES)) {
+            return response()->json(['error' => 'Ongeldige widget.'], 422);
+        }
+
+        $cost = self::WIDGET_PRICES[$key];
+
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user?->character;
+
+        if (! $character) {
+            return response()->json(['error' => 'Geen karakter gevonden.'], 404);
+        }
+
+        return DB::transaction(function () use ($character, $key, $cost) {
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            $unlocked = $lockedCharacter->unlocked_widgets ?? [];
+
+            if (in_array($key, $unlocked, true)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Deze widget is al ontgrendeld!',
+                    'stars' => $lockedCharacter->stars,
+                    'unlocked_widgets' => $unlocked,
+                    'widget_key' => $key,
+                ]);
+            }
+
+            if (($lockedCharacter->stars ?? 0) < $cost) {
+                return response()->json([
+                    'error' => "Niet genoeg sterren! Deze widget kost {$cost} sterren (je hebt er {$lockedCharacter->stars}).",
+                ], 400);
+            }
+
+            $lockedCharacter->decrement('stars', $cost);
+            $unlocked[] = $key;
+            $lockedCharacter->unlocked_widgets = array_values(array_unique($unlocked));
+            $lockedCharacter->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Widget succesvol ontgrendeld voor {$cost} sterren! ⭐",
+                'stars' => $lockedCharacter->stars,
+                'unlocked_widgets' => $lockedCharacter->unlocked_widgets,
+                'widget_key' => $key,
+            ]);
+        });
     }
 
     /**

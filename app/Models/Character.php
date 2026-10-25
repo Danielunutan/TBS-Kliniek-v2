@@ -145,9 +145,44 @@ class Character extends Model
         'pumpkin_seeds' => 'integer',
         'unlocked_borders' => 'array',
         'unlocked_stickers' => 'array',
+        'unlocked_widgets' => 'array',
         'last_hack_at' => 'datetime',
         'hacks_completed_total' => 'integer',
     ];
+
+    /**
+     * List of dashboard widgets that are free for all patients.
+     *
+     * @return array<int, string>
+     */
+    public static function freeWidgets(): array
+    {
+        return [
+            'quickToolbar',
+            'attributes',
+            'activities',
+            'lottery',
+            'referral',
+            'loginBonus',
+            'gang',
+            'missions',
+            'clinicNews',
+        ];
+    }
+
+    /**
+     * Check if a specific dashboard widget is unlocked for this character.
+     */
+    public function isWidgetUnlocked(string $widgetKey): bool
+    {
+        if (in_array($widgetKey, self::freeWidgets(), true)) {
+            return true;
+        }
+
+        $unlocked = $this->unlocked_widgets ?? [];
+
+        return in_array($widgetKey, $unlocked, true);
+    }
 
     /**
      * Get rich metadata for the currently equipped avatar border / frame.

@@ -281,7 +281,7 @@
                 </div>
             </div>
 
-            <!-- IN-DASHBOARD RADIO KLINIEK FM WIDGET (Toggleable) -->
+            <!-- IN-DASHBOARD RADIO KLINIEK FM WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.radio" 
                  x-transition
                  class="bg-white dark:bg-[#111827] rounded-2xl p-5 shadow-xs border border-purple-200/90 dark:border-purple-900/60 relative overflow-hidden"
@@ -294,73 +294,97 @@
                          }
                      }
                  }">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-                    <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
-                            <i class="fa-solid fa-radio"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
-                                    Live Audio Stream
-                                </span>
-                                <span class="text-xs font-black text-slate-900 dark:text-white">Radio Kliniek FM</span>
-                            </div>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                Luister live naar je favoriete zenders tijdens het spelen op de hele website!
-                            </p>
-                        </div>
+                <!-- Locked State -->
+                <div x-show="!isUnlocked('radio')" class="text-center py-4 space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-rose-200 dark:border-rose-800/80">
+                        <i class="fa-solid fa-radio"></i>
                     </div>
-
-                    <a href="{{ route('radio.index') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1.5 self-start sm:self-center">
-                        <i class="fa-solid fa-microphone-lines"></i>
-                        <span>Shoutout Sturen (€150)</span>
-                    </a>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Radio Kliniek FM Deck</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                            Ontgrendel de ingebouwde zenderselector (FunX, SLAM!, 538, Sky & NPO) direct op jouw persoonlijke dashboard.
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="unlockWidget('radio')"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
+                            <i class="fa-solid fa-star text-amber-950"></i>
+                            <span>Ontgrendel voor 20 Sterren</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Station Quick Pick Buttons -->
-                <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                    <button type="button" @click="playStation('funx')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                        <span class="w-5 h-5 rounded-md bg-rose-500 text-white text-[9px] font-black flex items-center justify-center mb-1">FX</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate">FunX</span>
-                        <span class="text-[9px] text-slate-400 block truncate">Hip Hop & Urban</span>
-                    </button>
+                <!-- Unlocked Content -->
+                <div x-show="isUnlocked('radio')">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-2xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl shrink-0 shadow-2xs">
+                                <i class="fa-solid fa-radio"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse">
+                                        Live Audio Stream
+                                    </span>
+                                    <span class="text-xs font-black text-slate-900 dark:text-white">Radio Kliniek FM</span>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    Luister live naar je favoriete zenders tijdens het spelen op de hele website!
+                                </p>
+                            </div>
+                        </div>
 
-                    <button type="button" @click="playStation('slam')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-orange-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                        <span class="w-5 h-5 rounded-md bg-orange-500 text-white text-[9px] font-black flex items-center justify-center mb-1">SL</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate">SLAM!</span>
-                        <span class="text-[9px] text-slate-400 block truncate">Club & Beats</span>
-                    </button>
+                        <a href="{{ route('radio.index') }}" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1.5 self-start sm:self-center">
+                            <i class="fa-solid fa-microphone-lines"></i>
+                            <span>Shoutout Sturen (€150)</span>
+                        </a>
+                    </div>
 
-                    <button type="button" @click="playStation('slam00s')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-amber-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                        <span class="w-5 h-5 rounded-md bg-amber-500 text-white text-[9px] font-black flex items-center justify-center mb-1">00s</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate">SLAM! 00s</span>
-                        <span class="text-[9px] text-slate-400 block truncate">Throwbacks</span>
-                    </button>
+                    <!-- Station Quick Pick Buttons -->
+                    <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                        <button type="button" @click="playStation('funx')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
+                            <span class="w-5 h-5 rounded-md bg-rose-500 text-white text-[9px] font-black flex items-center justify-center mb-1">FX</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">FunX</span>
+                            <span class="text-[9px] text-slate-400 block truncate">Hip Hop & Urban</span>
+                        </button>
 
-                    <button type="button" @click="playStation('radio2')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                        <span class="w-5 h-5 rounded-md bg-red-600 text-white text-[9px] font-black flex items-center justify-center mb-1">R2</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Radio 2</span>
-                        <span class="text-[9px] text-slate-400 block truncate">Pop & Rock</span>
-                    </button>
+                        <button type="button" @click="playStation('slam')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-orange-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
+                            <span class="w-5 h-5 rounded-md bg-orange-500 text-white text-[9px] font-black flex items-center justify-center mb-1">SL</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">SLAM!</span>
+                            <span class="text-[9px] text-slate-400 block truncate">Club & Beats</span>
+                        </button>
 
-                    <button type="button" @click="playStation('3fm')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                        <span class="w-5 h-5 rounded-md bg-emerald-600 text-white text-[9px] font-black flex items-center justify-center mb-1">3FM</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate">3FM</span>
-                        <span class="text-[9px] text-slate-400 block truncate">Hits & Nieuw</span>
-                    </button>
+                        <button type="button" @click="playStation('slam00s')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-amber-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
+                            <span class="w-5 h-5 rounded-md bg-amber-500 text-white text-[9px] font-black flex items-center justify-center mb-1">00s</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">SLAM! 00s</span>
+                            <span class="text-[9px] text-slate-400 block truncate">Throwbacks</span>
+                        </button>
 
-                    <button type="button" @click="playStation('skyradio')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-sky-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                        <span class="w-5 h-5 rounded-md bg-sky-500 text-white text-[9px] font-black flex items-center justify-center mb-1">SKY</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Sky Radio</span>
-                        <span class="text-[9px] text-slate-400 block truncate">Non-stop</span>
-                    </button>
+                        <button type="button" @click="playStation('radio2')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
+                            <span class="w-5 h-5 rounded-md bg-red-600 text-white text-[9px] font-black flex items-center justify-center mb-1">R2</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Radio 2</span>
+                            <span class="text-[9px] text-slate-400 block truncate">Pop & Rock</span>
+                        </button>
 
-                    <button type="button" @click="playStation('radio538')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                        <span class="w-5 h-5 rounded-md bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center mb-1">538</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Radio 538</span>
-                        <span class="text-[9px] text-slate-400 block truncate">Top 40</span>
-                    </button>
+                        <button type="button" @click="playStation('3fm')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
+                            <span class="w-5 h-5 rounded-md bg-emerald-600 text-white text-[9px] font-black flex items-center justify-center mb-1">3FM</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">3FM</span>
+                            <span class="text-[9px] text-slate-400 block truncate">Hits & Nieuw</span>
+                        </button>
+
+                        <button type="button" @click="playStation('skyradio')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-sky-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
+                            <span class="w-5 h-5 rounded-md bg-sky-500 text-white text-[9px] font-black flex items-center justify-center mb-1">SKY</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Sky Radio</span>
+                            <span class="text-[9px] text-slate-400 block truncate">Non-stop</span>
+                        </button>
+
+                        <button type="button" @click="playStation('radio538')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
+                            <span class="w-5 h-5 rounded-md bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center mb-1">538</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Radio 538</span>
+                            <span class="text-[9px] text-slate-400 block truncate">Top 40</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -595,98 +619,398 @@
         <!-- Right Sidebar (Col-Span-4) -->
         <div class="xl:col-span-4 space-y-6">
 
-            <!-- 1. WEERSTATION & LUCHTPLAATS STATUS WIDGET (Toggleable) -->
+            <!-- 1. WEERSTATION & BUIENRADAR WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.weather" 
                  x-transition
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
-                <div class="p-4 sm:p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white flex items-center justify-between">
+                
+                <!-- Locked State -->
+                <div x-show="!isUnlocked('weather')" class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-amber-200 dark:border-amber-800/80">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
                     <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 block">Kliniek Weerstation</span>
-                        <h4 class="text-sm font-bold text-slate-100 truncate">{{ $clinicWeather['location'] }}</h4>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Kliniek Weerstation & Buienradar</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                            Echt live weer via GPS, actuele buienverwachting en luchtplaats status voor jouw locatie!
+                        </p>
                     </div>
-                    <div class="text-2xl text-amber-400">
-                        <i class="fa-solid {{ $clinicWeather['icon'] }}"></i>
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="unlockWidget('weather')"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
+                            <i class="fa-solid fa-star text-amber-950"></i>
+                            <span>Ontgrendel voor 15 Sterren</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="p-4 sm:p-5 space-y-4">
-                    <div class="flex items-center justify-between">
+                <!-- Unlocked Live Content -->
+                <div x-show="isUnlocked('weather')">
+                    <div class="p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 text-white flex items-center justify-between">
                         <div>
-                            <span class="text-3xl font-black text-slate-900 dark:text-white leading-none font-mono">{{ $clinicWeather['temp'] }}°C</span>
-                            <span class="text-[11px] text-slate-400 block mt-1">Gevoelstemperatuur: {{ $clinicWeather['feels_like'] }}°C</span>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-amber-400">Live Weerstation</span>
+                                <template x-if="weather.is_gps">
+                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-sky-500/30 text-sky-300 border border-sky-400/30">GPS</span>
+                                </template>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-100 truncate" x-text="weather.location"></h4>
                         </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-slate-700 dark:text-slate-200 block">{{ $clinicWeather['condition'] }}</span>
-                            <span class="text-[10px] text-slate-400 block">{{ $clinicWeather['wind'] }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Luchtplaats status bar -->
-                    <div class="p-3 rounded-xl border text-xs font-bold flex items-center gap-2.5"
-                         :class="'{{ $clinicWeather['yard_open'] }}' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800'">
-                        <span class="w-2 h-2 rounded-full shrink-0"
-                              :class="'{{ $clinicWeather['yard_open'] }}' ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
-                        <div class="truncate">
-                            <span class="block truncate">{{ $clinicWeather['yard_status'] }}</span>
+                        <div class="text-2xl text-amber-400">
+                            <i class="fa-solid" :class="weather.icon"></i>
                         </div>
                     </div>
 
-                    <a href="{{ route('fight.index') }}" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-2xs">
-                        <i class="fa-solid fa-hand-fist text-rose-500"></i>
-                        <span>Ga naar de Luchtplaats</span>
-                    </a>
+                    <div class="p-4 sm:p-5 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-3xl font-black text-slate-900 dark:text-white leading-none font-mono" x-text="weather.temp + '°C'"></span>
+                                <span class="text-[11px] text-slate-400 block mt-1" x-text="'Gevoelstemperatuur: ' + weather.feels_like + '°C'"></span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-200 block" x-text="weather.condition"></span>
+                                <span class="text-[10px] text-slate-400 block" x-text="weather.wind"></span>
+                            </div>
+                        </div>
+
+                        <!-- Real Live Buien & Neerslag Alert -->
+                        <div class="p-3 rounded-xl border text-xs font-bold flex items-center gap-2.5 transition"
+                             :class="weather.has_buien ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'">
+                            <span class="text-base shrink-0" :class="weather.has_buien ? 'animate-bounce text-blue-500' : 'text-amber-500'">
+                                <i class="fa-solid" :class="weather.has_buien ? 'fa-cloud-showers-heavy' : 'fa-cloud-sun'"></i>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <span class="block truncate" x-html="weather.buien_text"></span>
+                                <template x-if="weather.rain_mm > 0">
+                                    <span class="text-[10px] font-mono text-blue-600 dark:text-blue-400 block" x-text="'Neerslag: ' + weather.rain_mm + ' mm/u'"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Luchtplaats status bar -->
+                        <div class="p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2"
+                             :class="weather.yard_open ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800'">
+                            <span class="w-2 h-2 rounded-full shrink-0"
+                                  :class="weather.yard_open ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
+                            <span class="block truncate text-[11px]" x-html="weather.yard_status"></span>
+                        </div>
+
+                        <!-- GPS Button & Yard Links -->
+                        <div class="flex items-center gap-2 pt-1">
+                            <button type="button" 
+                                    @click="fetchUserLocation()" 
+                                    :disabled="isLocating"
+                                    class="flex-1 py-2 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-extrabold text-[11px] transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50">
+                                <template x-if="isLocating">
+                                    <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                </template>
+                                <template x-if="!isLocating">
+                                    <i class="fa-solid fa-location-crosshairs text-xs"></i>
+                                </template>
+                                <span x-text="isLocating ? 'Locatie zoeken...' : '📍 Mijn Locatie Ophalen'"></span>
+                            </button>
+
+                            <template x-if="weather.is_gps">
+                                <button type="button" 
+                                        @click="resetToVught()" 
+                                        class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white text-xs transition cursor-pointer"
+                                        title="Reset naar TBS Kliniek Vught">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
                 </div>
+
             </div>
 
-            <!-- 2. LIVE NU.NL NIEUWS WIDGET (Toggleable) -->
+            <!-- 2. ALGEMEEN BUITENWERELD NIEUWS WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.nunl" 
                  x-transition
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
-                <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
-                        <span class="w-6 h-5 rounded bg-red-600 text-white font-black text-[10px] flex items-center justify-center tracking-tighter">
-                            NU
-                        </span>
-                        <span>Laatste Nieuws (NU.nl)</span>
+                
+                <!-- Locked State -->
+                <div x-show="!isUnlocked('nunl')" class="p-6 text-center space-y-3 bg-gradient-to-b from-indigo-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-indigo-200 dark:border-indigo-800/80">
+                        <i class="fa-solid fa-newspaper"></i>
                     </div>
-                    <span class="text-[9px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-800 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span> Live Feed
-                    </span>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Algemeen Buitenwereld Nieuws</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                            Blijf op de hoogte van het laatste landelijke nieuws, politiek en misdaad rechtstreeks op je dashboard.
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="unlockWidget('nunl')"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
+                            <i class="fa-solid fa-star text-amber-950"></i>
+                            <span>Ontgrendel voor 15 Sterren</span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                    @forelse($nuNlNews as $item)
-                        <a href="{{ $item['link'] }}" target="_blank" rel="noopener noreferrer" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-1.5 mb-1">
-                                        <span class="text-[9px] font-black uppercase tracking-wider text-red-600 dark:text-red-400">{{ $item['category'] }}</span>
-                                        <span class="text-slate-300 dark:text-slate-600">&bull;</span>
-                                        <span class="text-[10px] text-slate-400">{{ $item['time_ago'] }}</span>
-                                    </div>
-                                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-red-600 dark:group-hover:text-red-400 transition leading-snug line-clamp-2">
-                                        {{ $item['title'] }}
-                                    </h4>
-                                </div>
-                                @if(!empty($item['image']))
-                                    <img src="{{ $item['image'] }}" alt="Nieuws thumbnail" class="w-12 h-12 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs">
-                                @else
-                                    <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center shrink-0">
-                                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                    </div>
-                                @endif
-                            </div>
-                        </a>
-                    @empty
-                        <div class="p-6 text-center text-xs text-slate-400">
-                            Geen extern nieuws beschikbaar.
+                <!-- Unlocked Content -->
+                <div x-show="isUnlocked('nunl')">
+                    <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
+                            <span class="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs border border-indigo-200 dark:border-indigo-800">
+                                <i class="fa-solid fa-earth-europe"></i>
+                            </span>
+                            <span>Algemeen Buitenwereld Nieuws</span>
                         </div>
-                    @endforelse
+                        <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Teletekst
+                        </span>
+                    </div>
+
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                        @forelse($nuNlNews as $item)
+                            <a href="{{ $item['link'] }}" target="_blank" rel="noopener noreferrer" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-1.5 mb-1">
+                                            <span class="text-[9px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">{{ $item['category'] }}</span>
+                                            <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                                            <span class="text-[10px] text-slate-400">{{ $item['time_ago'] }}</span>
+                                        </div>
+                                        <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition leading-snug line-clamp-2">
+                                            {{ $item['title'] }}
+                                        </h4>
+                                    </div>
+                                    @if(!empty($item['image']))
+                                        <img src="{{ $item['image'] }}" alt="Nieuws thumbnail" class="w-12 h-12 rounded-lg object-cover shrink-0 border border-slate-200 dark:border-slate-700 shadow-2xs">
+                                    @else
+                                        <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center shrink-0">
+                                            <i class="fa-solid fa-newspaper text-[10px]"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                            </a>
+                        @empty
+                            <div class="p-6 text-center text-xs text-slate-400">
+                                Geen extern nieuws beschikbaar.
+                            </div>
+                        @endforelse
+                    </div>
+
+                    <div class="p-2.5 bg-slate-50/70 dark:bg-slate-800/40 text-center border-t border-slate-100 dark:border-slate-800">
+                        <span class="text-[10px] text-slate-400">Automatisch bijgewerkt &bull; Bron: Algemene Nieuwsdienst</span>
+                    </div>
                 </div>
 
-                <a href="https://www.nu.nl" target="_blank" rel="noopener" class="block w-full text-center py-2 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white border-t border-slate-100 dark:border-slate-800">
-                    Lees meer op NU.nl &rarr;
-                </a>
+            </div>
+
+            <!-- 2B. FUN WIDGET: PEUKEN BEURS & ZWARTE MARKT (Toggleable & Premium) -->
+            <div x-show="widgets.peuken_market" 
+                 x-transition
+                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-amber-200/90 dark:border-amber-900/50 overflow-hidden">
+                
+                <!-- Locked State -->
+                <div x-show="!isUnlocked('peuken_market')" class="p-6 text-center space-y-3 bg-gradient-to-b from-amber-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-amber-200 dark:border-amber-800/80">
+                        <i class="fa-solid fa-smoking"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Peuken Beurs & Zwarte Markt</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                            Volg de live koersen van Shag, Sloffen Smokkelsigaretten en Vloeitjes op de afdeling!
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="unlockWidget('peuken_market')"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
+                            <i class="fa-solid fa-star text-amber-950"></i>
+                            <span>Ontgrendel voor 20 Sterren</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Unlocked Content -->
+                <div x-show="isUnlocked('peuken_market')">
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
+                            <span class="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-smoking"></i>
+                            </span>
+                            <span>Peuken Beurs (Bajes Ticker)</span>
+                        </div>
+                        <span class="text-[9px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                            Volatiel 🔥
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-3">
+                        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Marktsituatie:</span>
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                {{ $peukenMarket['status'] }}
+                            </span>
+                        </div>
+
+                        <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                            @foreach($peukenMarket['items'] as $item)
+                                <div class="py-2.5 flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2.5 truncate">
+                                        <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs shrink-0">
+                                            <i class="fa-solid {{ $item['icon'] }}"></i>
+                                        </div>
+                                        <div class="truncate">
+                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate">{{ $item['name'] }}</span>
+                                            <span class="text-[9px] text-slate-400 block truncate">{{ $item['tip'] }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right shrink-0">
+                                        <span class="text-xs font-black font-mono text-slate-900 dark:text-white block">{{ $item['price'] }}</span>
+                                        <span class="text-[10px] font-bold {{ $item['is_up'] ? 'text-emerald-500' : 'text-rose-500' }}">
+                                            {{ $item['change'] }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <a href="{{ route('marketplace.index') }}" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                            <i class="fa-solid fa-store"></i>
+                            <span>Handelen op de Markt</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 2C. FUN WIDGET: BEWAKINGSRADAR & PATROUILLE ALARM (Toggleable & Premium) -->
+            <div x-show="widgets.security" 
+                 x-transition
+                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-rose-200/90 dark:border-rose-900/50 overflow-hidden">
+                
+                <!-- Locked State -->
+                <div x-show="!isUnlocked('security')" class="p-6 text-center space-y-3 bg-gradient-to-b from-rose-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-rose-200 dark:border-rose-800/80">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Bewakingsradar & Patrouille Alarm</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                            Tactische kliniekradar: live dreigingsniveau, hondenpatrouilles en risico op celcontrole!
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="unlockWidget('security')"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
+                            <i class="fa-solid fa-star text-amber-950"></i>
+                            <span>Ontgrendel voor 20 Sterren</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Unlocked Content -->
+                <div x-show="isUnlocked('security')">
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-rose-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
+                            <span class="w-6 h-6 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-radar"></i>
+                            </span>
+                            <span>Bewakingsradar</span>
+                        </div>
+                        <span class="text-[9px] font-black px-2 py-0.5 rounded-full uppercase border flex items-center gap-1.5"
+                              :class="'{{ $securityRadar['threat_color'] }}' === 'rose' ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300'">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $securityRadar['threat_color'] === 'rose' ? 'bg-rose-500 animate-ping' : 'bg-amber-500' }}"></span>
+                            {{ $securityRadar['threat_level'] }}
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-3">
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
+                                <span class="text-[9px] font-black uppercase text-slate-400 block">Cipiers Zaal</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $securityRadar['guard_count'] }} bewakers</span>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
+                                <span class="text-[9px] font-black uppercase text-slate-400 block">Speurhonden</span>
+                                <span class="text-xs font-black text-slate-900 dark:text-white">{{ $securityRadar['dog_patrol'] }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Celcontrole risico meter -->
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 space-y-1.5">
+                            <div class="flex items-center justify-between text-xs font-bold">
+                                <span class="text-slate-600 dark:text-slate-300">Risico op Celcontrole:</span>
+                                <span class="text-rose-600 dark:text-rose-400 font-mono">{{ $securityRadar['cell_check_risk'] }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                <div class="bg-gradient-to-r from-amber-500 to-rose-600 h-full rounded-full transition-all" style="width: {{ $securityRadar['cell_check_risk'] }}%"></div>
+                            </div>
+                            <span class="text-[9px] text-slate-400 block">{{ $securityRadar['camera_coverage'] }}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 2D. FUN WIDGET: BAJES KRASLOT & GELUKSRAD (Toggleable & Premium) -->
+            <div x-show="widgets.roulette" 
+                 x-transition
+                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-emerald-200/90 dark:border-emerald-900/50 overflow-hidden">
+                
+                <!-- Locked State -->
+                <div x-show="!isUnlocked('roulette')" class="p-6 text-center space-y-3 bg-gradient-to-b from-emerald-500/5 to-transparent">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-emerald-200 dark:border-emerald-800/80">
+                        <i class="fa-solid fa-clover"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Bajes Kraslot & Geluksrad</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                            Draai dagelijks aan het rad voor gratis buit, koffers, energie en zakgeld op je dashboard!
+                        </p>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="unlockWidget('roulette')"
+                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2">
+                            <i class="fa-solid fa-star text-amber-950"></i>
+                            <span>Ontgrendel voor 20 Sterren</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Unlocked Content -->
+                <div x-show="isUnlocked('roulette')">
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
+                            <span class="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
+                                <i class="fa-solid fa-dharmachakra"></i>
+                            </span>
+                            <span>Dagelijks Kraslot & Rad</span>
+                        </div>
+                        <span class="text-[9px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                            Gratis Dagelijks
+                        </span>
+                    </div>
+
+                    <div class="p-4 space-y-3 text-center">
+                        <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60">
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block">Prijzenpot Vandaag:</span>
+                            <div class="flex items-center justify-center gap-3 mt-1.5 text-xs font-black">
+                                <span class="text-amber-500">💰 € 10.000</span>
+                                <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                                <span class="text-sky-500">⚡ +50 Energie</span>
+                                <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                                <span class="text-purple-500">💼 XXL Koffers</span>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('daily.index') }}" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-95 text-white font-black text-xs transition flex items-center justify-center gap-2 shadow-md shadow-emerald-500/20 cursor-pointer block">
+                            <i class="fa-solid fa-gift"></i>
+                            <span>Open Dagelijks Kraslot & Rad &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+
             </div>
 
             <!-- 3. LAATSTE KLINIEK NIEUWS (Toggleable) -->
@@ -961,22 +1285,47 @@
                     <template x-for="item in widgetList" :key="item.key">
                         <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
                             <div class="flex items-center gap-2.5 truncate">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs" :class="item.bg">
+                                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs shrink-0" :class="item.bg">
                                     <i class="fa-solid" :class="item.icon"></i>
                                 </div>
                                 <div class="truncate">
-                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate" x-text="item.title"></span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate" x-text="item.title"></span>
+                                        <template x-if="item.isPremium && !isUnlocked(item.key)">
+                                            <span class="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shrink-0">
+                                                <i class="fa-solid fa-star text-[8px]"></i> <span x-text="item.cost"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="item.isPremium && isUnlocked(item.key)">
+                                            <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 shrink-0">
+                                                ✓ Vrij
+                                            </span>
+                                        </template>
+                                    </div>
                                     <span class="text-[10px] text-slate-400 block truncate" x-text="item.desc"></span>
                                 </div>
                             </div>
 
-                            <button type="button" 
-                                    @click="toggleWidget(item.key)"
-                                    class="w-11 h-6 rounded-full transition-colors p-0.5 cursor-pointer shrink-0"
-                                    :class="widgets[item.key] ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-700'">
-                                <div class="w-5 h-5 rounded-full bg-white transition-transform"
-                                     :class="widgets[item.key] ? 'translate-x-5' : 'translate-x-0'"></div>
-                            </button>
+                            <!-- If locked: Unlock button -->
+                            <template x-if="item.isPremium && !isUnlocked(item.key)">
+                                <button type="button" 
+                                        @click="unlockWidget(item.key)"
+                                        class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[10px] shadow-xs transition cursor-pointer shrink-0 inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-star text-[8px]"></i>
+                                    <span>Koop (<span x-text="item.cost"></span>)</span>
+                                </button>
+                            </template>
+
+                            <!-- If free or unlocked: Toggle Switch -->
+                            <template x-if="!item.isPremium || isUnlocked(item.key)">
+                                <button type="button" 
+                                        @click="toggleWidget(item.key)"
+                                        class="w-11 h-6 rounded-full transition-colors p-0.5 cursor-pointer shrink-0"
+                                        :class="widgets[item.key] ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-700'">
+                                    <div class="w-5 h-5 rounded-full bg-white transition-transform"
+                                         :class="widgets[item.key] ? 'translate-x-5' : 'translate-x-0'"></div>
+                                </button>
+                            </template>
                         </div>
                     </template>
                 </div>
@@ -1036,6 +1385,12 @@ function tbsDashboardCustomizer() {
         activeCustomizerTab: 'themes',
         theme: 'clinical',
 
+        weather: @js($clinicWeather),
+        isLocating: false,
+        unlockedWidgets: @js($unlockedWidgets),
+        widgetPrices: @js($widgetPrices),
+        userStars: {{ (int) ($character->stars ?? 0) }},
+
         widgets: {
             betaNotice: true,
             roadmap: true,
@@ -1051,23 +1406,29 @@ function tbsDashboardCustomizer() {
             clinicNews: true,
             gang: true,
             missions: true,
+            peuken_market: true,
+            security: true,
+            roulette: true,
         },
 
         widgetList: [
-            { key: 'quickToolbar', title: 'Snelle Bajes Actiebalk', desc: 'Directe snelknoppen naar jouw favoriete locaties', icon: 'fa-bolt', bg: 'bg-amber-100 text-amber-700' },
-            { key: 'radio', title: 'Radio Kliniek FM Deck', desc: 'In-dashboard speler voor FunX, SLAM!, 538, Sky & NPO', icon: 'fa-radio', bg: 'bg-rose-100 text-rose-700' },
-            { key: 'weather', title: 'Kliniek Weerstation & Luchtplaats', desc: 'Actueel weer en status van de luchtplaats', icon: 'fa-cloud-sun', bg: 'bg-sky-100 text-sky-700' },
-            { key: 'nunl', title: 'NU.nl Live Nieuws Feed', desc: 'Actuele krantenkoppen en buitenwereld updates', icon: 'fa-newspaper', bg: 'bg-red-100 text-red-700' },
-            { key: 'lottery', title: 'Afdelingsloterij Jackpot', desc: 'De 14-daagse jackpot en trekkingsklok', icon: 'fa-ticket', bg: 'bg-amber-100 text-amber-700' },
-            { key: 'referral', title: 'Gratis VIP & Referral Kaart', desc: 'Vrienden uitnodigen voor gratis VIP lidmaatschap', icon: 'fa-crown', bg: 'bg-purple-100 text-purple-700' },
-            { key: 'loginBonus', title: 'Avond Inlog Bonus (22:00)', desc: '7-daagse streak beloning en gratis kluiscodes', icon: 'fa-gift', bg: 'bg-emerald-100 text-emerald-700' },
-            { key: 'attributes', title: 'Karakter Eigenschappen & Stats', desc: 'Kracht, conditie, intelligentie en discipline', icon: 'fa-dumbbell', bg: 'bg-indigo-100 text-indigo-700' },
-            { key: 'activities', title: 'Recente Activiteiten Feed', desc: 'Log van recente overvallen, missies en winsten', icon: 'fa-clock-rotate-left', bg: 'bg-slate-200 text-slate-700' },
-            { key: 'clinicNews', title: 'TBS Kliniek Berichten', desc: 'Officiële aankondigingen van de inrichting', icon: 'fa-bullhorn', bg: 'bg-purple-100 text-purple-700' },
-            { key: 'gang', title: 'Mijn Bende / Gang Kaart', desc: 'Overzicht van je factie, kas en leden', icon: 'fa-users', bg: 'bg-slate-200 text-slate-800' },
-            { key: 'missions', title: 'Snelle Missies Lijst', desc: 'Overzicht van beschikbare missies voor cash & XP', icon: 'fa-list-check', bg: 'bg-purple-100 text-purple-700' },
-            { key: 'betaNotice', title: 'Open Beta Melding', desc: 'Informatie over de testfase van het spel', icon: 'fa-flask-vial', bg: 'bg-purple-100 text-purple-700' },
-            { key: 'roadmap', title: 'Roadmap & Toekomst Kaart', desc: 'Stemmen op nieuwe kliniek features', icon: 'fa-compass', bg: 'bg-slate-200 text-slate-700' }
+            { key: 'quickToolbar', title: 'Snelle Bajes Actiebalk', desc: 'Directe snelknoppen naar jouw favoriete locaties', icon: 'fa-bolt', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
+            { key: 'weather', title: 'Kliniek Weerstation & Buienradar', desc: 'Actueel GPS weer en neerslag buienradar', icon: 'fa-cloud-sun-rain', bg: 'bg-sky-100 text-sky-700', isPremium: true, cost: 15 },
+            { key: 'nunl', title: 'Algemeen Buitenwereld Nieuws', desc: 'Actuele krantenkoppen en Teletekst updates', icon: 'fa-newspaper', bg: 'bg-indigo-100 text-indigo-700', isPremium: true, cost: 15 },
+            { key: 'radio', title: 'Radio Kliniek FM Deck', desc: 'In-dashboard speler voor FunX, SLAM!, 538, Sky & NPO', icon: 'fa-radio', bg: 'bg-rose-100 text-rose-700', isPremium: true, cost: 20 },
+            { key: 'peuken_market', title: 'Peuken Beurs & Zwarte Markt', desc: 'Live koersindex van Shag, Sigaretten en Vloeitjes', icon: 'fa-smoking', bg: 'bg-amber-100 text-amber-700', isPremium: true, cost: 20 },
+            { key: 'security', title: 'Bewakingsradar & Patrouille Alarm', desc: 'Actuele status van bewakers, honden en controle risico', icon: 'fa-shield-halved', bg: 'bg-red-100 text-red-700', isPremium: true, cost: 20 },
+            { key: 'roulette', title: 'Bajes Kraslot & Geluksrad', desc: 'Dagelijks kraslot en Rad van Fortuin kansen', icon: 'fa-clover', bg: 'bg-emerald-100 text-emerald-700', isPremium: true, cost: 20 },
+            { key: 'lottery', title: 'Afdelingsloterij Jackpot', desc: 'De 14-daagse jackpot en trekkingsklok', icon: 'fa-ticket', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
+            { key: 'referral', title: 'Gratis VIP & Referral Kaart', desc: 'Vrienden uitnodigen voor gratis VIP lidmaatschap', icon: 'fa-crown', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'loginBonus', title: 'Avond Inlog Bonus (22:00)', desc: '7-daagse streak beloning en gratis kluiscodes', icon: 'fa-gift', bg: 'bg-emerald-100 text-emerald-700', isPremium: false, cost: 0 },
+            { key: 'attributes', title: 'Karakter Eigenschappen & Stats', desc: 'Kracht, conditie, intelligentie en discipline', icon: 'fa-dumbbell', bg: 'bg-indigo-100 text-indigo-700', isPremium: false, cost: 0 },
+            { key: 'activities', title: 'Recente Activiteiten Feed', desc: 'Log van recente overvallen, missies en winsten', icon: 'fa-clock-rotate-left', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 },
+            { key: 'clinicNews', title: 'TBS Kliniek Berichten', desc: 'Officiële aankondigingen van de inrichting', icon: 'fa-bullhorn', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'gang', title: 'Mijn Bende / Gang Kaart', desc: 'Overzicht van je factie, kas en leden', icon: 'fa-users', bg: 'bg-slate-200 text-slate-800', isPremium: false, cost: 0 },
+            { key: 'missions', title: 'Snelle Missies Lijst', desc: 'Overzicht van beschikbare missies voor cash & XP', icon: 'fa-list-check', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'betaNotice', title: 'Open Beta Melding', desc: 'Informatie over de testfase van het spel', icon: 'fa-flask-vial', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'roadmap', title: 'Roadmap & Toekomst Kaart', desc: 'Stemmen op nieuwe kliniek features', icon: 'fa-compass', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 }
         ],
 
         quickActions: ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'],
@@ -1101,6 +1462,98 @@ function tbsDashboardCustomizer() {
                 try {
                     this.quickActions = JSON.parse(savedActions);
                 } catch(e) {}
+            }
+        },
+
+        isUnlocked(key) {
+            const freeWidgets = ['quickToolbar', 'attributes', 'activities', 'lottery', 'referral', 'loginBonus', 'gang', 'missions', 'clinicNews', 'betaNotice', 'roadmap'];
+            if (freeWidgets.includes(key)) return true;
+            return Array.isArray(this.unlockedWidgets) && this.unlockedWidgets.includes(key);
+        },
+
+        async unlockWidget(key) {
+            const cost = this.widgetPrices[key] || 15;
+            if (this.userStars < cost) {
+                alert('Je hebt ' + this.userStars + ' sterren, maar deze widget kost ' + cost + ' sterren. Verdien of koop eerst meer sterren!');
+                return;
+            }
+            if (!confirm('Wil je deze widget permanent ontgrendelen voor ' + cost + ' ⭐ sterren?')) {
+                return;
+            }
+
+            try {
+                const resp = await fetch('{{ route("dashboard.widgets.unlock") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ widget_key: key })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    this.unlockedWidgets = data.unlocked_widgets;
+                    this.userStars = data.stars;
+                    this.widgets[key] = true;
+                    localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
+                    alert('🎉 ' + data.message);
+                } else {
+                    alert(data.error || 'Er is een fout opgetreden.');
+                }
+            } catch (e) {
+                alert('Netwerkfout bij het ontgrendelen van de widget.');
+            }
+        },
+
+        fetchUserLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocatie wordt helaas niet ondersteund door je browser.');
+                return;
+            }
+            this.isLocating = true;
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    try {
+                        const res = await fetch(`{{ route('dashboard.weather.coords') }}?lat=${lat}&lon=${lon}`);
+                        const data = await res.json();
+                        if (data.success && data.weather) {
+                            this.weather = data.weather;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Kon live weerdata voor jouw locatie niet ophalen.');
+                    } finally {
+                        this.isLocating = false;
+                    }
+                },
+                (error) => {
+                    this.isLocating = false;
+                    let msg = 'Locatietoegang niet beschikbaar of geweigerd.';
+                    if (error.code === 1) {
+                        msg = 'Geef toestemming voor locatie in je browser om het actuele weer en buienradar voor jouw woonplaats te laden.';
+                    }
+                    alert(msg);
+                },
+                { timeout: 10000, enableHighAccuracy: false }
+            );
+        },
+
+        async resetToVught() {
+            this.isLocating = true;
+            try {
+                const res = await fetch(`{{ route('dashboard.weather.coords') }}?lat=51.65&lon=5.29`);
+                const data = await res.json();
+                if (data.success && data.weather) {
+                    this.weather = data.weather;
+                }
+            } catch (e) {
+                // ignore
+            } finally {
+                this.isLocating = false;
             }
         },
 
@@ -1161,6 +1614,9 @@ function tbsDashboardCustomizer() {
                 clinicNews: true,
                 gang: true,
                 missions: true,
+                peuken_market: true,
+                security: true,
+                roulette: true,
             };
             this.quickActions = ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'];
         }
