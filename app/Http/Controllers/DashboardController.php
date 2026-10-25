@@ -14,6 +14,7 @@ use App\Models\NewsArticle;
 use App\Models\TheftRecord;
 use App\Models\TrainingLog;
 use App\Models\User;
+use App\Models\VaultCode;
 use App\Services\AllowanceService;
 use App\Services\CooldownService;
 use App\Services\DailyBattleService;
@@ -242,11 +243,14 @@ class DashboardController extends Controller
         $leaveRemainingMinutes = $isOnLeave ? (int) ceil(now()->diffInSeconds($character->leave_until) / 60) : 0;
         $treatmentCooldown = $this->cooldownService->getRemainingSeconds($character, 'treatment_session');
 
-        // 📦 3. Smokkelkoffers & Postkamer Onderscheppingen
+        // 📦 3. Koffers & Kluiscodes (Stats, kluiscodes, tassen, xxl koffers & kluisjes)
         $unopenedBags = (int) ($character->unopened_bags ?? 0);
         $xxlCases = (int) ($character->xxl_cases ?? 0);
         $vaultTokens = (int) ($character->vault_tokens ?? 0);
         $packageCooldown = $this->cooldownService->getRemainingSeconds($character, 'package');
+        $lockerCooldown = $this->cooldownService->getRemainingSeconds($character, 'locker');
+        $activeVaultCodes = VaultCode::where('character_id', $character->id)->where('is_redeemed', false)->count();
+        $redeemedVaultCodes = VaultCode::where('character_id', $character->id)->where('is_redeemed', true)->count();
 
         $unlockedWidgets = $character->unlocked_widgets ?? [];
         if (in_array('peuken_market', $unlockedWidgets, true) && ! in_array('tunnel', $unlockedWidgets, true)) {
@@ -292,6 +296,9 @@ class DashboardController extends Controller
             'xxlCases',
             'vaultTokens',
             'packageCooldown',
+            'lockerCooldown',
+            'activeVaultCodes',
+            'redeemedVaultCodes',
             'unlockedWidgets',
             'widgetPrices',
         ));

@@ -1087,7 +1087,7 @@
 
             </div>
 
-            <!-- 2D. WIDGET: SMOKKELKOFFERS & POSTKAMER (Toggleable & Premium) -->
+            <!-- 2D. WIDGET: KOFFERS & KLUISCODES (Toggleable & Premium) -->
             <div x-show="widgets.packages" 
                  x-transition
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-purple-200/90 dark:border-purple-900/50 overflow-hidden">
@@ -1095,12 +1095,12 @@
                 <!-- Locked State -->
                 <div x-show="!isUnlocked('packages')" x-cloak @if($character->isWidgetUnlocked('packages')) style="display: none;" @endif class="p-6 text-center space-y-3 bg-gradient-to-b from-purple-500/5 to-transparent">
                     <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center mx-auto text-xl shadow-xs border border-purple-200 dark:border-purple-800/80">
-                        <i class="fa-solid fa-box-open"></i>
+                        <i class="fa-solid fa-vault"></i>
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Smokkelkoffers & Postkamer</h4>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Koffers & Kluiscodes</h4>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
-                            Onderschep smokkeltassen in de postkamer, beheer XXL koffers en kraak kluistokens voor brute buit!
+                            Volledig overzicht van al je kluiscodes, kluismunten, smokkeltassen, XXL koffers en kluisjes!
                         </p>
                     </div>
                     <div class="pt-2">
@@ -1122,34 +1122,79 @@
                     <div class="px-5 py-3.5 bg-gradient-to-r from-purple-500/10 to-transparent border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
                             <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs">
-                                <i class="fa-solid fa-box-open"></i>
+                                <i class="fa-solid fa-vault"></i>
                             </span>
-                            <span>Smokkelkoffers & Postkamer</span>
+                            <span>Koffers & Kluiscodes</span>
                         </div>
-                        <span class="text-[9px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
-                            {{ $unopenedBags + $xxlCases }} Koffers op Voorraad
+                        <span class="text-[9px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                            <i class="fa-solid fa-coins text-amber-500 text-[10px]"></i>
+                            <span>{{ number_format($vaultTokens, 0, ',', '.') }} KluisMunten</span>
                         </span>
                     </div>
 
                     <div class="p-4 space-y-3.5">
-                        <!-- 3 Stats Tegels -->
+                        <!-- 6 Gedetailleerde Stats Tegels in 3x2 Grid -->
                         <div class="grid grid-cols-3 gap-2 text-center">
-                            <div class="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60">
-                                <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 block">Tassen</span>
-                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $unopenedBags }}</span>
+                            <!-- 1. Tokens -->
+                            <div class="p-2 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60 flex flex-col justify-between">
+                                <span class="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-300 block leading-tight">Tokens</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white my-0.5">{{ number_format($vaultTokens, 0, ',', '.') }}</span>
+                                <span class="text-[8px] font-bold text-slate-400 block leading-tight">Kluis Saldo</span>
                             </div>
-                            <div class="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60">
-                                <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 block">XXL Koffers</span>
-                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $xxlCases }}</span>
+
+                            <!-- 2. Onverzilverde Codes -->
+                            <div class="p-2 rounded-xl border flex flex-col justify-between {{ ($activeVaultCodes ?? 0) > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60' }}">
+                                <span class="text-[9px] font-black uppercase {{ ($activeVaultCodes ?? 0) > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400' }} block leading-tight">Codes</span>
+                                <span class="text-sm font-black {{ ($activeVaultCodes ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white' }} my-0.5">
+                                    {{ $activeVaultCodes ?? 0 }}
+                                </span>
+                                <span class="text-[8px] font-bold {{ ($activeVaultCodes ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400' }} block leading-tight">
+                                    {{ ($activeVaultCodes ?? 0) > 0 ? 'Te Verzilveren!' : 'Geen Actief' }}
+                                </span>
                             </div>
-                            <div class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/60">
-                                <span class="text-[9px] font-black uppercase text-indigo-700 dark:text-indigo-300 block">Tokens</span>
-                                <span class="text-sm font-black text-slate-900 dark:text-white">{{ $vaultTokens }}</span>
+
+                            <!-- 3. Verzilverde Codes -->
+                            <div class="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col justify-between">
+                                <span class="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400 block leading-tight">Gekraakt</span>
+                                <span class="text-sm font-black text-slate-900 dark:text-white my-0.5">{{ $redeemedVaultCodes ?? 0 }}</span>
+                                <span class="text-[8px] font-bold text-slate-400 block leading-tight">Verzilverd</span>
+                            </div>
+
+                            <!-- 4. Smokkeltassen -->
+                            <div class="p-2 rounded-xl border flex flex-col justify-between {{ $unopenedBags > 0 ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-300 dark:border-purple-800' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60' }}">
+                                <span class="text-[9px] font-black uppercase {{ $unopenedBags > 0 ? 'text-purple-700 dark:text-purple-300' : 'text-slate-500 dark:text-slate-400' }} block leading-tight">Tassen</span>
+                                <span class="text-sm font-black {{ $unopenedBags > 0 ? 'text-purple-700 dark:text-purple-300' : 'text-slate-900 dark:text-white' }} my-0.5">{{ $unopenedBags }}</span>
+                                <span class="text-[8px] font-bold text-slate-400 block leading-tight">Smokkelbuit</span>
+                            </div>
+
+                            <!-- 5. XXL Koffers -->
+                            <div class="p-2 rounded-xl border flex flex-col justify-between {{ $xxlCases > 0 ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/60' }}">
+                                <span class="text-[9px] font-black uppercase {{ $xxlCases > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-500 dark:text-slate-400' }} block leading-tight">XXL Koffer</span>
+                                <span class="text-sm font-black {{ $xxlCases > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-slate-900 dark:text-white' }} my-0.5">{{ $xxlCases }}</span>
+                                <span class="text-[8px] font-bold text-slate-400 block leading-tight">Top Beloning</span>
+                            </div>
+
+                            <!-- 6. Kluisjes Status -->
+                            <div class="p-2 rounded-xl border flex flex-col justify-between {{ ($lockerCooldown ?? 0) > 0 ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800' }}">
+                                <span class="text-[9px] font-black uppercase {{ ($lockerCooldown ?? 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-300' }} block leading-tight">Kluisjes</span>
+                                <span class="text-sm font-black {{ ($lockerCooldown ?? 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400' }} my-0.5">
+                                    {{ ($lockerCooldown ?? 0) > 0 ? ceil($lockerCooldown / 60).'m' : '6/6' }}
+                                </span>
+                                <span class="text-[8px] font-bold {{ ($lockerCooldown ?? 0) > 0 ? 'text-rose-500' : 'text-emerald-600 dark:text-emerald-400' }} block leading-tight">
+                                    {{ ($lockerCooldown ?? 0) > 0 ? 'Cooldown' : 'Klaar om te Kraken' }}
+                                </span>
                             </div>
                         </div>
 
                         <!-- Directe Acties -->
                         <div class="space-y-2">
+                            @if(($activeVaultCodes ?? 0) > 0)
+                                <a href="{{ route('vault.index') }}" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-key"></i>
+                                    <span>Verzilver {{ $activeVaultCodes }} Kluiscode(s) Direct &rarr;</span>
+                                </a>
+                            @endif
+
                             @if($unopenedBags > 0)
                                 <form method="POST" action="{{ route('packages.open-bag') }}">
                                     @csrf
@@ -1161,8 +1206,8 @@
                             @elseif($packageCooldown === 0)
                                 <form method="POST" action="{{ route('packages.intercept') }}">
                                     @csrf
-                                    <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 cursor-pointer">
-                                        <i class="fa-solid fa-box-archive"></i>
+                                    <button type="submit" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-box-archive text-amber-400"></i>
                                         <span>Onderschep Koffer in Postkamer (10 E)</span>
                                     </button>
                                 </form>
@@ -1173,10 +1218,16 @@
                                 </div>
                             @endif
 
-                            <div class="text-center pt-1 border-t border-slate-100 dark:border-slate-800">
-                                <a href="{{ route('packages.index') }}" class="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline inline-flex items-center gap-1">
-                                    <span>Bekijk Postkamer, Kluis & XXL Koffers</span>
-                                    <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                            <!-- Directe Snelle Navigatie Knoppen -->
+                            <div class="grid grid-cols-3 gap-1 pt-1 border-t border-slate-100 dark:border-slate-800 text-center">
+                                <a href="{{ route('vault.index') }}" class="py-1 px-1.5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition truncate">
+                                    🔑 Kluis & Codes
+                                </a>
+                                <a href="{{ route('lockers.index') }}" class="py-1 px-1.5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition truncate">
+                                    🔓 Kluisjes
+                                </a>
+                                <a href="{{ route('packages.index') }}" class="py-1 px-1.5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition truncate">
+                                    📦 Postkamer
                                 </a>
                             </div>
                         </div>

@@ -1600,6 +1600,9 @@
                     </a>
                     @endif
 
+                    <!-- TBS RADIO TOPBAR WIDGET -->
+                    @include('partials.radio_player')
+
                     <!-- Sleek Animated Dark/Light Switch Slider -->
                     <button type="button" onclick="window.tbsToggleTheme()" 
                             class="relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-slate-300 dark:bg-purple-950/80 transition-colors duration-200 ease-in-out focus:outline-none shadow-inner overflow-hidden" 
@@ -2501,12 +2504,16 @@
     <!-- BUY ME A COFFEE WIDGET (Positioned directly above the Live Chat button) -->
     <style>
         #bmc-wbtn {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
             right: 16px !important;
             left: auto !important;
             bottom: calc(env(safe-area-inset-bottom, 0px) + 124px) !important;
             z-index: 9997 !important;
             box-shadow: 0 4px 14px rgba(189, 95, 255, 0.45) !important;
             transition: transform 0.2s ease, opacity 0.2s ease !important;
+            cursor: pointer !important;
         }
         #bmc-wbtn:hover {
             transform: scale(1.08) !important;
@@ -2518,9 +2525,8 @@
                 bottom: 76px !important;
             }
         }
-        /* When Live Chat popup is open, hide BMC button & Radio player so they do not obstruct the chat window */
-        body:has(.tbs-mini-chat-popup:not([style*="display: none"])) #bmc-wbtn,
-        body:has(.tbs-mini-chat-popup:not([style*="display: none"])) #tbs-global-radio-container {
+        /* When Live Chat popup is open, hide BMC button so it does not obstruct the chat window */
+        body.tbs-chat-open #bmc-wbtn {
             opacity: 0 !important;
             pointer-events: none !important;
             transform: scale(0.8) !important;
@@ -2530,6 +2536,46 @@
         }
     </style>
     <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="tbskliniek" data-description="Support me on Buy me a coffee!" data-message="" data-color="#BD5FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+    <script>
+        (function() {
+            // Trigger BMC initialization if script loaded after DOMContentLoaded fired
+            function initBmc() {
+                if (!document.getElementById('bmc-wbtn')) {
+                    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                        try {
+                            window.dispatchEvent(new Event('DOMContentLoaded'));
+                        } catch (e) {}
+                    }
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initBmc);
+            } else {
+                initBmc();
+                setTimeout(initBmc, 300);
+                setTimeout(initBmc, 1000);
+            }
+
+            // Guaranteed resilient fallback: if external CDN was blocked, render button directly
+            setTimeout(function() {
+                if (!document.getElementById('bmc-wbtn')) {
+                    var btn = document.createElement('a');
+                    btn.id = 'bmc-wbtn';
+                    btn.href = 'https://www.buymeacoffee.com/tbskliniek';
+                    btn.target = '_blank';
+                    btn.rel = 'noopener noreferrer';
+                    btn.title = 'Support me on Buy me a coffee!';
+                    btn.style.width = '64px';
+                    btn.style.height = '64px';
+                    btn.style.background = '#BD5FFF';
+                    btn.style.borderRadius = '32px';
+                    btn.style.position = 'fixed';
+                    btn.innerHTML = '<img src="https://cdn.buymeacoffee.com/widget/assets/coffee%20cup.svg" alt="Buy Me a Coffee" style="height: 36px; width: 36px; margin: 0; padding: 0;">';
+                    document.body.appendChild(btn);
+                }
+            }, 1200);
+        })();
+    </script>
 
     <!-- GLOBAL THEME TOGGLE SCRIPT & BFCACHE RELOAD HANDLER -->
     <script>
@@ -2778,10 +2824,5 @@
     });
     </script>
 
-    @auth
-        @if(isset($character) && $character)
-            @include('partials.radio_player')
-        @endif
-    @endauth
 </body>
 </html>

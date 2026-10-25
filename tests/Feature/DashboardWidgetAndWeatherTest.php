@@ -50,7 +50,8 @@ class DashboardWidgetAndWeatherTest extends TestCase
         $response->assertSee('Algemeen Buitenwereld Nieuws');
         $response->assertSee('Geheime Ontsnappingstunnel');
         $response->assertSee('Dossier Dr. H. van Beek');
-        $response->assertSee('Smokkelkoffers');
+        $response->assertSee('Koffers');
+        $response->assertSee('Kluiscodes');
     }
 
     public function test_player_can_unlock_premium_widget_with_stars(): void

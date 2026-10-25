@@ -99,7 +99,7 @@
     characterStars: {{ $characterStars }},
     gangStars: {{ $gangStars }},
     myAvatar: @js($authCharacter?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg')),
-})" class="z-[9990]">
+})" x-effect="document.body.classList.toggle('tbs-chat-open', isOpen)" class="z-[9990]">
 
 <style>
     .tbs-mini-chat-btn {
@@ -1239,7 +1239,7 @@
     </div>
 
     <!-- FLOATING LAUNCHER BUTTON (Bottom Right Corner) -->
-    <button type="button" @click="isOpen = !isOpen; const bmc = document.getElementById('bmc-wbtn'); if(bmc) bmc.style.display = isOpen ? 'none' : 'flex'; if(isOpen) { $nextTick(() => { if(activeTab === 'global') scrollChatBottom(); else if(activeTab === 'gang') scrollGangBottom(); else if(activeTab === 'direct' && activeDirectPartner) scrollDirectBottom(); }); }"
+    <button type="button" @click="isOpen = !isOpen; if(isOpen) { $nextTick(() => { if(activeTab === 'global') scrollChatBottom(); else if(activeTab === 'gang') scrollGangBottom(); else if(activeTab === 'direct' && activeDirectPartner) scrollDirectBottom(); }); }"
             class="tbs-mini-chat-btn px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-lg shadow-purple-900/25 flex items-center gap-2.5 cursor-pointer transition transform hover:scale-102 active:scale-98 border border-purple-400">
         <div class="relative w-5 h-5 shrink-0 flex items-center justify-center">
             <i class="fa-solid fa-comments text-white text-sm" x-show="!isOpen"></i>
