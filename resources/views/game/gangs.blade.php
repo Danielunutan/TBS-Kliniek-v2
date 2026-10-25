@@ -215,8 +215,8 @@
         </div>
 
         <!-- Horizontale Scrollbare Navigatie Tabs -->
-        <div class="p-2 sm:p-2.5 bg-white dark:bg-[#111827]">
-            <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+        <div class="relative p-2 sm:p-2.5 bg-white dark:bg-[#111827]">
+            <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scroll-smooth py-1 pr-8 scrollbar-thin scrollbar-thumb-purple-300 dark:scrollbar-thumb-purple-800/80" style="-webkit-overflow-scrolling: touch;">
                 @if($myGang)
                 <!-- 1. Mijn Bende -->
                 <button type="button" @click="setGangTab('mijn_gang')" 
@@ -257,6 +257,14 @@
                     <span x-show="attackCooldown <= 0" class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
                 </button>
 
+                <!-- Controlepunten (KOTH) -->
+                <a href="{{ route('control-points.index') }}" 
+                   class="px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 bg-amber-50/70 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/70 transition group">
+                    <i class="fa-solid fa-flag text-amber-500 group-hover:scale-110 transition-transform text-xs"></i>
+                    <span>Controlepunten</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-500 text-white animate-pulse">KOTH</span>
+                </a>
+
                 <!-- 5. Panden -->
                 <a href="{{ route('gangs.panden') }}" 
                    class="px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/70 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60 transition group">
@@ -275,6 +283,14 @@
                     <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
                         {{ $myGang->storedVehicles->count() }}/{{ $myGang->total_vehicle_slots }}
                     </span>
+                </a>
+
+                <!-- Bende Heists (Co-Op) -->
+                <a href="{{ route('heists.index', ['tab' => 'gang']) }}" 
+                   class="px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 bg-slate-50 dark:bg-slate-800/70 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60 transition group">
+                    <i class="fa-solid fa-masks-theater text-rose-500 group-hover:scale-110 transition-transform text-xs"></i>
+                    <span>Heists</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">Co-Op</span>
                 </a>
 
                 <!-- 7. Depot -->
@@ -334,6 +350,12 @@
                     <i class="fa-solid fa-globe text-xs" :class="activeGangTab === 'alle_bendes' ? 'text-white' : 'text-purple-500 group-hover:scale-110 transition-transform'"></i>
                     <span>Alle Bendes</span>
                 </button>
+                <a href="{{ route('control-points.index') }}" 
+                   class="px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-2 bg-amber-50/70 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/70 transition group">
+                    <i class="fa-solid fa-flag text-amber-500 group-hover:scale-110 transition-transform text-xs"></i>
+                    <span>Controlepunten</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-500 text-white animate-pulse">KOTH</span>
+                </a>
                 @endif
 
                 <!-- Ranglijst -->
@@ -369,6 +391,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Banners voor Spelers Zonder Bende -->
     @if(!$character->gang_id)

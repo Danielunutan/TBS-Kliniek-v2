@@ -286,6 +286,13 @@
                             </div>
                             <span class="text-[10px] font-extrabold text-purple-600 dark:text-purple-400">{{ $character->gang->name }}</span>
                         </a>
+                        <a href="{{ route('gangs.index', ['tab' => 'alle_bendes']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'alle_bendes' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-address-book w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                                <span>Alle Bendes</span>
+                            </div>
+                            <span class="text-[9px] font-extrabold uppercase text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">Lijst</span>
+                        </a>
                         <a href="{{ route('gangs.index', ['tab' => 'leden']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'leden' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-user-group w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                             <span>Bende Leden</span>
@@ -296,6 +303,15 @@
                                 <span>Bende Oorlog</span>
                             </div>
                             <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                        </a>
+                        <a href="{{ route('control-points.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('control-points.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-flag w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                                <span>Controlepunten</span>
+                            </div>
+                            <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide border border-amber-300/40 animate-pulse">
+                                KOTH
+                            </span>
                         </a>
                         <a href="{{ route('gangs.panden') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.panden*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-building w-4 text-center text-purple-600 dark:text-purple-400"></i>
@@ -323,24 +339,29 @@
                         </a>
                         @endif
                     @else
-                        <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && !request('tab') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                            <i class="fa-solid fa-shield-halved w-4 text-center text-purple-600 dark:text-purple-400"></i>
-                            <span>Bendes Overzicht</span>
+                        <a href="{{ route('gangs.index', ['tab' => 'alle_bendes']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'alle_bendes') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <i class="fa-solid fa-address-book w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                            <span>Alle Bendes</span>
                         </a>
                         <a href="{{ route('gangs.index', ['tab' => 'ranglijst']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'ranglijst' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Bende Ranglijst</span>
                         </a>
+                        <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+                            <i class="fa-solid fa-plus w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                            <span>Bende Oprichten</span>
+                        </a>
+                        <a href="{{ route('control-points.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('control-points.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-flag w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                                <span>Controlepunten</span>
+                            </div>
+                            <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide border border-amber-300/40 animate-pulse">
+                                KOTH
+                            </span>
+                        </a>
                     @endif
-                    <a href="{{ route('control-points.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('control-points.*') ? 'nav-item-active bg-amber-500/10 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-bold border border-amber-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-flag w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                            <span>Controlepunten</span>
-                        </div>
-                        <span class="bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide border border-amber-300/40 animate-pulse">
-                            KOTH
-                        </span>
-                    </a>
+
                 </div>
             </div>
 

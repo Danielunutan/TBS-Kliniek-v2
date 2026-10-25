@@ -6,7 +6,6 @@ use App\Models\Character;
 use App\Models\CharacterCooldown;
 use App\Models\CharacterTrueCrimeState;
 use App\Models\GameMessage;
-use App\Models\GameSetting;
 use App\Models\LotteryRound;
 use App\Models\LotteryTicket;
 use App\Models\VaultCode;
@@ -27,7 +26,7 @@ class SponsorAdController extends Controller
 {
     public const ADS_ENABLED = true;
 
-    public const DEFAULT_SMARTLINK = 'https://uplcm.com/4/12026868';
+    public const DEFAULT_SMARTLINK = null;
 
     public const DAILY_LIMIT = 500;
 
@@ -187,7 +186,7 @@ class SponsorAdController extends Controller
         session()->put('tbs_ad_session', $adData);
         session()->save();
 
-        $smartlinkUrl = $popupUrl ?? route('sponsor.redirect');
+        $smartlinkUrl = $popupUrl ?? route('sponsor.index');
 
         return response()->json([
             'success' => true,
@@ -201,7 +200,7 @@ class SponsorAdController extends Controller
     }
 
     /**
-     * Safe internal redirect to ad SmartLink (passes player tracking subids).
+     * Safe internal redirect to sponsor dashboard (Monetag completely disabled).
      */
     public function redirect(Request $request): RedirectResponse
     {
@@ -209,16 +208,7 @@ class SponsorAdController extends Controller
             return redirect()->route('dashboard')->with('info', 'Sponsor-advertenties zijn momenteel tijdelijk uitgeschakeld.');
         }
 
-        $character = Auth::user()?->character;
-        $subid = $character ? $character->id : 'guest';
-        $subid2 = session()->get('tbs_ad_session.reward_type', 'cash');
-        $token = session()->get('tbs_ad_session.token', Str::random(8));
-
-        $baseUrl = GameSetting::get('monetag_direct_link', GameSetting::get('cpalead_offerwall_url', self::DEFAULT_SMARTLINK));
-        $separator = str_contains($baseUrl, '?') ? '&' : '?';
-        $targetUrl = "{$baseUrl}{$separator}ymid={$subid}_{$token}&subid={$subid}&subid2={$subid2}&requestVar={$subid2}";
-
-        return redirect()->away($targetUrl);
+        return redirect()->route('sponsor.index');
     }
 
     /**

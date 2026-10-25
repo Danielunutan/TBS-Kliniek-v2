@@ -73,14 +73,14 @@ class SponsorAdAndLegalTest extends TestCase
         $response->assertJsonStructure(['token', 'smartlink_url']);
     }
 
-    public function test_sponsor_redirect_bypasses_adblocker_and_redirects_to_monetag(): void
+    public function test_sponsor_redirect_safely_redirects_to_sponsor_index(): void
     {
         $user = User::factory()->create();
         $this->createCharacter($user);
 
         $response = $this->actingAs($user)->get(route('sponsor.redirect'));
 
-        $this->assertStringContainsString('https://uplcm.com/4/12026868', $response->headers->get('Location'));
+        $response->assertRedirect(route('sponsor.index'));
     }
 
     public function test_claim_ad_fails_if_minimum_watch_duration_not_met(): void
