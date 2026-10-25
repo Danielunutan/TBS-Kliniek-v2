@@ -2,7 +2,7 @@
      x-data="tbsRadioPlayer()" 
      x-init="initPlayer()"
      x-cloak
-     class="fixed right-4 lg:right-6 bottom-[190px] lg:bottom-[138px] z-40 select-none font-sans flex flex-col items-end"
+     class="fixed right-4 lg:right-6 bottom-[225px] lg:bottom-[160px] z-50 select-none font-sans flex flex-col items-end"
      @tbs-play-station.window="changeStation($event.detail.id, true)">
 
     <!-- Hidden Audio Element -->

@@ -297,17 +297,16 @@
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form id="unlock-form-radio" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'radio', 20)">
                             @csrf
                             <input type="hidden" name="widget_key" value="radio">
+                            <button type="submit" 
+                                    :disabled="unlockingKey === 'radio'"
+                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'radio' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'radio' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
+                            </button>
                         </form>
-                        <button type="button" 
-                                @click="unlockWidget('radio')"
-                                :disabled="unlockingKey === 'radio'"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                            <i class="fa-solid" :class="unlockingKey === 'radio' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                            <span x-text="unlockingKey === 'radio' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
-                        </button>
                     </div>
                 </div>
 
@@ -632,17 +631,16 @@
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form id="unlock-form-weather" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'weather', 15)">
                             @csrf
                             <input type="hidden" name="widget_key" value="weather">
+                            <button type="submit" 
+                                    :disabled="unlockingKey === 'weather'"
+                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'weather' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'weather' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
+                            </button>
                         </form>
-                        <button type="button" 
-                                @click="unlockWidget('weather')"
-                                :disabled="unlockingKey === 'weather'"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                            <i class="fa-solid" :class="unlockingKey === 'weather' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                            <span x-text="unlockingKey === 'weather' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
-                        </button>
                     </div>
                 </div>
 
@@ -750,17 +748,16 @@
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form id="unlock-form-nunl" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'nunl', 15)">
                             @csrf
                             <input type="hidden" name="widget_key" value="nunl">
+                            <button type="submit" 
+                                    :disabled="unlockingKey === 'nunl'"
+                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'nunl' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'nunl' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
+                            </button>
                         </form>
-                        <button type="button" 
-                                @click="unlockWidget('nunl')"
-                                :disabled="unlockingKey === 'nunl'"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                            <i class="fa-solid" :class="unlockingKey === 'nunl' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                            <span x-text="unlockingKey === 'nunl' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
-                        </button>
                     </div>
                 </div>
 
@@ -832,17 +829,16 @@
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form id="unlock-form-peuken_market" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'peuken_market', 20)">
                             @csrf
                             <input type="hidden" name="widget_key" value="peuken_market">
+                            <button type="submit" 
+                                    :disabled="unlockingKey === 'peuken_market'"
+                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'peuken_market' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'peuken_market' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
+                            </button>
                         </form>
-                        <button type="button" 
-                                @click="unlockWidget('peuken_market')"
-                                :disabled="unlockingKey === 'peuken_market'"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                            <i class="fa-solid" :class="unlockingKey === 'peuken_market' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                            <span x-text="unlockingKey === 'peuken_market' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
-                        </button>
                     </div>
                 </div>
 
@@ -917,17 +913,16 @@
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form id="unlock-form-security" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'security', 20)">
                             @csrf
                             <input type="hidden" name="widget_key" value="security">
+                            <button type="submit" 
+                                    :disabled="unlockingKey === 'security'"
+                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'security' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'security' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
+                            </button>
                         </form>
-                        <button type="button" 
-                                @click="unlockWidget('security')"
-                                :disabled="unlockingKey === 'security'"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                            <i class="fa-solid" :class="unlockingKey === 'security' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                            <span x-text="unlockingKey === 'security' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
-                        </button>
                     </div>
                 </div>
 
@@ -992,17 +987,16 @@
                         </p>
                     </div>
                     <div class="pt-2">
-                        <form id="unlock-form-roulette" method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="hidden">
+                        <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline" @submit.prevent="unlockWidgetSubmit($event, 'roulette', 25)">
                             @csrf
                             <input type="hidden" name="widget_key" value="roulette">
+                            <button type="submit" 
+                                    :disabled="unlockingKey === 'roulette'"
+                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'roulette' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                <span x-text="unlockingKey === 'roulette' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 25 Sterren'"></span>
+                            </button>
                         </form>
-                        <button type="button" 
-                                @click="unlockWidget('roulette')"
-                                :disabled="unlockingKey === 'roulette'"
-                                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                            <i class="fa-solid" :class="unlockingKey === 'roulette' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
-                            <span x-text="unlockingKey === 'roulette' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 25 Sterren'"></span>
-                        </button>
                     </div>
                 </div>
 
@@ -1338,13 +1332,16 @@
 
                             <!-- If locked: Unlock button -->
                             <template x-if="item.isPremium && !isUnlocked(item.key)">
-                                <button type="button" 
-                                        @click="unlockWidget(item.key)"
-                                        :disabled="unlockingKey === item.key"
-                                        class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[10px] shadow-xs transition cursor-pointer shrink-0 inline-flex items-center gap-1 disabled:opacity-60">
-                                    <i class="fa-solid" :class="unlockingKey === item.key ? 'fa-spinner fa-spin' : 'fa-star text-[8px]'"></i>
-                                    <span>Koop (<span x-text="item.cost"></span>)</span>
-                                </button>
+                                <form method="POST" action="{{ route('dashboard.widgets.unlock') }}" class="inline shrink-0" @submit.prevent="unlockWidgetSubmit($event, item.key, item.cost)">
+                                    @csrf
+                                    <input type="hidden" name="widget_key" :value="item.key">
+                                    <button type="submit" 
+                                            :disabled="unlockingKey === item.key"
+                                            class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[10px] shadow-xs transition cursor-pointer shrink-0 inline-flex items-center gap-1 disabled:opacity-60">
+                                        <i class="fa-solid" :class="unlockingKey === item.key ? 'fa-spinner fa-spin' : 'fa-star text-[8px]'"></i>
+                                        <span>Koop (<span x-text="item.cost"></span>)</span>
+                                    </button>
+                                </form>
                             </template>
 
                             <!-- If free or unlocked: Toggle Switch -->
@@ -1511,27 +1508,25 @@ function tbsDashboardCustomizer() {
             return Array.isArray(this.unlockedWidgets) && this.unlockedWidgets.includes(key);
         },
 
-        async unlockWidget(key) {
+        async unlockWidgetSubmit(event, key, cost) {
             if (this.unlockingKey) return;
-            const cost = (this.widgetPrices && this.widgetPrices[key]) || 15;
+            cost = cost || (this.widgetPrices && this.widgetPrices[key]) || 15;
             if (this.userStars < cost) {
                 const msg = 'Je hebt ' + this.userStars + ' sterren, maar deze widget kost ' + cost + ' sterren. Koop of verdien eerst meer sterren!';
                 if (window.tbsToast) window.tbsToast(msg, 'error'); else alert(msg);
                 return;
             }
-            if (!confirm('Wil je deze widget permanent ontgrendelen voor ' + cost + ' ⭐ sterren?')) {
-                return;
-            }
 
             this.unlockingKey = key;
+            const form = event ? (event.target && event.target.tagName === 'FORM' ? event.target : event.target.closest('form')) : null;
 
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
                 const unlockUrl = '{{ route("dashboard.widgets.unlock", [], false) }}';
 
-                const formData = new FormData();
-                formData.append('widget_key', key);
-                formData.append('_token', csrfToken);
+                const formData = new FormData(form || undefined);
+                formData.set('widget_key', key);
+                formData.set('_token', csrfToken);
 
                 const resp = await fetch(unlockUrl, {
                     method: 'POST',
@@ -1568,24 +1563,26 @@ function tbsDashboardCustomizer() {
                     const succMsg = data.message || '🎉 Widget succesvol ontgrendeld!';
                     if (window.tbsToast) window.tbsToast(succMsg, 'success'); else alert(succMsg);
                 } else {
-                    const fallbackForm = document.getElementById('unlock-form-' + key);
-                    if (fallbackForm) {
-                        fallbackForm.submit();
+                    if (form) {
+                        form.submit();
                         return;
                     }
                     const errMsg = (data && (data.error || data.message)) || 'Er is een fout opgetreden bij het ontgrendelen.';
                     if (window.tbsToast) window.tbsToast(errMsg, 'error'); else alert(errMsg);
                 }
             } catch (e) {
-                const fallbackForm = document.getElementById('unlock-form-' + key);
-                if (fallbackForm) {
-                    fallbackForm.submit();
+                if (form) {
+                    form.submit();
                     return;
                 }
                 if (window.tbsToast) window.tbsToast('Netwerkfout: ' + (e.message || 'Probeer opnieuw.'), 'error'); else alert('Netwerkfout bij het ontgrendelen.');
             } finally {
                 this.unlockingKey = null;
             }
+        },
+
+        unlockWidget(key) {
+            return this.unlockWidgetSubmit(null, key);
         },
 
         fetchUserLocation() {
