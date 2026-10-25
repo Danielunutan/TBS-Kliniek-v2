@@ -2777,6 +2777,10 @@
     });
     </script>
 
-    @include('partials.radio_player')
+    @auth
+        @if(isset($character) && $character)
+            @include('partials.radio_player')
+        @endif
+    @endauth
 </body>
 </html>
