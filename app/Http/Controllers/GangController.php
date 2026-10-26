@@ -767,28 +767,58 @@ class GangController extends Controller
 
         if ($actionType === 'avatar') {
             $request->validate([
-                'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:4096'],
+                'avatar' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:10240'],
+            ], [
+                'avatar.required' => 'Selecteer eerst een afbeelding om te uploaden.',
+                'avatar.file' => 'Het geüploade bestand is ongeldig.',
+                'avatar.image' => 'Het bestand moet een geldige afbeelding zijn (JPG, PNG, WEBP of GIF).',
+                'avatar.mimes' => 'Alleen JPG, PNG, WEBP of GIF bestanden zijn toegestaan.',
+                'avatar.max' => 'De gekozen avatar is te groot (maximaal 10MB).',
+                'avatar.uploaded' => 'Het uploaden van de avatar is mislukt. Controleer of de afbeelding kleiner is dan 10MB en probeer het opnieuw.',
             ]);
-            $path = $request->file('avatar')->store('gangs/avatars', 'public');
-            $gang->update(['avatar' => 'storage/'.$path]);
 
-            return back()
-                ->with('active_gang_tab', 'instellingen')
-                ->with('settings_tab', 'visueel')
-                ->with('success', 'Bende avatar succesvol bijgewerkt!');
+            try {
+                $path = $request->file('avatar')->store('gangs/avatars', 'public');
+                $gang->update(['avatar' => 'storage/'.$path]);
+
+                return back()
+                    ->with('active_gang_tab', 'instellingen')
+                    ->with('settings_tab', 'visueel')
+                    ->with('success', 'Bende avatar succesvol bijgewerkt!');
+            } catch (\Throwable $e) {
+                return back()
+                    ->with('active_gang_tab', 'instellingen')
+                    ->with('settings_tab', 'visueel')
+                    ->with('error', 'Opslaan van avatar mislukt. Probeer een andere afbeelding.');
+            }
         }
 
         if ($actionType === 'banner') {
             $request->validate([
-                'banner' => ['required', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:6144'],
+                'banner' => ['required', 'file', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:12288'],
+            ], [
+                'banner.required' => 'Selecteer eerst een achtergrond banner om te uploaden.',
+                'banner.file' => 'Het geüploade bestand is ongeldig.',
+                'banner.image' => 'Het bestand moet een geldige afbeelding zijn (JPG, PNG, WEBP of GIF).',
+                'banner.mimes' => 'Alleen JPG, PNG, WEBP of GIF bestanden zijn toegestaan.',
+                'banner.max' => 'De gekozen banner is te groot (maximaal 12MB).',
+                'banner.uploaded' => 'Het uploaden van de banner is mislukt. Controleer of het bestand kleiner is dan 12MB en probeer het opnieuw.',
             ]);
-            $path = $request->file('banner')->store('gangs/banners', 'public');
-            $gang->update(['banner' => 'storage/'.$path]);
 
-            return back()
-                ->with('active_gang_tab', 'instellingen')
-                ->with('settings_tab', 'visueel')
-                ->with('success', 'Bende achtergrond succesvol bijgewerkt!');
+            try {
+                $path = $request->file('banner')->store('gangs/banners', 'public');
+                $gang->update(['banner' => 'storage/'.$path]);
+
+                return back()
+                    ->with('active_gang_tab', 'instellingen')
+                    ->with('settings_tab', 'visueel')
+                    ->with('success', 'Bende achtergrond succesvol bijgewerkt!');
+            } catch (\Throwable $e) {
+                return back()
+                    ->with('active_gang_tab', 'instellingen')
+                    ->with('settings_tab', 'visueel')
+                    ->with('error', 'Opslaan van banner mislukt. Probeer een andere afbeelding.');
+            }
         }
 
         if ($actionType === 'management') {

@@ -3718,7 +3718,7 @@
                                     <i class="fa-solid fa-image text-purple-600 dark:text-purple-400"></i>
                                     <span>Bende Embleem / Avatar</span>
                                 </h3>
-                                <span class="text-[11px] text-slate-400 font-medium">JPG, PNG (max. 4MB)</span>
+                                <span class="text-[11px] text-slate-400 font-medium">JPG, PNG, WEBP, GIF (max. 10MB)</span>
                             </div>
 
                             <div class="flex items-center gap-4">
@@ -3728,7 +3728,8 @@
                                 <form action="{{ route('gangs.settings') }}" method="POST" enctype="multipart/form-data" class="flex-1 space-y-3">
                                     @csrf
                                     <input type="hidden" name="action_type" value="avatar">
-                                    <input type="file" name="avatar" accept="image/*" required 
+                                    <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp,image/gif,image/*" required 
+                                           @change="if ($event.target.files[0] && $event.target.files[0].size > 10 * 1024 * 1024) { alert('De gekozen avatar is groter dan 10MB. Selecteer een kleiner bestand.'); $event.target.value = ''; }"
                                            class="block w-full text-xs text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 dark:file:bg-purple-950 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-100 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 cursor-pointer">
                                     <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
                                         <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -3745,7 +3746,7 @@
                                     <i class="fa-solid fa-panorama text-purple-600 dark:text-purple-400"></i>
                                     <span>Achtergrond Banner</span>
                                 </h3>
-                                <span class="text-[11px] text-slate-400 font-medium">Bovenzijde bende profiel</span>
+                                <span class="text-[11px] text-slate-400 font-medium">JPG, PNG, WEBP, GIF (max. 12MB)</span>
                             </div>
 
                             @if($myGang->banner)
@@ -3757,7 +3758,8 @@
                             <form action="{{ route('gangs.settings') }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                                 @csrf
                                 <input type="hidden" name="action_type" value="banner">
-                                <input type="file" name="banner" accept="image/*" required 
+                                <input type="file" name="banner" accept="image/png,image/jpeg,image/webp,image/gif,image/*" required 
+                                       @change="if ($event.target.files[0] && $event.target.files[0].size > 12 * 1024 * 1024) { alert('De gekozen banner is groter dan 12MB. Selecteer een kleiner bestand.'); $event.target.value = ''; }"
                                        class="block w-full text-xs text-slate-600 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-50 dark:file:bg-purple-950 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-100 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-1.5 cursor-pointer">
                                 <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer flex items-center gap-1.5">
                                     <i class="fa-solid fa-cloud-arrow-up"></i>
