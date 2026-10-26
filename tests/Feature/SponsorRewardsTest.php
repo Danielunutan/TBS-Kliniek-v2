@@ -364,4 +364,103 @@ class SponsorRewardsTest extends TestCase
         $character->refresh();
         $this->assertEquals(1, $character->ad_lottery_progress);
     }
+
+    public function test_bullets_reward_requires_three_ads_and_grants_50_bullets(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $initialBullets = $character->bullets ?? 0;
+
+        $res1 = $this->simulateAdWatch($user, $character, 'bullets');
+        $res1->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(1, $character->ad_bullets_progress);
+        $this->assertEquals($initialBullets, $character->bullets ?? 0);
+
+        $res2 = $this->simulateAdWatch($user, $character, 'bullets');
+        $res2->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(2, $character->ad_bullets_progress);
+
+        $res3 = $this->simulateAdWatch($user, $character, 'bullets');
+        $res3->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(0, $character->ad_bullets_progress);
+        $this->assertEquals($initialBullets + 50, $character->bullets);
+    }
+
+    public function test_bullets_reward_supports_alias_names(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $start = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'kogels']);
+        $start->assertStatus(200);
+
+        $token = $start->json('token');
+        $cached = Cache::get("tbs_ad_token_{$token}");
+        $this->assertEquals('bullets', $cached['reward_type']);
+    }
+
+    public function test_vest_reward_requires_three_ads_and_grants_12_hours(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $this->assertFalse($character->hasVest());
+
+        $this->simulateAdWatch($user, $character, 'vest')->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(1, $character->ad_vest_progress);
+
+        $this->simulateAdWatch($user, $character, 'kogelvest')->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(2, $character->ad_vest_progress);
+
+        $this->simulateAdWatch($user, $character, 'vest')->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(0, $character->ad_vest_progress);
+        $this->assertTrue($character->hasVest());
+    }
+
+    public function test_coma_revive_requires_three_ads_and_revives_character(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $character->update([
+            'health' => 0,
+            'coma_until' => now()->addMinutes(30),
+        ]);
+        $this->assertTrue($character->isComatose());
+
+        $this->simulateAdWatch($user, $character, 'coma_revive')->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(1, $character->ad_coma_progress);
+
+        $this->simulateAdWatch($user, $character, 'coma')->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(2, $character->ad_coma_progress);
+
+        $this->simulateAdWatch($user, $character, 'ic')->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(0, $character->ad_coma_progress);
+        $this->assertFalse($character->isComatose());
+        $this->assertGreaterThanOrEqual(25, $character->health);
+    }
+
+    public function test_claim_uses_request_reward_type_fallback(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        $token = Str::random(32);
+        // Session has no reward_type
+        $adData = [
+            'token' => $token,
+            'started_at' => now()->subSeconds(20)->timestamp,
+            'character_id' => $character->id,
+            'robin_reward_id' => null,
+        ];
+        Cache::put("tbs_ad_token_{$token}", $adData, now()->addMinutes(30));
+
+        $res = $this->actingAs($user)->postJson(route('sponsor.claim'), [
+            'token' => $token,
+            'reward_type' => 'bullets',
+        ]);
+        $res->assertStatus(200);
+        $character->refresh();
+        $this->assertEquals(1, $character->ad_bullets_progress);
+    }
 }

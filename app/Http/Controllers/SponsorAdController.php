@@ -34,11 +34,52 @@ class SponsorAdController extends Controller
 
     public const COOLDOWN_SECONDS = 0;
 
+    /**
+     * Map common aliases to canonical reward types.
+     *
+     * @var array<string, string>
+     */
+    public const REWARD_ALIASES = [
+        'bullet' => 'bullets',
+        'bullets' => 'bullets',
+        'kogels' => 'bullets',
+        'kogel' => 'bullets',
+        'vest' => 'vest',
+        'kogelvest' => 'vest',
+        'kogel_vest' => 'vest',
+        'armor' => 'vest',
+        'armour' => 'vest',
+        'coma' => 'coma_revive',
+        'ic' => 'coma_revive',
+        'intensive_care' => 'coma_revive',
+        'coma_revive' => 'coma_revive',
+        'revive' => 'coma_revive',
+        'stars' => 'star',
+    ];
+
     public function __construct(
         protected EconomyService $economy,
         protected EnergyService $energy,
         protected LevelService $levelService,
     ) {}
+
+    /**
+     * Normalize reward type.
+     */
+    public function normalizeRewardType(?string $rawType): string
+    {
+        $raw = strtolower(trim((string) $rawType));
+        if (isset(self::REWARD_ALIASES[$raw])) {
+            return self::REWARD_ALIASES[$raw];
+        }
+
+        $validTypes = ['cash', 'bullets', 'vest', 'coma_revive', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars', 'lottery_ticket', 'true_crime'];
+        if (str_starts_with($raw, 'cooldown:')) {
+            return $raw;
+        }
+
+        return in_array($raw, $validTypes, true) ? $raw : 'cash';
+    }
 
     /**
      * Show the Sponsorkamer dashboard.
@@ -98,12 +139,8 @@ class SponsorAdController extends Controller
             ], 422);
         }
 
-        $rewardType = $request->input('reward_type') ?: $request->input('type', 'cash');
-        $validTypes = ['cash', 'bullets', 'vest', 'coma_revive', 'prison', 'mask', 'star', 'respect', 'vault_code', 'cooldown', 'daily_xp', 'daily_cash', 'daily_stars', 'lottery_ticket', 'true_crime'];
-        $isSpecificCooldown = is_string($rewardType) && str_starts_with($rewardType, 'cooldown:');
-        if (! in_array($rewardType, $validTypes, true) && ! $isSpecificCooldown) {
-            $rewardType = 'cash';
-        }
+        $rawType = $request->input('reward_type') ?: $request->input('type');
+        $rewardType = $this->normalizeRewardType($rawType);
 
         $dailyData = $character->getAdDailyData();
 
@@ -364,7 +401,8 @@ class SponsorAdController extends Controller
         $character->last_ad_watched_at = now();
         $character->last_ad_date = $todayStr;
 
-        $rewardType = $adSession['reward_type'] ?? 'cash';
+        $rawRewardType = $adSession['reward_type'] ?? $request->input('reward_type') ?? $request->input('type');
+        $rewardType = $this->normalizeRewardType($rawRewardType);
         $rewardDetails = '';
 
         // Process reward

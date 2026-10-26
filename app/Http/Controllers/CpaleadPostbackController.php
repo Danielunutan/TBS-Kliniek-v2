@@ -132,6 +132,33 @@ class CpaleadPostbackController extends Controller
                     }
                     break;
 
+                case 'bullets':
+                case 'bullet':
+                case 'kogels':
+                case 'kogel':
+                    $character->bullets = ($character->bullets ?? 0) + 50;
+                    $rewardGranted = '+50 Scherpe Kogels 💣';
+                    break;
+
+                case 'vest':
+                case 'kogelvest':
+                case 'kogel_vest':
+                case 'armor':
+                case 'armour':
+                    $character->vest_until = now()->addHours(12);
+                    $rewardGranted = '12u Kogelwerend Vest 🛡️';
+                    break;
+
+                case 'coma_revive':
+                case 'coma':
+                case 'ic':
+                case 'intensive_care':
+                case 'revive':
+                    $character->coma_until = null;
+                    $character->health = max(25, (int) ($character->max_health * 0.5));
+                    $rewardGranted = 'Ontwaakt uit Intensive Care Coma 💉';
+                    break;
+
                 case 'mask':
                     $character->masks = ($character->masks ?? 0) + 1;
                     $rewardGranted = '+1 Zakkenrollers Masker 🎭';

@@ -64,6 +64,22 @@
                 if (this.isStarting) return;
                 this.isStarting = true;
                 this.isOpen = true;
+
+                // Normalize reward type aliases
+                const typeAliases = {
+                    'bullet': 'bullets',
+                    'kogels': 'bullets',
+                    'kogel': 'bullets',
+                    'kogelvest': 'vest',
+                    'kogel_vest': 'vest',
+                    'armor': 'vest',
+                    'coma': 'coma_revive',
+                    'ic': 'coma_revive',
+                    'intensive_care': 'coma_revive',
+                    'revive': 'coma_revive',
+                    'stars': 'star'
+                };
+                rewardType = typeAliases[rewardType] || rewardType;
                 this.rewardType = rewardType;
                 this.callback = callback;
                 this.status = 'loading';
@@ -71,7 +87,16 @@
                 this.secondsLeft = 15;
                 this.totalSeconds = 15;
 
-                if (rewardType === 'prison') {
+                if (rewardType === 'bullets') {
+                    this.rewardTitle = '+50 Scherpe Kogels 💣 (3 Ads)';
+                    this.rewardIcon = 'fa-bomb';
+                } else if (rewardType === 'vest') {
+                    this.rewardTitle = '12u Kogelwerend Vest 🛡️ (3 Ads)';
+                    this.rewardIcon = 'fa-shield-halved';
+                } else if (rewardType === 'coma_revive') {
+                    this.rewardTitle = 'Ontwaken uit Coma 💉 (3 Ads)';
+                    this.rewardIcon = 'fa-heart-pulse';
+                } else if (rewardType === 'prison') {
                     this.rewardTitle = 'Directe Vrijlating Isoleercel (1x per dag)';
                     this.rewardIcon = 'fa-unlock-keyhole';
                 } else if (rewardType === 'respect') {
@@ -212,7 +237,8 @@
                 body: JSON.stringify({ 
                     token: activeToken,
                     robin_token: robinToken,
-                    robin_reward_id: robinRewardId || this.robinRewardId
+                    robin_reward_id: robinRewardId || this.robinRewardId,
+                    reward_type: this.rewardType
                 })
             })
             .then(res => res.json())
