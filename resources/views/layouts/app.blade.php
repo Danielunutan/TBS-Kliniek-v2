@@ -117,7 +117,8 @@
     {{--
     <meta name="google-adsense-account" content="ca-pub-2509357892188070">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2509357892188070"
-         crossorigin="anonymous"></script>
+    --}}
+
     <!-- MONETAG VIGNETTE BANNER (Zone 12124731) -->
     <script>(function(s){s.dataset.zone='12124731',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
