@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WebPushService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,26 @@ class UserWarning extends Model
     protected $casts = [
         'acknowledged_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (UserWarning $warning) {
+            try {
+                if ($warning->user) {
+                    app(WebPushService::class)->sendToUser(
+                        $warning->user,
+                        '⚠️ Officiële Waarschuwing Ontvangen',
+                        $warning->reason ?? 'Je hebt een officiële waarschuwing ontvangen van de leiding.',
+                        '/dashboard',
+                        null,
+                        ['type' => 'user_warning', 'warning_id' => $warning->id]
+                    );
+                }
+            } catch (\Throwable) {
+                // Silently ignore push failure
+            }
+        });
+    }
 
     /**
      * User who received the warning.

@@ -273,6 +273,85 @@
             </form>
         </div>
 
+        <!-- 6. PUSHNOTIFICATIES (DESKTOP & MOBIELE WEBAPP) -->
+        <div x-data="pushSettings()" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4 md:col-span-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">Pushnotificaties (Desktop &amp; WebApp)</h3>
+                        <p class="text-xs text-slate-500">Ontvang live meldingen op je scherm, zelfs als de website of app afgesloten is.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
+                          :class="isSubscribed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'"
+                          x-text="isSubscribed ? 'Meldingen Actief' : 'Uitgeschakeld'"></span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+                <div class="lg:col-span-2 space-y-3">
+                    <p class="text-slate-600 leading-relaxed">
+                        Schakel native meldingen in om direct gewaarschuwd te worden bij kritieke gebeurtenissen in de kliniek:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-700 font-semibold">
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-rose-500 text-base">🚨</span>
+                            <span>Bestolen of beroofd worden</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-amber-500 text-base">⚔️</span>
+                            <span>Aangevallen op de luchtplaats</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-purple-500 text-base">💬</span>
+                            <span>Nieuwe privéberichten (DMs)</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-indigo-500 text-base">🛡️</span>
+                            <span>Bende-uitnodigingen &amp; oorlogen</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-blue-500 text-base">🔒</span>
+                            <span>Vrijlating uit isoleercel of bajes</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-emerald-500 text-base">⚡</span>
+                            <span>Energie vol of dagelijkse beloning</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-purple-50/50 border border-purple-100 flex flex-col justify-between space-y-3">
+                    <div>
+                        <span class="text-[10px] font-black uppercase text-purple-600 tracking-wider block">Jouw Apparaat</span>
+                        <p class="text-xs text-slate-600 mt-1">
+                            Ondersteunt Windows, macOS, Android en iOS 16.4+ (wanneer geïnstalleerd als webapp op je startscherm).
+                        </p>
+                    </div>
+
+                    <div class="space-y-2 pt-2">
+                        <button type="button" @click="togglePush()" :disabled="loading"
+                                class="w-full py-2.5 px-4 rounded-xl text-xs font-black transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                                :class="isSubscribed ? 'bg-slate-100 hover:bg-slate-200 text-slate-700' : 'bg-purple-600 hover:bg-purple-700 text-white'">
+                            <i class="fa-solid" :class="loading ? 'fa-spinner animate-spin' : (isSubscribed ? 'fa-bell-slash' : 'fa-bell')"></i>
+                            <span x-text="loading ? 'Bezig...' : (isSubscribed ? 'Meldingen Uitschakelen' : 'Meldingen Inschakelen')"></span>
+                        </button>
+
+                        <button type="button" x-show="isSubscribed" @click="sendTestNotification()" :disabled="testing"
+                                class="w-full py-2 px-3 rounded-xl bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 text-[11px] font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                            <i class="fa-solid" :class="testing ? 'fa-spinner animate-spin' : 'fa-paper-plane'"></i>
+                            <span x-text="testing ? 'Verzenden...' : 'Stuur Testnotificatie'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- ======================================================== -->
@@ -505,6 +584,61 @@ function accountSettings() {
                 this.uploadingCrop = false;
                 alert('Er is een netwerkfout opgetreden bij het uploaden.');
             });
+        }
+    };
+}
+
+function pushSettings() {
+    return {
+        isSubscribed: false,
+        loading: false,
+        testing: false,
+
+        async init() {
+            if (window.tbsPush) {
+                this.isSubscribed = await window.tbsPush.isSubscribed();
+            }
+        },
+
+        async togglePush() {
+            if (!window.tbsPush) return;
+            this.loading = true;
+            try {
+                if (this.isSubscribed) {
+                    await window.tbsPush.unsubscribe();
+                    this.isSubscribed = false;
+                    alert('Pushnotificaties zijn uitgeschakeld.');
+                } else {
+                    const res = await window.tbsPush.subscribe();
+                    if (res.success) {
+                        this.isSubscribed = true;
+                        alert('Top! Pushnotificaties zijn ingeschakeld op dit apparaat.');
+                    } else {
+                        alert(res.message || 'Inschakelen mislukt.');
+                    }
+                }
+            } catch (err) {
+                alert(err.message || 'Er is een fout opgetreden.');
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async sendTestNotification() {
+            if (!window.tbsPush) return;
+            this.testing = true;
+            try {
+                const res = await window.tbsPush.sendTest();
+                if (res.success) {
+                    alert('Testnotificatie is verzonden! Controleer je scherm.');
+                } else {
+                    alert(res.message || 'Verzenden mislukt.');
+                }
+            } catch (err) {
+                alert(err.message || 'Netwerkfout.');
+            } finally {
+                this.testing = false;
+            }
         }
     };
 }

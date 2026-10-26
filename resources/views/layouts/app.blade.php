@@ -112,6 +112,7 @@
             });
         }
     </script>
+    <script src="{{ asset('assets/js/tbs-push.js') }}" defer></script>
 
     <!-- GOOGLE ADSENSE (Tijdelijk uitgeschakeld) -->
     {{--

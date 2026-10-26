@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WebPushService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,30 @@ class SupportTicketMessage extends Model
     protected $casts = [
         'is_staff' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (SupportTicketMessage $msg) {
+            if ($msg->is_staff && $msg->ticket && $msg->ticket->user_id) {
+                try {
+                    $user = $msg->ticket->user;
+                    if ($user) {
+                        $ticketSubject = $msg->ticket->subject ?? "#{$msg->ticket->id}";
+                        app(WebPushService::class)->sendToUser(
+                            $user,
+                            "Support Reactie: {$ticketSubject}",
+                            $msg->message,
+                            "/help/tickets/{$msg->ticket->id}",
+                            null,
+                            ['type' => 'support_reply', 'ticket_id' => $msg->ticket->id]
+                        );
+                    }
+                } catch (\Throwable) {
+                    // Silently ignore push failure
+                }
+            }
+        });
+    }
 
     public function ticket(): BelongsTo
     {

@@ -43,6 +43,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get all Web Push subscriptions for this user across devices.
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    /**
      * Check if user is the platform owner.
      */
     public function isOwner(): bool

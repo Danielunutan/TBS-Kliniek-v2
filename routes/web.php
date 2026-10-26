@@ -62,6 +62,7 @@ use App\Http\Controllers\PerkController;
 use App\Http\Controllers\PickpocketController;
 use App\Http\Controllers\PrisonController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoadmapController;
@@ -540,6 +541,13 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/instellingen/avatar', [AccountSettingsController::class, 'updateAvatar'])->name('settings.avatar.update');
     Route::post('/instellingen/2fa', [AccountSettingsController::class, 'toggleTwoFactor'])->name('settings.2fa.toggle');
     Route::post('/instellingen/sessies/uitloggen', [AccountSettingsController::class, 'logoutOtherDevices'])->name('settings.sessions.logout-others');
+
+    // Web Push Notificaties (Desktop & WebApp Native Push)
+    Route::get('/push/key', [PushSubscriptionController::class, 'key'])->name('push.key');
+    Route::get('/push/status', [PushSubscriptionController::class, 'status'])->name('push.status');
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'unsubscribe'])->name('push.unsubscribe');
+    Route::post('/push/test', [PushSubscriptionController::class, 'test'])->name('push.test');
 
     // Kliniek Nieuws & Mededelingen
     Route::get('/nieuws', [NewsController::class, 'index'])->name('news.index');

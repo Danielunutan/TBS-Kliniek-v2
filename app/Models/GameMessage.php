@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\WebPushService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,6 +57,32 @@ class GameMessage extends Model
                 ],
                 'is_read' => (bool) $gameMsg->is_read,
             ]);
+
+            // Dispatch Web Push notification for GameMessage (friend requests, system notices, allowance, marketplace, etc.)
+            try {
+                $pushTitle = ! empty($gameMsg->subject) ? "TBS Kliniek: {$gameMsg->subject}" : ($gameMsg->sender_name ? "Bericht van {$gameMsg->sender_name}" : 'TBS Kliniek Bericht');
+                $subLower = mb_strtolower($gameMsg->subject ?? '');
+                $targetUrl = match (true) {
+                    str_contains($subLower, 'vriend') => '/vrienden',
+                    str_contains($subLower, 'marktplaats') => '/marktplaats',
+                    str_contains($subLower, 'zakgeld') || str_contains($subLower, 'bank') => '/bank',
+                    str_contains($subLower, 'bende') || str_contains($subLower, 'gang') || $gameMsg->type === 'gang' => '/gangs',
+                    str_contains($subLower, 'diefstal') => '/bank',
+                    str_contains($subLower, 'gevangenis') || str_contains($subLower, 'isolatie') => '/gevangenis',
+                    default => '/chat',
+                };
+
+                app(WebPushService::class)->sendToCharacter(
+                    $gameMsg->recipient_id,
+                    $pushTitle,
+                    $gameMsg->content ?? '',
+                    $targetUrl,
+                    null,
+                    ['type' => 'game_message', 'message_id' => $gameMsg->id]
+                );
+            } catch (\Throwable) {
+                // Silently ignore push failure
+            }
         });
     }
 
