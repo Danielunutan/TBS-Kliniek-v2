@@ -48,6 +48,7 @@ use App\Http\Controllers\LockerController;
 use App\Http\Controllers\LotteryController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\MembersController;
+use App\Http\Controllers\MemoryController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MissionController;
 use App\Http\Controllers\MurderStatsController;
@@ -564,6 +565,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/true-crime', [TrueCrimeController::class, 'index'])->name('true_crime.index');
     Route::post('/true-crime/solve', [TrueCrimeController::class, 'solve'])->name('true_crime.solve');
     Route::post('/true-crime/skip-cooldown-ad', [TrueCrimeController::class, 'skipCooldownWithAd'])->name('true_crime.skip_cooldown_ad');
+
+    // Minigame: TBS Kliniek Memory (Extreem Geheugenspel met Rainbow)
+    Route::get('/memory', [MemoryController::class, 'index'])->name('memory.index');
+    Route::post('/memory/finish', [MemoryController::class, 'finish'])->name('memory.finish');
+    Route::post('/memory/skip-cooldown-ad', [MemoryController::class, 'skipCooldownWithAd'])->name('memory.skip_cooldown_ad');
 
     // Staff Medewerkers Admin Panel
     Route::middleware(EnsureUserIsStaff::class)->prefix('admin')->name('admin.')->group(function (): void {

@@ -869,6 +869,11 @@ class Character extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function memoryStat(): HasOne
+    {
+        return $this->hasOne(CharacterMemoryStat::class);
+    }
+
     /**
      * Get the gang the character belongs to.
      */
