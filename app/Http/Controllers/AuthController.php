@@ -114,7 +114,7 @@ class AuthController extends Controller
             ]);
         }
 
-        Auth::login($user);
+        Auth::login($user, true);
         request()->session()->regenerate();
 
         return redirect()->route('dashboard')->with('success', 'Welkom! Je bent succesvol ingelogd via je Discord account!');
@@ -222,7 +222,7 @@ class AuthController extends Controller
                                 }
                             }
 
-                            Auth::login($user);
+                            Auth::login($user, true);
                             request()->session()->regenerate();
 
                             if (! $user->is_onboarded || ! $user->character?->is_onboarded) {
@@ -253,7 +253,7 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt($credentials, $request->boolean('remember', true))) {
             $request->session()->regenerate();
 
             return redirect()->intended(route('dashboard'));
@@ -386,7 +386,7 @@ class AuthController extends Controller
             }
         }
 
-        Auth::login($user);
+        Auth::login($user, true);
         $request->session()->regenerate();
 
         event(new Registered($user));
