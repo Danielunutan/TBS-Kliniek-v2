@@ -78,7 +78,7 @@ class RoadmapController extends Controller
                 'key' => 'council',
                 'title' => 'De Patiëntenraad & Afdelingsvoorzitter',
                 'subtitle' => 'Wekelijkse verkiezingen, bende-politiek en kliniekregels',
-                'category' => 'Politiek & Gangs',
+                'category' => 'Politiek & Bendes',
                 'phase' => 'Fase 2: Gepland',
                 'status' => 'Gepland',
                 'status_badge' => 'bg-amber-50 text-amber-700 border-amber-200',

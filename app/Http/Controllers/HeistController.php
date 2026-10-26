@@ -91,7 +91,7 @@ class HeistController extends Controller
         // Gang requirements for Bende Heists
         if ($heist->is_gang_heist) {
             if (! $character->gang_id || ! $character->gang) {
-                return back()->with('error', 'Deze operatie is een officiële Bende Heist! Sluit je eerst aan bij een gang of richt zelf een bende op om deel te nemen.');
+                return back()->with('error', 'Deze operatie is een officiële Bende Heist! Sluit je eerst aan bij een bende of richt zelf een bende op om deel te nemen.');
             }
 
             $gang = $character->gang;

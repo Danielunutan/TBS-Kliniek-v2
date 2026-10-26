@@ -221,6 +221,101 @@ class PackageController extends Controller
     }
 
     /**
+     * Open ALL unopened bags at once, aggregating all rewards in one transaction.
+     * Feature added in response to support ticket TBS-B9G-711 (Bellakita).
+     */
+    public function openBagAll(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+
+        return DB::transaction(function () use ($user) {
+            /** @var Character $character */
+            $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
+
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
+            }
+
+            $totalBags = (int) ($character->unopened_bags ?? 0);
+
+            if ($totalBags <= 0) {
+                return back()->with('error', 'Je hebt geen ongeopende koffers liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
+            }
+
+            $totalBank = 0;
+            $totalXp = 0;
+            $totalStars = 0;
+            $totalMasks = 0;
+            $totalRespect = 0;
+            $voucherCodes = [];
+
+            for ($i = 0; $i < $totalBags; $i++) {
+                $totalBank += rand(1250, 3750);
+                $totalXp += rand(80, 180);
+                $totalRespect += 2;
+
+                if (rand(1, 100) <= 8) {
+                    $totalStars += 1;
+                }
+
+                if (rand(1, 100) <= 40) {
+                    $totalMasks += 1;
+                }
+
+                if (rand(1, 100) <= 30) {
+                    $code = VaultCode::generateUniqueCode('TAS');
+                    VaultCode::create([
+                        'code' => $code,
+                        'reward_cash' => rand(1000, 2500),
+                        'reward_stars' => 0,
+                        'reward_tokens' => 2,
+                        'character_id' => $character->id,
+                        'is_redeemed' => false,
+                    ]);
+                    $voucherCodes[] = $code;
+                }
+            }
+
+            // Clamp masks to available storage space
+            $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
+            $totalMasks = min($totalMasks, $spaceLeft);
+
+            $character->unopened_bags = 0;
+            $character->bank += $totalBank;
+            $character->stars = ($character->stars ?? 0) + $totalStars;
+            $character->masks = ($character->masks ?? 0) + $totalMasks;
+            $character->respect += $totalRespect;
+
+            $this->level->addXp($character, $totalXp);
+            $character->save();
+
+            $logParts = ['\u20ac'.number_format($totalBank, 0, ',', '.').' contant'];
+            if ($totalStars > 0) {
+                $logParts[] = "{$totalStars} sterren";
+            }
+            if ($totalMasks > 0) {
+                $logParts[] = "{$totalMasks} maskers";
+            }
+            if (count($voucherCodes) > 0) {
+                $logParts[] = count($voucherCodes).' kluiscodes';
+            }
+
+            KofferLog::create([
+                'character_id' => $character->id,
+                'loot_summary' => "[{$totalBags}x BULK] ".implode(', ', $logParts),
+            ]);
+
+            $starTxt = $totalStars > 0 ? " +{$totalStars} Sterren" : '';
+            $maskTxt = $totalMasks > 0 ? " +{$totalMasks} Maskers" : '';
+            $voucherTxt = count($voucherCodes) > 0
+                ? ' '.count($voucherCodes).' Geheime Kluiscodes gevonden (opgeslagen in je postvak/kluis!)'
+                : '';
+
+            return back()->with('success', "BULK KRAAK! Je hebt alle {$totalBags} koffers in \u00e9\u00e9n klap geopend! Totale buit: \u20ac".number_format($totalBank, 0, ',', '.')." op je bank! +{$totalXp} XP{$starTxt}{$maskTxt}{$voucherTxt}");
+        });
+    }
+
+    /**
      * Sell an unopened bag directly to the black market broker for clean bank cash.
      */
     public function sellBag(Request $request): RedirectResponse

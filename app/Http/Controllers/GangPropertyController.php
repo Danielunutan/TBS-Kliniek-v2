@@ -377,7 +377,7 @@ class GangPropertyController extends Controller
         $totalCap = $gang->total_npc_capacity;
         $currentCount = $gang->npcs()->count();
         if ($currentCount >= $totalCap) {
-            return back()->with('error', 'Geen vrije woonruimte meer! Koop eerst een Luxe Penthouse of Gang Villa om de NPC-capaciteit van de bende te verhogen.');
+            return back()->with('error', 'Geen vrije woonruimte meer! Koop eerst een Luxe Penthouse of Bende Villa om de NPC-capaciteit van de bende te verhogen.');
         }
 
         $cost = (int) $npcData['cost'];

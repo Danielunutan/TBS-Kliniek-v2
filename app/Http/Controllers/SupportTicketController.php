@@ -73,12 +73,12 @@ class SupportTicketController extends Controller
             ], [
                 'gang_name.required' => 'Vul de gewenste bendenaam in (min. 3, max. 25 tekens).',
                 'gang_tag.required' => 'Vul een bende tag of afkorting in (2 tot 4 tekens).',
-                'external_gang_link.required' => 'Vul de link naar jullie gang op de andere website of game in.',
+                'external_gang_link.required' => 'Vul de link naar jullie bende op de andere website of game in.',
             ]);
 
             $gangTag = strtoupper(strip_tags($validated['gang_tag']));
             $gangName = strip_tags($validated['gang_name']);
-            $subject = "Gang Overstap Bonus: {$gangName} [{$gangTag}]";
+            $subject = "Bende Overstap Bonus: {$gangName} [{$gangTag}]";
             $priority = $validated['priority'] ?? 'normaal';
 
             $metadata = [
@@ -89,7 +89,7 @@ class SupportTicketController extends Controller
                 'proof_details' => ! empty($validated['proof_details']) ? strip_tags($validated['proof_details']) : null,
             ];
 
-            $messageContent = "👑 AANVRAAG GANG OVERSTAP BONUS\n\n"
+            $messageContent = "👑 AANVRAAG BENDE OVERSTAP BONUS\n\n"
                 ."• Gewenste Bendenaam: {$gangName}\n"
                 ."• Bende Tag: [{$gangTag}]\n"
                 ."• Link naar bende op andere game: {$metadata['external_gang_link']}\n"

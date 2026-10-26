@@ -217,11 +217,11 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Hoe werkt het Bende-Uurloon?',
-                        'a' => 'De bendeleider stelt in hoeveel procent van de gezamenlijke bende-kluis elk uur als uurloon wordt uitgekeerd. Elk actief bendelid kan vervolgens ieder uur zijn eigen loon claimen via de Gangs pagina!',
+                        'a' => 'De bendeleider stelt in hoeveel procent van de gezamenlijke bende-kluis elk uur als uurloon wordt uitgekeerd. Elk actief bendelid kan vervolgens ieder uur zijn eigen loon claimen via de Bendes pagina!',
                     ],
                     [
-                        'q' => 'Wat zijn Gang Wars?',
-                        'a' => 'Bendes kunnen elkaar de oorlog verklaren in Gang Wars. Door leden van de vijandige bende te verslaan op de luchtplaats verdient jouw bende oorlogspunten en kun je de kluis van de tegenstander plunderen!',
+                        'q' => 'Wat zijn Bende Oorlogen?',
+                        'a' => 'Bendes kunnen elkaar de oorlog verklaren in Bende Oorlogen. Door leden van de vijandige bende te verslaan op de luchtplaats verdient jouw bende oorlogspunten en kun je de kluis van de tegenstander plunderen!',
                     ],
                 ],
             ],
@@ -507,11 +507,11 @@ class FaqController extends Controller
                 ],
             ],
             [
-                'title' => ' Bendes, Gangs & Uurloon',
+                'title' => ' Bendes & Uurloon',
                 'keywords' => ['gang', 'bende', 'bendes', 'uurloon', 'gang kluis', 'bende kluis', 'gang wars', 'oorlog', 'bendeleider', 'oprichten'],
-                'answer' => 'Vanaf Level 3 kun je op de Gangs pagina een eigen bende oprichten of je aansluiten bij een bestaande gang. Bendes hebben een gezamenlijke kluis en upgrades. Leden kunnen elk uur een vast gang-uurloon claimen!',
+                'answer' => 'Vanaf Level 3 kun je op de Bendes pagina een eigen bende oprichten of je aansluiten bij een bestaande bende. Bendes hebben een gezamenlijke kluis en upgrades. Leden kunnen elk uur een vast bende-uurloon claimen!',
                 'links' => [
-                    ['text' => 'Naar Gangs', 'url' => route('gangs.index')],
+                    ['text' => 'Naar Bendes', 'url' => route('gangs.index')],
                 ],
             ],
             [
@@ -615,7 +615,7 @@ class FaqController extends Controller
                 'answer' => 'In TBS Kliniek strijd je om de heerschappij! Doe dagelijks mee aan de 24-uurs Kliniek Battle voor gigantische jackpots, versla massieve Zaalwacht Bazen met je bende voor miljoenen aan gedeelde buit, en heers over de Respectlijst!',
                 'links' => [
                     ['text' => '24-Uurs Battle', 'url' => route('battle.index')],
-                    ['text' => 'Mijn Bende (Gangs)', 'url' => route('gangs.index')],
+                    ['text' => 'Mijn Bende', 'url' => route('gangs.index')],
                 ],
             ],
             [

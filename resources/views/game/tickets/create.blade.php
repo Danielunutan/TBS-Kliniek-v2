@@ -38,7 +38,7 @@
                     </div>
                     <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Nieuw Support Ticket Openen</h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Meld een bug, stel een vraag over de game of vraag de exclusieve <strong>Gang Overstap Bonus</strong> aan.
+                        Meld een bug, stel een vraag over de game of vraag de exclusieve <strong>Bende Overstap Bonus</strong> aan.
                     </p>
                 </div>
             </div>
@@ -73,9 +73,9 @@
                             </span>
                         </div>
                         <div>
-                            <h4 class="text-xs font-black text-slate-900 dark:text-white">Gang Overstap Bonus</h4>
+                            <h4 class="text-xs font-black text-slate-900 dark:text-white">Bende Overstap Bonus</h4>
                             <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
-                                Stap over van een andere game met je bende voor gratis gang + €5M kluisgeld.
+                                Stap over van een andere game met je bende voor gratis bende + €5M kluisgeld.
                             </p>
                         </div>
                         <div class="flex items-center gap-1.5 text-[10px] font-extrabold text-amber-600 dark:text-amber-400 pt-1 border-t border-amber-200/60 dark:border-amber-800/40">
@@ -184,7 +184,7 @@
                             <i class="fa-solid fa-crown"></i>
                         </div>
                         <div>
-                            <h3 class="text-sm font-black text-slate-900 dark:text-white">Gang Overstap Bonus Regeling</h3>
+                            <h3 class="text-sm font-black text-slate-900 dark:text-white">Bende Overstap Bonus Regeling</h3>
                             <p class="text-xs text-slate-600 dark:text-slate-300">Stap met je hele clan/bende over naar TBS Kliniek en ontvang direct een gigantische startbonus!</p>
                         </div>
                     </div>
@@ -269,7 +269,7 @@
                 <!-- Link naar Gang op andere game/website -->
                 <div class="space-y-1.5">
                     <label for="external_gang_link" class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        Link naar jullie Gang op de andere game/website <span class="text-rose-500">*</span>
+                        Link naar jullie Bende op de andere game/website <span class="text-rose-500">*</span>
                     </label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -284,7 +284,7 @@
                                :required="selectedCategory === 'gang_overstap'">
                     </div>
                     <p class="text-[11px] text-slate-400 dark:text-slate-500">
-                        Plaats hier de URL naar jullie gang, clanprofiel of bewijs op Barribob, Boevenbende, OSG, etc.
+                        Plaats hier de URL naar jullie bende, clanprofiel of bewijs op Barribob, Boevenbende, OSG, etc.
                     </p>
                     @error('external_gang_link')
                     <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
@@ -416,7 +416,7 @@
                 <button type="submit" 
                         class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-md shadow-purple-600/20 cursor-pointer flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane text-amber-300"></i>
-                    <span x-text="selectedCategory === 'gang_overstap' ? 'Gang Overstap Bonus Aanvragen' : 'Support Ticket Verzenden'"></span>
+                    <span x-text="selectedCategory === 'gang_overstap' ? 'Bende Overstap Bonus Aanvragen' : 'Support Ticket Verzenden'"></span>
                 </button>
             </div>
 

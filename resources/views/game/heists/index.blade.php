@@ -363,9 +363,9 @@
                             <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
                         <div>
-                            <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen Gang of Bende Gevonden</h4>
+                            <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen Bende Gevonden</h4>
                             <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
-                                Grote Bende Heists vereisen een actieve gang. Sluit je aan bij een bende of richt er zelf een op om mee te doen aan grootschalige overvallen!
+                                Grote Bende Heists vereisen een actieve bende. Sluit je aan bij een bende of richt er zelf een op om mee te doen aan grootschalige overvallen!
                             </p>
                         </div>
                     </div>
@@ -484,7 +484,7 @@
                             </div>
                             <div class="flex items-center justify-between text-xs pt-1.5 border-t border-purple-100 dark:border-purple-900/60 text-[11px]">
                                 <span class="text-slate-500 dark:text-slate-400">Bende Beloning:</span>
-                                <span class="font-extrabold text-purple-700 dark:text-purple-300">+{{ $heist->gang_respect_reward }} Gang Respect ⭐</span>
+                                <span class="font-extrabold text-purple-700 dark:text-purple-300">+{{ $heist->gang_respect_reward }} Bende Respect ⭐</span>
                             </div>
                         </div>
 
@@ -553,7 +553,7 @@
                         <!-- Slagingskans Bar -->
                         <div class="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800">
                             <div class="flex items-center justify-between text-xs font-bold">
-                                <span class="text-slate-600 dark:text-slate-400">Slagingskans (incl. Gang Bonus +{{ $gangBonus }}%):</span>
+                                <span class="text-slate-600 dark:text-slate-400">Slagingskans (incl. Bende Bonus +{{ $gangBonus }}%):</span>
                                 <span class="font-mono {{ $estChance >= 60 ? 'text-emerald-600 dark:text-emerald-400' : ($estChance >= 40 ? 'text-amber-500' : 'text-rose-600 dark:text-rose-400') }}">{{ $estChance }}%</span>
                             </div>
                             <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
@@ -666,7 +666,7 @@
                     @if($log->success)
                         <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono block">+€{{ number_format($log->cash_earned, 0, ',', '.') }}</span>
                         @if($log->gang_cash_earned > 0)
-                            <span class="text-[10px] text-amber-500 font-bold block">+€{{ number_format($log->gang_cash_earned, 0, ',', '.') }} Gang</span>
+                            <span class="text-[10px] text-amber-500 font-bold block">+€{{ number_format($log->gang_cash_earned, 0, ',', '.') }} Bende</span>
                         @endif
                         <span class="text-[10px] text-emerald-500 font-bold">+{{ $log->respect_earned }} Respect</span>
                     @else

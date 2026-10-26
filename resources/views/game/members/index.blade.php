@@ -83,7 +83,7 @@
                 </a>
                 <a href="{{ route('gangs.index') }}" class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-xs font-bold border border-purple-200 dark:border-purple-800 transition flex items-center gap-2 shadow-2xs">
                     <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
-                    <span>Bendes & Gangs</span>
+                    <span>Bendes</span>
                 </a>
             </div>
         </div>

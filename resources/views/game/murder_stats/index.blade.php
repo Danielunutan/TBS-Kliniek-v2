@@ -101,14 +101,14 @@
             <!-- Bendes Section -->
             <div class="bg-purple-50/60 dark:bg-purple-950/40 p-3 rounded-xl border border-purple-200/80 dark:border-purple-900/50 flex items-center gap-2 text-purple-900 dark:text-purple-300 font-extrabold text-xs uppercase tracking-wider mt-6">
                 <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
-                <span>Bendes & Gangs Ranglijst</span>
+                <span>Bendes Ranglijst</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Meeste Geweld Gangs -->
                 <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
                     <div class="bg-slate-50 dark:bg-slate-800/80 text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-slate-400 py-2.5 px-4 border-b border-slate-200 dark:border-slate-800">
-                        Meeste Geweld (Gangs Totaal)
+                        Meeste Geweld (Bendes Totaal)
                     </div>
                     <div class="p-4 space-y-2.5">
                         @forelse($topGangsToday as $g)
@@ -131,7 +131,7 @@
                 <!-- Meeste Online Geweld Gangs -->
                 <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
                     <div class="bg-slate-50 dark:bg-slate-800/80 text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-slate-400 py-2.5 px-4 border-b border-slate-200 dark:border-slate-800">
-                        Meeste Online Geweld (Gangs met Actieve Leden)
+                        Meeste Online Geweld (Bendes met Actieve Leden)
                     </div>
                     <div class="p-4 space-y-2.5">
                         @forelse($topOnlineGangsToday as $g)
@@ -225,13 +225,13 @@
             <!-- Bendes 7 Dagen -->
             <div class="bg-purple-50/60 dark:bg-purple-950/40 p-3 rounded-xl border border-purple-200/80 dark:border-purple-900/50 flex items-center gap-2 text-purple-900 dark:text-purple-300 font-extrabold text-xs uppercase tracking-wider mt-6">
                 <i class="fa-solid fa-users text-purple-600 dark:text-purple-400"></i>
-                <span>Bendes & Gangs (Afgelopen 7 Dagen)</span>
+                <span>Bendes (Afgelopen 7 Dagen)</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
                     <div class="bg-slate-50 dark:bg-slate-800/80 text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-slate-400 py-2.5 px-4 border-b border-slate-200 dark:border-slate-800">
-                        Meeste Geweld (Gangs 7 Dagen)
+                        Meeste Geweld (Bendes 7 Dagen)
                     </div>
                     <div class="p-4 space-y-2.5">
                         @forelse($topGangsWeek as $g)
@@ -253,7 +253,7 @@
 
                 <div class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-2xs">
                     <div class="bg-slate-50 dark:bg-slate-800/80 text-[10px] uppercase font-black tracking-widest text-slate-500 dark:text-slate-400 py-2.5 px-4 border-b border-slate-200 dark:border-slate-800">
-                        Gangs met Online Leden (7 Dagen)
+                        Bendes met Online Leden (7 Dagen)
                     </div>
                     <div class="p-4 space-y-2.5">
                         @forelse($topOnlineGangsWeek as $g)

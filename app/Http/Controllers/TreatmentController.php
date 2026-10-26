@@ -168,7 +168,7 @@ class TreatmentController extends Controller
                     'respect' => 1,
                 ],
                 'c' => [
-                    'text' => 'Mijn gang is mijn familie. Zonder ons zou de kliniek allang in brand staan.',
+                    'text' => 'Mijn bende is mijn familie. Zonder ons zou de kliniek allang in brand staan.',
                     'score' => -30,
                     'note' => 'Diepe verwevenheid met georganiseerde bendes en anti-sociaal netwerk.',
                     'respect' => 3,

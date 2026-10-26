@@ -181,10 +181,21 @@
                         </div>
 
                         @if(($character->unopened_bags ?? 0) > 1)
+                        {{-- Bulk kraak: alle koffers in één klap openen --}}
+                        <form action="{{ route('packages.open-bag-all') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2"
+                                    title="Open alle {{ $character->unopened_bags }} koffers tegelijk en ontvang alle beloningen in één keer!">
+                                <i class="fa-solid fa-bolt"></i>
+                                <span>Kraak Alle {{ $character->unopened_bags }} Koffers In Één Klap!</span>
+                            </button>
+                        </form>
+
                         <form action="{{ route('packages.sell-bag') }}" method="POST">
                             @csrf
                             <input type="hidden" name="amount" value="{{ $character->unopened_bags }}">
-                            <button type="submit" 
+                            <button type="submit"
                                     class="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-black transition flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-money-bill-transfer"></i>
                                 <span>Verkoop Alle {{ $character->unopened_bags }} Koffers Direct (€{{ number_format($character->unopened_bags * 2500, 0, ',', '.') }} bankgeld)</span>

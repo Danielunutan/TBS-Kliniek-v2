@@ -168,7 +168,7 @@ document.addEventListener('alpine:init', () => {
             { name: 'Isoleercel (Gevangenis)', icon: 'fa-solid fa-dungeon', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("prison") }}', category: 'algemeen', desc: 'Uitzitten, uitbreken of borg betalen', keywords: 'gevangenis bajes isoleercel cel ontsnappen straf' },
             { name: 'Toekomst & Roadmap', icon: 'fa-solid fa-compass', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-950/60', route: '{{ route("roadmap.index") }}', category: 'algemeen', desc: 'Stem op aankomende features voor TBS Kliniek', keywords: 'stemmen roadmap toekomst functies' },
 
-            // Bende & Gangs
+            // Bendes
             { name: 'Mijn Bende', icon: 'fa-solid fa-shield-halved', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("gangs.index", ["tab" => "mijn_gang"]) }}', category: 'bende', desc: 'Factieoverzicht, kas en collectief uurloon', keywords: 'gang bende factie club kas uurloon' },
             { name: 'Bende Leden & Beheer', icon: 'fa-solid fa-users-gear', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-950/60', route: '{{ route("gangs.index", ["tab" => "beheer"]) }}', category: 'bende', desc: 'Ledenlijst, toelaten, promoties en donaties', keywords: 'beheer verzoeken accepteren leden bendeleden' },
             { name: 'Bende Oorlog', icon: 'fa-solid fa-crosshairs', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("gangs.index", ["tab" => "oorlog"]) }}', category: 'bende', desc: 'Aanvallen op rivaliserende bendes in de kliniek', keywords: 'oorlog gang war attack bende strijd', badge: 'PvP', badgeClass: 'bg-rose-100 text-rose-700' },

@@ -929,7 +929,7 @@
                         class="w-full flex items-center justify-between px-3 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 rounded-xl transition group">
                     <span class="flex items-center gap-2">
                         <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-users"></i></span>
-                        <span>Bende & Gangs</span>
+                        <span>Bendes</span>
                     </span>
                     <div class="flex items-center gap-1.5">
                         @if($character->gang)

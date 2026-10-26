@@ -1217,7 +1217,7 @@ class GangController extends Controller
         switch ($itemType) {
             case 'gang_chat':
                 if ($gang->has_gang_chat) {
-                    return back()->with('error', 'Jullie bende beschikt al over een eigen besloten Gang Chat!');
+                    return back()->with('error', 'Jullie bende beschikt al over een eigen besloten Bende Chat!');
                 }
 
                 $chatPrice = 500;

@@ -123,7 +123,7 @@
                 <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800/60 mb-2">
                     <i class="fa-solid fa-users"></i> Facties & Allianties
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Kliniek Gangs</h1>
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Kliniek Bendes</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
                     Verenig je met andere patiënten in een bende. Doneer aan de gezamenlijke kas, verhoog het collectieve uurloon, koop smokkelkiosken en heers over de kliniek!
                 </p>
@@ -1722,9 +1722,9 @@
             <div x-show="activeGangTab === 'winkel'" class="space-y-6">
                 <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
                     <div>
-                        <h2 class="text-lg font-extrabold text-slate-900 uppercase tracking-wide">Gang Winkel</h2>
+                        <h2 class="text-lg font-extrabold text-slate-900 uppercase tracking-wide">Bende Winkel</h2>
                         <p class="text-xs text-slate-500 mt-1">
-                            Verhoog het uurloon met Smokkelkiosken, koop bescherming tegen aanvallen, en haal power om andere gangs te verslaan!
+                            Verhoog het uurloon met Smokkelkiosken, koop bescherming tegen aanvallen, en haal power om andere bendes te verslaan!
                         </p>
                     </div>
 
@@ -1917,7 +1917,7 @@
                                 <div class="flex items-center gap-2">
                                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                                         <i class="fa-solid fa-walkie-talkie text-purple-600 dark:text-purple-400"></i>
-                                        <span>Bende Portofoon (Besloten Gang Chat)</span>
+                                        <span>Bende Portofoon (Besloten Bende Chat)</span>
                                     </h3>
                                     @if($myGang && $myGang->has_gang_chat)
                                         <span class="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] font-black uppercase">Ontgrendeld ✓</span>
@@ -1950,7 +1950,7 @@
                                                 @if(! $has500Stars) disabled @endif
                                                 class="px-5 py-2.5 rounded-xl {{ $has500Stars ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black cursor-pointer shadow-sm active:scale-95' : 'bg-slate-200 text-slate-400 cursor-not-allowed font-bold' }} text-xs uppercase tracking-wider transition flex items-center gap-2">
                                             <i class="fa-solid fa-unlock-keyhole"></i>
-                                            <span>Koop Gang Chat (500 ⭐)</span>
+                                            <span>Koop Bende Chat (500 ⭐)</span>
                                         </button>
                                     </form>
                                 @endif
@@ -1975,7 +1975,7 @@
                                 <div class="flex items-center gap-2 mb-0.5">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800/60 px-2 py-0.5 rounded-md">Bende Financiën</span>
                                 </div>
-                                <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Doneren aan Gang Kas</h2>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Doneren aan Bende Kas</h2>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Doneer contant geld om smokkelkiosken te financieren en het collectieve uurloon voor alle leden te verhogen!
                                 </p>
@@ -2609,7 +2609,7 @@
                             <i class="fa-solid fa-trophy"></i> Prestigieuze Facties
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-                            Gangs Ranglijst
+                            Bendes Ranglijst
                         </h2>
                         <p class="text-xs sm:text-sm text-slate-500">
                             Strijd om de macht en controleer de vleugels van de kliniek.
@@ -2674,7 +2674,7 @@
                                             </a>
                                             @if($myGang && $g['id'] === $myGang->id)
                                                 <span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-extrabold text-[11px] inline-flex items-center gap-1 border border-purple-200">
-                                                    <i class="fa-solid fa-check text-[10px]"></i> Jouw Gang
+                                                    <i class="fa-solid fa-check text-[10px]"></i> Jouw Bende
                                                 </span>
                                             @elseif(! $character->gang_id)
                                                 @if($g['has_pending_request'])
@@ -4082,7 +4082,7 @@
                         <span>Je bent al lid van een bende!</span>
                     </p>
                     <p class="leading-relaxed">
-                        Je bent momenteel aangesloten bij <strong>{{ $myGang->name }}</strong> [{{ $myGang->tag }}]. Je kunt maximaal in 1 bende tegelijk zitten. Om een nieuwe bende op te richten, moet je eerst je huidige bende verlaten via het tabblad <em>Mijn Gang</em>.
+                        Je bent momenteel aangesloten bij <strong>{{ $myGang->name }}</strong> [{{ $myGang->tag }}]. Je kunt maximaal in 1 bende tegelijk zitten. Om een nieuwe bende op te richten, moet je eerst je huidige bende verlaten via het tabblad <em>Mijn Bende</em>.
                     </p>
                 </div>
                 <div class="flex justify-end pt-2">

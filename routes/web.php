@@ -310,6 +310,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/pakketjes', [PackageController::class, 'index'])->name('packages.index');
     Route::post('/pakketjes/onderscheppen', [PackageController::class, 'intercept'])->name('packages.intercept')->middleware('throttle:30,1');
     Route::post('/pakketjes/tas-openen', [PackageController::class, 'openBag'])->name('packages.open-bag')->middleware('throttle:30,1');
+    Route::post('/pakketjes/alle-tassen-openen', [PackageController::class, 'openBagAll'])->name('packages.open-bag-all')->middleware('throttle:10,1');
     Route::post('/pakketjes/tas-verkopen', [PackageController::class, 'sellBag'])->name('packages.sell-bag')->middleware('throttle:30,1');
     Route::post('/pakketjes/xxl-openen', [PackageController::class, 'openXxl'])->name('packages.open-xxl')->middleware('throttle:30,1');
     Route::post('/pakketjes/xxl-kopen', [PackageController::class, 'buyXxl'])->name('packages.buy-xxl')->middleware('throttle:30,1');

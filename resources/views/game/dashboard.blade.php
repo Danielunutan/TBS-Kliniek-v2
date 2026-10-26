@@ -115,7 +115,7 @@
                             <span class="text-xs font-black text-slate-900 dark:text-white">Toekomst van de Kliniek: Stem mee op nieuwe functies!</span>
                         </div>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                            Van de <strong>Medicijnkluis Gang Heist</strong> en <strong>Armpjedruk Arena</strong> tot het <strong>Behandelaarsgesprek</strong> en de <strong>Peukeneconomie</strong>.
+                            Van de <strong>Medicijnkluis Bende Heist</strong> en <strong>Armpjedruk Arena</strong> tot het <strong>Behandelaarsgesprek</strong> en de <strong>Peukeneconomie</strong>.
                         </p>
                     </div>
                 </div>
@@ -1713,7 +1713,7 @@ function tbsDashboardCustomizer() {
             { key: 'attributes', title: 'Karakter Eigenschappen & Stats', desc: 'Kracht, conditie, intelligentie en discipline', icon: 'fa-dumbbell', bg: 'bg-indigo-100 text-indigo-700', isPremium: false, cost: 0 },
             { key: 'activities', title: 'Recente Activiteiten Feed', desc: 'Log van recente overvallen, missies en winsten', icon: 'fa-clock-rotate-left', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 },
             { key: 'clinicNews', title: 'TBS Kliniek Berichten', desc: 'Officiële aankondigingen van de inrichting', icon: 'fa-bullhorn', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
-            { key: 'gang', title: 'Mijn Bende / Gang Kaart', desc: 'Overzicht van je factie, kas en leden', icon: 'fa-users', bg: 'bg-slate-200 text-slate-800', isPremium: false, cost: 0 },
+            { key: 'gang', title: 'Mijn Bende Kaart', desc: 'Overzicht van je factie, kas en leden', icon: 'fa-users', bg: 'bg-slate-200 text-slate-800', isPremium: false, cost: 0 },
             { key: 'missions', title: 'Snelle Missies Lijst', desc: 'Overzicht van beschikbare missies voor cash & XP', icon: 'fa-list-check', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
             { key: 'betaNotice', title: 'Open Beta Melding', desc: 'Informatie over de testfase van het spel', icon: 'fa-flask-vial', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
             { key: 'roadmap', title: 'Roadmap & Toekomst Kaart', desc: 'Stemmen op nieuwe kliniek features', icon: 'fa-compass', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 }

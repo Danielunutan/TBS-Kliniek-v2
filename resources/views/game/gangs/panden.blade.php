@@ -494,7 +494,7 @@
             <div class="text-xs text-amber-900 dark:text-amber-200 space-y-1">
                 <span class="font-black block">Geen woonruimte voor NPC bendeleden!</span>
                 <p class="text-amber-800 dark:text-amber-300">
-                    Om NPC bendeleden aan te nemen moet je bende eerst een <strong>Luxe Sky-Penthouse</strong>, <strong>Havenjachthuis</strong>, <strong>Grachtenpand</strong> of <strong>Gang Villa</strong> bezitten.
+                    Om NPC bendeleden aan te nemen moet je bende eerst een <strong>Luxe Sky-Penthouse</strong>, <strong>Havenjachthuis</strong>, <strong>Grachtenpand</strong> of <strong>Bende Villa</strong> bezitten.
                 </p>
             </div>
         </div>

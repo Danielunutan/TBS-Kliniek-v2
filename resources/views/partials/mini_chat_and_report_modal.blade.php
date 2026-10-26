@@ -591,7 +591,7 @@
                         </span>
                         <h4 class="text-base font-black text-slate-900 dark:text-white" x-text="gangName + ' Portofoon'"></h4>
                         <p class="text-xs text-slate-600 dark:text-purple-200 max-w-xs mx-auto leading-relaxed">
-                            Jullie bende heeft de eigen besloten Gang Chat nog niet geactiveerd. Deze chat is exclusief voor leden van <span class="font-bold" x-text="gangName"></span>.
+                            Jullie bende heeft de eigen besloten Bende Chat nog niet geactiveerd. Deze chat is exclusief voor leden van <span class="font-bold" x-text="gangName"></span>.
                         </p>
                     </div>
 
@@ -1268,7 +1268,7 @@
             isSubmitting: false,
             get reportedTypeLabel() {
                 if (this.reportedType === 'character') return 'Patiënt Profiel';
-                if (this.reportedType === 'gang') return 'Bende / Gang';
+                if (this.reportedType === 'gang') return 'Bende';
                 if (this.reportedType === 'chat_message') return 'Chatbericht';
                 return this.reportedType;
             },
