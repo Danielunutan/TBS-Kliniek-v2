@@ -15,9 +15,11 @@ class ReplyToTicket extends Command
      * @var string
      */
     protected $signature = 'ticket:reply
-                            {ticket : Ticket number (e.g. TBS-B9G-711)}
+                            {ticket : Ticket number (e.g. TBS-R4G-711)}
+                            {--message= : Direct reply message (skips prompt)}
                             {--admin-id= : Admin user ID that sends the reply}
-                            {--status=beantwoord : New ticket status (open/in_behandeling/beantwoord/gesloten)}';
+                            {--status=beantwoord : New ticket status (open/in_behandeling/beantwoord/gesloten)}
+                            {--force : Do not ask for confirmation}';
 
     /**
      * The console command description.
@@ -31,6 +33,7 @@ class ReplyToTicket extends Command
         $ticketNumber = $this->argument('ticket');
         $newStatus = $this->option('status');
         $adminId = $this->option('admin-id');
+        $messageOption = $this->option('message');
 
         $ticket = SupportTicket::where('ticket_number', $ticketNumber)->first();
 
@@ -43,7 +46,7 @@ class ReplyToTicket extends Command
         // Resolve admin user
         $adminUser = $adminId
             ? User::find($adminId)
-            : User::where('is_admin', true)->first();
+            : (User::where('role', 'owner')->first() ?? User::where('role', 'admin')->first() ?? User::where('is_staff', true)->first());
 
         if (! $adminUser) {
             $this->error('No admin user found. Use --admin-id to specify one.');
@@ -55,7 +58,7 @@ class ReplyToTicket extends Command
         $this->info("Status: {$ticket->status} → {$newStatus}");
         $this->info("Staff: {$adminUser->name} (ID: {$adminUser->id})");
 
-        $message = $this->ask('Enter your reply message');
+        $message = $messageOption ?? $this->ask('Enter your reply message');
 
         if (empty($message)) {
             $this->error('Message cannot be empty.');
@@ -63,7 +66,7 @@ class ReplyToTicket extends Command
             return 1;
         }
 
-        if (! $this->confirm("Send this reply and set status to '{$newStatus}'?", true)) {
+        if (! $this->option('force') && ! $messageOption && ! $this->confirm("Send this reply and set status to '{$newStatus}'?", true)) {
             $this->warn('Cancelled.');
 
             return 0;
