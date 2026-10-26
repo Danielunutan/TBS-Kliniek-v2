@@ -153,6 +153,7 @@ class DatabaseSeeder extends Seeder
                 'energy_restore' => 0,
                 'health_restore' => 0,
                 'icon' => 'fa-box',
+                'is_buyable' => false,
             ],
             [
                 'name' => 'Strip Oxazepam',

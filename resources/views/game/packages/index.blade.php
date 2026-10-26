@@ -172,7 +172,7 @@
                                     class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-purple-600/30 cursor-pointer flex items-center justify-center gap-2"
                                     title="Open alle {{ $character->unopened_bags }} koffers tegelijk en ontvang alle beloningen in één keer!">
                                 <i class="fa-solid fa-bolt text-amber-300"></i>
-                                <span>Kraak Alle {{ $character->unopened_bags }} Koffer{{ $character->unopened_bags > 1 ? 's' : '' }} In Één Klap!</span>
+                                <span>Kraak {{ $character->unopened_bags > 50 ? '50 van je ' : 'Alle ' }}{{ min(50, $character->unopened_bags) }} Koffer{{ min(50, $character->unopened_bags) > 1 ? 's' : '' }} In Één Klap!</span>
                                 <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-400 text-slate-950 font-black">BULK</span>
                             </button>
                         </form>

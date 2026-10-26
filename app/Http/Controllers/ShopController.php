@@ -136,17 +136,25 @@ class ShopController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        $quantity = max(1, (int) $request->input('quantity', 1));
+        if (! $item->is_buyable || $item->slug === 'smokkelpakketje') {
+            $msg = 'Dit item kan niet via de reguliere winkel worden gekocht!';
+            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            return back()->with('shop_tab', 'items')->with('error', $msg);
+        }
+
+        $quantity = max(1, min(50, (int) $request->input('quantity', 1)));
 
         // Charisma discount up to 15% (1% per 10 charisma)
         $discountPct = min(15, (int) floor($character->getEffectiveCharisma() / 10));
         $unitPrice = $discountPct > 0 ? (int) round($item->price_kc * (1 - ($discountPct / 100))) : $item->price_kc;
         $totalCost = $unitPrice * $quantity;
 
-        // Stat boost items, combat equipment, masks and unopened packages do not take storage in inventory
+        // Stat boost items, combat equipment and masks do not take storage in inventory
         $isDirectDelivery = in_array($item->slug, [
             'bivakmuts-masker',
-            'smokkelpakketje',
             'boksbeugel',
             'stalen-neus-kisten',
             'eiwitshake-bodybuilder',

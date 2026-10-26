@@ -236,11 +236,14 @@ class PackageController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
             }
 
-            $totalBags = (int) ($character->unopened_bags ?? 0);
+            $availableBags = (int) ($character->unopened_bags ?? 0);
 
-            if ($totalBags <= 0) {
+            if ($availableBags <= 0) {
                 return back()->with('error', 'Je hebt geen ongeopende koffers liggen. Onderschep er een bij Pakketjes of koop er een op de Marktplaats!');
             }
+
+            // Cap bulk opens to at most 50 at a time to prevent performance bottlenecks and system abuse
+            $totalBags = min(50, $availableBags);
 
             $totalBank = 0;
             $totalXp = 0;
@@ -262,7 +265,7 @@ class PackageController extends Controller
                     $totalMasks += 1;
                 }
 
-                if (rand(1, 100) <= 30) {
+                if (rand(1, 100) <= 25 && count($voucherCodes) < 3) {
                     $code = VaultCode::generateUniqueCode('TAS');
                     VaultCode::create([
                         'code' => $code,
@@ -280,7 +283,7 @@ class PackageController extends Controller
             $spaceLeft = max(0, $character->getStorageCapacity() - $character->getStorageUsed());
             $totalMasks = min($totalMasks, $spaceLeft);
 
-            $character->unopened_bags = 0;
+            $character->unopened_bags -= $totalBags;
             $character->bank += $totalBank;
             $character->stars = ($character->stars ?? 0) + $totalStars;
             $character->masks = ($character->masks ?? 0) + $totalMasks;
@@ -289,7 +292,7 @@ class PackageController extends Controller
             $this->level->addXp($character, $totalXp);
             $character->save();
 
-            $logParts = ['\u20ac'.number_format($totalBank, 0, ',', '.').' contant'];
+            $logParts = ['€'.number_format($totalBank, 0, ',', '.').' contant'];
             if ($totalStars > 0) {
                 $logParts[] = "{$totalStars} sterren";
             }
@@ -310,8 +313,11 @@ class PackageController extends Controller
             $voucherTxt = count($voucherCodes) > 0
                 ? ' '.count($voucherCodes).' Geheime Kluiscodes gevonden (opgeslagen in je postvak/kluis!)'
                 : '';
+            $remainingTxt = $character->unopened_bags > 0
+                ? " (Je hebt nog {$character->unopened_bags} koffers over)"
+                : '';
 
-            return back()->with('success', "BULK KRAAK! Je hebt alle {$totalBags} koffers in \u00e9\u00e9n klap geopend! Totale buit: \u20ac".number_format($totalBank, 0, ',', '.')." op je bank! +{$totalXp} XP{$starTxt}{$maskTxt}{$voucherTxt}");
+            return back()->with('success', "BULK KRAAK! Je hebt {$totalBags} koffers in één klap geopend! Totale buit: €".number_format($totalBank, 0, ',', '.')." op je bank! +{$totalXp} XP{$starTxt}{$maskTxt}{$voucherTxt}{$remainingTxt}");
         });
     }
 
@@ -321,7 +327,7 @@ class PackageController extends Controller
     public function sellBag(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        $amount = max(1, (int) $request->input('amount', 1));
+        $amount = max(1, min(100, (int) $request->input('amount', 1)));
 
         return DB::transaction(function () use ($user, $amount) {
             /** @var Character $character */
