@@ -162,6 +162,8 @@ class Character extends Model
         'hacks_completed_total' => 'integer',
     ];
 
+    public ?int $unreadDirectMessagesCountValue = null;
+
     /**
      * List of dashboard widgets that are free for all patients.
      *
@@ -361,6 +363,14 @@ class Character extends Model
         }
 
         return max(0, (int) round(now()->diffInSeconds($expiresAt, false)));
+    }
+
+    /**
+     * Get remaining active hours for a perk (rounded up).
+     */
+    public function getPerkRemainingHours(string $perk): int
+    {
+        return (int) ceil($this->getPerkRemainingSeconds($perk) / 3600);
     }
 
     /**
@@ -1194,12 +1204,12 @@ class Character extends Model
     /**
      * Get cached top rankings by respect.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Character>|\Illuminate\Support\Collection<int, Character>
+     * @return \Illuminate\Database\Eloquent\Collection<int, Character>|Collection<int, Character>
      */
     public static function getTopRankings(int $limit = 10)
     {
         $cached = Cache::get('tbs_top_rankings_'.$limit);
-        if ($cached instanceof \Illuminate\Database\Eloquent\Collection || $cached instanceof \Illuminate\Support\Collection) {
+        if ($cached instanceof \Illuminate\Database\Eloquent\Collection || $cached instanceof Collection) {
             return $cached;
         }
 

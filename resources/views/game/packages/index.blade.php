@@ -139,6 +139,10 @@
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
                             Onderschep postpakketjes in de wandelgangen hieronder om koffers en zeldzame kluiscodes binnen te halen!
                         </p>
+                        <div class="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 inline-flex items-center gap-1.5 text-[11px] font-extrabold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
+                            <i class="fa-solid fa-bolt text-amber-400"></i>
+                            <span>Nieuw: Meerdere koffers in één klap tegelijk kraken!</span>
+                        </div>
                     </div>
                 @else
                     <div class="space-y-4">
@@ -148,22 +152,37 @@
                                     <i class="fa-solid fa-briefcase"></i>
                                 </div>
                                 <div>
-                                    <div class="text-sm font-black text-slate-900 dark:text-white">
-                                        {{ $character->unopened_bags }}x Smokkelkoffer gereed
+                                    <div class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                        <span>{{ $character->unopened_bags }}x Smokkelkoffer gereed</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-purple-600 text-white shadow-xs">
+                                            Bulk Ready
+                                        </span>
                                     </div>
                                     <div class="text-[11px] text-purple-700 dark:text-purple-300 font-bold">
-                                        Buit: Tot €10.000 cash, maskers, sterren & kluizen
+                                        Buit: Tot €10.000 cash, maskers, sterren & kluizen per stuk
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Direct Actions -->
+                        {{-- Bulk kraak knop: direct prominent aanwezig --}}
+                        <form action="{{ route('packages.open-bag-all') }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-purple-600/30 cursor-pointer flex items-center justify-center gap-2"
+                                    title="Open alle {{ $character->unopened_bags }} koffers tegelijk en ontvang alle beloningen in één keer!">
+                                <i class="fa-solid fa-bolt text-amber-300"></i>
+                                <span>Kraak Alle {{ $character->unopened_bags }} Koffer{{ $character->unopened_bags > 1 ? 's' : '' }} In Één Klap!</span>
+                                <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-400 text-slate-950 font-black">BULK</span>
+                            </button>
+                        </form>
+
+                        <!-- Direct Single Actions -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             <form action="{{ route('packages.open-bag') }}" method="POST">
                                 @csrf
                                 <button type="submit" 
-                                        class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2">
+                                        class="w-full py-2.5 px-3 rounded-xl bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/80 dark:hover:bg-purple-900/80 text-purple-800 dark:text-purple-200 border border-purple-300 dark:border-purple-700 active:scale-[0.98] font-black text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-key"></i>
                                     <span>Kraak 1 Koffer</span>
                                 </button>
@@ -175,23 +194,12 @@
                                         class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-emerald-600/20 cursor-pointer flex items-center justify-center gap-1.5"
                                         title="Verkoop 1 koffer direct voor €2.500 wit bankgeld">
                                     <i class="fa-solid fa-sack-dollar"></i>
-                                    <span>Verkoop (€2.500)</span>
+                                    <span>Verkoop 1 (€2.500)</span>
                                 </button>
                             </form>
                         </div>
 
                         @if(($character->unopened_bags ?? 0) > 1)
-                        {{-- Bulk kraak: alle koffers in één klap openen --}}
-                        <form action="{{ route('packages.open-bag-all') }}" method="POST">
-                            @csrf
-                            <button type="submit"
-                                    class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider transition shadow-sm shadow-purple-600/20 cursor-pointer flex items-center justify-center gap-2"
-                                    title="Open alle {{ $character->unopened_bags }} koffers tegelijk en ontvang alle beloningen in één keer!">
-                                <i class="fa-solid fa-bolt"></i>
-                                <span>Kraak Alle {{ $character->unopened_bags }} Koffers In Één Klap!</span>
-                            </button>
-                        </form>
-
                         <form action="{{ route('packages.sell-bag') }}" method="POST">
                             @csrf
                             <input type="hidden" name="amount" value="{{ $character->unopened_bags }}">

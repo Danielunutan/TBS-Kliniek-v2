@@ -32,6 +32,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_onboarded' => true,
     ];
 
+    public ?int $openSupportTicketsCountValue = null;
+
     /**
      * Get the player's character.
      */
