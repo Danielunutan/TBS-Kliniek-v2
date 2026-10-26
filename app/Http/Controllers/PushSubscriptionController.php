@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SocialRewardClaim;
 use App\Services\WebPushService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -67,10 +68,47 @@ class PushSubscriptionController extends Controller
             ]
         );
 
+        $rewardGranted = false;
+        $rewardMessage = null;
+
+        $character = $user->character;
+        if ($character) {
+            $alreadyClaimed = SocialRewardClaim::where('user_id', $user->id)
+                ->where('platform', 'push')
+                ->exists();
+
+            if (! $alreadyClaimed) {
+                $cashBonus = 25000;
+                $respectBonus = 25;
+                $energyBonus = 20;
+
+                $character->cash += $cashBonus;
+                $character->respect += $respectBonus;
+                $character->energy = min($character->max_energy, $character->energy + $energyBonus);
+                $character->save();
+
+                SocialRewardClaim::create([
+                    'user_id' => $user->id,
+                    'character_id' => $character->id,
+                    'platform' => 'push',
+                    'reward_cash' => $cashBonus,
+                    'reward_respect' => $respectBonus,
+                    'reward_energy' => $energyBonus,
+                    'ip_address' => $request->ip(),
+                    'claimed_at' => now(),
+                ]);
+
+                $rewardGranted = true;
+                $rewardMessage = '🎉 Welkomstbeloning: € '.number_format($cashBonus, 0, ',', '.').' contant, '.$respectBonus.' respect en '.$energyBonus.' energie bijgeschreven!';
+            }
+        }
+
         return response()->json([
             'success' => true,
             'id' => $subscription->id,
-            'message' => 'Meldingen succesvol ingeschakeld!',
+            'message' => $rewardMessage ?: 'Meldingen succesvol ingeschakeld!',
+            'reward_granted' => $rewardGranted,
+            'reward_message' => $rewardMessage,
         ]);
     }
 

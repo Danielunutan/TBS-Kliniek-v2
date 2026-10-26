@@ -83,6 +83,17 @@ class CommunityController extends Controller
                 'description' => 'Dansende bananen, krabbels en pure nostalgie! Word lid van onze officiële Hyve.',
                 'reward' => ['cash' => 25000, 'respect' => 25, 'energy' => 15],
             ],
+            'push' => [
+                'name' => 'Pushnotificaties (PC & Mobiel)',
+                'icon' => 'fa-solid fa-bell',
+                'color' => '#8b5cf6',
+                'badge' => 'Desktop & WebApp',
+                'handle' => 'Directe Kliniek Alerts',
+                'url' => '/instellingen/account',
+                'action_label' => 'Inschakelen & Bonus Claimen',
+                'description' => 'Blijf alert op pc of mobiel bij diefstallen, aanvallen en berichten als je offline bent.',
+                'reward' => ['cash' => 25000, 'respect' => 25, 'energy' => 20],
+            ],
         ];
     }
 
@@ -147,6 +158,18 @@ class CommunityController extends Controller
             }
 
             return redirect()->route('community.index')->with('error', 'Je hebt de beloning voor '.$platformData['name'].' al geclaimd.');
+        }
+
+        if ($platform === 'push' && ! $user->pushSubscriptions()->exists()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Schakel eerst pushnotificaties in op deze pagina of in je accountinstellingen om de € 25.000 bonus te ontvangen.',
+                    'url' => route('settings.account'),
+                ]);
+            }
+
+            return redirect()->route('settings.account')->with('info', 'Schakel pushnotificaties in om direct € 25.000 cash en 25 respect te ontvangen!');
         }
 
         $reward = $platformData['reward'];

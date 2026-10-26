@@ -283,6 +283,10 @@
                     <div>
                         <h3 class="text-sm font-extrabold uppercase tracking-wide text-slate-900">Pushnotificaties (Desktop &amp; WebApp)</h3>
                         <p class="text-xs text-slate-500">Ontvang live meldingen op je scherm, zelfs als de website of app afgesloten is.</p>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 font-extrabold text-[11px] mt-1.5">
+                            <i class="fa-solid fa-gift text-amber-600"></i>
+                            <span>🎁 Bonus: Ontvang direct € 25.000 cash, 25 respect en 20 energie bij activatie!</span>
+                        </div>
                     </div>
                 </div>
 

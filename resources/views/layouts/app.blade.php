@@ -3081,6 +3081,141 @@
         </template>
     </div>
 
+    @auth
+    <!-- TBS PUSH PROMPT INCENTIVE BANNER (PC & Mobiel) -->
+    <div id="tbs-push-incentive-banner"
+         x-data="tbsPushBanner()"
+         x-init="init()"
+         x-show="visible"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+         x-transition:leave-end="opacity-0 translate-y-6 scale-95"
+         style="display: none;"
+         class="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-auto sm:max-w-md z-[999998] p-4 rounded-2xl bg-slate-900/95 dark:bg-[#130b2e]/95 backdrop-blur-md border border-purple-500/40 shadow-2xl text-white select-none">
+        
+        <div class="flex items-start gap-3">
+            <div class="relative w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-300 shrink-0 mt-0.5">
+                <i class="fa-solid fa-bell text-lg animate-bounce"></i>
+                <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+                <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+            </div>
+
+            <div class="flex-1 space-y-1.5 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                    <h4 class="text-xs sm:text-sm font-black text-white tracking-wide">
+                        Mis Geen Aanvallen &amp; Diefstallen!
+                    </h4>
+                    <button type="button" @click="dismiss()" class="text-slate-400 hover:text-white transition p-1 -mr-1 cursor-pointer" title="Later herinneren">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <p class="text-[11px] text-slate-300 leading-relaxed">
+                    Ontvang direct een melding op je pc of telefoon als je offline bestolen of aangevallen wordt.
+                </p>
+
+                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-400/15 border border-amber-400/30 text-amber-300 font-extrabold text-[10px]">
+                    <i class="fa-solid fa-gift"></i>
+                    <span>Ontvang direct € 25.000 contant + 25 respect bij activatie!</span>
+                </div>
+
+                <template x-if="isIosNonStandalone">
+                    <div class="p-2 rounded-lg bg-purple-950/60 border border-purple-800/60 text-[10px] text-purple-200 mt-2 flex items-center gap-2">
+                        <i class="fa-solid fa-mobile-screen-button text-xs text-purple-400 shrink-0"></i>
+                        <span>Op iPhone? Tik op <i class="fa-solid fa-arrow-up-from-bracket"></i> <b>Delen</b> en kies <b>Zet op beginscherm</b> voor meldingen.</span>
+                    </div>
+                </template>
+
+                <div class="pt-2 flex items-center gap-2">
+                    <button type="button" @click="enablePush()" :disabled="loading"
+                            class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50">
+                        <i class="fa-solid" :class="loading ? 'fa-spinner animate-spin' : 'fa-bell'"></i>
+                        <span x-text="loading ? 'Bezig...' : 'Nu Inschakelen &amp; Bonus Pakken'"></span>
+                    </button>
+                    <button type="button" @click="dismiss()"
+                            class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer">
+                        Later
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function tbsPushBanner() {
+            return {
+                visible: false,
+                loading: false,
+                isIosNonStandalone: false,
+
+                async init() {
+                    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                    const isStandalone = ('standalone' in navigator && navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
+                    this.isIosNonStandalone = isIos && !isStandalone;
+
+                    const dismissedUntil = localStorage.getItem('tbs_push_dismissed_until');
+                    if (dismissedUntil && Number(dismissedUntil) > Date.now()) {
+                        return;
+                    }
+
+                    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                        return;
+                    }
+
+                    if (Notification.permission === 'granted' || Notification.permission === 'denied') {
+                        return;
+                    }
+
+                    setTimeout(() => {
+                        this.visible = true;
+                    }, 2500);
+                },
+
+                dismiss() {
+                    this.visible = false;
+                    localStorage.setItem('tbs_push_dismissed_until', String(Date.now() + (48 * 60 * 60 * 1000)));
+                },
+
+                async enablePush() {
+                    if (!window.tbsPush) return;
+                    this.loading = true;
+                    try {
+                        const res = await window.tbsPush.subscribe();
+                        if (res.success) {
+                            this.visible = false;
+                            localStorage.setItem('tbs_push_dismissed_until', String(Date.now() + (365 * 24 * 60 * 60 * 1000)));
+                            
+                            const msg = res.message || 'Pushnotificaties zijn geactiveerd!';
+                            if (typeof window.tbsToast === 'function') {
+                                window.tbsToast(msg, 'success', 6000);
+                            } else {
+                                alert(msg);
+                            }
+                        } else {
+                            if (typeof window.tbsToast === 'function') {
+                                window.tbsToast(res.message || 'Inschakelen mislukt.', 'error');
+                            } else {
+                                alert(res.message || 'Inschakelen mislukt.');
+                            }
+                        }
+                    } catch (err) {
+                        if (typeof window.tbsToast === 'function') {
+                            window.tbsToast(err.message || 'Fout bij inschakelen.', 'error');
+                        } else {
+                            alert(err.message || 'Fout bij inschakelen.');
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            };
+        }
+    </script>
+    @endauth
+
     @if(!request()->header('X-TBS-Background-Refresh') && !request()->header('X-TBS-Action'))
     @php
         $flashService = app(\App\Services\FlashNotificationService::class);

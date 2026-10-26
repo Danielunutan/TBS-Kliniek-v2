@@ -61,7 +61,15 @@ class WebPushNotificationTest extends TestCase
         // 1. Subscribe
         $subResponse = $this->actingAs($user)->postJson('/push/subscribe', $subPayload);
         $subResponse->assertOk()
-            ->assertJson(['success' => true]);
+            ->assertJson([
+                'success' => true,
+                'reward_granted' => true,
+            ]);
+
+        $this->assertDatabaseHas('social_reward_claims', [
+            'user_id' => $user->id,
+            'platform' => 'push',
+        ]);
 
         $this->assertDatabaseHas('push_subscriptions', [
             'user_id' => $user->id,
