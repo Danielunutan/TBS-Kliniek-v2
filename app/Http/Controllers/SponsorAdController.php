@@ -231,11 +231,10 @@ class SponsorAdController extends Controller
             'character_id' => $character->id,
             'smartlink_url' => $smartlinkUrl,
             'popup_url' => $popupUrl,
-            'ad_network' => 'monetag',
-            'monetag_zone' => '12124731',
+            'ad_network' => 'robinads',
             'robin_reward_id' => $robinRewardId,
             'duration' => self::WATCH_DURATION_SECONDS,
-            'message' => 'Monetag sponsoropdracht gestart. Bekijk de advertentie en ontvang je beloning!',
+            'message' => 'Sponsoradvertentie gestart. Bekijk de advertentie en ontvang je beloning!',
         ]);
     }
 

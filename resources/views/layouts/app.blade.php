@@ -119,9 +119,6 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2509357892188070"
     --}}
 
-    <!-- MONETAG VIGNETTE BANNERS (Zones 12124731 & 12114258) -->
-    <script>(function(s){s.dataset.zone='12124731',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    <script>(function(s){s.dataset.zone='12114258',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
