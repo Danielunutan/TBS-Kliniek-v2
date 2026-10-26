@@ -88,6 +88,12 @@
                 </span>
                 @endif
             </a>
+            @if(auth()->user()?->isOwner())
+            <a href="{{ route('admin.mail.index') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.mail.*') ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-solid fa-crown {{ request()->routeIs('admin.mail.*') ? 'text-amber-200' : 'text-amber-500' }}"></i> Mailbox &amp; Brevo E-mail
+            </a>
+            @endif
         </div>
     </div>
 

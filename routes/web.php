@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminMailController;
 use App\Http\Controllers\AdminModerationController;
 use App\Http\Controllers\AdminNewsController;
 use App\Http\Controllers\AdminTicketController;
@@ -81,6 +82,7 @@ use App\Http\Controllers\TunnelController;
 use App\Http\Controllers\VaultController;
 use App\Http\Controllers\VipController;
 use App\Http\Controllers\WarningController;
+use App\Http\Middleware\EnsureUserIsOwner;
 use App\Http\Middleware\EnsureUserIsStaff;
 use Illuminate\Support\Facades\Route;
 
@@ -617,6 +619,13 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/moderatie/meldingen/{report}/oplossen', [AdminModerationController::class, 'resolveReport'])->name('moderation.report.resolve');
         Route::post('/moderatie/meldingen/{report}/verwerpen', [AdminModerationController::class, 'dismissReport'])->name('moderation.report.dismiss');
         Route::delete('/moderatie/meldingen/{report}', [AdminModerationController::class, 'deleteReport'])->name('moderation.report.destroy');
+
+        // Eigenaar Mailbox & Brevo E-mail (Strikt voorbehouden aan Eigenaar)
+        Route::middleware(EnsureUserIsOwner::class)->prefix('mail')->name('mail.')->group(function (): void {
+            Route::get('/', [AdminMailController::class, 'index'])->name('index');
+            Route::post('/versturen', [AdminMailController::class, 'send'])->name('send');
+            Route::get('/logs/{log}', [AdminMailController::class, 'showLog'])->name('logs.show');
+        });
     });
 
     // Officiële Waarschuwingen Bevestigen door Speler
