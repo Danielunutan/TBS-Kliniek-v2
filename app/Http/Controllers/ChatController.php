@@ -528,15 +528,18 @@ class ChatController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        $afterId = (int) $request->query('after_id', 0);
+
         if ($partnerId === 0) {
             // Kliniek Directie Bot messages
-            $messages = DirectMessage::whereNull('sender_id')
-                ->where('recipient_id', $character->id)
-                ->orderBy('id', 'desc')
-                ->take(40)
-                ->get()
-                ->reverse()
-                ->values();
+            $query = DirectMessage::whereNull('sender_id')
+                ->where('recipient_id', $character->id);
+
+            if ($afterId > 0) {
+                $messages = $query->where('id', '>', $afterId)->orderBy('id', 'asc')->get();
+            } else {
+                $messages = $query->orderBy('id', 'desc')->take(40)->get()->reverse()->values();
+            }
 
             // Mark as read
             DirectMessage::whereNull('sender_id')
@@ -559,16 +562,17 @@ class ChatController extends Controller
                 return response()->json(['success' => false, 'message' => 'Patiënt niet gevonden.'], 404);
             }
 
-            $messages = DirectMessage::where(function ($q) use ($character, $partnerId) {
+            $query = DirectMessage::where(function ($q) use ($character, $partnerId) {
                 $q->where('sender_id', $character->id)->where('recipient_id', $partnerId);
             })->orWhere(function ($q) use ($character, $partnerId) {
                 $q->where('sender_id', $partnerId)->where('recipient_id', $character->id);
-            })
-                ->orderBy('id', 'desc')
-                ->take(50)
-                ->get()
-                ->reverse()
-                ->values();
+            });
+
+            if ($afterId > 0) {
+                $messages = $query->where('id', '>', $afterId)->orderBy('id', 'asc')->get();
+            } else {
+                $messages = $query->orderBy('id', 'desc')->take(50)->get()->reverse()->values();
+            }
 
             // Mark incoming as read
             DirectMessage::where('sender_id', $partnerId)
@@ -738,15 +742,13 @@ class ChatController extends Controller
 
         $afterDmId = (int) $request->query('after_dm_id', 0);
 
-        // Fast unread count cache (30 seconds, auto-invalidated on DM changes)
-        $unreadCount = Cache::remember("dm_unread_count_{$character->id}", 30, function () use ($character) {
-            return DirectMessage::where('recipient_id', $character->id)
-                ->where('is_read', false)
-                ->count();
-        });
+        // Direct real-time unread count (indexed, instant)
+        $unreadCount = DirectMessage::where('recipient_id', $character->id)
+            ->where('is_read', false)
+            ->count();
 
-        // If no unread DMs exist, return immediately with zero SQL queries
-        if ($unreadCount === 0) {
+        // If no unread DMs exist and no specific after_dm_id requested, return immediately
+        if ($unreadCount === 0 && $afterDmId === 0) {
             return response()->json([
                 'success' => true,
                 'unread_dms' => 0,
@@ -777,6 +779,9 @@ class ChatController extends Controller
                 'message' => Str::limit($latestDm->message, 80),
                 'time' => $latestDm->created_at->format('H:i'),
                 'is_bot' => $latestDm->sender_id === null,
+                'reply_to_id' => $latestDm->reply_to_id,
+                'reply_to_name' => $latestDm->reply_to_name,
+                'reply_to_snippet' => $latestDm->reply_to_snippet,
             ];
         }
 

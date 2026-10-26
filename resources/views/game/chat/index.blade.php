@@ -492,7 +492,14 @@ function tbsLiveMessenger(config) {
                         }
                     }
                 } else if (this.activeTab === 'direct') {
-                    const res = await fetch(`/chat/prive/${this.activePartnerId}`);
+                    let maxDmId = 0;
+                    if (this.directMessagesList.length > 0) {
+                        for (const m of this.directMessagesList) {
+                            if (m.id && m.id > maxDmId) maxDmId = m.id;
+                        }
+                    }
+                    const url = `/chat/prive/${this.activePartnerId}` + (maxDmId > 0 ? `?after_id=${maxDmId}` : '');
+                    const res = await fetch(url);
                     const data = await res.json();
                     if (data.success && data.messages) {
                         const existingIds = new Set(this.directMessagesList.map(m => m.id));

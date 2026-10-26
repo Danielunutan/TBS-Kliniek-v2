@@ -121,9 +121,17 @@
         left: 12px;
         width: auto;
         max-width: calc(100vw - 24px);
-        height: 540px;
+        height: min(540px, calc(100vh - env(safe-area-inset-bottom, 0px) - 80px));
         max-height: calc(100vh - env(safe-area-inset-bottom, 0px) - 80px);
         z-index: 9999;
+        transition: bottom 0.15s ease-out, height 0.15s ease-out;
+    }
+    @media (max-width: 1023px) {
+        body.tbs-keyboard-open .tbs-mini-chat-popup {
+            bottom: calc(var(--tbs-keyboard-offset, 0px) + 6px) !important;
+            max-height: calc(var(--tbs-viewport-height, 100vh) - 12px) !important;
+            height: calc(var(--tbs-viewport-height, 100vh) - 12px) !important;
+        }
     }
     @media (min-width: 1024px) {
         .tbs-mini-chat-btn {
@@ -141,7 +149,13 @@
             width: 390px;
             max-width: calc(100vw - 30px);
             max-height: calc(100vh - 90px);
+            height: 540px;
         }
+    }
+    #tbsMiniDirectScroll, #tbsMiniChatScroll, #tbsMiniGangScroll, #tbsChatScrollContainer, .tbs-chat-touch-scroll {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
     }
 </style>
 
@@ -548,7 +562,7 @@
                                @input="onChatInput($event, 'global')"
                                @keydown="onChatKeydown($event, 'global')"
                                placeholder="Typ @naam of een bericht... (Enter)" maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                         <span x-show="inputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="inputMessage.length >= 240 ? 'text-rose-500 font-black' : (inputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
@@ -808,7 +822,7 @@
                                @input="onChatInput($event, 'gang')"
                                @keydown="onChatKeydown($event, 'gang')"
                                placeholder="Typ @naam of een bendebericht... (Enter)" maxlength="250"
-                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                               class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 pr-12 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                         <span x-show="gangInputMessage.length > 150" 
                               class="absolute right-2 text-[9px] font-mono pointer-events-none"
                               :class="gangInputMessage.length >= 240 ? 'text-rose-500 font-black' : (gangInputMessage.length >= 200 ? 'text-amber-500 font-bold' : 'text-slate-400')"
@@ -843,7 +857,7 @@
                                    }
                                "
                                placeholder="🔍 Zoek patiënt om te chatten..." 
-                               class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                               class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-[16px] sm:text-xs font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                         
                         <template x-if="searchResults.length > 0">
                             <div class="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-[#160b33] border border-slate-200 dark:border-purple-800/60 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto p-1 divide-y divide-slate-100 dark:divide-purple-900/30">
@@ -919,23 +933,30 @@
             <template x-if="activeDirectPartner">
                 <div class="flex-1 flex flex-col min-h-0">
                     <!-- Partner Sub-Header -->
-                    <div class="p-2 bg-white dark:bg-[#150a30] border-b border-slate-200 dark:border-purple-900/40 flex items-center justify-between shrink-0 shadow-2xs">
+                    <div class="p-2 sm:p-2.5 bg-white dark:bg-[#150a30] border-b border-slate-200 dark:border-purple-900/40 flex items-center justify-between shrink-0 shadow-2xs">
                         <div class="flex items-center gap-2 min-w-0">
-                            <button type="button" @click="closeDirectChat()" class="p-1 text-slate-400 hover:text-purple-600 transition cursor-pointer text-xs" title="Terug naar overzicht">
-                                <i class="fa-solid fa-arrow-left"></i>
+                            <button type="button" @click="closeDirectChat()" class="p-1.5 -ml-1 text-slate-500 hover:text-purple-600 dark:text-purple-300 transition cursor-pointer text-xs font-bold rounded-lg hover:bg-slate-100 dark:hover:bg-purple-950/60 flex items-center gap-1 touch-manipulation" title="Terug naar overzicht">
+                                <i class="fa-solid fa-arrow-left text-xs"></i>
+                                <span class="text-[11px] font-bold">Terug</span>
                             </button>
-                            <img :src="activeDirectPartner.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-6 h-6 rounded-md object-cover border border-slate-200 dark:border-purple-800" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
-                            <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="activeDirectPartner.name"></span>
+                            <div class="relative shrink-0">
+                                <img :src="activeDirectPartner.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                <span x-show="activeDirectPartner.is_online" class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
+                            </div>
+                            <div class="min-w-0">
+                                <span class="text-xs font-black text-slate-900 dark:text-white truncate block leading-tight" x-text="activeDirectPartner.name"></span>
+                                <span class="text-[9px] text-slate-400 truncate block leading-tight" x-text="activeDirectPartner.status_label || (activeDirectPartner.is_online ? 'Nu online' : 'Offline')"></span>
+                            </div>
                         </div>
                         <template x-if="!activeDirectPartner.is_bot && (activeDirectPartner.partner_id || activeDirectPartner.id) > 0">
-                            <a :href="'/speler/' + encodeURIComponent(activeDirectPartner.name)" class="px-2 py-0.5 rounded bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-purple-300 hover:text-purple-500 text-[10px] font-bold transition">
+                            <a :href="'/speler/' + encodeURIComponent(activeDirectPartner.name)" class="px-2.5 py-1 rounded bg-slate-100 dark:bg-purple-950/60 text-slate-600 dark:text-purple-300 hover:text-purple-500 text-[10px] font-bold transition shrink-0">
                                 Dossier &raquo;
                             </a>
                         </template>
                     </div>
 
                     <!-- Direct Messages Stream -->
-                    <div x-ref="miniDirectScroll" id="tbsMiniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs max-w-full">
+                    <div x-ref="miniDirectScroll" id="tbsMiniDirectScroll" class="flex-1 min-h-0 p-3 overflow-y-auto overflow-x-hidden space-y-2.5 text-xs max-w-full tbs-chat-touch-scroll">
                         <template x-for="dm in activeDirectMessages" :key="dm.id">
                             <div class="space-y-1">
                                 <!-- Kluiscode Card -->
@@ -1006,7 +1027,7 @@
                                                      x-html="formatMessage(dm.message, dm.is_me)"></div>
 
                                                 <!-- Action Buttons: Heart, Reageer, Delete -->
-                                                <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition shrink-0">
+                                                <div class="flex items-center gap-0.5 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition shrink-0">
                                                     <!-- Paars Hartje Reactie 💜 -->
                                                     <button type="button" @click="toggleDirectHeart(dm)" 
                                                             :title="dm.has_hearted ? 'Paars hartje intrekken' : 'Paars hartje geven (💜)'"
@@ -1172,7 +1193,7 @@
                                            @input="onChatInput($event, 'direct')"
                                            @keydown="onChatKeydown($event, 'direct')"
                                            placeholder="Typ @naam of een privébericht... (Enter)" maxlength="500"
-                                           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 pr-14 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-1.5 pr-14 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                                     <span x-show="directInput.length > 350" x-cloak
                                           class="absolute right-2 text-[10px] font-mono pointer-events-none"
                                           :class="directInput.length >= 500 ? 'text-red-500 font-bold' : 'text-slate-400 dark:text-purple-300'"
@@ -1229,7 +1250,7 @@
             <!-- Help input -->
             <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-1.5 shrink-0">
                 <input type="text" x-model="helpInput" placeholder="Stel een vraag aan de kennisbank..." 
-                       class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
+                       class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                 <button type="submit" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                     <i class="fa-solid fa-paper-plane"></i>
                 </button>
@@ -1519,6 +1540,28 @@
                 window.openTBSDirectChat = (id, name, avatar) => {
                     this.openDirectChatWithPlayer(id, name || 'Inmate', avatar || '/characters/avatar-default.png');
                 };
+
+                // Mobile Visual Viewport & Virtual Keyboard Handler
+                if (window.visualViewport) {
+                    const handleViewport = () => {
+                        const vv = window.visualViewport;
+                        const kh = Math.max(0, window.innerHeight - vv.height - (vv.offsetTop || 0));
+                        document.documentElement.style.setProperty('--tbs-keyboard-offset', `${kh}px`);
+                        document.documentElement.style.setProperty('--tbs-viewport-height', `${vv.height}px`);
+                        if (kh > 80) {
+                            document.body.classList.add('tbs-keyboard-open');
+                            if (this.isOpen) {
+                                if (this.activeTab === 'direct') this.scrollDirectBottom();
+                                else if (this.activeTab === 'gang') this.scrollGangBottom();
+                                else if (this.activeTab === 'global') this.scrollChatBottom();
+                            }
+                        } else {
+                            document.body.classList.remove('tbs-keyboard-open');
+                        }
+                    };
+                    window.visualViewport.addEventListener('resize', handleViewport);
+                    window.visualViewport.addEventListener('scroll', handleViewport);
+                }
             },
 
             toggleSound() {
@@ -2175,6 +2218,12 @@
                             this.activeDirectPartner = data.partner;
                         }
                         this.activeDirectMessages = data.messages || [];
+                        if (data.messages && data.messages.length > 0) {
+                            const highestId = Math.max(...data.messages.map(m => m.id || 0));
+                            if (highestId > this.lastDirectDmId) {
+                                this.lastDirectDmId = highestId;
+                            }
+                        }
                         this.scrollDirectBottom();
                         setTimeout(() => this.scrollDirectBottom(), 100);
                         setTimeout(() => this.scrollDirectBottom(), 300);
@@ -2194,6 +2243,47 @@
                 this.activeDirectMessages = [];
                 this.cancelDirectReply();
                 this.loadConversations();
+            },
+
+            async pollActiveDirectMessages() {
+                if (!this.activeDirectPartner) return;
+                const pId = this.activeDirectPartner.partner_id !== undefined ? this.activeDirectPartner.partner_id : this.activeDirectPartner.id;
+                if (pId === undefined || pId === null) return;
+
+                let maxDmId = 0;
+                if (this.activeDirectMessages && this.activeDirectMessages.length > 0) {
+                    for (const m of this.activeDirectMessages) {
+                        if (m.id && m.id > maxDmId) maxDmId = m.id;
+                    }
+                }
+
+                try {
+                    const url = `/chat/prive/${pId}` + (maxDmId > 0 ? `?after_id=${maxDmId}` : '');
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const data = await res.json();
+                    if (data && data.success && Array.isArray(data.messages) && data.messages.length > 0) {
+                        let hadNew = false;
+                        let fromOther = false;
+                        for (const msg of data.messages) {
+                            if (!this.activeDirectMessages.some(m => m.id === msg.id)) {
+                                this.activeDirectMessages.push(msg);
+                                hadNew = true;
+                                if (!msg.is_me) fromOther = true;
+                                if (msg.id > this.lastDirectDmId) {
+                                    this.lastDirectDmId = msg.id;
+                                }
+                            }
+                        }
+                        if (hadNew) {
+                            if (fromOther) {
+                                this.playChime();
+                            }
+                            this.scrollDirectBottom();
+                            const conv = this.directConversations.find(c => c.partner_id === pId);
+                            if (conv) conv.unread_count = 0;
+                        }
+                    }
+                } catch(e) {}
             },
 
             async sendDirectMessage() {
@@ -2355,13 +2445,15 @@
                             .catch(() => {});
                     }
 
-                    // 3. Public Messages & Gang Messages:
+                    // 3. Public Messages, Gang Messages & Active Direct Messages:
                     // ONLY poll if chat modal is explicitly OPEN! (Saves massive server CPU when players are just browsing)
                     if (this.isOpen) {
                         if (this.activeTab === 'global') {
                             this.loadPublicMessages();
                         } else if (this.activeTab === 'gang' && this.hasGang && this.gangHasChat) {
                             this.loadGangMessages();
+                        } else if (this.activeTab === 'direct' && this.activeDirectPartner) {
+                            this.pollActiveDirectMessages();
                         }
                     }
                 }, 4000);

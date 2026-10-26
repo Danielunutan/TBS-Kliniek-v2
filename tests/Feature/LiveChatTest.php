@@ -625,4 +625,35 @@ class LiveChatTest extends TestCase
         // Should not include self
         $this->assertNotContains('MePlayer', $playerNames);
     }
+
+    public function test_player_can_poll_direct_messages_with_after_id(): void
+    {
+        [$user1, $char1] = $this->createInmate(['name' => 'PlayerOne']);
+        [$user2, $char2] = $this->createInmate(['name' => 'PlayerTwo']);
+
+        $dm1 = DirectMessage::create([
+            'sender_id' => $char2->id,
+            'recipient_id' => $char1->id,
+            'message' => 'Eerste bericht',
+            'is_read' => false,
+        ]);
+
+        $dm2 = DirectMessage::create([
+            'sender_id' => $char2->id,
+            'recipient_id' => $char1->id,
+            'message' => 'Tweede bericht',
+            'is_read' => false,
+        ]);
+
+        // Poll without after_id returns both
+        $responseAll = $this->actingAs($user1)->getJson("/chat/prive/{$char2->id}");
+        $responseAll->assertOk();
+        $this->assertCount(2, $responseAll->json('messages'));
+
+        // Poll with after_id = dm1->id returns only dm2
+        $responseDiff = $this->actingAs($user1)->getJson("/chat/prive/{$char2->id}?after_id={$dm1->id}");
+        $responseDiff->assertOk();
+        $this->assertCount(1, $responseDiff->json('messages'));
+        $this->assertEquals($dm2->id, $responseDiff->json('messages.0.id'));
+    }
 }
