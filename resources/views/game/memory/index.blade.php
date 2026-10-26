@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Memory Minigame (Rainbow) - TBS Kliniek')
+@section('title', 'Memory - TBS Kliniek')
 
 @section('content')
 <div class="space-y-6 max-w-5xl mx-auto pb-12"
@@ -24,11 +24,11 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2 flex-wrap mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/80 px-2.5 py-0.5 rounded-full border border-pink-200 dark:border-pink-800 flex items-center gap-1">
-                            <i class="fa-solid fa-bolt text-pink-500"></i> Minigame
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                            <i class="fa-solid fa-bolt text-purple-500"></i> Minigame
                         </span>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
-                            Community Idee: Rainbow
+                        <span class="text-[10px] font-black uppercase tracking-wider text-pink-700 dark:text-pink-300 bg-pink-50 dark:bg-pink-950/80 px-2.5 py-0.5 rounded-full border border-pink-200 dark:border-pink-800">
+                            Psychose Geheugentest
                         </span>
                         <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/80 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800">
                             Extreem Moeilijk
@@ -155,74 +155,76 @@
             </div>
         </div>
 
-        <!-- 4. MEMORY CARDS 4x4 GRID (MOBILE & DESKTOP PERFECTLY BALANCED) -->
-        <div class="grid grid-cols-4 gap-2 sm:gap-3.5 max-w-xl mx-auto select-none" style="perspective: 1000px;">
-            <template x-for="(card, index) in cards" :key="card.card_uid">
-                <div class="relative w-full aspect-[4/5] sm:aspect-square cursor-pointer transition-transform duration-200 active:scale-95"
-                     @click="flipCard(index)">
-                    
-                    <!-- 3D FLIP CONTAINER -->
-                    <div class="w-full h-full duration-500 transition-transform rounded-2xl shadow-sm"
-                         :style="card.flipped || card.matched ? 'transform: rotateY(180deg); transform-style: preserve-3d;' : 'transform-style: preserve-3d;'"
-                         :class="card.shake ? 'animate-shake' : ''">
+        <!-- 4. MEMORY CARDS 4x4 GRID (WEBSITE THEMED & BULLETPROOF SIZING) -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3 sm:p-6 shadow-xs">
+            <div class="grid grid-cols-4 gap-2.5 sm:gap-4 max-w-lg sm:max-w-xl mx-auto select-none" style="perspective: 1000px;">
+                <template x-for="(card, index) in cards" :key="card.card_uid">
+                    <div class="relative w-full cursor-pointer transition-transform duration-200 hover:scale-[1.03] active:scale-95"
+                         style="aspect-ratio: 1 / 1; min-height: 80px;"
+                         @click="flipCard(index)">
+                        
+                        <!-- 3D FLIP CONTAINER -->
+                        <div class="w-full h-full duration-500 transition-transform rounded-2xl shadow-xs"
+                             :style="card.flipped || card.matched ? 'transform: rotateY(180deg); transform-style: preserve-3d;' : 'transform-style: preserve-3d;'"
+                             :class="card.shake ? 'animate-shake' : ''">
 
-                        <!-- CARD BACK (TBS KLINIEK BRANDED SHIELD) -->
-                        <div class="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 border-2 border-purple-500/40 p-2 sm:p-3 flex flex-col items-center justify-between text-center overflow-hidden shadow-md"
-                             style="backface-visibility: hidden; -webkit-backface-visibility: hidden;">
-                            <div class="w-full flex items-center justify-between opacity-30 text-[9px] text-purple-300 font-mono">
-                                <i class="fa-solid fa-fingerprint"></i>
-                                <span>#TBS</span>
-                            </div>
-                            <div class="flex flex-col items-center justify-center my-auto">
-                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-900/60 border border-purple-500/50 text-purple-300 flex items-center justify-center text-lg sm:text-xl shadow-inner group-hover:scale-105 transition-transform">
-                                    <i class="fa-solid fa-shield-halved"></i>
+                            <!-- CARD BACK (TBS KLINIEK BRANDED CARD - MATCHES SITE STYLING) -->
+                            <div class="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-slate-50 via-white to-purple-50/70 dark:from-slate-900 dark:via-purple-950/50 dark:to-slate-900 border-2 border-slate-200/90 dark:border-purple-500/30 p-2 sm:p-3 flex flex-col items-center justify-between text-center overflow-hidden shadow-xs hover:border-purple-400 dark:hover:border-purple-400 transition-colors"
+                                 style="backface-visibility: hidden; -webkit-backface-visibility: hidden;">
+                                <div class="w-full flex items-center justify-between opacity-40 text-[8px] sm:text-[9px] text-slate-500 dark:text-purple-300 font-mono">
+                                    <i class="fa-solid fa-fingerprint"></i>
+                                    <span>#TBS</span>
                                 </div>
-                                <span class="text-[9px] sm:text-[10px] font-black text-purple-200/80 uppercase tracking-widest mt-1.5">MEMORY</span>
-                            </div>
-                            <div class="w-full text-center opacity-40 text-[8px] text-purple-400 font-bold uppercase tracking-wider">
-                                Kliniek
-                            </div>
-                        </div>
-
-                        <!-- CARD FRONT (TBS ASSET REVEALED) -->
-                        <div class="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br border-2 p-2 sm:p-2.5 flex flex-col items-center justify-between text-center overflow-hidden shadow-lg transition-all"
-                             :class="[
-                                 card.matched ? 'border-emerald-400 ring-2 ring-emerald-400/50 shadow-emerald-500/20' : card.border_color,
-                                 'from-slate-900 via-slate-900 to-slate-950'
-                             ]"
-                             style="backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg);">
-                            
-                            <!-- Card Category Pill -->
-                            <div class="w-full flex items-center justify-between text-[8px] sm:text-[9px] font-black uppercase tracking-wider">
-                                <span class="px-1.5 py-0.5 rounded-md"
-                                      :class="card.matched ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-300'"
-                                      x-text="card.category"></span>
-                                <i x-show="card.matched" class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>
-                            </div>
-
-                            <!-- Big Center Asset Icon in Glowing Badge -->
-                            <div class="my-auto flex flex-col items-center justify-center">
-                                <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl shadow-md transition-transform"
-                                     :class="[
-                                         'bg-gradient-to-br ' + card.bg_gradient,
-                                         card.matched ? 'scale-105 ring-2 ring-emerald-300' : ''
-                                     ]"
-                                     :style="'box-shadow: 0 0 15px ' + card.glow_color">
-                                    <i class="fa-solid text-white" :class="card.icon"></i>
+                                <div class="flex flex-col items-center justify-center my-auto">
+                                    <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-purple-100 dark:bg-purple-900/60 border border-purple-200 dark:border-purple-500/50 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm sm:text-lg shadow-2xs group-hover:scale-105 transition-transform">
+                                        <i class="fa-solid fa-brain"></i>
+                                    </div>
+                                    <span class="text-[8px] sm:text-[10px] font-black text-purple-700 dark:text-purple-300 uppercase tracking-widest mt-1">MEMORY</span>
+                                </div>
+                                <div class="w-full text-center opacity-50 text-[8px] text-slate-400 dark:text-purple-400 font-bold uppercase tracking-wider">
+                                    Kliniek
                                 </div>
                             </div>
 
-                            <!-- Card Title -->
-                            <div class="w-full text-center">
-                                <span class="text-[9px] sm:text-[11px] font-black text-white leading-tight block truncate"
-                                      x-text="card.name"></span>
+                            <!-- CARD FRONT (TBS ASSET REVEALED - MATCHES SITE STYLING) -->
+                            <div class="absolute inset-0 w-full h-full rounded-2xl bg-white dark:bg-slate-900 border-2 p-1.5 sm:p-2.5 flex flex-col items-center justify-between text-center overflow-hidden shadow-md transition-all"
+                                 :class="[
+                                     card.matched ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-emerald-500/10' : (card.border_color + ' bg-white dark:bg-slate-900')
+                                 ]"
+                                 style="backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg);">
+                                
+                                <!-- Card Category Pill -->
+                                <div class="w-full flex items-center justify-between text-[7px] sm:text-[9px] font-black uppercase tracking-wider">
+                                    <span class="px-1.5 py-0.5 rounded-md"
+                                          :class="card.matched ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+                                          x-text="card.category"></span>
+                                    <i x-show="card.matched" class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
+                                </div>
+
+                                <!-- Center Asset Icon in Glowing Badge -->
+                                <div class="my-auto flex flex-col items-center justify-center">
+                                    <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-base sm:text-xl shadow-xs transition-transform"
+                                         :class="[
+                                             'bg-gradient-to-br ' + card.bg_gradient,
+                                             card.matched ? 'scale-105 ring-2 ring-emerald-300' : ''
+                                         ]"
+                                         :style="'box-shadow: 0 0 12px ' + card.glow_color">
+                                        <i class="fa-solid text-white" :class="card.icon"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Card Title -->
+                                <div class="w-full text-center px-0.5">
+                                    <span class="text-[8px] sm:text-[11px] font-black text-slate-800 dark:text-slate-100 leading-tight block truncate"
+                                          x-text="card.name"></span>
+                                </div>
+
                             </div>
 
                         </div>
-
                     </div>
-                </div>
-            </template>
+                </template>
+            </div>
         </div>
 
     </div>
@@ -314,18 +316,18 @@
         </div>
     </template>
 
-    <!-- 7. COMMUNITY CREDITS & RULES FOOTER -->
-    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+    <!-- 7. SPELREGELS & INFO FOOTER -->
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
         <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm font-black shrink-0">
-                <i class="fa-solid fa-lightbulb"></i>
+                <i class="fa-solid fa-brain"></i>
             </div>
             <div>
-                <p class="font-bold text-slate-700 dark:text-slate-200">
-                    Ontworpen op suggestie van patiënt <strong>Rainbow</strong> (Support Ticket TBS-KYS-735).
+                <p class="font-bold text-slate-800 dark:text-slate-200">
+                    TBS Kliniek Geheugentraining
                 </p>
-                <p class="text-[11px] text-slate-400">
-                    Regels: 5 seconden inkijkfase &bull; 60s totaaltijd &bull; 3 levens (max 3 missers) &bull; 8 paren te vinden.
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                    Spelregels: 5 seconden inkijkfase &bull; 60 seconden speeltijd &bull; 3 levens (max 3 missers) &bull; Vind alle 8 paren.
                 </p>
             </div>
         </div>

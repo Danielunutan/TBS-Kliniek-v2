@@ -203,7 +203,7 @@ document.addEventListener('alpine:init', () => {
 
             { name: '4 op \'n Rij (OOHPA Arjan)', icon: 'fa-solid fa-chess-board', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-950/60', route: '{{ route("connect_four.index") }}', category: 'minigames', desc: 'Klassiek bordspel tegen andere gevangenen', keywords: 'vier op een rij arjan bordspel multiplayer' },
             { name: 'True Crime (Caroline)', icon: 'fa-solid fa-fingerprint', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950/60', route: '{{ route("true_crime.index") }}', category: 'minigames', desc: 'Los meer dan 500 waargebeurde moordzaken op', keywords: 'caroline true crime quiz moordzaken detective' },
-            { name: 'Memory Psychose (Rainbow)', icon: 'fa-solid fa-brain', color: 'text-pink-600', bg: 'bg-pink-50 dark:bg-pink-950/60', route: '{{ route("memory.index") }}', category: 'minigames', desc: 'Extreem geheugenspel: onthoud en match 8 paren binnen 60s', keywords: 'memory rainbow geheugen kaarten paren onthouden minigame' },
+            { name: 'Memory (Psychose Test)', icon: 'fa-solid fa-brain', color: 'text-pink-600', bg: 'bg-pink-50 dark:bg-pink-950/60', route: '{{ route("memory.index") }}', category: 'minigames', desc: 'Extreem geheugenspel: onthoud en match 8 paren binnen 60s', keywords: 'memory geheugen kaarten paren onthouden minigame psychose' },
 
             // Geweld & Strijd
             { name: 'Respectlijst (PVP Aanvallen)', icon: 'fa-solid fa-skull', color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-950/60', route: '{{ route("fight.index") }}', category: 'geweld', desc: 'Val medepatiënten aan voor respect en geld', keywords: 'vechten pvp aanvallen slaan respectlijst' },

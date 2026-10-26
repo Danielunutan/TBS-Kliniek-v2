@@ -1221,14 +1221,11 @@
                             <i class="fa-solid fa-fingerprint w-4 text-center text-purple-500 dark:text-purple-400"></i>
                             <span>True Crime (Caroline)</span>
                         </div>
-                        <span class="bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
-                            500 Zaken
-                        </span>
                     </a>
                     <a href="{{ route('memory.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('memory.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-brain w-4 text-center text-pink-500 dark:text-pink-400"></i>
-                            <span>Memory (Rainbow)</span>
+                            <span>Memory</span>
                         </div>
                         <span class="bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wide shadow-xs">
                             Nieuw
