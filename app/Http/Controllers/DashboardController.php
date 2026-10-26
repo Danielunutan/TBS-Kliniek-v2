@@ -572,6 +572,7 @@ class DashboardController extends Controller
 
         $charItem = CharacterItem::where('character_id', $character->id)
             ->where('item_id', $sigItem->id)
+            ->where('quantity', '>', 0)
             ->first();
 
         $currentStock = $charItem ? (int) $charItem->quantity : 0;
@@ -597,6 +598,9 @@ class DashboardController extends Controller
 
         // Deduct cigarettes & reward cash, xp, respect
         $charItem->decrement('quantity', $toSell);
+        if ($charItem->fresh()?->quantity <= 0) {
+            $charItem->delete();
+        }
         $this->economyService->addCash($character, $totalCash);
         $this->levelService->addXp($character, $xpGain);
         $character->addRespect($respectGain);

@@ -147,6 +147,7 @@ class SmuggleController extends Controller
 
         $charItem = CharacterItem::where('character_id', $character->id)
             ->where('item_id', $item->id)
+            ->where('quantity', '>', 0)
             ->first();
 
         if (! $charItem || $charItem->quantity < $order['amount']) {
@@ -154,6 +155,9 @@ class SmuggleController extends Controller
         }
 
         $charItem->decrement('quantity', $order['amount']);
+        if ($charItem->fresh()?->quantity <= 0) {
+            $charItem->delete();
+        }
         $this->economy->addCash($character, $order['reward_cash']);
         $character->addRespect($order['reward_respect']);
         $character->save();
@@ -309,6 +313,7 @@ class SmuggleController extends Controller
 
         return (int) CharacterItem::where('character_id', $characterId)
             ->where('item_id', $item->id)
+            ->where('quantity', '>', 0)
             ->value('quantity') ?? 0;
     }
 }

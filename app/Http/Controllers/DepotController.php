@@ -43,6 +43,7 @@ class DepotController extends Controller
 
         // 2. Persoonlijke Opbergplaats (Reguliere inventaris)
         $inventoryItems = CharacterItem::where('character_id', $character->id)
+            ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'not like', 'halloween_%')
                     ->whereNotIn('category', ['special', 'collectible']);
@@ -52,6 +53,7 @@ class DepotController extends Controller
 
         // 3. Persoonlijk Varia (Event Opslag & Zeldzame verzamelobjecten)
         $eventItems = CharacterItem::where('character_id', $character->id)
+            ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'like', 'halloween_%')
                     ->orWhereIn('category', ['special', 'collectible']);

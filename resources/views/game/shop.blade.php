@@ -939,7 +939,7 @@
 
                     @php
                         $foodAndRecovery = $inventory->filter(function($inv) {
-                            return ($inv->item->category !== 'equipment') && (
+                            return ($inv->quantity > 0) && ($inv->item && $inv->item->category !== 'equipment') && (
                                 $inv->item->energy_restore > 0 || 
                                 $inv->item->health_restore > 0 || 
                                 in_array($inv->item->slug, ['sigaretten', 'ritalin', 'telefoon', 'adrenaline-injectie', 'ehbo-noodverbanddoos'])
@@ -1045,7 +1045,7 @@
 
                 <!-- Items Grid or Empty State -->
                 <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
-                    @if($inventory->isEmpty())
+                    @if($inventory->where('quantity', '>', 0)->isEmpty())
                         <div class="text-center py-12 space-y-3">
                             <div class="w-16 h-16 mx-auto rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl border border-purple-100 shadow-xs">
                                 <i class="fa-solid fa-box-open"></i>
@@ -1061,7 +1061,7 @@
                         </div>
                     @else
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($inventory as $inv)
+                            @foreach($inventory->where('quantity', '>', 0) as $inv)
                             @php
                                 $invItemData = $getItemData($inv->item);
                             @endphp

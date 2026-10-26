@@ -50,6 +50,7 @@ class InfirmaryController extends Controller
         // Player's currently owned medication items
         $ownedPills = CharacterItem::with('item')
             ->where('character_id', $character->id)
+            ->where('quantity', '>', 0)
             ->whereHas('item', fn ($q) => $q->whereIn('slug', ['strip-oxazepam', 'strip-ritalin', 'haloperidol-forte']))
             ->get();
 

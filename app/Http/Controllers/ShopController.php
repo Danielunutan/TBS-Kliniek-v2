@@ -107,7 +107,10 @@ class ShopController extends Controller
         $this->energyService->refresh($character);
 
         $items = Item::where('is_buyable', true)->get();
-        $inventory = CharacterItem::where('character_id', $character->id)->with('item')->get();
+        $inventory = CharacterItem::where('character_id', $character->id)
+            ->where('quantity', '>', 0)
+            ->with('item')
+            ->get();
 
         $bundles = self::BUNDLES;
         $otherPatients = Character::where('id', '!=', $character->id)
@@ -322,7 +325,7 @@ class ShopController extends Controller
                 'bank_formatted' => number_format($character->bank, 0, ',', '.'),
                 'total' => (int) ($character->cash + $character->bank),
                 'total_formatted' => number_format($character->cash + $character->bank, 0, ',', '.'),
-                'total_inventory_count' => (int) CharacterItem::where('character_id', $character->id)->sum('quantity'),
+                'total_inventory_count' => (int) CharacterItem::where('character_id', $character->id)->where('quantity', '>', 0)->sum('quantity'),
                 'masks' => (int) ($character->masks ?? 0),
                 'storage_used' => (int) $character->getStorageUsed(),
                 'storage_capacity' => (int) $character->getStorageCapacity(),

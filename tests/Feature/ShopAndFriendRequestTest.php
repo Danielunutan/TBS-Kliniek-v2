@@ -8,6 +8,7 @@ use App\Models\Friend;
 use App\Models\GameMessage;
 use App\Models\Item;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -245,5 +246,34 @@ class ShopAndFriendRequestTest extends TestCase
         ]);
 
         $this->assertEquals(5, CharacterItem::where('character_id', $char->id)->where('item_id', $item->id)->value('quantity'));
+    }
+
+    public function test_zero_quantity_items_are_not_shown_in_inventory(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+
+        $phoneItem = Item::firstOrCreate(['slug' => 'telefoon'], [
+            'name' => 'Gesmokkelde Telefoon',
+            'cost' => 1000,
+            'is_buyable' => false,
+            'category' => 'smokkel',
+        ]);
+
+        // Create zero-quantity item
+        CharacterItem::updateOrCreate(
+            ['character_id' => $char->id, 'item_id' => $phoneItem->id],
+            ['quantity' => 0]
+        );
+
+        $this->actingAs($user);
+
+        $response = $this->get(route('shop.index'));
+        $response->assertOk();
+
+        // The inventory passed to the view should not contain the 0-quantity phone
+        /** @var Collection $inventory */
+        $inventory = $response->viewData('inventory');
+        $this->assertFalse($inventory->contains('item_id', $phoneItem->id));
     }
 }

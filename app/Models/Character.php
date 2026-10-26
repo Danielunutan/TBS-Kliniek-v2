@@ -990,7 +990,7 @@ class Character extends Model
      */
     public function items(): HasMany
     {
-        return $this->hasMany(CharacterItem::class);
+        return $this->hasMany(CharacterItem::class)->where('quantity', '>', 0);
     }
 
     /**
@@ -2157,7 +2157,7 @@ class Character extends Model
      */
     public function characterItems(): HasMany
     {
-        return $this->hasMany(CharacterItem::class);
+        return $this->hasMany(CharacterItem::class)->where('quantity', '>', 0);
     }
 
     /**
@@ -2272,6 +2272,7 @@ class Character extends Model
     public function getStorageUsed(): int
     {
         $itemsTotal = (int) CharacterItem::where('character_id', $this->id)
+            ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'not like', 'halloween_%')
                     ->whereNotIn('category', ['special', 'collectible']);
