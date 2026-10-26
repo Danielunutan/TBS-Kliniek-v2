@@ -587,24 +587,61 @@
         </div>
 
         @if(isset($transactions) && $transactions->count() > 0)
-            <div class="overflow-x-auto">
+            {{-- Mobile Transaction Feed (< sm) --}}
+            <div class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+                @foreach($transactions as $tx)
+                    <div class="py-3 flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs mt-0.5
+                                @if(in_array($tx->type, ['deposit', 'allowance', 'loan_received'])) bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400
+                                @else bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 @endif">
+                                <i class="fa-solid {{ in_array($tx->type, ['deposit', 'allowance', 'loan_received']) ? 'fa-arrow-down' : 'fa-arrow-up' }}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wide
+                                        @if(in_array($tx->type, ['deposit', 'allowance', 'loan_received'])) bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300
+                                        @else bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 @endif">
+                                        {{ $tx->type }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 font-mono">{{ $tx->created_at->format('d-m-Y H:i') }}</span>
+                                </div>
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 leading-snug">
+                                    {{ $tx->description }}
+                                </p>
+                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                    Saldo na: €{{ number_format($tx->balance_after, 0, ',', '.') }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="font-mono font-black text-xs sm:text-sm block {{ $tx->amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                {{ $tx->amount >= 0 ? '+' : '' }}€{{ number_format($tx->amount, 0, ',', '.') }}
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Desktop Transaction Table (>= sm) --}}
+            <div class="hidden sm:block overflow-x-auto">
                 <table class="w-full text-left text-xs">
                     <thead>
                         <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase text-[10px] font-black tracking-wider">
-                            <th class="py-3 px-3">Datum & Tijd</th>
-                            <th class="py-3 px-3">Type</th>
+                            <th class="py-3 px-3 whitespace-nowrap">Datum & Tijd</th>
+                            <th class="py-3 px-3 whitespace-nowrap">Type</th>
                             <th class="py-3 px-3">Omschrijving</th>
-                            <th class="py-3 px-3 text-right">Bedrag</th>
-                            <th class="py-3 px-3 text-right">Saldo Na</th>
+                            <th class="py-3 px-3 text-right whitespace-nowrap">Bedrag</th>
+                            <th class="py-3 px-3 text-right whitespace-nowrap">Saldo Na</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         @foreach($transactions as $tx)
                             <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                                <td class="py-3 px-3 font-mono text-slate-500 text-[11px]">
+                                <td class="py-3 px-3 font-mono text-slate-500 text-[11px] whitespace-nowrap">
                                     {{ $tx->created_at->format('d-m-Y H:i') }}
                                 </td>
-                                <td class="py-3 px-3">
+                                <td class="py-3 px-3 whitespace-nowrap">
                                     <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide
                                         @if(in_array($tx->type, ['deposit', 'allowance', 'loan_received'])) bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
                                         @else bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 @endif">
@@ -614,10 +651,10 @@
                                 <td class="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
                                     {{ $tx->description }}
                                 </td>
-                                <td class="py-3 px-3 text-right font-mono font-black {{ $tx->amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                <td class="py-3 px-3 text-right font-mono font-black whitespace-nowrap {{ $tx->amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
                                     {{ $tx->amount >= 0 ? '+' : '' }}€{{ number_format($tx->amount, 0, ',', '.') }}
                                 </td>
-                                <td class="py-3 px-3 text-right font-mono text-slate-500 font-bold">
+                                <td class="py-3 px-3 text-right font-mono text-slate-500 font-bold whitespace-nowrap">
                                     €{{ number_format($tx->balance_after, 0, ',', '.') }}
                                 </td>
                             </tr>
