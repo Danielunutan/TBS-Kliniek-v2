@@ -14,12 +14,12 @@
 
     <!-- 1. HEADER & INTRO -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-xs relative overflow-hidden">
-        <div class="absolute -right-12 -top-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -right-12 -top-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-pink-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
             <div class="flex items-start gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-600 to-purple-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-pink-500/25 shrink-0">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-purple-500/25 shrink-0">
                     <i class="fa-solid fa-brain"></i>
                 </div>
                 <div>
@@ -38,22 +38,28 @@
                         TBS Kliniek Memory: Psychose Test
                     </h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl leading-relaxed">
-                        Onthoud in <strong>5 seconden</strong> alle verborgen smokkelwaar. Daarna draaien de kaartjes om en moet je alle 8 paren matchen binnen <strong>60 seconden</strong>.
-                        Pas op: je hebt maar <strong>3 levens</strong> (foutjes)!
+                        Onthoud in <strong>5 seconden inkijkfase</strong> alle verborgen smokkelwaar. Daarna draaien de kaartjes om en moet je alle 8 paren matchen binnen <strong>60 seconden</strong>.
+                        Pas op: je hebt maximaal <strong>3 levens</strong> (foutjes)!
                     </p>
                 </div>
             </div>
 
-            <!-- Stats Badge Quick Summary -->
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-center">
-                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Gewonnen</span>
-                    <span class="text-base font-black text-purple-600 dark:text-purple-400 font-mono" x-text="stats.games_won">{{ $stat->games_won }}</span>
+            <!-- Stats Badge Quick Summary & Sound Toggle -->
+            <div class="flex items-center gap-2.5 shrink-0">
+                <div class="px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-center">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Gewonnen</span>
+                    <span class="text-sm font-black text-purple-600 dark:text-purple-400 font-mono" x-text="stats.games_won">{{ $stat->games_won }}</span>
                 </div>
-                <div class="px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-center">
-                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Snelste Tijd</span>
-                    <span class="text-base font-black text-amber-500 font-mono">{{ $stat->best_time_seconds ? $stat->best_time_seconds . 's' : '--' }}</span>
+                <div class="px-3.5 py-2 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-center">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Snelste Tijd</span>
+                    <span class="text-sm font-black text-amber-500 font-mono">{{ $stat->best_time_seconds ? $stat->best_time_seconds . 's' : '--' }}</span>
                 </div>
+                <button type="button" 
+                        @click="toggleSound()" 
+                        class="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center text-slate-500 hover:text-purple-600 dark:hover:text-purple-300 transition cursor-pointer shadow-2xs"
+                        :title="muted ? 'Geluid aanzetten' : 'Geluid dempen'">
+                    <i class="fa-solid text-sm" :class="muted ? 'fa-volume-xmark text-rose-500' : 'fa-volume-high text-emerald-500'"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -103,7 +109,7 @@
                     <div class="flex items-center gap-1.5 text-base sm:text-lg">
                         <template x-for="i in 3" :key="i">
                             <i class="fa-solid fa-heart transition-all duration-300"
-                               :class="i <= lives ? 'text-rose-500 scale-100 drop-shadow-xs' : 'text-slate-300 dark:text-slate-700 scale-90'"></i>
+                               :class="i <= lives ? 'text-rose-500 scale-100 drop-shadow-xs animate-pulse' : 'text-slate-300 dark:text-slate-700 scale-90 opacity-40'"></i>
                         </template>
                     </div>
                 </div>
@@ -112,7 +118,7 @@
                 <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Resterende Tijd</span>
                     <div class="flex items-center gap-1.5 font-mono font-black text-base sm:text-lg"
-                         :class="timerSeconds <= 15 ? 'text-rose-500 animate-pulse' : 'text-purple-600 dark:text-purple-400'">
+                         :class="timerSeconds <= 10 ? 'text-rose-500 animate-pulse' : (timerSeconds <= 20 ? 'text-amber-500' : 'text-purple-600 dark:text-purple-400')">
                         <i class="fa-solid fa-clock text-xs"></i>
                         <span x-text="formatTime(timerSeconds)">01:00</span>
                     </div>
@@ -121,16 +127,26 @@
                 <!-- PAREN GEVONDEN (X / 8) -->
                 <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Paren Gevonden</span>
-                    <div class="font-mono font-black text-base sm:text-lg text-emerald-600 dark:text-emerald-400">
+                    <div class="flex items-center gap-1.5 font-mono font-black text-base sm:text-lg text-emerald-600 dark:text-emerald-400">
                         <span x-text="matchedPairs">0</span> / 8
+                    </div>
+                    <!-- 8 mini dots indicator -->
+                    <div class="flex items-center gap-1 mt-1">
+                        <template x-for="i in 8" :key="i">
+                            <span class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                                  :class="i <= matchedPairs ? 'bg-emerald-500 scale-110 shadow-xs' : 'bg-slate-200 dark:bg-slate-700'"></span>
+                        </template>
                     </div>
                 </div>
 
-                <!-- ZETTEN GEDAAN -->
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center">
+                <!-- ZETTEN GEDAAN & COMBO STREAK -->
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 flex flex-col items-center justify-center relative">
                     <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">Zetten</span>
                     <div class="font-mono font-black text-base sm:text-lg text-slate-700 dark:text-slate-200">
                         <span x-text="moves">0</span>
+                    </div>
+                    <div x-show="streak >= 2" x-transition class="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black text-[9px] uppercase tracking-wider shadow-xs animate-bounce">
+                        <span x-text="streak + 'x Combo!'"></span>
                     </div>
                 </div>
 
@@ -139,61 +155,96 @@
             <!-- INKIJKFASE COUNTDOWN ALERT BANNER -->
             <div x-show="gameState === 'preview'" 
                  x-transition
-                 class="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 text-white font-black text-xs sm:text-sm text-center flex items-center justify-center gap-2 shadow-md">
-                <i class="fa-solid fa-eye text-base animate-bounce"></i>
-                <span>INKIJKFASE: Onthoud alle kaarten! Draaien om over <span class="font-mono text-base underline" x-text="previewSeconds">5</span>s</span>
+                 class="mt-4 p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-purple-600 text-white shadow-lg space-y-2">
+                <div class="flex items-center justify-between text-xs sm:text-sm font-black">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-eye text-base animate-bounce"></i>
+                        <span>INKIJKFASE: Onthoud alle kaarten!</span>
+                    </span>
+                    <span class="font-mono text-base px-2 py-0.5 rounded-lg bg-black/30">
+                        Nog <span class="underline" x-text="previewSeconds">5</span>s
+                    </span>
+                </div>
+                <!-- Progress bar for 5s preview -->
+                <div class="w-full h-1.5 bg-black/20 rounded-full overflow-hidden">
+                    <div class="h-full bg-white transition-all duration-1000 ease-linear rounded-full"
+                         :style="'width: ' + ((previewSeconds / 5) * 100) + '%'"></div>
+                </div>
             </div>
 
             <!-- START GAME BUTTON (WHEN IDLE & NO COOLDOWN) -->
             <div x-show="gameState === 'idle' && cooldownRemaining <= 0" class="mt-4 text-center">
                 <button type="button" 
                         @click="startGame()"
-                        class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-700 hover:to-indigo-700 active:scale-95 text-white font-black text-sm uppercase tracking-wider transition shadow-lg shadow-purple-600/30 cursor-pointer inline-flex items-center gap-2.5">
+                        class="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-purple-700 hover:from-purple-700 hover:to-pink-700 active:scale-95 text-white font-black text-sm uppercase tracking-wider transition shadow-lg shadow-purple-600/30 cursor-pointer inline-flex items-center gap-2.5">
                     <i class="fa-solid fa-play"></i>
                     <span>Start Ronde (5s Inkijkfase + 55s Speeltijd)</span>
                 </button>
             </div>
         </div>
 
-        <!-- 4. MEMORY CARDS 4x4 GRID (WEBSITE THEMED & BULLETPROOF SIZING) -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3 sm:p-6 shadow-xs">
-            <div class="grid grid-cols-4 gap-2.5 sm:gap-4 max-w-lg sm:max-w-xl mx-auto select-none" style="perspective: 1000px;">
+        <!-- 4. MEMORY CARDS 4x4 GRID (ROCK-SOLID CSS 3D FLIP) -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-3 sm:p-6 shadow-xs relative">
+            
+            <!-- OVERLAY WHEN IDLE (PROMPT TO START) -->
+            <div x-show="gameState === 'idle' && cooldownRemaining <= 0" 
+                 class="absolute inset-0 z-20 backdrop-blur-2xs bg-slate-950/20 dark:bg-slate-950/40 rounded-3xl flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-slate-900 border-2 border-purple-500/50 rounded-2xl p-5 shadow-2xl text-center space-y-2 max-w-sm animate-fade-in">
+                    <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl mx-auto">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Klaar voor de Test?</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Klik op <strong>Start Ronde</strong> om de 5 seconden inkijkfase te beginnen waarin alle 16 kaarten getoond worden!
+                    </p>
+                    <button type="button" 
+                            @click="startGame()"
+                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-purple-600/30 cursor-pointer">
+                        Start Ronde
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4x4 CARDS GRID -->
+            <div class="grid grid-cols-4 gap-2.5 sm:gap-4 max-w-lg sm:max-w-xl mx-auto select-none memory-grid">
                 <template x-for="(card, index) in cards" :key="card.card_uid">
-                    <div class="relative w-full cursor-pointer transition-transform duration-200 hover:scale-[1.03] active:scale-95"
-                         style="aspect-ratio: 1 / 1; min-height: 80px;"
+                    <div class="memory-card relative w-full cursor-pointer"
                          @click="flipCard(index)">
                         
                         <!-- 3D FLIP CONTAINER -->
-                        <div class="w-full h-full duration-500 transition-transform rounded-2xl shadow-xs"
-                             :style="card.flipped || card.matched ? 'transform: rotateY(180deg); transform-style: preserve-3d;' : 'transform-style: preserve-3d;'"
-                             :class="card.shake ? 'animate-shake' : ''">
+                        <div class="memory-card-inner"
+                             :class="{
+                                 'is-flipped': card.flipped || card.matched,
+                                 'is-matched': card.matched,
+                                 'is-shaking': card.shake
+                             }">
 
-                            <!-- CARD BACK (TBS KLINIEK BRANDED CARD - MATCHES SITE STYLING) -->
-                            <div class="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-br from-slate-50 via-white to-purple-50/70 dark:from-slate-900 dark:via-purple-950/50 dark:to-slate-900 border-2 border-slate-200/90 dark:border-purple-500/30 p-2 sm:p-3 flex flex-col items-center justify-between text-center overflow-hidden shadow-xs hover:border-purple-400 dark:hover:border-purple-400 transition-colors"
-                                 style="backface-visibility: hidden; -webkit-backface-visibility: hidden;">
-                                <div class="w-full flex items-center justify-between opacity-40 text-[8px] sm:text-[9px] text-slate-500 dark:text-purple-300 font-mono">
+                            <!-- CARD BACK (WHEN FACE DOWN) -->
+                            <div class="memory-card-face memory-card-back bg-gradient-to-br from-slate-50 via-white to-purple-50/70 dark:from-[#110c1f] dark:via-[#191030] dark:to-[#0f0a1c] border-2 border-slate-200/90 dark:border-purple-500/30 hover:border-purple-400 dark:hover:border-purple-400/80 shadow-xs hover:shadow-md transition-colors p-2 sm:p-3">
+                                <div class="w-full flex items-center justify-between opacity-50 text-[8px] sm:text-[9px] text-slate-500 dark:text-purple-300 font-mono">
                                     <i class="fa-solid fa-fingerprint"></i>
                                     <span>#TBS</span>
                                 </div>
                                 <div class="flex flex-col items-center justify-center my-auto">
-                                    <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-purple-100 dark:bg-purple-900/60 border border-purple-200 dark:border-purple-500/50 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm sm:text-lg shadow-2xs group-hover:scale-105 transition-transform">
-                                        <i class="fa-solid fa-brain"></i>
+                                    <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl bg-purple-100 dark:bg-purple-900/60 border border-purple-200 dark:border-purple-500/50 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm sm:text-lg shadow-2xs">
+                                        <i class="fa-solid fa-shield-halved"></i>
                                     </div>
                                     <span class="text-[8px] sm:text-[10px] font-black text-purple-700 dark:text-purple-300 uppercase tracking-widest mt-1">MEMORY</span>
                                 </div>
-                                <div class="w-full text-center opacity-50 text-[8px] text-slate-400 dark:text-purple-400 font-bold uppercase tracking-wider">
+                                <div class="w-full text-center opacity-50 text-[7px] sm:text-[8px] text-slate-400 dark:text-purple-400 font-bold uppercase tracking-wider">
                                     Kliniek
                                 </div>
                             </div>
 
-                            <!-- CARD FRONT (TBS ASSET REVEALED - MATCHES SITE STYLING) -->
-                            <div class="absolute inset-0 w-full h-full rounded-2xl bg-white dark:bg-slate-900 border-2 p-1.5 sm:p-2.5 flex flex-col items-center justify-between text-center overflow-hidden shadow-md transition-all"
+                            <!-- CARD FRONT (WHEN FACE UP) -->
+                            <div class="memory-card-face memory-card-front bg-white dark:bg-slate-900 border-2 p-1.5 sm:p-2.5 shadow-md"
                                  :class="[
-                                     card.matched ? 'border-emerald-500 ring-2 ring-emerald-400/50 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-emerald-500/10' : (card.border_color + ' bg-white dark:bg-slate-900')
-                                 ]"
-                                 style="backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: rotateY(180deg);">
+                                     card.matched 
+                                         ? 'border-emerald-500 ring-2 ring-emerald-400/60 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-emerald-500/20' 
+                                         : (card.shake ? 'border-rose-500 ring-2 ring-rose-400/80 bg-rose-50/50 dark:bg-rose-950/40' : (card.border_color + ' bg-white dark:bg-slate-900'))
+                                 ]">
                                 
-                                <!-- Card Category Pill -->
+                                <!-- Card Category Pill & Match Indicator -->
                                 <div class="w-full flex items-center justify-between text-[7px] sm:text-[9px] font-black uppercase tracking-wider">
                                     <span class="px-1.5 py-0.5 rounded-md"
                                           :class="card.matched ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
@@ -201,7 +252,7 @@
                                     <i x-show="card.matched" class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
                                 </div>
 
-                                <!-- Center Asset Icon in Glowing Badge -->
+                                <!-- Center Asset Icon in Glowing Gradient Badge -->
                                 <div class="my-auto flex flex-col items-center justify-center">
                                     <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-base sm:text-xl shadow-xs transition-transform"
                                          :class="[
@@ -273,7 +324,7 @@
 
                 <button type="button" 
                         @click="closeModal()"
-                        class="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shadow-emerald-600/30">
+                        class="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shadow-emerald-600/30">
                     Geweldig, Terug naar Overzicht
                 </button>
             </div>
@@ -352,10 +403,14 @@ function memoryGame(config) {
         lives: 3,
         moves: 0,
         matchedPairs: 0,
+        streak: 0,
         firstCardIndex: null,
         secondCardIndex: null,
         isLocked: false,
+        muted: localStorage.getItem('tbs_memory_muted') === 'true',
+        audioCtx: null,
         timerInterval: null,
+        previewInterval: null,
         cooldownInterval: null,
         timeTaken: 0,
         lastResult: {},
@@ -365,9 +420,94 @@ function memoryGame(config) {
         },
 
         initGame() {
+            // Ensure cards start facedown
+            this.cards.forEach(c => {
+                c.flipped = false;
+                c.matched = false;
+                c.shake = false;
+            });
+
             if (this.cooldownRemaining > 0) {
                 this.startCooldownTimer();
             }
+        },
+
+        toggleSound() {
+            this.muted = !this.muted;
+            localStorage.setItem('tbs_memory_muted', this.muted);
+            if (!this.muted) {
+                this.playTone(523.25, 'sine', 0.15, 0.1);
+            }
+        },
+
+        getAudioContext() {
+            if (!this.audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    this.audioCtx = new AudioContextClass();
+                }
+            }
+            if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
+            return this.audioCtx;
+        },
+
+        playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.1) {
+            if (this.muted) return;
+            try {
+                const ctx = this.getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch (e) {}
+        },
+
+        playFlipSound() {
+            this.playTone(480, 'triangle', 0.08, 0.08);
+        },
+
+        playMatchSound() {
+            this.playTone(523.25, 'triangle', 0.18, 0.12);
+            setTimeout(() => this.playTone(659.25, 'triangle', 0.18, 0.14), 80);
+            setTimeout(() => this.playTone(783.99, 'triangle', 0.28, 0.16), 160);
+        },
+
+        playMismatchSound() {
+            this.playTone(200, 'sawtooth', 0.15, 0.08);
+            setTimeout(() => this.playTone(150, 'sawtooth', 0.2, 0.08), 80);
+        },
+
+        playVictorySound() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, idx) => {
+                setTimeout(() => this.playTone(freq, 'triangle', 0.35, 0.15), idx * 110);
+            });
+        },
+
+        playLoseSound() {
+            const notes = [320, 280, 240, 190];
+            notes.forEach((freq, idx) => {
+                setTimeout(() => this.playTone(freq, 'sawtooth', 0.25, 0.08), idx * 120);
+            });
+        },
+
+        shuffleDeck() {
+            // Fisher-Yates shuffle algorithm
+            const array = [...this.cards];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            this.cards = array;
         },
 
         startCooldownTimer() {
@@ -384,30 +524,40 @@ function memoryGame(config) {
         startGame() {
             if (this.cooldownRemaining > 0) return;
             
+            // Clear any lingering intervals
+            if (this.previewInterval) clearInterval(this.previewInterval);
+            if (this.timerInterval) clearInterval(this.timerInterval);
+
+            // Reshuffle deck for every single new game
+            this.shuffleDeck();
+
             // Reset board state
             this.lives = 3;
             this.moves = 0;
             this.matchedPairs = 0;
+            this.streak = 0;
             this.firstCardIndex = null;
             this.secondCardIndex = null;
-            this.isLocked = true; // no clicking during preview
+            this.isLocked = true; // cards non-clickable during preview
             this.gameResult = null;
             this.previewSeconds = 5;
             this.timerSeconds = 60;
             this.gameState = 'preview';
 
-            // All cards are flipped open for preview
+            // Flip all cards open for the 5-second preview
             this.cards.forEach(c => {
                 c.flipped = true;
                 c.matched = false;
                 c.shake = false;
             });
 
+            this.playTone(440, 'sine', 0.2, 0.12);
+
             // Start preview countdown (5s)
-            const previewTimer = setInterval(() => {
+            this.previewInterval = setInterval(() => {
                 this.previewSeconds--;
                 if (this.previewSeconds <= 0) {
-                    clearInterval(previewTimer);
+                    clearInterval(this.previewInterval);
                     this.endPreviewAndStartPlaying();
                 }
             }, 1000);
@@ -416,18 +566,19 @@ function memoryGame(config) {
         endPreviewAndStartPlaying() {
             // Flip all cards face down
             this.cards.forEach(c => c.flipped = false);
+            this.playFlipSound();
+            
             this.gameState = 'playing';
             this.isLocked = false;
 
             // Start main game timer (60s countdown)
             if (this.timerInterval) clearInterval(this.timerInterval);
-            const startTime = Date.now();
 
             this.timerInterval = setInterval(() => {
                 this.timerSeconds--;
                 if (this.timerSeconds <= 0) {
                     clearInterval(this.timerInterval);
-                    this.handleLoss('Tijd verstreken! De 60 seconden zijn om voordat je alle paren vond.');
+                    this.handleLoss('Tijd verstreken! De 60 seconden zijn voorbij voordat je alle paren vond.');
                 }
             }, 1000);
         },
@@ -437,10 +588,12 @@ function memoryGame(config) {
             if (this.gameState !== 'playing') return;
 
             const card = this.cards[index];
-            if (card.flipped || card.matched) return;
+            if (!card || card.flipped || card.matched) return;
+            if (this.firstCardIndex === index) return;
 
-            // Flip current card
+            // Flip card face-up
             card.flipped = true;
+            this.playFlipSound();
 
             if (this.firstCardIndex === null) {
                 this.firstCardIndex = index;
@@ -456,23 +609,36 @@ function memoryGame(config) {
             const c1 = this.cards[this.firstCardIndex];
             const c2 = this.cards[this.secondCardIndex];
 
+            if (!c1 || !c2) {
+                this.firstCardIndex = null;
+                this.secondCardIndex = null;
+                this.isLocked = false;
+                return;
+            }
+
             if (c1.id === c2.id) {
                 // MATCH!
                 c1.matched = true;
                 c2.matched = true;
                 this.matchedPairs++;
+                this.streak++;
                 this.firstCardIndex = null;
                 this.secondCardIndex = null;
                 this.isLocked = false;
+
+                this.playMatchSound();
 
                 if (this.matchedPairs === 8) {
                     this.handleVictory();
                 }
             } else {
-                // MISMATCH: Shake and lose 1 life
+                // MISMATCH: Shake cards and lose 1 life
+                this.streak = 0;
                 c1.shake = true;
                 c2.shake = true;
-                this.lives--;
+                this.lives = Math.max(0, this.lives - 1);
+
+                this.playMismatchSound();
 
                 setTimeout(() => {
                     c1.flipped = false;
@@ -482,29 +648,31 @@ function memoryGame(config) {
                     this.firstCardIndex = null;
                     this.secondCardIndex = null;
 
-                    if (this.lives <= 0) {
-                        this.handleLoss('Geheugenverlies! Je hebt al je 3 levenspunten verspeeld door foute paren.');
-                    } else {
+                    if (this.lives <= 0 && this.gameState === 'playing') {
+                        this.handleLoss('Geheugenverlies! Je hebt al je 3 levenspunten verspeeld door foute combinaties.');
+                    } else if (this.gameState === 'playing') {
                         this.isLocked = false;
                     }
-                }, 800);
+                }, 650);
             }
         },
 
         handleVictory() {
             if (this.timerInterval) clearInterval(this.timerInterval);
-            this.timeTaken = 60 - this.timerSeconds;
+            this.timeTaken = Math.max(1, 60 - this.timerSeconds);
             this.gameState = 'finished';
 
+            this.playVictorySound();
             this.sendFinishRequest(true);
         },
 
         handleLoss(reason) {
             if (this.timerInterval) clearInterval(this.timerInterval);
-            this.timeTaken = 60 - Math.max(0, this.timerSeconds);
+            this.timeTaken = Math.max(1, 60 - Math.max(0, this.timerSeconds));
             this.lossReason = reason;
             this.gameState = 'finished';
 
+            this.playLoseSound();
             this.sendFinishRequest(false);
         },
 
@@ -543,6 +711,11 @@ function memoryGame(config) {
         closeModal() {
             this.gameResult = null;
             this.gameState = 'idle';
+            this.cards.forEach(c => {
+                c.flipped = false;
+                c.matched = false;
+                c.shake = false;
+            });
         },
 
         formatTime(totalSecs) {
@@ -560,13 +733,79 @@ function memoryGame(config) {
 </script>
 
 <style>
-@keyframes shake {
-    0%, 100% { transform: rotateY(180deg) translateX(0); }
-    20%, 60% { transform: rotateY(180deg) translateX(-6px); }
-    40%, 80% { transform: rotateY(180deg) translateX(6px); }
+/* ROCK-SOLID 3D CARD CSS FOR ALL DEVICES */
+.memory-grid {
+    perspective: 1200px;
+    -webkit-perspective: 1200px;
 }
-.animate-shake {
-    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+
+.memory-card {
+    aspect-ratio: 1 / 1;
+    min-height: 75px;
+    touch-action: manipulation;
+}
+
+.memory-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+    border-radius: 1rem;
+}
+
+.memory-card-inner.is-flipped {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+}
+
+.memory-card-inner.is-matched {
+    animation: matchPulse 0.5s ease-out;
+}
+
+.memory-card-inner.is-shaking {
+    animation: cardShake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.memory-card-face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.memory-card-back {
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+    z-index: 2;
+}
+
+.memory-card-front {
+    transform: rotateY(180deg);
+    -webkit-transform: rotateY(180deg);
+    z-index: 1;
+}
+
+@keyframes cardShake {
+    0%, 100% { transform: rotateY(180deg) translateX(0); }
+    20%, 60% { transform: rotateY(180deg) translateX(-7px); }
+    40%, 80% { transform: rotateY(180deg) translateX(7px); }
+}
+
+@keyframes matchPulse {
+    0% { transform: rotateY(180deg) scale(1); }
+    50% { transform: rotateY(180deg) scale(1.08); }
+    100% { transform: rotateY(180deg) scale(1); }
 }
 </style>
 @endsection

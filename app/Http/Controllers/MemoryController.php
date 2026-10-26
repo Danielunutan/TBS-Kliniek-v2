@@ -188,13 +188,13 @@ class MemoryController extends Controller
             $deck[] = array_merge($card, [
                 'card_uid' => $uniqueId++,
                 'matched' => false,
-                'flipped' => true, // starts true for 5s inkijk time
+                'flipped' => false, // starts face-down until game starts
             ]);
             // Second card of pair
             $deck[] = array_merge($card, [
                 'card_uid' => $uniqueId++,
                 'matched' => false,
-                'flipped' => true, // starts true for 5s inkijk time
+                'flipped' => false, // starts face-down until game starts
             ]);
         }
 
