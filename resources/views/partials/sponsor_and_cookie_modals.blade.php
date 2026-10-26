@@ -34,26 +34,19 @@
             }
         },
         ensureMonetagSdk() {
-            if (!document.querySelector('script[src*="vignette.min.js"]')) {
-                try {
+            try {
+                if (!document.querySelector('script[data-zone="12124731"]')) {
                     (function(s){s.dataset.zone='12124731',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-                } catch(e) {
-                    console.warn('Monetag script injection error:', e);
                 }
+                if (!document.querySelector('script[data-zone="12114258"]')) {
+                    (function(s){s.dataset.zone='12114258',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+                }
+            } catch(e) {
+                console.warn('Monetag script injection error:', e);
             }
         },
         triggerMonetagVignette() {
             this.ensureMonetagSdk();
-            try {
-                const triggerLink = document.createElement('a');
-                triggerLink.href = 'javascript:void(0)';
-                triggerLink.style.display = 'none';
-                document.body.appendChild(triggerLink);
-                triggerLink.click();
-                setTimeout(() => triggerLink.remove(), 200);
-            } catch(e) {
-                console.warn('Monetag trigger error:', e);
-            }
         },
         ensureRobinAdsSdk() {
             if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
@@ -283,8 +276,7 @@
      x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none">
         
-        <div @click.away="if(status !== 'watching_interstitial' && status !== 'watching_inscreen') closeModal()"
-             :class="(popupUrl && (status === 'watching_inscreen' || status === 'ready_to_claim')) ? 'max-w-xl' : 'max-w-md'"
+        <div :class="(popupUrl && (status === 'watching_inscreen' || status === 'ready_to_claim')) ? 'max-w-xl' : 'max-w-md'"
              class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 w-full shadow-2xl relative overflow-hidden text-center space-y-5 transition-all transform-gpu will-change-transform">
             
             <!-- Top Badges -->
