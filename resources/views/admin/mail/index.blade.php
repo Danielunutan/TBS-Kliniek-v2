@@ -1,347 +1,480 @@
 @extends('admin.layout')
 
 @section('admin-content')
-<div class="space-y-6" x-data="{
-    activeTab: 'compose',
-    selectedSender: 'vragen@tbs-kliniek.nl',
-    recipientEmail: '{{ old('recipient_email', '') }}',
-    recipientName: '{{ old('recipient_name', '') }}',
-    subject: '{{ old('subject', '') }}',
-    body: '{{ old('body', '') }}',
-    showCredentials: false,
-    selectedLog: null,
-    showLogModal: false,
-    
-    applyTemplate(type) {
-        if (type === 'support') {
-            this.selectedSender = 'vragen@tbs-kliniek.nl';
-            this.subject = 'Reactie op jouw vraag aan de TBS Kliniek';
-            this.body = 'Beste speler,\n\nBedankt voor je bericht aan het ondersteuningsteam van de TBS Kliniek.\n\nWe hebben je vraag bekeken en willen je graag als volgt informeren:\n\n[Vul hier je antwoord in...]\n\nMet vriendelijke groet,\nTBS Kliniek Ondersteuningsteam\nhttps://tbs-kliniek.nl';
-        } else if (type === 'privacy') {
-            this.selectedSender = 'privacy@tbs-kliniek.nl';
-            this.subject = 'Bevestiging inzake privacy / AVG verzoek - TBS Kliniek';
-            this.body = 'Beste heer / mevrouw,\n\nWij hebben uw verzoek met betrekking tot de Algemene Verordening Gegevensbescherming (AVG) in goede orde ontvangen.\n\n[Geef hier toelichting op de verwerking of accountverwijdering...]\n\nMet vriendelijke groet,\nFunctionaris Gegevensbescherming\nTBS Kliniek\nprivacy@tbs-kliniek.nl';
-        } else if (type === 'owner') {
-            this.selectedSender = 'daniel@tbs-kliniek.nl';
-            this.subject = 'Belangrijk bericht van de directie van TBS Kliniek';
-            this.body = 'Beste speler,\n\nAls eigenaar van de TBS Kliniek neem ik persoonlijk contact met je op omtrent het volgende:\n\n[Typ hier jouw persoonlijke bericht...]\n\nMet vriendelijke groet,\nDaniël\nEigenaar TBS Kliniek\ndaniel@tbs-kliniek.nl';
-        } else if (type === 'sanction') {
-            this.selectedSender = 'vragen@tbs-kliniek.nl';
-            this.subject = 'Toelichting inzake accountstatus of sanctie - TBS Kliniek';
-            this.body = 'Beste speler,\n\nNaar aanleiding van je contactverzoek over een sanctie of accountblokkade hebben wij het dossier opnieuw doorgenomen.\n\n[Plaats hier de beslissing en eventuele voorwaarden...]\n\nMet vriendelijke groet,\nDirectie & Moderatie\nTBS Kliniek';
-        }
-    },
+<div x-data="tbsMailboxClient({
+    activeMailbox: '{{ $activeMailbox }}',
+    activeFolder: '{{ $folder }}',
+    initialMessages: @js($messages),
+    initialStats: @js($stats),
+    totalMessages: {{ (int) $totalMessages }},
+    currentPage: {{ (int) $currentPage }},
+    totalPages: {{ (int) $totalPages }},
+    searchQuery: '{{ addslashes($searchQuery ?? '') }}',
+    feedUrl: '{{ route('admin.mail.feed') }}',
+    messageBaseUrl: '{{ url('/admin/mail/message') }}',
+    sendUrl: '{{ route('admin.mail.send') }}',
+    csrfToken: '{{ csrf_token() }}'
+})" class="space-y-4">
 
-    selectPlayer(e) {
-        const val = e.target.value;
-        if (!val) return;
-        const parts = val.split('|');
-        if (parts.length === 2) {
-            this.recipientName = parts[0];
-            this.recipientEmail = parts[1];
-        }
-    },
-
-    openLogModal(logId) {
-        fetch('{{ url('/admin/mail/logs') }}/' + logId)
-            .then(res => res.json())
-            .then(data => {
-                this.selectedLog = data;
-                this.showLogModal = true;
-            })
-            .catch(err => alert('Kon log niet laden.'));
-    }
-}">
-
-    <!-- Flash Messages -->
-    @if(session('success'))
-    <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-center justify-between shadow-2xs">
-        <div class="flex items-center gap-2.5">
-            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
-            <span>{{ session('success') }}</span>
-        </div>
-        <button type="button" @click="$el.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
-    @endif
-
-    @if(session('error'))
-    <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold flex items-center justify-between shadow-2xs">
-        <div class="flex items-center gap-2.5">
-            <i class="fa-solid fa-circle-exclamation text-rose-600 text-base"></i>
-            <span>{{ session('error') }}</span>
-        </div>
-        <button type="button" @click="$el.parentElement.remove()" class="text-rose-500 hover:text-rose-700">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-    </div>
-    @endif
-
-    <!-- Top Owner Banner & Webmail Action -->
-    <div class="bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 rounded-3xl p-6 sm:p-7 text-white shadow-lg relative overflow-hidden">
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div class="space-y-2 max-w-2xl">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black uppercase tracking-wider text-amber-50 border border-white/20">
-                    <i class="fa-solid fa-crown text-amber-200"></i> Alleen Toegankelijk Voor Eigenaar
+    <!-- Top Action & Mailbox Header Bar -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 flex items-center justify-center text-amber-600 dark:text-amber-400 text-lg shadow-2xs shrink-0">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                    <h2 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white truncate" x-text="activeMailboxLabel"></h2>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+                        Eigenaar
+                    </span>
                 </div>
-                <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                    TBS Kliniek Mailbox &amp; Brevo E-mailbeheer
-                </h2>
-                <p class="text-xs sm:text-sm text-amber-100 font-medium leading-relaxed">
-                    Beheer alle officiële e-mailadressen van de TBS Kliniek. E-mails worden verzonden via de geauthenticeerde 
-                    <strong>Brevo SMTP Relay</strong> en binnenkomende post landt rechtstreeks in de beveiligde Plesk mailbox.
+                <p class="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                    Actief postbus adres: <strong class="font-mono text-purple-600 dark:text-purple-400" x-text="currentMailboxEmail"></strong>
                 </p>
             </div>
-
-            <div class="flex flex-wrap items-center gap-3 shrink-0">
-                <a href="{{ $mailboxConfig['webmail_url'] }}" target="_blank" rel="noopener noreferrer"
-                   class="px-5 py-3 rounded-2xl bg-white text-slate-900 font-black text-xs hover:bg-amber-50 transition shadow-md flex items-center gap-2 shrink-0">
-                    <i class="fa-solid fa-envelope-open-text text-amber-600"></i> Open Roundcube Webmail ↗
-                </a>
-                <button type="button" @click="showCredentials = !showCredentials"
-                        class="px-4 py-3 rounded-2xl bg-black/20 hover:bg-black/30 backdrop-blur-md text-white font-bold text-xs transition border border-white/20 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-amber-200"></i>
-                    <span x-text="showCredentials ? 'Verberg Server Instellingen' : 'Server &amp; Inloggegevens'"></span>
-                </button>
-            </div>
         </div>
 
-        <!-- Background Ambient Glow -->
-        <div class="absolute -right-12 -bottom-12 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
-    </div>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <!-- Roundcube Webmail Link -->
+            <a href="https://webmail.tbs-kliniek.nl" target="_blank" rel="noopener noreferrer"
+               class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-xs font-bold text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 transition flex items-center gap-1.5 shadow-2xs">
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-purple-600 dark:text-purple-400"></i>
+                <span class="hidden sm:inline">Plesk Roundcube</span> Webmail
+            </a>
 
-    <!-- Collapsible Server Credentials Card -->
-    <div x-show="showCredentials" x-transition.duration.250ms
-         class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-            <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-server text-purple-600"></i> Plesk &amp; Brevo Technische Configuratie
-            </h3>
-            <span class="text-[11px] font-bold text-slate-400">SSL/TLS Actief</span>
-        </div>
+            <!-- Server Settings Toggle -->
+            <button type="button" @click="setupModalOpen = true"
+                    class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-xs font-bold text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 transition flex items-center gap-1.5 shadow-2xs">
+                <i class="fa-solid fa-key text-[10px] text-amber-500"></i>
+                <span>Inloggegevens</span>
+            </button>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5 text-xs">
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 space-y-1">
-                <span class="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Hoofd Mailbox Account</span>
-                <span class="font-mono font-bold text-slate-800 dark:text-slate-200 block truncate">{{ $mailboxConfig['primary_mailbox'] }}</span>
-                <span class="text-[10px] text-emerald-600 font-semibold block">Actief in Plesk (Let's Encrypt SSL)</span>
-            </div>
-
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 space-y-1">
-                <span class="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Mailbox Wachtwoord</span>
-                <span class="font-mono font-bold text-purple-700 dark:text-purple-400 block select-all">{{ $mailboxConfig['mailbox_password'] }}</span>
-                <span class="text-[10px] text-slate-400 block">Voor Roundcube &amp; IMAP/POP3</span>
-            </div>
-
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 space-y-1">
-                <span class="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Inkomend (IMAP)</span>
-                <span class="font-mono font-bold text-slate-800 dark:text-slate-200 block">{{ $mailboxConfig['imap_host'] }}</span>
-                <span class="text-[10px] text-slate-500 block">Poort: {{ $mailboxConfig['imap_port'] }}</span>
-            </div>
-
-            <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 space-y-1">
-                <span class="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Uitgaand (Brevo SMTP)</span>
-                <span class="font-mono font-bold text-slate-800 dark:text-slate-200 block">{{ $mailboxConfig['smtp_host'] }}</span>
-                <span class="text-[10px] text-slate-500 block">Poort {{ $mailboxConfig['smtp_port'] }} &bull; User: {{ $mailboxConfig['smtp_user'] }}</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3 Active Mail Addresses Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        @foreach($senders as $email => $info)
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex flex-col justify-between gap-4 transition hover:border-purple-300 dark:hover:border-purple-700">
-            <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <span class="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base text-slate-700 dark:text-slate-300">
-                        <i class="fa-solid {{ $info['icon'] }}"></i>
-                    </span>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border {{ $info['badge_color'] }}">
-                        Actief
-                    </span>
-                </div>
-                <div>
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white">{{ $info['name'] }}</h3>
-                    <span class="font-mono text-xs font-bold text-purple-600 dark:text-purple-400 block mt-0.5">{{ $email }}</span>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">{{ $info['desc'] }}</p>
-                </div>
-            </div>
-
-            <button type="button" 
-                    @click="activeTab = 'compose'; selectedSender = '{{ $email }}'; window.scrollTo({top: 400, behavior: 'smooth'})"
-                    class="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/60 hover:text-purple-600 dark:hover:text-purple-300 text-xs font-bold text-slate-700 dark:text-slate-300 transition flex items-center justify-center gap-1.5 border border-slate-200/80 dark:border-slate-700">
-                <i class="fa-solid fa-paper-plane text-[10px]"></i> Verstuur vanaf dit adres
+            <!-- New Message Compose Button -->
+            <button type="button" @click="openCompose()"
+                    class="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-xs font-black transition shadow-sm flex items-center gap-2 active:scale-95">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span>Nieuw Bericht</span>
             </button>
         </div>
-        @endforeach
     </div>
 
-    <!-- Navigation Sub-Tabs -->
-    <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 text-xs font-bold">
-        <button type="button" @click="activeTab = 'compose'"
-                :class="activeTab === 'compose' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                class="px-4 py-2 rounded-xl transition flex items-center gap-2">
-            <i class="fa-solid fa-pen-to-square"></i> E-mail Opstellen (Brevo)
-        </button>
-        <button type="button" @click="activeTab = 'logs'"
-                :class="activeTab === 'logs' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                class="px-4 py-2 rounded-xl transition flex items-center gap-2">
-            <i class="fa-solid fa-clock-rotate-left"></i> Verzonden E-mails Logboek
-            @if($logs->total() > 0)
-            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-white/20 text-white" :class="activeTab === 'logs' ? 'bg-white text-purple-700' : 'bg-slate-200 text-slate-700'">
-                {{ $logs->total() }}
-            </span>
-            @endif
-        </button>
-        <button type="button" @click="activeTab = 'inbox'"
-                :class="activeTab === 'inbox' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                class="px-4 py-2 rounded-xl transition flex items-center gap-2">
-            <i class="fa-solid fa-inbox"></i> Binnenkomend (IMAP)
-            @if($inboxMessages['connected'] && $inboxMessages['count'] > 0)
-            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-emerald-500 text-white">
-                {{ $inboxMessages['count'] }}
-            </span>
-            @endif
-        </button>
-    </div>
-
-    <!-- TAB 1: COMPOSE / SEND VIA BREVO -->
-    <div x-show="activeTab === 'compose'" class="space-y-6">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs">
-            
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+    <!-- 3-Column Outlook / Apple Mail Client Layout -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden flex flex-col md:flex-row h-[720px] max-h-[85vh]">
+        
+        <!-- ============================================== -->
+        <!-- 1. LEFT SIDEBAR: Mailboxes & Folders           -->
+        <!-- ============================================== -->
+        <aside class="w-full md:w-64 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 p-3.5 flex flex-col justify-between overflow-y-auto">
+            <div class="space-y-5">
+                
+                <!-- Postbussen Selector -->
                 <div>
-                    <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-paper-plane text-purple-600"></i> Nieuwe E-mail Versturen via Brevo
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Kies een afzenderadres en verstuur direct een professioneel opgemaakte e-mail naar een speler of externe ontvanger.
-                    </p>
-                </div>
-
-                <!-- Quick Templates Dropdown / Buttons -->
-                <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="text-[11px] font-bold text-slate-400 mr-1">Sjablonen:</span>
-                    <button type="button" @click="applyTemplate('support')"
-                            class="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-[10px] font-extrabold transition border border-emerald-200">
-                        Helpdesk Antwoord
-                    </button>
-                    <button type="button" @click="applyTemplate('privacy')"
-                            class="px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-[10px] font-extrabold transition border border-indigo-200">
-                        AVG / Privacy
-                    </button>
-                    <button type="button" @click="applyTemplate('sanction')"
-                            class="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 text-[10px] font-extrabold transition border border-rose-200">
-                        Sanctie / Ban Uitleg
-                    </button>
-                    <button type="button" @click="applyTemplate('owner')"
-                            class="px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 text-[10px] font-extrabold transition border border-amber-200">
-                        Eigenaar Directie
-                    </button>
-                </div>
-            </div>
-
-            <form action="{{ route('admin.mail.send') }}" method="POST" class="mt-6 space-y-6">
-                @csrf
-
-                <!-- Sender Selection -->
-                <div class="space-y-2">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        1. Kies Afzender E-mailadres (From &amp; Reply-To)
-                    </label>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        @foreach($senders as $email => $info)
-                        <label class="relative flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition select-none"
-                               :class="selectedSender === '{{ $email }}' 
-                                   ? 'border-purple-600 bg-purple-50/50 dark:bg-purple-950/40 ring-2 ring-purple-500/20 shadow-xs' 
-                                   : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:border-slate-300'">
-                            <input type="radio" name="sender_email" value="{{ $email }}" x-model="selectedSender" class="sr-only">
-                            <span class="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0"
-                                  :class="selectedSender === '{{ $email }}' ? 'bg-purple-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
-                                <i class="fa-solid {{ $info['icon'] }}"></i>
+                    <span class="px-2 text-[10px] font-black uppercase tracking-wider text-slate-400 block">Postbussen</span>
+                    <div class="mt-1.5 space-y-1">
+                        @foreach($mailboxes as $key => $box)
+                        <button type="button" @click="selectMailbox('{{ $key }}')"
+                                class="w-full flex items-center justify-between gap-2 rounded-2xl px-3 py-2 text-left text-xs transition"
+                                :class="activeMailbox === '{{ $key }}' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-black border border-slate-200 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold'">
+                            <span class="flex items-center gap-2.5 truncate">
+                                <span class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs"
+                                      :class="activeMailbox === '{{ $key }}' ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'">
+                                    <i class="fa-solid {{ $box['icon'] }} text-[10px]"></i>
+                                </span>
+                                <span class="truncate">{{ $box['name'] }}</span>
                             </span>
-                            <div class="min-w-0">
-                                <span class="block text-xs font-black text-slate-900 dark:text-white truncate">{{ $email }}</span>
-                                <span class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate">{{ $info['name'] }}</span>
-                            </div>
-                        </label>
+                            @if($key !== 'all')
+                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-md {{ $box['badge'] }}">
+                                {{ $key }}
+                            </span>
+                            @endif
+                        </button>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- Recipient Info -->
-                <div class="space-y-4 pt-2">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                            2. Ontvanger Gegevens
-                        </label>
+                <!-- Mappen Sectie -->
+                <div>
+                    <span class="px-2 text-[10px] font-black uppercase tracking-wider text-slate-400 block">Mappen</span>
+                    <nav class="mt-1.5 space-y-0.5">
+                        
+                        <!-- Postvak IN -->
+                        <button type="button" @click="selectFolder('INBOX')"
+                                class="w-full flex items-center justify-between rounded-2xl px-3 py-2 text-left text-xs transition"
+                                :class="activeFolder === 'INBOX' ? 'bg-white dark:bg-slate-800 text-purple-600 dark:text-purple-400 shadow-xs font-black border border-slate-200 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold'">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-inbox text-xs w-4 text-center"></i>
+                                <span>Postvak IN</span>
+                            </span>
+                            <template x-if="stats['INBOX'] && stats['INBOX'].unread > 0">
+                                <span class="rounded-full bg-purple-600 px-2 py-0.5 text-[10px] font-black text-white" x-text="stats['INBOX'].unread"></span>
+                            </template>
+                        </button>
 
-                        <!-- Quick Player Select Dropdown -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] font-bold text-slate-400">Of kies speler:</span>
-                            <select @change="selectPlayer($event)" 
-                                    class="text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-1.5 px-3 focus:ring-purple-500">
-                                <option value="">-- Zoek geregistreerde speler --</option>
-                                @foreach($players as $player)
-                                <option value="{{ $player->name }}|{{ $player->email }}">{{ $player->name }} ({{ $player->email }})</option>
+                        <!-- Verzonden -->
+                        <button type="button" @click="selectFolder('Sent')"
+                                class="w-full flex items-center justify-between rounded-2xl px-3 py-2 text-left text-xs transition"
+                                :class="activeFolder === 'Sent' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-black border border-slate-200 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold'">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fa-regular fa-paper-plane text-xs w-4 text-center"></i>
+                                <span>Verzonden</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-bold" x-text="stats['Sent'] ? stats['Sent'].total : ''"></span>
+                        </button>
+
+                        <!-- Concepten -->
+                        <button type="button" @click="selectFolder('Drafts')"
+                                class="w-full flex items-center justify-between rounded-2xl px-3 py-2 text-left text-xs transition"
+                                :class="activeFolder === 'Drafts' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-black border border-slate-200 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold'">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fa-regular fa-file-lines text-xs w-4 text-center"></i>
+                                <span>Concepten</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-bold" x-text="stats['Drafts'] ? stats['Drafts'].total : ''"></span>
+                        </button>
+
+                        <!-- Spam / Ongewenst -->
+                        <button type="button" @click="selectFolder('Spam')"
+                                class="w-full flex items-center justify-between rounded-2xl px-3 py-2 text-left text-xs transition"
+                                :class="activeFolder === 'Spam' ? 'bg-white dark:bg-slate-800 text-amber-600 shadow-xs font-black border border-slate-200 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold'">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fa-solid fa-shield-halved text-xs w-4 text-center text-amber-500"></i>
+                                <span>Spam / Ongewenst</span>
+                            </span>
+                            <template x-if="stats['Spam'] && stats['Spam'].total > 0">
+                                <span class="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-black" x-text="stats['Spam'].total"></span>
+                            </template>
+                        </button>
+
+                        <!-- Prullenbak -->
+                        <button type="button" @click="selectFolder('Trash')"
+                                class="w-full flex items-center justify-between rounded-2xl px-3 py-2 text-left text-xs transition"
+                                :class="activeFolder === 'Trash' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs font-black border border-slate-200 dark:border-slate-700' : 'text-slate-600 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 font-semibold'">
+                            <span class="flex items-center gap-2.5">
+                                <i class="fa-regular fa-trash-can text-xs w-4 text-center"></i>
+                                <span>Prullenbak</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-bold" x-text="stats['Trash'] ? stats['Trash'].total : ''"></span>
+                        </button>
+
+                    </nav>
+                </div>
+
+            </div>
+
+            <!-- Server Status Footnote -->
+            <div class="mt-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-3 text-[11px] shadow-2xs space-y-1">
+                <div class="flex items-center justify-between text-slate-700 dark:text-slate-300 font-bold">
+                    <span>Brevo SMTP Relay</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                </div>
+                <p class="text-[10px] text-slate-400">
+                    Geauthenticeerde DKIM &amp; SPF aflevering actief.
+                </p>
+            </div>
+        </aside>
+
+        <!-- ============================================== -->
+        <!-- 2. MIDDLE COLUMN: Message List                 -->
+        <!-- ============================================== -->
+        <section class="w-full md:w-96 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
+            
+            <!-- Search & Controls Bar -->
+            <div class="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/30 space-y-2">
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+                        <input type="text" x-model="searchQuery" @keydown.enter="doSearch()" placeholder="Zoek in alle e-mails..."
+                               class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-8 pr-7 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:border-purple-600 focus:ring-1 focus:ring-purple-600">
+                        <button type="button" x-show="searchQuery" @click="searchQuery = ''; doSearch()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <button type="button" @click="refreshMessages()" class="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition" title="Vernieuwen">
+                        <i class="fa-solid fa-rotate-right text-xs" :class="loading ? 'animate-spin text-purple-600' : ''"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1 font-medium">
+                    <span x-text="searchQuery ? 'Zoekresultaten' : folderLabel(activeFolder)"></span>
+                    <span x-text="totalMessages > 0 ? (totalMessages + ' ' + (totalMessages === 1 ? 'bericht' : 'berichten')) : '0 berichten'"></span>
+                </div>
+            </div>
+
+            <!-- Messages Scrollable List -->
+            <div class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/70"
+                 @contextmenu.prevent="openContextMenu($event)">
+                
+                <template x-if="loading && messages.length === 0">
+                    <div class="p-8 text-center text-xs text-slate-400 space-y-2">
+                        <i class="fa-solid fa-circle-notch animate-spin text-xl text-purple-600"></i>
+                        <p>E-mails ophalen via IMAP...</p>
+                    </div>
+                </template>
+
+                <template x-if="!loading && messages.length === 0">
+                    <div class="p-10 text-center space-y-2">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-lg mx-auto">
+                            <i class="fa-solid fa-inbox"></i>
+                        </div>
+                        <h4 class="text-xs font-black text-slate-700 dark:text-slate-300">Geen berichten</h4>
+                        <p class="text-[11px] text-slate-400">Deze map is momenteel leeg.</p>
+                    </div>
+                </template>
+
+                <template x-for="msg in messages" :key="msg.uid">
+                    <div @click="selectMessage(msg)"
+                         @contextmenu.stop="openMsgContextMenu($event, msg)"
+                         class="p-3.5 cursor-pointer transition select-none flex flex-col gap-1 border-l-4"
+                         :class="[
+                             selectedMessage && selectedMessage.uid === msg.uid 
+                                 ? 'bg-purple-50/70 dark:bg-purple-950/40 border-purple-600' 
+                                 : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 border-transparent',
+                             msg.unread ? 'font-bold' : 'font-normal opacity-90'
+                         ]">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span x-show="msg.unread" class="w-2 h-2 rounded-full bg-purple-600 shrink-0"></span>
+                                <span class="text-xs font-black text-slate-900 dark:text-white truncate" x-text="msg.from_name || msg.from_email"></span>
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="msg.date_short || msg.date"></span>
+                        </div>
+
+                        <h4 class="text-xs text-slate-800 dark:text-slate-200 truncate" x-text="msg.subject || '(Geen onderwerp)'"></h4>
+                        <span class="text-[10px] text-slate-400 truncate font-mono" x-text="'Aan: ' + (msg.to_email || 'Kliniek')"></span>
+                    </div>
+                </template>
+
+            </div>
+
+            <!-- List Pagination Footer -->
+            <div x-show="totalPages > 1" class="p-2.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/30 flex items-center justify-between text-xs">
+                <button type="button" @click="prevPage()" :disabled="currentPage <= 1"
+                        class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] font-bold disabled:opacity-40">
+                    &larr; Vorige
+                </button>
+                <span class="text-[11px] text-slate-500 font-mono" x-text="'Pagina ' + currentPage + ' / ' + totalPages"></span>
+                <button type="button" @click="nextPage()" :disabled="currentPage >= totalPages"
+                        class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] font-bold disabled:opacity-40">
+                    Volgende &rarr;
+                </button>
+            </div>
+
+        </section>
+
+        <!-- ============================================== -->
+        <!-- 3. RIGHT COLUMN: Message View & Empty State    -->
+        <!-- ============================================== -->
+        <main class="flex-1 bg-white dark:bg-slate-900 flex flex-col min-w-0 overflow-hidden">
+            
+            <!-- Empty State: No message selected -->
+            <template x-if="!selectedMessage">
+                <div class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+                    <div class="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 text-3xl shadow-sm">
+                        <i class="fa-regular fa-envelope-open"></i>
+                    </div>
+                    <div class="max-w-xs space-y-1">
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white">Geen bericht geselecteerd</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Kies een e-mail uit de lijst aan de linkerkant om de volledige inhoud te lezen of stel direct een nieuw bericht op.
+                        </p>
+                    </div>
+                    <button type="button" @click="openCompose()"
+                            class="px-4 py-2 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold text-xs hover:bg-purple-100 transition border border-purple-200 dark:border-purple-800">
+                        <i class="fa-solid fa-pen-to-square mr-1"></i> E-mail Versturen via Brevo
+                    </button>
+                </div>
+            </template>
+
+            <!-- Active Message View -->
+            <template x-if="selectedMessage">
+                <div class="flex-1 flex flex-col h-full overflow-hidden">
+                    
+                    <!-- Message Header & Action Toolbar -->
+                    <div class="p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20 space-y-4 shrink-0">
+                        
+                        <!-- Top Toolbar Knopjes -->
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" @click="replyToMessage()"
+                                        class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-2xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-reply text-[11px]"></i> Beantwoorden
+                                </button>
+                                <button type="button" @click="forwardMessage()"
+                                        class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-share text-[11px]"></i> Doorsturen
+                                </button>
+                                <button type="button" @click="toggleReadCurrent()"
+                                        class="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-400 text-xs transition" title="Als ongelezen markeren">
+                                    <i class="fa-regular fa-envelope"></i>
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" @click="markSpamCurrent()"
+                                        class="px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 text-amber-700 dark:text-amber-400 text-xs transition font-semibold" title="Verplaats naar Spam">
+                                    <i class="fa-solid fa-shield-halved"></i> Spam
+                                </button>
+                                <button type="button" @click="deleteCurrent()"
+                                        class="px-2.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-700 dark:text-rose-400 text-xs transition font-semibold" title="Verwijderen">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Subject & Sender Info -->
+                        <div class="space-y-2">
+                            <h2 class="text-base sm:text-xl font-black text-slate-900 dark:text-white leading-tight" x-text="selectedMessage.subject"></h2>
+                            
+                            <div class="flex items-start justify-between gap-3 text-xs">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0"
+                                         x-text="(selectedMessage.from_name || selectedMessage.from_email || '?').substring(0, 1).toUpperCase()"></div>
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-slate-900 dark:text-white truncate" x-text="selectedMessage.from_name || selectedMessage.from_email"></div>
+                                        <div class="text-[11px] text-slate-400 font-mono truncate" x-text="'Van: ' + selectedMessage.from_email"></div>
+                                    </div>
+                                </div>
+                                <span class="text-[11px] font-mono text-slate-400 shrink-0" x-text="selectedMessage.date"></span>
+                            </div>
+
+                            <div class="text-[11px] text-slate-400 font-mono pt-1">
+                                Aan: <span class="text-slate-600 dark:text-slate-300 font-bold" x-text="selectedMessage.to_email || 'Kliniek'"></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Message Body Container -->
+                    <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-white dark:bg-slate-900 selection:bg-purple-500/20">
+                        <template x-if="bodyLoading">
+                            <div class="p-8 text-center text-xs text-slate-400 space-y-2">
+                                <i class="fa-solid fa-spinner animate-spin text-lg text-purple-600"></i>
+                                <p>Berichtinhoud inladen...</p>
+                            </div>
+                        </template>
+
+                        <template x-if="!bodyLoading && selectedMessage.body_html">
+                            <div class="prose dark:prose-invert max-w-none text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-sans"
+                                 x-html="selectedMessage.body_html"></div>
+                        </template>
+
+                        <template x-if="!bodyLoading && !selectedMessage.body_html && selectedMessage.body_plain">
+                            <div class="whitespace-pre-wrap font-sans text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed"
+                                 x-text="selectedMessage.body_plain"></div>
+                        </template>
+                    </div>
+
+                </div>
+            </template>
+
+        </main>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 4. COMPOSE MODAL (BREVO DISPATCH)              -->
+    <!-- ============================================== -->
+    <div x-show="composeOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+         @click.self="composeOpen = false">
+        
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-4 sm:p-5 bg-slate-50/50 dark:bg-slate-800/40">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center text-xs shadow-2xs">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white" x-text="compose.isReply ? 'E-mail Beantwoorden' : 'Nieuw Bericht Opstellen'"></h3>
+                        <span class="text-[10px] text-slate-400">Verzending via Brevo SMTP Relay</span>
+                    </div>
+                </div>
+
+                <button type="button" @click="composeOpen = false" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form @submit.prevent="submitCompose()" class="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6 space-y-4 text-xs">
+                
+                <!-- Senders & Templates Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                        <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500 mb-1">Verzenden Vanaf:</label>
+                        <select x-model="compose.mailbox" class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white py-2 px-3">
+                            <option value="vragen">Vragen &amp; Helpdesk &lt;vragen@tbs-kliniek.nl&gt;</option>
+                            <option value="privacy">Privacy &amp; AVG &lt;privacy@tbs-kliniek.nl&gt;</option>
+                            <option value="daniel">Daniël (Eigenaar) &lt;daniel@tbs-kliniek.nl&gt;</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500 mb-1">Snelle Sjablonen:</label>
+                        <div class="flex flex-wrap gap-1">
+                            <button type="button" @click="applyTemplate('support')" class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200 hover:bg-emerald-100">Helpdesk</button>
+                            <button type="button" @click="applyTemplate('privacy')" class="px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200 hover:bg-indigo-100">Privacy/AVG</button>
+                            <button type="button" @click="applyTemplate('sanction')" class="px-2 py-1 rounded-lg bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200 hover:bg-rose-100">Sanctie</button>
+                            <button type="button" @click="applyTemplate('owner')" class="px-2 py-1 rounded-lg bg-amber-50 text-amber-700 text-[10px] font-bold border border-amber-200 hover:bg-amber-100">Directie</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recipient & Speler Autocomplete -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500">Ontvanger *</label>
+                        
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] text-slate-400">Kies speler:</span>
+                            <select @change="selectPlayer($event)" class="text-[11px] font-bold rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-1 px-2">
+                                <option value="">-- Zoek speler --</option>
+                                @foreach($players as $p)
+                                <option value="{{ $p->email }}">{{ $p->name }} ({{ $p->email }})</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">E-mailadres Ontvanger *</span>
-                            <input type="email" name="recipient_email" x-model="recipientEmail" required
-                                   placeholder="bijv. speler@example.com"
-                                   class="w-full text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                        </div>
-
-                        <div class="space-y-1">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Naam Ontvanger (optioneel)</span>
-                            <input type="text" name="recipient_name" x-model="recipientName"
-                                   placeholder="bijv. Jan Jansen of KarakterNaam"
-                                   class="w-full text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="email" x-model="compose.to" required placeholder="bijv. speler@example.com"
+                               class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-bold">
+                        <input type="text" x-model="compose.cc" placeholder="CC: optioneel adres"
+                               class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-mono text-[11px]">
                     </div>
                 </div>
 
-                <!-- Subject & Body -->
-                <div class="space-y-4 pt-2">
-                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        3. E-mail Inhoud &amp; Onderwerp
-                    </label>
-
-                    <div class="space-y-1">
-                        <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Onderwerp *</span>
-                        <input type="text" name="subject" x-model="subject" required
-                               placeholder="Onderwerp van het bericht..."
-                               class="w-full text-xs font-bold rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                    </div>
-
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Berichttekst *</span>
-                            <span class="text-[10px] text-slate-400">Alinea's en witregels worden automatisch netjes geformatteerd in de template</span>
-                        </div>
-                        <textarea name="body" x-model="body" rows="9" required
-                                  placeholder="Typ hier de volledige inhoud van het e-mailbericht..."
-                                  class="w-full text-xs font-medium rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-4 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 leading-relaxed font-sans"></textarea>
-                    </div>
+                <!-- Subject -->
+                <div class="space-y-1">
+                    <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500">Onderwerp *</label>
+                    <input type="text" x-model="compose.subject" required placeholder="Onderwerp van het bericht..."
+                           class="w-full rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-2.5 font-bold">
                 </div>
 
-                <!-- Submit Button -->
-                <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <i class="fa-solid fa-shield-halved text-emerald-500"></i>
-                        <span>Verzonden via Brevo Relay met DKIM, SPF en SSL beveiliging.</span>
-                    </div>
+                <!-- Body -->
+                <div class="space-y-1">
+                    <label class="block text-[10px] uppercase font-black tracking-wider text-slate-500">Berichttekst *</label>
+                    <textarea x-model="compose.body" required rows="9" placeholder="Typ hier jouw bericht..."
+                              class="w-full rounded-2xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white p-3.5 leading-relaxed font-sans"></textarea>
+                </div>
 
-                    <button type="submit" 
-                            class="px-7 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-paper-plane"></i> E-mail Nu Versturen via Brevo
-                    </button>
+                <!-- Modal Actions -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <span class="text-[10px] text-slate-400">Automatische handtekening en kopie in Verzonden.</span>
+                    
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="composeOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs">
+                            Annuleren
+                        </button>
+                        <button type="submit" :disabled="sending"
+                                class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs flex items-center gap-2 disabled:opacity-50">
+                            <i class="fa-solid fa-paper-plane" :class="sending ? 'animate-bounce' : ''"></i>
+                            <span x-text="sending ? 'Verzenden...' : 'Verstuur via Brevo'"></span>
+                        </button>
+                    </div>
                 </div>
 
             </form>
@@ -349,216 +482,369 @@
         </div>
     </div>
 
-    <!-- TAB 2: SENT MAIL LOGS -->
-    <div x-show="activeTab === 'logs'" class="space-y-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-                <div>
-                    <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-purple-600"></i> Verzonden Berichten Logboek
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
-                        Overzicht van alle e-mails die via het Medewerkers Paneel zijn verzonden.
-                    </p>
-                </div>
-                <span class="text-xs font-bold text-slate-400">Totaal: {{ $logs->total() }}</span>
+    <!-- ============================================== -->
+    <!-- 5. SERVER SETUP / CREDENTIALS MODAL            -->
+    <!-- ============================================== -->
+    <div x-show="setupModalOpen" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+         @click.self="setupModalOpen = false">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 text-xs">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> Server &amp; Inloggegevens
+                </h3>
+                <button type="button" @click="setupModalOpen = false" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
-            @if($logs->isEmpty())
-            <div class="text-center py-12 space-y-3">
-                <div class="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-2xl mx-auto">
-                    <i class="fa-solid fa-envelope-circle-check"></i>
+            <div class="space-y-3">
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">IMAP (Inkomend)</span>
+                    <p class="font-mono font-bold text-slate-800 dark:text-slate-200">tbs-kliniek.nl &bull; Poort 993 (SSL)</p>
                 </div>
-                <p class="text-xs font-bold text-slate-500 dark:text-slate-400">
-                    Er zijn nog geen e-mails verzonden via dit beheerpaneel.
-                </p>
-            </div>
-            @else
-            <div class="overflow-x-auto mt-4">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            <th class="py-3 px-3">Datum/Tijd</th>
-                            <th class="py-3 px-3">Afzender</th>
-                            <th class="py-3 px-3">Ontvanger</th>
-                            <th class="py-3 px-3">Onderwerp</th>
-                            <th class="py-3 px-3 text-center">Status</th>
-                            <th class="py-3 px-3 text-right">Actie</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium text-slate-700 dark:text-slate-300">
-                        @foreach($logs as $log)
-                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                            <td class="py-3.5 px-3 whitespace-nowrap text-[11px] text-slate-500">
-                                {{ $log->created_at->format('d-m-Y H:i') }}
-                            </td>
-                            <td class="py-3.5 px-3 whitespace-nowrap font-mono text-[11px] text-purple-600 dark:text-purple-400 font-bold">
-                                {{ $log->sender_email }}
-                            </td>
-                            <td class="py-3.5 px-3">
-                                <span class="font-bold text-slate-900 dark:text-white block">{{ $log->recipient_name ?: '-' }}</span>
-                                <span class="text-[10px] text-slate-400 font-mono">{{ $log->recipient_email }}</span>
-                            </td>
-                            <td class="py-3.5 px-3 max-w-xs truncate font-bold text-slate-800 dark:text-slate-200">
-                                {{ $log->subject }}
-                            </td>
-                            <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                                @if($log->status === 'sent')
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                    Verzonden
-                                </span>
-                                @else
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-100 text-rose-800 border border-rose-200" title="{{ $log->error_message }}">
-                                    Mislukt
-                                </span>
-                                @endif
-                            </td>
-                            <td class="py-3.5 px-3 text-right whitespace-nowrap">
-                                <button type="button" @click="openLogModal({{ $log->id }})"
-                                        class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-purple-100 text-slate-700 hover:text-purple-700 text-[11px] font-bold transition">
-                                    <i class="fa-solid fa-eye"></i> Bekijk
-                                </button>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">SMTP (Uitgaand Brevo Relay)</span>
+                    <p class="font-mono font-bold text-slate-800 dark:text-slate-200">smtp-relay.brevo.com &bull; Poort 587 (TLS)</p>
+                </div>
+                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-1">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Account &amp; Wachtwoord</span>
+                    <p class="font-mono font-bold text-purple-700 dark:text-purple-400">daniel@tbs-kliniek.nl</p>
+                    <p class="font-mono text-slate-600 dark:text-slate-300 font-bold select-all">TBSKliniek2026!Mail#Dan</p>
+                </div>
             </div>
 
-            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                {{ $logs->links() }}
+            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button type="button" @click="setupModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold">
+                    Sluiten
+                </button>
             </div>
-            @endif
         </div>
     </div>
-
-    <!-- TAB 3: INBOX / INCOMING IMAP -->
-    <div x-show="activeTab === 'inbox'" class="space-y-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-                <div>
-                    <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="fa-solid fa-inbox text-purple-600"></i> Binnenkomende E-mails (Plesk Mailbox)
-                    </h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Berichten die verzonden zijn naar <code>vragen@</code>, <code>privacy@</code> of <code>daniel@tbs-kliniek.nl</code>.
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <a href="{{ $mailboxConfig['webmail_url'] }}" target="_blank" rel="noopener noreferrer"
-                       class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5">
-                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in Roundcube Webmail
-                    </a>
-                </div>
-            </div>
-
-            @if(!$inboxMessages['connected'])
-            <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs mt-4">
-                <div class="flex items-center gap-2 font-black">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Lokale IMAP Verbinding</span>
-                </div>
-                <p class="mt-1 leading-relaxed">
-                    {{ $inboxMessages['error'] ?? 'IMAP verbinding kon niet direct worden opgebouwd.' }}<br>
-                    Alle inkomende e-mails zijn direct live te beheren via <a href="{{ $mailboxConfig['webmail_url'] }}" target="_blank" class="underline font-bold">Roundcube Webmail</a>.
-                </p>
-            </div>
-            @elseif(empty($inboxMessages['messages']))
-            <div class="text-center py-12 space-y-2">
-                <div class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 text-xl mx-auto">
-                    <i class="fa-solid fa-envelope-open"></i>
-                </div>
-                <h4 class="text-xs font-black text-slate-700 dark:text-slate-300">Geen nieuwe e-mails in de inbox</h4>
-                <p class="text-[11px] text-slate-400">De mailbox is momenteel helemaal leeg.</p>
-            </div>
-            @else
-            <div class="overflow-x-auto mt-4">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="border-b border-slate-100 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                            <th class="py-3 px-3">Datum</th>
-                            <th class="py-3 px-3">Afzender</th>
-                            <th class="py-3 px-3">Aan</th>
-                            <th class="py-3 px-3">Onderwerp</th>
-                            <th class="py-3 px-3 text-right">Beantwoorden</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
-                        @foreach($inboxMessages['messages'] as $msg)
-                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
-                            <td class="py-3 px-3 text-[11px] text-slate-500 whitespace-nowrap">{{ $msg['date'] }}</td>
-                            <td class="py-3 px-3 font-bold text-slate-900 dark:text-white">{{ $msg['from'] }}</td>
-                            <td class="py-3 px-3 font-mono text-[10px] text-purple-600 dark:text-purple-400">{{ $msg['to'] }}</td>
-                            <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-200">{{ $msg['subject'] }}</td>
-                            <td class="py-3 px-3 text-right whitespace-nowrap">
-                                <button type="button" 
-                                        @click="activeTab = 'compose'; recipientEmail = '{{ addslashes($msg['from']) }}'; subject = 'Re: {{ addslashes($msg['subject']) }}'; window.scrollTo({top: 400, behavior: 'smooth'})"
-                                        class="px-3 py-1 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 text-purple-700 dark:text-purple-300 font-bold text-[11px] transition">
-                                    <i class="fa-solid fa-reply"></i> Beantwoorden
-                                </button>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            @endif
-
-        </div>
-    </div>
-
-    <!-- LOG DETAIL MODAL -->
-    <template x-if="showLogModal && selectedLog">
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm"
-             @click.self="showLogModal = false">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-7 max-w-2xl w-full shadow-2xl space-y-5 relative">
-                
-                <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-                    <div>
-                        <span class="text-[10px] font-black uppercase text-purple-600 tracking-wider">Verzonden E-mail Details</span>
-                        <h4 class="text-base font-black text-slate-900 dark:text-white" x-text="selectedLog.subject"></h4>
-                    </div>
-                    <button type="button" @click="showLogModal = false" class="text-slate-400 hover:text-slate-600 text-lg">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Afzender:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200" x-text="selectedLog.sender_name + ' <' + selectedLog.sender_email + '>'"></span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Ontvanger:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200" x-text="(selectedLog.recipient_name || '-') + ' <' + selectedLog.recipient_email + '>'"></span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Verzonden op:</span>
-                        <span class="font-mono text-slate-600 dark:text-slate-400" x-text="selectedLog.created_at"></span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Verzonden door medewerker:</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200" x-text="selectedLog.sender_user"></span>
-                    </div>
-                </div>
-
-                <div class="space-y-1">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Verzonden Inhoud:</span>
-                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto font-sans"
-                         x-text="selectedLog.body"></div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                    <button type="button" @click="showLogModal = false"
-                            class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
-                        Sluiten
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </template>
 
 </div>
+
+<!-- INLINE ALPINESCRIPT COMPONENT FOR FULL OUTLOOK MAILBOX CLIENT -->
+<script>
+function tbsMailboxClient(config) {
+    return {
+        activeMailbox: config.activeMailbox || 'all',
+        activeFolder: config.activeFolder || 'INBOX',
+        messages: config.initialMessages || [],
+        stats: config.initialStats || {},
+        totalMessages: config.totalMessages || 0,
+        currentPage: config.currentPage || 1,
+        totalPages: config.totalPages || 1,
+        searchQuery: config.searchQuery || '',
+        loading: false,
+        bodyLoading: false,
+        sending: false,
+        selectedMessage: null,
+        composeOpen: false,
+        setupModalOpen: false,
+
+        compose: {
+            mailbox: 'vragen',
+            to: '',
+            cc: '',
+            subject: '',
+            body: '',
+            isReply: false
+        },
+
+        get activeMailboxLabel() {
+            const labels = {
+                'all': 'Alle Postbussen',
+                'vragen': 'Vragen & Helpdesk',
+                'privacy': 'Privacy & AVG',
+                'daniel': 'Daniël (Directie)'
+            };
+            return labels[this.activeMailbox] || 'TBS Kliniek Mailbox';
+        },
+
+        get currentMailboxEmail() {
+            const emails = {
+                'all': 'vragen, privacy & daniel@tbs-kliniek.nl',
+                'vragen': 'vragen@tbs-kliniek.nl',
+                'privacy': 'privacy@tbs-kliniek.nl',
+                'daniel': 'daniel@tbs-kliniek.nl'
+            };
+            return emails[this.activeMailbox] || 'daniel@tbs-kliniek.nl';
+        },
+
+        folderLabel(folder) {
+            const labels = {
+                'INBOX': 'Postvak IN',
+                'Sent': 'Verzonden',
+                'Drafts': 'Concepten',
+                'Spam': 'Spam / Ongewenst',
+                'Trash': 'Prullenbak'
+            };
+            return labels[folder] || folder;
+        },
+
+        selectMailbox(mb) {
+            this.activeMailbox = mb;
+            this.currentPage = 1;
+            this.selectedMessage = null;
+            this.fetchFeed();
+        },
+
+        selectFolder(f) {
+            this.activeFolder = f;
+            this.currentPage = 1;
+            this.selectedMessage = null;
+            this.fetchFeed();
+        },
+
+        doSearch() {
+            this.currentPage = 1;
+            this.fetchFeed();
+        },
+
+        refreshMessages() {
+            this.fetchFeed();
+        },
+
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+                this.fetchFeed();
+            }
+        },
+
+        nextPage() {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage++;
+                this.fetchFeed();
+            }
+        },
+
+        fetchFeed() {
+            this.loading = true;
+            const params = new URLSearchParams({
+                mailbox: this.activeMailbox,
+                folder: this.activeFolder,
+                page: this.currentPage,
+                q: this.searchQuery || ''
+            });
+
+            fetch(config.feedUrl + '?' + params.toString(), {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.messages = data.messages || [];
+                this.totalMessages = data.total || 0;
+                this.currentPage = data.page || 1;
+                this.totalPages = data.totalPages || 1;
+                if (data.stats) {
+                    this.stats = data.stats;
+                }
+                this.loading = false;
+            })
+            .catch(err => {
+                console.error('Fetch feed error:', err);
+                this.loading = false;
+            });
+        },
+
+        selectMessage(msg) {
+            this.selectedMessage = msg;
+            msg.unread = false;
+            this.bodyLoading = true;
+
+            const params = new URLSearchParams({ folder: this.activeFolder });
+            fetch(config.messageBaseUrl + '/' + msg.uid + '?' + params.toString(), {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    this.selectedMessage = data.message;
+                }
+                this.bodyLoading = false;
+            })
+            .catch(err => {
+                console.error('Fetch message body error:', err);
+                this.bodyLoading = false;
+            });
+        },
+
+        openCompose() {
+            this.compose = {
+                mailbox: (this.activeMailbox !== 'all') ? this.activeMailbox : 'vragen',
+                to: '',
+                cc: '',
+                subject: '',
+                body: '',
+                isReply: false
+            };
+            this.composeOpen = true;
+        },
+
+        replyToMessage() {
+            if (!this.selectedMessage) return;
+            const msg = this.selectedMessage;
+            const subject = msg.subject.startsWith('Re:') ? msg.subject : ('Re: ' + msg.subject);
+            const quote = '\n\n--- Oorspronkelijk bericht ---\n'
+                + 'Van: ' + (msg.from_name || msg.from_email) + ' <' + msg.from_email + '>\n'
+                + 'Datum: ' + msg.date + '\n'
+                + 'Onderwerp: ' + msg.subject + '\n\n'
+                + (msg.body_plain || '');
+
+            this.compose = {
+                mailbox: (this.activeMailbox !== 'all') ? this.activeMailbox : 'vragen',
+                to: msg.from_email,
+                cc: '',
+                subject: subject,
+                body: quote,
+                isReply: true
+            };
+            this.composeOpen = true;
+        },
+
+        forwardMessage() {
+            if (!this.selectedMessage) return;
+            const msg = this.selectedMessage;
+            const subject = msg.subject.startsWith('Fwd:') ? msg.subject : ('Fwd: ' + msg.subject);
+            const quote = '\n\n---------- Doorgestuurd bericht ---------\n'
+                + 'Van: ' + (msg.from_name || msg.from_email) + ' <' + msg.from_email + '>\n'
+                + 'Datum: ' + msg.date + '\n'
+                + 'Onderwerp: ' + msg.subject + '\n'
+                + 'Aan: ' + (msg.to_email || '') + '\n\n'
+                + (msg.body_plain || '');
+
+            this.compose = {
+                mailbox: (this.activeMailbox !== 'all') ? this.activeMailbox : 'vragen',
+                to: '',
+                cc: '',
+                subject: subject,
+                body: quote,
+                isReply: false
+            };
+            this.composeOpen = true;
+        },
+
+        selectPlayer(e) {
+            const email = e.target.value;
+            if (email) {
+                this.compose.to = email;
+            }
+        },
+
+        applyTemplate(type) {
+            if (type === 'support') {
+                this.compose.mailbox = 'vragen';
+                this.compose.subject = 'Ondersteuning TBS Kliniek - Reactie op jouw vraag';
+                this.compose.body = 'Beste speler,\n\nBedankt voor je bericht aan het ondersteuningsteam van de TBS Kliniek.\n\nWe hebben je vraag bekeken en willen je als volgt informeren:\n\n[Typ hier jouw antwoord...]\n\nMet vriendelijke groet,\nTBS Kliniek Ondersteuningsteam\nvragen@tbs-kliniek.nl';
+            } else if (type === 'privacy') {
+                this.compose.mailbox = 'privacy';
+                this.compose.subject = 'TBS Kliniek Privacy & AVG - Verzoek In behandeling';
+                this.compose.body = 'Beste speler,\n\nWij hebben uw verzoek met betrekking tot uw persoonsgegevens en accountverwijdering conform de AVG in goede orde ontvangen.\n\nWij zullen uw verzoek binnen de wettelijke termijn verwerken en u op de hoogte stellen zodra alle gegevens definitief gewist zijn.\n\nMet vriendelijke groet,\nFunctionaris Gegevensbescherming\nTBS Kliniek\nprivacy@tbs-kliniek.nl';
+            } else if (type === 'owner') {
+                this.compose.mailbox = 'daniel';
+                this.compose.subject = 'Bericht van de directie van TBS Kliniek';
+                this.compose.body = 'Beste speler,\n\nAls eigenaar van TBS Kliniek neem ik hierbij contact met je op:\n\n[Typ hier jouw bericht...]\n\nMet vriendelijke groet,\nDaniël\nEigenaar TBS Kliniek\ndaniel@tbs-kliniek.nl';
+            } else if (type === 'sanction') {
+                this.compose.mailbox = 'vragen';
+                this.compose.subject = 'Toelichting inzake accountstatus & sanctie - TBS Kliniek';
+                this.compose.body = 'Beste speler,\n\nNaar aanleiding van jouw vraag omtrent een sanctie of blokkade hebben wij het dossier opnieuw doorgenomen:\n\n[Plaats hier de toelichting en eventuele voorwaarden...]\n\nMet vriendelijke groet,\nDirectie & Moderatie\nTBS Kliniek';
+            }
+        },
+
+        submitCompose() {
+            this.sending = true;
+            const formData = new FormData();
+            formData.append('to', this.compose.to);
+            formData.append('subject', this.compose.subject);
+            formData.append('body', this.compose.body);
+            formData.append('cc', this.compose.cc || '');
+            formData.append('mailbox', this.compose.mailbox);
+
+            fetch(config.sendUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': config.csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.sending = false;
+                if (data.ok) {
+                    alert('📧 E-mail succesvol verzonden via Brevo!');
+                    this.composeOpen = false;
+                    this.fetchFeed();
+                } else {
+                    alert('Fout: ' + (data.error || 'Verzenden mislukt.'));
+                }
+            })
+            .catch(err => {
+                this.sending = false;
+                alert('Er is een netwerkfout opgetreden bij het verzenden.');
+            });
+        },
+
+        deleteCurrent() {
+            if (!this.selectedMessage || !confirm('Weet je zeker dat je dit bericht wilt verwijderen?')) return;
+            const uid = this.selectedMessage.uid;
+            const params = new URLSearchParams({ folder: this.activeFolder });
+
+            fetch(config.messageBaseUrl + '/' + uid + '?' + params.toString(), {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': config.csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.selectedMessage = null;
+                this.fetchFeed();
+            });
+        },
+
+        markSpamCurrent() {
+            if (!this.selectedMessage) return;
+            const uid = this.selectedMessage.uid;
+            const params = new URLSearchParams({ folder: this.activeFolder });
+
+            fetch(config.messageBaseUrl + '/' + uid + '/spam?' + params.toString(), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': config.csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.selectedMessage = null;
+                this.fetchFeed();
+            });
+        },
+
+        toggleReadCurrent() {
+            if (!this.selectedMessage) return;
+            const uid = this.selectedMessage.uid;
+            const params = new URLSearchParams({ folder: this.activeFolder });
+
+            fetch(config.messageBaseUrl + '/' + uid + '/toggle-read?' + params.toString(), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': config.csrfToken,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ seen: false })
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.fetchFeed();
+            });
+        }
+    };
+}
+</script>
 @endsection

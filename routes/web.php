@@ -623,8 +623,13 @@ Route::middleware('auth')->group(function (): void {
         // Eigenaar Mailbox & Brevo E-mail (Strikt voorbehouden aan Eigenaar)
         Route::middleware(EnsureUserIsOwner::class)->prefix('mail')->name('mail.')->group(function (): void {
             Route::get('/', [AdminMailController::class, 'index'])->name('index');
-            Route::post('/versturen', [AdminMailController::class, 'send'])->name('send');
-            Route::get('/logs/{log}', [AdminMailController::class, 'showLog'])->name('logs.show');
+            Route::get('/feed', [AdminMailController::class, 'feed'])->name('feed');
+            Route::get('/message/{uid}', [AdminMailController::class, 'show'])->name('show');
+            Route::post('/send', [AdminMailController::class, 'send'])->name('send');
+            Route::delete('/message/{uid}', [AdminMailController::class, 'destroy'])->name('destroy');
+            Route::post('/message/{uid}/spam', [AdminMailController::class, 'spam'])->name('spam');
+            Route::post('/message/{uid}/move', [AdminMailController::class, 'move'])->name('move');
+            Route::post('/message/{uid}/toggle-read', [AdminMailController::class, 'toggleRead'])->name('toggle_read');
         });
     });
 

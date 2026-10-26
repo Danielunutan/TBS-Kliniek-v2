@@ -55,7 +55,15 @@ class ReplyTicketCommand extends Command
 
         $danielCharacter = $danielUser?->character ?? Character::where('name', 'like', '%daniel%')->first();
 
-        if ($ticketNumber === 'TBS-CJS-614' || str_contains(strtolower($ticket->subject), 'afkoelen') || str_contains(strtolower($ticket->character?->name ?? ''), 'carootje')) {
+        if ($ticket->id == 35 || str_contains(strtolower($ticket->subject), 'verwijder') || str_contains(strtolower($ticket->subject), 'account verqijderen')) {
+            $replyMessage = "Beste {$ticket->character?->name},\n\n"
+                ."Bedankt voor je bericht via dit ticket inzake je account.\n\n"
+                ."Je mag voor het definitief laten verwijderen van je account en alle bijbehorende gegevens een e-mail sturen naar **privacy@tbs-kliniek.nl** vanaf het e-mailadres dat aan jouw account gekoppeld is.\n\n"
+                ."Zodra wij jouw e-mail hebben ontvangen en geverifieerd, zullen wij conform de Algemene Verordening Gegevensbescherming (AVG) jouw account en alle persoonsgegevens binnen de wettelijke termijn definitief wissen uit onze systemen.\n\n"
+                ."Mocht je in de tussentijd nog vragen hebben, laat het ons dan gerust weten.\n\n"
+                ."Met vriendelijke groet,\n"
+                .'Daniël • TBS Kliniek Leiding & Privacy';
+        } elseif ($ticketNumber === 'TBS-CJS-614' || str_contains(strtolower($ticket->subject), 'afkoelen') || str_contains(strtolower($ticket->character?->name ?? ''), 'carootje')) {
             $replyMessage = "Beste carootje,\n\n"
                 ."Ontzettend bedankt voor je melding en scherpe observatie via dit ticket! ⏱️🔥\n\n"
                 ."Je had helemaal gelijk: voorheen bleven de cooldown timers op het scherm statisch stilstaan op de server-tijd waarop de pagina geladen was. Als je wachtte tot je weer een actie mocht uitvoeren, liep de timer in de browser niet realtime af en bleven de actieknoppen vergrendeld totdat je de pagina handmatig ververste. Dat speelde natuurlijk niet fijn als je even zat te wachten.\n\n"

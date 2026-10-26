@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\AdminCustomMail;
 use App\Models\Character;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,10 +75,33 @@ class AdminMailTest extends TestCase
         $response = $this->actingAs($owner)->get(route('admin.mail.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('TBS Kliniek Mailbox &amp; Brevo E-mailbeheer', false);
         $response->assertSee('vragen@tbs-kliniek.nl');
         $response->assertSee('privacy@tbs-kliniek.nl');
         $response->assertSee('daniel@tbs-kliniek.nl');
+        $response->assertSee('Roundcube');
+    }
+
+    public function test_owner_can_fetch_feed_json(): void
+    {
+        $owner = User::factory()->create([
+            'role' => 'owner',
+            'is_staff' => true,
+        ]);
+        $this->createCharacter($owner);
+
+        $response = $this->actingAs($owner)->getJson(route('admin.mail.feed', ['mailbox' => 'all', 'folder' => 'INBOX']));
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'mailbox',
+            'folder',
+            'messages',
+            'total',
+            'page',
+            'perPage',
+            'totalPages',
+            'stats',
+        ]);
     }
 
     public function test_owner_can_send_mail_via_brevo_and_logs_entry(): void
@@ -92,28 +114,22 @@ class AdminMailTest extends TestCase
         ]);
         $this->createCharacter($owner);
 
-        $response = $this->actingAs($owner)->post(route('admin.mail.send'), [
-            'sender_email' => 'vragen@tbs-kliniek.nl',
-            'recipient_email' => 'speler@example.com',
-            'recipient_name' => 'Jan Testspeler',
+        $response = $this->actingAs($owner)->postJson(route('admin.mail.send'), [
+            'mailbox' => 'vragen',
+            'to' => 'speler@example.com',
             'subject' => 'Antwoord op jouw kliniek vraag',
             'body' => 'Beste Jan, dit is een testbericht vanuit het beheerpaneel.',
         ]);
 
-        $response->assertRedirect();
-        $response->assertSessionHas('success');
-
-        Mail::assertSent(AdminCustomMail::class, function ($mail) {
-            return $mail->hasTo('speler@example.com')
-                && $mail->senderEmail === 'vragen@tbs-kliniek.nl'
-                && $mail->mailSubject === 'Antwoord op jouw kliniek vraag';
-        });
+        $response->assertStatus(200);
+        $response->assertJson([
+            'ok' => true,
+        ]);
 
         $this->assertDatabaseHas('admin_mail_logs', [
             'user_id' => $owner->id,
             'sender_email' => 'vragen@tbs-kliniek.nl',
             'recipient_email' => 'speler@example.com',
-            'recipient_name' => 'Jan Testspeler',
             'subject' => 'Antwoord op jouw kliniek vraag',
             'status' => 'sent',
         ]);
