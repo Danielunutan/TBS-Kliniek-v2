@@ -241,26 +241,28 @@
                                  :class="[
                                      card.matched 
                                          ? 'border-emerald-500 ring-2 ring-emerald-400/60 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-emerald-500/20' 
-                                         : (card.shake ? 'border-rose-500 ring-2 ring-rose-400/80 bg-rose-50/50 dark:bg-rose-950/40' : (card.border_color + ' bg-white dark:bg-slate-900'))
-                                 ]">
+                                         : (card.shake ? 'border-rose-500 ring-2 ring-rose-400/80 bg-rose-50/50 dark:bg-rose-950/40' : ('card-border-' + card.id + ' bg-white dark:bg-slate-900'))
+                                 ]"
+                                 :style="(!card.matched && !card.shake && card.border_hex) ? ('border-color: ' + card.border_hex) : ''">
                                 
                                 <!-- Card Category Pill & Match Indicator -->
                                 <div class="w-full flex items-center justify-between text-[7px] sm:text-[9px] font-black uppercase tracking-wider">
-                                    <span class="px-1.5 py-0.5 rounded-md"
-                                          :class="card.matched ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+                                    <span class="px-1.5 py-0.5 rounded-md font-extrabold"
+                                          :class="card.matched ? 'bg-emerald-500 text-white' : ('card-pill-' + card.id)"
+                                          :style="(!card.matched && card.badge_bg) ? ('background-color: ' + card.badge_bg + '; color: ' + card.badge_text + ';') : ''"
                                           x-text="card.category"></span>
                                     <i x-show="card.matched" class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
                                 </div>
 
                                 <!-- Center Asset Icon in Glowing Gradient Badge -->
                                 <div class="my-auto flex flex-col items-center justify-center">
-                                    <div class="w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-base sm:text-xl shadow-xs transition-transform"
+                                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-2xl shadow-sm transition-transform"
                                          :class="[
-                                             'bg-gradient-to-br ' + card.bg_gradient,
+                                             'card-badge-' + card.id,
                                              card.matched ? 'scale-105 ring-2 ring-emerald-300' : ''
                                          ]"
-                                         :style="'box-shadow: 0 0 12px ' + card.glow_color">
-                                        <i class="fa-solid text-white" :class="card.icon"></i>
+                                         :style="(card.bg_style ? ('background: ' + card.bg_style + ' !important; ') : '') + 'box-shadow: 0 0 14px ' + (card.glow_color || 'rgba(147, 51, 234, 0.4)')">
+                                        <i class="fa-solid text-white drop-shadow-sm pointer-events-none" :class="card.icon"></i>
                                     </div>
                                 </div>
 
@@ -420,11 +422,35 @@ function memoryGame(config) {
         },
 
         initGame() {
-            // Ensure cards start facedown
+            const cardThemes = {
+                'smokkelkoffer': { bg: 'linear-gradient(135deg, #9333ea 0%, #4338ca 100%)', border: '#c084fc', badgeBg: 'rgba(168, 85, 247, 0.15)', badgeText: '#9333ea', glow: 'rgba(168, 85, 247, 0.45)', icon: 'fa-briefcase' },
+                'medicijnspuit': { bg: 'linear-gradient(135deg, #059669 0%, #0f766e 100%)', border: '#34d399', badgeBg: 'rgba(16, 185, 129, 0.15)', badgeText: '#059669', glow: 'rgba(16, 185, 129, 0.45)', icon: 'fa-syringe' },
+                'handboeien': { bg: 'linear-gradient(135deg, #334155 0%, #0f172a 100%)', border: '#64748b', badgeBg: 'rgba(100, 116, 139, 0.15)', badgeText: '#475569', glow: 'rgba(100, 116, 139, 0.45)', icon: 'fa-handcuffs' },
+                'bende_masker': { bg: 'linear-gradient(135deg, #e11d48 0%, #be185d 100%)', border: '#fb7185', badgeBg: 'rgba(244, 63, 94, 0.15)', badgeText: '#e11d48', glow: 'rgba(244, 63, 94, 0.45)', icon: 'fa-masks-theater' },
+                'dodelijke_pillen': { bg: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)', border: '#fbbf24', badgeBg: 'rgba(245, 158, 11, 0.15)', badgeText: '#d97706', glow: 'rgba(245, 158, 11, 0.45)', icon: 'fa-pills' },
+                'sleutelbos': { bg: 'linear-gradient(135deg, #4f46e5 0%, #2563eb 100%)', border: '#818cf8', badgeBg: 'rgba(99, 102, 241, 0.15)', badgeText: '#4f46e5', glow: 'rgba(99, 102, 241, 0.5)', icon: 'fa-key' },
+                'steekwapen': { bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', border: '#f87171', badgeBg: 'rgba(239, 68, 68, 0.15)', badgeText: '#dc2626', glow: 'rgba(239, 68, 68, 0.45)', icon: 'fa-screwdriver-wrench' },
+                'kluis': { bg: 'linear-gradient(135deg, #eab308 0%, #d97706 100%)', border: '#facc15', badgeBg: 'rgba(234, 179, 8, 0.18)', badgeText: '#b45309', glow: 'rgba(234, 179, 8, 0.45)', icon: 'fa-vault' },
+                'portofoon': { bg: 'linear-gradient(135deg, #06b6d4 0%, #0d9488 100%)', border: '#22d3ee', badgeBg: 'rgba(6, 182, 212, 0.15)', badgeText: '#0891b2', glow: 'rgba(6, 182, 212, 0.5)', icon: 'fa-walkie-talkie' },
+                'traliecel': { bg: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)', border: '#fb923c', badgeBg: 'rgba(249, 115, 22, 0.15)', badgeText: '#c2410c', glow: 'rgba(249, 115, 22, 0.5)', icon: 'fa-door-closed' }
+            };
+
+            // Ensure cards start facedown and have rich styles
             this.cards.forEach(c => {
                 c.flipped = false;
                 c.matched = false;
                 c.shake = false;
+                const theme = cardThemes[c.id];
+                if (theme) {
+                    c.bg_style = c.bg_style || theme.bg;
+                    c.border_hex = c.border_hex || theme.border;
+                    c.badge_bg = c.badge_bg || theme.badgeBg;
+                    c.badge_text = c.badge_text || theme.badgeText;
+                    c.glow_color = c.glow_color || theme.glow;
+                    if (!c.icon || c.icon === 'fa-dungeon') {
+                        c.icon = theme.icon;
+                    }
+                }
             });
 
             if (this.cooldownRemaining > 0) {
@@ -807,5 +833,46 @@ function memoryGame(config) {
     50% { transform: rotateY(180deg) scale(1.08); }
     100% { transform: rotateY(180deg) scale(1); }
 }
+
+/* SPECIFIC CARD STYLES TO GUARANTEE VISIBILITY ACROSS ALL PLATFORMS & BROWSERS */
+.card-badge-smokkelkoffer { background: linear-gradient(135deg, #9333ea 0%, #4338ca 100%) !important; }
+.card-border-smokkelkoffer { border-color: #c084fc !important; }
+.card-pill-smokkelkoffer { background-color: rgba(168, 85, 247, 0.15) !important; color: #9333ea !important; }
+
+.card-badge-medicijnspuit { background: linear-gradient(135deg, #059669 0%, #0f766e 100%) !important; }
+.card-border-medicijnspuit { border-color: #34d399 !important; }
+.card-pill-medicijnspuit { background-color: rgba(16, 185, 129, 0.15) !important; color: #059669 !important; }
+
+.card-badge-handboeien { background: linear-gradient(135deg, #334155 0%, #0f172a 100%) !important; }
+.card-border-handboeien { border-color: #64748b !important; }
+.card-pill-handboeien { background-color: rgba(100, 116, 139, 0.15) !important; color: #475569 !important; }
+
+.card-badge-bende_masker { background: linear-gradient(135deg, #e11d48 0%, #be185d 100%) !important; }
+.card-border-bende_masker { border-color: #fb7185 !important; }
+.card-pill-bende_masker { background-color: rgba(244, 63, 94, 0.15) !important; color: #e11d48 !important; }
+
+.card-badge-dodelijke_pillen { background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%) !important; }
+.card-border-dodelijke_pillen { border-color: #fbbf24 !important; }
+.card-pill-dodelijke_pillen { background-color: rgba(245, 158, 11, 0.15) !important; color: #d97706 !important; }
+
+.card-badge-sleutelbos { background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%) !important; }
+.card-border-sleutelbos { border-color: #818cf8 !important; }
+.card-pill-sleutelbos { background-color: rgba(99, 102, 241, 0.15) !important; color: #4f46e5 !important; }
+
+.card-badge-steekwapen { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%) !important; }
+.card-border-steekwapen { border-color: #f87171 !important; }
+.card-pill-steekwapen { background-color: rgba(239, 68, 68, 0.15) !important; color: #dc2626 !important; }
+
+.card-badge-kluis { background: linear-gradient(135deg, #eab308 0%, #d97706 100%) !important; }
+.card-border-kluis { border-color: #facc15 !important; }
+.card-pill-kluis { background-color: rgba(234, 179, 8, 0.18) !important; color: #b45309 !important; }
+
+.card-badge-portofoon { background: linear-gradient(135deg, #06b6d4 0%, #0d9488 100%) !important; }
+.card-border-portofoon { border-color: #22d3ee !important; }
+.card-pill-portofoon { background-color: rgba(6, 182, 212, 0.15) !important; color: #0891b2 !important; }
+
+.card-badge-traliecel { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; }
+.card-border-traliecel { border-color: #fb923c !important; }
+.card-pill-traliecel { background-color: rgba(249, 115, 22, 0.15) !important; color: #c2410c !important; }
 </style>
 @endsection
