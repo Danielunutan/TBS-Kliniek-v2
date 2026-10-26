@@ -26,7 +26,7 @@
                 Wie zijn wij (Verwerkingsverantwoordelijke)?
             </h2>
             <p>
-                TBS Kliniek (bereikbaar via <strong>tbs-kliniek.nl</strong>) respecteert de privacy van alle bezoekers en geregistreerde spelers. Wij zorgen ervoor dat de persoonlijke informatie die je ons verschaft vertrouwelijk en in overeenstemming met de Europese privacywetgeving (AVG) wordt behandeld.
+                TBS Kliniek (bereikbaar via <strong>tbs-kliniek.nl</strong>) is een particulier, hobbymatig en non-profit browsergame beheerd door Daniël vanuit het webinitiatief <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a>. Wij zijn géén commerciële onderneming, verkopen geen producten of diensten en verwerken persoonsgegevens uitsluitend om het spel gratis en veilig aan te bieden conform de Europese privacywetgeving (AVG / GDPR).
             </p>
             <p>
                 Voor vragen over gegevensbescherming kun je contact opnemen via een Support Ticket in het spel of per e-mail via <em>privacy@tbs-kliniek.nl</em>.
