@@ -33,6 +33,28 @@
                 return false;
             }
         },
+        ensureMonetagSdk() {
+            if (!document.querySelector('script[src*="vignette.min.js"]')) {
+                try {
+                    (function(s){s.dataset.zone='12124731',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+                } catch(e) {
+                    console.warn('Monetag script injection error:', e);
+                }
+            }
+        },
+        triggerMonetagVignette() {
+            this.ensureMonetagSdk();
+            try {
+                const triggerLink = document.createElement('a');
+                triggerLink.href = 'javascript:void(0)';
+                triggerLink.style.display = 'none';
+                document.body.appendChild(triggerLink);
+                triggerLink.click();
+                setTimeout(() => triggerLink.remove(), 200);
+            } catch(e) {
+                console.warn('Monetag trigger error:', e);
+            }
+        },
         ensureRobinAdsSdk() {
             if (window.RobinAds && typeof window.RobinAds.showInterstitial === 'function') {
                 return Promise.resolve(window.RobinAds);
@@ -169,32 +191,9 @@
 
 
 
-                    // 1. First priority: In-Screen Rewarded Interstitial Video via Robins Ads
-                    const robinSdk = await this.ensureRobinAdsSdk();
-                    if (robinSdk && typeof robinSdk.showInterstitial === 'function') {
-                        this.status = 'watching_interstitial';
-                        this.statusMessage = 'Video-advertentie wordt afgespeeld in het scherm...';
-
-                        try {
-                            const result = await robinSdk.showInterstitial({ websiteId: '6ad2b8e95f70fee0a42a5496' });
-                            if (result && result.rewardGranted) {
-                                // Full watch confirmed by Robins Ads server!
-                                this.claim(result.token, result.rewardId, data.token);
-                                return;
-                            } else {
-                                // Interstitial had no fill / frequency capped by household IP: seamlessly fallback to in-screen timer!
-                                console.warn('RobinAds interstitial not granted, falling back to in-screen watch timer.');
-                                this.startInScreenFallback(data);
-                                return;
-                            }
-                        } catch (interstitialErr) {
-                            console.warn('RobinAds in-screen interstitial error or blocked, falling back to in-screen modal frame:', interstitialErr);
-                            this.startInScreenFallback(data);
-                        }
-                    } else {
-                        // 2. Fallback: In-screen embedded modal frame (no external popup window!)
-                        this.startInScreenFallback(data);
-                    }
+                    // 1. Primary: Monetag In-Screen Vignette Ad (Zone 12124731)
+                    this.triggerMonetagVignette();
+                    this.startInScreenFallback(data);
                 } catch (err) {
                     this.status = 'error';
                     this.statusMessage = 'Er is een netwerkfout opgetreden bij het laden van de sponsor.';
@@ -206,9 +205,12 @@
         
         startInScreenFallback(data) {
             this.status = 'watching_inscreen';
-            this.statusMessage = 'Bekijk de sponsor video. De beloning wordt automatisch ontgrendeld zodra de 15 seconden voorbij zijn!';
+            this.statusMessage = 'Bekijk de Monetag sponsoradvertentie. Na afloop van de 15 seconden kun je jouw beloning direct claimen!';
             this.secondsLeft = data.duration || 15;
             this.totalSeconds = data.duration || 15;
+
+            // Trigger Monetag in-screen vignette
+            this.triggerMonetagVignette();
 
             if (this.countdownTimer) clearInterval(this.countdownTimer);
             this.countdownTimer = setInterval(() => {
@@ -288,8 +290,7 @@
             <!-- Top Badges -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-[11px] font-black border border-purple-200">
-
-                    <i class="fa-solid fa-tv text-purple-600"></i> TBS Sponsorkamer (In-Scherm)
+                    <i class="fa-solid fa-tv text-purple-600"></i> TBS Sponsorkamer (Monetag Vignette)
                 </div>
                 <button type="button" @click="closeModal()" class="text-slate-400 hover:text-slate-600 text-lg transition cursor-pointer p-1">
                     &times;
@@ -315,17 +316,6 @@
                 </div>
             </template>
 
-            <!-- WATCHING INTERSTITIAL NOTICE -->
-            <template x-if="status === 'watching_interstitial'">
-                <div class="py-4 space-y-3">
-                    <div class="w-12 h-12 mx-auto rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl animate-pulse">
-                        <i class="fa-solid fa-play"></i>
-                    </div>
-                    <p class="text-xs text-slate-700 font-bold leading-relaxed" x-text="statusMessage"></p>
-                    <span class="text-[11px] text-slate-400 block">Kijk de video volledig tot het einde om je beloning te ontgrendelen.</span>
-                </div>
-            </template>
-
             <!-- IN-SCREEN EMBEDDED MODAL WATCHING -->
             <template x-if="status === 'watching_inscreen'">
                 <div class="space-y-4">
@@ -340,20 +330,35 @@
                         </div>
                     </div>
 
-                    <!-- ROBIN ADS IN-SCREEN DISPLAY -->
+                    <!-- MONETAG VIGNETTE IN-SCREEN DISPLAY -->
+                    <div class="w-full rounded-2xl overflow-hidden border-2 border-indigo-500/40 bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950 p-6 text-white shadow-xl relative my-3 text-center space-y-4">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 text-indigo-400 flex items-center justify-center text-2xl mx-auto shadow-inner animate-pulse">
+                            <i class="fa-solid fa-rectangle-ad"></i>
+                        </div>
+                        <div>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500 text-white shadow-xs">
+                                Monetag Vignette Sponsor Actief
+                            </span>
+                            <h4 class="text-base font-black text-white mt-2">Monetag Advertentie Wordt Afgespeeld</h4>
+                            <p class="text-xs text-indigo-200/80 mt-1 max-w-sm mx-auto leading-relaxed">
+                                Bekijk de fullscreen Monetag Vignette sponsor in het scherm. Na 15 seconden kun je jouw beloning direct claimen!
+                            </p>
+                        </div>
+                        <div>
+                            <button type="button" 
+                                    @click="triggerMonetagVignette()"
+                                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 text-white font-extrabold text-xs shadow-md transition transform hover:scale-102 cursor-pointer">
+                                <i class="fa-solid fa-play text-xs"></i>
+                                <span>Toon / Focus Monetag Vignette Ad</span>
+                                <i class="fa-solid fa-expand text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- FALLBACK IFRAME (Only if popupUrl exists) -->
                     <template x-if="popupUrl">
                         <div class="w-full h-72 sm:h-80 rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-800 bg-slate-900 shadow-inner relative my-2">
                             <iframe :src="popupUrl" class="w-full h-full border-0" allow="autoplay; fullscreen; encrypted-media"></iframe>
-                        </div>
-                    </template>
-                    <template x-if="popupUrl">
-                        <div class="pt-1 text-center">
-                            <button type="button" 
-                                    @click="window.open(popupUrl, '_blank', 'width=600,height=700')"
-                                    class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-extrabold text-xs shadow-2xs transition cursor-pointer">
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                <span>Open in nieuw venster (als video niet start)</span>
-                            </button>
                         </div>
                     </template>
 
@@ -364,12 +369,15 @@
             <!-- READY TO CLAIM BUTTON -->
             <template x-if="status === 'ready_to_claim'">
                 <div class="space-y-4 animate-fade-in">
-
-
-                    <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shadow-xs">
-                        <i class="fa-solid fa-check"></i>
+                    <div class="w-full rounded-2xl overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 p-5 text-white shadow-xl relative mb-2 text-center space-y-2">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center text-xl mx-auto shadow-inner">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <h4 class="text-sm font-black text-white">Monetag Kijktijd Voltooid!</h4>
+                        <p class="text-xs text-emerald-200/80 max-w-sm mx-auto leading-relaxed">
+                            Je hebt de advertentie succesvol bekeken. Claim nu direct je beloning!
+                        </p>
                     </div>
-                    <p class="text-xs text-slate-600 font-medium" x-text="statusMessage"></p>
 
                     <button type="button" @click="claim()"
                             class="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition transform hover:scale-102 active:scale-98 cursor-pointer flex items-center justify-center gap-2">
