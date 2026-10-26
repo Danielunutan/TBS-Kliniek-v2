@@ -343,202 +343,216 @@ class ShopController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
-        $this->energyService->refresh($character);
 
-        if ($characterItem->character_id !== $character->id || $characterItem->quantity < 1) {
-            return back()->with('shop_tab', 'inventaris')->with('error', 'Voorwerp niet beschikbaar in je inventaris.');
-        }
+        return DB::transaction(function () use ($request, $characterItem, $character): RedirectResponse {
+            /** @var CharacterItem|null $lockedItem */
+            $lockedItem = CharacterItem::where('id', $characterItem->id)
+                ->where('character_id', $character->id)
+                ->lockForUpdate()
+                ->first();
 
-        $item = $characterItem->item;
-        if (! $item) {
-            return back()->with('shop_tab', 'inventaris')->with('error', 'Item niet gevonden.');
-        }
-
-        if ($item->category === 'equipment') {
-            return back()->with('shop_tab', 'inventaris')->with('info', "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!");
-        }
-
-        // Voorkom verspilling van herstel-items als zowel energie als gezondheid al 100% vol zijn
-        $isPureRecovery = ! in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus', 'bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje'], true);
-        if ($isPureRecovery) {
-            $hasEnergyBenefit = ($item->energy_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'sigaretten', 'ritalin', 'telefoon'], true))
-                && $character->energy < $character->max_energy;
-            $hasHealthBenefit = ($item->health_restore > 0 || in_array($item->slug, ['ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true))
-                && $character->health < $character->max_health;
-            $isRecoveryItem = ($item->energy_restore > 0 || $item->health_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true));
-
-            if ($isRecoveryItem && ! $hasEnergyBenefit && ! $hasHealthBenefit) {
-                return back()
-                    ->with('shop_tab', 'inventaris')
-                    ->with('info', "Zowel je Energie ({$character->energy}/{$character->max_energy}) als Gezondheid ({$character->health}/{$character->max_health}) zijn al maximaal! Bewaar {$item->name} voor wanneer je het nodig hebt.");
-            }
-        }
-
-        $energyBefore = $character->energy;
-        $healthBefore = $character->health;
-        $customFeedback = [];
-
-        // Bereken hoeveel stuks geconsumeerd worden (optie voor enkel, specifiek aantal of tot 100% vol)
-        $requestedQty = max(1, (int) $request->input('quantity', 1));
-        if ($request->boolean('fill_max')) {
-            $energyDeficit = max(0, $character->max_energy - $character->energy);
-            $healthDeficit = max(0, $character->max_health - $character->health);
-
-            $perEnergy = $item->energy_restore;
-            $perHealth = $item->health_restore;
-            if ($item->slug === 'sigaretten') {
-                $perEnergy = 20;
-                $perHealth = 10;
-            } elseif ($item->slug === 'ritalin') {
-                $perEnergy = 35;
-                $perHealth = 15;
-            } elseif ($item->slug === 'telefoon') {
-                $perEnergy = 50;
-                $perHealth = 25;
-            } elseif ($item->slug === 'adrenaline-injectie' || $item->slug === 'ehbo-noodverbanddoos') {
-                $perEnergy = 100;
-                $perHealth = 100;
+            if (! $lockedItem || $lockedItem->quantity < 1) {
+                return back()->with('shop_tab', 'inventaris')->with('error', 'Voorwerp niet beschikbaar in je inventaris.');
             }
 
-            $neededForEnergy = ($perEnergy > 0 && $energyDeficit > 0) ? (int) ceil($energyDeficit / $perEnergy) : 0;
-            $neededForHealth = ($perHealth > 0 && $healthDeficit > 0) ? (int) ceil($healthDeficit / $perHealth) : 0;
-            $needed = max(1, max($neededForEnergy, $neededForHealth));
-            $consumeQty = max(1, min($characterItem->quantity, $needed));
-        } else {
-            $consumeQty = max(1, min($characterItem->quantity, $requestedQty));
-        }
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)
+                ->lockForUpdate()
+                ->first();
 
-        // 1. Contraband / Smokkelwaren herstel
-        if ($item->slug === 'sigaretten') {
-            $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 20) * $consumeQty;
-            $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 10) * $consumeQty;
-            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
-            $character->health = min($character->max_health, $character->health + $restoreHealth);
-            $customFeedback[] = "Lekker {$consumeQty}x peuk gerookt op de binnenplaats! 🚬";
-        } elseif ($item->slug === 'ritalin') {
-            $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 35) * $consumeQty;
-            $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 15) * $consumeQty;
-            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
-            $character->health = min($character->max_health, $character->health + $restoreHealth);
-            $customFeedback[] = "Scherpe focus en alertheid gekregen ({$consumeQty}x Ritalin)! 💊";
-        } elseif ($item->slug === 'telefoon') {
-            $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 50) * $consumeQty;
-            $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 25) * $consumeQty;
-            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
-            $character->health = min($character->max_health, $character->health + $restoreHealth);
-            $customFeedback[] = 'Kort contact gehad met de buitenwereld voor morele steun! 📱';
-        } elseif ($item->slug === 'strip-oxazepam') {
-            $restoreHealth = 35 * $consumeQty;
-            $character->health = min($character->max_health, $character->health + $restoreHealth);
-            $character->discipline = ($character->discipline ?? 10) + (1 * $consumeQty);
-            $customFeedback[] = "Rust keert terug in je hoofd (+{$restoreHealth} Gezondheid, +{$consumeQty} Weerbaarheid/Discipline)! 💊";
-        } elseif ($item->slug === 'strip-ritalin') {
-            $restoreEnergy = 45 * $consumeQty;
-            $character->energy = min($character->max_energy, $character->energy + $restoreEnergy);
-            $character->xp += (25 * $consumeQty);
-            $customFeedback[] = "Laserfocus en adrenalinekick (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
-        } elseif ($item->slug === 'haloperidol-forte') {
-            $restoreHealth = 60 * $consumeQty;
-            $character->health = min($character->max_health, $character->health + $restoreHealth);
-            $character->strength += (2 * $consumeQty);
-            $character->defense += (2 * $consumeQty);
-            $customFeedback[] = "💥 BERSERK STATUS! Alle pijn verdoofd (+{$restoreHealth} Gezondheid, +{$consumeQty}x 2 Kracht & 2 Verdediging)!";
-        } else {
-            // Reguliere herstel items
-            if ($item->slug === 'adrenaline-injectie') {
-                $character->energy = $character->max_energy;
-                $customFeedback[] = "100% Volledige Energie hersteld ({$character->max_energy}/{$character->max_energy})! ⚡";
-            } elseif ($item->energy_restore > 0) {
-                $character->energy = min($character->max_energy, $character->energy + ($item->energy_restore * $consumeQty));
+            $this->energyService->refresh($lockedCharacter);
+
+            $item = $lockedItem->item;
+            if (! $item) {
+                return back()->with('shop_tab', 'inventaris')->with('error', 'Item niet gevonden.');
             }
 
-            if ($item->slug === 'ehbo-noodverbanddoos') {
-                $character->health = $character->max_health;
-                $customFeedback[] = "100% Volledige Gezondheid hersteld ({$character->max_health}/{$character->max_health} HP)! ❤️";
-            } elseif ($item->health_restore > 0) {
-                $character->health = min($character->max_health, $character->health + ($item->health_restore * $consumeQty));
+            if ($item->category === 'equipment') {
+                return back()->with('shop_tab', 'inventaris')->with('info', "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!");
             }
-        }
 
-        // 2. Permanente stat boosts
-        if ($item->slug === 'eiwitshake-bodybuilder') {
-            $character->strength += (1 * $consumeQty);
-            $customFeedback[] = "+{$consumeQty} Permanente Kracht 💪 (nu: {$character->strength})!";
-        }
-        if ($item->slug === 'multivitaminen-focus') {
-            $character->stamina += (1 * $consumeQty);
-            $customFeedback[] = "+{$consumeQty} Permanente Conditie 🏃 (nu: {$character->stamina})!";
-        }
+            // Voorkom verspilling van herstel-items als zowel energie als gezondheid al 100% vol zijn
+            $isPureRecovery = ! in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus', 'bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje'], true);
+            if ($isPureRecovery) {
+                $hasEnergyBenefit = ($item->energy_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'sigaretten', 'ritalin', 'telefoon'], true))
+                    && $lockedCharacter->energy < $lockedCharacter->max_energy;
+                $hasHealthBenefit = ($item->health_restore > 0 || in_array($item->slug, ['ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true))
+                    && $lockedCharacter->health < $lockedCharacter->max_health;
+                $isRecoveryItem = ($item->energy_restore > 0 || $item->health_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true));
 
-        // 3. Masker toevoegen
-        if ($item->slug === 'bivakmuts-masker') {
-            $character->masks = ($character->masks ?? 0) + $consumeQty;
-            $customFeedback[] = "+{$consumeQty} Masker(s) 🎭 toegevoegd aan je voorraad (totaal: {$character->masks})!";
-        }
-
-        // 4. Ongeopend pakketje toevoegen
-        if ($item->slug === 'smokkelpakketje') {
-            $character->unopened_bags = ($character->unopened_bags ?? 0) + $consumeQty;
-            $customFeedback[] = "+{$consumeQty} Ongeopend Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$character->unopened_bags})!";
-        }
-
-        // 5. IJzerzaagje (Strafvermindering cel)
-        if ($item->slug === 'ijzerzaagje') {
-            if ($character->is_in_prison && $character->prison_until) {
-                $newPrisonUntil = $character->prison_until->copy()->subMinutes(30 * $consumeQty);
-                if ($newPrisonUntil->isPast()) {
-                    $character->is_in_prison = false;
-                    $character->prison_until = null;
-                    $character->prison_reason = null;
-                    $customFeedback[] = 'Tralies doorgezaagd! Je bent direct ontsnapt uit de cel! 🔓';
-                } else {
-                    $character->prison_until = $newPrisonUntil;
-                    $customFeedback[] = (30 * $consumeQty).' minuten straftijd afgezagen van je celstraf! ⏳';
+                if ($isRecoveryItem && ! $hasEnergyBenefit && ! $hasHealthBenefit) {
+                    return back()
+                        ->with('shop_tab', 'inventaris')
+                        ->with('info', "Zowel je Energie ({$lockedCharacter->energy}/{$lockedCharacter->max_energy}) als Gezondheid ({$lockedCharacter->health}/{$lockedCharacter->max_health}) zijn al maximaal! Bewaar {$item->name} voor wanneer je het nodig hebt.");
                 }
+            }
+
+            $energyBefore = $lockedCharacter->energy;
+            $healthBefore = $lockedCharacter->health;
+            $customFeedback = [];
+
+            // Bereken hoeveel stuks geconsumeerd worden (optie voor enkel, specifiek aantal of tot 100% vol)
+            $requestedQty = max(1, (int) $request->input('quantity', 1));
+            if ($request->boolean('fill_max')) {
+                $energyDeficit = max(0, $lockedCharacter->max_energy - $lockedCharacter->energy);
+                $healthDeficit = max(0, $lockedCharacter->max_health - $lockedCharacter->health);
+
+                $perEnergy = $item->energy_restore;
+                $perHealth = $item->health_restore;
+                if ($item->slug === 'sigaretten') {
+                    $perEnergy = 20;
+                    $perHealth = 10;
+                } elseif ($item->slug === 'ritalin') {
+                    $perEnergy = 35;
+                    $perHealth = 15;
+                } elseif ($item->slug === 'telefoon') {
+                    $perEnergy = 50;
+                    $perHealth = 25;
+                } elseif ($item->slug === 'adrenaline-injectie' || $item->slug === 'ehbo-noodverbanddoos') {
+                    $perEnergy = 100;
+                    $perHealth = 100;
+                }
+
+                $neededForEnergy = ($perEnergy > 0 && $energyDeficit > 0) ? (int) ceil($energyDeficit / $perEnergy) : 0;
+                $neededForHealth = ($perHealth > 0 && $healthDeficit > 0) ? (int) ceil($healthDeficit / $perHealth) : 0;
+                $needed = max(1, max($neededForEnergy, $neededForHealth));
+                $consumeQty = max(1, min($lockedItem->quantity, $needed));
             } else {
-                $customFeedback[] = 'Zaagje bewaard en getest! Klaar voor je volgende uitbraak! ⏳';
+                $consumeQty = max(1, min($lockedItem->quantity, $requestedQty));
             }
-        }
 
-        $character->save();
+            // 1. Contraband / Smokkelwaren herstel
+            if ($item->slug === 'sigaretten') {
+                $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 20) * $consumeQty;
+                $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 10) * $consumeQty;
+                $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
+                $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
+                $customFeedback[] = "Lekker {$consumeQty}x peuk gerookt op de binnenplaats! 🚬";
+            } elseif ($item->slug === 'ritalin') {
+                $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 35) * $consumeQty;
+                $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 15) * $consumeQty;
+                $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
+                $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
+                $customFeedback[] = "Scherpe focus en alertheid gekregen ({$consumeQty}x Ritalin)! 💊";
+            } elseif ($item->slug === 'telefoon') {
+                $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 50) * $consumeQty;
+                $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 25) * $consumeQty;
+                $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
+                $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
+                $customFeedback[] = 'Kort contact gehad met de buitenwereld voor morele steun! 📱';
+            } elseif ($item->slug === 'strip-oxazepam') {
+                $restoreHealth = 35 * $consumeQty;
+                $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
+                $lockedCharacter->discipline = ($lockedCharacter->discipline ?? 10) + (1 * $consumeQty);
+                $customFeedback[] = "Rust keert terug in je hoofd (+{$restoreHealth} Gezondheid, +{$consumeQty} Weerbaarheid/Discipline)! 💊";
+            } elseif ($item->slug === 'strip-ritalin') {
+                $restoreEnergy = 45 * $consumeQty;
+                $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
+                $lockedCharacter->xp += (25 * $consumeQty);
+                $customFeedback[] = "Laserfocus en adrenalinekick (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
+            } elseif ($item->slug === 'haloperidol-forte') {
+                $restoreHealth = 60 * $consumeQty;
+                $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
+                $lockedCharacter->strength += (2 * $consumeQty);
+                $lockedCharacter->defense += (2 * $consumeQty);
+                $customFeedback[] = "💥 BERSERK STATUS! Alle pijn verdoofd (+{$restoreHealth} Gezondheid, +{$consumeQty}x 2 Kracht & 2 Verdediging)!";
+            } else {
+                // Reguliere herstel items
+                if ($item->slug === 'adrenaline-injectie') {
+                    $lockedCharacter->energy = $lockedCharacter->max_energy;
+                    $customFeedback[] = "100% Volledige Energie hersteld ({$lockedCharacter->max_energy}/{$lockedCharacter->max_energy})! ⚡";
+                } elseif ($item->energy_restore > 0) {
+                    $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + ($item->energy_restore * $consumeQty));
+                }
 
-        $characterItem->quantity -= $consumeQty;
-        if ($characterItem->quantity <= 0) {
-            $characterItem->delete();
-        } else {
-            $characterItem->save();
-        }
-
-        $energyGained = $character->energy - $energyBefore;
-        $healthGained = $character->health - $healthBefore;
-
-        $msg = $consumeQty > 1 ? "Je hebt {$consumeQty}x {$item->name} geconsumeerd!" : "Je hebt {$item->name} gebruikt!";
-        $details = [];
-        if (! empty($customFeedback)) {
-            $details[] = implode(' ', $customFeedback);
-        }
-        $statGains = [];
-        if ($energyGained > 0) {
-            $statGains[] = "+{$energyGained} Energie ⚡";
-        }
-        if ($healthGained > 0) {
-            $statGains[] = "+{$healthGained} HP ❤️";
-        }
-        if (! empty($statGains)) {
-            $details[] = '('.implode(', ', $statGains).')';
-        }
-
-        if (! empty($details)) {
-            $msg .= ' '.implode(' ', $details);
-        } elseif ($energyGained === 0 && $healthGained === 0 && empty($customFeedback)) {
-            if ($character->energy >= $character->max_energy && $character->health >= $character->max_health) {
-                $msg .= ' (Energie en Gezondheid waren al maximaal)';
+                if ($item->slug === 'ehbo-noodverbanddoos') {
+                    $lockedCharacter->health = $lockedCharacter->max_health;
+                    $customFeedback[] = "100% Volledige Gezondheid hersteld ({$lockedCharacter->max_health}/{$lockedCharacter->max_health} HP)! ❤️";
+                } elseif ($item->health_restore > 0) {
+                    $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + ($item->health_restore * $consumeQty));
+                }
             }
-        }
 
-        return back()
-            ->with('shop_tab', 'inventaris')
-            ->with('success', $msg);
+            // 2. Permanente stat boosts
+            if ($item->slug === 'eiwitshake-bodybuilder') {
+                $lockedCharacter->strength += (1 * $consumeQty);
+                $customFeedback[] = "+{$consumeQty} Permanente Kracht 💪 (nu: {$lockedCharacter->strength})!";
+            }
+            if ($item->slug === 'multivitaminen-focus') {
+                $lockedCharacter->stamina += (1 * $consumeQty);
+                $customFeedback[] = "+{$consumeQty} Permanente Conditie 🏃 (nu: {$lockedCharacter->stamina})!";
+            }
+
+            // 3. Masker toevoegen
+            if ($item->slug === 'bivakmuts-masker') {
+                $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $consumeQty;
+                $customFeedback[] = "+{$consumeQty} Masker(s) 🎭 toegevoegd aan je voorraad (totaal: {$lockedCharacter->masks})!";
+            }
+
+            // 4. Ongeopend pakketje toevoegen
+            if ($item->slug === 'smokkelpakketje') {
+                $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + $consumeQty;
+                $customFeedback[] = "+{$consumeQty} Ongeopend Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$lockedCharacter->unopened_bags})!";
+            }
+
+            // 5. IJzerzaagje (Strafvermindering cel)
+            if ($item->slug === 'ijzerzaagje') {
+                if ($lockedCharacter->is_in_prison && $lockedCharacter->prison_until) {
+                    $newPrisonUntil = $lockedCharacter->prison_until->copy()->subMinutes(30 * $consumeQty);
+                    if ($newPrisonUntil->isPast()) {
+                        $lockedCharacter->is_in_prison = false;
+                        $lockedCharacter->prison_until = null;
+                        $lockedCharacter->prison_reason = null;
+                        $customFeedback[] = 'Tralies doorgezaagd! Je bent direct ontsnapt uit de cel! 🔓';
+                    } else {
+                        $lockedCharacter->prison_until = $newPrisonUntil;
+                        $customFeedback[] = (30 * $consumeQty).' minuten straftijd afgezagen van je celstraf! ⏳';
+                    }
+                } else {
+                    $customFeedback[] = 'Zaagje bewaard en getest! Klaar voor je volgende uitbraak! ⏳';
+                }
+            }
+
+            $lockedCharacter->save();
+
+            $lockedItem->quantity -= $consumeQty;
+            if ($lockedItem->quantity <= 0) {
+                $lockedItem->delete();
+            } else {
+                $lockedItem->save();
+            }
+
+            $energyGained = $lockedCharacter->energy - $energyBefore;
+            $healthGained = $lockedCharacter->health - $healthBefore;
+
+            $msg = $consumeQty > 1 ? "Je hebt {$consumeQty}x {$item->name} geconsumeerd!" : "Je hebt {$item->name} gebruikt!";
+            $details = [];
+            if (! empty($customFeedback)) {
+                $details[] = implode(' ', $customFeedback);
+            }
+            $statGains = [];
+            if ($energyGained > 0) {
+                $statGains[] = "+{$energyGained} Energie ⚡";
+            }
+            if ($healthGained > 0) {
+                $statGains[] = "+{$healthGained} HP ❤️";
+            }
+            if (! empty($statGains)) {
+                $details[] = '('.implode(', ', $statGains).')';
+            }
+
+            if (! empty($details)) {
+                $msg .= ' '.implode(' ', $details);
+            } elseif ($energyGained === 0 && $healthGained === 0 && empty($customFeedback)) {
+                if ($lockedCharacter->energy >= $lockedCharacter->max_energy && $lockedCharacter->health >= $lockedCharacter->max_health) {
+                    $msg .= ' (Energie en Gezondheid waren al maximaal)';
+                }
+            }
+
+            return back()
+                ->with('shop_tab', 'inventaris')
+                ->with('success', $msg);
+        });
     }
 
     /**
@@ -563,66 +577,71 @@ class ShopController extends Controller
 
         $cfg = $configs[$validated['item_type']];
 
-        if (($character->stars ?? 0) < $cfg['cost']) {
-            return back()->with('shop_tab', 'sterren')->with('error', "Je hebt minimaal {$cfg['cost']} Sterren ⭐ nodig voor {$cfg['name']}! (Je hebt er {$character->stars}).");
-        }
+        return DB::transaction(function () use ($character, $validated, $cfg): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $character->stars -= $cfg['cost'];
+            if (($lockedCharacter->stars ?? 0) < $cfg['cost']) {
+                return back()->with('shop_tab', 'sterren')->with('error', "Je hebt minimaal {$cfg['cost']} Sterren ⭐ nodig voor {$cfg['name']}! (Je hebt er {$lockedCharacter->stars}).");
+            }
 
-        if ($validated['item_type'] === 'mask_1') {
-            $character->masks = ($character->masks ?? 0) + 1;
-            $character->save();
+            $lockedCharacter->stars -= $cfg['cost'];
 
-            return back()
-                ->with('shop_tab', 'sterren')
-                ->with('success', "Gekocht! 1x Masker 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
-        }
+            if ($validated['item_type'] === 'mask_1') {
+                $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + 1;
+                $lockedCharacter->save();
 
-        if ($validated['item_type'] === 'mask_5') {
-            $character->masks = ($character->masks ?? 0) + 5;
-            $character->save();
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "Gekocht! 1x Masker 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
+            }
 
-            return back()
-                ->with('shop_tab', 'sterren')
-                ->with('success', "Gekocht! 5x Maskers 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
-        }
+            if ($validated['item_type'] === 'mask_5') {
+                $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + 5;
+                $lockedCharacter->save();
 
-        if ($validated['item_type'] === 'vault_code') {
-            $codeStr = 'SHOP-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
-            VaultCode::create([
-                'code' => $codeStr,
-                'reward_cash' => rand(3000, 7500),
-                'reward_stars' => rand(2, 4),
-                'reward_tokens' => 3,
-                'character_id' => $character->id,
-                'is_redeemed' => false,
-            ]);
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "Gekocht! 5x Maskers 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
+            }
 
-            GameMessage::create([
-                'recipient_id' => $character->id,
-                'sender_name' => 'Kliniek Shop Dealer',
-                'subject' => '🔐 Jouw Aangeschafte MedicijnKluis Code!',
-                'content' => "Beste {$character->name},\n\nHier is jouw aangeschafte kluiscode voucher:\n\n👉 **{$codeStr}**\n\nWissel hem direct in op de MedicijnKluis voor wit geld op je bank, extra sterren en maskers!",
-                'type' => 'reward',
-            ]);
+            if ($validated['item_type'] === 'vault_code') {
+                $codeStr = 'SHOP-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
+                VaultCode::create([
+                    'code' => $codeStr,
+                    'reward_cash' => rand(3000, 7500),
+                    'reward_stars' => rand(2, 4),
+                    'reward_tokens' => 3,
+                    'character_id' => $lockedCharacter->id,
+                    'is_redeemed' => false,
+                ]);
 
-            $character->save();
+                GameMessage::create([
+                    'recipient_id' => $lockedCharacter->id,
+                    'sender_name' => 'Kliniek Shop Dealer',
+                    'subject' => '🔐 Jouw Aangeschafte MedicijnKluis Code!',
+                    'content' => "Beste {$lockedCharacter->name},\n\nHier is jouw aangeschafte kluiscode voucher:\n\n👉 **{$codeStr}**\n\nWissel hem direct in op de MedicijnKluis voor wit geld op je bank, extra sterren en maskers!",
+                    'type' => 'reward',
+                ]);
 
-            return back()
-                ->with('shop_tab', 'sterren')
-                ->with('success', "Gekocht! Geheime kluiscode voucher {$codeStr} bezorgd in je postvak en toegevoegd aan je kluiscodes!");
-        }
+                $lockedCharacter->save();
 
-        if ($validated['item_type'] === 'package_150') {
-            $character->unopened_bags = ($character->unopened_bags ?? 0) + 1;
-            $character->save();
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "Gekocht! Geheime kluiscode voucher {$codeStr} bezorgd in je postvak en toegevoegd aan je kluiscodes!");
+            }
 
-            return back()
-                ->with('shop_tab', 'sterren')
-                ->with('success', "Gekocht! Exclusief Master Pakket 📦 toegevoegd aan je ongeopende koffers voor {$cfg['cost']} Sterren ⭐. Open hem direct bij Koffers!");
-        }
+            if ($validated['item_type'] === 'package_150') {
+                $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + 1;
+                $lockedCharacter->save();
 
-        return back()->with('shop_tab', 'sterren');
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "Gekocht! Exclusief Master Pakket 📦 toegevoegd aan je ongeopende koffers voor {$cfg['cost']} Sterren ⭐. Open hem direct bij Koffers!");
+            }
+
+            return back()->with('shop_tab', 'sterren');
+        });
     }
 
     /**
@@ -660,66 +679,74 @@ class ShopController extends Controller
         $quantity = (int) $validated['quantity'];
         $totalCost = $bundle['cost_stars'] * $quantity;
 
-        if (($character->stars ?? 0) < $totalCost) {
-            return back()->with('error', "Niet genoeg sterren! Deze bundel kost {$totalCost} Sterren ⭐ (Je hebt er {$character->stars}).");
-        }
+        return DB::transaction(function () use ($character, $recipientId, $bundle, $quantity, $totalCost): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $character->stars -= $totalCost;
+            if (($lockedCharacter->stars ?? 0) < $totalCost) {
+                return back()->with('error', "Niet genoeg sterren! Deze bundel kost {$totalCost} Sterren ⭐ (Je hebt er {$lockedCharacter->stars}).");
+            }
 
-        // Determine target recipient (either self or gifted friend)
-        $isGift = ! empty($recipientId) && (int) $recipientId !== $character->id;
-        $target = $isGift ? Character::findOrFail($recipientId) : $character;
+            $lockedCharacter->stars -= $totalCost;
 
-        // Total contents calculated
-        $totalCash = $bundle['cash'] * $quantity;
-        $totalBags = $bundle['koffers'] * $quantity;
-        $totalMasks = $bundle['masks'] * $quantity;
-        $totalCodes = $bundle['codes'] * $quantity;
+            // Determine target recipient (either self or gifted friend)
+            $isGift = ! empty($recipientId) && (int) $recipientId !== $lockedCharacter->id;
+            /** @var Character $target */
+            $target = $isGift ? Character::where('id', $recipientId)->lockForUpdate()->findOrFail($recipientId) : $lockedCharacter;
 
-        // Bonus: XXL koffer bonus for high value purchase (>= 100 stars)
-        $bonusBags = ($bundle['cost_stars'] >= 100) ? (1 * $quantity) : 0;
-        $totalBags += $bonusBags;
+            // Total contents calculated
+            $totalCash = $bundle['cash'] * $quantity;
+            $totalBags = $bundle['koffers'] * $quantity;
+            $totalMasks = $bundle['masks'] * $quantity;
+            $totalCodes = $bundle['codes'] * $quantity;
 
-        // Apply rewards to target
-        $target->bank += $totalCash;
-        $target->unopened_bags = ($target->unopened_bags ?? 0) + $totalBags;
-        $target->masks = ($target->masks ?? 0) + $totalMasks;
+            // Bonus: XXL koffer bonus for high value purchase (>= 100 stars)
+            $bonusBags = ($bundle['cost_stars'] >= 100) ? (1 * $quantity) : 0;
+            $totalBags += $bonusBags;
 
-        // Generate vault voucher codes for recipient
-        for ($i = 0; $i < min(25, $totalCodes); $i++) {
-            $codeStr = 'BDL-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 7));
-            VaultCode::create([
-                'code' => $codeStr,
-                'reward_cash' => rand(2500, 7500),
-                'reward_stars' => rand(1, 3),
-                'reward_tokens' => 2,
-                'character_id' => $target->id,
-                'is_redeemed' => false,
-            ]);
-        }
+            // Apply rewards to target
+            $target->bank += $totalCash;
+            $target->unopened_bags = ($target->unopened_bags ?? 0) + $totalBags;
+            $target->masks = ($target->masks ?? 0) + $totalMasks;
 
-        $target->save();
-        $character->save();
+            // Generate vault voucher codes for recipient
+            for ($i = 0; $i < min(25, $totalCodes); $i++) {
+                $codeStr = 'BDL-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 7));
+                VaultCode::create([
+                    'code' => $codeStr,
+                    'reward_cash' => rand(2500, 7500),
+                    'reward_stars' => rand(1, 3),
+                    'reward_tokens' => 2,
+                    'character_id' => $target->id,
+                    'is_redeemed' => false,
+                ]);
+            }
 
-        if ($isGift) {
-            GameMessage::create([
-                'recipient_id' => $target->id,
-                'sender_id' => $character->id,
-                'sender_name' => $character->name,
-                'subject' => "🎁 VERRASSING! Je hebt een {$bundle['name']} cadeau gekregen!",
-                'content' => "Beste {$target->name},\n\n{$character->name} heeft jou zojuist een exclusief cadeau gestuurd:\n\n📦 **{$bundle['name']} ({$quantity}x)**\n• +€".number_format($totalCash, 0, ',', '.')." wit bankgeld 🏦\n• +{$totalBags} Koffers 🧳\n• +{$totalMasks} Maskers 🎭\n• +{$totalCodes} Geheime Kluiscodes 🔐 (klaar om te verzilveren op de MedicijnKluis!)\n\nVeel succes in de TBS Kliniek!",
-                'type' => 'reward',
-            ]);
+            $target->save();
+            if ($isGift) {
+                $lockedCharacter->save();
+            }
+
+            if ($isGift) {
+                GameMessage::create([
+                    'recipient_id' => $target->id,
+                    'sender_id' => $lockedCharacter->id,
+                    'sender_name' => $lockedCharacter->name,
+                    'subject' => "🎁 VERRASSING! Je hebt een {$bundle['name']} cadeau gekregen!",
+                    'content' => "Beste {$target->name},\n\n{$lockedCharacter->name} heeft jou zojuist een exclusief cadeau gestuurd:\n\n📦 **{$bundle['name']} ({$quantity}x)**\n• +€".number_format($totalCash, 0, ',', '.')." wit bankgeld 🏦\n• +{$totalBags} Koffers 🧳\n• +{$totalMasks} Maskers 🎭\n• +{$totalCodes} Geheime Kluiscodes 🔐 (klaar om te verzilveren op de MedicijnKluis!)\n\nVeel succes in de TBS Kliniek!",
+                    'type' => 'reward',
+                ]);
+
+                return back()
+                    ->with('shop_tab', 'pakketten')
+                    ->with('success', "🎁 Prachtig! Je hebt {$quantity}x {$bundle['name']} succesvol cadeau gedaan aan {$target->name} voor {$totalCost} Sterren ⭐!");
+            }
+
+            $bonusMsg = $bonusBags > 0 ? " inclusief +{$bonusBags} bonus XXL koffer(s)!" : '!';
 
             return back()
                 ->with('shop_tab', 'pakketten')
-                ->with('success', "🎁 Prachtig! Je hebt {$quantity}x {$bundle['name']} succesvol cadeau gedaan aan {$target->name} voor {$totalCost} Sterren ⭐!");
-        }
-
-        $bonusMsg = $bonusBags > 0 ? " inclusief +{$bonusBags} bonus XXL koffer(s)!" : '!';
-
-        return back()
-            ->with('shop_tab', 'pakketten')
-            ->with('success', "🎉 Gefeliciteerd! {$bundle['name']} ontvangen voor {$totalCost} Sterren ⭐{$bonusMsg} Inhoud: +€".number_format($totalCash, 0, ',', '.')." bankgeld, +{$totalBags} koffers, +{$totalMasks} maskers en +{$totalCodes} kluiscodes!");
+                ->with('success', "🎉 Gefeliciteerd! {$bundle['name']} ontvangen voor {$totalCost} Sterren ⭐{$bonusMsg} Inhoud: +€".number_format($totalCash, 0, ',', '.')." bankgeld, +{$totalBags} koffers, +{$totalMasks} maskers en +{$totalCodes} kluiscodes!");
+        });
     }
 }

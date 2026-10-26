@@ -14,6 +14,7 @@ use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class VaultController extends Controller
@@ -205,111 +206,102 @@ class VaultController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscodes inwisselen!');
         }
 
-        $codesToRedeem = collect();
+        $codeId = $request->input('code_id');
+        $isRedeemAll = $request->boolean('redeem_all') || $request->input('all') === '1';
+        $rawInput = (string) ($request->input('codes') ?? $request->input('code') ?? '');
+        $lines = preg_split('/[\r\n,]+/', $rawInput);
+        $cleanCodes = array_values(array_filter(array_unique(array_map(fn ($c) => trim(strtoupper(strip_tags($c))), $lines))));
 
-        // 1. Single code clicked directly from account inventory
-        if ($request->filled('code_id')) {
-            $code = VaultCode::where('id', $request->input('code_id'))
-                ->where('character_id', $character->id)
-                ->where('is_redeemed', false)
-                ->first();
+        if (! $codeId && ! $isRedeemAll && empty($cleanCodes)) {
+            return back()->with('error', 'Geen kluiscode geselecteerd of ingevoerd.');
+        }
 
-            if (! $code) {
-                return back()->with('error', 'Deze kluiscode is niet geldig of reeds ingewisseld.');
+        if (count($cleanCodes) > 100) {
+            return back()->with('error', 'Je kunt maximaal 100 kluiscodes tegelijk kraken.');
+        }
+
+        return DB::transaction(function () use ($character, $codeId, $isRedeemAll, $cleanCodes) {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            // Storage capacity check: prevent overflowing inventory
+            $currentUsed = $lockedCharacter->getStorageUsed();
+            $capacity = $lockedCharacter->getStorageCapacity();
+            if ($currentUsed >= $capacity) {
+                return back()->with('error', "⚠️ Je opbergplaats zit vol ({$currentUsed}/{$capacity} plaatsen bezet)! Je kunt pas weer kluizen kraken zodra je ruimte vrijmaakt door overtollige spullen of maskers te verkopen in je Depot.");
             }
 
-            $codesToRedeem->push($code);
-        }
-        // 2. 1-click crack all active codes on character account
-        elseif ($request->boolean('redeem_all') || $request->input('all') === '1') {
-            $codesToRedeem = VaultCode::where('character_id', $character->id)
-                ->where('is_redeemed', false)
-                ->take(100)
-                ->get();
+            if ($codeId) {
+                $codesToRedeem = VaultCode::where('id', $codeId)
+                    ->where('character_id', $lockedCharacter->id)
+                    ->where('is_redeemed', false)
+                    ->lockForUpdate()
+                    ->get();
+            } elseif ($isRedeemAll) {
+                $codesToRedeem = VaultCode::where('character_id', $lockedCharacter->id)
+                    ->where('is_redeemed', false)
+                    ->lockForUpdate()
+                    ->take(100)
+                    ->get();
+            } else {
+                $codesToRedeem = VaultCode::whereIn('code', $cleanCodes)
+                    ->where('is_redeemed', false)
+                    ->lockForUpdate()
+                    ->get();
+            }
 
             if ($codesToRedeem->isEmpty()) {
-                return back()->with('error', 'Je hebt momenteel geen actieve kluiscodes op je account om in te wisselen.');
-            }
-        }
-        // 3. Manual entry fallback (string codes from request)
-        else {
-            $rawInput = (string) ($request->input('codes') ?? $request->input('code') ?? '');
-            $lines = preg_split('/[\r\n,]+/', $rawInput);
-            $cleanCodes = array_values(array_filter(array_unique(array_map(fn ($c) => trim(strtoupper(strip_tags($c))), $lines))));
-
-            if (empty($cleanCodes)) {
-                return back()->with('error', 'Geen kluiscode geselecteerd of ingevoerd.');
+                return back()->with('error', 'Geen geldige of ongebruikte kluiscodes gevonden om te kraken.');
             }
 
-            if (count($cleanCodes) > 100) {
-                return back()->with('error', 'Je kunt maximaal 100 kluiscodes tegelijk kraken.');
+            $spaceLeft = max(0, $capacity - $currentUsed);
+
+            $redeemedCount = 0;
+            $totalCash = 0;
+            $totalStars = 0;
+            $totalTokens = 0;
+            $totalMasks = 0;
+            $totalRespect = 0;
+
+            foreach ($codesToRedeem as $vaultCode) {
+                $redeemedCount++;
+                $totalCash += max(1000, $vaultCode->reward_cash);
+                $totalStars += max(0, (int) $vaultCode->reward_stars);
+                $totalTokens += max(2, $vaultCode->reward_tokens);
+                $totalMasks += 1;
+                $totalRespect += 5;
+
+                $vaultCode->is_redeemed = true;
+                $vaultCode->redeemed_by_id = $lockedCharacter->id;
+                $vaultCode->save();
             }
 
-            $codesToRedeem = VaultCode::whereIn('code', $cleanCodes)
-                ->where('is_redeemed', false)
-                ->get();
-        }
+            $masksGranted = min($totalMasks, $spaceLeft);
 
-        if ($codesToRedeem->isEmpty()) {
-            return back()->with('error', 'Geen geldige of ongebruikte kluiscodes gevonden om te kraken.');
-        }
+            $lockedCharacter->bank += $totalCash;
+            $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $totalStars;
+            $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + $totalTokens;
+            $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $masksGranted;
+            $lockedCharacter->respect += $totalRespect;
+            $lockedCharacter->save();
 
-        // Storage capacity check: prevent overflowing inventory
-        $currentUsed = $character->getStorageUsed();
-        $capacity = $character->getStorageCapacity();
-        if ($currentUsed >= $capacity) {
-            return back()->with('error', "⚠️ Je opbergplaats zit vol ({$currentUsed}/{$capacity} plaatsen bezet)! Je kunt pas weer kluizen kraken zodra je ruimte vrijmaakt door overtollige spullen of maskers te verkopen in je Depot.");
-        }
+            // Record Halloween Quest progress for cracking safes/codes
+            HalloweenService::record($lockedCharacter, 'vault', $redeemedCount);
 
-        $spaceLeft = max(0, $capacity - $currentUsed);
+            $msg = "🎉 {$redeemedCount} kluiscode(s) succesvol gekraakt in de Suikerkluis!\n";
+            $msg .= '• +€'.number_format($totalCash, 0, ',', '.')." wit geld op je Bankrekening 🏦\n";
+            $msg .= "• +{$totalStars} Exclusieve Sterren ⭐\n";
+            if ($masksGranted < $totalMasks) {
+                $dropped = $totalMasks - $masksGranted;
+                $msg .= "• +{$masksGranted} Maskers 🎭 (Let op: {$dropped} maskers pasten niet in je volle depot en zijn achtergelaten)\n";
+            } else {
+                $msg .= "• +{$masksGranted} Maskers 🎭 (voor zakkenrollen)\n";
+            }
+            $msg .= "• +{$totalRespect} Respect 🔥\n";
+            $msg .= "• 🎃 Halloween Quest: +{$redeemedCount} kluis voortgang geregistreerd!";
 
-        $redeemedCount = 0;
-        $totalCash = 0;
-        $totalStars = 0;
-        $totalTokens = 0;
-        $totalMasks = 0;
-        $totalRespect = 0;
-
-        foreach ($codesToRedeem as $vaultCode) {
-            $redeemedCount++;
-            $totalCash += max(1000, $vaultCode->reward_cash);
-            $totalStars += max(0, (int) $vaultCode->reward_stars);
-            $totalTokens += max(2, $vaultCode->reward_tokens);
-            $totalMasks += 1; // Each cracked safe grants 1 mask
-            $totalRespect += 5; // Safe cracking gives respect
-
-            $vaultCode->is_redeemed = true;
-            $vaultCode->redeemed_by_id = $character->id;
-            $vaultCode->save();
-        }
-
-        // Only add masks up to available storage capacity
-        $masksGranted = min($totalMasks, $spaceLeft);
-
-        // Clean white money strictly deposited to bank account!
-        $character->bank += $totalCash;
-        $character->stars = ($character->stars ?? 0) + $totalStars;
-        $character->vault_tokens = ($character->vault_tokens ?? 0) + $totalTokens;
-        $character->masks = ($character->masks ?? 0) + $masksGranted;
-        $character->respect += $totalRespect;
-        $character->save();
-
-        // Record Halloween Quest progress for cracking safes/codes
-        HalloweenService::record($character, 'vault', $redeemedCount);
-
-        $msg = "🎉 {$redeemedCount} kluiscode(s) succesvol gekraakt in de Suikerkluis!\n";
-        $msg .= '• +€'.number_format($totalCash, 0, ',', '.')." wit geld op je Bankrekening 🏦\n";
-        $msg .= "• +{$totalStars} Exclusieve Sterren ⭐\n";
-        if ($masksGranted < $totalMasks) {
-            $dropped = $totalMasks - $masksGranted;
-            $msg .= "• +{$masksGranted} Maskers 🎭 (Let op: {$dropped} maskers pasten niet in je volle depot en zijn achtergelaten)\n";
-        } else {
-            $msg .= "• +{$masksGranted} Maskers 🎭 (voor zakkenrollen)\n";
-        }
-        $msg .= "• +{$totalRespect} Respect 🔥\n";
-        $msg .= "• 🎃 Halloween Quest: +{$redeemedCount} kluis voortgang geregistreerd!";
-
-        return back()->with('success', $msg);
+            return back()->with('success', $msg);
+        });
     }
 
     /**

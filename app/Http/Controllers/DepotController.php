@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\CharacterVehicle;
 use App\Models\User;
@@ -12,6 +13,7 @@ use App\Services\HalloweenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DepotController extends Controller
@@ -127,39 +129,48 @@ class DepotController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        if ($characterItem->character_id !== $character->id || $characterItem->quantity < 1) {
-            return back()->with('error', 'Dit voorwerp bevindt zich niet in je persoonlijke opbergplaats.');
-        }
+        return DB::transaction(function () use ($request, $characterItem, $character): RedirectResponse {
+            /** @var CharacterItem|null $lockedItem */
+            $lockedItem = CharacterItem::where('id', $characterItem->id)
+                ->where('character_id', $character->id)
+                ->lockForUpdate()
+                ->first();
 
-        $item = $characterItem->item;
-        if (! $item) {
-            return back()->with('error', 'Item gegevens niet gevonden.');
-        }
+            if (! $lockedItem || $lockedItem->quantity < 1) {
+                return back()->with('error', 'Dit voorwerp bevindt zich niet in je persoonlijke opbergplaats.');
+            }
 
-        $requestedQty = max(1, (int) $request->input('quantity', 1));
-        $quantity = min($requestedQty, $characterItem->quantity);
+            $item = $lockedItem->item;
+            if (! $item) {
+                return back()->with('error', 'Item gegevens niet gevonden.');
+            }
 
-        // Sell price: approx 60% of base price, minimum €500 per unit
-        $pricePerUnit = max(500, (int) round(($item->price_kc > 0 ? $item->price_kc : 1000) * 0.6));
-        $totalEarned = $pricePerUnit * $quantity;
+            $requestedQty = max(1, (int) $request->input('quantity', 1));
+            $quantity = min($requestedQty, $lockedItem->quantity);
 
-        // Deduct inventory
-        $characterItem->quantity -= $quantity;
-        if ($characterItem->quantity <= 0) {
-            $characterItem->delete();
-        } else {
-            $characterItem->save();
-        }
+            // Sell price: approx 60% of base price, minimum €500 per unit
+            $pricePerUnit = max(500, (int) round(($item->price_kc > 0 ? $item->price_kc : 1000) * 0.6));
+            $totalEarned = $pricePerUnit * $quantity;
 
-        // Add cash to player
-        $character->cash = ($character->cash ?? 0) + $totalEarned;
-        $character->save();
+            // Deduct inventory
+            $lockedItem->quantity -= $quantity;
+            if ($lockedItem->quantity <= 0) {
+                $lockedItem->delete();
+            } else {
+                $lockedItem->save();
+            }
 
-        $formattedCash = number_format($totalEarned, 0, ',', '.');
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            $lockedCharacter->cash = ($lockedCharacter->cash ?? 0) + $totalEarned;
+            $lockedCharacter->save();
 
-        return back()
-            ->with('tab', 'storage')
-            ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! Er is weer opbergruimte vrijgemaakt in je Depot.");
+            $formattedCash = number_format($totalEarned, 0, ',', '.');
+
+            return back()
+                ->with('tab', 'storage')
+                ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! Er is weer opbergruimte vrijgemaakt in je Depot.");
+        });
     }
 
     /**
@@ -171,29 +182,34 @@ class DepotController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        $currentMasks = (int) ($character->masks ?? 0);
-        if ($currentMasks < 1) {
-            return back()->with('error', 'Je hebt geen maskers om te verkopen.');
-        }
-
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $quantity = min((int) $validated['quantity'], $currentMasks);
-        $pricePerMask = 750; // Fair cash per mask
-        $totalEarned = $pricePerMask * $quantity;
+        return DB::transaction(function () use ($character, $validated): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $character->masks -= $quantity;
-        $character->cash = ($character->cash ?? 0) + $totalEarned;
-        $character->save();
+            $currentMasks = (int) ($lockedCharacter->masks ?? 0);
+            if ($currentMasks < 1) {
+                return back()->with('error', 'Je hebt geen maskers om te verkopen.');
+            }
 
-        $formattedCash = number_format($totalEarned, 0, ',', '.');
-        $used = $character->getStorageUsed();
-        $cap = $character->getStorageCapacity();
+            $quantity = min((int) $validated['quantity'], $currentMasks);
+            $pricePerMask = 750; // Fair cash per mask
+            $totalEarned = $pricePerMask * $quantity;
 
-        return back()
-            ->with('tab', 'storage')
-            ->with('success', "🎭 Succesvol {$quantity}x Overval Masker(s) verkocht aan de heler voor €{$formattedCash}! Je opbergplaats heeft nu weer ruimte ({$used}/{$cap} plekken).");
+            $lockedCharacter->masks -= $quantity;
+            $lockedCharacter->cash = ($lockedCharacter->cash ?? 0) + $totalEarned;
+            $lockedCharacter->save();
+
+            $formattedCash = number_format($totalEarned, 0, ',', '.');
+            $used = $lockedCharacter->getStorageUsed();
+            $cap = $lockedCharacter->getStorageCapacity();
+
+            return back()
+                ->with('tab', 'storage')
+                ->with('success', "🎭 Succesvol {$quantity}x Overval Masker(s) verkocht aan de heler voor €{$formattedCash}! Je opbergplaats heeft nu weer ruimte ({$used}/{$cap} plekken).");
+        });
     }
 }

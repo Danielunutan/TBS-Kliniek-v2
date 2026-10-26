@@ -15,6 +15,7 @@ use App\Services\TurnstileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class FightController extends Controller
@@ -237,29 +238,37 @@ class FightController extends Controller
                 HalloweenService::record($attacker, 'cash_earned', $stolenCash);
             }
 
-            // Check for and claim any active bounties on defender
+            // Check for and claim any active bounties on defender atomically
             $claimedBountyCash = 0;
-            $activeBounties = Bounty::where('target_character_id', $defender->id)->where('is_claimed', false)->get();
-            if ($activeBounties->isNotEmpty()) {
-                $claimedBountyCash = (int) $activeBounties->sum('amount');
-                $this->economy->addCash($attacker, $claimedBountyCash);
-                foreach ($activeBounties as $bounty) {
-                    $bounty->update([
-                        'is_claimed' => true,
-                        'claimed_by_character_id' => $attacker->id,
-                        'claimed_at' => now(),
-                    ]);
+            $claimedBounties = DB::transaction(function () use ($defender, $attacker, &$claimedBountyCash) {
+                $bountiesToClaim = Bounty::where('target_character_id', $defender->id)
+                    ->where('is_claimed', false)
+                    ->lockForUpdate()
+                    ->get();
 
-                    GameNotification::create([
-                        'character_id' => $bounty->placed_by_character_id,
-                        'type' => 'bounty_claimed',
-                        'icon' => 'fa-crosshairs',
-                        'title' => 'Kopgeld Geïncasseerd!',
-                        'message' => 'Het kopgeld van €'.number_format($bounty->amount, 0, ',', '.')." dat je op {$defender->name} had gezet is zojuist geclaimd door {$attacker->name}!",
-                        'is_read' => false,
-                    ]);
+                if ($bountiesToClaim->isNotEmpty()) {
+                    $claimedBountyCash = (int) $bountiesToClaim->sum('amount');
+                    $this->economy->addCash($attacker, $claimedBountyCash);
+                    foreach ($bountiesToClaim as $bounty) {
+                        $bounty->update([
+                            'is_claimed' => true,
+                            'claimed_by_character_id' => $attacker->id,
+                            'claimed_at' => now(),
+                        ]);
+
+                        GameNotification::create([
+                            'character_id' => $bounty->placed_by_character_id,
+                            'type' => 'bounty_claimed',
+                            'icon' => 'fa-crosshairs',
+                            'title' => 'Kopgeld Geïncasseerd!',
+                            'message' => 'Het kopgeld van €'.number_format($bounty->amount, 0, ',', '.')." dat je op {$defender->name} had gezet is zojuist geclaimd door {$attacker->name}!",
+                            'is_read' => false,
+                        ]);
+                    }
                 }
-            }
+
+                return $bountiesToClaim;
+            });
 
             $notificationMessage = $stolenCash > 0
                 ? "{$attacker->name} heeft je overmeesterd op de luchtplaats en €".number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'

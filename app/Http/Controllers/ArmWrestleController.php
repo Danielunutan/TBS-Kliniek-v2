@@ -418,21 +418,25 @@ class ArmWrestleController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
-        $match = ArmWrestleMatch::where('id', $id)
-            ->where('challenger_id', $character->id)
-            ->where('status', 'open')
-            ->first();
+        return DB::transaction(function () use ($character, $id) {
+            /** @var ArmWrestleMatch|null $match */
+            $match = ArmWrestleMatch::where('id', $id)
+                ->where('challenger_id', $character->id)
+                ->where('status', 'open')
+                ->lockForUpdate()
+                ->first();
 
-        if (! $match) {
-            return back()->with('error', 'Deze uitdaging bestaat niet meer of is al geaccepteerd.');
-        }
+            if (! $match) {
+                return back()->with('error', 'Deze uitdaging bestaat niet meer of is al geaccepteerd.');
+            }
 
-        DB::transaction(function () use ($character, $match) {
+            $match->status = 'cancelled';
+            $match->save();
+
             $character->increment('cash', $match->bet_amount);
-            $match->update(['status' => 'cancelled']);
-        });
 
-        return back()->with('success', 'Je uitdaging is geannuleerd en je inzet van €'.number_format($match->bet_amount, 0, ',', '.').' is teruggestort op zak.');
+            return back()->with('success', 'Je uitdaging is geannuleerd en je inzet van €'.number_format($match->bet_amount, 0, ',', '.').' is teruggestort op zak.');
+        });
     }
 
     /**
@@ -456,33 +460,41 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Je hebt minimaal 5 Energie nodig om deze uitdaging aan te gaan!');
         }
 
-        $match = ArmWrestleMatch::with('challenger')
-            ->where('id', $id)
-            ->where('status', 'open')
-            ->lockForUpdate()
-            ->first();
+        return DB::transaction(function () use ($opponent, $id) {
+            /** @var ArmWrestleMatch|null $match */
+            $match = ArmWrestleMatch::with('challenger')
+                ->where('id', $id)
+                ->where('status', 'open')
+                ->lockForUpdate()
+                ->first();
 
-        if (! $match) {
-            return back()->with('error', 'Deze uitdaging is zojuist al geaccepteerd of geannuleerd door de uitdager.');
-        }
+            if (! $match) {
+                return back()->with('error', 'Deze uitdaging is zojuist al geaccepteerd of geannuleerd door de uitdager.');
+            }
 
-        if ($match->challenger_id === $opponent->id) {
-            return back()->with('error', 'Je kunt je eigen uitdaging niet accepteren!');
-        }
+            if ($match->challenger_id === $opponent->id) {
+                return back()->with('error', 'Je kunt je eigen uitdaging niet accepteren!');
+            }
 
-        $totalAvailable = (int) ($opponent->cash + $opponent->bank);
-        $bet = (int) $match->bet_amount;
+            $bet = (int) $match->bet_amount;
+            $pot = $bet * 2;
 
-        if ($totalAvailable < $bet) {
-            return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
-        }
-
-        $challenger = $match->challenger;
-        $pot = $match->bet_amount * 2;
-
-        return DB::transaction(function () use ($opponent, $challenger, $match, $pot, $bet) {
             /** @var Character $lockedOpponent */
             $lockedOpponent = Character::where('id', $opponent->id)->lockForUpdate()->first();
+            $totalAvailable = (int) ($lockedOpponent->cash + $lockedOpponent->bank);
+
+            if ($totalAvailable < $bet) {
+                return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
+            }
+
+            /** @var Character $challenger */
+            $challenger = Character::where('id', $match->challenger_id)->lockForUpdate()->first();
+            if (! $challenger) {
+                return back()->with('error', 'Uitdager niet gevonden.');
+            }
+
+            $match->status = 'completed';
+            $match->save();
 
             $lockedOpponent->decrement('energy', 5);
             if ($lockedOpponent->cash >= $bet) {

@@ -32,14 +32,17 @@ class LevelService
 
         $leveledUp = false;
         $totalCashReward = 0;
+        $maxLevelUpsPerAction = 15;
+        $iterations = 0;
 
-        while (true) {
+        while ($iterations < $maxLevelUpsPerAction) {
             $required = $this->getXpRequiredForNextLevel($character->level);
 
             if ($character->xp >= $required) {
                 $character->xp -= $required;
                 $character->level++;
                 $leveledUp = true;
+                $iterations++;
 
                 // Level up rewards: max stats increase, cash bonus, vault tokens, full energy refill
                 $bonusCash = $character->level * 150;
@@ -53,6 +56,12 @@ class LevelService
             } else {
                 break;
             }
+        }
+
+        // Safeguard: if character XP is still higher than next level requirement after max iterations, cap XP to prevent infinite loops
+        $nextRequired = $this->getXpRequiredForNextLevel($character->level);
+        if ($character->xp >= $nextRequired) {
+            $character->xp = $nextRequired - 1;
         }
 
         $character->save();

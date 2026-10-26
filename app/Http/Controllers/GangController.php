@@ -1082,22 +1082,32 @@ class GangController extends Controller
         }
 
         $validated = $request->validate([
-            'amount' => ['required', 'integer', 'min:100', 'max:'.$gang->treasury],
-        ], [
-            'amount.max' => 'Er zit niet genoeg geld in de bende kas.',
+            'amount' => ['required', 'integer', 'min:100'],
         ]);
 
         $amount = (int) $validated['amount'];
-        $gang->treasury -= $amount;
-        $gang->save();
 
-        $character->cash += $amount;
-        $character->save();
+        return DB::transaction(function () use ($gang, $character, $amount): RedirectResponse {
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-        return back()
-            ->with('active_gang_tab', 'beheer')
-            ->with('beheer_tab', 'instellingen')
-            ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' opgenomen uit de bende kas!');
+            if ($lockedGang->treasury < $amount) {
+                return back()->with('error', 'Er zit niet genoeg geld in de bende kas.');
+            }
+
+            $lockedGang->treasury -= $amount;
+            $lockedGang->save();
+
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            $lockedCharacter->cash += $amount;
+            $lockedCharacter->save();
+
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'instellingen')
+                ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' opgenomen uit de bende kas!');
+        });
     }
 
     /**
@@ -1244,102 +1254,111 @@ class GangController extends Controller
         $itemType = $validated['item_type'];
         $qty = (int) $validated['quantity'];
 
-        switch ($itemType) {
-            case 'gang_chat':
-                if ($gang->has_gang_chat) {
-                    return back()->with('error', 'Jullie bende beschikt al over een eigen besloten Bende Chat!');
-                }
+        return DB::transaction(function () use ($gang, $character, $itemType, $qty): RedirectResponse {
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-                $chatPrice = 500;
-                if (($character->stars ?? 0) >= $chatPrice) {
-                    $character->stars -= $chatPrice;
-                    $character->save();
-                } elseif (($gang->gang_stars ?? 0) >= $chatPrice && $gang->isOfficer($character)) {
-                    $gang->gang_stars -= $chatPrice;
-                } else {
-                    return back()->with('error', 'Niet genoeg Sterren ⭐ om de Bende Chat te ontgrendelen (500 Sterren ⭐ vereist).');
-                }
+            switch ($itemType) {
+                case 'gang_chat':
+                    if ($lockedGang->has_gang_chat) {
+                        return back()->with('error', 'Jullie bende beschikt al over een eigen besloten Bende Chat!');
+                    }
 
-                $gang->has_gang_chat = true;
-                $gang->save();
+                    $chatPrice = 500;
+                    if (($lockedCharacter->stars ?? 0) >= $chatPrice) {
+                        $lockedCharacter->stars -= $chatPrice;
+                        $lockedCharacter->save();
+                    } elseif (($lockedGang->gang_stars ?? 0) >= $chatPrice && $lockedGang->isOfficer($lockedCharacter)) {
+                        $lockedGang->gang_stars -= $chatPrice;
+                    } else {
+                        return back()->with('error', 'Niet genoeg Sterren ⭐ om de Bende Chat te ontgrendelen (500 Sterren ⭐ vereist).');
+                    }
 
-                return back()
-                    ->with('active_gang_tab', 'winkel')
-                    ->with('success', '🎉 Gefeliciteerd! De besloten Bende Chat is nu permanent ontgrendeld voor alle leden van de bende!');
-            case 'bling_shops':
-                $unitPrice = 50000;
-                $totalCost = $unitPrice * $qty;
-                if ($gang->treasury < $totalCost) {
-                    return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($gang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
-                }
+                    $lockedGang->has_gang_chat = true;
+                    $lockedGang->save();
 
-                $gang->treasury -= $totalCost;
-                $gang->bling_shops = ($gang->bling_shops ?? 0) + $qty;
-                $gang->save();
+                    return back()
+                        ->with('active_gang_tab', 'winkel')
+                        ->with('success', '🎉 Gefeliciteerd! De besloten Bende Chat is nu permanent ontgrendeld voor alle leden van de bende!');
 
-                return back()
-                    ->with('active_gang_tab', 'winkel')
-                    ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft vanuit de bende kas! Het uurloon is verhoogd!");
+                case 'bling_shops':
+                    $unitPrice = 50000;
+                    $totalCost = $unitPrice * $qty;
+                    if ($lockedGang->treasury < $totalCost) {
+                        return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($lockedGang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
+                    }
 
-            case 'protection':
-                $unitPrice = 15000;
-                $totalCost = $unitPrice * $qty;
-                if ($gang->treasury < $totalCost) {
-                    return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($gang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
-                }
+                    $lockedGang->treasury -= $totalCost;
+                    $lockedGang->bling_shops = ($lockedGang->bling_shops ?? 0) + $qty;
+                    $lockedGang->save();
 
-                $gang->treasury -= $totalCost;
-                $gang->protection_points = ($gang->protection_points ?? 1000) + ($qty * 5000);
-                $gang->save();
+                    return back()
+                        ->with('active_gang_tab', 'winkel')
+                        ->with('success', "Succesvol {$qty} Smokkelkiosk(en) aangeschaft vanuit de bende kas! Het uurloon is verhoogd!");
 
-                return back()
-                    ->with('active_gang_tab', 'winkel')
-                    ->with('success', "Succesvol {$qty}x Bescherming aangeschaft vanuit de bende kas (+".number_format($qty * 5000, 0, ',', '.').' verdedigingspunten)!');
+                case 'protection':
+                    $unitPrice = 15000;
+                    $totalCost = $unitPrice * $qty;
+                    if ($lockedGang->treasury < $totalCost) {
+                        return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($lockedGang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
+                    }
 
-            case 'power':
-                $unitPrice = 15000;
-                $totalCost = $unitPrice * $qty;
-                if ($gang->treasury < $totalCost) {
-                    return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($gang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
-                }
+                    $lockedGang->treasury -= $totalCost;
+                    $lockedGang->protection_points = ($lockedGang->protection_points ?? 1000) + ($qty * 5000);
+                    $lockedGang->save();
 
-                $gang->treasury -= $totalCost;
-                $gang->attack_power = ($gang->attack_power ?? 500) + ($qty * 2500);
-                $gang->save();
+                    return back()
+                        ->with('active_gang_tab', 'winkel')
+                        ->with('success', "Succesvol {$qty}x Bescherming aangeschaft vanuit de bende kas (+".number_format($qty * 5000, 0, ',', '.').' verdedigingspunten)!');
 
-                return back()
-                    ->with('active_gang_tab', 'winkel')
-                    ->with('success', "Succesvol {$qty}x Power aangeschaft vanuit de bende kas (+".number_format($qty * 2500, 0, ',', '.').' aanvalspunten)!');
+                case 'power':
+                    $unitPrice = 15000;
+                    $totalCost = $unitPrice * $qty;
+                    if ($lockedGang->treasury < $totalCost) {
+                        return back()->with('error', 'Er zit niet genoeg geld in de bende kas (gangpot)! Er is momenteel €'.number_format($lockedGang->treasury, 0, ',', '.').' aanwezig, maar €'.number_format($totalCost, 0, ',', '.').' is vereist. Persoonlijk zakgeld kan hier niet direct gebruikt worden. Doneer eerst geld aan de bende kas via het tabblad \'Doneren\'.');
+                    }
 
-            case 'max_members':
-                $starPrice = 25;
-                $totalStars = $starPrice * $qty;
-                $currentMax = $gang->max_members ?? 10;
-                $newMax = $currentMax + $qty;
+                    $lockedGang->treasury -= $totalCost;
+                    $lockedGang->attack_power = ($lockedGang->attack_power ?? 500) + ($qty * 2500);
+                    $lockedGang->save();
 
-                if ($newMax > 35) {
-                    return back()->with('error', "Het maximale bende limiet is 35 leden (huidig: {$currentMax}).");
-                }
+                    return back()
+                        ->with('active_gang_tab', 'winkel')
+                        ->with('success', "Succesvol {$qty}x Power aangeschaft vanuit de bende kas (+".number_format($qty * 2500, 0, ',', '.').' aanvalspunten)!');
 
-                // Check character stars or gang stars
-                if (($character->stars ?? 0) >= $totalStars) {
-                    $character->stars -= $totalStars;
-                    $character->save();
-                } elseif (($gang->gang_stars ?? 0) >= $totalStars && $gang->isOfficer($character)) {
-                    $gang->gang_stars -= $totalStars;
-                } else {
-                    return back()->with('error', "Niet genoeg Sterren ⭐ om {$qty} extra ledenplekken te kopen ({$totalStars} Sterren ⭐ vereist).");
-                }
+                case 'max_members':
+                    $starPrice = 25;
+                    $totalStars = $starPrice * $qty;
+                    $currentMax = $lockedGang->max_members ?? 10;
+                    $newMax = $currentMax + $qty;
 
-                $gang->max_members = $newMax;
-                $gang->save();
+                    if ($newMax > 35) {
+                        return back()->with('error', "Het maximale bende limiet is 35 leden (huidig: {$currentMax}).");
+                    }
 
-                return back()
-                    ->with('active_gang_tab', 'winkel')
-                    ->with('success', "Capaciteit uitgebreid met {$qty} leden! Nieuw limiet: {$gang->max_members} leden.");
-        }
+                    // Check character stars or gang stars
+                    if (($lockedCharacter->stars ?? 0) >= $totalStars) {
+                        $lockedCharacter->stars -= $totalStars;
+                        $lockedCharacter->save();
+                    } elseif (($lockedGang->gang_stars ?? 0) >= $totalStars && $lockedGang->isOfficer($lockedCharacter)) {
+                        $lockedGang->gang_stars -= $totalStars;
+                        $lockedGang->save();
+                    } else {
+                        return back()->with('error', "Niet genoeg Sterren ⭐ om {$qty} extra ledenplekken te kopen ({$totalStars} Sterren ⭐ vereist).");
+                    }
 
-        return back()->with('active_gang_tab', 'winkel');
+                    $lockedGang->max_members = $newMax;
+                    $lockedGang->save();
+
+                    return back()
+                        ->with('active_gang_tab', 'winkel')
+                        ->with('success', "Capaciteit uitgebreid met {$qty} leden! Nieuw limiet: {$lockedGang->max_members} leden.");
+            }
+
+            return back()->with('active_gang_tab', 'winkel');
+        });
     }
 
     /**
@@ -1362,20 +1381,28 @@ class GangController extends Controller
         ]);
 
         $stars = (int) $validated['stars'];
-        if (($character->stars ?? 0) < $stars) {
-            return back()->with('error', "Je hebt slechts {$character->stars} Sterren ⭐.");
-        }
 
-        $character->stars -= $stars;
-        $character->respect += $stars * 5;
-        $character->save();
+        return DB::transaction(function () use ($gang, $character, $stars): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-        $gang->gang_stars = ($gang->gang_stars ?? 0) + $stars;
-        $gang->save();
+            if (($lockedCharacter->stars ?? 0) < $stars) {
+                return back()->with('error', "Je hebt slechts {$lockedCharacter->stars} Sterren ⭐.");
+            }
 
-        return back()
-            ->with('active_gang_tab', 'doneren')
-            ->with('success', "Je hebt {$stars} Sterren ⭐ gedoneerd aan {$gang->name}! (+".($stars * 5).' Respect voor jou).');
+            $lockedCharacter->stars -= $stars;
+            $lockedCharacter->respect += $stars * 5;
+            $lockedCharacter->save();
+
+            $lockedGang->gang_stars = ($lockedGang->gang_stars ?? 0) + $stars;
+            $lockedGang->save();
+
+            return back()
+                ->with('active_gang_tab', 'doneren')
+                ->with('success', "Je hebt {$stars} Sterren ⭐ gedoneerd aan {$lockedGang->name}! (+".($stars * 5).' Respect voor jou).');
+        });
     }
 
     /**
@@ -1392,36 +1419,46 @@ class GangController extends Controller
         }
 
         $gang = $character->gang;
-        $currentMasks = (int) ($character->masks ?? 0);
-        if ($currentMasks < 1) {
-            return back()->with('error', 'Je hebt geen maskers op zak om te doneren.');
-        }
 
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $quantity = min((int) $validated['quantity'], $currentMasks);
+        $requestedQty = (int) $validated['quantity'];
 
-        // Check gang depot storage capacity (provided by gang properties)
-        $storageCap = $gang->total_storage_capacity;
-        $storageUsed = $gang->getStorageUsed();
-        if ($storageUsed + $quantity > $storageCap) {
-            $spaceLeft = max(0, $storageCap - $storageUsed);
+        return DB::transaction(function () use ($gang, $character, $requestedQty): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-            return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items/maskers bij. Schaf meer bende opslagpanden aan of laat beheerders overtollige voorraad verkopen.");
-        }
+            $currentMasks = (int) ($lockedCharacter->masks ?? 0);
+            if ($currentMasks < 1) {
+                return back()->with('error', 'Je hebt geen maskers op zak om te doneren.');
+            }
 
-        $character->masks -= $quantity;
-        $character->respect += max(1, (int) round($quantity * 0.5));
-        $character->save();
+            $quantity = min($requestedQty, $currentMasks);
 
-        $gang->masks = ($gang->masks ?? 0) + $quantity;
-        $gang->save();
+            // Check gang depot storage capacity (provided by gang properties)
+            $storageCap = $lockedGang->total_storage_capacity;
+            $storageUsed = $lockedGang->getStorageUsed();
+            if ($storageUsed + $quantity > $storageCap) {
+                $spaceLeft = max(0, $storageCap - $storageUsed);
 
-        return back()
-            ->with('active_gang_tab', 'depot')
-            ->with('success', "🎭 Je hebt succesvol {$quantity}x Overval Masker(s) gedoneerd aan het Bende Depot! De bende bezit nu {$gang->masks} maskers voor Bende Heists.");
+                return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items/maskers bij. Schaf meer bende opslagpanden aan of laat beheerders overtollige voorraad verkopen.");
+            }
+
+            $lockedCharacter->masks -= $quantity;
+            $lockedCharacter->respect += max(1, (int) round($quantity * 0.5));
+            $lockedCharacter->save();
+
+            $lockedGang->masks = ($lockedGang->masks ?? 0) + $quantity;
+            $lockedGang->save();
+
+            return back()
+                ->with('active_gang_tab', 'depot')
+                ->with('success', "🎭 Je hebt succesvol {$quantity}x Overval Masker(s) gedoneerd aan het Bende Depot! De bende bezit nu {$lockedGang->masks} maskers voor Bende Heists.");
+        });
     }
 
     /**
@@ -1444,50 +1481,69 @@ class GangController extends Controller
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $charItem = CharacterItem::where('id', $validated['character_item_id'])
-            ->where('character_id', $character->id)
-            ->with('item')
-            ->first();
+        $requestedQty = (int) $validated['quantity'];
+        $charItemId = (int) $validated['character_item_id'];
 
-        if (! $charItem || $charItem->quantity < 1) {
-            return back()->with('error', 'Dit voorwerp bevindt zich niet in je opbergplaats.');
-        }
+        return DB::transaction(function () use ($gang, $character, $charItemId, $requestedQty): RedirectResponse {
+            /** @var CharacterItem|null $charItem */
+            $charItem = CharacterItem::where('id', $charItemId)
+                ->where('character_id', $character->id)
+                ->lockForUpdate()
+                ->with('item')
+                ->first();
 
-        $quantity = min((int) $validated['quantity'], $charItem->quantity);
+            if (! $charItem || $charItem->quantity < 1) {
+                return back()->with('error', 'Dit voorwerp bevindt zich niet in je opbergplaats.');
+            }
 
-        // Check gang depot storage capacity
-        $storageCap = $gang->total_storage_capacity;
-        $storageUsed = $gang->getStorageUsed();
-        if ($storageUsed + $quantity > $storageCap) {
-            $spaceLeft = max(0, $storageCap - $storageUsed);
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-            return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items bij. Koop meer opslagpanden.");
-        }
+            $quantity = min($requestedQty, $charItem->quantity);
 
-        // Deduct from player
-        $charItem->quantity -= $quantity;
-        if ($charItem->quantity <= 0) {
-            $charItem->delete();
-        } else {
-            $charItem->save();
-        }
+            // Check gang depot storage capacity
+            $storageCap = $lockedGang->total_storage_capacity;
+            $storageUsed = $lockedGang->getStorageUsed();
+            if ($storageUsed + $quantity > $storageCap) {
+                $spaceLeft = max(0, $storageCap - $storageUsed);
 
-        // Add to gang items
-        $gangItem = GangItem::firstOrCreate([
-            'gang_id' => $gang->id,
-            'item_id' => $charItem->item_id,
-        ], [
-            'quantity' => 0,
-        ]);
-        $gangItem->quantity += $quantity;
-        $gangItem->save();
+                return back()->with('error', "Het Bende Depot zit te vol ({$storageUsed}/{$storageCap} plekken bezet)! Er passen maximaal {$spaceLeft} extra items bij. Koop meer opslagpanden.");
+            }
 
-        $character->respect += max(1, $quantity);
-        $character->save();
+            $itemName = $charItem->item->name;
+            $itemId = $charItem->item_id;
 
-        return back()
-            ->with('active_gang_tab', 'depot')
-            ->with('success', "📦 Succesvol {$quantity}x {$charItem->item->name} gedoneerd aan het Bende Depot!");
+            // Deduct from player
+            $charItem->quantity -= $quantity;
+            if ($charItem->quantity <= 0) {
+                $charItem->delete();
+            } else {
+                $charItem->save();
+            }
+
+            // Add to gang items
+            /** @var GangItem $gangItem */
+            $gangItem = GangItem::where('gang_id', $lockedGang->id)->where('item_id', $itemId)->lockForUpdate()->first();
+            if (! $gangItem) {
+                $gangItem = GangItem::create([
+                    'gang_id' => $lockedGang->id,
+                    'item_id' => $itemId,
+                    'quantity' => $quantity,
+                ]);
+            } else {
+                $gangItem->quantity += $quantity;
+                $gangItem->save();
+            }
+
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            $lockedCharacter->respect += max(1, $quantity);
+            $lockedCharacter->save();
+
+            return back()
+                ->with('active_gang_tab', 'depot')
+                ->with('success', "📦 Succesvol {$quantity}x {$itemName} gedoneerd aan het Bende Depot!");
+        });
     }
 
     /**
@@ -1508,28 +1564,35 @@ class GangController extends Controller
             return back()->with('error', 'Alleen bendeleiders of beheerders kunnen spullen uit het Bende Depot verkopen!');
         }
 
-        $currentMasks = (int) ($gang->masks ?? 0);
-        if ($currentMasks < 1) {
-            return back()->with('error', 'Er liggen geen maskers in het Bende Depot.');
-        }
-
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $quantity = min((int) $validated['quantity'], $currentMasks);
-        $pricePerMask = 750;
-        $totalEarned = $pricePerMask * $quantity;
+        $requestedQty = (int) $validated['quantity'];
 
-        $gang->masks -= $quantity;
-        $gang->treasury += $totalEarned;
-        $gang->save();
+        return DB::transaction(function () use ($gang, $requestedQty): RedirectResponse {
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
 
-        $formattedCash = number_format($totalEarned, 0, ',', '.');
+            $currentMasks = (int) ($lockedGang->masks ?? 0);
+            if ($currentMasks < 1) {
+                return back()->with('error', 'Er liggen geen maskers in het Bende Depot.');
+            }
 
-        return back()
-            ->with('active_gang_tab', 'depot')
-            ->with('success', "💰 Succesvol {$quantity}x Bende Maskers verkocht aan de heler voor €{$formattedCash}! Dit bedrag is direct bijgeschreven in de Bende Kas 🏛️.");
+            $quantity = min($requestedQty, $currentMasks);
+            $pricePerMask = 750;
+            $totalEarned = $pricePerMask * $quantity;
+
+            $lockedGang->masks -= $quantity;
+            $lockedGang->treasury += $totalEarned;
+            $lockedGang->save();
+
+            $formattedCash = number_format($totalEarned, 0, ',', '.');
+
+            return back()
+                ->with('active_gang_tab', 'depot')
+                ->with('success', "💰 Succesvol {$quantity}x Bende Maskers verkocht aan de heler voor €{$formattedCash}! Dit bedrag is direct bijgeschreven in de Bende Kas 🏛️.");
+        });
     }
 
     /**
@@ -1550,32 +1613,46 @@ class GangController extends Controller
             return back()->with('error', 'Alleen bendeleiders of beheerders kunnen bende-eigendommen verkopen!');
         }
 
-        if ($gangItem->gang_id !== $gang->id || $gangItem->quantity < 1) {
-            return back()->with('error', 'Dit voorwerp bevindt zich niet in het Bende Depot.');
-        }
-
-        $item = $gangItem->item;
         $requestedQty = max(1, (int) $request->input('quantity', 1));
-        $quantity = min($requestedQty, $gangItem->quantity);
 
-        $pricePerUnit = max(500, (int) round(($item->price_kc > 0 ? $item->price_kc : 1000) * 0.6));
-        $totalEarned = $pricePerUnit * $quantity;
+        return DB::transaction(function () use ($gang, $gangItem, $requestedQty): RedirectResponse {
+            /** @var GangItem|null $lockedGangItem */
+            $lockedGangItem = GangItem::where('id', $gangItem->id)
+                ->where('gang_id', $gang->id)
+                ->lockForUpdate()
+                ->first();
 
-        $gangItem->quantity -= $quantity;
-        if ($gangItem->quantity <= 0) {
-            $gangItem->delete();
-        } else {
-            $gangItem->save();
-        }
+            if (! $lockedGangItem || $lockedGangItem->quantity < 1) {
+                return back()->with('error', 'Dit voorwerp bevindt zich niet in het Bende Depot.');
+            }
 
-        $gang->treasury += $totalEarned;
-        $gang->save();
+            $item = $lockedGangItem->item;
+            if (! $item) {
+                return back()->with('error', 'Item gegevens niet gevonden.');
+            }
 
-        $formattedCash = number_format($totalEarned, 0, ',', '.');
+            $quantity = min($requestedQty, $lockedGangItem->quantity);
+            $pricePerUnit = max(500, (int) round(($item->price_kc > 0 ? $item->price_kc : 1000) * 0.6));
+            $totalEarned = $pricePerUnit * $quantity;
 
-        return back()
-            ->with('active_gang_tab', 'depot')
-            ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! De opbrengst is direct gestort in de Bende Kas 🏛️.");
+            $lockedGangItem->quantity -= $quantity;
+            if ($lockedGangItem->quantity <= 0) {
+                $lockedGangItem->delete();
+            } else {
+                $lockedGangItem->save();
+            }
+
+            /** @var Gang $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            $lockedGang->treasury += $totalEarned;
+            $lockedGang->save();
+
+            $formattedCash = number_format($totalEarned, 0, ',', '.');
+
+            return back()
+                ->with('active_gang_tab', 'depot')
+                ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! De opbrengst is direct gestort in de Bende Kas 🏛️.");
+        });
     }
 
     /**

@@ -25,16 +25,20 @@ class CpaleadPostbackController extends Controller
         $configuredPassword = config('services.cpalead.password') ?? env('CPALEAD_POSTBACK_PASSWORD');
         $incomingPassword = $request->input('password');
 
-        // 1. Password check (if configured)
-        if (! empty($configuredPassword)) {
-            if (empty($incomingPassword) || ! hash_equals((string) $configuredPassword, (string) $incomingPassword)) {
-                Log::warning('CPAlead postback: Invalid password provided.', [
-                    'ip' => $request->ip(),
-                    'lead_id' => $request->input('lead_id'),
-                ]);
+        // 1. Enforce postback password authentication
+        if (empty($configuredPassword)) {
+            Log::error('CPAlead postback: Postback secret not configured on server.');
 
-                return response('Error: Invalid postback password', 403);
-            }
+            return response('Error: Postback authentication not configured', 403);
+        }
+
+        if (empty($incomingPassword) || ! hash_equals((string) $configuredPassword, (string) $incomingPassword)) {
+            Log::warning('CPAlead postback: Invalid password provided.', [
+                'ip' => $request->ip(),
+                'lead_id' => $request->input('lead_id'),
+            ]);
+
+            return response('Error: Invalid postback password', 403);
         }
 
         // 2. Validate essential parameters
