@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 #[Signature('tbs:rebalance-stats')]
 #[Description('Herstelt onevenredig hoge gevechtsstatistieken met behoud van spelersgeld en publiceert het balans nieuwsartikel')]
@@ -23,10 +24,13 @@ class RebalanceStatsCommand extends Command
     {
         $this->info('Starten met spelbalans herstel...');
 
-        // 1. Zoek spelers met extreme stats (via shop stacking)
-        $inflatedCharacters = Character::where('strength', '>', 600)
-            ->orWhere('defense', '>', 600)
-            ->orWhereIn('id', [42, 33, 82, 84, 70, 15])
+        // 1. Zoek spelers met extreme stats of actieve spelers die hersteld moeten worden
+        $inflatedCharacters = Character::where('level', '>=', 5)
+            ->where(function ($query) {
+                $query->where('strength', '>', 500)
+                    ->orWhere('defense', '>', 500)
+                    ->orWhereIn('id', [42, 33, 17, 15, 84, 82, 70, 58, 86, 6]);
+            })
             ->get();
 
         $this->info("Gevonden spelers voor herstel: {$inflatedCharacters->count()}");
@@ -35,38 +39,72 @@ class RebalanceStatsCommand extends Command
             $oldStr = $char->strength;
             $oldDef = $char->defense;
             $oldSta = $char->stamina;
+            $oldInt = $char->intelligence;
+            $oldCha = $char->charisma;
+            $oldDis = $char->discipline;
 
             $maxStat = $char->getMaxStatForLevel();
 
-            // Tel legitieme training logs mee
-            $trainingStr = (int) TrainingLog::where('character_id', $char->id)->where('stat', 'strength')->sum('stat_gain');
-            $trainingDef = (int) TrainingLog::where('character_id', $char->id)->where('stat', 'defense')->sum('stat_gain');
-            $trainingSta = (int) TrainingLog::where('character_id', $char->id)->where('stat', 'stamina')->sum('stat_gain');
+            // 1. Haal alle sportschool workouts per stat op
+            $tLogs = TrainingLog::where('character_id', $char->id)
+                ->selectRaw('stat, sum(stat_gain) as total_gain')
+                ->groupBy('stat')
+                ->pluck('total_gain', 'stat')
+                ->toArray();
 
-            // Tel legitieme armworstel winsten mee
+            $tStr = (int) ($tLogs['strength'] ?? 0);
+            $tDef = (int) ($tLogs['defense'] ?? 0);
+            $tSta = (int) ($tLogs['stamina'] ?? 0);
+            $tInt = (int) ($tLogs['intelligence'] ?? 0);
+            $tCha = (int) ($tLogs['charisma'] ?? 0);
+            $tDis = (int) ($tLogs['discipline'] ?? 0);
+
+            // 2. Haal alle armworstel overwinningen op
             $armStat = CharacterArmWrestleStat::where('character_id', $char->id)->first();
             $armMatchesWon = ArmWrestleMatch::where('winner_id', $char->id)->count();
-            $armWins = max($armStat ? $armStat->wins : 0, $armMatchesWon);
+            $totalArmWins = max($armStat ? $armStat->wins : 0, $armMatchesWon);
 
-            // Bereken wat ze eerlijk verdiend hebben via echte gameplay
-            $earnedStr = 10 + $trainingStr + (int) round($armWins * 0.5) + (int) round(($char->fights_won ?? 0) * 0.3);
-            $earnedDef = 10 + $trainingDef + (int) round(($char->fights_won ?? 0) * 0.2);
-            $earnedSta = 10 + $trainingSta + (int) round(($char->dagbesteding_shifts_completed ?? 0) * 0.5);
+            // 3. Haal overige voltooide activiteiten op
+            $fightsWon = (int) ($char->fights_won ?? 0);
+            $dagb = (int) ($char->dagbesteding_shifts_completed ?? 0);
+            $theftsWon = DB::table('theft_records')->where('thief_id', $char->id)->where('success', 1)->count();
+            $gangAttacks = DB::table('gang_attacks')->where('character_id', $char->id)->count();
 
-            // Minimum baseline op basis van level, maar volop beloond voor hun duizenden trainingen en armworstelpotjes
-            $levelBaseline = 40 + ($char->level * 8);
+            // 4. Bereken verdiende punten per statistiek op basis van alle inspanningen
+            // Kracht: sportschool + armpjedrukken (1.0 per winst) + gevechten (0.5) + bendeaanvallen
+            $earnedStr = 10 + $tStr + (int) round($totalArmWins * 1.0) + (int) round($fightsWon * 0.5) + $gangAttacks;
 
-            $fairStr = min($maxStat, max($levelBaseline, max($char->strength, $earnedStr)));
-            $fairDef = min($maxStat, max($levelBaseline, max($char->defense, $earnedDef)));
-            $fairSta = min($maxStat, max($levelBaseline, max($char->stamina, $earnedSta)));
+            // Verdediging: sportschool + gevechten incasseren (0.5) + armpjedrukken (0.3) + bendeaanvallen
+            $earnedDef = 10 + $tDef + (int) round($fightsWon * 0.5) + (int) round($totalArmWins * 0.3) + $gangAttacks;
 
-            $char->strength = $fairStr;
-            $char->defense = $fairDef;
-            $char->stamina = $fairSta;
-            // GELD WORDT NIET AANGERAAKT - COMPENSATIE
+            // Conditie: sportschool + zware dagbesteding (1.5 per dienst) + zakkenrollen conditie (1.0) + gevechten (0.3) + armpjedrukken (0.2)
+            $earnedSta = 10 + $tSta + (int) round($dagb * 1.5) + (int) round($theftsWon * 1.0) + (int) round($fightsWon * 0.3) + (int) round($totalArmWins * 0.2);
+
+            // Intelligentie: sportschool + zakkenrollen en tactiek (1.0 per diefstal)
+            $earnedInt = 10 + $tInt + (int) round($theftsWon * 1.0);
+
+            // Charisma: sportschool contacten en sociale vaardigheden
+            $earnedCha = 10 + $tCha;
+
+            // Discipline: sportschool + dagbesteding discipline (0.5) + dagelijkse actieve streak
+            $earnedDis = 10 + $tDis + (int) round($dagb * 0.5) + (int) ($char->streak_days ?? 0);
+
+            // 5. Natuurlijke ondergrens voor hogere levels zodat ervaren leiders niet achterblijven in mentale/sociale stats
+            $combatFloor = 10 + ($char->level * 5);
+            $socialFloor = 10 + ($char->level * 4);
+
+            // 6. Toekennen met respect voor eerlijke gameplay, begrensd door het level plafond
+            $char->strength = min($maxStat, max($char->strength > $maxStat ? 0 : $char->strength, max($earnedStr, $combatFloor)));
+            $char->defense = min($maxStat, max($char->defense > $maxStat ? 0 : $char->defense, max($earnedDef, $combatFloor)));
+            $char->stamina = min($maxStat, max($char->stamina > $maxStat ? 0 : $char->stamina, max($earnedSta, $combatFloor)));
+            $char->intelligence = min($maxStat, max($char->intelligence > $maxStat ? 0 : $char->intelligence, max($earnedInt, $socialFloor)));
+            $char->charisma = min($maxStat, max($char->charisma > $maxStat ? 0 : $char->charisma, max($earnedCha, $socialFloor)));
+            $char->discipline = min($maxStat, max($char->discipline > $maxStat ? 0 : $char->discipline, max($earnedDis, $socialFloor)));
+
+            // GELD WORDT NIET AANGERAAKT - COMPENSATIE BEHOUDEN
             $char->save();
 
-            $this->line("Speler {$char->name} (Lvl {$char->level}): Kracht {$oldStr}->{$fairStr}, Verdediging {$oldDef}->{$fairDef}, Conditie {$oldSta}->{$fairSta} (Geld behouden: €".number_format($char->cash + $char->bank, 0, ',', '.').')');
+            $this->line("Speler {$char->name} (Lvl {$char->level}, Cap {$maxStat}): Str {$oldStr}->{$char->strength}, Def {$oldDef}->{$char->defense}, Sta {$oldSta}->{$char->stamina}, Int {$oldInt}->{$char->intelligence}, Cha {$oldCha}->{$char->charisma}, Dis {$oldDis}->{$char->discipline}");
 
             // Ruim overtollige gestackte uitrusting in inventaris op
             $equipmentItemIds = Item::where('category', 'equipment')->pluck('id')->toArray();
@@ -111,24 +149,26 @@ class RebalanceStatsCommand extends Command
         $slug = 'grote-update-eerlijke-spelbalans';
 
         $content = "Beste patiënten en bewoners van de kliniek,\n\n"
-            ."Vandaag voeren we een grote update door voor de spelbalans. De afgelopen periode kon je in de winkel onbeperkt uitrusting kopen waardoor gevechtsstatistieken zoals Kracht en Verdediging oneindig hoog opliepen. Hierdoor was het voor nieuwkomers en actieve spelers onmogelijk geworden om eerlijke gevechten aan te gaan.\n\n"
+            ."Vandaag voeren we een grote update door voor de spelbalans. De afgelopen periode kon je in de winkel onbeperkt uitrusting kopen waardoor statistieken oneindig hoog konden oplopen. Hierdoor was het voor nieuwkomers en actieve spelers onmogelijk geworden om eerlijke gevechten aan te gaan.\n\n"
             ."Dat is vanaf nu verleden tijd! Hieronder leggen we helder en stap voor stap uit hoe het nieuwe systeem werkt.\n\n"
-            ."## Hoe verdien je nu Kracht en Verdediging?\n\n"
-            ."Vanaf vandaag word je sterker door acties uit te voeren in de kliniek. Niet door miljoenen euro's in de winkel te dumpen, maar door echte inzet!\n\n"
-            ."1. Vechten op de luchtplaats\n"
-            ."Wanneer je een knokpartij op de luchtplaats wint, heb je direct kans op permanente Kracht. Sla je als verdediger een beroving succesvol af, dan stijgt jouw Verdediging.\n\n"
+            ."## Hoe verdien je nu jouw eigenschappen en vaardigheden?\n\n"
+            ."Vanaf vandaag word je sterker door echte acties uit te voeren in de kliniek. Niet door miljoenen euro's in de winkel te dumpen, maar door echte inzet over de hele linie!\n\n"
+            ."1. Vechten op de luchtplaats en bendeoorlogen\n"
+            ."Wanneer je een knokpartij op de luchtplaats aangaat of meedoet aan bendeaanvallen, stijgen zowel jouw Kracht als jouw Verdediging en Conditie door de adrenaline en het incasseringsvermogen.\n\n"
             ."2. Armpjedrukken in de ontspanningsruimte\n"
-            ."Laat je spierballen rollen aan de armworstel tafel. Zowel tegen NPC tegenstanders als tegen medespelers verdien je nu Kracht bij winst.\n\n"
+            ."Laat je spierballen rollen aan de armworstel tafel. Zowel tegen NPC tegenstanders als tegen medespelers verdien je volop Kracht, Verdediging en fysieke Conditie bij winst.\n\n"
             ."3. Werkplaats Dagbesteding\n"
-            ."Zwaar werk in de werkplaats bij houtbewerking bouwt spieren op en levert Kracht op.\n\n"
-            ."4. Barry Biceps in de gym\n"
-            ."Je kunt uiteraard ook nog altijd gericht trainen bij Barry Biceps en Mo de Meesterstrateeg.\n\n"
+            ."Zwaar werk in de werkplaats bij houtbewerking, de wasserette en de keuken bouwt fysieke Conditie en Discipline op.\n\n"
+            ."4. Zakkenrollen en diefstallen\n"
+            ."Het ongezien opereren en snel wegkomen traint je Conditie en tactische Intelligentie.\n\n"
+            ."5. De Sportschool van Barry Biceps en Mo\n"
+            ."Je kunt uiteraard ook nog altijd gericht trainen bij alle zes kliniektrainers voor Kracht, Verdediging, Conditie, Intelligentie, Charisma en Discipline.\n\n"
             ."## Begrenzing per level\n\n"
             ."Om het spel eerlijk en spannend te houden voor iedereen, heeft elk level nu een natuurlijk stat plafond. Hoe hoger je level wordt door ervaring op te doen, hoe sterker je maximaal kunt worden. Zo blijft een gevecht altijd tactisch en heeft iedereen een eerlijke kans.\n\n"
             ."## Uitrusting in je rugzak\n\n"
             ."Wapens en bescherming zoals de Boksbeugel en Stalen Neus Kisten koop je eenmalig in de winkel. Zolang ze in je rugzak zitten, geven ze een krachtige passieve gevechtsbonus tijdens al je knokpartijen.\n\n"
-            ."## Herstel van statistieken en compensatie\n\n"
-            ."Voor de spelers die eerder tienduizenden items hebben aangeschaft, zijn de gevechtsstatistieken teruggezet naar een passend hoog niveau behorend bij hun level.\n\n"
+            ."## Volledige waardering van alle trainingen en compensatie\n\n"
+            ."Voor alle spelers zijn alle statistieken opnieuw gecontroleerd en volledig verrekend met al hun armworstelpartijen, sportschooluren, straatgevechten en dagbestedingsdiensten. Niemand wordt tekortgedaan!\n\n"
             ."Als compensatie voor de gemaakte kosten hebben alle betrokken spelers hun volledige geldbedrag en banktegoeden mogen behouden. De kliniek directie gunt iedereen een rijke bankrekening, zolang de gevechten op de vloer maar eerlijk en sportief verlopen!\n\n"
             ."## Tips voor beginners\n\n"
             ."Ben je net nieuw in TBS Kliniek?\n"
