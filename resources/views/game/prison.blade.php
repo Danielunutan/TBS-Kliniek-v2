@@ -92,15 +92,23 @@
             </button>
 
 
-            <!-- Regular escape attempt -->
+            <!-- Regular escape attempt (max 1x per prison sentence) -->
+            @if(! ($character->prison_escape_attempted ?? false))
             <form action="{{ route('prison.escape') }}" method="POST" class="flex-1 md:flex-initial">
                 @csrf
                 <button type="submit" 
                         class="w-full px-4 py-2.5 rounded-xl bg-white hover:bg-rose-100/60 border border-rose-300 text-rose-900 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
                     <i class="fa-solid fa-person-running text-rose-600"></i>
-                    <span>Ontsnappingspoging</span>
+                    <span>Ontsnappingspoging (1x mogelijk)</span>
                 </button>
             </form>
+            @else
+            <div class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed"
+                 title="Je hebt je ontsnappingspoging voor deze straf al verbruikt. Bekijk ads om alsnog direct vrijgelaten te worden!">
+                <i class="fa-solid fa-ban text-rose-500"></i>
+                <span>Ontsnappingspoging Verbruikt (Kijk Ads)</span>
+            </div>
+            @endif
         </div>
     </div>
     @endif

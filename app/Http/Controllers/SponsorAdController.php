@@ -467,6 +467,7 @@ class SponsorAdController extends Controller
                             $character->prison_until = null;
                             $character->prison_reason = null;
                             $character->ad_prison_progress = 0;
+                            $character->prison_escape_attempted = false;
                             $rewardDetails = "🎉 [{$current}/{$required} Ads] GEFELICITEERD: Je straftijd is volledig kwijtgescholden en je bent DIRECT VRIJGELATEN uit de isoleercel!";
                         } else {
                             $character->ad_prison_progress = $current;

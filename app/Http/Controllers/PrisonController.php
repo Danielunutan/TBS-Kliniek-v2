@@ -172,6 +172,7 @@ class PrisonController extends Controller
         $character->is_in_prison = false;
         $character->prison_until = null;
         $character->prison_reason = null;
+        $character->prison_escape_attempted = false;
         $character->save();
 
         return back()->with('success', 'Je hebt jezelf succesvol vrijgekocht met Sterren ⭐! Je bent weer op vrije voeten.');
@@ -234,6 +235,7 @@ class PrisonController extends Controller
                 $targetInmate->is_in_prison = false;
                 $targetInmate->prison_until = null;
                 $targetInmate->prison_reason = null;
+                $targetInmate->prison_escape_attempted = false;
                 $targetInmate->save();
 
                 GameNotification::create([

@@ -30,6 +30,8 @@ class PrisonService
             'prison_until' => now()->addSeconds($seconds),
             'prison_reason' => $reason,
             'prison_sentences' => $character->prison_sentences + 1,
+            'prison_escape_attempted' => false,
+            'ad_prison_progress' => 0,
         ]);
 
         $timeLabel = $seconds >= 60 ? (round($seconds / 60, 1).' min ('.$seconds.' sec)') : ($seconds.' sec');
@@ -73,6 +75,13 @@ class PrisonService
             ];
         }
 
+        if ($character->prison_escape_attempted) {
+            return [
+                'success' => false,
+                'message' => 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Bekijk een advertentie om direct vrijgelaten te worden.',
+            ];
+        }
+
         $escapeCost = 20;
         if (! $energyService->consume($character, $escapeCost)) {
             return [
@@ -98,6 +107,7 @@ class PrisonService
                 'prison_until' => null,
                 'prison_reason' => null,
                 'ad_prison_progress' => 0,
+                'prison_escape_attempted' => false,
                 'prison_escapes' => $character->prison_escapes + 1,
                 'stamina' => $newStamina,
                 'respect' => $character->respect + 15,
@@ -127,13 +137,14 @@ class PrisonService
         $character->update([
             'is_in_prison' => true,
             'prison_until' => $newUntil,
+            'prison_escape_attempted' => true,
             'respect' => max(0, $character->respect - 1),
         ]);
         $character->refresh();
 
         return [
             'success' => false,
-            'message' => 'Mislukt! Bewaker Barry greep je bij je lurven bij het luchtrooster. Je straftijd is met 90 seconden verlengd en je verliest 1 respect!',
+            'message' => 'Mislukt! Bewaker Barry greep je bij je lurven bij het luchtrooster. Je straftijd is met 90 seconden verlengd en je hebt je ontsnappingspoging verbruikt! Bekijk een advertentie om alsnog direct vrij te komen.',
         ];
     }
 }

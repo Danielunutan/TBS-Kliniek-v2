@@ -140,6 +140,7 @@ class Character extends Model
         'ad_bullets_progress' => 'integer',
         'ad_coma_progress' => 'integer',
         'ad_prison_progress' => 'integer',
+        'prison_escape_attempted' => 'boolean',
         'ad_vest_progress' => 'integer',
         'ad_daily_data' => 'array',
         'perks' => 'array',
@@ -1081,6 +1082,7 @@ class Character extends Model
             'prison_until' => null,
             'prison_reason' => null,
             'ad_prison_progress' => 0,
+            'prison_escape_attempted' => false,
         ]);
 
         return false;

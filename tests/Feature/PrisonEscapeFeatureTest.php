@@ -80,4 +80,20 @@ class PrisonEscapeFeatureTest extends TestCase
             $this->assertNull($character->prison_until);
         }
     }
+
+    public function test_escape_attempt_is_limited_to_once_per_sentence(): void
+    {
+        $character = $this->createCharacter([
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(10),
+            'prison_escape_attempted' => true,
+            'energy' => 50,
+        ]);
+
+        $response = $this->actingAs($character->user)->post(route('prison.escape'));
+
+        $response->assertRedirect(route('prison'));
+        $response->assertSessionHas('error', 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Bekijk een advertentie om direct vrijgelaten te worden.');
+        $this->assertEquals(50, $character->fresh()->energy);
+    }
 }

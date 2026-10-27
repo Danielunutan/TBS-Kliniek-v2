@@ -289,6 +289,7 @@ class HeistController extends Controller
             $character->is_in_prison = true;
             $character->prison_until = now()->addMinutes($prisonMinutes);
             $character->prison_reason = "Betrapt tijdens {$heist->name}! Klemgereden door arrestatieteam.";
+            $character->prison_escape_attempted = false;
             $character->save();
 
             HeistLog::create([
