@@ -2,11 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ArmWrestleMatch;
 use App\Models\Character;
+use App\Models\CharacterArmWrestleStat;
 use App\Models\CharacterItem;
 use App\Models\Gang;
 use App\Models\Item;
 use App\Models\NewsArticle;
+use App\Models\TrainingLog;
 use App\Models\User;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -33,16 +36,37 @@ class RebalanceStatsCommand extends Command
             $oldDef = $char->defense;
             $oldSta = $char->stamina;
 
-            $maxStat = 50 + ($char->level * 15);
-            $fairStat = min($maxStat, max(50, 40 + ($char->level * 8)));
+            $maxStat = $char->getMaxStatForLevel();
 
-            $char->strength = $fairStat;
-            $char->defense = $fairStat;
-            $char->stamina = $fairStat;
+            // Tel legitieme training logs mee
+            $trainingStr = (int) TrainingLog::where('character_id', $char->id)->where('stat', 'strength')->sum('stat_gain');
+            $trainingDef = (int) TrainingLog::where('character_id', $char->id)->where('stat', 'defense')->sum('stat_gain');
+            $trainingSta = (int) TrainingLog::where('character_id', $char->id)->where('stat', 'stamina')->sum('stat_gain');
+
+            // Tel legitieme armworstel winsten mee
+            $armStat = CharacterArmWrestleStat::where('character_id', $char->id)->first();
+            $armMatchesWon = ArmWrestleMatch::where('winner_id', $char->id)->count();
+            $armWins = max($armStat ? $armStat->wins : 0, $armMatchesWon);
+
+            // Bereken wat ze eerlijk verdiend hebben via echte gameplay
+            $earnedStr = 10 + $trainingStr + (int) round($armWins * 0.5) + (int) round(($char->fights_won ?? 0) * 0.3);
+            $earnedDef = 10 + $trainingDef + (int) round(($char->fights_won ?? 0) * 0.2);
+            $earnedSta = 10 + $trainingSta + (int) round(($char->dagbesteding_shifts_completed ?? 0) * 0.5);
+
+            // Minimum baseline op basis van level, maar volop beloond voor hun duizenden trainingen en armworstelpotjes
+            $levelBaseline = 40 + ($char->level * 8);
+
+            $fairStr = min($maxStat, max($levelBaseline, max($char->strength, $earnedStr)));
+            $fairDef = min($maxStat, max($levelBaseline, max($char->defense, $earnedDef)));
+            $fairSta = min($maxStat, max($levelBaseline, max($char->stamina, $earnedSta)));
+
+            $char->strength = $fairStr;
+            $char->defense = $fairDef;
+            $char->stamina = $fairSta;
             // GELD WORDT NIET AANGERAAKT - COMPENSATIE
             $char->save();
 
-            $this->line("Speler {$char->name} (Lvl {$char->level}): Kracht {$oldStr}->{$fairStat}, Verdediging {$oldDef}->{$fairStat}, Conditie {$oldSta}->{$fairStat} (Geld behouden: €".number_format($char->cash + $char->bank, 0, ',', '.').')');
+            $this->line("Speler {$char->name} (Lvl {$char->level}): Kracht {$oldStr}->{$fairStr}, Verdediging {$oldDef}->{$fairDef}, Conditie {$oldSta}->{$fairSta} (Geld behouden: €".number_format($char->cash + $char->bank, 0, ',', '.').')');
 
             // Ruim overtollige gestackte uitrusting in inventaris op
             $equipmentItemIds = Item::where('category', 'equipment')->pluck('id')->toArray();
