@@ -14,7 +14,7 @@ class SeasonResetCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'tbs:season-reset {--dry-run : Simulate the reset without modifying the database} {--force : Force execution without confirmation}';
+    protected $signature = 'tbs:season-reset {--dry-run : Simulate the reset without modifying the database} {--force : Force execution without confirmation} {--vip-only : Only reset active VIP status for all characters}';
 
     /**
      * The console command description.
@@ -28,6 +28,14 @@ class SeasonResetCommand extends Command
      */
     public function handle(): int
     {
+        if ($this->option('vip-only')) {
+            $count = Character::where('is_vip', true)->orWhereNotNull('vip_expires_at')->count();
+            Character::query()->update(['is_vip' => false, 'vip_expires_at' => null]);
+            $this->info("Alle actieve VIP statussen gereset ({$count} karakters bijgewerkt). Niemand is nu meer VIP.");
+
+            return 0;
+        }
+
         $isDryRun = (bool) $this->option('dry-run');
 
         $this->info('=========================================');
