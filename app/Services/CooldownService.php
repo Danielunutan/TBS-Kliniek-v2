@@ -146,16 +146,42 @@ class CooldownService
     }
 
     /**
+     * Calculate dynamic Star cost based on base cost plus remaining cooldown duration.
+     * Prevents devaluation of Stars for skipping long cooldowns.
+     */
+    public function calculateDynamicSkipCost(Character $character, string $action): int
+    {
+        $base = $this->getSkipCost($action);
+        $remainingSeconds = $this->getRemainingSeconds($character, $action);
+
+        if ($remainingSeconds <= 0) {
+            return 0;
+        }
+
+        // 1 Star per 30 seconds remaining, plus base cost
+        $timeAddition = (int) ceil($remainingSeconds / 30);
+
+        return max($base, $base + $timeAddition);
+    }
+
+    /**
      * @return array{success: bool, message: string}
      */
     public function skipWithStars(Character $character, string $action): array
     {
-        $cost = $this->getSkipCost($action);
+        $cost = $this->calculateDynamicSkipCost($character, $action);
+
+        if ($cost <= 0) {
+            return [
+                'success' => false,
+                'message' => 'Er is momenteel geen actieve cooldown voor deze actie!',
+            ];
+        }
 
         if (($character->stars ?? 0) < $cost) {
             return [
                 'success' => false,
-                'message' => "Je hebt minimaal {$cost} Sterren ⭐ nodig om deze cooldown over te slaan! (Je hebt: ".($character->stars ?? 0).')',
+                'message' => "Je hebt {$cost} Sterren ⭐ nodig om deze resterende wachttijd over te slaan! (Je hebt: ".($character->stars ?? 0).')',
             ];
         }
 

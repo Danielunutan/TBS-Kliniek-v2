@@ -27,7 +27,20 @@ class VipController extends Controller
         if ($character->isVip()) {
             $lastReward = $character->last_vip_reward_at;
             if (! $lastReward || $lastReward->diffInHours(now()) >= 1) {
-                $character->vip_points = ($character->vip_points ?? 0) + 5;
+                $hours = $lastReward ? min(24, (int) $lastReward->diffInHours(now())) : 1;
+                $tier = (int) ($character->perks['supporter_tier'] ?? 1);
+                $hourlyCashBonus = match ($tier) {
+                    4 => 50000,
+                    3 => 20000,
+                    2 => 7500,
+                    default => 2500,
+                };
+
+                $earnedPoints = 5 * $hours;
+                $earnedCash = $hourlyCashBonus * $hours;
+
+                $character->vip_points = ($character->vip_points ?? 0) + $earnedPoints;
+                $character->bank = ($character->bank ?? 0) + $earnedCash;
                 $character->last_vip_reward_at = now();
                 $character->save();
 
@@ -36,7 +49,7 @@ class VipController extends Controller
                     'type' => 'vip',
                     'icon' => 'fa-crown',
                     'title' => 'VIP Uurbeloning ontvangen!',
-                    'message' => 'Je hebt +5 VIP Punten ontvangen voor je actieve uur in de TBS Kliniek.',
+                    'message' => "Je hebt +{$earnedPoints} VIP Punten en €".number_format($earnedCash, 0, ',', '.').' uurbonus op je bank ontvangen!',
                     'is_read' => false,
                 ]);
             }
@@ -132,5 +145,53 @@ class VipController extends Controller
         $character->save();
 
         return back()->with('success', "🎉 Gefeliciteerd! Je hebt succesvol '{$reward['name']}' geclaimd voor {$cost} VIP Punten!");
+    }
+
+    /**
+     * Update VIP custom styling (name color and glitter sparkle effect).
+     */
+    public function updateStyling(Request $request): RedirectResponse
+    {
+        $character = Auth::user()->character;
+        if (! $character->isVip()) {
+            return back()->with('error', 'Je hebt een actief VIP lidmaatschap nodig om je VIP styling aan te passen.');
+        }
+
+        $validated = $request->validate([
+            'custom_name_color' => 'nullable|string|max:30',
+            'sparkle_enabled' => 'nullable|boolean',
+        ]);
+
+        $perks = $character->perks ?? [];
+
+        // Check eligibility
+        if ($character->canCustomizeNameColor()) {
+            $allowedColors = [
+                '#f59e0b', // Goudgeel / Amber
+                '#a855f7', // TBS Paars Neon
+                '#10b981', // Smaragd Neon
+                '#ef4444', // Bloedrood
+                '#06b6d4', // Cyber Cyaan
+                '#ec4899', // Hot Pink
+                '#3b82f6', // Elektrisch Blauw
+                '#e2e8f0', // Platina Wit
+            ];
+
+            $chosenColor = $validated['custom_name_color'] ?? null;
+            if ($chosenColor && in_array($chosenColor, $allowedColors, true)) {
+                $perks['custom_name_color'] = $chosenColor;
+            } else {
+                $perks['custom_name_color'] = null; // Reset to default
+            }
+        }
+
+        if ($character->canUseSparkleEffect()) {
+            $perks['sparkle_enabled'] = (bool) ($request->input('sparkle_enabled', false));
+        }
+
+        $character->perks = $perks;
+        $character->save();
+
+        return back()->with('success', 'Jouw VIP styling instellingen zijn direct opgeslagen!');
     }
 }

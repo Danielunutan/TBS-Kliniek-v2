@@ -368,11 +368,17 @@
                                         <span x-text="msg.name"></span>
                                     </span>
                                 </template>
-                                <!-- REGULAR -->
+                                <!-- REGULAR / VIP -->
                                 <template x-if="!msg.is_owner && !msg.is_admin && !msg.is_moderator">
-                                    <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
-                                          @click="tagPlayer(msg.name)" title="Klik om te taggen in chat"
-                                          x-text="msg.name"></span>
+                                    <span class="font-extrabold hover:underline cursor-pointer inline-flex items-center gap-1"
+                                          :class="msg.has_sparkle ? 'vip-sparkle-name' : (msg.is_vip ? 'text-amber-500 dark:text-amber-400' : 'text-slate-900 dark:text-white')"
+                                          :style="msg.name_color && !msg.has_sparkle ? 'color: ' + msg.name_color : ''"
+                                          @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
+                                        <template x-if="msg.is_vip">
+                                            <i class="fa-solid fa-crown text-[8px] text-amber-500" title="VIP Lid"></i>
+                                        </template>
+                                        <span x-text="msg.name"></span>
+                                    </span>
                                 </template>
 
                                 <!-- LEVEL -->

@@ -357,6 +357,7 @@ Route::middleware('auth')->group(function (): void {
     // VIP Punten Shop (Diamanten)
     Route::get('/vip-shop', [VipController::class, 'index'])->name('vip.index');
     Route::post('/vip-shop/inwisselen', [VipController::class, 'redeem'])->name('vip.redeem')->middleware('throttle:30,1');
+    Route::post('/vip-shop/styling', [VipController::class, 'updateStyling'])->name('vip.styling')->middleware('throttle:30,1');
 
     // Combat Training (Schietoefening)
     Route::get('/vechtoefening', [CombatTrainingController::class, 'index'])->name('combat_training.index');

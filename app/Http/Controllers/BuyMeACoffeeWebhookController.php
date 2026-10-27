@@ -149,16 +149,43 @@ class BuyMeACoffeeWebhookController extends Controller
 
                 $coffees = (int) ($data['support_coffees'] ?? $data['quantity'] ?? 1);
                 $amount = (float) ($data['amount'] ?? $data['total_amount'] ?? 0);
-                // If amount is known (e.g. 5 EUR = ~50 stars, default 25 stars per coffee)
-                $starsAwarded = $amount > 0 ? max(25, (int) round($amount * 10)) : max(25, $coffees * 25);
+
+                // Tiered rewards based on number of coffees or total donation amount
+                if ($coffees >= 5 || $amount >= 15.0) {
+                    $starsAwarded = 160;
+                    $masksAwarded = 6;
+                    $xxlAwarded = 2;
+                    $bulletsAwarded = 500;
+                } elseif ($coffees >= 3 || $amount >= 9.0) {
+                    $starsAwarded = 85;
+                    $masksAwarded = 3;
+                    $xxlAwarded = 1;
+                    $bulletsAwarded = 200;
+                } else {
+                    $count = max(1, $coffees);
+                    $starsAwarded = $amount > 0 ? max(25, (int) round($amount * 10)) : $count * 25;
+                    $masksAwarded = $count;
+                    $xxlAwarded = 0;
+                    $bulletsAwarded = 50 * $count;
+                }
 
                 $locked->stars = ($locked->stars ?? 0) + $starsAwarded;
+                $locked->masks = ($locked->masks ?? 0) + $masksAwarded;
+                $locked->bullets = ($locked->bullets ?? 0) + $bulletsAwarded;
+                if ($xxlAwarded > 0) {
+                    $locked->xxl_cases = ($locked->xxl_cases ?? 0) + $xxlAwarded;
+                }
+
+                $perks = $locked->perks ?? [];
+                $perks['is_donator'] = true;
+                $locked->perks = $perks;
+
                 $locked->save();
 
                 AuditLogService::log(
                     action: 'buymeacoffee_donation',
                     category: 'economy',
-                    description: "BuyMeACoffee donatie ontvangen: +{$starsAwarded} Sterren toegekend aan {$locked->name}",
+                    description: "BuyMeACoffee donatie ontvangen: +{$starsAwarded} Sterren, +{$masksAwarded} Maskers, +{$bulletsAwarded} Kogels".($xxlAwarded > 0 ? ", +{$xxlAwarded} XXL Zaak Koffers" : '')." toegekend aan {$locked->name}",
                     character: $locked,
                     user: $locked->user,
                     amount: $starsAwarded,
@@ -201,15 +228,21 @@ class BuyMeACoffeeWebhookController extends Controller
 
         if (str_contains($titleLower, '50 ster') || str_contains($titleLower, 'starter')) {
             $character->stars = ($character->stars ?? 0) + 50;
+            $character->masks = ($character->masks ?? 0) + 2;
         } elseif (str_contains($titleLower, '150 ster') || str_contains($titleLower, 'medium')) {
             $character->stars = ($character->stars ?? 0) + 150;
+            $character->masks = ($character->masks ?? 0) + 5;
         } elseif (str_contains($titleLower, '500 ster') || str_contains($titleLower, 'groot')) {
             $character->stars = ($character->stars ?? 0) + 500;
+            $character->masks = ($character->masks ?? 0) + 15;
+            $character->xxl_cases = ($character->xxl_cases ?? 0) + 2;
         } elseif (str_contains($titleLower, 'koffer') || str_contains($titleLower, 'xxl')) {
             $character->xxl_cases = ($character->xxl_cases ?? 0) + 2;
+            $character->masks = ($character->masks ?? 0) + 3;
         } else {
             // Default generic star reward
             $character->stars = ($character->stars ?? 0) + 100;
+            $character->masks = ($character->masks ?? 0) + 3;
         }
 
         $character->save();
@@ -238,6 +271,7 @@ class BuyMeACoffeeWebhookController extends Controller
             $character->vip_expires_at = Carbon::now()->addYears(99);
             $character->stars = ($character->stars ?? 0) + 1500;
             $character->xxl_cases = ($character->xxl_cases ?? 0) + 10;
+            $character->masks = ($character->masks ?? 0) + 30;
             $perks['supporter_tier'] = 4;
             $perks['has_custom_name_color'] = true;
             $perks['has_sparkle_effect'] = true;
@@ -249,6 +283,7 @@ class BuyMeACoffeeWebhookController extends Controller
             $character->vip_expires_at = $currentExpiry->copy()->addDays(31);
             $character->stars = ($character->stars ?? 0) + 600;
             $character->xxl_cases = ($character->xxl_cases ?? 0) + 3;
+            $character->masks = ($character->masks ?? 0) + 12;
             $perks['supporter_tier'] = 3;
             $perks['has_custom_name_color'] = true;
             $perks['has_sparkle_effect'] = true;
@@ -260,6 +295,7 @@ class BuyMeACoffeeWebhookController extends Controller
             $character->vip_expires_at = $currentExpiry->copy()->addDays(31);
             $character->stars = ($character->stars ?? 0) + 250;
             $character->xxl_cases = ($character->xxl_cases ?? 0) + 1;
+            $character->masks = ($character->masks ?? 0) + 5;
             $perks['supporter_tier'] = 2;
             $perks['has_custom_name_color'] = true;
             $perks['has_sparkle_effect'] = false;
@@ -271,6 +307,7 @@ class BuyMeACoffeeWebhookController extends Controller
                 : Carbon::now();
             $character->vip_expires_at = $currentExpiry->copy()->addDays(31);
             $character->stars = ($character->stars ?? 0) + 100;
+            $character->masks = ($character->masks ?? 0) + 2;
             $perks['supporter_tier'] = 1;
             $perks['has_custom_name_color'] = false;
             $perks['has_sparkle_effect'] = false;

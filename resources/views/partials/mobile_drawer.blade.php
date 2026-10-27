@@ -662,12 +662,12 @@
                             <span class="font-extrabold">VIP Shop & Punten</span>
                         </div>
                     </a>
-                    <a href="{{ route('sponsor.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
+                    <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') || request()->routeIs('vip.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
                         <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-tv w-4 text-center text-purple-600 dark:text-purple-400"></i>
-                            <span class="font-extrabold">Sponsorkamer</span>
+                            <i class="fa-solid fa-crown w-4 text-center text-amber-500"></i>
+                            <span class="font-extrabold">VIP & Donaties</span>
                         </div>
-                        <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Gratis VIP</span>
+                        <span class="text-[9px] bg-gradient-to-r from-amber-500 to-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Shop</span>
                     </a>
                     <a href="{{ route('settings.account') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-gear w-4 text-center text-slate-500 dark:text-slate-400"></i>

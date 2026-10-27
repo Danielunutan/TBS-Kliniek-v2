@@ -217,12 +217,50 @@
         </div>
     </div>
 
+    <!-- SERVER SUPPORT & RECLAMEVRIJ HERO PROMO -->
+    <div class="rounded-2xl p-5 bg-gradient-to-r from-amber-500/15 via-purple-600/15 to-purple-800/20 border border-amber-300 dark:border-amber-500/40 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-purple-950 flex items-center justify-center text-2xl font-black shrink-0 shadow-md">
+                <i class="fa-solid fa-mug-hot"></i>
+            </div>
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider mb-1">
+                    100% Reclamevrij • Steun TBS Kliniek
+                </div>
+                <h3 class="font-black text-sm sm:text-base text-slate-900 dark:text-white">Trakteer op Koffie of word VIP Lid</h3>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    Geen advertenties meer in de game! Vanaf 1 bakkie koffie (€3) scoor je direct <strong>+25 Sterren</strong>, <strong>+1 Masker</strong> en <strong>+50 Kogels</strong>!
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <button type="button" @click="setShopTab('donaties')" 
+                    class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-purple-950 font-black text-xs uppercase tracking-wider shadow-md transition text-center cursor-pointer">
+                <i class="fa-solid fa-mug-hot mr-1"></i> Koffie Doneren
+            </button>
+            <a href="{{ route('vip.index') }}" 
+               class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition text-center">
+                <i class="fa-solid fa-crown mr-1"></i> VIP Pakketten
+            </a>
+        </div>
+    </div>
+
     <!-- MAIN TWO COLUMN SHOP LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
         <!-- Left Column: Shop Sidebar Navigation -->
         <div class="lg:col-span-3 space-y-4">
             <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold text-slate-700 dark:text-slate-300">
+                <button type="button" @click="setShopTab('donaties')" 
+                        :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 font-black shadow-md' : 'hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-300/80 dark:border-amber-800/80'"
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-mug-hot text-amber-500 w-4 text-center"></i>
+                        <span>Koffie & VIP Steunen</span>
+                    </span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-400 text-purple-950 font-black uppercase tracking-wider">Donatie</span>
+                </button>
+
                 <button type="button" @click="setShopTab('pakketten')" 
                         :class="shopTab === 'pakketten' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-400 border border-transparent'"
                         class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition cursor-pointer">
@@ -295,6 +333,97 @@
 
         <!-- Right Content Area: Bundles & Showcase -->
         <div class="lg:col-span-9 space-y-6">
+
+            <!-- TAB: KOFFIE & VIP DONATIES -->
+            <div x-show="shopTab === 'donaties'" class="space-y-6">
+                <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                    <div class="border-b border-slate-100 dark:border-slate-800 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 text-[10px] font-black uppercase tracking-wider mb-2">
+                                Directe Server Steun • Geen Reclame Meer
+                            </span>
+                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Trakteer op Koffie of Steun TBS Kliniek</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
+                                Help de ontwikkelaars om TBS Kliniek advertentievrij, supersnel en wekelijks geüpdatet te houden. Elke donatie beloont direct in-game!
+                            </p>
+                        </div>
+                        <a href="{{ route('vip.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-600 text-white text-xs font-black shrink-0 hover:bg-purple-700 transition shadow-xs flex items-center gap-2">
+                            <i class="fa-solid fa-crown text-amber-400"></i>
+                            <span>Alle VIP Lidmaatschappen</span>
+                        </a>
+                    </div>
+
+                    <!-- Koffie opties 1, 3 en 5 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center space-y-3 flex flex-col justify-between">
+                            <div class="space-y-2">
+                                <div class="text-3xl">☕</div>
+                                <h4 class="font-black text-sm text-slate-900 dark:text-white">1x Bakkie Koffie</h4>
+                                <div class="text-lg font-black text-amber-600 dark:text-amber-400">€3,00</div>
+                                <div class="text-xs text-slate-600 dark:text-slate-300 font-bold space-y-1 pt-2 text-left border-t border-slate-200 dark:border-slate-700">
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-500 text-[10px]"></i> +25 Sterren</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-mask text-purple-500 text-[10px]"></i> +1 Masker</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> +50 Kogels</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-heart text-pink-500 text-[10px]"></i> Donateur Badge</div>
+                                </div>
+                            </div>
+                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
+                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition shadow-xs">
+                                Doneer €3
+                            </a>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border-2 border-amber-400 text-center space-y-3 flex flex-col justify-between shadow-md relative">
+                            <div class="absolute -top-3 right-4 bg-amber-500 text-purple-950 font-black text-[9px] uppercase px-2 py-0.5 rounded-full">
+                                Populairste Keuze
+                            </div>
+                            <div class="space-y-2">
+                                <div class="text-3xl">☕☕☕</div>
+                                <h4 class="font-black text-sm text-slate-900 dark:text-white">3x Bakkie Koffie</h4>
+                                <div class="text-lg font-black text-amber-600 dark:text-amber-400">€9,00</div>
+                                <div class="text-xs text-slate-600 dark:text-slate-300 font-bold space-y-1 pt-2 text-left border-t border-amber-300/60 dark:border-amber-800/60">
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-500 text-[10px]"></i> <strong>+85 Sterren</strong> (+10 bonus!)</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-mask text-purple-500 text-[10px]"></i> +3 Maskers</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-indigo-500 text-[10px]"></i> 1x XXL Zaak Kist</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> +200 Kogels</div>
+                                </div>
+                            </div>
+                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
+                               class="block w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-purple-950 font-black text-xs transition shadow-xs">
+                                Doneer €9
+                            </a>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-center space-y-3 flex flex-col justify-between">
+                            <div class="space-y-2">
+                                <div class="text-3xl">☕☕☕☕☕</div>
+                                <h4 class="font-black text-sm text-slate-900 dark:text-white">5x Bakkie Koffie</h4>
+                                <div class="text-lg font-black text-amber-600 dark:text-amber-400">€15,00</div>
+                                <div class="text-xs text-slate-600 dark:text-slate-300 font-bold space-y-1 pt-2 text-left border-t border-slate-200 dark:border-slate-700">
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-500 text-[10px]"></i> <strong>+160 Sterren</strong> (+35 bonus!)</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-mask text-purple-500 text-[10px]"></i> +6 Maskers</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-indigo-500 text-[10px]"></i> 2x XXL Zaak Kisten</div>
+                                    <div class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> +500 Kogels</div>
+                                </div>
+                            </div>
+                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
+                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition shadow-xs">
+                                Doneer €15
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Koppelcode info -->
+                    <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                        <div class="text-slate-700 dark:text-purple-200">
+                            Vul in het Buy Me a Coffee donatiebericht je koppelcode <strong>TBS-{{ $character->id }}</strong> of spelersnaam <strong>{{ $character->name }}</strong> in voor razendsnelle automatische bijschrijving!
+                        </div>
+                        <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="font-black text-purple-700 dark:text-purple-300 underline shrink-0">
+                            Open Direct Buy Me a Coffee &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
 
             <!-- TAB: PAKKETTEN & BUNDELS -->
             <div x-show="shopTab === 'pakketten'" class="space-y-6">

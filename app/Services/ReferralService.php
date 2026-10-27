@@ -81,12 +81,12 @@ class ReferralService
                 ]);
             }
 
-            // Extend or activate VIP for 30 days
+            // Extend or activate VIP for 1 week (7 days)
             if ($referrer->isVip() && $referrer->vip_expires_at && $referrer->vip_expires_at->isFuture()) {
-                $referrer->vip_expires_at = $referrer->vip_expires_at->copy()->addDays(30);
+                $referrer->vip_expires_at = $referrer->vip_expires_at->copy()->addDays(7);
             } else {
                 $referrer->is_vip = true;
-                $referrer->vip_expires_at = now()->addDays(30);
+                $referrer->vip_expires_at = now()->addDays(7);
             }
             $referrer->save();
 
@@ -99,8 +99,8 @@ class ReferralService
                 'sender_id' => null,
                 'sender_name' => 'Directie TBS Kliniek',
                 'type' => 'vip_reward',
-                'subject' => '🎁 1 Maand Gratis VIP Ontvangen (Referral Beloning)!',
-                'content' => "Geweldig nieuws! Je hebt 3 nieuwe patiënten aangebracht via jouw persoonlijke referral link. Je VIP status is automatisch geactiveerd of met 30 dagen verlengd (geldig t/m {$untilFormatted})! Bedankt voor het laten groeien van TBS Kliniek.",
+                'subject' => '🎁 1 Week Gratis VIP Ontvangen (Referral Beloning)!',
+                'content' => "Geweldig nieuws! Je hebt 3 nieuwe patiënten aangebracht via jouw persoonlijke referral link. Je VIP status is automatisch geactiveerd of met 7 dagen verlengd (geldig t/m {$untilFormatted})! Bedankt voor het laten groeien van TBS Kliniek.",
             ]);
         }
 

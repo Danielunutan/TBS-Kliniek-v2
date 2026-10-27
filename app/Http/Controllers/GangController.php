@@ -376,9 +376,14 @@ class GangController extends Controller
         $character->gang_id = $gang->id;
         $character->gang_role = 'leader';
         $character->last_gang_wage_at = now();
+        $character->is_vip = true;
+        $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
+            ? $character->vip_expires_at
+            : now();
+        $character->vip_expires_at = $currentExpiry->copy()->addDays(3);
         $character->save();
 
-        return back()->with('success', "Gefeliciteerd! Bende '{$gang->name}' [{$gang->tag}] is succesvol opgericht voor 25 Sterren ⭐!");
+        return back()->with('success', "Gefeliciteerd! Bende '{$gang->name}' [{$gang->tag}] is succesvol opgericht! Je ontvangt direct 3 dagen gratis VIP status ⭐!");
     }
 
     /**
@@ -521,14 +526,19 @@ class GangController extends Controller
                 $candidate->gang_id = $gang->id;
                 $candidate->gang_role = 'member';
                 $candidate->last_gang_wage_at = now();
+                $candidate->is_vip = true;
+                $currentExpiry = ($candidate->vip_expires_at && $candidate->vip_expires_at->isFuture())
+                    ? $candidate->vip_expires_at
+                    : now();
+                $candidate->vip_expires_at = $currentExpiry->copy()->addDays(3);
                 $candidate->save();
 
                 GameMessage::create([
                     'recipient_id' => $candidate->id,
                     'sender_id' => $character->id,
                     'sender_name' => $gang->name,
-                    'subject' => "🎉 Je aanvraag voor {$gang->name} is geaccepteerd!",
-                    'content' => "Welkom bij de bende! Je bent nu officieel lid van {$gang->name}.",
+                    'subject' => "🎉 Je aanvraag voor {$gang->name} is geaccepteerd (+3 Dagen Gratis VIP)!",
+                    'content' => "Welkom bij de bende! Je bent nu officieel lid van {$gang->name}. Als welkomstgeschenk is er direct 3 Dagen Gratis VIP geactiveerd op je account!",
                     'type' => 'gang',
                 ]);
 

@@ -26,6 +26,6 @@ class CooldownController extends Controller
             }
         }
 
-        return back()->with('info', 'Cooldowns kunnen nu gratis en direct worden gereset door een korte sponsor advertentie te bekijken! Zo blijven je kostbare Sterren ⭐ behouden voor exclusieve wagens en perks.');
+        return back()->with('error', 'Geen geldige actie opgegeven om de cooldown van over te slaan.');
     }
 }

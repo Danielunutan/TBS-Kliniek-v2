@@ -796,6 +796,58 @@ class Character extends Model
     }
 
     /**
+     * Get VIP Supporter Tier (0 = Free/None, 1 = VIP Lid, 2 = Gangster Elite, 3 = Kliniek Baas, 4 = Lifetime).
+     */
+    public function getSupporterTier(): int
+    {
+        if (! $this->isVip()) {
+            return 0;
+        }
+
+        return (int) ($this->perks['supporter_tier'] ?? 1);
+    }
+
+    /**
+     * Can the character customize their name color (Tier 2+ or explicit perk).
+     */
+    public function canCustomizeNameColor(): bool
+    {
+        return $this->isVip() && ($this->getSupporterTier() >= 2 || ! empty($this->perks['has_custom_name_color']));
+    }
+
+    /**
+     * Can the character toggle glitter sparkle effect (Tier 3+ or explicit perk).
+     */
+    public function canUseSparkleEffect(): bool
+    {
+        return $this->isVip() && ($this->getSupporterTier() >= 3 || ! empty($this->perks['has_sparkle_effect']));
+    }
+
+    /**
+     * Get active custom name color if eligible.
+     */
+    public function getCustomNameColor(): ?string
+    {
+        if (! $this->canCustomizeNameColor()) {
+            return null;
+        }
+
+        return $this->perks['custom_name_color'] ?? null;
+    }
+
+    /**
+     * Is the glitter sparkle effect currently active.
+     */
+    public function isSparkleActive(): bool
+    {
+        if (! $this->canUseSparkleEffect()) {
+            return false;
+        }
+
+        return (bool) ($this->perks['sparkle_enabled'] ?? false);
+    }
+
+    /**
      * Check if character has claimed the Discord link bonus.
      */
     public function hasClaimedDiscordReward(): bool

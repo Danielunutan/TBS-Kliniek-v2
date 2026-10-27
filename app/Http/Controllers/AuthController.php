@@ -348,7 +348,7 @@ class AuthController extends Controller
                 $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
                     ? $character->vip_expires_at
                     : now();
-                $character->vip_expires_at = $currentExpiry->addDays(30);
+                $character->vip_expires_at = $currentExpiry->addDays(3);
                 $character->vip_points += 50;
                 $character->cash += 5000;
                 $character->save();
@@ -358,8 +358,8 @@ class AuthController extends Controller
                         'sender_id' => null,
                         'recipient_id' => $character->id,
                         'sender_name' => 'OOHPA Arjan & Directie',
-                        'subject' => '🎁 1 Maand Gratis VIP Geactiveerd via OOHPA Arjan!',
-                        'content' => "Welkom in TBS Kliniek, {$character->name}!\n\nJe bent binnengebracht via de officiële actie van OOHPA Arjan. Jouw 1 Maand Gratis VIP status is per direct geactiveerd op jouw account (geldig tot ".$character->vip_expires_at->format('d-m-Y').")!\n\nAls VIP geniet je van:\n- Tot 1.000 aanvallen per dag (i.p.v. 100)\n- 2x dagelijkse rad-spins\n- Exclusieve VIP chat sticker & diamanten\n- Snellere energie herlading\n\nSucces achter de tralies,\nDe Directie",
+                        'subject' => '🎁 3 Dagen Gratis VIP Geactiveerd via OOHPA Arjan!',
+                        'content' => "Welkom in TBS Kliniek, {$character->name}!\n\nJe bent binnengebracht via de actie van OOHPA Arjan. Jouw 3 Dagen Gratis VIP status is per direct geactiveerd op jouw account (geldig tot ".$character->vip_expires_at->format('d-m-Y H:i').")!\n\nAls VIP geniet je van:\n- Tot 1.000 aanvallen per dag (i.p.v. 100)\n- 2x dagelijkse rad-spins\n- Exclusieve VIP chat sticker & diamanten\n- Snellere energie herlading\n\nSucces achter de tralies,\nDe Directie",
                         'type' => 'reward',
                     ]);
                 } catch (\Throwable $e) {

@@ -127,6 +127,32 @@
             display: none !important;
         }
 
+        /* VIP Sparkle & Shimmer Animation */
+        @keyframes vipNameSparkle {
+            0%, 100% {
+                text-shadow: 0 0 4px rgba(255, 215, 0, 0.7), 0 0 10px rgba(236, 72, 153, 0.6);
+                filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+            }
+            50% {
+                text-shadow: 0 0 8px rgba(168, 85, 247, 0.9), 0 0 16px rgba(236, 72, 153, 0.8), 0 0 22px rgba(59, 130, 246, 0.7);
+                filter: drop-shadow(0 0 4px #ffd700);
+            }
+        }
+        @keyframes vipGradientShimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .vip-sparkle-name {
+            background: linear-gradient(90deg, #ff66b2, #a855f7, #38bdf8, #f59e0b, #ff66b2);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: vipNameSparkle 2.5s infinite ease-in-out, vipGradientShimmer 4s linear infinite;
+            display: inline-block;
+            font-weight: 900 !important;
+        }
+
         /* TBS Floating In-App Toast Design System */
         @keyframes tbsToastCountdown {
             0% { transform: scaleX(1); }
@@ -1368,12 +1394,12 @@
                         <span class="font-extrabold">VIP Shop & Punten</span>
                     </div>
                 </a>
-                <a href="{{ route('sponsor.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
+                <a href="{{ route('shop.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') || request()->routeIs('vip.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
                     <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-tv w-4 text-center text-purple-600 dark:text-purple-400"></i>
-                        <span class="font-extrabold">Sponsorkamer</span>
+                        <i class="fa-solid fa-crown w-4 text-center text-amber-500"></i>
+                        <span class="font-extrabold">VIP & Donaties</span>
                     </div>
-                    <span class="text-[9px] bg-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Gratis VIP</span>
+                    <span class="text-[9px] bg-gradient-to-r from-amber-500 to-purple-600 text-white font-black px-1.5 py-0.5 rounded uppercase">Shop</span>
                 </a>
                 <a href="{{ route('settings.account') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('settings.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-gear w-4 text-center text-slate-500 dark:text-slate-400"></i>
@@ -1449,7 +1475,7 @@
                         <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#110726]"></span>
                     </div>
                     <div class="flex flex-col min-w-0 max-w-[50px] xs:max-w-[70px]">
-                        <span class="text-[11px] font-black text-slate-900 dark:text-white truncate leading-none">{{ $character->name }}</span>
+                        <span class="text-[11px] font-black truncate leading-none {{ $character->isSparkleActive() ? 'vip-sparkle-name' : 'text-slate-900 dark:text-white' }}" style="{{ $character->getCustomNameColor() && ! $character->isSparkleActive() ? 'color: ' . $character->getCustomNameColor() . ' !important;' : '' }}">{{ $character->name }}</span>
                         <span class="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 leading-none mt-0.5">LVL {{ $character->level }}</span>
                     </div>
                 </a>
@@ -1566,7 +1592,7 @@
                     </a>
                     <div class="flex flex-col gap-1 min-w-0">
                         <div class="flex items-center gap-2">
-                            <a href="{{ route('profile.me') }}" class="font-black text-slate-900 dark:text-white text-sm hover:text-indigo-600 dark:hover:text-purple-400 transition leading-tight py-0.5 truncate max-w-[140px]">
+                            <a href="{{ route('profile.me') }}" class="font-black text-sm hover:text-indigo-600 dark:hover:text-purple-400 transition leading-tight py-0.5 truncate max-w-[140px] {{ $character->isSparkleActive() ? 'vip-sparkle-name' : 'text-slate-900 dark:text-white' }}" style="{{ $character->getCustomNameColor() && ! $character->isSparkleActive() ? 'color: ' . $character->getCustomNameColor() . ' !important;' : '' }}">
                                 {{ $character->name }}
                             </a>
                             <span class="bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 border border-slate-200/80 dark:border-purple-800/40 font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider shadow-2xs shrink-0">
@@ -2164,10 +2190,10 @@
                             <li><a href="{{ route('community.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                                 <i class="fa-solid fa-gift text-amber-500 text-[10px]"></i> Community Beloningen
                             </a></li>
-                            <li><a href="{{ route('sponsor.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-tv text-purple-600 dark:text-purple-400 text-[10px]"></i> Sponsorkamer (Gratis VIP)
+                            <li><a href="{{ route('shop.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i> VIP & Donatie Winkel
                             </a></li>
-                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">VIP Lidmaatschap (Gratis via Ads)</a></li>
+                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">VIP Lidmaatschappen & Voordelen</a></li>
                             <li><a href="{{ route('roadmap.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Roadmap & Updates</a></li>
                         </ul>
                     </div>

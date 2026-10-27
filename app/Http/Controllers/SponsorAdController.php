@@ -24,7 +24,7 @@ use Illuminate\View\View;
 
 class SponsorAdController extends Controller
 {
-    public const ADS_ENABLED = true;
+    public const ADS_ENABLED = false;
 
     public const DEFAULT_SMARTLINK = null;
 
@@ -87,7 +87,7 @@ class SponsorAdController extends Controller
     public function index(): View|RedirectResponse
     {
         if (! self::ADS_ENABLED) {
-            return redirect()->route('dashboard')->with('info', 'Sponsor-advertenties zijn momenteel tijdelijk uitgeschakeld.');
+            return redirect()->route('shop.index')->with('info', 'De sponsorkamer en advertenties zijn vervangen door de nieuwe TBS Donaties & VIP Winkel!');
         }
 
         /** @var Character $character */

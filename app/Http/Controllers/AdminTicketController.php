@@ -151,7 +151,7 @@ class AdminTicketController extends Controller
         $gangName = strip_tags($validated['gang_name']);
         $gangTag = strtoupper(strip_tags($validated['gang_tag']));
         $bonusCash = (int) ($validated['bonus_cash'] ?? 5000000);
-        $vipDays = (int) ($validated['vip_days'] ?? 31);
+        $vipDays = (int) ($validated['vip_days'] ?? 3);
         $vipBoostUntil = now()->addDays($vipDays);
 
         $character = $ticket->character;
