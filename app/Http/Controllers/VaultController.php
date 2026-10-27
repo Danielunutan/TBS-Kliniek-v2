@@ -36,6 +36,36 @@ class VaultController extends Controller
         50 => ['tokens' => 150, 'cash' => 750000, 'stars' => 15, 'name' => 'TBS Keizer', 'desc' => '150 KluisMunten + €750.000 (Bank) + 15 Sterren ⭐'],
     ];
 
+    /**
+     * Universal Season 2 Starter Vault Codes claimable by every player once.
+     */
+    public const SEASON_CODES = [
+        'SEIZOEN2' => [
+            'name' => 'Seizoen 2 Kickstart Code',
+            'cash' => 2500,
+            'stars' => 1,
+            'tokens' => 3,
+            'masks' => 2,
+            'respect' => 15,
+        ],
+        'HERSTART2026' => [
+            'name' => 'Herstart Goud Code',
+            'cash' => 5000,
+            'stars' => 0,
+            'tokens' => 5,
+            'masks' => 3,
+            'respect' => 10,
+        ],
+        'TBSKLINIEK2' => [
+            'name' => 'TBS Kliniek Seizoenscode',
+            'cash' => 10000,
+            'stars' => 2,
+            'tokens' => 5,
+            'masks' => 5,
+            'respect' => 25,
+        ],
+    ];
+
     public function __construct(
         protected EconomyService $economy,
         protected EnergyService $energy,
@@ -236,6 +266,22 @@ class VaultController extends Controller
                 return back()->with('error', "⚠️ Je opbergplaats zit vol ({$currentUsed}/{$capacity} plaatsen bezet)! Je kunt pas weer kluizen kraken zodra je ruimte vrijmaakt door overtollige spullen of maskers te verkopen in je Depot.");
             }
 
+            $claimedRewards = $lockedCharacter->claimed_level_rewards ?? [];
+            if (! is_array($claimedRewards)) {
+                $claimedRewards = [];
+            }
+
+            $seasonRewardsFound = [];
+            foreach ($cleanCodes as $candidateCode) {
+                if (isset(self::SEASON_CODES[$candidateCode])) {
+                    $key = 'season2_code_'.$candidateCode;
+                    if (! in_array($key, $claimedRewards, true)) {
+                        $seasonRewardsFound[$candidateCode] = self::SEASON_CODES[$candidateCode];
+                        $claimedRewards[] = $key;
+                    }
+                }
+            }
+
             if ($codeId) {
                 $codesToRedeem = VaultCode::where('id', $codeId)
                     ->where('character_id', $lockedCharacter->id)
@@ -249,13 +295,16 @@ class VaultController extends Controller
                     ->take(100)
                     ->get();
             } else {
-                $codesToRedeem = VaultCode::whereIn('code', $cleanCodes)
-                    ->where('is_redeemed', false)
-                    ->lockForUpdate()
-                    ->get();
+                $nonSeasonCodes = array_diff($cleanCodes, array_keys(self::SEASON_CODES));
+                $codesToRedeem = ! empty($nonSeasonCodes)
+                    ? VaultCode::whereIn('code', $nonSeasonCodes)
+                        ->where('is_redeemed', false)
+                        ->lockForUpdate()
+                        ->get()
+                    : collect();
             }
 
-            if ($codesToRedeem->isEmpty()) {
+            if ($codesToRedeem->isEmpty() && empty($seasonRewardsFound)) {
                 return back()->with('error', 'Geen geldige of ongebruikte kluiscodes gevonden om te kraken.');
             }
 
@@ -267,6 +316,15 @@ class VaultController extends Controller
             $totalTokens = 0;
             $totalMasks = 0;
             $totalRespect = 0;
+
+            foreach ($seasonRewardsFound as $sCode => $sData) {
+                $redeemedCount++;
+                $totalCash += $sData['cash'];
+                $totalStars += $sData['stars'];
+                $totalTokens += $sData['tokens'];
+                $totalMasks += $sData['masks'];
+                $totalRespect += $sData['respect'];
+            }
 
             foreach ($codesToRedeem as $vaultCode) {
                 $redeemedCount++;
@@ -288,6 +346,7 @@ class VaultController extends Controller
             $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + $totalTokens;
             $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $masksGranted;
             $lockedCharacter->respect += $totalRespect;
+            $lockedCharacter->claimed_level_rewards = $claimedRewards;
             $lockedCharacter->save();
 
             // Record Halloween Quest progress for cracking safes/codes

@@ -161,7 +161,7 @@ class StarShopItemsTest extends TestCase
         $character->refresh();
         $this->assertEquals(5, $character->stars); // 30 - 25
 
-        $code = VaultCode::where('character_id', $character->id)->where('is_redeemed', false)->first();
+        $code = VaultCode::where('character_id', $character->id)->where('code', 'like', 'SHOP-%')->where('is_redeemed', false)->first();
         $this->assertNotNull($code);
         $this->assertGreaterThanOrEqual(15000, $code->reward_cash);
     }

@@ -2105,6 +2105,9 @@
             @yield('content')
         </main>
 
+        <!-- SEASON 2 WELCOME POPUP WITH STARTER VAULT CODES -->
+        @include('partials.season_welcome_modal')
+
         <!-- SITE-WIDE JURIDISCHE & COMPLIANCE FOOTER (Nederland & Europa AVG/GDPR) -->
         <footer class="mt-auto border-t border-slate-200 dark:border-purple-900/40 bg-white dark:bg-[#0c061a] pt-10 pb-20 lg:pb-10 text-xs text-slate-500 dark:text-slate-400">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">

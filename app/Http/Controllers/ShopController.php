@@ -670,7 +670,7 @@ class ShopController extends Controller
         $character = $user->character;
 
         $validated = $request->validate([
-            'item_type' => ['required', 'string', 'in:full_restore,prison_escape,mask_1,mask_5,ammo_pack,vault_code,protection_24h,xxl_cases_3,package_master,package_150'],
+            'item_type' => ['required', 'string', 'in:full_restore,prison_escape,mask_1,mask_5,ammo_pack,vault_code,protection_24h,xxl_cases_3,package_master,package_150,vip_week'],
         ]);
 
         $configs = [
@@ -684,6 +684,7 @@ class ShopController extends Controller
             'xxl_cases_3' => ['cost' => 35, 'name' => '3x Zware XXL Buitkoffers 💼'],
             'package_master' => ['cost' => 75, 'name' => 'Kliniek Syndicaat Master Box 📦'],
             'package_150' => ['cost' => 100, 'name' => 'Exclusief Master Pakket 📦'],
+            'vip_week' => ['cost' => 500, 'name' => '1 Week VIP Status (7 Dagen) 👑'],
         ];
 
         $cfg = $configs[$validated['item_type']];
@@ -821,6 +822,20 @@ class ShopController extends Controller
                 return back()
                     ->with('shop_tab', 'sterren')
                     ->with('success', "👑 GEWELDIG! Syndicaat Master Box uitgepakt (+€100.000 bankgeld, +10 Maskers, +500 Kogels, +2 XXL Koffers en 5 Kluiscodes) voor {$cfg['cost']} Sterren ⭐!");
+            }
+
+            if ($validated['item_type'] === 'vip_week') {
+                if ($lockedCharacter->isVip()) {
+                    $lockedCharacter->vip_expires_at = $lockedCharacter->vip_expires_at->addDays(7);
+                } else {
+                    $lockedCharacter->is_vip = true;
+                    $lockedCharacter->vip_expires_at = now()->addDays(7);
+                }
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "👑 GEFELICITEERD! 1 Week VIP Status (7 Dagen) geactiveerd voor {$cfg['cost']} Sterren ⭐!");
             }
 
             return back()->with('shop_tab', 'sterren');

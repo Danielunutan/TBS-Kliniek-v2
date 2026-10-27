@@ -1613,28 +1613,57 @@
                     </div>
 
                     <!-- 8. Syndicaat Master Box -->
-                    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-400/50 transition sm:col-span-2 lg:col-span-2">
+                    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-400/50 transition">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center text-lg">
                                     <i class="fa-solid fa-crown"></i>
                                 </span>
-                                <span class="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center gap-1">
+                                <span class="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center gap-1">
                                     75 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
                                 </span>
                             </div>
                             <div>
                                 <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Kliniek Syndicaat Master Box</h4>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Ultieme mega deal: +€100.000 wit bankgeld, +10 Maskers, +500 Kogels, +2 XXL Koffers en 5 Geheime Kluiscodes voor maximale macht in de TBS Kliniek!
+                                    Ultieme deal: +€100.000 cash, +10 Maskers, +500 Kogels, +2 XXL Koffers en 5 Geheime Kluiscodes!
                                 </p>
                             </div>
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="package_master">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md">
-                                <i class="fa-solid fa-gem"></i> Master Box Uitpakken (75 Sterren)
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-gem"></i> Master Box (75 Sterren)
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 9. 1 Week VIP Status (500 Sterren) -->
+                    <div class="bg-gradient-to-b from-purple-950/40 via-purple-900/20 to-slate-900 border-2 border-purple-500/60 rounded-2xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden group">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-purple-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="space-y-3 relative z-10">
+                            <div class="flex items-center justify-between">
+                                <span class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-lg shadow-inner">
+                                    <i class="fa-solid fa-crown text-amber-400 animate-pulse"></i>
+                                </span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-1 shadow-sm">
+                                    500 <i class="fa-solid fa-star text-slate-950 text-[10px]"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-purple-400">Exclusief Voordeel</span>
+                                <h4 class="text-sm font-black text-white">1 Week VIP Status (7 Dagen)</h4>
+                                <p class="text-xs text-purple-200/80 mt-1 leading-relaxed">
+                                    7 dagen alle VIP privileges: +25% kluisbeloningen, dagelijkse VIP Koffer, glans badge, hogere rentes en vip lounge!
+                                </p>
+                            </div>
+                        </div>
+                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4 relative z-10">
+                            @csrf
+                            <input type="hidden" name="item_type" value="vip_week">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-crown"></i> 1 Week VIP (500 Sterren)
                             </button>
                         </form>
                     </div>

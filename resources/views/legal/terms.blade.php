@@ -34,7 +34,7 @@
                 <strong>TBS Kliniek (tbs-kliniek.nl) is géén commercieel bedrijf of onderneming</strong>, maar een puur hobbymatig non-profit project, opgezet en beheerd door Daniël via <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900">werkenmetdaniel.nl</a>.
             </p>
             <p>
-                <strong>Wij verkopen niets:</strong> er zijn geen betaalde producten, webshopartikelen, microtransacties of betaalde abonnementen. Alle inkomsten uit getoonde advertenties (zoals RobinAds) worden <strong>100% en uitsluitend gebruikt om de directe hosting-, server- en onderhoudskosten te dekken</strong>. Er is uitdrukkelijk <strong>geen winstoogmerk</strong> en er zijn geen commerciële of financiële belangen.
+                <strong>Vrijwillige ondersteuning:</strong> Er zijn geen verplichte betaalde producten of commerciële abonnementen. Vrijwillige supportersdonaties via het onafhankelijke platform Buy Me a Coffee (<a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="text-purple-700 dark:text-purple-400 font-bold underline">buymeacoffee.com/tbskliniek</a>) worden <strong>100% en uitsluitend gebruikt om de directe hosting-, server- en onderhoudskosten te dekken</strong>. Er is uitdrukkelijk <strong>geen winstoogmerk</strong> en er zijn geen commerciële belangen.
             </p>
         </div>
     </div>
@@ -73,10 +73,10 @@
                     2.1. <strong>Geen onderneming:</strong> TBS Kliniek is geen commerciële onderneming, eenmanszaak, maatschap of vennootschap in de zin van het Handelsregister of het Burgerlijk Wetboek. Het platform is een particulier en educatief hobbyproject beheerd vanuit het persoonlijke portfolio en webinitiatief <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a>.
                 </p>
                 <p>
-                    2.2. <strong>Wij verkopen niets (geen commerciële verkoop):</strong> Op tbs-kliniek.nl worden géén fysieke noch digitale producten of diensten te koop aangeboden. Er is geen webwinkel, geen betaalsysteem voor microtransacties, geen 'pay-to-win' functionaliteit en geen abonnementsvorm. Iedere speler heeft kosteloos en gelijkwaardig toegang tot alle spelonderdelen door actief deel te nemen aan het spel.
+                    2.2. <strong>Gratis toegankelijk:</strong> Iedere speler heeft kosteloos en gelijkwaardig toegang tot alle spelonderdelen door actief deel te nemen aan het spel.
                 </p>
                 <p>
-                    2.3. <strong>Bestemming advertentie-opbrengsten:</strong> Op het platform kunnen advertenties worden vertoond (onder andere via RobinAds). De eventuele inkomsten hieruit worden <strong>uitsluitend en volledig aangewend ter dekking van de reële hosting-, domein-, licentie- en serveronderhoudskosten</strong> die noodzakelijk zijn om het spel kosteloos voor de community online te houden.
+                    2.3. <strong>Vrijwillige supportersdonaties via Buy Me a Coffee:</strong> Spelers kunnen het platform optioneel ondersteunen via Buy Me a Coffee (<a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 font-bold underline">buymeacoffee.com/tbskliniek</a>). De eventuele inkomsten hieruit worden <strong>uitsluitend en volledig aangewend ter dekking van de reële hosting-, domein-, licentie- en serveronderhoudskosten</strong> die noodzakelijk zijn om het spel kosteloos en advertentievrij voor de community online te houden.
                 </p>
                 <p>
                     2.4. <strong>Geen winstoogmerk of financieel belang:</strong> De beheerder streeft uitdrukkelijk geen winst na en heeft geen financieel of commercieel gewin bij de exploitatie van tbs-kliniek.nl. Eventuele overschotten vloeien te allen tijde integraal terug in serverinfrastructuur, beveiliging en optimalisaties van het spel.

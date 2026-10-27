@@ -173,9 +173,9 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'gevangenis'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>15s Video:</strong> Elke advertentie haalt minuten van je straftijd af!</p>
+                    <p>• <strong>IJzerzaagje:</strong> Zaag tralies door met een zaagje uit je inventaris of de kantine.</p>
                     <p>• <strong>Vrienden:</strong> Vraag een mede-gedetineerde om je celdeur te forceren.</p>
-                    <p>• <strong>Borg:</strong> Betaal Sterren om per seconde vrij te komen.</p>
+                    <p>• <strong>Borgtocht:</strong> Betaal 10 Sterren in de winkel voor een directe celuitbraak.</p>
                     <a href="{{ route('prison') }}" class="inline-block mt-1 px-3 py-1 bg-amber-500 text-slate-950 rounded-lg font-black text-[10px]">Naar Isoleercel &raquo;</a>
                 </div>
             </div>

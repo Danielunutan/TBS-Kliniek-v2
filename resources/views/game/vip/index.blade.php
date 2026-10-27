@@ -5,6 +5,21 @@
     activeTab: '{{ session('vip_tab', request('tab', 'pakketten')) }}',
     selectedColor: '{{ old('custom_name_color', $character->getCustomNameColor() ?: '#f59e0b') }}',
     sparkleEnabled: {{ $character->isSparkleActive() ? 'true' : 'false' }},
+    showDonateModal: false,
+    donateUrl: 'https://buymeacoffee.com/tbskliniek/membership',
+    donateTierTitle: 'TBS V.I.P. Lid (€6/mnd)',
+    copiedName: false,
+    openDonate(url, title) {
+        this.donateUrl = url;
+        this.donateTierTitle = title;
+        this.copiedName = false;
+        this.showDonateModal = true;
+    },
+    copyName() {
+        navigator.clipboard.writeText('{{ $character->name }}');
+        this.copiedName = true;
+        setTimeout(() => { this.copiedName = false; }, 3000);
+    },
     setTab(tab) {
         this.activeTab = tab;
         try {
@@ -187,6 +202,34 @@
                     </a>
                 </div>
 
+                <!-- 1 Week VIP voor 500 Sterren In-Game Deal -->
+                <div class="rounded-3xl p-6 bg-gradient-to-br from-amber-500/10 via-purple-950/40 to-[#110726] border-2 border-amber-400/60 shadow-xl flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-400 text-purple-950 flex items-center justify-center text-2xl font-black shrink-0 shadow-md">
+                            ⭐
+                        </div>
+                        <div class="space-y-1">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-black uppercase">
+                                In-Game Valuta • 100% Gratis Sparen
+                            </div>
+                            <h3 class="text-lg font-black text-white">1 Week V.I.P. Status voor 500 Sterren</h3>
+                            <p class="text-xs text-slate-300 max-w-xl leading-relaxed">
+                                Heb je Gouden Sterren gespaard via het Rad van Fortuin, de 7-dagen streak of level mijlpalen? Wissel 500 Sterren direct in voor 7 Dagen volwaardige VIP status en voordelen!
+                            </p>
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ route('shop.buy-star-item') }}" class="shrink-0 w-full md:w-auto">
+                        @csrf
+                        <input type="hidden" name="item_type" value="vip_week">
+                        <button type="submit" 
+                                {{ ($character->stars ?? 0) < 500 ? 'disabled' : '' }}
+                                class="w-full md:w-auto px-6 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 {{ ($character->stars ?? 0) >= 500 ? 'bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-purple-950 shadow-lg cursor-pointer transform hover:-translate-y-0.5' : 'bg-slate-700 text-slate-400 cursor-not-allowed' }}">
+                            <i class="fa-solid fa-crown"></i>
+                            <span>Activeer 1 Week VIP (500 ⭐)</span>
+                        </button>
+                    </form>
+                </div>
+
                 <!-- 4 Live Packages Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     
@@ -223,10 +266,10 @@
                             </div>
                         </div>
                         <div class="p-5 pt-0">
-                            <a href="https://buymeacoffee.com/tbskliniek/membership" target="_blank" rel="noopener noreferrer"
-                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md">
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS V.I.P. Lid (€6/mnd)')"
+                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
                                 Word V.I.P. Lid (€6/mnd)
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -265,10 +308,10 @@
                             </div>
                         </div>
                         <div class="p-5 pt-0">
-                            <a href="https://buymeacoffee.com/tbskliniek/membership" target="_blank" rel="noopener noreferrer"
-                               class="w-full block text-center py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md">
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Gangster Elite (€14/mnd)')"
+                               class="w-full block text-center py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
                                 Kies Gangster Elite (€14/mnd)
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -304,10 +347,10 @@
                             </div>
                         </div>
                         <div class="p-5 pt-0">
-                            <a href="https://buymeacoffee.com/tbskliniek/membership" target="_blank" rel="noopener noreferrer"
-                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md">
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Kliniek Baas (€24/mnd)')"
+                               class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
                                 Word Kliniek Baas (€24/mnd)
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -341,10 +384,10 @@
                             </div>
                         </div>
                         <div class="p-6 pt-0">
-                            <a href="https://buymeacoffee.com/tbskliniek/membership" target="_blank" rel="noopener noreferrer"
-                               class="w-full block text-center py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-purple-950 font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg">
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'VIP LIFETIME (€125 eenmalig)')"
+                               class="w-full block text-center py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-purple-950 font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg cursor-pointer">
                                 Neem Lifetime VIP (€125)
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -380,10 +423,10 @@
                                     <li class="flex items-center gap-1.5"><i class="fa-solid fa-heart text-pink-500 text-[10px]"></i> Donateur Badge</li>
                                 </ul>
                             </div>
-                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
-                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition">
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '1x Bakkie Koffie (€3)')"
+                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer">
                                 Doneer 1 Koffie (€3)
-                            </a>
+                            </button>
                         </div>
 
                         <!-- 3 Coffees -->
@@ -402,10 +445,10 @@
                                     <li class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> <strong>+200 Kogels</strong></li>
                                 </ul>
                             </div>
-                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
-                               class="block w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-purple-950 font-black text-xs shadow-xs transition">
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '3x Bakkie Koffie (€9)')"
+                               class="block w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-purple-950 font-black text-xs shadow-xs transition cursor-pointer">
                                 Doneer 3 Koffies (€9)
-                            </a>
+                            </button>
                         </div>
 
                         <!-- 5 Coffees -->
@@ -421,10 +464,10 @@
                                     <li class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> <strong>+500 Kogels</strong></li>
                                 </ul>
                             </div>
-                            <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
-                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition">
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '5x Bakkie Koffie (€15)')"
+                               class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition cursor-pointer">
                                 Doneer 5 Koffies (€15)
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -436,10 +479,10 @@
                                 Voer in het donatiebericht je spelersnaam <strong>{{ $character->name }}</strong> of code <strong>TBS-{{ $character->id }}</strong> in. Onze webhook koppelt de sterren en beloningen direct aan jouw account!
                             </div>
                         </div>
-                        <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
-                           class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs shrink-0 transition">
+                        <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', 'Bakkie Koffie Donatie')"
+                           class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xs shrink-0 transition cursor-pointer">
                             Naar Buy Me a Coffee
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -458,16 +501,17 @@
                         </p>
                     </div>
 
-                    <!-- Live Name Preview Box -->
-                    <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-purple-950 border border-purple-800 text-center space-y-2">
+                    <!-- Live Name Preview Box (Clean solid dark luxury background - no awkward white fade) -->
+                    <div class="p-6 sm:p-8 rounded-2xl border-2 border-purple-500/60 shadow-2xl text-center space-y-2 relative overflow-hidden" 
+                         style="background-color: #0f0728; background-image: radial-gradient(circle at 50% 50%, #250b4a 0%, #0c0418 100%);">
                         <div class="text-[10px] uppercase tracking-widest font-black text-purple-300">Live Voorbeeld van Jouw Naam</div>
-                        <div class="text-2xl sm:text-3xl font-black py-2">
+                        <div class="text-2xl sm:text-4xl font-black py-2">
                             <span :class="sparkleEnabled ? 'vip-sparkle-name' : ''" 
                                   :style="!sparkleEnabled && selectedColor ? 'color: ' + selectedColor : ''">
                                 {{ $character->name }}
                             </span>
                         </div>
-                        <div class="text-[11px] text-slate-400 font-medium">Zo wordt je naam getoond in de chat en door de hele game.</div>
+                        <div class="text-[11px] text-purple-200/70 font-medium">Zo wordt je naam getoond in de chat en door de hele game.</div>
                     </div>
 
                     @if($character->canCustomizeNameColor() || $character->canUseSparkleEffect())
@@ -661,6 +705,78 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- BUY ME A COFFEE DONATIE MODAL (STAP 1 & STAP 2) -->
+    <div x-show="showDonateModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity" @click="showDonateModal = false"></div>
+
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-3xl bg-white dark:bg-[#110726] border-2 border-purple-500 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg p-6 sm:p-8 space-y-6">
+                
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-purple-900/60 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-400 text-purple-950 flex items-center justify-center text-lg font-black shrink-0 shadow-sm">
+                            ☕
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white" x-text="donateTierTitle"></h3>
+                            <p class="text-xs text-purple-600 dark:text-purple-300 font-bold">Voltooi je steun in 2 eenvoudige stappen</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showDonateModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition p-1 cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- STAP 1: KOPPELING / NOTITIE -->
+                <div class="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-500/60 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400 text-purple-950 text-[10px] font-black uppercase tracking-wider">
+                            Stap 1 • Essentieel
+                        </span>
+                        <span class="text-xs font-black text-amber-700 dark:text-amber-400">Automatische Koppeling</span>
+                    </div>
+                    <p class="text-xs text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
+                        Vul bij Buy Me a Coffee in het veld <strong>"Name or say something nice"</strong> (bericht/notitie) exact jouw spelersnaam of koppelcode in:
+                    </p>
+                    
+                    <div class="flex items-center gap-2 bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-amber-300 dark:border-amber-600/60 shadow-inner">
+                        <div class="font-mono font-black text-base text-purple-700 dark:text-amber-400 px-2 select-all flex-1 truncate">
+                            {{ $character->name }}
+                        </div>
+                        <button type="button" @click="copyName()" 
+                                class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-purple-950 font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0">
+                            <i class="fa-solid" :class="copiedName ? 'fa-check text-emerald-800' : 'fa-copy'"></i>
+                            <span x-text="copiedName ? 'Gekopieerd!' : 'Kopieer'"></span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-amber-800 dark:text-amber-300">
+                        💡 <em>Onze webhook koppelt deze naam en activeert je VIP status, sterren en beloningen direct binnen enkele seconden!</em>
+                    </p>
+                </div>
+
+                <!-- STAP 2: GA NAAR BUY ME A COFFEE -->
+                <div class="space-y-3">
+                    <div class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                        Stap 2 • Veilig Betalen
+                    </div>
+                    <a :href="donateUrl" target="_blank" rel="noopener noreferrer"
+                       @click="showDonateModal = false"
+                       class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-500 hover:to-indigo-600 text-white font-black text-sm text-center flex items-center justify-center gap-2 shadow-lg transition transform hover:-translate-y-0.5 cursor-pointer">
+                        <span>Ga Verder naar Buy Me a Coffee</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+
+                <div class="text-center pt-1">
+                    <button type="button" @click="showDonateModal = false" class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition font-bold cursor-pointer">
+                        Sluiten
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
