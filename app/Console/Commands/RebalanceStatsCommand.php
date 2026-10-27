@@ -52,13 +52,13 @@ class RebalanceStatsCommand extends Command
                 ->update(['quantity' => 1]);
         }
 
-        // 2. Corrigeer geëxploiteerde bling shops bij bende 3 (OOHPA KARTEL)
-        $gang3 = Gang::find(3);
-        if ($gang3 && $gang3->bling_shops > 50) {
-            $oldShops = $gang3->bling_shops;
-            $gang3->bling_shops = 15;
-            $gang3->save();
-            $this->info("Gang {$gang3->name} bling shops aangepast van {$oldShops} naar 15.");
+        // 2. Corrigeer geëxploiteerde bling shops bij bendes
+        $gangsToCap = Gang::where('bling_shops', '>', 15)->get();
+        foreach ($gangsToCap as $g) {
+            $oldShops = $g->bling_shops;
+            $g->bling_shops = 15;
+            $g->save();
+            $this->info("Gang {$g->name} bling shops aangepast van {$oldShops} naar 15.");
         }
 
         // 3. Publiceer het officiële balans nieuwsbericht

@@ -1284,6 +1284,13 @@ class GangController extends Controller
                         ->with('success', '🎉 Gefeliciteerd! De besloten Bende Chat is nu permanent ontgrendeld voor alle leden van de bende!');
 
                 case 'bling_shops':
+                    $maxShops = 25;
+                    $currentShops = (int) ($lockedGang->bling_shops ?? 0);
+                    if ($currentShops >= $maxShops) {
+                        return back()->with('error', "Jullie bende heeft al het maximale aantal van {$maxShops} Smokkelkiosken bereikt!");
+                    }
+                    $qty = min($qty, $maxShops - $currentShops);
+
                     $unitPrice = 50000;
                     $totalCost = $unitPrice * $qty;
                     if ($lockedGang->treasury < $totalCost) {
