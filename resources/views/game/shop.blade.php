@@ -60,12 +60,12 @@
 
         // Tailored color badges
         $badgeClass = match($cat) {
-            'eten' => ($slug === 'gouden-frikandel' ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-xs ring-1 ring-amber-400' : 'bg-amber-100 text-amber-700'),
-            'drank' => 'bg-cyan-100 text-cyan-700',
-            'medisch' => ($slug === 'adrenaline-injectie' ? 'bg-emerald-100 text-emerald-700' : ($slug === 'ehbo-noodverbanddoos' ? 'bg-rose-100 text-rose-700' : 'bg-purple-100 text-purple-700')),
-            'kracht' => ($slug === 'legendarische-halter' ? 'bg-fuchsia-100 text-fuchsia-700' : ($slug === 'paarse-trainingsjas' ? 'bg-purple-100 text-purple-700' : ($slug === 'boksbeugel' ? 'bg-zinc-800 text-amber-400' : 'bg-slate-200 text-slate-800'))),
-            'smokkel' => ($slug === 'bivakmuts-masker' ? 'bg-slate-900 text-white' : ($slug === 'sleutel-paviljoen-13' || $slug === 'oude-sleutel' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-700')),
-            default => 'bg-purple-100 text-purple-700'
+            'eten' => ($slug === 'gouden-frikandel' ? 'bg-gradient-to-br from-amber-300 to-amber-500 text-amber-950 shadow-xs ring-1 ring-amber-400' : 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60'),
+            'drank' => 'bg-cyan-100 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 border border-cyan-200/60 dark:border-cyan-800/60',
+            'medisch' => ($slug === 'adrenaline-injectie' ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60' : ($slug === 'ehbo-noodverbanddoos' ? 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60' : 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60')),
+            'kracht' => ($slug === 'legendarische-halter' ? 'bg-fuchsia-100 dark:bg-fuchsia-950/70 text-fuchsia-700 dark:text-fuchsia-300 border border-fuchsia-200/60 dark:border-fuchsia-800/60' : ($slug === 'paarse-trainingsjas' ? 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60' : ($slug === 'boksbeugel' ? 'bg-zinc-800 dark:bg-zinc-900 text-amber-400 border border-zinc-700 dark:border-zinc-700' : 'bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'))),
+            'smokkel' => ($slug === 'bivakmuts-masker' ? 'bg-slate-900 dark:bg-slate-950 text-white border border-slate-800' : ($slug === 'sleutel-paviljoen-13' || $slug === 'oude-sleutel' ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60' : 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60')),
+            default => 'bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60'
         };
 
         return ['cat' => $cat, 'icon' => $icon, 'badgeClass' => $badgeClass];
@@ -980,25 +980,25 @@
                                 @php
                                     $qItemData = $getItemData($quickInv->item);
                                 @endphp
-                                <div class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs flex items-center justify-between gap-3">
+                                <div class="bg-white dark:bg-slate-900/90 p-3 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs flex items-center justify-between gap-3">
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <div class="w-9 h-9 rounded-lg {{ $qItemData['badgeClass'] }} flex items-center justify-center text-sm shrink-0 shadow-2xs">
                                             <i class="{{ $qItemData['icon'] }}"></i>
                                         </div>
                                         <div class="min-w-0">
-                                            <div class="text-xs font-black text-slate-900 truncate flex items-center gap-1.5">
+                                            <div class="text-xs font-black text-slate-900 dark:text-white truncate flex items-center gap-1.5">
                                                 <span>{{ $quickInv->item->name }}</span>
-                                                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">{{ $quickInv->quantity }}x</span>
+                                                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold border border-slate-200/50 dark:border-slate-700">{{ $quickInv->quantity }}x</span>
                                             </div>
-                                            <div class="text-[10px] text-slate-500 flex items-center gap-2 pt-0.5">
+                                            <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-0.5">
                                                 @if($quickInv->item->energy_restore > 0)
-                                                    <span class="text-emerald-700 font-bold">+{{ $quickInv->item->energy_restore }}</span>
+                                                    <span class="text-emerald-700 dark:text-emerald-400 font-bold">+{{ $quickInv->item->energy_restore }}</span>
                                                 @endif
                                                 @if($quickInv->item->health_restore > 0)
-                                                    <span class="text-rose-700 font-bold">+{{ $quickInv->item->health_restore }}️</span>
+                                                    <span class="text-rose-700 dark:text-rose-400 font-bold">+{{ $quickInv->item->health_restore }}️</span>
                                                 @endif
                                                 @if(in_array($quickInv->item->slug, ['sigaretten', 'ritalin', 'telefoon']))
-                                                    <span class="text-purple-700 font-bold">Herstelboost</span>
+                                                    <span class="text-purple-700 dark:text-purple-400 font-bold">Herstelboost</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -1010,7 +1010,7 @@
                                             @csrf
                                             <button type="submit" 
                                                     title="1 stuk consumeren"
-                                                    class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-black text-xs transition cursor-pointer flex items-center gap-1 active:scale-95">
+                                                    class="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-black text-xs transition cursor-pointer flex items-center gap-1 active:scale-95">
                                                 <span>1x</span>
                                             </button>
                                         </form>
@@ -1033,7 +1033,7 @@
                                 @endforeach
                             </div>
                         @else
-                            <div class="pt-3 text-xs text-slate-500 flex items-center justify-between gap-3">
+                            <div class="pt-3 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between gap-3">
                                 <span class="flex items-center gap-2">
                                     <i class="fa-solid fa-circle-info text-amber-500"></i>
                                     Je hebt geen eten of drinken in je rugzak. Koop snacks in de kantine om snel te herstellen na gevechten of misdaden!
@@ -1044,14 +1044,14 @@
                 </div>
 
                 <!-- Items Grid or Empty State -->
-                <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
+                <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs">
                     @if($inventory->where('quantity', '>', 0)->isEmpty())
                         <div class="text-center py-12 space-y-3">
-                            <div class="w-16 h-16 mx-auto rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl border border-purple-100 shadow-xs">
+                            <div class="w-16 h-16 mx-auto rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl border border-purple-100 dark:border-purple-800 shadow-xs">
                                 <i class="fa-solid fa-box-open"></i>
                             </div>
-                            <h4 class="text-sm font-extrabold text-slate-800">Je inventaris is momenteel leeg</h4>
-                            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                            <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">Je inventaris is momenteel leeg</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                                 Je hebt nog geen items of snacks in je rugzak. Bezoek de kantine om lekkere frikandelbroodjes of drankjes te kopen!
                             </p>
                             <button type="button" @click="setShopTab('items')" class="mt-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer inline-flex items-center gap-2 shadow-xs">
@@ -1065,7 +1065,7 @@
                             @php
                                 $invItemData = $getItemData($inv->item);
                             @endphp
-                            <div class="bg-gradient-to-b from-white to-slate-50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs transition group">
+                            <div class="bg-gradient-to-b from-white to-slate-50 dark:from-slate-800/80 dark:to-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/70 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs transition group">
                                 <div class="space-y-2.5">
                                     <div class="flex items-center justify-between">
                                         <div class="w-12 h-12 rounded-xl {{ $invItemData['badgeClass'] }} flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
@@ -1077,68 +1077,68 @@
                                     </div>
 
                                     <div>
-                                        <h4 class="text-sm font-black text-slate-900">{{ $inv->item->name }}</h4>
-                                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{{ $inv->item->description ?: 'Eet dit item om je energie of gezondheid te herstellen.' }}</p>
+                                        <h4 class="text-sm font-black text-slate-900 dark:text-white">{{ $inv->item->name }}</h4>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{{ $inv->item->description ?: 'Eet dit item om je energie of gezondheid te herstellen.' }}</p>
                                     </div>
 
                                     <!-- Effects Pills -->
                                     <div class="flex flex-wrap gap-1.5 pt-1">
                                         @if($inv->item->slug === 'adrenaline-injectie')
-                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-bolt text-emerald-600"></i> 100% Volle Energie
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-bolt text-emerald-600 dark:text-emerald-400"></i> 100% Volle Energie
                                         </span>
                                         @elseif($inv->item->energy_restore > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-bolt text-emerald-600"></i> +{{ $inv->item->energy_restore }} Energie
+                                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-bolt text-emerald-600 dark:text-emerald-400"></i> +{{ $inv->item->energy_restore }} Energie
                                         </span>
                                         @endif
                                         @if($inv->item->slug === 'ehbo-noodverbanddoos')
-                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-heart text-rose-600"></i> 100% Volle HP
+                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-heart text-rose-600 dark:text-rose-400"></i> 100% Volle HP
                                         </span>
                                         @elseif($inv->item->health_restore > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-heart text-rose-600"></i> +{{ $inv->item->health_restore }} HP
+                                        <span class="px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-heart text-rose-600 dark:text-rose-400"></i> +{{ $inv->item->health_restore }} HP
                                         </span>
                                         @endif
                                         @if($inv->item->slug === 'bivakmuts-masker')
-                                        <span class="px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-mask text-indigo-600"></i> +1 Masker
+                                        <span class="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-200/50 dark:border-indigo-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-mask text-indigo-600 dark:text-indigo-400"></i> +1 Masker
                                         </span>
                                         @endif
                                         @if($inv->item->slug === 'smokkelpakketje')
-                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-box text-purple-600"></i> +1 Pakket
+                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-box text-purple-600 dark:text-purple-400"></i> +1 Pakket
                                         </span>
                                         @endif
                                         @if($inv->item->slug === 'ijzerzaagje')
-                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-screwdriver-wrench text-amber-600"></i> -30m Straf
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-screwdriver-wrench text-amber-600 dark:text-amber-400"></i> -30m Straf
                                         </span>
                                         @endif
                                         @if($inv->item->strength_bonus > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-hand-back-fist text-purple-600"></i> +{{ $inv->item->strength_bonus }} Kracht
+                                        <span class="px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-hand-back-fist text-purple-600 dark:text-purple-400"></i> +{{ $inv->item->strength_bonus }} Kracht
                                         </span>
                                         @endif
                                         @if($inv->item->defense_bonus > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-shield text-blue-600"></i> +{{ $inv->item->defense_bonus }} Def
+                                        <span class="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-shield text-blue-600 dark:text-blue-400"></i> +{{ $inv->item->defense_bonus }} Def
                                         </span>
                                         @endif
                                         @if($inv->item->stamina_bonus > 0)
-                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-black flex items-center gap-1">
-                                            <i class="fa-solid fa-person-running text-amber-600"></i> +{{ $inv->item->stamina_bonus }} Conditie
+                                        <span class="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-person-running text-amber-600 dark:text-amber-400"></i> +{{ $inv->item->stamina_bonus }} Conditie
                                         </span>
                                         @endif
                                     </div>
                                 </div>
 
                                 <!-- Action Button -->
-                                <div class="pt-2 border-t border-slate-200">
+                                <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
                                     @if($inv->item->category === 'equipment')
-                                        <div class="w-full py-2.5 rounded-xl bg-slate-100 text-slate-700 font-extrabold text-xs flex items-center justify-center gap-2 border border-slate-200">
-                                            <i class="fa-solid fa-shield-halved text-purple-600 text-xs"></i>
+                                        <div class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700">
+                                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 text-xs"></i>
                                             <span>Actieve Uitrusting</span>
                                         </div>
                                     @else
