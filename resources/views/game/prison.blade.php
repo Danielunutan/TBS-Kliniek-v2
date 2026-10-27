@@ -105,59 +105,72 @@
             }
          }" 
          x-show="sec > 0"
-         class="bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-900/80 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative overflow-hidden">
+         class="bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-900/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4 relative overflow-hidden">
         
         <!-- Ambient Background Glow -->
         <div class="absolute -right-12 -top-12 w-48 h-48 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
-        <div class="flex items-center gap-3.5 relative z-10 min-w-0">
-            <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0 shadow-xs">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-            <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-xs"></i>
-                        <span>Je zit vast in de Isoleercel</span>
-                    </h3>
-                    <span class="px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-xs font-mono font-black border border-rose-300 dark:border-rose-800" x-text="formatTime(sec) + ' (' + sec + 's)'">
-                        {{ gmdate('i:s', $remainingSeconds) }} ({{ $remainingSeconds }}s)
-                    </span>
+        <!-- Header Row: Icon, Title, Countdown Pill & Reason (Full width) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+            <div class="flex items-start gap-3 min-w-0 flex-1">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-xs mt-0.5">
+                    <i class="fa-solid fa-lock"></i>
                 </div>
-                <p class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1 leading-relaxed">
-                    Reden: <span class="text-rose-600 dark:text-rose-400 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
-                </p>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-xs"></i>
+                            <span>Je zit vast in de Isoleercel</span>
+                        </h3>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1 leading-relaxed">
+                        Reden: <span class="text-rose-600 dark:text-rose-400 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Live Countdown Pill -->
+            <div class="shrink-0 self-start sm:self-auto">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-xs font-mono font-black border border-rose-300 dark:border-rose-800 shadow-2xs whitespace-nowrap">
+                    <i class="fa-solid fa-stopwatch text-rose-500 text-xs animate-pulse"></i>
+                    <span x-text="formatTime(sec) + ' (' + sec + 's)'">{{ gmdate('i:s', $remainingSeconds) }} ({{ $remainingSeconds }}s)</span>
+                </span>
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto shrink-0 relative z-10">
-            <!-- Watch Ad to reduce sentence and gain instant release -->
+        <!-- Actions Row: Responsive 2-column Grid (100% on mobile, 50/50 on sm+) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40 relative z-10">
+            <!-- Watch Ad Button -->
             @php
                 $reqPrisonAds = $character ? $character->getRequiredPrisonAds() : 1;
                 $currPrisonAds = $character ? (int) ($character->ad_prison_progress ?? 0) : 0;
             @endphp
             <button type="button" 
                     onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                    class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0"
+                    class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
                     title="Elke ad vermindert je straftijd met 3 minuten. Bij {{ $reqPrisonAds }} ads word je direct vrijgelaten!">
-                <i class="fa-solid fa-tv text-amber-300"></i>
-                <span>Kijk Ad</span>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-tv text-amber-300 text-xs"></i>
+                    <span>Kijk Ad</span>
+                </div>
                 <span class="px-2 py-0.5 rounded-md bg-purple-900/80 text-[10px] font-black text-purple-200">{{ $currPrisonAds }}/{{ $reqPrisonAds }} Vrijlating</span>
             </button>
 
-            <!-- Regular escape attempt (max 1x per prison sentence) -->
+            <!-- Escape Button -->
             <template x-if="!attempted">
                 <button type="button" 
                         @click="attemptEscape()"
                         :disabled="isEscaping"
-                        class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0 disabled:opacity-50">
-                    <template x-if="isEscaping">
-                        <i class="fa-solid fa-circle-notch fa-spin text-white"></i>
-                    </template>
-                    <template x-if="!isEscaping">
-                        <i class="fa-solid fa-person-running text-white"></i>
-                    </template>
-                    <span x-text="isEscaping ? 'Ontsnappen...' : 'Ontsnappingspoging'"></span>
+                        class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2 disabled:opacity-50">
+                    <div class="flex items-center gap-2">
+                        <template x-if="isEscaping">
+                            <i class="fa-solid fa-circle-notch fa-spin text-white text-xs"></i>
+                        </template>
+                        <template x-if="!isEscaping">
+                            <i class="fa-solid fa-person-running text-white text-xs"></i>
+                        </template>
+                        <span x-text="isEscaping ? 'Ontsnappen...' : 'Ontsnappingspoging'"></span>
+                    </div>
                     <span class="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-black text-rose-200">1x mogelijk</span>
                 </button>
             </template>
@@ -165,10 +178,12 @@
             <template x-if="attempted">
                 <button type="button" 
                         disabled
-                        class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed opacity-80 shrink-0"
+                        class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-between gap-2 cursor-not-allowed opacity-80"
                         title="Je hebt je ontsnappingspoging voor deze straf al verbruikt. Bekijk ads om alsnog direct vrijgelaten te worden!">
-                    <i class="fa-solid fa-lock text-slate-400 dark:text-slate-500"></i>
-                    <span>Ontsnappingspoging Verbruikt</span>
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-lock text-slate-400 dark:text-slate-500 text-xs"></i>
+                        <span>Poging Verbruikt</span>
+                    </div>
                     <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[10px] font-semibold text-slate-500 dark:text-slate-400">Kijk Ads</span>
                 </button>
             </template>
