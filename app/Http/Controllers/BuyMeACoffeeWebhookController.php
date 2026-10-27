@@ -225,31 +225,56 @@ class BuyMeACoffeeWebhookController extends Controller
     }
 
     /**
-     * Grant VIP and tier perks.
+     * Grant VIP and tier perks based on the 4 live membership packages.
      */
     protected function grantMembershipTier(Character $character, string $tierName, array $data): void
     {
         $tierLower = strtolower($tierName);
-
         $character->is_vip = true;
-        // Extend VIP by 31 days
-        $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
-            ? $character->vip_expires_at
-            : Carbon::now();
-        $character->vip_expires_at = $currentExpiry->copy()->addDays(31);
-
-        // Tier bonus stars
         $perks = $character->perks ?? [];
-        if (str_contains($tierLower, 'baas') || str_contains($tierLower, 'tier 3') || str_contains($tierLower, 'tycoon')) {
-            $character->stars = ($character->stars ?? 0) + 200;
-            $character->xxl_cases = ($character->xxl_cases ?? 0) + 1;
+
+        // Check if Lifetime or recurring monthly
+        if (str_contains($tierLower, 'lifetime')) {
+            $character->vip_expires_at = Carbon::now()->addYears(99);
+            $character->stars = ($character->stars ?? 0) + 1500;
+            $character->xxl_cases = ($character->xxl_cases ?? 0) + 10;
+            $perks['supporter_tier'] = 4;
+            $perks['has_custom_name_color'] = true;
+            $perks['has_sparkle_effect'] = true;
+            $perks['hourly_cash_bonus'] = 50000;
+        } elseif (str_contains($tierLower, 'baas')) {
+            $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
+                ? $character->vip_expires_at
+                : Carbon::now();
+            $character->vip_expires_at = $currentExpiry->copy()->addDays(31);
+            $character->stars = ($character->stars ?? 0) + 600;
+            $character->xxl_cases = ($character->xxl_cases ?? 0) + 3;
             $perks['supporter_tier'] = 3;
-        } elseif (str_contains($tierLower, 'vip') || str_contains($tierLower, 'tier 2') || str_contains($tierLower, 'battle')) {
-            $character->stars = ($character->stars ?? 0) + 75;
+            $perks['has_custom_name_color'] = true;
+            $perks['has_sparkle_effect'] = true;
+            $perks['hourly_cash_bonus'] = 20000;
+        } elseif (str_contains($tierLower, 'elite') || str_contains($tierLower, 'gangster')) {
+            $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
+                ? $character->vip_expires_at
+                : Carbon::now();
+            $character->vip_expires_at = $currentExpiry->copy()->addDays(31);
+            $character->stars = ($character->stars ?? 0) + 250;
+            $character->xxl_cases = ($character->xxl_cases ?? 0) + 1;
             $perks['supporter_tier'] = 2;
+            $perks['has_custom_name_color'] = true;
+            $perks['has_sparkle_effect'] = false;
+            $perks['hourly_cash_bonus'] = 7500;
         } else {
-            $character->stars = ($character->stars ?? 0) + 25;
+            // TBS V.I.P. Lid (Tier 1)
+            $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
+                ? $character->vip_expires_at
+                : Carbon::now();
+            $character->vip_expires_at = $currentExpiry->copy()->addDays(31);
+            $character->stars = ($character->stars ?? 0) + 100;
             $perks['supporter_tier'] = 1;
+            $perks['has_custom_name_color'] = false;
+            $perks['has_sparkle_effect'] = false;
+            $perks['hourly_cash_bonus'] = 2500;
         }
 
         $character->perks = $perks;
