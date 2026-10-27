@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Gang;
+use App\Models\GangProperty;
 use App\Models\User;
 use App\Services\GangWageService;
 use Carbon\Carbon;
@@ -185,5 +186,45 @@ class GangWagePayoutTest extends TestCase
         $resPage->assertSee($gang->avatar_url);
         $resPage->assertSee($gang->banner_url);
         $resPage->assertSee('Visual Squad');
+    }
+
+    public function test_gang_properties_and_luxury_bonuses_increase_hourly_wage(): void
+    {
+        $service = app(GangWageService::class);
+
+        $gang = Gang::create([
+            'name' => 'Property Moguls',
+            'tag' => 'PM',
+            'specialty' => 'Vastgoed & Witwassen',
+            'treasury' => 500000,
+            'bling_shops' => 5,
+        ]);
+
+        // Base with 5 shops: 150 + 5 * 100 = 650
+        $this->assertEquals(650, $service->calculateHourlyWage($gang));
+
+        // Add a warehouse (+€1.000) and a luxury penthouse (+€20.000 base, +12% wage bonus)
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'kleine_loods',
+            'name' => 'Kleine Loods',
+            'type' => 'storage',
+            'purchase_price' => 150000,
+        ]);
+
+        GangProperty::create([
+            'gang_id' => $gang->id,
+            'property_key' => 'luxe_penthouse',
+            'name' => 'Luxe Penthouse',
+            'type' => 'luxury',
+            'purchase_price' => 2750000,
+        ]);
+
+        $gang->load('properties');
+
+        // Subtotal = 650 (base) + 1000 (loods) + 20000 (penthouse) = 21650
+        // Multiplier = 1 + 12% = 1.12
+        // Expected = round(21650 * 1.12) = 24248
+        $this->assertEquals(24248, $service->calculateHourlyWage($gang));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\Gang;
+use App\Support\GangPropertyCatalog;
 
 class GangWageService
 {
@@ -24,7 +25,39 @@ class GangWageService
     public const SHOP_BONUS_WAGE = 100;
 
     /**
-     * Calculate hourly wage for a given gang.
+     * Property hourly base income catalog.
+     * Each commercial or industrial property owned by the gang adds substantial recurring hourly wage.
+     */
+    public const PROPERTY_HOURLY_BASE = [
+        // 1. Opslag & Garages
+        'kleine_loods' => 1000,
+        'garagebox_complex' => 2000,
+        'haven_loods' => 3000,
+        'industrieele_loods' => 5000,
+        'chop_shop_garage' => 7500,
+        'trucking_terminal' => 10000,
+        'vliegveld_hangar' => 15000,
+        'ondergrondse_bunker' => 20000,
+        // 2. Productie, Labs & Fabrieken
+        'wietkwekerij' => 4000,
+        'valsgeld_drukkerij' => 7000,
+        'sigaretten_fabriek' => 10000,
+        'chemisch_lab' => 15000,
+        'crypto_mining_bunker' => 20000,
+        'wapenfabriek' => 30000,
+        'synthese_complex' => 40000,
+        // 3. Luxe Panden & Hoofdkwartieren
+        'stripclub_lounge' => 10000,
+        'casino_penthouse' => 15000,
+        'luxe_penthouse' => 20000,
+        'haven_jachthuis' => 25000,
+        'monumentaal_grachtenpand' => 35000,
+        'gang_villa' => 50000,
+        'fort_eiland' => 75000,
+    ];
+
+    /**
+     * Calculate hourly wage for a given gang including properties, NPCs, and luxury bonuses.
      */
     public function calculateHourlyWage(?Gang $gang): int
     {
@@ -32,7 +65,55 @@ class GangWageService
             return 0;
         }
 
-        return self::BASE_HOURLY_WAGE + (($gang->bling_shops ?? 0) * self::SHOP_BONUS_WAGE);
+        // 1. Base starting wage and Smokkelkiosken
+        $base = self::BASE_HOURLY_WAGE + (($gang->bling_shops ?? 0) * self::SHOP_BONUS_WAGE);
+
+        // 2. Gang Properties (Panden)
+        $properties = $gang->relationLoaded('properties')
+            ? $gang->properties
+            : $gang->properties()->get();
+
+        $propsIncome = 0;
+        $luxuryBonusPct = 0;
+        $catalog = GangPropertyCatalog::all();
+
+        foreach ($properties as $prop) {
+            $key = $prop->property_key;
+            $propsIncome += (self::PROPERTY_HOURLY_BASE[$key] ?? 1000);
+
+            $def = $catalog[$key] ?? null;
+            if ($def && isset($def['wage_bonus_pct'])) {
+                $luxuryBonusPct += (int) $def['wage_bonus_pct'];
+            }
+        }
+
+        // 3. Hired Gang NPCs
+        $npcs = $gang->relationLoaded('npcs')
+            ? $gang->npcs
+            : $gang->npcs()->get();
+
+        $npcsIncome = 0;
+        $npcWageBonusPct = 0;
+        $npcCatalog = GangPropertyCatalog::npcs();
+
+        foreach ($npcs as $npc) {
+            $npcsIncome += 500; // Base contribution per specialist
+            $nDef = $npcCatalog[$npc->npc_key] ?? null;
+            if ($nDef && ($nDef['bonus_type'] ?? '') === 'wage_bonus') {
+                $npcWageBonusPct += (int) ($nDef['bonus_value'] ?? 0);
+            }
+        }
+
+        // 4. Gang Respect bonus (underworld dominance)
+        $respectBonus = min(50000, (int) round(($gang->respect ?? 0) / 40));
+
+        $subtotal = $base + $propsIncome + $npcsIncome + $respectBonus;
+
+        // Apply luxury and NPC percentage bonuses
+        $totalBonusPct = $luxuryBonusPct + $npcWageBonusPct;
+        $multiplier = 1 + ($totalBonusPct / 100);
+
+        return (int) round($subtotal * $multiplier);
     }
 
     /**
