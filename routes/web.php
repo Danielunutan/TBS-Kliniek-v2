@@ -353,6 +353,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Hitman (Liquidatie & Kogels)
     Route::get('/liquidatie', [HitmanController::class, 'index'])->name('hitman.index');
+    Route::get('/liquidatie/zoeken', [HitmanController::class, 'search'])->name('hitman.search');
     Route::post('/liquidatie/contract', [HitmanController::class, 'contract'])->name('hitman.contract');
     Route::post('/liquidatie/schieten', [HitmanController::class, 'shoot'])->name('hitman.shoot');
 

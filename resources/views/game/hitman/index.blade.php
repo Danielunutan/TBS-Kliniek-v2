@@ -10,6 +10,8 @@
     selectedName: '',
     openDropdown: false,
     bulletAmount: 50,
+    isSearching: false,
+    searchResults: [],
     targets: [
         @foreach($targets as $target)
         {
@@ -20,13 +22,36 @@
             health: {{ $target->health }},
             cash: '{{ number_format($target->cash, 0, ',', '.') }}',
             avatar: '{{ $target->avatar_url }}',
-            isOnline: {{ $target->isOnline() ? 'true' : 'false' }}
+            isOnline: {{ $target->isOnline() ? 'true' : 'false' }},
+            inPrison: false,
+            inComa: false,
+            isProtected: false
         },
         @endforeach
     ],
-    get filtered() {
+    get displayedTargets() {
         if (!this.search.trim()) return this.targets;
+        if (this.searchResults.length > 0) return this.searchResults;
         return this.targets.filter(t => t.name.toLowerCase().includes(this.search.toLowerCase()));
+    },
+    async performSearch() {
+        this.openDropdown = true;
+        this.selectedId = '';
+        const query = this.search.trim();
+        if (query.length >= 1) {
+            this.isSearching = true;
+            try {
+                const res = await fetch(`{{ route('hitman.search') }}?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                this.searchResults = data.targets || [];
+            } catch(e) {
+                this.searchResults = [];
+            } finally {
+                this.isSearching = false;
+            }
+        } else {
+            this.searchResults = [];
+        }
     },
     select(target) {
         this.selectedId = target.id;
@@ -201,15 +226,20 @@
                         </div>
                         <input type="text"
                                x-model="search"
-                               @focus="openDropdown = true"
-                               @input="openDropdown = true; selectedId = ''"
+                               @focus="openDropdown = true; if(search.trim().length >= 1) performSearch()"
+                               @input.debounce.250ms="performSearch()"
                                @click.outside="openDropdown = false"
                                required
                                autocomplete="off"
                                placeholder="Typ naam van medepatiënt..."
                                class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-purple-800/60 focus:bg-white dark:focus:bg-[#12082b] focus:border-rose-500 rounded-xl py-2.5 sm:py-3 pl-10 pr-10 text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none transition shadow-xs">
                         <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
-                            <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
+                            <template x-if="isSearching">
+                                <i class="fa-solid fa-circle-notch fa-spin text-rose-500"></i>
+                            </template>
+                            <template x-if="!isSearching">
+                                <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
+                            </template>
                         </div>
                     </div>
 
@@ -217,7 +247,7 @@
                     <div x-show="openDropdown" 
                          x-transition
                          class="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-[#140830] rounded-xl shadow-xl border border-slate-200 dark:border-purple-800/80 divide-y divide-slate-100 dark:divide-purple-900/40">
-                        <template x-for="t in filtered" :key="t.id">
+                        <template x-for="t in displayedTargets" :key="t.id">
                             <button type="button" 
                                     @click="select(t)"
                                     class="w-full text-left px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-between text-xs transition cursor-pointer group">
@@ -227,7 +257,18 @@
                                         <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full" :class="t.isOnline ? 'bg-emerald-500' : 'bg-slate-400'"></span>
                                     </div>
                                     <div class="min-w-0">
-                                        <span class="font-extrabold text-slate-900 dark:text-white group-hover:text-rose-500 block truncate" x-text="t.name"></span>
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <span class="font-extrabold text-slate-900 dark:text-white group-hover:text-rose-500 block truncate" x-text="t.name"></span>
+                                            <template x-if="t.inPrison">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">Isoleercel</span>
+                                            </template>
+                                            <template x-if="t.inComa">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20">Coma</span>
+                                            </template>
+                                            <template x-if="t.isProtected">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20">Beschermd</span>
+                                            </template>
+                                        </div>
                                         <span class="text-[10px] text-slate-400 truncate block">Lvl <span x-text="t.level"></span> • <span class="text-emerald-500 font-mono font-bold" x-text="'€' + t.cash"></span> op zak</span>
                                     </div>
                                 </div>
@@ -236,7 +277,13 @@
                                 </span>
                             </button>
                         </template>
-                        <template x-if="filtered.length === 0">
+                        <template x-if="isSearching">
+                            <div class="p-3 text-xs text-slate-400 text-center flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-circle-notch fa-spin text-rose-500"></i>
+                                <span>Zoeken in patiëntendossiers...</span>
+                            </div>
+                        </template>
+                        <template x-if="!isSearching && displayedTargets.length === 0">
                             <div class="p-3 text-xs text-slate-400 text-center">
                                 Geen patiënt gevonden met '<span x-text="search"></span>'
                             </div>

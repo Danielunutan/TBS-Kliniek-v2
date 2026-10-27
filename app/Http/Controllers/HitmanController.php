@@ -9,6 +9,7 @@ use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,6 +45,43 @@ class HitmanController extends Controller
         return view('game.hitman.index', compact('character', 'targets', 'contracts'));
     }
 
+    /**
+     * Search all patient targets across the clinic via live AJAX search.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $character = Auth::user()->character;
+        $q = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($q) < 1) {
+            return response()->json(['targets' => []]);
+        }
+
+        $targets = Character::where('id', '!=', $character->id)
+            ->where(function ($query) use ($q) {
+                $query->whereRaw('LOWER(name) LIKE ?', ['%'.strtolower($q).'%'])
+                    ->orWhere('name', 'LIKE', "%{$q}%");
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get()
+            ->map(fn (Character $target) => [
+                'id' => (string) $target->id,
+                'name' => $target->name,
+                'level' => $target->level,
+                'respect' => $target->respect,
+                'health' => $target->health,
+                'cash' => number_format($target->cash, 0, ',', '.'),
+                'avatar' => $target->avatar_url,
+                'isOnline' => $target->isOnline(),
+                'inPrison' => $target->isImprisoned(),
+                'inComa' => $target->isComatose(),
+                'isProtected' => $target->isProtected(),
+            ]);
+
+        return response()->json(['targets' => $targets]);
+    }
+
     public function contract(Request $request): RedirectResponse
     {
         $character = Auth::user()->character;
@@ -53,7 +91,10 @@ class HitmanController extends Controller
         }
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
-            $found = Character::where('name', trim($request->input('target_name')))->first();
+            $nameInput = trim((string) $request->input('target_name'));
+            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])
+                ->orWhere('name', 'LIKE', $nameInput)
+                ->first();
             if ($found) {
                 $request->merge(['target_id' => $found->id]);
             }
@@ -137,7 +178,10 @@ class HitmanController extends Controller
         }
 
         if (! $request->filled('target_id') && $request->filled('target_name')) {
-            $found = Character::where('name', trim($request->input('target_name')))->first();
+            $nameInput = trim((string) $request->input('target_name'));
+            $found = Character::whereRaw('LOWER(name) = ?', [strtolower($nameInput)])
+                ->orWhere('name', 'LIKE', $nameInput)
+                ->first();
             if ($found) {
                 $request->merge(['target_id' => $found->id]);
             }
