@@ -31,6 +31,8 @@
     <div x-data="{ 
             sec: {{ $remainingSeconds }},
             reloaded: false,
+            attempted: {{ ($character->prison_escape_attempted ?? false) ? 'true' : 'false' }},
+            isEscaping: false,
             formatTime(s) {
                 if (s <= 0) return '00:00';
                 const m = Math.floor(s / 60);
@@ -48,6 +50,46 @@
                     window.location.reload();
                 }
             },
+            async attemptEscape() {
+                if (this.attempted || this.isEscaping) return;
+                this.isEscaping = true;
+                try {
+                    const res = await fetch('{{ route('prison.escape') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (typeof window.tbsToast === 'function') {
+                            window.tbsToast(data.message, 'success');
+                        }
+                        setTimeout(() => {
+                            window.location.href = data.redirect || '{{ route('dashboard') }}';
+                        }, 1200);
+                    } else {
+                        this.attempted = true;
+                        if (data.remaining_seconds !== undefined) {
+                            this.sec = data.remaining_seconds;
+                        } else {
+                            this.sec += 90;
+                        }
+                        if (typeof window.tbsToast === 'function') {
+                            window.tbsToast(data.message, 'error');
+                        }
+                    }
+                } catch (err) {
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast('Er is een fout opgetreden bij de ontsnappingspoging.', 'error');
+                    }
+                } finally {
+                    this.isEscaping = false;
+                }
+            },
             init() {
                 if (this.sec <= 0) {
                     this.reloadSite();
@@ -63,52 +105,73 @@
             }
          }" 
          x-show="sec > 0"
-         class="bg-rose-50 border border-rose-200 rounded-xl p-5 text-rose-950 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-3.5">
-            <div class="w-11 h-11 rounded-xl bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center text-xl shrink-0 font-bold">
+         class="bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-900/80 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative overflow-hidden">
+        
+        <!-- Ambient Background Glow -->
+        <div class="absolute -right-12 -top-12 w-48 h-48 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-center gap-3.5 relative z-10 min-w-0">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl shrink-0 shadow-xs">
                 <i class="fa-solid fa-lock"></i>
             </div>
-            <div>
-                <h3 class="text-sm font-extrabold text-rose-950">Je zit vast in de Isoleercel</h3>
-                <p class="text-xs text-rose-800 font-medium mt-0.5">
-                    Resterende straftijd: <strong class="text-rose-900 font-mono text-xs" x-text="formatTime(sec) + ' (' + sec + 's)'">{{ gmdate('i:s', $remainingSeconds) }} ({{ $remainingSeconds }}s)</strong>. Reden: <span class="text-rose-950 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-xs"></i>
+                        <span>Je zit vast in de Isoleercel</span>
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 text-xs font-mono font-black border border-rose-300 dark:border-rose-800" x-text="formatTime(sec) + ' (' + sec + 's)'">
+                        {{ gmdate('i:s', $remainingSeconds) }} ({{ $remainingSeconds }}s)
+                    </span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1 leading-relaxed">
+                    Reden: <span class="text-rose-600 dark:text-rose-400 font-bold">{{ $character->prison_reason ?? 'Wangedrag in de kliniek.' }}</span>
                 </p>
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto shrink-0 relative z-10">
             <!-- Watch Ad to reduce sentence and gain instant release -->
             @php
                 $reqPrisonAds = $character ? $character->getRequiredPrisonAds() : 1;
                 $currPrisonAds = $character ? (int) ($character->ad_prison_progress ?? 0) : 0;
-                $leftPrisonAds = max(1, $reqPrisonAds - $currPrisonAds);
             @endphp
             <button type="button" 
                     onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                    class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                    class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0"
                     title="Elke ad vermindert je straftijd met 3 minuten. Bij {{ $reqPrisonAds }} ads word je direct vrijgelaten!">
-                <i class="fa-solid fa-tv text-white text-[11px]"></i>
-                <span>Kijk Ad ({{ $currPrisonAds }}/{{ $reqPrisonAds }} Ads Vrijlating)</span>
+                <i class="fa-solid fa-tv text-amber-300"></i>
+                <span>Kijk Ad</span>
+                <span class="px-2 py-0.5 rounded-md bg-purple-900/80 text-[10px] font-black text-purple-200">{{ $currPrisonAds }}/{{ $reqPrisonAds }} Vrijlating</span>
             </button>
 
-
             <!-- Regular escape attempt (max 1x per prison sentence) -->
-            @if(! ($character->prison_escape_attempted ?? false))
-            <form action="{{ route('prison.escape') }}" method="POST" class="flex-1 md:flex-initial">
-                @csrf
-                <button type="submit" 
-                        class="w-full px-4 py-2.5 rounded-xl bg-white hover:bg-rose-100/60 border border-rose-300 text-rose-900 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-person-running text-rose-600"></i>
-                    <span>Ontsnappingspoging (1x mogelijk)</span>
+            <template x-if="!attempted">
+                <button type="button" 
+                        @click="attemptEscape()"
+                        :disabled="isEscaping"
+                        class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold text-xs transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2 shrink-0 disabled:opacity-50">
+                    <template x-if="isEscaping">
+                        <i class="fa-solid fa-circle-notch fa-spin text-white"></i>
+                    </template>
+                    <template x-if="!isEscaping">
+                        <i class="fa-solid fa-person-running text-white"></i>
+                    </template>
+                    <span x-text="isEscaping ? 'Ontsnappen...' : 'Ontsnappingspoging'"></span>
+                    <span class="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-black text-rose-200">1x mogelijk</span>
                 </button>
-            </form>
-            @else
-            <div class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed"
-                 title="Je hebt je ontsnappingspoging voor deze straf al verbruikt. Bekijk ads om alsnog direct vrijgelaten te worden!">
-                <i class="fa-solid fa-ban text-rose-500"></i>
-                <span>Ontsnappingspoging Verbruikt (Kijk Ads)</span>
-            </div>
-            @endif
+            </template>
+
+            <template x-if="attempted">
+                <button type="button" 
+                        disabled
+                        class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-center gap-2 cursor-not-allowed opacity-80 shrink-0"
+                        title="Je hebt je ontsnappingspoging voor deze straf al verbruikt. Bekijk ads om alsnog direct vrijgelaten te worden!">
+                    <i class="fa-solid fa-lock text-slate-400 dark:text-slate-500"></i>
+                    <span>Ontsnappingspoging Verbruikt</span>
+                    <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[10px] font-semibold text-slate-500 dark:text-slate-400">Kijk Ads</span>
+                </button>
+            </template>
         </div>
     </div>
     @endif

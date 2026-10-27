@@ -44,7 +44,7 @@
         <!-- Customizer Button -->
         <button type="button" 
                 @click="showCustomizer = true"
-                class="px-4 py-2 rounded-xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500 text-slate-700 dark:text-slate-200 hover:text-purple-600 dark:hover:text-purple-300 font-bold text-xs transition shadow-2xs flex items-center gap-2 cursor-pointer active:scale-95">
+                class="px-4 py-2 rounded-xl bg-white dark:bg-purple-950/40 border border-slate-200/90 dark:border-purple-800/80 hover:border-purple-400 dark:hover:border-purple-500 text-slate-700 dark:text-purple-200 hover:text-purple-600 dark:hover:text-purple-100 font-bold text-xs transition shadow-2xs flex items-center gap-2 cursor-pointer active:scale-95">
             <i class="fa-solid fa-sliders text-purple-600 dark:text-purple-400"></i>
             <span>Dashboard Inrichten</span>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -121,8 +121,8 @@
                 </div>
 
                 <a href="{{ route('roadmap.index') }}" 
-                   class="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-extrabold text-xs transition shadow-xs inline-flex items-center justify-center gap-2 shrink-0">
-                    <i class="fa-solid fa-thumbs-up text-amber-400 text-xs"></i>
+                   class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-sm shadow-purple-600/30 inline-flex items-center justify-center gap-2 shrink-0">
+                    <i class="fa-solid fa-thumbs-up text-amber-300 text-xs"></i>
                     <span>Bekijk & Stem Nu</span>
                     <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </a>
@@ -532,8 +532,9 @@
                             </form>
                         </template>
                         <template x-if="!active || claimed">
-                            <a href="{{ route('daily.index') }}" class="px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs">
-                                Bekijk Kalender
+                            <a href="{{ route('daily.index') }}" class="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold text-xs transition flex items-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-calendar-days text-indigo-500"></i>
+                                <span>Bekijk Kalender</span>
                             </a>
                         </template>
                     </div>
@@ -735,7 +736,7 @@
 
                             <button type="button" 
                                     @click="showCityModal = true" 
-                                    class="py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                                    class="py-2 px-3 rounded-xl border border-sky-200 dark:border-sky-800/80 bg-sky-50/70 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 hover:text-sky-800 dark:hover:text-sky-200 text-xs font-bold transition cursor-pointer flex items-center gap-1"
                                     title="Kies of typ je eigen woonplaats (bijv. Rotterdam, Amsterdam, Utrecht)">
                                 <i class="fa-solid fa-city"></i>
                                 <span class="hidden sm:inline text-[11px]">Woonplaats</span>
@@ -1206,13 +1207,13 @@
                             @elseif($packageCooldown === 0)
                                 <form method="POST" action="{{ route('packages.intercept') }}">
                                     @csrf
-                                    <button type="submit" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer">
-                                        <i class="fa-solid fa-box-archive text-amber-400"></i>
+                                    <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-sm shadow-purple-600/25 flex items-center justify-center gap-1.5 cursor-pointer">
+                                        <i class="fa-solid fa-box-archive text-amber-300"></i>
                                         <span>Onderschep Koffer in Postkamer (10 E)</span>
                                     </button>
                                 </form>
                             @else
-                                <div class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[11px] text-center flex items-center justify-center gap-1.5">
+                                <div class="py-2 px-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 text-purple-700 dark:text-purple-300/80 font-bold text-[11px] text-center flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-clock text-purple-500"></i>
                                     <span>Postkamer bewaakt (klaar over {{ ceil($packageCooldown / 60) }}m)</span>
                                 </div>
@@ -1220,13 +1221,13 @@
 
                             <!-- Directe Snelle Navigatie Knoppen -->
                             <div class="grid grid-cols-3 gap-1 pt-1 border-t border-slate-100 dark:border-slate-800 text-center">
-                                <a href="{{ route('vault.index') }}" class="py-1 px-1.5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition truncate">
+                                <a href="{{ route('vault.index') }}" class="py-1.5 px-1.5 rounded-lg text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200/60 dark:border-amber-800/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition truncate">
                                     🔑 Kluis & Codes
                                 </a>
-                                <a href="{{ route('lockers.index') }}" class="py-1 px-1.5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition truncate">
+                                <a href="{{ route('lockers.index') }}" class="py-1.5 px-1.5 rounded-lg text-[10px] font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 border border-sky-200/60 dark:border-sky-800/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 transition truncate">
                                     🔓 Kluisjes
                                 </a>
-                                <a href="{{ route('packages.index') }}" class="py-1 px-1.5 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition truncate">
+                                <a href="{{ route('packages.index') }}" class="py-1.5 px-1.5 rounded-lg text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 border border-purple-200/60 dark:border-purple-800/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition truncate">
                                     📦 Postkamer
                                 </a>
                             </div>
@@ -1268,7 +1269,7 @@
                     @endforelse
                 </div>
 
-                <a href="{{ route('news.index') }}" class="block w-full text-center py-2 bg-slate-50/70 dark:bg-slate-800/40 text-[11px] font-bold text-purple-700 dark:text-purple-300 hover:underline border-t border-slate-100 dark:border-slate-800">
+                <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-purple-50/60 dark:bg-purple-950/40 text-[11px] font-extrabold text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 border-t border-slate-100 dark:border-purple-900/50 transition">
                     Alle berichten bekijken &rarr;
                 </a>
             </div>
@@ -1298,7 +1299,7 @@
                                 <span class="text-emerald-600 font-extrabold">€{{ number_format($character->gang->treasury, 0, ',', '.') }}</span>
                             </div>
                         </div>
-                        <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-xs">
+                        <a href="{{ route('gangs.index') }}" class="block w-full text-center bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black py-2.5 rounded-xl transition text-xs shadow-sm shadow-purple-600/25">
                             Mijn Bende Bezoeken
                         </a>
                     </div>
@@ -1336,7 +1337,7 @@
                                 <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">{{ $m->title }}</h4>
                                 <span class="text-[10px] text-emerald-600 font-bold">+€{{ number_format($m->min_cash_reward, 0, ',', '.') }} &bull; +{{ $m->xp_reward }} XP</span>
                             </div>
-                            <a href="{{ route('missions.index') }}" class="px-2.5 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold text-[11px] hover:bg-purple-100 transition shrink-0">
+                            <a href="{{ route('missions.index') }}" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-xs shadow-purple-600/20 shrink-0">
                                 Start
                             </a>
                         </div>
@@ -1643,7 +1644,7 @@
                     @foreach(['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven', 'Groningen', 'Tilburg', 'Almere', 'Breda', 'Nijmegen', 'Apeldoorn', 'Haarlem', 'Arnhem', 'Enschede', 'Amersfoort', 'Den Bosch', 'Vught', 'Maastricht', 'Dordrecht', 'Leiden', 'Zwolle', 'Deventer', 'Delft', 'Alkmaar', 'Venlo'] as $topCity)
                         <button type="button" 
                                 @click="fetchCityWeather('{{ $topCity }}')"
-                                class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800/80 hover:bg-sky-100 dark:hover:bg-sky-950/60 hover:text-sky-700 dark:hover:text-sky-300 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/60 transition cursor-pointer">
+                                class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-sky-950/30 hover:bg-sky-100 dark:hover:bg-sky-900/60 hover:text-sky-700 dark:hover:text-sky-300 text-slate-700 dark:text-sky-200 border border-slate-200/80 dark:border-sky-800/50 transition cursor-pointer">
                             {{ $topCity }}
                         </button>
                     @endforeach

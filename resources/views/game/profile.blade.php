@@ -152,8 +152,9 @@
                     </form>
                 @endif
 
-                <a href="{{ route('admin.moderation.index', ['tab' => 'reports']) }}" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition flex items-center gap-1.5 border border-white/20">
-                    <i class="fa-solid fa-flag"></i>
+                <a href="{{ route('admin.moderation.index', ['tab' => 'reports']) }}" 
+                   class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition cursor-pointer shadow-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-flag text-amber-300"></i>
                     <span>Meldingen</span>
                 </a>
             </div>

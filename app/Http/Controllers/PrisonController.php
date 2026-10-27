@@ -10,6 +10,7 @@ use App\Services\DailyBattleService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -123,13 +124,21 @@ class PrisonController extends Controller
     /**
      * Attempt to escape from the isolation cell (isoleercel).
      */
-    public function escape(Request $request): RedirectResponse
+    public function escape(Request $request): RedirectResponse|JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
 
         if (! $character->isImprisoned()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je zit momenteel niet in de isoleercel!',
+                    'redirect' => route('prison'),
+                ]);
+            }
+
             return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
@@ -144,7 +153,27 @@ class PrisonController extends Controller
 
             app(DailyBattleService::class)->record($character, 'breakouts', 1);
 
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $result['message'],
+                    'redirect' => route('dashboard'),
+                ]);
+            }
+
             return redirect()->route('dashboard')->with('success', $result['message']);
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            $character->refresh();
+            $remaining = $character->isImprisoned() ? max(0, (int) now()->diffInSeconds($character->prison_until, false)) : 0;
+
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+                'remaining_seconds' => $remaining,
+                'escape_attempted' => true,
+            ]);
         }
 
         return redirect()->route('prison')->with('error', $result['message']);

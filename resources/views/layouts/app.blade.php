@@ -1998,17 +1998,18 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full md:w-auto justify-end shrink-0">
+                <div class="flex items-center gap-2.5 w-full md:w-auto justify-end shrink-0">
                     <button type="button" 
                             onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                            class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap"
+                            class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
                             title="Elke ad vermindert je straftijd met 3 minuten. Bij {{ $topReqPrisonAds }} ads word je direct vrijgelaten!">
-                        <i class="fa-solid fa-tv text-white text-[11px]"></i>
-                        <span>Kijk Ad ({{ $topCurrPrisonAds }}/{{ $topReqPrisonAds }} Ads Vrijlating)</span>
+                        <i class="fa-solid fa-tv text-amber-300"></i>
+                        <span>Kijk Ad</span>
+                        <span class="px-2 py-0.5 rounded-md bg-purple-900/80 text-[10px] font-black text-purple-200">{{ $topCurrPrisonAds }}/{{ $topReqPrisonAds }} Vrijlating</span>
                     </button>
-                    <a href="{{ route('prison') }}" class="flex-1 md:flex-initial px-3.5 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-1.5 whitespace-nowrap">
+                    <a href="{{ route('prison') }}" class="flex-1 md:flex-initial px-4 py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-xs transition text-center shrink-0 flex items-center justify-center gap-2 whitespace-nowrap">
                         <i class="fa-solid fa-building-shield"></i>
-                        <span>Gevangenis</span>
+                        <span>Isoleercel</span>
                     </a>
                 </div>
             </div>
