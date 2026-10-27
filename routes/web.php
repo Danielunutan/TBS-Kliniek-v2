@@ -11,6 +11,7 @@ use App\Http\Controllers\ArmWrestleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\BountyController;
+use App\Http\Controllers\BuyMeACoffeeWebhookController;
 use App\Http\Controllers\CasinoController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CinemaController;
@@ -124,6 +125,10 @@ Route::get('/sponsorkamer/redirect', [SponsorAdController::class, 'redirect'])->
 
 // CPAlead Publisher Postback Callback (Server-to-Server GET)
 Route::get('/api/cpalead/postback', [CpaleadPostbackController::class, 'handle'])->name('cpalead.postback');
+
+// Buy Me a Coffee Webhook (Server-to-Server POST)
+Route::post('/webhooks/buymeacoffee', [BuyMeACoffeeWebhookController::class, 'handle'])->name('webhooks.buymeacoffee');
+Route::post('/api/webhooks/buymeacoffee', [BuyMeACoffeeWebhookController::class, 'handle']);
 
 // Discord Shield Verificatie & Spelers Account Koppeling
 Route::get('/discord/verifieer', [DiscordShieldController::class, 'show'])->name('discord.verify');
