@@ -114,13 +114,21 @@ class RebalanceStatsCommand extends Command
                 ->update(['quantity' => 1]);
         }
 
-        // 2. Corrigeer geëxploiteerde bling shops bij bendes
-        $gangsToCap = Gang::where('bling_shops', '>', 15)->get();
-        foreach ($gangsToCap as $g) {
-            $oldShops = $g->bling_shops;
-            $g->bling_shops = 15;
-            $g->save();
-            $this->info("Gang {$g->name} bling shops aangepast van {$oldShops} naar 15.");
+        // 2. Herstel alle legitieme smokkelkiosken bij bendes (geen kunstmatige limiet)
+        $gangShopRestores = [
+            3 => 27445, // OOHPA KARTEL
+            1 => 5837,  // TBS Bende
+            5 => 4518,  // BadIntentions
+            2 => 232,   // Rainbow Bloodz
+        ];
+
+        foreach ($gangShopRestores as $gangId => $originalShops) {
+            $g = Gang::find($gangId);
+            if ($g) {
+                $g->bling_shops = max($g->bling_shops ?? 0, $originalShops);
+                $g->save();
+                $this->info("Gang {$g->name} (ID {$gangId}) smokkelkiosken hersteld naar {$g->bling_shops}.");
+            }
         }
 
         // 3. Publiceer het officiële balans nieuwsbericht
