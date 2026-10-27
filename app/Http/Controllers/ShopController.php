@@ -12,6 +12,7 @@ use App\Services\AuditLogService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -150,28 +151,59 @@ class ShopController extends Controller
         }
 
         $isEquipment = $item->category === 'equipment';
+        $isRestrictedStatItem = in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus'], true);
 
-        if ($isEquipment) {
+        if ($isEquipment || $isRestrictedStatItem) {
             $quantity = 1;
 
-            $alreadyOwned = CharacterItem::where('character_id', $character->id)
-                ->where('item_id', $item->id)
-                ->where('quantity', '>=', 1)
-                ->exists();
+            if ($isEquipment) {
+                $alreadyOwned = CharacterItem::where('character_id', $character->id)
+                    ->where('item_id', $item->id)
+                    ->where('quantity', '>=', 1)
+                    ->exists();
 
-            if ($alreadyOwned) {
-                $errorMsg = "Je hebt {$item->name} al in je bezit! Uitrusting is uniek en koop je eenmalig voor permanente gevechtskracht in je rugzak.";
+                if ($alreadyOwned) {
+                    $errorMsg = "Je hebt {$item->name} al in je bezit! Uitrusting is uniek en koop je eenmalig voor permanente gevechtskracht in je rugzak.";
 
-                if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $errorMsg,
-                    ], 422);
+                    if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $errorMsg,
+                        ], 422);
+                    }
+
+                    return back()
+                        ->with('shop_tab', 'items')
+                        ->with('error', $errorMsg);
                 }
+            }
 
-                return back()
-                    ->with('shop_tab', 'items')
-                    ->with('error', $errorMsg);
+            if ($isRestrictedStatItem) {
+                $perks = $character->perks ?? [];
+                $cooldownKey = 'last_bought_'.str_replace('-', '_', $item->slug);
+                if (! empty($perks[$cooldownKey])) {
+                    $lastBought = Carbon::parse($perks[$cooldownKey]);
+                    $cooldownUntil = $lastBought->copy()->addHours(6);
+                    if ($cooldownUntil->isFuture()) {
+                        $diffMinutes = (int) now()->diffInMinutes($cooldownUntil);
+                        $hours = intdiv($diffMinutes, 60);
+                        $minutes = $diffMinutes % 60;
+                        $timeRemaining = $hours > 0 ? "{$hours} uur en {$minutes} minuten" : "{$minutes} minuten";
+
+                        $errorMsg = "Je kunt {$item->name} maximaal 1x per 6 uur aanschaffen om de spelbalans eerlijk te houden! Probeer het over {$timeRemaining} opnieuw.";
+
+                        if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => $errorMsg,
+                            ], 422);
+                        }
+
+                        return back()
+                            ->with('shop_tab', 'items')
+                            ->with('error', $errorMsg);
+                    }
+                }
             }
         } else {
             $quantity = max(1, min(50, (int) $request->input('quantity', 1)));
@@ -267,6 +299,14 @@ class ShopController extends Controller
                 $inv->save();
                 $ownedCount = (int) $inv->quantity;
                 $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}!";
+
+                if (in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus'], true)) {
+                    $perks = $locked->perks ?? [];
+                    $cooldownKey = 'last_bought_'.str_replace('-', '_', $item->slug);
+                    $perks[$cooldownKey] = now()->toISOString();
+                    $locked->perks = $perks;
+                    $locked->save();
+                }
             }
 
             // Sync original model instance
@@ -278,6 +318,7 @@ class ShopController extends Controller
             $character->defense = $locked->defense;
             $character->stamina = $locked->stamina;
             $character->health = $locked->health;
+            $character->perks = $locked->perks;
 
             return true;
         });
@@ -434,7 +475,35 @@ class ShopController extends Controller
                 $needed = max(1, max($neededForEnergy, $neededForHealth));
                 $consumeQty = max(1, min($lockedItem->quantity, $needed));
             } else {
-                $consumeQty = max(1, min($lockedItem->quantity, $requestedQty));
+                if (in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus'], true)) {
+                    $useCooldownKey = 'last_used_'.str_replace('-', '_', $item->slug);
+                    $perks = $lockedCharacter->perks ?? [];
+                    if (! empty($perks[$useCooldownKey])) {
+                        $cooldownUntil = Carbon::parse($perks[$useCooldownKey])->addHours(6);
+                        if ($cooldownUntil->isFuture()) {
+                            $diffMinutes = (int) now()->diffInMinutes($cooldownUntil);
+                            $hours = intdiv($diffMinutes, 60);
+                            $minutes = $diffMinutes % 60;
+                            $timeRemaining = $hours > 0 ? "{$hours} uur en {$minutes} minuten" : "{$minutes} minuten";
+
+                            $errorMsg = "Je lichaam moet herstellen! Je kunt {$item->name} maximaal 1x per 6 uur gebruiken. Probeer het over {$timeRemaining} opnieuw.";
+
+                            if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                                return response()->json([
+                                    'success' => false,
+                                    'message' => $errorMsg,
+                                ], 422);
+                            }
+
+                            return back()
+                                ->with('shop_tab', 'inventaris')
+                                ->with('error', $errorMsg);
+                        }
+                    }
+                    $consumeQty = 1;
+                } else {
+                    $consumeQty = max(1, min($lockedItem->quantity, $requestedQty));
+                }
             }
 
             // 1. Contraband / Smokkelwaren herstel
@@ -489,7 +558,7 @@ class ShopController extends Controller
                 }
             }
 
-            // 2. Stat boosts (begrensd per level)
+            // 2. Stat boosts (begrensd per level & max 1x per 6 uur)
             if ($item->slug === 'eiwitshake-bodybuilder') {
                 $maxStat = $lockedCharacter->getMaxStatForLevel();
                 $cur = (int) ($lockedCharacter->strength ?? 10);
@@ -500,6 +569,9 @@ class ShopController extends Controller
                 } else {
                     $customFeedback[] = "Je Kracht zit al op het maximum ({$maxStat}) voor jouw level!";
                 }
+                $perks = $lockedCharacter->perks ?? [];
+                $perks['last_used_eiwitshake_bodybuilder'] = now()->toISOString();
+                $lockedCharacter->perks = $perks;
             }
             if ($item->slug === 'multivitaminen-focus') {
                 $maxStat = $lockedCharacter->getMaxStatForLevel();
@@ -511,6 +583,9 @@ class ShopController extends Controller
                 } else {
                     $customFeedback[] = "Je Conditie zit al op het maximum ({$maxStat}) voor jouw level!";
                 }
+                $perks = $lockedCharacter->perks ?? [];
+                $perks['last_used_multivitaminen_focus'] = now()->toISOString();
+                $lockedCharacter->perks = $perks;
             }
 
             // 3. Masker toevoegen

@@ -734,6 +734,16 @@
 
                             @php
                                 $isEquipment = $item->category === 'equipment';
+                                $isRestrictedStat = in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus'], true);
+                                $cooldownKey = 'last_bought_' . str_replace('-', '_', $item->slug);
+                                $lastBought = $character->perks[$cooldownKey] ?? null;
+                                $statCooldownUntil = $lastBought ? \Carbon\Carbon::parse($lastBought)->addHours(6) : null;
+                                $isStatOnCooldown = $statCooldownUntil && $statCooldownUntil->isFuture();
+                                $statRemainingMinutes = $isStatOnCooldown ? (int) now()->diffInMinutes($statCooldownUntil) : 0;
+                                $statRemainingHours = intdiv($statRemainingMinutes, 60);
+                                $statRemainingMins = $statRemainingMinutes % 60;
+                                $statRemainingText = $statRemainingHours > 0 ? "{$statRemainingHours}u {$statRemainingMins}m" : "{$statRemainingMins}m";
+
                                 $isDirectDelivery = in_array($item->slug, [
                                     'bivakmuts-masker',
                                     'smokkelpakketje',
@@ -746,6 +756,8 @@
                                  x-data="{
                                      buyQty: 1,
                                      isEquipment: {{ $isEquipment ? 'true' : 'false' }},
+                                     isRestrictedStat: {{ $isRestrictedStat ? 'true' : 'false' }},
+                                     isOnCooldown: {{ $isStatOnCooldown ? 'true' : 'false' }},
                                      isDirectDelivery: {{ $isDirectDelivery ? 'true' : 'false' }},
                                      unitPrice: {{ $item->price_kc }},
                                      discountPct: {{ min(15, (int) floor($character->getEffectiveCharisma() / 10)) }},
@@ -753,7 +765,7 @@
                                          return this.discountPct > 0 ? Math.round(this.unitPrice * (1 - (this.discountPct / 100))) : this.unitPrice;
                                      },
                                      get totalCost() {
-                                         return this.isEquipment ? this.actualPrice : (this.actualPrice * this.buyQty);
+                                         return (this.isEquipment || this.isRestrictedStat) ? this.actualPrice : (this.actualPrice * this.buyQty);
                                      },
                                      get isOwned() {
                                          return this.isEquipment && (ownedCounts[{{ $item->id }}] > 0);
@@ -770,10 +782,13 @@
                                          if (this.isEquipment) {
                                              return this.isOwned ? 0 : (this.maxByMoney >= 1 && this.maxByStorage >= 1 ? 1 : 0);
                                          }
+                                         if (this.isRestrictedStat) {
+                                             return this.isOnCooldown ? 0 : (this.maxByMoney >= 1 ? 1 : 0);
+                                         }
                                          return Math.max(0, Math.min(100, Math.min(this.maxByMoney, this.maxByStorage)));
                                      },
                                      setQty(amount) {
-                                         if (this.isEquipment) {
+                                         if (this.isEquipment || this.isRestrictedStat) {
                                              this.buyQty = 1;
                                              return;
                                          }
@@ -790,13 +805,13 @@
                                         <span class="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
                                             €{{ number_format($item->price_kc, 0, ',', '.') }}
                                         </span>
-                                        <template x-if="!isEquipment && buyQty > 1">
+                                        <template x-if="!isEquipment && !isRestrictedStat && buyQty > 1">
                                             <span class="text-[10px] text-slate-400 dark:text-slate-400 block font-mono" x-text="'Totaal: €' + new Intl.NumberFormat('nl-NL').format(totalCost)"></span>
                                         </template>
                                     </div>
                                 </div>
 
-                                <!-- Aantal Knoppen (voor consumables/snacks) OF Unieke Uitrusting Badge (voor equipment) -->
+                                <!-- Aantal Knoppen (voor consumables/snacks) OF Unieke Uitrusting Badge OF 6-Uurs Cooldown Badge -->
                                 <template x-if="isEquipment">
                                     <div class="flex items-center justify-between py-1.5 px-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 text-[11px]">
                                         <span class="text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1.5">
@@ -814,7 +829,16 @@
                                         </template>
                                     </div>
                                 </template>
-                                <template x-if="!isEquipment">
+                                <template x-if="isRestrictedStat">
+                                    <div class="flex items-center justify-between py-1.5 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-[11px]">
+                                        <span class="text-amber-800 dark:text-amber-300 font-extrabold flex items-center gap-1.5">
+                                            <i class="fa-solid fa-clock text-amber-500"></i>
+                                            <span>Max. 1x per 6 uur</span>
+                                        </span>
+                                        <span class="text-slate-500 dark:text-slate-400 font-bold font-mono">1x per beurt</span>
+                                    </div>
+                                </template>
+                                <template x-if="!isEquipment && !isRestrictedStat">
                                     <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
                                         <button type="button" @click="setQty(1)" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
                                         <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
@@ -826,6 +850,13 @@
                                 </template>
 
                                 <!-- Realtime Status Indicatie -->
+                                @if($isStatOnCooldown)
+                                <div class="text-[11px] text-amber-700 dark:text-amber-300 font-bold text-center flex items-center justify-center gap-1.5 py-1 px-2 bg-amber-50 dark:bg-amber-950/80 rounded-lg border border-amber-300 dark:border-amber-800">
+                                    <i class="fa-solid fa-hourglass-half text-amber-500 text-[10px]"></i>
+                                    <span>Cooldown actief: nog {{ $statRemainingText }}</span>
+                                </div>
+                                @endif
+
                                 <template x-if="!isDirectDelivery && storageRemaining <= 0">
                                     <div class="text-[10px] text-rose-500 dark:text-rose-400 font-bold text-center flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
@@ -838,6 +869,8 @@
                                             <span>🎭 Voegt toe aan Maskers (geen opslag nodig)</span>
                                         @elseif($item->slug === 'smokkelpakketje')
                                             <span>📦 Voegt toe aan Koffers & Buit (geen opslag nodig)</span>
+                                        @elseif($isRestrictedStat)
+                                            <span>💪 Permanente Stat Boost (max 1x per 6u)</span>
                                         @else
                                             <span>⚡ Directe Stat Boost (geen opslag nodig)</span>
                                         @endif
@@ -850,9 +883,9 @@
                                     <div class="text-[10px] text-rose-500 dark:text-rose-400 font-semibold text-center">Niet genoeg saldo voor dit item</div>
                                 </template>
 
-                                <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, isEquipment ? 1 : buyQty)">
+                                <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, (isEquipment || isRestrictedStat) ? 1 : buyQty)">
                                     @csrf
-                                    <input type="hidden" name="quantity" :value="isEquipment ? 1 : buyQty">
+                                    <input type="hidden" name="quantity" :value="(isEquipment || isRestrictedStat) ? 1 : buyQty">
                                     
                                     <template x-if="isOwned">
                                         <div class="w-full py-2.5 rounded-xl bg-slate-200/80 dark:bg-slate-800/80 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs flex items-center justify-center gap-1.5 border border-emerald-500/30 dark:border-emerald-500/20 shadow-2xs select-none">
@@ -862,8 +895,8 @@
                                     </template>
                                     <template x-if="!isOwned">
                                         <button type="submit" 
-                                                :disabled="itemBuying[{{ $item->id }}] || (!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1"
-                                                :class="(!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1 ? 'opacity-60 cursor-not-allowed bg-slate-500' : 'bg-purple-600 hover:bg-purple-700 active:scale-95 cursor-pointer'"
+                                                :disabled="itemBuying[{{ $item->id }}] || (!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1 || isOnCooldown"
+                                                :class="(!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1 || isOnCooldown ? 'opacity-60 cursor-not-allowed bg-slate-500' : 'bg-purple-600 hover:bg-purple-700 active:scale-95 cursor-pointer'"
                                                 class="w-full py-2.5 rounded-xl disabled:opacity-50 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
                                             <template x-if="itemBuying[{{ $item->id }}]">
                                                 <span class="inline-flex items-center gap-1.5 text-purple-200">
@@ -873,13 +906,16 @@
                                             </template>
                                             <template x-if="!itemBuying[{{ $item->id }}] && (!itemToast[{{ $item->id }}] || itemToast[{{ $item->id }}].type !== 'success')">
                                                 <span class="inline-flex items-center gap-1.5">
-                                                    <template x-if="!isDirectDelivery && storageRemaining <= 0">
+                                                    <template x-if="isOnCooldown">
+                                                        <span><i class="fa-solid fa-lock text-[11px] mr-1"></i> Cooldown (nog {{ $statRemainingText }})</span>
+                                                    </template>
+                                                    <template x-if="!isOnCooldown && !isDirectDelivery && storageRemaining <= 0">
                                                         <span>Opslag Vol</span>
                                                     </template>
-                                                    <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney < 1">
+                                                    <template x-if="!isOnCooldown && (isDirectDelivery || storageRemaining > 0) && maxByMoney < 1">
                                                         <span>Onvoldoende Saldo</span>
                                                     </template>
-                                                    <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney >= 1">
+                                                    <template x-if="!isOnCooldown && (isDirectDelivery || storageRemaining > 0) && maxByMoney >= 1">
                                                         <span class="inline-flex items-center gap-1.5">
                                                             <i class="fa-solid fa-cart-shopping text-xs"></i>
                                                             <span x-text="isEquipment ? 'Uitrusting Kopen' : (buyQty > 1 ? 'Koop ' + buyQty + 'x direct' : 'Kopen')"></span>
@@ -895,7 +931,6 @@
                                             </template>
                                         </button>
                                     </template>
-
                                     <!-- Inline error toast if not enough cash without shifting layout -->
                                     <template x-if="itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'error'">
                                         <div class="mt-1 text-[11px] font-bold text-rose-600 text-center flex items-center justify-center gap-1" x-text="itemToast[{{ $item->id }}].text"></div>

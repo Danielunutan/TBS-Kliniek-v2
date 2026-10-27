@@ -276,4 +276,78 @@ class ShopAndFriendRequestTest extends TestCase
         $inventory = $response->viewData('inventory');
         $this->assertFalse($inventory->contains('item_id', $phoneItem->id));
     }
+
+    public function test_eiwitshake_is_restricted_to_one_per_six_hours_on_purchase(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update(['cash' => 50000, 'perks' => []]);
+
+        $item = Item::where('slug', 'eiwitshake-bodybuilder')->first();
+        if (! $item) {
+            $item = Item::create([
+                'name' => 'Eiwitshake Bodybuilder',
+                'slug' => 'eiwitshake-bodybuilder',
+                'category' => 'consumable',
+                'price_kc' => 1250,
+                'is_buyable' => true,
+            ]);
+        }
+
+        $this->actingAs($user);
+
+        // First purchase should succeed
+        $firstBuy = $this->post(route('shop.buy', $item), ['quantity' => 1]);
+        $firstBuy->assertSessionHas('success');
+
+        $char->refresh();
+        $this->assertNotNull($char->perks['last_bought_eiwitshake_bodybuilder'] ?? null);
+
+        // Immediate second purchase must be blocked
+        $secondBuy = $this->post(route('shop.buy', $item), ['quantity' => 1]);
+        $secondBuy->assertSessionHas('error');
+        $this->assertStringContainsString('maximaal 1x per 6 uur', session('error'));
+    }
+
+    public function test_eiwitshake_is_restricted_to_one_per_six_hours_on_consume(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update(['strength' => 10, 'perks' => []]);
+
+        $item = Item::where('slug', 'eiwitshake-bodybuilder')->first();
+        if (! $item) {
+            $item = Item::create([
+                'name' => 'Eiwitshake Bodybuilder',
+                'slug' => 'eiwitshake-bodybuilder',
+                'category' => 'consumable',
+                'price_kc' => 1250,
+                'is_buyable' => true,
+            ]);
+        }
+
+        $charItem = CharacterItem::updateOrCreate(
+            ['character_id' => $char->id, 'item_id' => $item->id],
+            ['quantity' => 5]
+        );
+
+        $this->actingAs($user);
+
+        // First consumption should succeed and give +1 strength
+        $firstConsume = $this->post(route('shop.consume', $charItem), ['quantity' => 1]);
+        $firstConsume->assertSessionHas('success');
+
+        $char->refresh();
+        $this->assertEquals(11, $char->strength);
+        $this->assertNotNull($char->perks['last_used_eiwitshake_bodybuilder'] ?? null);
+
+        // Immediate second consumption must be blocked by cooldown
+        $secondConsume = $this->post(route('shop.consume', $charItem), ['quantity' => 1]);
+        $secondConsume->assertSessionHas('error');
+        $this->assertStringContainsString('maximaal 1x per 6 uur', session('error'));
+
+        // Strength must remain 11
+        $char->refresh();
+        $this->assertEquals(11, $char->strength);
+    }
 }
