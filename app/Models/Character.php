@@ -2060,7 +2060,7 @@ class Character extends Model
 
         if ($fights >= 35 || $level >= 20) {
             $threatLevel = 'Code Zwart';
-            $threatColor = 'bg-slate-900 text-rose-400 border-rose-600/80 shadow-lg shadow-rose-950/30';
+            $threatColor = 'bg-slate-900 dark:bg-slate-950 text-rose-400 border-rose-600/80 shadow-lg shadow-rose-950/30';
             $threatBadgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/50';
             $threatIcon = 'fa-solid fa-biohazard text-rose-400 animate-pulse';
             $dangerDesc = 'EXTREEM GEVAARLIJK. Maximale penitentiaire isolatie. Verhoogd ontsnappings- en gijzelingsrisico.';
@@ -2068,33 +2068,33 @@ class Character extends Model
             $regime = 'EBI - Extra Beveiligde Inrichting';
         } elseif ($fights >= 15 || $level >= 10) {
             $threatLevel = 'Code Rood';
-            $threatColor = 'bg-rose-50 text-rose-900 border-rose-300 shadow-xs';
-            $threatBadgeColor = 'bg-rose-100 text-rose-800 border-rose-300';
-            $threatIcon = 'fa-solid fa-skull-crossbones text-rose-600';
+            $threatColor = 'bg-rose-50 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200 border-rose-300 dark:border-rose-800 shadow-xs';
+            $threatBadgeColor = 'bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 border-rose-300 dark:border-rose-700';
+            $threatIcon = 'fa-solid fa-skull-crossbones text-rose-600 dark:text-rose-400';
             $dangerDesc = 'Uiterst gewelddadig en dominant. Vermijd direct oogcontact tijdens recreatie en luchtuurtjes.';
             $threatMeter = 80;
             $regime = 'Afdeling Intensief Toezicht (AIT)';
         } elseif ($fights >= 5 || $level >= 5) {
             $threatLevel = 'Code Oranje';
-            $threatColor = 'bg-amber-50 text-amber-900 border-amber-300 shadow-xs';
-            $threatBadgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
-            $threatIcon = 'fa-solid fa-triangle-exclamation text-amber-600';
+            $threatColor = 'bg-amber-50 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border-amber-300 dark:border-amber-800 shadow-xs';
+            $threatBadgeColor = 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700';
+            $threatIcon = 'fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400';
             $dangerDesc = 'Verhoogde waakzaamheid geboden. Vertoont manipulatief, territoriaal en opstandig gedrag.';
             $threatMeter = 55;
             $regime = 'Gesloten Behandelafdeling';
         } elseif ($level >= 2) {
             $threatLevel = 'Code Geel';
-            $threatColor = 'bg-yellow-50 text-yellow-900 border-yellow-300 shadow-xs';
-            $threatBadgeColor = 'bg-yellow-100 text-yellow-800 border-yellow-300';
-            $threatIcon = 'fa-solid fa-circle-exclamation text-yellow-600';
+            $threatColor = 'bg-yellow-50 dark:bg-yellow-950/70 text-yellow-900 dark:text-yellow-200 border-yellow-300 dark:border-yellow-800 shadow-xs';
+            $threatBadgeColor = 'bg-yellow-100 dark:bg-yellow-900/60 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700';
+            $threatIcon = 'fa-solid fa-circle-exclamation text-yellow-600 dark:text-yellow-400';
             $dangerDesc = 'Matig risico. Patiënt past zich ogenschijnlijk aan de regels aan, maar beraamt plannen in de schaduw.';
             $threatMeter = 30;
             $regime = 'Regulier Gesloten Regime';
         } else {
             $threatLevel = 'Code Groen';
-            $threatColor = 'bg-emerald-50 text-emerald-900 border-emerald-300 shadow-xs';
-            $threatBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
-            $threatIcon = 'fa-solid fa-shield-halved text-emerald-600';
+            $threatColor = 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 shadow-xs';
+            $threatBadgeColor = 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700';
+            $threatIcon = 'fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400';
             $dangerDesc = 'Nieuwe intake. Observatieperiode loopt nog; vooralsnog beheersbaar binnen de leefgroep.';
             $threatMeter = 10;
             $regime = 'Intake & Observatiegroep';

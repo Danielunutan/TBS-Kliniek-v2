@@ -780,57 +780,57 @@
     <!-- Tab: Psychiatrisch Rapport (Dr. H. van Beek) -->
     <div x-show="activeTab === 'psychiatrisch'" x-cloak class="space-y-6">
         <!-- Forensic Clinic File Container -->
-        <div class="bg-gradient-to-b from-stone-50 via-white to-stone-100/60 rounded-2xl shadow-md border-2 border-stone-300 p-6 sm:p-8 relative overflow-hidden">
+        <div class="bg-gradient-to-b from-stone-50 via-white to-stone-100/60 dark:from-slate-900/95 dark:via-slate-900 dark:to-slate-950/95 rounded-2xl shadow-md dark:shadow-2xl dark:shadow-purple-950/20 border-2 border-stone-300 dark:border-slate-800 p-6 sm:p-8 relative overflow-hidden transition-colors">
             <!-- Background Security Watermark & Grid Pattern -->
-            <div class="absolute inset-0 opacity-[0.03] pointer-events-none select-none bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]"></div>
-            <div class="absolute -right-8 -top-8 opacity-10 pointer-events-none select-none text-9xl text-slate-800 rotate-12">
+            <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.04] pointer-events-none select-none bg-[radial-gradient(#1e293b_1px,transparent_1px)] dark:bg-[radial-gradient(#64748b_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            <div class="absolute -right-8 -top-8 opacity-10 dark:opacity-[0.04] pointer-events-none select-none text-9xl text-slate-800 dark:text-white rotate-12">
                 <i class="fa-solid fa-stamp"></i>
             </div>
 
             <!-- Top Forensic Header Bar -->
-            <div class="border-b-2 border-stone-300 pb-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+            <div class="border-b-2 border-stone-300 dark:border-slate-800 pb-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                 <div class="space-y-1">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-700 text-white shadow-xs">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-red-700 dark:bg-rose-600 text-white shadow-xs">
                             <i class="fa-solid fa-lock text-[9px]"></i> STRIKT MEDISCH GEHEIM
                         </span>
-                        <span class="px-2 py-0.5 rounded bg-stone-200 text-stone-700 font-mono text-[10px] font-bold">
+                        <span class="px-2 py-0.5 rounded bg-stone-200 dark:bg-slate-800 text-stone-700 dark:text-slate-300 border border-transparent dark:border-slate-700 font-mono text-[10px] font-bold">
                             WGBO ART. 7:457
                         </span>
-                        <span class="text-xs font-mono font-extrabold text-stone-800 tracking-wider">
+                        <span class="text-xs font-mono font-extrabold text-stone-800 dark:text-purple-400 tracking-wider">
                             DOSSIER #{{ $psychiatricReport['dossier_nr'] }}
                         </span>
                     </div>
                     <div class="pt-1">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-stone-500">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-stone-500 dark:text-slate-400">
                             MINISTERIE VAN JUSTITIE &bull; DIENST JUSTITIËLE INRICHTINGEN &bull; FORENSISCHE ZORG
                         </p>
-                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                        <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                             <span>Psychiatrisch Onderzoeksverslag</span>
                         </h2>
                     </div>
-                    <div class="text-xs text-stone-600 flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5 font-medium">
-                        <span>Patiënt: <strong class="text-slate-900 font-black">{{ $profileCharacter->name }}</strong></span>
+                    <div class="text-xs text-stone-600 dark:text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5 font-medium">
+                        <span>Patiënt: <strong class="text-slate-900 dark:text-slate-100 font-black">{{ $profileCharacter->name }}</strong></span>
                         <span>&bull;</span>
-                        <span>Opnamedatum: <strong class="text-slate-800 font-bold">{{ $profileCharacter->created_at ? \Illuminate\Support\Carbon::parse($profileCharacter->created_at)->format('d-m-Y') : now()->format('d-m-Y') }}</strong></span>
+                        <span>Opnamedatum: <strong class="text-slate-800 dark:text-slate-200 font-bold">{{ $profileCharacter->created_at ? \Illuminate\Support\Carbon::parse($profileCharacter->created_at)->format('d-m-Y') : now()->format('d-m-Y') }}</strong></span>
                         <span>&bull;</span>
-                        <span>Status: <span class="text-amber-800 font-extrabold bg-amber-100/80 px-2 py-0.2 rounded text-[10px]">TBS met Dwangverpleging</span></span>
+                        <span>Status: <span class="text-amber-800 dark:text-amber-300 font-extrabold bg-amber-100/80 dark:bg-amber-950/70 border border-amber-200/60 dark:border-amber-800/60 px-2 py-0.5 rounded text-[10px]">TBS met Dwangverpleging</span></span>
                     </div>
                 </div>
 
                 <!-- Doctor Card Header -->
-                <div class="bg-white/90 border border-stone-300 rounded-xl p-3 shadow-2xs flex items-center gap-3 shrink-0 self-start md:self-center">
-                    <div class="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center text-lg shrink-0">
+                <div class="bg-white/90 dark:bg-slate-800/90 border border-stone-300 dark:border-slate-700/80 rounded-xl p-3 shadow-2xs flex items-center gap-3 shrink-0 self-start md:self-center">
+                    <div class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center text-lg shrink-0">
                         <i class="fa-solid fa-user-doctor"></i>
                     </div>
                     <div>
-                        <div class="text-[9px] font-black uppercase tracking-wider text-stone-400">Behandelend Geneesheer</div>
-                        <div class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                        <div class="text-[9px] font-black uppercase tracking-wider text-stone-400 dark:text-slate-400">Behandelend Geneesheer</div>
+                        <div class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                             {{ $psychiatricReport['doctor_name'] }}
-                            <i class="fa-solid fa-circle-check text-blue-600 text-[11px]" title="BIG Geverifieerd"></i>
+                            <i class="fa-solid fa-circle-check text-blue-600 dark:text-blue-400 text-[11px]" title="BIG Geverifieerd"></i>
                         </div>
-                        <div class="text-[10px] text-stone-500 font-medium leading-tight">{{ $psychiatricReport['doctor_role'] }}</div>
-                        <div class="text-[9px] font-mono text-stone-400">{{ $psychiatricReport['big_registration'] ?? 'BIG: 492.019.481' }}</div>
+                        <div class="text-[10px] text-stone-500 dark:text-slate-400 font-medium leading-tight">{{ $psychiatricReport['doctor_role'] }}</div>
+                        <div class="text-[9px] font-mono text-stone-400 dark:text-slate-400">{{ $psychiatricReport['big_registration'] ?? 'BIG: 492.019.481' }}</div>
                     </div>
                 </div>
             </div>
@@ -839,7 +839,7 @@
             <div class="p-5 rounded-xl border-2 {{ $psychiatricReport['threat_color'] }} mb-6 relative z-10 transition-all">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div class="flex items-center gap-3.5">
-                        <div class="w-12 h-12 rounded-xl bg-white/90 border border-current flex items-center justify-center text-2xl shrink-0 shadow-xs">
+                        <div class="w-12 h-12 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-current flex items-center justify-center text-2xl shrink-0 shadow-xs">
                             <i class="{{ $psychiatricReport['threat_icon'] }}"></i>
                         </div>
                         <div>
@@ -852,7 +852,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="text-xs font-bold md:max-w-md md:text-right leading-relaxed bg-white/60 md:bg-transparent p-2.5 md:p-0 rounded-lg">
+                    <div class="text-xs font-bold md:max-w-md md:text-right leading-relaxed bg-white/60 dark:bg-slate-900/60 md:bg-transparent md:dark:bg-transparent p-2.5 md:p-0 rounded-lg text-slate-900 dark:text-slate-100">
                         {{ $psychiatricReport['danger_desc'] }}
                     </div>
                 </div>
@@ -863,19 +863,19 @@
                         <span>Dreigingsladder (TBS Risico-index)</span>
                         <span>Schaal: {{ $psychiatricReport['threat_meter'] ?? 50 }}%</span>
                     </div>
-                    <div class="w-full h-2.5 bg-black/10 rounded-full overflow-hidden p-0.5 flex gap-1">
+                    <div class="w-full h-2.5 bg-black/10 dark:bg-black/40 rounded-full overflow-hidden p-0.5 flex gap-1">
                         <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 10 ? 'bg-emerald-500' : 'bg-transparent' }} flex-1"></div>
-                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 30 ? 'bg-yellow-400' : 'bg-stone-300' }} flex-1"></div>
-                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 55 ? 'bg-amber-500' : 'bg-stone-300' }} flex-1"></div>
-                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 80 ? 'bg-rose-600' : 'bg-stone-300' }} flex-1"></div>
-                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 95 ? 'bg-slate-900 border border-rose-500' : 'bg-stone-300' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 30 ? 'bg-yellow-400' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 55 ? 'bg-amber-500' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 80 ? 'bg-rose-600' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
+                        <div class="h-full rounded-full transition-all duration-500 {{ ($psychiatricReport['threat_meter'] ?? 50) >= 95 ? 'bg-slate-900 dark:bg-black border border-rose-500' : 'bg-stone-300 dark:bg-slate-800' }} flex-1"></div>
                     </div>
-                    <div class="flex justify-between text-[9px] font-bold text-stone-500 mt-1">
-                        <span class="text-emerald-700">Groen (Intake)</span>
-                        <span class="text-yellow-700">Geel</span>
-                        <span class="text-amber-700">Oranje</span>
-                        <span class="text-rose-700">Rood</span>
-                        <span class="text-stone-900 font-extrabold">Zwart (EBI)</span>
+                    <div class="flex justify-between text-[9px] font-bold text-stone-500 dark:text-slate-400 mt-1">
+                        <span class="text-emerald-700 dark:text-emerald-400">Groen (Intake)</span>
+                        <span class="text-yellow-700 dark:text-yellow-400">Geel</span>
+                        <span class="text-amber-700 dark:text-amber-400">Oranje</span>
+                        <span class="text-rose-700 dark:text-rose-400">Rood</span>
+                        <span class="text-stone-900 dark:text-rose-300 font-extrabold">Zwart (EBI)</span>
                     </div>
                 </div>
             </div>
@@ -883,63 +883,63 @@
             <!-- Diagnosis & Treatment Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10">
                 <!-- Card 1: Hoofddiagnose -->
-                <div class="bg-white rounded-xl p-5 border-2 border-stone-200/90 shadow-2xs space-y-2.5 hover:border-purple-300 transition-colors">
+                <div class="bg-white dark:bg-slate-800/90 rounded-xl p-5 border-2 border-stone-200/90 dark:border-slate-700/80 shadow-2xs space-y-2.5 hover:border-purple-300 dark:hover:border-purple-500 transition-colors">
                     <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-black uppercase text-purple-800 tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-stethoscope text-purple-600"></i> Voorlopige Hoofddiagnose
+                        <span class="text-[10px] font-black uppercase text-purple-800 dark:text-purple-300 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-stethoscope text-purple-600 dark:text-purple-400"></i> Voorlopige Hoofddiagnose
                         </span>
-                        <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-700 text-[10px] font-mono font-black border border-purple-200">
+                        <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-[10px] font-mono font-black border border-purple-200 dark:border-purple-800/60">
                             {{ $psychiatricReport['dsm_code'] ?? 'DSM-TBS 301.7' }}
                         </span>
                     </div>
-                    <h3 class="text-sm font-black text-slate-900 leading-snug">
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white leading-snug">
                         {{ $psychiatricReport['diagnosis'] }}
                     </h3>
-                    <p class="text-xs text-stone-600 leading-relaxed font-sans pt-1 border-t border-stone-100">
+                    <p class="text-xs text-stone-600 dark:text-slate-300 leading-relaxed font-sans pt-1 border-t border-stone-100 dark:border-slate-700/60">
                         Vastgesteld conform klinische DSM-TBS standaarden. Patiënt toont een structureel patroon van verhoogde risicobereidheid, dominantiedrang en verminderde impulsremming.
                     </p>
                 </div>
 
                 <!-- Card 2: Behandelplan & Medicatie -->
-                <div class="bg-white rounded-xl p-5 border-2 border-stone-200/90 shadow-2xs space-y-2.5 hover:border-rose-300 transition-colors">
+                <div class="bg-white dark:bg-slate-800/90 rounded-xl p-5 border-2 border-stone-200/90 dark:border-slate-700/80 shadow-2xs space-y-2.5 hover:border-rose-300 dark:hover:border-rose-500 transition-colors">
                     <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-black uppercase text-rose-800 tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-pills text-rose-600"></i> Behandelplan & Maatregel
+                        <span class="text-[10px] font-black uppercase text-rose-800 dark:text-rose-300 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-pills text-rose-600 dark:text-rose-400"></i> Behandelplan &amp; Maatregel
                         </span>
-                        <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-mono font-black border border-rose-200">
-                            ℞ MEDICATIE & REGIME
+                        <span class="px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 text-[10px] font-mono font-black border border-rose-200 dark:border-rose-800/60">
+                            ℞ MEDICATIE &amp; REGIME
                         </span>
                     </div>
-                    <div class="text-xs font-bold text-slate-900 leading-relaxed bg-stone-50 p-3 rounded-lg border border-stone-200">
-                        <div class="text-[10px] uppercase font-black text-stone-400 mb-1">Voorgeschreven Kuur:</div>
+                    <div class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-relaxed bg-stone-50 dark:bg-slate-900/80 p-3 rounded-lg border border-stone-200 dark:border-slate-700">
+                        <div class="text-[10px] uppercase font-black text-stone-400 dark:text-slate-400 mb-1">Voorgeschreven Kuur:</div>
                         {{ $psychiatricReport['medication'] ?? $psychiatricReport['treatment_plan'] }}
                     </div>
-                    <p class="text-[11px] text-stone-500 font-medium">
-                        <strong>Maatregel:</strong> {{ $psychiatricReport['treatment_plan'] }}
+                    <p class="text-[11px] text-stone-500 dark:text-slate-400 font-medium">
+                        <strong class="text-slate-700 dark:text-slate-300">Maatregel:</strong> {{ $psychiatricReport['treatment_plan'] }}
                     </p>
                 </div>
 
                 <!-- Card 3: Artsenobservatie (Full width) -->
-                <div class="md:col-span-2 bg-white rounded-xl p-5 border-2 border-stone-200/90 shadow-2xs space-y-3">
+                <div class="md:col-span-2 bg-white dark:bg-slate-800/90 rounded-xl p-5 border-2 border-stone-200/90 dark:border-slate-700/80 shadow-2xs space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-black uppercase text-stone-600 tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-notes-medical text-indigo-600"></i> Artsenobservatie & Gedragsanalyse
+                        <span class="text-[10px] font-black uppercase text-stone-600 dark:text-slate-300 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-notes-medical text-indigo-600 dark:text-indigo-400"></i> Artsenobservatie &amp; Gedragsanalyse
                         </span>
-                        <span class="text-[10px] text-stone-400 font-mono">Vertrouwelijk Inrichtingsverslag</span>
+                        <span class="text-[10px] text-stone-400 dark:text-slate-400 font-mono">Vertrouwelijk Inrichtingsverslag</span>
                     </div>
-                    <div class="text-xs text-slate-800 leading-relaxed bg-stone-50/80 p-4 rounded-xl border border-stone-200/80 italic font-serif relative">
-                        <span class="text-2xl text-stone-300 absolute -top-1 left-2 font-serif select-none">&ldquo;</span>
+                    <div class="text-xs text-slate-800 dark:text-slate-200 leading-relaxed bg-stone-50/80 dark:bg-slate-900/80 p-4 rounded-xl border border-stone-200/80 dark:border-slate-700/80 italic font-serif relative">
+                        <span class="text-2xl text-stone-300 dark:text-slate-600 absolute -top-1 left-2 font-serif select-none">&ldquo;</span>
                         <p class="relative z-10 pl-3">
                             {{ $psychiatricReport['doctor_notes'] }}
                         </p>
                     </div>
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-stone-100 text-[10px] text-stone-500">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-stone-100 dark:border-slate-700/60 text-[10px] text-stone-500 dark:text-slate-400">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            <span>Afdeling Forensisch Toezicht & Diagnostiek &bull; FPC De Balk</span>
+                            <span>Afdeling Forensisch Toezicht &amp; Diagnostiek &bull; FPC De Balk</span>
                         </div>
-                        <div class="font-mono flex items-center gap-2 text-indigo-900 font-bold">
-                            <i class="fa-solid fa-signature text-stone-400"></i>
+                        <div class="font-mono flex items-center gap-2 text-indigo-900 dark:text-indigo-300 font-bold">
+                            <i class="fa-solid fa-signature text-stone-400 dark:text-slate-500"></i>
                             <span>Digitale handtekening geverifieerd: {{ $psychiatricReport['doctor_name'] }}, arts</span>
                         </div>
                     </div>
@@ -947,59 +947,59 @@
             </div>
 
             <!-- Barcode & Official Stamp Footer -->
-            <div class="mt-6 pt-5 border-t-2 border-stone-300/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-stone-400">
+            <div class="mt-6 pt-5 border-t-2 border-stone-300/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-stone-400 dark:text-slate-400">
                 <div class="font-mono text-xs tracking-widest flex items-center gap-2 select-none">
-                    <span class="text-stone-800 font-black text-sm tracking-tighter">||| | |||| ||| ||||| |||| || |||</span>
-                    <span class="text-[10px] text-stone-500">{{ $psychiatricReport['dossier_nr'] }}-DJI-NETHERLANDS</span>
+                    <span class="text-stone-800 dark:text-slate-300 font-black text-sm tracking-tighter">||| | |||| ||| ||||| |||| || |||</span>
+                    <span class="text-[10px] text-stone-500 dark:text-slate-400 font-mono">{{ $psychiatricReport['dossier_nr'] }}-DJI-NETHERLANDS</span>
                 </div>
-                <div class="text-[10px] text-stone-500 font-medium">
+                <div class="text-[10px] text-stone-500 dark:text-slate-400 font-medium">
                     Dit document is uitsluitend bestemd voor de behandelstaf en de commissie van toezicht.
                 </div>
             </div>
         </div>
 
         <!-- Interactive Explainer: Hoe werkt het rapport? -->
-        <div x-data="{ openExplainer: false }" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+        <div x-data="{ openExplainer: false }" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs">
             <button type="button" 
                     @click="openExplainer = !openExplainer" 
-                    class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition cursor-pointer">
+                    class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition cursor-pointer">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-bold">
                         <i class="fa-solid fa-circle-question"></i>
                     </div>
                     <div>
-                        <h4 class="text-xs font-black text-slate-900 uppercase tracking-wide">Hoe werkt het Psychiatrisch Rapport?</h4>
-                        <p class="text-[11px] text-slate-500">Klik hier om te zien hoe jouw acties en statistieken dit verslag beïnvloeden.</p>
+                        <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wide">Hoe werkt het Psychiatrisch Rapport?</h4>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Klik hier om te zien hoe jouw acties en statistieken dit verslag beïnvloeden.</p>
                     </div>
                 </div>
                 <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openExplainer }"></i>
             </button>
 
-            <div x-show="openExplainer" x-collapse x-cloak class="px-5 pb-5 pt-1 border-t border-slate-100 text-xs text-slate-600 space-y-4">
+            <div x-show="openExplainer" x-collapse x-cloak class="px-5 pb-5 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
-                        <span class="font-black text-slate-900 flex items-center gap-1.5 text-[11px]">
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
+                        <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
                             <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Dreigingsniveau
                         </span>
-                        <p class="text-[11px] text-slate-600">
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300">
                             Bepaald door je <strong>Level</strong> en het aantal <strong>gewonnen gevechten</strong>. Stijgt van <em>Code Groen</em> (intake) naar <em>Geel</em>, <em>Oranje</em>, <em>Rood</em> tot het gevreesde <em>Code Zwart</em> (EBI status).
                         </p>
                     </div>
 
-                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
-                        <span class="font-black text-slate-900 flex items-center gap-1.5 text-[11px]">
-                            <i class="fa-solid fa-brain text-purple-600"></i> Dynamische Diagnose
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
+                        <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-solid fa-brain text-purple-600 dark:text-purple-400"></i> Dynamische Diagnose
                         </span>
-                        <p class="text-[11px] text-slate-600">
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300">
                             Dr. Van Beek analyseert je gedrag: meer dan <strong>€100.000 vermogen</strong> geeft <em>Witteboorden-paranoia</em>, veel <strong>vechten</strong> geeft <em>Impuls-agressie</em>, en veel <strong>diefstallen</strong> geeft <em>Kleptomanie</em>.
                         </p>
                     </div>
 
-                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
-                        <span class="font-black text-slate-900 flex items-center gap-1.5 text-[11px]">
-                            <i class="fa-solid fa-prescription-bottle-medical text-rose-600"></i> Behandeling & Medicatie
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700 space-y-1">
+                        <span class="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
+                            <i class="fa-solid fa-prescription-bottle-medical text-rose-600 dark:text-rose-400"></i> Behandeling &amp; Medicatie
                         </span>
-                        <p class="text-[11px] text-slate-600">
+                        <p class="text-[11px] text-slate-600 dark:text-slate-300">
                             Elke diagnose krijgt een passend kliniekvoorschrift, variërend van lichte dagbesteding tot zware kalmeringsdepots en strikte fouillering bij de cellen.
                         </p>
                     </div>
