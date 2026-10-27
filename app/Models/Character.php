@@ -1041,6 +1041,14 @@ class Character extends Model
     }
 
     /**
+     * Maximum natural stat cap based on character level.
+     */
+    public function getMaxStatForLevel(): int
+    {
+        return 50 + ($this->level * 15);
+    }
+
+    /**
      * Get vault codes owned by this character.
      */
     public function vaultCodes(): HasMany

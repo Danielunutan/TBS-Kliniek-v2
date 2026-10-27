@@ -224,54 +224,6 @@ class ShopController extends Controller
                 $locked->save();
                 $ownedCount = (int) $locked->unopened_bags;
                 $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$quantity} Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$locked->unopened_bags}).";
-            } elseif ($item->slug === 'boksbeugel') {
-                $gain = 5 * $quantity;
-                $locked->strength = ($locked->strength ?? 10) + $gain;
-                $locked->save();
-                $ownedCount = (int) $locked->strength;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Kracht 💪 toegekend aan je karakter (nu: {$locked->strength})!";
-            } elseif ($item->slug === 'stalen-neus-kisten') {
-                $gain = 6 * $quantity;
-                $locked->defense = ($locked->defense ?? 10) + $gain;
-                $locked->save();
-                $ownedCount = (int) $locked->defense;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Bescherming & Verdediging 🛡️ toegekend aan je karakter (nu: {$locked->defense})!";
-            } elseif ($item->slug === 'eiwitshake-bodybuilder') {
-                $gain = 1 * $quantity;
-                $locked->strength = ($locked->strength ?? 10) + $gain;
-                $locked->save();
-                $ownedCount = (int) $locked->strength;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Permanente Kracht 💪 toegekend aan je karakter (nu: {$locked->strength})!";
-            } elseif ($item->slug === 'multivitaminen-focus') {
-                $gain = 1 * $quantity;
-                $locked->stamina = ($locked->stamina ?? 10) + $gain;
-                $locked->save();
-                $ownedCount = (int) $locked->stamina;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gain} Permanente Conditie 🏃 toegekend aan je karakter (nu: {$locked->stamina})!";
-            } elseif ($item->slug === 'haloperidol-forte') {
-                $gainStr = 12 * $quantity;
-                $gainDef = 8 * $quantity;
-                $gainHp = 60 * $quantity;
-                $gainEnergy = 20 * $quantity;
-                $locked->strength = ($locked->strength ?? 10) + $gainStr;
-                $locked->defense = ($locked->defense ?? 10) + $gainDef;
-                $locked->health = min($locked->max_health, $locked->health + $gainHp);
-                $locked->energy = min($locked->max_energy, $locked->energy + $gainEnergy);
-                $locked->save();
-                $ownedCount = (int) $locked->strength;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gainStr} Kracht, +{$gainDef} Bescherming, +{$gainHp} HP & +{$gainEnergy} Energie 💥 toegekend aan je karakter!";
-            } elseif (($item->attack_power > 0) || ($item->defense_power > 0)) {
-                $gainStr = ($item->attack_power ?? 0) * $quantity;
-                $gainDef = ($item->defense_power ?? 0) * $quantity;
-                if ($gainStr > 0) {
-                    $locked->strength = ($locked->strength ?? 10) + $gainStr;
-                }
-                if ($gainDef > 0) {
-                    $locked->defense = ($locked->defense ?? 10) + $gainDef;
-                }
-                $locked->save();
-                $ownedCount = (int) $locked->strength;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Directe combat stats toegekend aan je karakter!";
             } else {
                 $inv = CharacterItem::firstOrNew([
                     'character_id' => $locked->id,
@@ -463,9 +415,7 @@ class ShopController extends Controller
                 $restoreHealth = 60 * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
-                $lockedCharacter->strength += (2 * $consumeQty);
-                $lockedCharacter->defense += (2 * $consumeQty);
-                $customFeedback[] = "💥 BERSERK STATUS! Alle pijn verdoofd (+{$restoreEnergy} Energie, +{$restoreHealth} Gezondheid, +{$consumeQty}x 2 Kracht & 2 Verdediging)!";
+                $customFeedback[] = "💥 BERSERK STATUS! Pijn verdoofd (+{$restoreEnergy} Energie, +{$restoreHealth} Gezondheid)!";
             } else {
                 // Reguliere herstel items
                 if ($item->slug === 'adrenaline-injectie') {
@@ -483,14 +433,28 @@ class ShopController extends Controller
                 }
             }
 
-            // 2. Permanente stat boosts
+            // 2. Stat boosts (begrensd per level)
             if ($item->slug === 'eiwitshake-bodybuilder') {
-                $lockedCharacter->strength += (1 * $consumeQty);
-                $customFeedback[] = "+{$consumeQty} Permanente Kracht 💪 (nu: {$lockedCharacter->strength})!";
+                $maxStat = $lockedCharacter->getMaxStatForLevel();
+                $cur = (int) ($lockedCharacter->strength ?? 10);
+                if ($cur < $maxStat) {
+                    $gain = min($consumeQty, $maxStat - $cur);
+                    $lockedCharacter->strength = $cur + $gain;
+                    $customFeedback[] = "+{$gain} Kracht 💪 (nu {$lockedCharacter->strength}/{$maxStat})!";
+                } else {
+                    $customFeedback[] = "Je Kracht zit al op het maximum ({$maxStat}) voor jouw level!";
+                }
             }
             if ($item->slug === 'multivitaminen-focus') {
-                $lockedCharacter->stamina += (1 * $consumeQty);
-                $customFeedback[] = "+{$consumeQty} Permanente Conditie 🏃 (nu: {$lockedCharacter->stamina})!";
+                $maxStat = $lockedCharacter->getMaxStatForLevel();
+                $cur = (int) ($lockedCharacter->stamina ?? 10);
+                if ($cur < $maxStat) {
+                    $gain = min($consumeQty, $maxStat - $cur);
+                    $lockedCharacter->stamina = $cur + $gain;
+                    $customFeedback[] = "+{$gain} Conditie 🏃 (nu {$lockedCharacter->stamina}/{$maxStat})!";
+                } else {
+                    $customFeedback[] = "Je Conditie zit al op het maximum ({$maxStat}) voor jouw level!";
+                }
             }
 
             // 3. Masker toevoegen

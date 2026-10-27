@@ -243,9 +243,12 @@ class FightController extends Controller
             $this->level->addXp($attacker, 25);
             $attacker->respect += 2;
 
-            // 20% chance to gain +1 permanent Kracht from winning a real brawl
-            if (rand(1, 100) <= 20) {
+            // 35% chance to gain +1 permanent Kracht from winning a real brawl (up to level cap)
+            $maxStrength = $attacker->getMaxStatForLevel();
+            $gainedStrength = false;
+            if (($attacker->strength ?? 10) < $maxStrength && rand(1, 100) <= 35) {
                 $attacker->strength = ($attacker->strength ?? 10) + 1;
+                $gainedStrength = true;
             }
             $attacker->save();
 
@@ -319,6 +322,7 @@ class FightController extends Controller
                 'damage' => 0,
                 'xp' => 25,
                 'respect' => 2,
+                'gained_strength' => $gainedStrength,
                 'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
                 'from_profile' => $request->boolean('from_profile'),
             ]);
@@ -332,8 +336,9 @@ class FightController extends Controller
             $attacker->health = max(0, $attacker->health - $damage);
             $attacker->save();
 
-            // 20% chance for defender to gain +1 defense from defending their ground
-            if (rand(1, 100) <= 20) {
+            // 35% chance for defender to gain +1 defense from defending their ground (up to level cap)
+            $maxDefense = $defender->getMaxStatForLevel();
+            if (($defender->defense ?? 10) < $maxDefense && rand(1, 100) <= 35) {
                 $defender->defense = ($defender->defense ?? 10) + 1;
             }
             $defender->save();

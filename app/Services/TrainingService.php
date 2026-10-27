@@ -73,6 +73,16 @@ class TrainingService
         }
 
         $currentValue = (int) $character->{$stat};
+        $maxStat = $character->getMaxStatForLevel();
+        if ($currentValue >= $maxStat) {
+            return [
+                'success' => false,
+                'message' => "Je hebt het maximum voor {$stat} bereikt voor jouw huidige level ({$maxStat})! Stijg eerst in level om verder te kunnen trainen.",
+                'stat_gain' => 0,
+                'new_value' => $currentValue,
+            ];
+        }
+
         $energyCost = 10;
         $cashCost = (int) max(20, round(15 + ($currentValue * 3.5)));
 

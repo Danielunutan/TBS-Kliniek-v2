@@ -212,6 +212,13 @@
                     </div>
                 </div>
 
+                @if(!empty($arenaBattle['gained_strength']))
+                    <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 text-xs font-black flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-dumbbell text-amber-600"></i>
+                        <span>Door deze felle knokpartij is jouw Kracht met +1 gestegen! 💪</span>
+                    </div>
+                @endif
+
                 <!-- Action CTA buttons -->
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                     <div class="flex items-center gap-2 w-full sm:w-auto">

@@ -275,6 +275,13 @@ class ArmWrestleController extends Controller
                 $lockedCharacter->increment('respect', $npc['respect']);
                 $this->level->addXp($lockedCharacter, $npc['xp']);
 
+                $maxStrength = $lockedCharacter->getMaxStatForLevel();
+                $strMessage = '';
+                if (($lockedCharacter->strength ?? 10) < $maxStrength && rand(1, 100) <= 50) {
+                    $lockedCharacter->increment('strength', 1);
+                    $strMessage = ' Tevens +1 Kracht verdiend door deze prestatie!';
+                }
+
                 $stat->wins++;
                 $stat->current_streak++;
                 if ($stat->current_streak > $stat->best_streak) {
@@ -300,7 +307,7 @@ class ArmWrestleController extends Controller
                     'success' => true,
                     'won' => true,
                     'title' => 'KNAL! Tafelwinst!',
-                    'message' => "Je hebt de arm van {$npc['name']} met brute kracht op het hout geslagen! +€".number_format($profit, 0, ',', '.')." winst, +{$npc['xp']} XP en +{$npc['respect']} Respect!",
+                    'message' => "Je hebt de arm van {$npc['name']} met brute kracht op het hout geslagen! +€".number_format($profit, 0, ',', '.')." winst, +{$npc['xp']} XP en +{$npc['respect']} Respect!{$strMessage}",
                     'cash' => $lockedCharacter->fresh()->cash,
                     'energy' => $lockedCharacter->fresh()->energy,
                     'wins' => $stat->wins,
@@ -516,6 +523,11 @@ class ArmWrestleController extends Controller
             $winner->increment('cash', $pot);
             $winner->increment('respect', 15);
             $this->level->addXp($winner, 50);
+
+            $maxStrength = $winner->getMaxStatForLevel();
+            if (($winner->strength ?? 10) < $maxStrength) {
+                $winner->increment('strength', 1);
+            }
 
             // Loser gets consolation XP
             $this->level->addXp($loser, 15);

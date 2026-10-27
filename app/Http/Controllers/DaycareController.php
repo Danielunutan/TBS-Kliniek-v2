@@ -159,11 +159,14 @@ class DaycareController extends Controller
 
         $extraMessage = '';
 
-        // Stat gain chance (40%)
-        if (rand(1, 100) <= 40) {
+        // Stat gain chance (50% on organic job, capped by level)
+        if (rand(1, 100) <= 50) {
             $statName = $cfg['stat'];
-            $character->$statName = ($character->$statName ?? 10) + 1;
-            $extraMessage .= ' 💪 Jouw toewijding werpt vruchten af: +1 '.ucfirst($statName).'!';
+            $maxStat = $character->getMaxStatForLevel();
+            if (($character->$statName ?? 10) < $maxStat) {
+                $character->$statName = ($character->$statName ?? 10) + 1;
+                $extraMessage .= ' 💪 Jouw toewijding werpt vruchten af! +1 '.ucfirst($statName).'!';
+            }
         }
 
         // Job 4 bonus chance: Found a locker code
