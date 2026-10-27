@@ -64,4 +64,8 @@ return [
     'cpalead' => [
         'password' => env('CPALEAD_POSTBACK_PASSWORD'),
     ],
+
+    'buymeacoffee' => [
+        'webhook_secret' => env('BUYMEACOFFEE_WEBHOOK_SECRET'),
+    ],
 ];

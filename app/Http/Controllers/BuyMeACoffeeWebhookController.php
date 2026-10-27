@@ -18,6 +18,25 @@ class BuyMeACoffeeWebhookController extends Controller
      */
     public function handle(Request $request): JsonResponse
     {
+        $secret = config('services.buymeacoffee.webhook_secret');
+        $signature = $request->header('x-signature-sha256') ?? $request->header('X-Signature-Sha256');
+
+        if (! empty($secret) && ! empty($signature)) {
+            $rawContent = (string) $request->getContent();
+            $expected = hash_hmac('sha256', $rawContent, (string) $secret);
+            if (! hash_equals($expected, (string) $signature)) {
+                Log::warning('BuyMeACoffee Webhook: Signature mismatch', [
+                    'received' => $signature,
+                    'expected' => $expected,
+                ]);
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid signature',
+                ], 403);
+            }
+        }
+
         $payload = $request->all();
         Log::info('BuyMeACoffee Webhook received', [
             'headers' => $request->headers->all(),
