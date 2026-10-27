@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Http\Middleware\CheckMaintenanceMode;
+use Illuminate\Console\Command;
+
+class MaintenanceCommand extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'tbs:maintenance {action=on : Action to perform: on, off, status} {--time=22:00 : Expected return time}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Toggle TBS Kliniek maintenance mode with exclusive access for Daniel';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle(): int
+    {
+        $action = strtolower((string) $this->argument('action'));
+        $lockFile = CheckMaintenanceMode::lockFilePath();
+
+        if ($action === 'off') {
+            if (file_exists($lockFile)) {
+                unlink($lockFile);
+            }
+            $this->info('TBS Kliniek onderhoudsmodus is UITGESCHAKELD. De deuren zijn weer open voor alle spelers!');
+
+            return Command::SUCCESS;
+        }
+
+        if ($action === 'status') {
+            if (file_exists($lockFile)) {
+                $this->warn('Onderhoudsmodus is momenteel ACTIEF (Alleen Daniel heeft toegang).');
+                $data = json_decode((string) file_get_contents($lockFile), true);
+                if (is_array($data)) {
+                    $this->line('Verwachte eindtijd: '.($data['target_time'] ?? '22:00'));
+                }
+            } else {
+                $this->info('Onderhoudsmodus is momenteel UIT (Iedereen heeft toegang).');
+            }
+
+            return Command::SUCCESS;
+        }
+
+        // Action is ON
+        $targetTime = (string) $this->option('time') ?: '22:00';
+        $payload = [
+            'enabled' => true,
+            'reason' => 'Grote seizoensreset en update',
+            'target_time' => $targetTime,
+            'activated_at' => now()->toIso8601String(),
+        ];
+
+        if (! is_dir(dirname($lockFile))) {
+            mkdir(dirname($lockFile), 0755, true);
+        }
+
+        file_put_contents($lockFile, json_encode($payload, JSON_PRETTY_PRINT));
+        $this->info("TBS Kliniek is nu in ONDERHOUDSMODUS geplaatst! Verwachte heropening: {$targetTime}.");
+        $this->line('Alleen Daniel heeft toegang via login of via de geheime bypass url (?bypass=daniel).');
+
+        return Command::SUCCESS;
+    }
+}

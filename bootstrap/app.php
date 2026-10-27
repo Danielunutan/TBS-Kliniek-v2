@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckMaintenanceMode;
 use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Middleware\EnsureUserIsOnboarded;
 use App\Http\Middleware\PreserveSessionFlashOnAjax;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SecurityHeaders::class,
             UpdateUserOnlineStatus::class,
+            CheckMaintenanceMode::class,
             EnsureUserIsNotBanned::class,
             EnsureUserIsOnboarded::class,
             PreserveSessionFlashOnAjax::class,
