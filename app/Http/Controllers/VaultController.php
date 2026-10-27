@@ -25,10 +25,15 @@ class VaultController extends Controller
     public const LEVEL_REWARDS = [
         2 => ['tokens' => 2, 'cash' => 500, 'stars' => 0, 'name' => 'Kliniek Verkenner', 'desc' => '2 KluisMunten + €500 (Bank)'],
         3 => ['tokens' => 3, 'cash' => 1000, 'stars' => 0, 'name' => 'Kantine Handelaar', 'desc' => '3 KluisMunten + €1.000 (Bank)'],
-        5 => ['tokens' => 5, 'cash' => 2500, 'stars' => 1, 'name' => 'Kluizenkraker', 'desc' => '5 KluisMunten + €2.500 (Bank) + 1 Ster'],
-        7 => ['tokens' => 8, 'cash' => 5000, 'stars' => 1, 'name' => 'Gerespecteerd Inmate', 'desc' => '8 KluisMunten + €5.000 (Bank) + 1 Ster'],
-        10 => ['tokens' => 15, 'cash' => 12500, 'stars' => 2, 'name' => 'Kliniek Veteraan', 'desc' => '15 KluisMunten + €12.500 (Bank) + 2 Sterren'],
-        15 => ['tokens' => 25, 'cash' => 25000, 'stars' => 3, 'name' => 'Het Meesterbrein', 'desc' => '25 KluisMunten + €25.000 (Bank) + 3 Sterren'],
+        5 => ['tokens' => 5, 'cash' => 2500, 'stars' => 1, 'name' => 'Kluizenkraker', 'desc' => '5 KluisMunten + €2.500 (Bank) + 1 Ster ⭐'],
+        7 => ['tokens' => 8, 'cash' => 5000, 'stars' => 1, 'name' => 'Gerespecteerd Inmate', 'desc' => '8 KluisMunten + €5.000 (Bank) + 1 Ster ⭐'],
+        10 => ['tokens' => 15, 'cash' => 12500, 'stars' => 2, 'name' => 'Kliniek Veteraan', 'desc' => '15 KluisMunten + €12.500 (Bank) + 2 Sterren ⭐'],
+        15 => ['tokens' => 25, 'cash' => 25000, 'stars' => 3, 'name' => 'Het Meesterbrein', 'desc' => '25 KluisMunten + €25.000 (Bank) + 3 Sterren ⭐'],
+        20 => ['tokens' => 35, 'cash' => 50000, 'stars' => 4, 'name' => 'Onderwereld Baas', 'desc' => '35 KluisMunten + €50.000 (Bank) + 4 Sterren ⭐'],
+        25 => ['tokens' => 50, 'cash' => 100000, 'stars' => 5, 'name' => 'Legendarische Crimineel', 'desc' => '50 KluisMunten + €100.000 (Bank) + 5 Sterren ⭐'],
+        30 => ['tokens' => 75, 'cash' => 200000, 'stars' => 7, 'name' => 'Koning der TBS', 'desc' => '75 KluisMunten + €200.000 (Bank) + 7 Sterren ⭐'],
+        40 => ['tokens' => 100, 'cash' => 400000, 'stars' => 10, 'name' => 'Onschendbare Maffioso', 'desc' => '100 KluisMunten + €400.000 (Bank) + 10 Sterren ⭐'],
+        50 => ['tokens' => 150, 'cash' => 750000, 'stars' => 15, 'name' => 'TBS Keizer', 'desc' => '150 KluisMunten + €750.000 (Bank) + 15 Sterren ⭐'],
     ];
 
     public function __construct(

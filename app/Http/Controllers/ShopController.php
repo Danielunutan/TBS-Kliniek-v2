@@ -670,14 +670,20 @@ class ShopController extends Controller
         $character = $user->character;
 
         $validated = $request->validate([
-            'item_type' => ['required', 'string', 'in:mask_1,mask_5,vault_code,package_150'],
+            'item_type' => ['required', 'string', 'in:full_restore,prison_escape,mask_1,mask_5,ammo_pack,vault_code,protection_24h,xxl_cases_3,package_master,package_150'],
         ]);
 
         $configs = [
-            'mask_1' => ['cost' => 15, 'name' => '1x Masker 🎭'],
-            'mask_5' => ['cost' => 65, 'name' => '5x Maskers 🎭'],
-            'vault_code' => ['cost' => 45, 'name' => 'Geheime MedicijnKluis Code 🔐'],
-            'package_150' => ['cost' => 150, 'name' => 'Exclusief Master Pakket 📦'],
+            'full_restore' => ['cost' => 5, 'name' => 'Adrenaline & Gezondheid 100% Herstel ⚡'],
+            'prison_escape' => ['cost' => 10, 'name' => 'Directe Cel Uitbraak (Borgtocht) 🔓'],
+            'mask_1' => ['cost' => 5, 'name' => '1x Masker 🎭'],
+            'mask_5' => ['cost' => 15, 'name' => '5x Maskers 🎭'],
+            'ammo_pack' => ['cost' => 20, 'name' => 'Hitman Kogelmagazijn (250 Kogels + Vest) 🎯'],
+            'vault_code' => ['cost' => 25, 'name' => 'Geheime Master Kluiscode Voucher 🔐'],
+            'protection_24h' => ['cost' => 30, 'name' => '24-Uurs Onschendbaarheid (Kluisbeveiliging) 🛡️'],
+            'xxl_cases_3' => ['cost' => 35, 'name' => '3x Zware XXL Buitkoffers 💼'],
+            'package_master' => ['cost' => 75, 'name' => 'Kliniek Syndicaat Master Box 📦'],
+            'package_150' => ['cost' => 100, 'name' => 'Exclusief Master Pakket 📦'],
         ];
 
         $cfg = $configs[$validated['item_type']];
@@ -690,7 +696,32 @@ class ShopController extends Controller
                 return back()->with('shop_tab', 'sterren')->with('error', "Je hebt minimaal {$cfg['cost']} Sterren ⭐ nodig voor {$cfg['name']}! (Je hebt er {$lockedCharacter->stars}).");
             }
 
+            if ($validated['item_type'] === 'prison_escape') {
+                if (! $lockedCharacter->is_in_prison && ! $lockedCharacter->prison_until) {
+                    return back()->with('shop_tab', 'sterren')->with('error', 'Je zit momenteel niet in de isoleercel of gevangenis!');
+                }
+                $lockedCharacter->stars -= $cfg['cost'];
+                $lockedCharacter->is_in_prison = false;
+                $lockedCharacter->prison_until = null;
+                $lockedCharacter->prison_reason = null;
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "🔓 VRIJHEID! Je hebt de tralies omzeild en bent direct vrijgelaten uit de cel voor {$cfg['cost']} Sterren ⭐!");
+            }
+
             $lockedCharacter->stars -= $cfg['cost'];
+
+            if ($validated['item_type'] === 'full_restore') {
+                $lockedCharacter->energy = $lockedCharacter->max_energy;
+                $lockedCharacter->health = $lockedCharacter->max_health;
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "⚡ Volledig hersteld! Je Energie ({$lockedCharacter->max_energy}/{$lockedCharacter->max_energy}) en Gezondheid ({$lockedCharacter->max_health}/{$lockedCharacter->max_health} HP) zijn direct 100% aangevuld voor {$cfg['cost']} Sterren ⭐.");
+            }
 
             if ($validated['item_type'] === 'mask_1') {
                 $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + 1;
@@ -710,13 +741,24 @@ class ShopController extends Controller
                     ->with('success', "Gekocht! 5x Maskers 🎭 toegevoegd aan je voorraad voor {$cfg['cost']} Sterren ⭐.");
             }
 
+            if ($validated['item_type'] === 'ammo_pack') {
+                $lockedCharacter->bullets = ($lockedCharacter->bullets ?? 0) + 250;
+                $currentVest = $lockedCharacter->vest_until && now()->lt($lockedCharacter->vest_until) ? $lockedCharacter->vest_until : now();
+                $lockedCharacter->vest_until = $currentVest->copy()->addHours(24);
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "🎯 Gekocht! +250 Kogels en een Kogelvrij Vest (24 uur actief) toegevoegd voor {$cfg['cost']} Sterren ⭐!");
+            }
+
             if ($validated['item_type'] === 'vault_code') {
                 $codeStr = 'SHOP-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 8));
                 VaultCode::create([
                     'code' => $codeStr,
-                    'reward_cash' => rand(3000, 7500),
+                    'reward_cash' => rand(15000, 35000),
                     'reward_stars' => rand(2, 4),
-                    'reward_tokens' => 3,
+                    'reward_tokens' => 5,
                     'character_id' => $lockedCharacter->id,
                     'is_redeemed' => false,
                 ]);
@@ -725,7 +767,7 @@ class ShopController extends Controller
                     'recipient_id' => $lockedCharacter->id,
                     'sender_name' => 'Kliniek Shop Dealer',
                     'subject' => '🔐 Jouw Aangeschafte MedicijnKluis Code!',
-                    'content' => "Beste {$lockedCharacter->name},\n\nHier is jouw aangeschafte kluiscode voucher:\n\n👉 **{$codeStr}**\n\nWissel hem direct in op de MedicijnKluis voor wit geld op je bank, extra sterren en maskers!",
+                    'content' => "Beste {$lockedCharacter->name},\n\nHier is jouw aangeschafte kluiscode voucher:\n\n👉 **{$codeStr}**\n\nWissel hem direct in op de MedicijnKluis voor wit geld op je bank, extra sterren en tokens!",
                     'type' => 'reward',
                 ]);
 
@@ -733,16 +775,52 @@ class ShopController extends Controller
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "Gekocht! Geheime kluiscode voucher {$codeStr} bezorgd in je postvak en toegevoegd aan je kluiscodes!");
+                    ->with('success', "Gekocht! Geheime kluiscode voucher {$codeStr} bezorgd in je postvak en toegevoegd aan je kluiscodes voor {$cfg['cost']} Sterren ⭐!");
             }
 
-            if ($validated['item_type'] === 'package_150') {
-                $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + 1;
+            if ($validated['item_type'] === 'protection_24h') {
+                $curProt = $lockedCharacter->protection_until && now()->lt($lockedCharacter->protection_until) ? $lockedCharacter->protection_until : now();
+                $lockedCharacter->protection_until = $curProt->copy()->addHours(24);
                 $lockedCharacter->save();
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "Gekocht! Exclusief Master Pakket 📦 toegevoegd aan je ongeopende koffers voor {$cfg['cost']} Sterren ⭐. Open hem direct bij Koffers!");
+                    ->with('success', "🛡️ Onschendbaarheid geactiveerd! Niemand kan je aanvallen of liquideren tot {$lockedCharacter->protection_until->format('d-m-Y H:i')} voor {$cfg['cost']} Sterren ⭐!");
+            }
+
+            if ($validated['item_type'] === 'xxl_cases_3') {
+                $lockedCharacter->xxl_cases = ($lockedCharacter->xxl_cases ?? 0) + 3;
+                $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + 3;
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "💼 Gekocht! +3x Zware XXL Buitkoffers toegevoegd aan je inventaris voor {$cfg['cost']} Sterren ⭐. Open ze direct bij Koffers!");
+            }
+
+            if ($validated['item_type'] === 'package_master' || $validated['item_type'] === 'package_150') {
+                $lockedCharacter->bank += 100000;
+                $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + 10;
+                $lockedCharacter->bullets = ($lockedCharacter->bullets ?? 0) + 500;
+                $lockedCharacter->xxl_cases = ($lockedCharacter->xxl_cases ?? 0) + 2;
+                $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + 2;
+
+                for ($i = 0; $i < 5; $i++) {
+                    VaultCode::create([
+                        'code' => 'MSTR-'.strtoupper(substr(md5(uniqid((string) mt_rand(), true)), 0, 7)),
+                        'reward_cash' => rand(5000, 10000),
+                        'reward_stars' => rand(1, 2),
+                        'reward_tokens' => 3,
+                        'character_id' => $lockedCharacter->id,
+                        'is_redeemed' => false,
+                    ]);
+                }
+
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "👑 GEWELDIG! Syndicaat Master Box uitgepakt (+€100.000 bankgeld, +10 Maskers, +500 Kogels, +2 XXL Koffers en 5 Kluiscodes) voor {$cfg['cost']} Sterren ⭐!");
             }
 
             return back()->with('shop_tab', 'sterren');

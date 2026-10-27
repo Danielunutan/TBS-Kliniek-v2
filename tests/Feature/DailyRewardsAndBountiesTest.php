@@ -119,7 +119,7 @@ class DailyRewardsAndBountiesTest extends TestCase
         $secondResponse->assertSessionHas('error');
     }
 
-    public function test_wheel_sectors_contain_vault_codes_masks_and_koffers_and_no_stars(): void
+    public function test_wheel_sectors_contain_vault_codes_masks_koffers_and_rare_stars(): void
     {
         $character = $this->createCharacter('ItemSpinner');
         $response = $this->actingAs($character->user)->get(route('daily.index'));
@@ -129,10 +129,8 @@ class DailyRewardsAndBountiesTest extends TestCase
         $sectors = $response->viewData('sectors');
         $types = array_column($sectors, 'type');
 
-        // Verify NO stars
-        $this->assertNotContains('stars', $types);
-
-        // Verify new reward types are present
+        // Verify all reward types are present including rare stars
+        $this->assertContains('stars', $types);
         $this->assertContains('vault_code', $types);
         $this->assertContains('masks', $types);
         $this->assertContains('koffer', $types);
@@ -311,15 +309,44 @@ class DailyRewardsAndBountiesTest extends TestCase
         $this->assertFalse(Character::isLoginBonusWindowActive($outside));
         $this->assertTrue(Character::isLoginBonusWindowActive($inside));
 
-        // In window, can claim
-        $this->assertTrue($character->canClaimStreak($inside));
+        Carbon::setTestNow($inside);
+        try {
+            // In window, can claim
+            $this->assertTrue($character->canClaimStreak($inside));
 
-        // Mark claimed today
-        $character->last_streak_claim_at = $inside;
-        $character->save();
+            // Mark claimed today
+            $character->last_streak_claim_at = $inside;
+            $character->save();
 
-        // Cannot claim again even inside window
-        $this->assertFalse($character->canClaimStreak($inside));
-        $this->assertTrue($character->hasClaimedStreakToday());
+            // Cannot claim again even inside window
+            $this->assertFalse($character->canClaimStreak($inside));
+            $this->assertTrue($character->hasClaimedStreakToday());
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_streak_day_seven_awards_scarce_stars(): void
+    {
+        $tz = 'Europe/Amsterdam';
+        $character = $this->createCharacter('StreakMaster', [
+            'stars' => 5,
+            'streak_days' => 6,
+            'last_streak_claim_at' => Carbon::now($tz)->subDay()->setTime(22, 10),
+        ]);
+
+        $inside = Carbon::now($tz)->setTime(22, 15);
+        Carbon::setTestNow($inside);
+
+        try {
+            $response = $this->actingAs($character->user)->post(route('daily.claim-streak'));
+            $response->assertRedirect();
+
+            $character->refresh();
+            $this->assertEquals(7, $character->streak_days);
+            $this->assertEquals(7, $character->stars); // 5 + 2 stars
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 }

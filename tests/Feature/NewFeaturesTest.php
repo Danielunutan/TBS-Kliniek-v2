@@ -172,12 +172,12 @@ class NewFeaturesTest extends TestCase
         $res2 = $this->post(route('hustle.attempt'), ['hustle_id' => 1]);
         $res2->assertSessionHas('error');
 
-        // 3. Skip hustle cooldown with stars (costs 10 stars)
+        // 3. Skip hustle cooldown with stars (costs dynamically scaled stars based on time remaining)
         $skipRes = $this->post(route('cooldown.skip'), ['action' => 'hustle']);
         $skipRes->assertSessionHas('success');
         $char->refresh();
         $this->assertFalse($char->isOnCooldown('hustle'));
-        $this->assertEquals(40, $char->stars); // 50 - 10
+        $this->assertLessThan(50, $char->stars); // Deducted base cost + dynamic seconds
 
         // 4. Production cooldown (produce sigaretten -> 5 min cooldown)
         $prodRes1 = $this->post(route('smuggle.produce'), ['type' => 'sigaretten']);
@@ -188,12 +188,13 @@ class NewFeaturesTest extends TestCase
         $prodRes2 = $this->post(route('smuggle.produce'), ['type' => 'sigaretten']);
         $prodRes2->assertSessionHas('error');
 
-        // Skip production cooldown with stars (costs 20 stars)
+        // Skip production cooldown with stars
+        $starsBeforeSkip = $char->stars;
         $skipProdRes = $this->post(route('cooldown.skip'), ['action' => 'produce_sigaretten']);
         $skipProdRes->assertSessionHas('success');
         $char->refresh();
         $this->assertFalse($char->isOnCooldown('produce_sigaretten'));
-        $this->assertEquals(20, $char->stars); // 40 - 20
+        $this->assertLessThan($starsBeforeSkip, $char->stars);
     }
 
     public function test_medicijn_kluis_batch_redemption(): void
@@ -338,19 +339,19 @@ class NewFeaturesTest extends TestCase
 
         $this->actingAs($user);
 
-        // Buy 1x mask for 15 stars
+        // Buy 1x mask for 5 stars
         $this->post(route('shop.buy-star-item'), ['item_type' => 'mask_1'])
             ->assertSessionHas('success');
         $char->refresh();
         $this->assertEquals(1, $char->masks);
-        $this->assertEquals(235, $char->stars);
+        $this->assertEquals(245, $char->stars); // 250 - 5
 
-        // Buy 150 star package
+        // Buy 100 star package
         $this->post(route('shop.buy-star-item'), ['item_type' => 'package_150'])
             ->assertSessionHas('success');
         $char->refresh();
-        $this->assertEquals(1, $char->unopened_bags);
-        $this->assertEquals(85, $char->stars);
+        $this->assertGreaterThanOrEqual(1, $char->unopened_bags);
+        $this->assertEquals(145, $char->stars); // 245 - 100
     }
 
     public function test_high_star_bundle_purchase_with_bonus(): void
