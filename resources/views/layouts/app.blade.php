@@ -2989,7 +2989,7 @@
     <div id="tbs-toast-container" 
          x-data="{
              toasts: [],
-             addToast(msg, type = 'success', duration = 4500) {
+             addToast(msg, type = 'success', duration = 4500, url = null) {
                  if (!msg) return;
                  const trimmed = String(msg).trim();
                  if (!trimmed) return;
@@ -3028,7 +3028,18 @@
              }
          }"
          x-init="
-             window.tbsToast = (msg, type, duration) => addToast(msg, type, duration);
+             window.tbsToast = (msg, type, duration, url) => addToast(msg, type, duration, url);
+              @auth
+              try {
+                  const articleSeenKey = 'tbs_article_seen_14';
+                  if (!localStorage.getItem(articleSeenKey)) {
+                      setTimeout(() => {
+                          addToast('Nieuw artikel Grote Update Eerlijke Spelbalans en Vaardigheden!', 'info', 12000, '{{ route("news.show", "grote-update-eerlijke-spelbalans") }}');
+                          localStorage.setItem(articleSeenKey, '1');
+                      }, 900);
+                  }
+              } catch(e) {}
+              @endauth
          "
          class="tbs-toast-container fixed left-1/2 -translate-x-1/2 lg:left-[calc(50%+8rem)] z-[9999999] flex flex-col items-center gap-2.5 pointer-events-none max-w-lg w-[94%] sm:w-auto">
         <template x-for="toast in toasts" :key="toast.id">
@@ -3065,7 +3076,20 @@
 
                     <!-- Message Text -->
                     <div class="flex-1 pr-1 text-xs sm:text-[13px] font-extrabold leading-snug break-words text-slate-800 dark:text-slate-100" 
-                         x-text="toast.msg"></div>
+                         >
+                        <template x-if="toast.url">
+                            <a :href="toast.url" class="group flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-inherit hover:text-purple-600 dark:hover:text-purple-400">
+                                <span x-text="toast.msg"></span>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-black shrink-0 shadow-2xs group-hover:scale-105 transition">
+                                    <span>Open hier</span>
+                                    <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                </span>
+                            </a>
+                        </template>
+                        <template x-if="!toast.url">
+                            <div x-text="toast.msg"></div>
+                        </template>
+                    </div>
 
                     <!-- Kruisje (Close Button) with direct reliable hit area and visual response -->
                     <button type="button" 

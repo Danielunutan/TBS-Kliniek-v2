@@ -56,6 +56,51 @@
         <!-- Main Content (Left) -->
         <div class="xl:col-span-8 space-y-6">
             
+            @if(isset($latestNews) && $latestNews->isNotEmpty())
+                @php $featuredNews = $latestNews->first(); @endphp
+                <!-- PROMINENT NIEUWS HIGHLIGHT BOVENIN DASHBOARD -->
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 p-5 sm:p-6 text-white shadow-lg border border-purple-500/30">
+                    <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                                <span>{{ $featuredNews->emoji ?? '🛡️' }}</span>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-200 border border-purple-400/30">
+                                        <i class="fa-solid fa-bullhorn text-[9px] text-amber-300"></i>
+                                        Nieuwste Kliniek Update
+                                    </span>
+                                    <span class="text-[11px] text-purple-300/80 font-medium font-mono">
+                                        {{ $featuredNews->created_at?->diffForHumans() }}
+                                    </span>
+                                </div>
+                                <h3 class="text-base sm:text-lg font-black tracking-tight text-white hover:text-purple-200 transition">
+                                    <a href="{{ route('news.show', $featuredNews->slug) }}">
+                                        {{ $featuredNews->title }}
+                                    </a>
+                                </h3>
+                                <p class="text-xs text-slate-300 font-medium line-clamp-2 max-w-2xl leading-relaxed">
+                                    {{ Str::limit(strip_tags($featuredNews->content), 140) }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5 shrink-0 pt-2 md:pt-0">
+                            <a href="{{ route('news.show', $featuredNews->slug) }}" 
+                               class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-extrabold text-xs transition shadow-md shadow-purple-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                                <span>Lees Artikel</span>
+                                <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                            </a>
+                            <a href="{{ route('news.index') }}" 
+                               class="hidden sm:inline-flex px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white font-bold text-xs transition border border-white/10 items-center justify-center">
+                                <span>Alle Berichten</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Open Beta Notice Card (Toggleable) -->
             <div x-show="widgets.betaNotice" 
                  x-transition
@@ -615,7 +660,47 @@
         <!-- Right Sidebar (Col-Span-4) -->
         <div class="xl:col-span-4 space-y-6">
 
-            <!-- 1. WEERSTATION & BUIENRADAR WIDGET (Toggleable & Premium) -->
+            <!-- 1. LAATSTE KLINIEK NIEUWS (Toggleable) -->
+            <div x-show="widgets.clinicNews" 
+                 x-transition
+                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+                <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
+                        <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-[10px] border border-purple-200 dark:border-purple-800">
+                            <i class="fa-solid fa-newspaper"></i>
+                        </span>
+                        <span>TBS Kliniek Berichten</span>
+                    </div>
+                    <a href="{{ route('news.index') }}" class="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline">
+                        Alle nieuws &rarr;
+                    </a>
+                </div>
+
+                <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                    @forelse($latestNews as $newsItem)
+                        @if(is_object($newsItem) && !empty($newsItem->slug))
+                        <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
+                            <div class="flex items-center justify-between gap-2">
+                                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate">
+                                    {{ $newsItem->title }}
+                                </h4>
+                                <span class="text-[10px] text-slate-400 shrink-0">{{ $newsItem->created_at?->diffForHumans() }}</span>
+                            </div>
+                        </a>
+                        @endif
+                    @empty
+                        <div class="p-6 text-center text-xs text-slate-400">
+                            Nog geen berichten geplaatst.
+                        </div>
+                    @endforelse
+                </div>
+
+                <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-purple-50/60 dark:bg-purple-950/40 text-[11px] font-extrabold text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 border-t border-slate-100 dark:border-purple-900/50 transition">
+                    Alle berichten bekijken &rarr;
+                </a>
+            </div>
+
+            <!-- 2. WEERSTATION & BUIENRADAR WIDGET (Toggleable & Premium) -->
             <div x-show="widgets.weather" 
                  x-transition
                  class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
@@ -1237,42 +1322,6 @@
 
             </div>
 
-            <!-- 3. LAATSTE KLINIEK NIEUWS (Toggleable) -->
-            <div x-show="widgets.clinicNews" 
-                 x-transition
-                 class="bg-white dark:bg-[#111827] rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
-                <div class="px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-xs font-black tracking-wide text-slate-900 dark:text-white">
-                        <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-[10px] border border-purple-200 dark:border-purple-800">
-                            <i class="fa-solid fa-newspaper"></i>
-                        </span>
-                        <span>TBS Kliniek Berichten</span>
-                    </div>
-                </div>
-
-                <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                    @forelse($latestNews as $newsItem)
-                        @if(is_object($newsItem) && !empty($newsItem->slug))
-                        <a href="{{ route('news.show', $newsItem->slug) }}" class="p-3.5 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition block group">
-                            <div class="flex items-center justify-between gap-2">
-                                <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition truncate">
-                                    {{ $newsItem->title }}
-                                </h4>
-                                <span class="text-[10px] text-slate-400 shrink-0">{{ $newsItem->created_at?->diffForHumans() }}</span>
-                            </div>
-                        </a>
-                        @endif
-                    @empty
-                        <div class="p-6 text-center text-xs text-slate-400">
-                            Nog geen berichten geplaatst.
-                        </div>
-                    @endforelse
-                </div>
-
-                <a href="{{ route('news.index') }}" class="block w-full text-center py-2.5 bg-purple-50/60 dark:bg-purple-950/40 text-[11px] font-extrabold text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/60 border-t border-slate-100 dark:border-purple-900/50 transition">
-                    Alle berichten bekijken &rarr;
-                </a>
-            </div>
 
             <!-- 4. BENDE KAART (Toggleable) -->
             <div x-show="widgets.gang" 
