@@ -1,7 +1,7 @@
 <!-- ROOKIE OVERLEVINGSTAKEN & BELONINGSSPOOR -->
 @if(! ($rookieData['grand_claimed'] ?? false))
 <div x-data="{
-    collapsed: localStorage.getItem('tbs_rookie_collapsed') === '1',
+    collapsed: localStorage.getItem('tbs_rookie_collapsed') !== null ? (localStorage.getItem('tbs_rookie_collapsed') === '1') : ({{ (int) ($character->level ?? 1) }} > 3),
     isClaiming: null,
     async claim(key) {
         if (this.isClaiming) return;
@@ -36,10 +36,10 @@
         this.collapsed = !this.collapsed;
         localStorage.setItem('tbs_rookie_collapsed', this.collapsed ? '1' : '0');
     }
-}" class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-white via-white to-purple-50/40 dark:from-slate-900 dark:via-slate-900 dark:to-purple-950/20 border-2 border-purple-300 dark:border-purple-800/80 shadow-md transition-all">
+}" class="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-purple-900/60 shadow-xs transition-all">
 
     <!-- Top Glow & Header -->
-    <div class="p-5 sm:p-6 border-b border-purple-100 dark:border-purple-900/40">
+    <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-start gap-3.5">
                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-2xl shrink-0 shadow-md shadow-amber-500/20">
@@ -81,7 +81,7 @@
         </div>
 
         <!-- Progress Bar -->
-        <div class="mt-4 pt-3 border-t border-purple-100/60 dark:border-purple-900/30 flex items-center gap-3">
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
             <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 p-0.5">
                 <div class="h-full bg-gradient-to-r from-amber-400 via-purple-500 to-indigo-500 rounded-full transition-all duration-500" style="width: {{ $rookieData['progress_pct'] }}%"></div>
             </div>
