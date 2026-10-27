@@ -23,6 +23,7 @@ use App\Services\EnergyService;
 use App\Services\LevelService;
 use App\Services\NuNlNewsService;
 use App\Services\ReferralService;
+use App\Services\RookieService;
 use App\Services\WeatherService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -58,6 +59,7 @@ class DashboardController extends Controller
         protected WeatherService $weatherService,
         protected EconomyService $economyService,
         protected CooldownService $cooldownService,
+        protected RookieService $rookieService,
     ) {}
 
     /**
@@ -267,9 +269,11 @@ class DashboardController extends Controller
             $unlockedWidgets[] = 'packages';
         }
         $widgetPrices = self::WIDGET_PRICES;
+        $rookieData = $this->rookieService->getQuests($character);
 
         return view('game.dashboard', compact(
             'character',
+            'rookieData',
             'nextLevelXp',
             'xpPercentage',
             'quickMissions',

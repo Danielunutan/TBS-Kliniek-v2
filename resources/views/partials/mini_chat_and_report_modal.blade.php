@@ -99,6 +99,9 @@
     characterStars: {{ $characterStars }},
     gangStars: {{ $gangStars }},
     myAvatar: @js($authCharacter?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg')),
+    level: {{ (int) ($authCharacter?->level ?? 1) }},
+    isInPrison: @js((bool) ($authCharacter?->is_in_prison ?? false)),
+    cash: {{ (int) ($authCharacter?->cash ?? 0) }},
 })" x-effect="document.body.classList.toggle('tbs-chat-open', isOpen)" class="z-[9990]">
 
 <style>
@@ -1230,26 +1233,36 @@
                     </div>
                 </template>
 
-                <!-- Quick FAQ Topic Chips -->
-                <div class="pt-1.5 flex flex-wrap gap-1">
-                    <button type="button" @click="sendHelpQuery('Hoe krijg ik energie?')" class="px-2 py-0.5 rounded-full bg-white dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold">
-                        ⚡ Energie
-                    </button>
-                    <button type="button" @click="sendHelpQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2 py-0.5 rounded-full bg-white dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold">
-                        🔒 Isoleercel
-                    </button>
-                    <button type="button" @click="sendHelpQuery('Hoe kraak ik de kluis?')" class="px-2 py-0.5 rounded-full bg-white dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold">
-                        🔐 Kluis Kraken
-                    </button>
-                    <button type="button" @click="sendHelpQuery('Hoe verdien ik gratis VIP?')" class="px-2 py-0.5 rounded-full bg-white dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/40 text-slate-700 dark:text-slate-200 text-[10px] font-bold">
-                        👑 Gratis VIP
-                    </button>
-                </div>
+            </div>
+
+            <!-- Quick FAQ Horizontal Chips Bar -->
+            <div class="px-2.5 py-1.5 bg-slate-100/90 dark:bg-purple-950/70 border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
+                <button type="button" @click="sendHelpQuery('Hoe verdien ik snel geld?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                    <span>💰 Snel Geld</span>
+                </button>
+                <button type="button" @click="sendHelpQuery('Hoe krijg ik energie?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                    <span>⚡ Energie Herstel</span>
+                </button>
+                <button type="button" @click="sendHelpQuery('Hoe werkt vechten en de respectlijst?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                    <span>🥊 Vechten & Respect</span>
+                </button>
+                <button type="button" @click="sendHelpQuery('Hoe beveilig ik mijn contante geld op de bank?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                    <span>🏦 Geld Beveiligen</span>
+                </button>
+                <button type="button" @click="sendHelpQuery('Hoe kom ik sneller uit de isoleercel?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                    <span>🚔 Snel Uit de Cel</span>
+                </button>
+                <button type="button" @click="sendHelpQuery('Hoe verdien ik 100% gratis VIP?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                    <span>👑 Gratis VIP</span>
+                </button>
+                <button type="button" @click="sendHelpQuery('Wat moet ik doen als beginner?')" class="px-2.5 py-1 rounded-lg bg-white dark:bg-purple-900/60 hover:bg-purple-50 dark:hover:bg-purple-950/40 border border-slate-200 dark:border-purple-800/60 text-slate-800 dark:text-purple-100 text-[10px] font-black shrink-0 transition flex items-center gap-1 cursor-pointer">
+                    <span>🎯 Rookie Gids</span>
+                </button>
             </div>
 
             <!-- Help input -->
             <form @submit.prevent="sendHelpQuery()" data-no-async="true" class="p-2.5 bg-white dark:bg-[#150a30] border-t border-slate-200 dark:border-purple-900/40 flex items-center gap-1.5 shrink-0">
-                <input type="text" x-model="helpInput" placeholder="Stel een vraag aan de kennisbank..." 
+                <input type="text" x-model="helpInput" placeholder="Stel een vraag aan Zaalwacht Arjan..." 
                        class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-purple-800/50 rounded-xl px-3 py-2 text-[16px] sm:text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-500">
                 <button type="submit" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center text-xs transition cursor-pointer shadow-xs shrink-0">
                     <i class="fa-solid fa-paper-plane"></i>
@@ -1473,13 +1486,33 @@
 
             // Helpbot state
             helpInput: '',
-            helpMessages: [
-                {
-                    from: 'bot',
-                    text: 'Hoi patiënt! Ik ben de TBS Zaalwacht AI. Ik weet álles over energie, kluizen, de isoleercel en gangs. Stel gerust je vraag!',
-                    links: []
+            helpMessages: (function() {
+                if (cfg.isInPrison) {
+                    return [{
+                        from: 'bot',
+                        text: '🚨 Zaalwacht Arjan: Je zit momenteel in de isoleercel!\n\nJe hoeft hier niet lang te blijven: kijk een 15s video in de Sponsorkamer voor directe strafvermindering (-15 min), of laat een medegevangene je cel openbreken!',
+                        links: [
+                            { text: '📺 Sponsorkamer (-15 min)', url: '{{ route('sponsor.index') }}' },
+                            { text: '🔒 Naar Isoleercel', url: '{{ route('prison') }}' }
+                        ]
+                    }];
                 }
-            ],
+                if ((cfg.level || 1) <= 2) {
+                    return [{
+                        from: 'bot',
+                        text: '👋 Welkom in FPC De Balk! Ik ben Zaalwacht Arjan.\n\nTip voor beginners: Bekijk je Rookie Overlevingstaken op het dashboard voor gratis cash, kogels en VIP status! Waar kan ik je nu mee helpen?',
+                        links: [
+                            { text: '🎯 Dashboard & Rookie Taken', url: '{{ route('dashboard') }}' },
+                            { text: '🏥 Naar de Ziekenboeg', url: '{{ route('infirmary.index') }}' }
+                        ]
+                    }];
+                }
+                return [{
+                    from: 'bot',
+                    text: 'Hoi patiënt! Ik ben Zaalwacht Arjan. Ik weet álles over geld verdienen, gevechten op de luchtplaats, kluizen kraken en bendes. Stel gerust je vraag of tik op een van de knoppen hieronder!',
+                    links: []
+                }];
+            })(),
             faqKnowledge: {!! json_encode(\App\Http\Controllers\FaqController::getBotKnowledge()) !!},
 
             getCsrf() {
@@ -2354,19 +2387,88 @@
 
                 setTimeout(() => {
                     const qRaw = query.toLowerCase();
-                    let best = this.faqKnowledge.find(i => qRaw.includes(i.title.toLowerCase()) || i.title.toLowerCase().includes(qRaw));
-                    if (!best && this.faqKnowledge[0]) best = this.faqKnowledge[0];
-                    if (best) {
+                    const rawWords = qRaw.replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length >= 2);
+
+                    // Synoniemen mapping voor bajes en speltermen
+                    const synonyms = {
+                        'geld': ['poen', 'cash', 'centen', 'euro', 'buit', 'verdienen', 'rijk', 'verdien', 'zakgeld', 'loon', 'hossel'],
+                        'energie': ['moe', 'stroom', 'leeg', 'weinig', 'kracht', 'chocola', 'snack', 'eten', 'herstel', 'op'],
+                        'vechten': ['luchtplaats', 'slaan', 'meppen', 'rammen', 'aanval', 'duel', 'slay', 'respect', 'gevecht', 'aanvallen'],
+                        'bank': ['sparen', 'storten', 'overval', 'veilig', 'stelen', 'rente', 'rekening', 'beveiligen'],
+                        'isoleercel': ['gevangenis', 'cel', 'bajes', 'straf', 'vast', 'ontsnappen', 'straftijd', 'gepakt', 'boete', 'vrijkopen'],
+                        'vip': ['gratis', 'voordelen', 'kroon', 'shop', 'punten', 'donatie'],
+                        'bende': ['gang', 'clan', 'alliantie', 'uurloon', 'team', 'bazen', 'leider', 'bendes'],
+                        'moord': ['hitman', 'kogels', 'schieten', 'liquidatie', 'coma', 'vest', 'wapen', 'bullets'],
+                        'ziekenboeg': ['hp', 'gezondheid', 'healen', 'dokter', 'dood', 'gewond', 'pleister', 'verband', 'brenda'],
+                        'kluis': ['kraken', 'medicijnkluis', 'code', 'raden', 'alarm', 'jammer'],
+                        'koffer': ['onderscheppen', 'buitkrat', 'xxl', 'slot', 'koffers'],
+                        'beginnen': ['start', 'starten', 'nieuw', 'rookie', 'tips', 'uitleg', 'doel', 'wat moet ik doen']
+                    };
+
+                    const expandedTerms = new Set(rawWords);
+                    for (const [canonical, synList] of Object.entries(synonyms)) {
+                        if (rawWords.includes(canonical) || synList.some(s => rawWords.includes(s))) {
+                            expandedTerms.add(canonical);
+                            synList.forEach(s => expandedTerms.add(s));
+                        }
+                    }
+
+                    // Score each FAQ knowledge article
+                    let scored = this.faqKnowledge.map(item => {
+                        let score = 0;
+                        const itemTitleLower = (item.title || '').toLowerCase();
+                        const itemAnsLower = (item.answer || '').toLowerCase();
+                        const itemKeywords = (item.keywords || []).map(k => k.toLowerCase());
+
+                        // Exact title or keyword match
+                        if (itemTitleLower.includes(qRaw)) score += 35;
+                        if (itemKeywords.some(k => k.includes(qRaw) || qRaw.includes(k))) score += 30;
+
+                        // Token & synonym matching
+                        expandedTerms.forEach(term => {
+                            if (itemKeywords.includes(term)) {
+                                score += 15;
+                            } else if (itemKeywords.some(k => k.includes(term))) {
+                                score += 8;
+                            }
+                            if (itemTitleLower.includes(term)) {
+                                score += 12;
+                            }
+                            if (itemAnsLower.includes(term)) {
+                                score += 3;
+                            }
+                        });
+
+                        return { item, score };
+                    });
+
+                    scored.sort((a, b) => b.score - a.score);
+
+                    const bestMatch = scored[0];
+                    if (bestMatch && bestMatch.score >= 10) {
                         this.helpMessages.push({
                             from: 'bot',
-                            text: best.title + ':\n' + best.answer,
-                            links: best.links || []
+                            text: bestMatch.item.title + ':\n' + bestMatch.item.answer,
+                            links: bestMatch.item.links || []
+                        });
+                    } else {
+                        // Smart helpful fallback with popular topics
+                        this.helpMessages.push({
+                            from: 'bot',
+                            text: 'Geen exact antwoord gevonden op "' + query + '". Hier zijn snelle links naar de meest bezochte onderdelen, of open direct een Support Ticket:',
+                            links: [
+                                { text: '💰 Snel Geld & Bank', url: '{{ route('bank.index') }}' },
+                                { text: '⚡ Energie Herstel', url: '{{ route('sponsor.index') }}' },
+                                { text: '🥊 Vechten & Respect', url: '{{ route('fight.index') }}' },
+                                { text: '🎫 Support Ticket', url: '{{ route('help.tickets.create') }}' }
+                            ]
                         });
                     }
+
                     this.$nextTick(() => {
                         if (this.$refs.helpBox) this.$refs.helpBox.scrollTop = this.$refs.helpBox.scrollHeight;
                     });
-                }, 300);
+                }, 200);
             },
 
             pollLoop() {

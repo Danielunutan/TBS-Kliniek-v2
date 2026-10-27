@@ -61,11 +61,32 @@
             <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
             <span>Je hebt minimaal <strong>20⚡ Energie</strong> nodig om een patiënt te beroven (je hebt nu {{ $character->energy }}⚡).</span>
         </div>
-        <a href="{{ route('shop.index') }}" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs uppercase tracking-wider shrink-0 transition">
-            Scoor Drinken in Shop &raquo;
-        </a>
+        <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+            <a href="{{ route('sponsor.index') }}" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition">
+                Gratis Energie (Ads) &raquo;
+            </a>
+            <a href="{{ route('shop.index') }}" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition">
+                Shop Snacks &raquo;
+            </a>
+        </div>
     </div>
     @endif
+
+    <!-- Beginner Combat Microtip -->
+    <div class="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-900 border border-purple-200 dark:border-purple-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+        <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-black shrink-0">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i>
+            </span>
+            <div class="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">
+                <strong>Hoe werkt de Luchtplaats:</strong> Kies tegenstanders met <em>veel contant geld</em> en een lager level dan jij. Jouw <strong>Kracht</strong> bepaalt je winstkans, de <strong>Verdediging</strong> van het doelwit bepaalt hoeveel schade je incasseert.
+            </div>
+        </div>
+        <a href="{{ route('training.index') }}" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-[11px] transition shrink-0 flex items-center gap-1 shadow-2xs self-start sm:self-center">
+            <i class="fa-solid fa-dumbbell text-[10px]"></i>
+            <span>Train Kracht</span>
+        </a>
+    </div>
 
     <!-- MAIN TWO COLUMN RESPECTLIJST LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

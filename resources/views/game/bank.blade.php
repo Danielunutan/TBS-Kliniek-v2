@@ -187,6 +187,33 @@
             </div>
         </div>
 
+        @if($character->cash >= 1000)
+        <!-- Newbie Safety Alert Banner -->
+        <div class="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-700/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] font-black uppercase text-amber-900 dark:text-amber-300 tracking-wider block">
+                        Beveiligingstip van de Beheerders
+                    </span>
+                    <p class="text-slate-800 dark:text-slate-200 font-medium">
+                        Je loopt rond met <strong>€{{ number_format($character->cash, 0, ',', '.') }} contant</strong> op zak! Andere patiënten kunnen tot 15% hiervan stelen bij een overval op de Luchtplaats. Stort je geld in de kluis om het 100% te beveiligen.
+                    </p>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('bank.deposit') }}" class="shrink-0 self-end sm:self-center">
+                @csrf
+                <input type="hidden" name="amount" value="{{ (int) $character->cash }}">
+                <button type="submit" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+                    <i class="fa-solid fa-vault"></i>
+                    <span>Stort Alles Nu</span>
+                </button>
+            </form>
+        </div>
+        @endif
+
         <!-- Deposit and Withdraw Operational Panels -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             

@@ -67,6 +67,7 @@ use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RadioController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoadmapController;
+use App\Http\Controllers\RookieQuestController;
 use App\Http\Controllers\RouletteController;
 use App\Http\Controllers\RpsController;
 use App\Http\Controllers\ShopController;
@@ -175,6 +176,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard/weer-locatie', [DashboardController::class, 'weatherByCoords'])->middleware('throttle:30,1')->name('dashboard.weather.coords');
     Route::post('/dashboard/peuken/verkopen', [DashboardController::class, 'sellPeuken'])->name('dashboard.peuken.sell');
     Route::post('/dashboard/radar/sweep', [DashboardController::class, 'radarSweep'])->name('dashboard.radar.sweep');
+
+    // Rookie Overlevingstaken & Intake Tour
+    Route::post('/rookie/claim/{taskKey}', [RookieQuestController::class, 'claim'])->middleware('throttle:30,1')->name('rookie.claim');
+    Route::post('/rookie/tour/complete', [RookieQuestController::class, 'completeTour'])->middleware('throttle:10,1')->name('rookie.tour.complete');
 
     // Halloween Event 🎃 (Quests & Shop) - Active until 5 November
     Route::get('/event/quests', [HalloweenController::class, 'quests'])->name('halloween.quests');

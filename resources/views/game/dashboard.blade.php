@@ -55,6 +55,9 @@
 
         <!-- Main Content (Left) -->
         <div class="xl:col-span-8 space-y-6">
+
+            <!-- Rookie Overlevingstaken & Beloningsspoor voor Beginners -->
+            @include('partials.rookie_quests_widget')
             
             @if(isset($latestNews) && $latestNews->isNotEmpty())
                 @php $featuredNews = $latestNews->first(); @endphp
@@ -1701,6 +1704,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Intake Tour Modal -->
+    @include('partials.intake_tour_modal')
 
 </div>
 
