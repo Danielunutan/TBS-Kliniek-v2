@@ -65,13 +65,22 @@ class BuyMeACoffeeWebhookController extends Controller
     }
 
     /**
-     * Resolve character from message, note, email, or custom parameter.
+     * Resolve character from message, note, email, questions or custom fields.
      */
     protected function resolveCharacter(array $data): ?Character
     {
-        // 1. Search in note or message for TBS-XXXX code
-        $message = (string) ($data['support_message'] ?? $data['message'] ?? $data['note'] ?? '');
-        if (preg_match('/TBS[-_]?(\d+)/i', $message, $matches)) {
+        // Gather all potential text fields
+        $textPool = [];
+        foreach (['support_message', 'message', 'note', 'question', 'answers', 'custom_fields'] as $key) {
+            if (! empty($data[$key])) {
+                $val = is_array($data[$key]) ? json_encode($data[$key]) : (string) $data[$key];
+                $textPool[] = $val;
+            }
+        }
+        $fullText = implode(' ', $textPool);
+
+        // 1. Search for TBS-XXXX code
+        if (preg_match('/TBS[-_]?(\d+)/i', $fullText, $matches)) {
             $charId = (int) $matches[1];
             $char = Character::find($charId);
             if ($char) {
@@ -79,20 +88,36 @@ class BuyMeACoffeeWebhookController extends Controller
             }
         }
 
-        // 2. Check if message is exactly a character name
-        if (! empty($message)) {
-            $charByName = Character::where('name', trim($message))->first();
-            if ($charByName) {
-                return $charByName;
+        // 2. Check if text matches a character name directly
+        foreach ($textPool as $entry) {
+            $trimmed = trim($entry);
+            if (! empty($trimmed)) {
+                $charByName = Character::where('name', $trimmed)->first();
+                if ($charByName) {
+                    return $charByName;
+                }
             }
         }
 
-        // 3. Match by payer email
-        $payerEmail = $data['payer_email'] ?? $data['email'] ?? null;
-        if ($payerEmail) {
-            $user = User::where('email', strtolower(trim((string) $payerEmail)))->first();
-            if ($user && $user->character) {
-                return $user->character;
+        // 3. Match by supporter name or payer name
+        foreach (['supporter_name', 'payer_name', 'name'] as $nameKey) {
+            if (! empty($data[$nameKey])) {
+                $name = trim((string) $data[$nameKey]);
+                $charByName = Character::where('name', $name)->first();
+                if ($charByName) {
+                    return $charByName;
+                }
+            }
+        }
+
+        // 4. Match by payer or supporter email
+        foreach (['payer_email', 'supporter_email', 'email'] as $emailKey) {
+            if (! empty($data[$emailKey])) {
+                $email = strtolower(trim((string) $data[$emailKey]));
+                $user = User::where('email', $email)->first();
+                if ($user && $user->character) {
+                    return $user->character;
+                }
             }
         }
 
@@ -113,16 +138,25 @@ class BuyMeACoffeeWebhookController extends Controller
                 return;
             }
 
-            // A. Single Coffee / Support (Free Donation)
-            if (str_contains($eventNormalized, 'support_created')) {
-                $coffees = (int) ($data['support_coffees'] ?? 1);
-                // Each coffee = 25 Stars in game
-                $starsAwarded = max(25, $coffees * 25);
+            // A. Single Coffee / Donation / Support
+            if (str_contains($eventNormalized, 'donation') || str_contains($eventNormalized, 'support')) {
+                // Check if refunded
+                if (str_contains($eventNormalized, 'refunded')) {
+                    Log::info("BuyMeACoffee: Donation refunded for {$locked->name}", $data);
+
+                    return;
+                }
+
+                $coffees = (int) ($data['support_coffees'] ?? $data['quantity'] ?? 1);
+                $amount = (float) ($data['amount'] ?? $data['total_amount'] ?? 0);
+                // If amount is known (e.g. 5 EUR = ~50 stars, default 25 stars per coffee)
+                $starsAwarded = $amount > 0 ? max(25, (int) round($amount * 10)) : max(25, $coffees * 25);
+
                 $locked->stars = ($locked->stars ?? 0) + $starsAwarded;
                 $locked->save();
 
                 AuditLogService::log(
-                    action: 'buymeacoffee_support',
+                    action: 'buymeacoffee_donation',
                     category: 'economy',
                     description: "BuyMeACoffee donatie ontvangen: +{$starsAwarded} Sterren toegekend aan {$locked->name}",
                     character: $locked,
@@ -133,21 +167,27 @@ class BuyMeACoffeeWebhookController extends Controller
             }
 
             // B. Extras (Shop Items)
-            if (str_contains($eventNormalized, 'extra_purchased')) {
-                $extraTitle = (string) ($data['extra_title'] ?? $data['extra_name'] ?? '');
+            if (str_contains($eventNormalized, 'extra')) {
+                if (str_contains($eventNormalized, 'refunded')) {
+                    Log::info("BuyMeACoffee: Extra refunded for {$locked->name}", $data);
+
+                    return;
+                }
+
+                $extraTitle = (string) ($data['extra_title'] ?? $data['extra_name'] ?? $data['title'] ?? '');
                 $this->grantExtraReward($locked, $extraTitle, $data);
             }
 
             // C. Membership Started or Renewed
-            if (str_contains($eventNormalized, 'membership_started') || str_contains($eventNormalized, 'membership_updated')) {
-                $tierName = (string) ($data['membership_tier_name'] ?? $data['tier_name'] ?? '');
-                $this->grantMembershipTier($locked, $tierName, $data);
-            }
+            if (str_contains($eventNormalized, 'membership') || str_contains($eventNormalized, 'recurring')) {
+                if (str_contains($eventNormalized, 'cancelled') || str_contains($eventNormalized, 'paused')) {
+                    Log::info("BuyMeACoffee: Membership cancelled or paused for {$locked->name}");
 
-            // D. Membership Cancelled
-            if (str_contains($eventNormalized, 'membership_cancelled') || str_contains($eventNormalized, 'membership_paused')) {
-                // Keep VIP until expiry date if provided
-                Log::info("BuyMeACoffee: Membership cancelled for {$locked->name}");
+                    return;
+                }
+
+                $tierName = (string) ($data['membership_tier_name'] ?? $data['tier_name'] ?? $data['level_name'] ?? '');
+                $this->grantMembershipTier($locked, $tierName, $data);
             }
         });
     }
