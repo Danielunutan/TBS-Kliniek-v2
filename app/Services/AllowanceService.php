@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\BankTransaction;
 use App\Models\Character;
-use App\Models\GameMessage;
 
 class AllowanceService
 {
@@ -74,15 +73,6 @@ class AllowanceService
             $character->bank,
             'TBS Patiënten Uitkering ontvangen (+€'.number_format($totalPayout, 0, ',', '.').')'
         );
-
-        GameMessage::create([
-            'recipient_id' => $character->id,
-            'sender_id' => $character->id,
-            'sender_name' => 'Kliniek Sociale Zaken',
-            'subject' => '🏥 TBS Uitkering: €'.number_format($totalPayout, 0, ',', '.'),
-            'content' => "Beste {$character->name},\n\nEr is zojuist €".number_format($totalPayout, 0, ',', '.')." aan TBS Patiënten Uitkering (€1.000 per kwartier voor patiënten zonder bende) gestort op je bankrekening voor {$cycles} kwartier(en)!",
-            'type' => 'system',
-        ]);
 
         return [
             'cycles' => $cycles,
