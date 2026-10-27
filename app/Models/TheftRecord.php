@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,5 +53,38 @@ class TheftRecord extends Model
     public function victim(): BelongsTo
     {
         return $this->belongsTo(Character::class, 'victim_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (TheftRecord $th): void {
+            try {
+                $thief = $th->thief;
+                $victim = $th->victim;
+                $targetName = $victim ? $victim->name : ($th->target_name ?: 'Onbekend doelwit');
+                $status = $th->success ? 'Succesvol' : ($th->jailed ? "Mislukt (opgepakt voor {$th->jail_minutes}m)" : 'Mislukt');
+                $stolen = (int) $th->cash_stolen;
+                $desc = "Zakkenrollen: {$targetName} - {$status} (€".number_format($stolen, 0, ',', '.').')';
+
+                AuditLogService::log(
+                    action: 'theft',
+                    category: 'crime',
+                    description: $desc,
+                    character: $thief,
+                    user: $thief?->user,
+                    amount: $stolen,
+                    details: [
+                        'source_key' => "theft_{$th->id}",
+                        'success' => (bool) $th->success,
+                        'cash_stolen' => $stolen,
+                        'victim_id' => $th->victim_id,
+                        'victim_name' => $victim?->name,
+                        'jailed' => (bool) $th->jailed,
+                    ]
+                );
+            } catch (\Throwable) {
+                // Ignore to prevent breaking game logic
+            }
+        });
     }
 }

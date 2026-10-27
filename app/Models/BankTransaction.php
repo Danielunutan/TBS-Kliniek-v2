@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AuditLogService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -53,7 +54,7 @@ class BankTransaction extends Model
         int $balanceAfter,
         string $description
     ): self {
-        return self::create([
+        $tx = self::create([
             'character_id' => $character->id,
             'type' => $type,
             'source' => $source,
@@ -61,5 +62,26 @@ class BankTransaction extends Model
             'balance_after' => $balanceAfter,
             'description' => $description,
         ]);
+
+        try {
+            AuditLogService::log(
+                action: 'bank_transaction',
+                category: 'economy',
+                description: $description,
+                character: $character,
+                user: $character->user,
+                amount: $amount,
+                details: [
+                    'source_key' => "bank_tx_{$tx->id}",
+                    'type' => $type,
+                    'source' => $source,
+                    'balance_after' => $balanceAfter,
+                ]
+            );
+        } catch (\Throwable) {
+            // Ignore failure to prevent breaking game transactions
+        }
+
+        return $tx;
     }
 }

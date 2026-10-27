@@ -55,21 +55,26 @@ class CharacterStatsProgressionTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('shop.buy', $boks), [
-                'quantity' => 2,
+                'quantity' => 1,
             ])
             ->assertSessionHas('success');
 
         $character->refresh();
 
-        // Base strength MUST stay at 20, not inflated by 2 * 5!
+        // Base strength MUST stay at 20, not inflated by direct stat boost
         $this->assertEquals(20, $character->strength);
 
-        // Inventory item must exist with quantity 2
+        // Inventory item must exist with quantity 1 (unique equipment)
         $inv = CharacterItem::where('character_id', $character->id)
             ->where('item_id', $boks->id)
             ->first();
         $this->assertNotNull($inv);
-        $this->assertEquals(2, $inv->quantity);
+        $this->assertEquals(1, $inv->quantity);
+
+        // Attempting to buy again must fail because equipment is unique
+        $this->actingAs($user)
+            ->post(route('shop.buy', $boks), ['quantity' => 1])
+            ->assertSessionHas('error');
 
         // Effective strength includes single piece bonus (+5) = 25
         $this->assertEquals(25, $character->getEffectiveStrength());

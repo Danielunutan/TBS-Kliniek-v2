@@ -88,6 +88,18 @@
                 </span>
                 @endif
             </a>
+            <a href="{{ route('admin.audit_log.index') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.audit_log.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-solid fa-shield-virus {{ request()->routeIs('admin.audit_log.*') ? 'text-white' : 'text-purple-600' }}"></i> Audit Log &amp; Risico
+                @php
+                    $highRiskCountBadge = \App\Models\AuditLog::where('risk_level', 'hoog')->count();
+                @endphp
+                @if($highRiskCountBadge > 0)
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.audit_log.*') ? 'bg-white text-rose-700' : 'bg-rose-600 text-white animate-pulse' }}">
+                    {{ $highRiskCountBadge }} alert
+                </span>
+                @endif
+            </a>
             @if(auth()->user()?->isOwner())
             <a href="{{ route('admin.mail.index') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.mail.*') ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">

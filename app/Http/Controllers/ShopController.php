@@ -8,6 +8,7 @@ use App\Models\GameMessage;
 use App\Models\Item;
 use App\Models\User;
 use App\Models\VaultCode;
+use App\Services\AuditLogService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
@@ -148,22 +149,46 @@ class ShopController extends Controller
             return back()->with('shop_tab', 'items')->with('error', $msg);
         }
 
-        $quantity = max(1, min(50, (int) $request->input('quantity', 1)));
+        $isEquipment = $item->category === 'equipment';
+
+        if ($isEquipment) {
+            $quantity = 1;
+
+            $alreadyOwned = CharacterItem::where('character_id', $character->id)
+                ->where('item_id', $item->id)
+                ->where('quantity', '>=', 1)
+                ->exists();
+
+            if ($alreadyOwned) {
+                $errorMsg = "Je hebt {$item->name} al in je bezit! Uitrusting is uniek en koop je eenmalig voor permanente gevechtskracht in je rugzak.";
+
+                if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $errorMsg,
+                    ], 422);
+                }
+
+                return back()
+                    ->with('shop_tab', 'items')
+                    ->with('error', $errorMsg);
+            }
+        } else {
+            $quantity = max(1, min(50, (int) $request->input('quantity', 1)));
+        }
 
         // Charisma discount up to 15% (1% per 10 charisma)
         $discountPct = min(15, (int) floor($character->getEffectiveCharisma() / 10));
         $unitPrice = $discountPct > 0 ? (int) round($item->price_kc * (1 - ($discountPct / 100))) : $item->price_kc;
         $totalCost = $unitPrice * $quantity;
 
-        // Stat boost items, combat equipment and masks do not take storage in inventory
+        // Stat boost items, drinks and masks that do not take standard depot inventory
         $isDirectDelivery = in_array($item->slug, [
             'bivakmuts-masker',
-            'boksbeugel',
-            'stalen-neus-kisten',
             'eiwitshake-bodybuilder',
             'multivitaminen-focus',
             'haloperidol-forte',
-        ], true) || ($item->attack_power > 0) || ($item->defense_power > 0);
+        ], true);
 
         if (! $isDirectDelivery && ! $character->canAddStorageItem($quantity)) {
             $storageUsed = $character->getStorageUsed();
@@ -224,6 +249,15 @@ class ShopController extends Controller
                 $locked->save();
                 $ownedCount = (int) $locked->unopened_bags;
                 $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$quantity} Pakket(ten) 📦 toegevoegd aan Koffers & Buit (totaal: {$locked->unopened_bags}).";
+            } elseif ($item->category === 'equipment') {
+                $inv = CharacterItem::firstOrNew([
+                    'character_id' => $locked->id,
+                    'item_id' => $item->id,
+                ]);
+                $inv->quantity = 1;
+                $inv->save();
+                $ownedCount = 1;
+                $successMsg = "Je hebt de unieke uitrusting {$item->name} aangeschaft voor €{$formatted}{$discountNote}! Deze biedt permanente gevechtskracht in je rugzak.";
             } else {
                 $inv = CharacterItem::firstOrNew([
                     'character_id' => $locked->id,
@@ -264,6 +298,28 @@ class ShopController extends Controller
         }
 
         app(DailyBattleService::class)->record($character, 'payments', $totalCost);
+
+        try {
+            AuditLogService::log(
+                action: 'shop_buy',
+                category: 'shop',
+                description: "Winkelaankoop: {$quantity}x {$item->name} voor €{$formatted}",
+                character: $character,
+                user: $user,
+                amount: $totalCost,
+                details: [
+                    'item_id' => $item->id,
+                    'item_name' => $item->name,
+                    'item_slug' => $item->slug,
+                    'quantity' => $quantity,
+                    'unit_price' => $unitPrice,
+                    'total_cost' => $totalCost,
+                    'discount_pct' => $discountPct,
+                ]
+            );
+        } catch (\Throwable) {
+            // Ignore logging error
+        }
 
         if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
             return response()->json([

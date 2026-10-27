@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountSettingsController;
+use App\Http\Controllers\AdminAuditLogController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminMailController;
 use App\Http\Controllers\AdminModerationController;
@@ -628,6 +629,10 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/moderatie/meldingen/{report}/oplossen', [AdminModerationController::class, 'resolveReport'])->name('moderation.report.resolve');
         Route::post('/moderatie/meldingen/{report}/verwerpen', [AdminModerationController::class, 'dismissReport'])->name('moderation.report.dismiss');
         Route::delete('/moderatie/meldingen/{report}', [AdminModerationController::class, 'deleteReport'])->name('moderation.report.destroy');
+
+        // Audit Log & Automatische Risico Detectie
+        Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit_log.index');
+        Route::post('/audit-log/sync', [AdminAuditLogController::class, 'sync'])->name('audit_log.sync');
 
         // Eigenaar Mailbox & Brevo E-mail (Strikt voorbehouden aan Eigenaar)
         Route::middleware(EnsureUserIsOwner::class)->prefix('mail')->name('mail.')->group(function (): void {

@@ -652,8 +652,8 @@
                                     <div class="h-6 flex items-center">
                                         <template x-if="ownedCounts[{{ $item->id }}] > 0">
                                             <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-black shrink-0 transition"
-                                                  x-text="ownedCounts[{{ $item->id }}] + 'x in bezit'">
-                                                {{ $ownedCount }}x in bezit
+                                                  x-text="'{{ $item->category === 'equipment' ? '1x in bezit (Uniek)' : '' }}' || (ownedCounts[{{ $item->id }}] + 'x in bezit')">
+                                                {{ $item->category === 'equipment' ? '1x in bezit (Uniek)' : $ownedCount.'x in bezit' }}
                                             </span>
                                         </template>
                                     </div>
@@ -733,19 +733,19 @@
                             </div>
 
                             @php
+                                $isEquipment = $item->category === 'equipment';
                                 $isDirectDelivery = in_array($item->slug, [
                                     'bivakmuts-masker',
                                     'smokkelpakketje',
-                                    'boksbeugel',
-                                    'stalen-neus-kisten',
                                     'eiwitshake-bodybuilder',
                                     'multivitaminen-focus',
                                     'haloperidol-forte',
-                                ], true) || ($item->attack_power > 0) || ($item->defense_power > 0);
+                                ], true);
                             @endphp
                             <div class="pt-2 border-t border-slate-200/70 dark:border-slate-700/60 space-y-2.5"
                                  x-data="{
                                      buyQty: 1,
+                                     isEquipment: {{ $isEquipment ? 'true' : 'false' }},
                                      isDirectDelivery: {{ $isDirectDelivery ? 'true' : 'false' }},
                                      unitPrice: {{ $item->price_kc }},
                                      discountPct: {{ min(15, (int) floor($character->getEffectiveCharisma() / 10)) }},
@@ -753,7 +753,10 @@
                                          return this.discountPct > 0 ? Math.round(this.unitPrice * (1 - (this.discountPct / 100))) : this.unitPrice;
                                      },
                                      get totalCost() {
-                                         return this.actualPrice * this.buyQty;
+                                         return this.isEquipment ? this.actualPrice : (this.actualPrice * this.buyQty);
+                                     },
+                                     get isOwned() {
+                                         return this.isEquipment && (ownedCounts[{{ $item->id }}] > 0);
                                      },
                                      get maxByMoney() {
                                          let cash = (typeof stats !== 'undefined' && stats.cash !== undefined) ? stats.cash : {{ (int) $character->cash }};
@@ -764,9 +767,16 @@
                                          return this.isDirectDelivery ? 999999 : Math.max(0, storageRemaining);
                                      },
                                      get maxBuyable() {
+                                         if (this.isEquipment) {
+                                             return this.isOwned ? 0 : (this.maxByMoney >= 1 && this.maxByStorage >= 1 ? 1 : 0);
+                                         }
                                          return Math.max(0, Math.min(100, Math.min(this.maxByMoney, this.maxByStorage)));
                                      },
                                      setQty(amount) {
+                                         if (this.isEquipment) {
+                                             this.buyQty = 1;
+                                             return;
+                                         }
                                          if (this.maxBuyable <= 0) {
                                              this.buyQty = 1;
                                          } else {
@@ -780,21 +790,40 @@
                                         <span class="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">
                                             €{{ number_format($item->price_kc, 0, ',', '.') }}
                                         </span>
-                                        <template x-if="buyQty > 1">
+                                        <template x-if="!isEquipment && buyQty > 1">
                                             <span class="text-[10px] text-slate-400 dark:text-slate-400 block font-mono" x-text="'Totaal: €' + new Intl.NumberFormat('nl-NL').format(totalCost)"></span>
                                         </template>
                                     </div>
                                 </div>
 
-                                <!-- Snelle Aantal Knoppen (1x, 5x, 10x, Max) berekend op geld én opslagruimte -->
-                                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
-                                    <button type="button" @click="setQty(1)" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
-                                    <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
-                                    <button type="button" @click="setQty(10)" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
-                                    <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" :title="'Max berekend op je saldo (' + maxBuyable + 'x)'">
-                                        <span x-text="maxBuyable > 0 ? 'Max (' + maxBuyable + ')' : 'Max'">Max</span>
-                                    </button>
-                                </div>
+                                <!-- Aantal Knoppen (voor consumables/snacks) OF Unieke Uitrusting Badge (voor equipment) -->
+                                <template x-if="isEquipment">
+                                    <div class="flex items-center justify-between py-1.5 px-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 text-[11px]">
+                                        <span class="text-slate-600 dark:text-slate-300 font-bold flex items-center gap-1.5">
+                                            <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400"></i>
+                                            <span>Unieke Uitrusting</span>
+                                        </span>
+                                        <template x-if="isOwned">
+                                            <span class="text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                <span>Reeds in bezit</span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!isOwned">
+                                            <span class="text-slate-400 dark:text-slate-500 font-bold font-mono">1x max</span>
+                                        </template>
+                                    </div>
+                                </template>
+                                <template x-if="!isEquipment">
+                                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
+                                        <button type="button" @click="setQty(1)" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
+                                        <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
+                                        <button type="button" @click="setQty(10)" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
+                                        <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" :title="'Max berekend op je saldo (' + maxBuyable + 'x)'">
+                                            <span x-text="maxBuyable > 0 ? 'Max (' + maxBuyable + ')' : 'Max'">Max</span>
+                                        </button>
+                                    </div>
+                                </template>
 
                                 <!-- Realtime Status Indicatie -->
                                 <template x-if="!isDirectDelivery && storageRemaining <= 0">
@@ -814,50 +843,58 @@
                                         @endif
                                     </div>
                                 </template>
-                                <template x-if="!isDirectDelivery && storageRemaining > 0 && maxByStorage < maxByMoney && maxByStorage < 100">
+                                <template x-if="!isDirectDelivery && !isEquipment && storageRemaining > 0 && maxByStorage < maxByMoney && maxByStorage < 100">
                                     <div class="text-[10px] text-amber-600 dark:text-amber-400 font-semibold text-center" x-text="'Max ' + maxByStorage + 'x passend in vrije voorraad (' + storageRemaining + ' vrij)'"></div>
                                 </template>
-                                <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney < 1">
+                                <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney < 1 && !isOwned">
                                     <div class="text-[10px] text-rose-500 dark:text-rose-400 font-semibold text-center">Niet genoeg saldo voor dit item</div>
                                 </template>
 
-                                <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, buyQty)">
+                                <form action="{{ route('shop.buy', $item->id) }}" method="POST" data-turbo="false" @submit.prevent="buyItemViaAjax($event, {{ $item->id }}, isEquipment ? 1 : buyQty)">
                                     @csrf
-                                    <input type="hidden" name="quantity" :value="buyQty">
+                                    <input type="hidden" name="quantity" :value="isEquipment ? 1 : buyQty">
                                     
-                                    <button type="submit" 
-                                            :disabled="itemBuying[{{ $item->id }}] || (!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1"
-                                            :class="(!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1 ? 'opacity-60 cursor-not-allowed bg-slate-500' : 'bg-purple-600 hover:bg-purple-700 active:scale-95 cursor-pointer'"
-                                            class="w-full py-2.5 rounded-xl disabled:opacity-50 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
-                                        <template x-if="itemBuying[{{ $item->id }}]">
-                                            <span class="inline-flex items-center gap-1.5 text-purple-200">
-                                                <i class="fa-solid fa-spinner fa-spin text-xs"></i>
-                                                <span>Inpakken...</span>
-                                            </span>
-                                        </template>
-                                        <template x-if="!itemBuying[{{ $item->id }}] && (!itemToast[{{ $item->id }}] || itemToast[{{ $item->id }}].type !== 'success')">
-                                            <span class="inline-flex items-center gap-1.5">
-                                                <template x-if="!isDirectDelivery && storageRemaining <= 0">
-                                                    <span>Opslag Vol</span>
-                                                </template>
-                                                <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney < 1">
-                                                    <span>Onvoldoende Saldo</span>
-                                                </template>
-                                                <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney >= 1">
-                                                    <span class="inline-flex items-center gap-1.5">
-                                                        <i class="fa-solid fa-cart-shopping text-xs"></i>
-                                                        <span x-text="buyQty > 1 ? 'Koop ' + buyQty + 'x direct' : 'Kopen'">Kopen</span>
-                                                    </span>
-                                                </template>
-                                            </span>
-                                        </template>
-                                        <template x-if="!itemBuying[{{ $item->id }}] && itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'success'">
-                                            <span class="inline-flex items-center gap-1.5 text-emerald-300 font-black">
-                                                <i class="fa-solid fa-circle-check text-xs"></i>
-                                                <span x-text="itemToast[{{ $item->id }}].text"></span>
-                                            </span>
-                                        </template>
-                                    </button>
+                                    <template x-if="isOwned">
+                                        <div class="w-full py-2.5 rounded-xl bg-slate-200/80 dark:bg-slate-800/80 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs flex items-center justify-center gap-1.5 border border-emerald-500/30 dark:border-emerald-500/20 shadow-2xs select-none">
+                                            <i class="fa-solid fa-circle-check text-xs"></i>
+                                            <span>Al in bezit (Uniek)</span>
+                                        </div>
+                                    </template>
+                                    <template x-if="!isOwned">
+                                        <button type="submit" 
+                                                :disabled="itemBuying[{{ $item->id }}] || (!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1"
+                                                :class="(!isDirectDelivery && storageRemaining <= 0) || maxByMoney < 1 ? 'opacity-60 cursor-not-allowed bg-slate-500' : 'bg-purple-600 hover:bg-purple-700 active:scale-95 cursor-pointer'"
+                                                class="w-full py-2.5 rounded-xl disabled:opacity-50 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+                                            <template x-if="itemBuying[{{ $item->id }}]">
+                                                <span class="inline-flex items-center gap-1.5 text-purple-200">
+                                                    <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                                                    <span>Inpakken...</span>
+                                                </span>
+                                            </template>
+                                            <template x-if="!itemBuying[{{ $item->id }}] && (!itemToast[{{ $item->id }}] || itemToast[{{ $item->id }}].type !== 'success')">
+                                                <span class="inline-flex items-center gap-1.5">
+                                                    <template x-if="!isDirectDelivery && storageRemaining <= 0">
+                                                        <span>Opslag Vol</span>
+                                                    </template>
+                                                    <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney < 1">
+                                                        <span>Onvoldoende Saldo</span>
+                                                    </template>
+                                                    <template x-if="(isDirectDelivery || storageRemaining > 0) && maxByMoney >= 1">
+                                                        <span class="inline-flex items-center gap-1.5">
+                                                            <i class="fa-solid fa-cart-shopping text-xs"></i>
+                                                            <span x-text="isEquipment ? 'Uitrusting Kopen' : (buyQty > 1 ? 'Koop ' + buyQty + 'x direct' : 'Kopen')"></span>
+                                                        </span>
+                                                    </template>
+                                                </span>
+                                            </template>
+                                            <template x-if="!itemBuying[{{ $item->id }}] && itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'success'">
+                                                <span class="inline-flex items-center gap-1.5 text-emerald-300 font-black">
+                                                    <i class="fa-solid fa-circle-check text-xs"></i>
+                                                    <span x-text="itemToast[{{ $item->id }}].text"></span>
+                                                </span>
+                                            </template>
+                                        </button>
+                                    </template>
 
                                     <!-- Inline error toast if not enough cash without shifting layout -->
                                     <template x-if="itemToast[{{ $item->id }}] && itemToast[{{ $item->id }}].type === 'error'">
