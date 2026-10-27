@@ -611,23 +611,23 @@ function tbsArmWrestleArena(initialCooldown = 0) {
                 }
                 if (data.success) {
                     this.matchResult = {
-                        won: data.won,
-                        title: data.won ? 'GEWELDIGE OVERWINNING!' : 'DUEL VERLOREN',
+                        won: Boolean(data.won),
+                        title: data.title || (data.won ? 'GEWELDIGE OVERWINNING!' : 'DUEL VERLOREN'),
                         message: data.message
                     };
                 } else {
                     this.matchResult = {
-                        won: won,
-                        title: won ? 'Overwinning' : 'Verloren',
-                        message: data.message || reason
+                        won: false,
+                        title: 'DUEL NIET VERWERKT',
+                        message: data.message || 'Er is een fout opgetreden bij het verwerken van de uitslag.'
                     };
                 }
             })
             .catch(() => {
                 this.matchResult = {
-                    won: won,
-                    title: won ? 'Overwinning' : 'Verloren',
-                    message: reason
+                    won: false,
+                    title: 'VERBINDINGSFOUT',
+                    message: 'Er ging iets mis met de verbinding. Probeer het opnieuw.'
                 };
             });
         },

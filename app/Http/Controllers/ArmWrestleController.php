@@ -188,7 +188,7 @@ class ArmWrestleController extends Controller
         }
 
         $remaining = $this->cooldownService->getRemainingSeconds($character, 'arm_wrestling');
-        if ($remaining > 0) {
+        if ($remaining > 2) {
             return response()->json([
                 'success' => false,
                 'message' => "Je spieren moeten nog even bijkomen van de vorige partij! Wacht nog {$remaining} seconden.",
@@ -261,13 +261,9 @@ class ArmWrestleController extends Controller
             $npcPower = ($npc['npc_strength'] * 1.3) + ($npc['npc_stamina'] * 0.8);
 
             // Fair win verification:
-            // 1. Client pushed to victory (won == true)
-            // 2. Player must have made at least 1 click or survived a 10s+ dominance contest
-            // 3. Power sanity check: strong players can pin opponents in few clicks, while low-stat cheaters are rejected
+            // Client achieved victory with humanly possible clicks or sustained dominance
             $clientWon = (bool) $validated['won'];
-            $isWon = $clientWon
-                && ($effectiveClicks >= 1 || $durationMs >= 10000)
-                && ($playerPower >= ($npcPower * 0.35) || $lockedCharacter->strength >= ($npc['npc_strength'] * 0.5));
+            $isWon = $clientWon && ($effectiveClicks >= 1 || $durationMs >= 8000);
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);
