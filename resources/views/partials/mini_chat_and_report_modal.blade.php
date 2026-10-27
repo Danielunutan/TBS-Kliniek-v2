@@ -396,9 +396,9 @@
                                     <i class="fa-solid fa-reply"></i>
                                 </button>
 
-                                <!-- MODERATOR DELETE -->
-                                <template x-if="canModerate">
-                                    <button type="button" @click="deletePublicMessage(msg.id)" title="Verwijder bericht (Moderator)" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                <!-- MODERATOR / AUTHOR DELETE -->
+                                <template x-if="canModerate || msg.is_me">
+                                    <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </template>
@@ -676,9 +676,9 @@
                                             <i class="fa-solid fa-reply"></i>
                                         </button>
 
-                                        <!-- Moderator/Leader Delete -->
-                                        <template x-if="canModerate">
-                                            <button type="button" @click="deletePublicMessage(msg.id)" title="Verwijder bericht" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
+                                        <!-- Moderator/Leader/Author Delete -->
+                                        <template x-if="canModerate || msg.is_me">
+                                            <button type="button" @click="deletePublicMessage(msg.id)" :title="msg.is_me ? 'Verwijder je eigen bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-0.5 text-[9px] cursor-pointer">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </template>
@@ -1951,6 +1951,10 @@
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
                     if (data.success && data.messages) {
+                        if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                            const delSet = new Set(data.deleted_ids);
+                            this.publicMessages = this.publicMessages.filter(m => !delSet.has(m.id));
+                        }
                         if (this.lastPublicId === 0) {
                             // Safe merge to avoid wiping out any locally-sent messages while initial fetch was in-flight
                             const existingMap = new Map();
@@ -2030,6 +2034,10 @@
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
                     if (data.success && data.messages) {
+                        if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                            const delSet = new Set(data.deleted_ids);
+                            this.gangMessages = this.gangMessages.filter(m => !delSet.has(m.id));
+                        }
                         if (this.lastGangId === 0) {
                             const existingMap = new Map();
                             data.messages.forEach(m => existingMap.set(m.id, m));
@@ -2261,6 +2269,12 @@
                     const url = `/chat/prive/${pId}` + (maxDmId > 0 ? `?after_id=${maxDmId}` : '');
                     const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
                     const data = await res.json();
+                    if (data && data.success) {
+                        if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                            const delSet = new Set(data.deleted_ids);
+                            this.activeDirectMessages = this.activeDirectMessages.filter(m => !delSet.has(m.id));
+                        }
+                    }
                     if (data && data.success && Array.isArray(data.messages) && data.messages.length > 0) {
                         let hadNew = false;
                         let fromOther = false;

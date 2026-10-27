@@ -436,59 +436,71 @@ function tbsLiveMessenger(config) {
                 if (this.activeTab === 'global') {
                     const res = await fetch(`{{ route("chat.public.messages") }}?channel=global&after_id=${this.lastPublicId}`);
                     const data = await res.json();
-                    if (data.success && data.messages.length > 0) {
-                        const newOthers = data.messages.filter(m => !m.is_me);
-                        if (newOthers.length > 0) {
-                            const myNameLower = (this.authCharName || '').toLowerCase();
-                            const notifyMsg = newOthers.find(m => {
-                                const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                return isTagged || isReplied;
-                            });
-                            if (notifyMsg) this.playChime();
+                    if (data.success) {
+                        if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                            const delSet = new Set(data.deleted_ids);
+                            this.publicMessagesList = this.publicMessagesList.filter(m => !delSet.has(m.id));
                         }
+                        if (data.messages && data.messages.length > 0) {
+                            const newOthers = data.messages.filter(m => !m.is_me);
+                            if (newOthers.length > 0) {
+                                const myNameLower = (this.authCharName || '').toLowerCase();
+                                const notifyMsg = newOthers.find(m => {
+                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
+                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
+                                    return isTagged || isReplied;
+                                });
+                                if (notifyMsg) this.playChime();
+                            }
 
-                        const existingIds = new Set(this.publicMessagesList.map(m => m.id));
-                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
-                        if (toAdd.length > 0) {
-                            this.publicMessagesList = [...this.publicMessagesList, ...toAdd];
-                            this.scrollToBottom();
-                        }
-                        if (data.last_id > this.lastPublicId) {
-                            this.lastPublicId = data.last_id;
-                        }
-                        if (this.publicMessagesList.length > 0) {
-                            const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
-                            if (maxId > this.lastPublicId) this.lastPublicId = maxId;
+                            const existingIds = new Set(this.publicMessagesList.map(m => m.id));
+                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            if (toAdd.length > 0) {
+                                this.publicMessagesList = [...this.publicMessagesList, ...toAdd];
+                                this.scrollToBottom();
+                            }
+                            if (data.last_id > this.lastPublicId) {
+                                this.lastPublicId = data.last_id;
+                            }
+                            if (this.publicMessagesList.length > 0) {
+                                const maxId = Math.max(...this.publicMessagesList.map(m => m.id));
+                                if (maxId > this.lastPublicId) this.lastPublicId = maxId;
+                            }
                         }
                     }
                 } else if (this.activeTab === 'gang' && this.hasGang && this.gangHasChat) {
                     const res = await fetch(`{{ route("chat.public.messages") }}?channel=gang_${this.gangId}&after_id=${this.lastGangId}`);
                     const data = await res.json();
-                    if (data.success && data.messages.length > 0) {
-                        const newOthers = data.messages.filter(m => !m.is_me);
-                        if (newOthers.length > 0) {
-                            const myNameLower = (this.authCharName || '').toLowerCase();
-                            const notifyMsg = newOthers.find(m => {
-                                const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
-                                const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
-                                return isTagged || isReplied;
-                            });
-                            if (notifyMsg) this.playChime();
+                    if (data.success) {
+                        if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                            const delSet = new Set(data.deleted_ids);
+                            this.gangMessagesList = this.gangMessagesList.filter(m => !delSet.has(m.id));
                         }
+                        if (data.messages && data.messages.length > 0) {
+                            const newOthers = data.messages.filter(m => !m.is_me);
+                            if (newOthers.length > 0) {
+                                const myNameLower = (this.authCharName || '').toLowerCase();
+                                const notifyMsg = newOthers.find(m => {
+                                    const isTagged = myNameLower && m.message && m.message.toLowerCase().includes('@' + myNameLower);
+                                    const isReplied = (m.reply_to_name && m.reply_to_name.toLowerCase() === myNameLower);
+                                    return isTagged || isReplied;
+                                });
+                                if (notifyMsg) this.playChime();
+                            }
 
-                        const existingIds = new Set(this.gangMessagesList.map(m => m.id));
-                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
-                        if (toAdd.length > 0) {
-                            this.gangMessagesList = [...this.gangMessagesList, ...toAdd];
-                            this.scrollToBottom();
-                        }
-                        if (data.last_id > this.lastGangId) {
-                            this.lastGangId = data.last_id;
-                        }
-                        if (this.gangMessagesList.length > 0) {
-                            const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
-                            if (maxId > this.lastGangId) this.lastGangId = maxId;
+                            const existingIds = new Set(this.gangMessagesList.map(m => m.id));
+                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            if (toAdd.length > 0) {
+                                this.gangMessagesList = [...this.gangMessagesList, ...toAdd];
+                                this.scrollToBottom();
+                            }
+                            if (data.last_id > this.lastGangId) {
+                                this.lastGangId = data.last_id;
+                            }
+                            if (this.gangMessagesList.length > 0) {
+                                const maxId = Math.max(...this.gangMessagesList.map(m => m.id));
+                                if (maxId > this.lastGangId) this.lastGangId = maxId;
+                            }
                         }
                     }
                 } else if (this.activeTab === 'direct') {
@@ -501,13 +513,19 @@ function tbsLiveMessenger(config) {
                     const url = `/chat/prive/${this.activePartnerId}` + (maxDmId > 0 ? `?after_id=${maxDmId}` : '');
                     const res = await fetch(url);
                     const data = await res.json();
-                    if (data.success && data.messages) {
-                        const existingIds = new Set(this.directMessagesList.map(m => m.id));
-                        const toAdd = data.messages.filter(m => !existingIds.has(m.id));
-                        if (toAdd.length > 0) {
-                            if (toAdd.some(m => !m.is_me)) this.playChime();
-                            this.directMessagesList = [...this.directMessagesList, ...toAdd];
-                            this.scrollToBottom();
+                    if (data.success) {
+                        if (data.deleted_ids && Array.isArray(data.deleted_ids) && data.deleted_ids.length > 0) {
+                            const delSet = new Set(data.deleted_ids);
+                            this.directMessagesList = this.directMessagesList.filter(m => !delSet.has(m.id));
+                        }
+                        if (data.messages) {
+                            const existingIds = new Set(this.directMessagesList.map(m => m.id));
+                            const toAdd = data.messages.filter(m => !existingIds.has(m.id));
+                            if (toAdd.length > 0) {
+                                if (toAdd.some(m => !m.is_me)) this.playChime();
+                                this.directMessagesList = [...this.directMessagesList, ...toAdd];
+                                this.scrollToBottom();
+                            }
                         }
                     }
                 }

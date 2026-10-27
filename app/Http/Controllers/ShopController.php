@@ -252,12 +252,14 @@ class ShopController extends Controller
                 $gainStr = 12 * $quantity;
                 $gainDef = 8 * $quantity;
                 $gainHp = 60 * $quantity;
+                $gainEnergy = 20 * $quantity;
                 $locked->strength = ($locked->strength ?? 10) + $gainStr;
                 $locked->defense = ($locked->defense ?? 10) + $gainDef;
                 $locked->health = min($locked->max_health, $locked->health + $gainHp);
+                $locked->energy = min($locked->max_energy, $locked->energy + $gainEnergy);
                 $locked->save();
                 $ownedCount = (int) $locked->strength;
-                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gainStr} Kracht, +{$gainDef} Bescherming & +{$gainHp} HP 💥 toegekend aan je karakter!";
+                $successMsg = "Je hebt {$quantity}x {$item->name} gekocht voor €{$formatted}{$discountNote}! Direct +{$gainStr} Kracht, +{$gainDef} Bescherming, +{$gainHp} HP & +{$gainEnergy} Energie 💥 toegekend aan je karakter!";
             } elseif (($item->attack_power > 0) || ($item->defense_power > 0)) {
                 $gainStr = ($item->attack_power ?? 0) * $quantity;
                 $gainDef = ($item->defense_power ?? 0) * $quantity;
@@ -414,6 +416,9 @@ class ShopController extends Controller
                 } elseif ($item->slug === 'adrenaline-injectie' || $item->slug === 'ehbo-noodverbanddoos') {
                     $perEnergy = 100;
                     $perHealth = 100;
+                } elseif ($item->slug === 'haloperidol-forte') {
+                    $perEnergy = 20;
+                    $perHealth = 60;
                 }
 
                 $neededForEnergy = ($perEnergy > 0 && $energyDeficit > 0) ? (int) ceil($energyDeficit / $perEnergy) : 0;
@@ -454,11 +459,13 @@ class ShopController extends Controller
                 $lockedCharacter->xp += (25 * $consumeQty);
                 $customFeedback[] = "Laserfocus en adrenalinekick (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
             } elseif ($item->slug === 'haloperidol-forte') {
+                $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 20) * $consumeQty;
                 $restoreHealth = 60 * $consumeQty;
+                $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
                 $lockedCharacter->strength += (2 * $consumeQty);
                 $lockedCharacter->defense += (2 * $consumeQty);
-                $customFeedback[] = "💥 BERSERK STATUS! Alle pijn verdoofd (+{$restoreHealth} Gezondheid, +{$consumeQty}x 2 Kracht & 2 Verdediging)!";
+                $customFeedback[] = "💥 BERSERK STATUS! Alle pijn verdoofd (+{$restoreEnergy} Energie, +{$restoreHealth} Gezondheid, +{$consumeQty}x 2 Kracht & 2 Verdediging)!";
             } else {
                 // Reguliere herstel items
                 if ($item->slug === 'adrenaline-injectie') {

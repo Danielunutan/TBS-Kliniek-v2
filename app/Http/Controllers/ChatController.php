@@ -183,9 +183,12 @@ class ChatController extends Controller
             ];
         });
 
+        $deletedIds = Cache::get("chat_deleted_ids_{$channel}", []);
+
         return response()->json([
             'success' => true,
             'messages' => $formatted,
+            'deleted_ids' => $deletedIds,
             'last_id' => $messages->last()?->id ?? $afterId,
         ]);
     }
@@ -616,10 +619,14 @@ class ChatController extends Controller
             ];
         });
 
+        $convKey = min($character->id, (int) $partnerId).'_'.max($character->id, (int) $partnerId);
+        $deletedIds = Cache::get("dm_deleted_ids_{$convKey}", []);
+
         return response()->json([
             'success' => true,
             'partner' => $partnerData,
             'messages' => $formatted,
+            'deleted_ids' => $deletedIds,
         ]);
     }
 
@@ -959,7 +966,7 @@ class ChatController extends Controller
             || ($user->role === 'moderator' || $user->role === 'admin' || $user->role === 'owner')
         );
 
-        $isAuthor = $character && ($msg->character_id === $character->id);
+        $isAuthor = $character && ((int) $msg->character_id === (int) $character->id);
 
         if (! ($isModeratorOrStaff || $isAuthor)) {
             return response()->json([
@@ -967,6 +974,12 @@ class ChatController extends Controller
                 'message' => 'Alleen moderators of de auteur kunnen chatberichten verwijderen.',
             ], 403);
         }
+
+        $channel = $msg->channel;
+        $deleted = Cache::get("chat_deleted_ids_{$channel}", []);
+        $deleted[] = $id;
+        $deleted = array_slice(array_unique($deleted), -50);
+        Cache::put("chat_deleted_ids_{$channel}", $deleted, now()->addHours(2));
 
         $msg->delete();
 
@@ -987,8 +1000,8 @@ class ChatController extends Controller
 
         $msg = DirectMessage::findOrFail($id);
 
-        $canDelete = ($msg->sender_id === $character->id)
-            || ($msg->recipient_id === $character->id)
+        $canDelete = ((int) $msg->sender_id === (int) $character->id)
+            || ((int) $msg->recipient_id === (int) $character->id)
             || $user->isStaff()
             || $user->canModerate();
 
@@ -998,6 +1011,13 @@ class ChatController extends Controller
                 'message' => 'Geen bevoegdheid om dit bericht te verwijderen.',
             ], 403);
         }
+
+        $otherId = ((int) $msg->sender_id === (int) $character->id) ? (int) $msg->recipient_id : (int) $msg->sender_id;
+        $convKey = min($character->id, $otherId).'_'.max($character->id, $otherId);
+        $deleted = Cache::get("dm_deleted_ids_{$convKey}", []);
+        $deleted[] = $id;
+        $deleted = array_slice(array_unique($deleted), -50);
+        Cache::put("dm_deleted_ids_{$convKey}", $deleted, now()->addHours(2));
 
         $msg->delete();
 
