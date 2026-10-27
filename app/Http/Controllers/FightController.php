@@ -29,7 +29,7 @@ class FightController extends Controller
         protected TurnstileService $turnstileService,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
         $character = Auth::user()->character;
         $this->energy->refresh($character);
@@ -48,16 +48,33 @@ class FightController extends Controller
 
         $cooldownSeconds = $this->cooldownService->getRemainingSeconds($character, 'fight_attack');
 
-        // Check if captcha is required (only if session flag is set, no random surprises on cooldown)
-        $isCaptchaRequired = (bool) session('fight_captcha_required', false);
+        // VIP members are exempt from routine captcha interruptions
+        if ($character->isVip()) {
+            session()->forget('fight_captcha_required');
+            session(['fight_consecutive_attacks' => 0]);
+        }
+
+        // Check if captcha is required (only for non-VIPs if session flag is set)
+        $isCaptchaRequired = ! $character->isVip() && (bool) session('fight_captcha_required', false);
 
         $turnstileSiteKey = config('services.turnstile.site_key');
 
-        $opponents = Character::with('gang')
+        $sort = $request->query('sort', 'respect');
+
+        $query = Character::with('gang')
             ->where('id', '!=', $character->id)
-            ->where('is_in_prison', false)
-            ->orderByDesc('respect')
-            ->paginate(15);
+            ->where('is_in_prison', false);
+
+        if ($sort === 'cash') {
+            $query->orderByDesc('cash')->orderByDesc('respect');
+        } elseif ($sort === 'online') {
+            $query->orderByDesc('last_active_at')->orderByDesc('respect');
+        } else {
+            $sort = 'respect';
+            $query->orderByDesc('respect');
+        }
+
+        $opponents = $query->paginate(15)->withQueryString();
 
         return view('game.fight.index', compact(
             'character',
@@ -67,7 +84,8 @@ class FightController extends Controller
             'attacksRemaining',
             'cooldownSeconds',
             'isCaptchaRequired',
-            'turnstileSiteKey'
+            'turnstileSiteKey',
+            'sort'
         ));
     }
 
@@ -121,8 +139,8 @@ class FightController extends Controller
             return back()->with('error', "⛔ Je hebt je dagelijkse limiet van {$dailyLimit} aanvallen bereikt! Morgen kun je weer geld stelen.");
         }
 
-        // 3. Cloudflare Turnstile Captcha check if required
-        if (session('fight_captcha_required')) {
+        // 3. Cloudflare Turnstile Captcha check if required (VIPs are exempt)
+        if (! $attacker->isVip() && session('fight_captcha_required')) {
             $turnstileToken = $request->input('cf-turnstile-response') ?: $request->header('X-Turnstile-Token');
 
             if (! $this->turnstileService->verify($turnstileToken, $request->ip())) {
@@ -182,13 +200,15 @@ class FightController extends Controller
 
         cache()->put($targetKey, $targetAttacks + 1, now()->endOfDay());
 
-        // Anti-bot trigger: require Cloudflare Turnstile verification after every 3 attacks
-        $consecutive = (int) session('fight_consecutive_attacks', 0) + 1;
-        if ($consecutive >= 3) {
-            session(['fight_captcha_required' => true]);
-            session(['fight_consecutive_attacks' => 0]);
-        } else {
-            session(['fight_consecutive_attacks' => $consecutive]);
+        // Anti-bot trigger: require Cloudflare Turnstile verification after consecutive attacks (VIPs are exempt)
+        if (! $attacker->isVip()) {
+            $consecutive = (int) session('fight_consecutive_attacks', 0) + 1;
+            if ($consecutive >= 35) {
+                session(['fight_captcha_required' => true]);
+                session(['fight_consecutive_attacks' => 0]);
+            } else {
+                session(['fight_consecutive_attacks' => $consecutive]);
+            }
         }
 
         // Combat calculation using effective strength & defense (including backpack equipment)

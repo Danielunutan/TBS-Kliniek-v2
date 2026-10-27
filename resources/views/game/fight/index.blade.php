@@ -278,13 +278,34 @@
             </div>
             @endif
 
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
-                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900 uppercase tracking-wide">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
+                <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wide">
                     <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
                     <span>Patiënten op de Luchtplaats (Contanten Beroven)</span>
                 </div>
                 <div class="text-xs font-bold text-slate-400">
-                    <span class="text-purple-700 font-extrabold">3s cooldown</span> tussen berovingen | Max 100 per dag
+                    <span class="text-purple-700 dark:text-purple-400 font-extrabold">3s cooldown</span> tussen berovingen | Max {{ $maxDailyAttacks }} per dag
+                </div>
+            </div>
+
+            <!-- Sortering & Filter Tabs -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 pb-1">
+                <div class="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl gap-1 border border-slate-200/80 dark:border-slate-700">
+                    <a href="{{ route('fight.index', ['sort' => 'cash']) }}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {{ ($sort ?? 'respect') === 'cash' ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs border border-emerald-200 dark:border-emerald-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+                        <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
+                        <span>Meeste Contant Geld</span>
+                    </a>
+                    <a href="{{ route('fight.index', ['sort' => 'respect']) }}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {{ ($sort ?? 'respect') === 'respect' ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-purple-200 dark:border-purple-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+                        <i class="fa-solid fa-fire text-purple-600"></i>
+                        <span>Hoogste Respect</span>
+                    </a>
+                    <a href="{{ route('fight.index', ['sort' => 'online']) }}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 {{ ($sort ?? 'respect') === 'online' ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs border border-blue-200 dark:border-blue-800' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Nu Online</span>
+                    </a>
                 </div>
             </div>
 
