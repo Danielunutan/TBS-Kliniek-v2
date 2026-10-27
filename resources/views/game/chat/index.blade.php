@@ -49,7 +49,7 @@ function tbsLiveMessenger(config) {
         authCharId: config.authCharId,
         authCharName: config.authCharName,
         activeTab: config.initialTab || 'global',
-        mobileView: (config.initialTab === 'direct' && !config.initialRecipient) ? 'list' : 'chat',
+        mobileView: (config.initialTab === 'direct' && !(config.initialRecipient > 0)) ? 'list' : 'chat',
         searchQuery: '',
 
         // Gang configuration
@@ -72,9 +72,9 @@ function tbsLiveMessenger(config) {
         // Direct messages state
         conversationsList: [],
         directMessagesList: [],
-        activePartnerId: config.initialRecipient || 0,
+        activePartnerId: (config.initialRecipient && config.initialRecipient > 0) ? config.initialRecipient : null,
         activePartner: {
-            id: 0,
+            id: null,
             name: 'Kies een gesprek',
             avatar: '{{ asset('assets/characters/avatar_male_1.jpg') }}',
             is_bot: false,
@@ -194,7 +194,11 @@ function tbsLiveMessenger(config) {
 
         async fetchMentionSuggestions(q) {
             try {
-                const res = await fetch(`/chat/zoek-spelers?q=${encodeURIComponent(q)}`);
+                let url = `/chat/zoek-spelers?q=${encodeURIComponent(q)}`;
+                if (this.activeTab === 'gang') {
+                    url += '&gang_only=1';
+                }
+                const res = await fetch(url);
                 if (res.ok) {
                     const data = await res.json();
                     if (data.success && Array.isArray(data.players) && data.players.length > 0) {
@@ -284,7 +288,9 @@ function tbsLiveMessenger(config) {
                 this.loadGangMessages();
             } else {
                 this.loadConversations();
-                this.loadDirectMessages(this.activePartnerId);
+                if (this.activePartnerId !== null && this.activePartnerId !== undefined) {
+                    this.loadDirectMessages(this.activePartnerId);
+                }
             }
 
             // Polling interval: every 3.5s for snappy live chat
@@ -301,16 +307,21 @@ function tbsLiveMessenger(config) {
 
         switchTab(tab) {
             this.activeTab = tab;
-            this.mobileView = (tab === 'direct' && !this.activePartnerId) ? 'list' : 'chat';
             this.replyingTo = null;
-            if (tab === 'global') {
-                this.loadPublicMessages();
-            } else if (tab === 'gang') {
-                this.loadGangMessages();
-            } else {
+            if (tab === 'direct') {
+                if (this.activePartnerId === null || this.activePartnerId === undefined) {
+                    this.mobileView = 'list';
+                }
                 this.loadConversations();
-                if (this.activePartnerId === 0 && this.directMessagesList.length === 0) {
-                    this.loadDirectMessages(0);
+                if (this.activePartnerId !== null && this.activePartnerId !== undefined) {
+                    this.loadDirectMessages(this.activePartnerId);
+                }
+            } else {
+                this.mobileView = 'chat';
+                if (tab === 'global') {
+                    this.loadPublicMessages();
+                } else if (tab === 'gang') {
+                    this.loadGangMessages();
                 }
             }
         },
@@ -504,6 +515,9 @@ function tbsLiveMessenger(config) {
                         }
                     }
                 } else if (this.activeTab === 'direct') {
+                    if (this.activePartnerId === null || this.activePartnerId === undefined) {
+                        return;
+                    }
                     let maxDmId = 0;
                     if (this.directMessagesList.length > 0) {
                         for (const m of this.directMessagesList) {
@@ -580,6 +594,7 @@ function tbsLiveMessenger(config) {
                         alert(data.message || 'Kon bericht niet versturen.');
                     }
                 } else {
+                    if (this.activePartnerId === null || this.activePartnerId === undefined) return;
                     const res = await fetch(`/chat/prive/${this.activePartnerId}/verzenden`, {
                         method: 'POST',
                         headers: {
@@ -670,7 +685,9 @@ function tbsLiveMessenger(config) {
             } else if (this.activeTab === 'gang') {
                 await this.loadGangMessages();
             } else {
-                await this.loadDirectMessages(this.activePartnerId);
+                if (this.activePartnerId !== null && this.activePartnerId !== undefined) {
+                    await this.loadDirectMessages(this.activePartnerId);
+                }
                 await this.loadConversations();
             }
             setTimeout(() => { this.isRefreshing = false; }, 400);
@@ -793,7 +810,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
         <!-- LEFT COLUMN: CHANNELS & CONVERSATIONS LIST -->
         <!-- ========================================== -->
         <div class="w-full md:w-80 lg:w-96 shrink-0 border-r border-slate-200 dark:border-purple-900/40 flex flex-col bg-slate-50/70 dark:bg-[#0c041d]/70 h-full min-h-0 overflow-hidden"
-             :class="(mobileView === 'chat' && window.innerWidth < 768) ? 'hidden md:flex' : 'flex'">
+             :class="mobileView === 'chat' ? 'hidden md:flex' : 'flex'">
             
             <!-- HEADER -->
             <div class="p-4 border-b border-slate-200 dark:border-purple-900/40 space-y-3 shrink-0 bg-white dark:bg-[#12072b]">
@@ -1066,7 +1083,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
         <!-- RIGHT COLUMN: MAIN ACTIVE CHAT WINDOW      -->
         <!-- ========================================== -->
         <div class="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-slate-50/50 dark:bg-[#0d041e]/50 overflow-hidden"
-             :class="(mobileView === 'list' && window.innerWidth < 768) ? 'hidden md:flex' : 'flex'">
+             :class="mobileView === 'list' ? 'hidden md:flex' : 'flex'">
             
             <!-- CHAT TOP BAR -->
             <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-purple-900/40 flex items-center justify-between bg-white dark:bg-[#12072b] shrink-0">
@@ -1074,7 +1091,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <!-- Mobile Back Button (Direct Chats) -->
                     <button type="button" 
                             x-show="activeTab === 'direct'"
-                            @click="mobileView = 'list'; if(window.tbsVibrate) window.tbsVibrate(10);"
+                            @click="activePartnerId = null; mobileView = 'list'; if(window.tbsVibrate) window.tbsVibrate(10);"
                             class="md:hidden px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-purple-950/70 text-slate-700 dark:text-purple-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer shrink-0 border border-slate-200/60 dark:border-purple-800/40 shadow-2xs">
                         <i class="fa-solid fa-chevron-left text-[11px]"></i>
                         <span class="text-[11px]">Gesprekken</span>
@@ -1132,24 +1149,29 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <!-- DIRECT HEADER -->
                     <template x-if="activeTab === 'direct'">
                         <div class="flex items-center gap-3 min-w-0">
-                            <template x-if="activePartner.is_bot">
+                            <template x-if="activePartnerId === null">
+                                <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shadow-2xs shrink-0">
+                                    <i class="fa-solid fa-comments"></i>
+                                </div>
+                            </template>
+                            <template x-if="activePartnerId !== null && activePartner.is_bot">
                                 <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-lg shadow-2xs shrink-0">
                                     <i class="fa-solid fa-building-shield"></i>
                                 </div>
                             </template>
-                            <template x-if="!activePartner.is_bot">
+                            <template x-if="activePartnerId !== null && !activePartner.is_bot">
                                 <img :src="activePartner.avatar" 
                                      class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
                                      onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
                             </template>
                             <div class="min-w-0">
                                 <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 truncate">
-                                    <span x-text="activePartner.name"></span>
-                                    <template x-if="activePartner.is_bot">
+                                    <span x-text="activePartnerId === null ? 'Privéberichten' : activePartner.name"></span>
+                                    <template x-if="activePartnerId !== null && activePartner.is_bot">
                                         <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 text-[9px] font-black uppercase">Systeem Bot</span>
                                     </template>
                                 </h3>
-                                <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="activePartner.status_label"></div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="activePartnerId === null ? 'Selecteer links een gesprek' : activePartner.status_label"></div>
                             </div>
                         </div>
                     </template>
@@ -1157,7 +1179,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                 <!-- RIGHT HEADER ACTIONS -->
                 <div class="flex items-center gap-2 shrink-0">
-                    <template x-if="activeTab === 'direct' && !activePartner.is_bot && activePartner.id > 0">
+                    <template x-if="activeTab === 'direct' && activePartnerId !== null && !activePartner.is_bot && activePartner.id > 0">
                         <a :href="'/speler/' + encodeURIComponent(activePartner.name)" 
                            class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-purple-900/40 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center gap-1.5">
                             <i class="fa-solid fa-address-card text-xs"></i>
@@ -1532,31 +1554,49 @@ window.tbsLiveMessenger = tbsLiveMessenger;
             <!-- =============================== -->
             <template x-if="activeTab === 'direct'">
                 <div class="space-y-3">
-                    <template x-for="dm in directMessagesList" :key="dm.id">
-                        <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
-                            <img :src="dm.sender_avatar" 
-                                 class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
-                                 onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
-                            <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
-                                <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
-                                    <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name"></span>
-                                    <span class="text-slate-400 text-[10px]" x-text="dm.created_at"></span>
-                                    <template x-if="canModerate || dm.is_me">
-                                        <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </template>
-                                </div>
-                                <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
-                                     :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
-                                     x-html="formatMessage(dm.message, dm.is_me)"></div>
+                    <template x-if="activePartnerId === null">
+                        <div class="flex-1 flex flex-col items-center justify-center py-20 text-center space-y-3 max-w-sm mx-auto">
+                            <div class="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-2xl shadow-sm">
+                                <i class="fa-solid fa-comments"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen gesprek geselecteerd</h4>
+                                <p class="text-xs text-slate-500 dark:text-purple-300/80 leading-relaxed">
+                                    Kies links een gesprek uit de lijst of zoek een medepatiënt om een nieuw privégesprek te starten.
+                                </p>
                             </div>
                         </div>
                     </template>
 
-                    <template x-if="directMessagesList.length === 0">
-                        <div class="py-16 text-center text-slate-400 text-xs">
-                            Geen berichten in dit gesprek. Stuur een bericht om te beginnen!
+                    <template x-if="activePartnerId !== null">
+                        <div class="space-y-3">
+                            <template x-for="dm in directMessagesList" :key="dm.id">
+                                <div class="flex items-start gap-2.5 sm:gap-3 min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
+                                    <img :src="dm.sender_avatar" 
+                                         class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-slate-200 dark:border-purple-800/50 shadow-2xs shrink-0"
+                                         onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                    <div class="max-w-[85%] sm:max-w-lg min-w-0 space-y-1" :class="dm.is_me ? 'text-right' : 'text-left'">
+                                        <div class="flex items-center gap-1.5 text-[11px] font-bold" :class="dm.is_me ? 'justify-end' : ''">
+                                            <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.sender_name"></span>
+                                            <span class="text-slate-400 text-[10px]" x-text="dm.created_at"></span>
+                                            <template x-if="canModerate || dm.is_me">
+                                                <button type="button" @click="deleteDirectMessage(dm.id)" :title="dm.is_me ? 'Verwijder je bericht' : 'Verwijder bericht (Moderator)'" class="text-slate-400 hover:text-rose-500 transition px-1 py-0.5 text-[10px] cursor-pointer inline-flex items-center">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </template>
+                                        </div>
+                                        <div class="inline-block px-3.5 py-2 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words [overflow-wrap:anywhere] [word-break:break-word] whitespace-pre-line max-w-full"
+                                             :class="dm.is_me ? 'bg-purple-600 text-white rounded-tr-xs text-left' : 'bg-white dark:bg-purple-950/40 text-slate-800 dark:text-purple-100 rounded-tl-xs border border-slate-200 dark:border-purple-800/40 text-left'"
+                                             x-html="formatMessage(dm.message, dm.is_me)"></div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="directMessagesList.length === 0">
+                                <div class="py-16 text-center text-slate-400 text-xs">
+                                    Geen berichten in dit gesprek. Stuur een bericht om te beginnen!
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </div>
@@ -1567,6 +1607,13 @@ window.tbsLiveMessenger = tbsLiveMessenger;
         <!-- CHAT INPUT BAR (GLOBAL / GANG / DIRECT) -->
         <div class="p-3 sm:p-4 bg-white dark:bg-[#12072b] border-t border-slate-200 dark:border-purple-900/40 shrink-0 space-y-2">
             
+            <!-- Disable input on direct chat when no partner selected -->
+            <template x-if="activeTab === 'direct' && activePartnerId === null">
+                <div class="text-center py-2 text-xs text-slate-400 italic">
+                    Selecteer eerst een gesprek uit de lijst om berichten te sturen.
+                </div>
+            </template>
+
             <!-- Disable input on locked gang states -->
             <template x-if="activeTab === 'gang' && (!hasGang || !gangHasChat)">
                 <div class="text-center py-2 text-xs text-slate-400 italic">
@@ -1574,7 +1621,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                 </div>
             </template>
 
-            <template x-if="activeTab === 'global' || activeTab === 'direct' || (activeTab === 'gang' && hasGang && gangHasChat)">
+            <template x-if="activeTab === 'global' || (activeTab === 'direct' && activePartnerId !== null) || (activeTab === 'gang' && hasGang && gangHasChat)">
                 <div class="space-y-2">
                     
                     <!-- REPLY QUOTE PREVIEW BANNER -->

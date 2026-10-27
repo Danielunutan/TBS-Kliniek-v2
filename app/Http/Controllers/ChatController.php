@@ -833,22 +833,31 @@ class ChatController extends Controller
         }
 
         $query = trim((string) $request->query('q', ''));
+        $channel = (string) $request->query('channel', '');
+        $gangOnly = $request->boolean('gang_only') || $channel === 'gang' || str_starts_with($channel, 'gang_');
 
         $queryBuilder = Character::with(['gang', 'user'])
             ->where('id', '!=', $character->id);
 
+        if ($gangOnly) {
+            if (! $character->gang_id) {
+                return response()->json(['success' => true, 'players' => []]);
+            }
+            $queryBuilder->where('gang_id', $character->gang_id);
+        }
+
         if ($query === '') {
             $players = $queryBuilder
-                ->whereNotNull('last_active_at')
-                ->orderBy('last_active_at', 'desc')
-                ->take(8)
+                ->when(! $gangOnly, fn ($q) => $q->whereNotNull('last_active_at')->orderBy('last_active_at', 'desc'))
+                ->when($gangOnly, fn ($q) => $q->orderBy('name', 'asc'))
+                ->take($gangOnly ? 25 : 8)
                 ->get();
         } else {
             $players = $queryBuilder
                 ->where('name', 'like', "%{$query}%")
-                ->orderByRaw('CASE WHEN last_active_at >= ? THEN 0 ELSE 1 END', [now()->subMinutes(15)])
+                ->when(! $gangOnly, fn ($q) => $q->orderByRaw('CASE WHEN last_active_at >= ? THEN 0 ELSE 1 END', [now()->subMinutes(15)]))
                 ->orderBy('level', 'desc')
-                ->take(8)
+                ->take($gangOnly ? 25 : 8)
                 ->get();
         }
 

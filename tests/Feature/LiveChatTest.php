@@ -656,4 +656,47 @@ class LiveChatTest extends TestCase
         $this->assertCount(1, $responseDiff->json('messages'));
         $this->assertEquals($dm2->id, $responseDiff->json('messages.0.id'));
     }
+
+    public function test_search_players_with_gang_only_filter(): void
+    {
+        [$user1, $char1] = $this->createInmate(['name' => 'AlfaLid1']);
+
+        $gang1 = Gang::create([
+            'name' => 'Bende Alfa',
+            'tag' => 'ALFA',
+            'specialty' => 'Vleugel A',
+            'leader_character_id' => $char1->id,
+            'gang_stars' => 100,
+            'has_gang_chat' => true,
+        ]);
+        $char1->update(['gang_id' => $gang1->id]);
+
+        [$user2, $char2] = $this->createInmate(['name' => 'AlfaLid2', 'gang_id' => $gang1->id]);
+
+        [$user3, $char3] = $this->createInmate(['name' => 'BetaLid1']);
+
+        $gang2 = Gang::create([
+            'name' => 'Bende Beta',
+            'tag' => 'BETA',
+            'specialty' => 'Vleugel B',
+            'leader_character_id' => $char3->id,
+            'gang_stars' => 50,
+            'has_gang_chat' => true,
+        ]);
+        $char3->update(['gang_id' => $gang2->id]);
+
+        // 1. Unfiltered search: returns both gang1 and gang2 members
+        $responseAll = $this->actingAs($user1)->getJson('/chat/zoek-spelers?q=Lid');
+        $responseAll->assertOk();
+        $playerNames = collect($responseAll->json('players'))->pluck('name')->all();
+        $this->assertContains('AlfaLid2', $playerNames);
+        $this->assertContains('BetaLid1', $playerNames);
+
+        // 2. Gang-only search: returns only members of gang1
+        $responseGangOnly = $this->actingAs($user1)->getJson('/chat/zoek-spelers?q=Lid&gang_only=1');
+        $responseGangOnly->assertOk();
+        $gangPlayerNames = collect($responseGangOnly->json('players'))->pluck('name')->all();
+        $this->assertContains('AlfaLid2', $gangPlayerNames);
+        $this->assertNotContains('BetaLid1', $gangPlayerNames);
+    }
 }

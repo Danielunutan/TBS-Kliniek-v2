@@ -1720,7 +1720,11 @@
 
             async fetchMentionSuggestions(q) {
                 try {
-                    const res = await fetch(`/chat/zoek-spelers?q=${encodeURIComponent(q)}`);
+                    let url = `/chat/zoek-spelers?q=${encodeURIComponent(q)}`;
+                    if (this.mentionTargetField === 'gang' || (this.activeTab === 'gang' && this.mentionTargetField !== 'direct')) {
+                        url += '&gang_only=1';
+                    }
+                    const res = await fetch(url);
                     if (res.ok) {
                         const data = await res.json();
                         if (data.success && Array.isArray(data.players) && data.players.length > 0) {
