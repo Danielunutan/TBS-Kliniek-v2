@@ -7,13 +7,12 @@
         rewardType: 'cash',
         rewardTitle: '€ 2.500 Zakgeld',
         rewardIcon: 'fa-money-bill-wave',
-        status: 'idle', // 'loading', 'watching', 'ready_to_claim', 'claiming', 'claimed', 'error'
+        status: 'idle', // 'loading', 'watching_interstitial', 'claiming', 'claimed', 'adblock_detected', 'error'
         statusMessage: '',
         secondsLeft: 15,
         totalSeconds: 15,
         token: null,
         smartlinkUrl: '',
-        popupUrl: '',
         robinRewardId: null,
         callback: null,
         async checkAdblock() {
@@ -163,35 +162,53 @@
 
                     this.token = data.token;
                     this.smartlinkUrl = data.smartlink_url;
-                    this.popupUrl = data.popup_url;
                     this.robinRewardId = data.robin_reward_id;
                     this.secondsLeft = data.duration || 15;
                     this.totalSeconds = data.duration || 15;
 
-                    // 1. First priority: In-Screen Rewarded Interstitial Video via Robins Ads
+                    // Alleen fullscreen interstitial advertentie tonen (geen dubbele ad in de popup)
                     const robinSdk = await this.ensureRobinAdsSdk();
                     if (robinSdk && typeof robinSdk.showInterstitial === 'function') {
                         this.status = 'watching_interstitial';
-                        this.statusMessage = 'Video-advertentie wordt afgespeeld in het scherm...';
+                        this.statusMessage = 'Fullscreen video-advertentie wordt afgespeeld...';
+                        const startTime = Date.now();
 
                         try {
                             const result = await robinSdk.showInterstitial({ websiteId: '6ad2b8e95f70fee0a42a5496' });
-                            if (result && result.rewardGranted) {
-                                // Full watch confirmed by Robins Ads server!
-                                this.claim(result.token, result.rewardId, data.token);
+                            const elapsedSec = (Date.now() - startTime) / 1000;
+
+                            // Als de sponsor de weergave heeft goedgekeurd of de speler minimaal 12 seconden fullscreen heeft gekeken
+                            if ((result && result.rewardGranted) || elapsedSec >= 12) {
+                                this.claim(result?.token || null, result?.rewardId || null, data.token);
                                 return;
                             } else {
-                                console.warn('RobinAds interstitial not granted, falling back to in-screen watch timer.');
-                                this.startInScreenFallback(data);
+                                this.status = 'error';
+                                this.statusMessage = 'De advertentie is te vroeg gesloten. Bekijk de fullscreen video volledig om je beloning te ontvangen.';
                                 return;
                             }
                         } catch (interstitialErr) {
-                            console.warn('RobinAds in-screen interstitial error or blocked, falling back to in-screen modal frame:', interstitialErr);
-                            this.startInScreenFallback(data);
+                            console.warn('RobinAds fullscreen interstitial error or closed:', interstitialErr);
+                            const elapsedSec = (Date.now() - startTime) / 1000;
+                            if (elapsedSec >= 12) {
+                                this.claim(null, null, data.token);
+                                return;
+                            }
+                            const isBlocked = await this.checkAdblock();
+                            if (isBlocked) {
+                                this.status = 'adblock_detected';
+                                return;
+                            }
+                            this.status = 'error';
+                            this.statusMessage = 'Er kon geen fullscreen advertentie geladen worden. Probeer het over een ogenblik opnieuw.';
                         }
                     } else {
-                        // 2. Fallback: In-screen countdown timer
-                        this.startInScreenFallback(data);
+                        const isBlocked = await this.checkAdblock();
+                        if (isBlocked) {
+                            this.status = 'adblock_detected';
+                            return;
+                        }
+                        this.status = 'error';
+                        this.statusMessage = 'Advertentienetwerk is tijdelijk niet beschikbaar. Probeer het over een ogenblik opnieuw.';
                     }
                 } catch (err) {
                     this.status = 'error';
@@ -200,25 +217,6 @@
                     this.isStarting = false;
                 }
             };
-        },
-        
-        startInScreenFallback(data) {
-            this.status = 'watching_inscreen';
-            this.statusMessage = 'Bekijk de sponsor video. De beloning wordt automatisch ontgrendeld zodra de 15 seconden voorbij zijn!';
-            this.secondsLeft = data.duration || 15;
-            this.totalSeconds = data.duration || 15;
-
-            if (this.countdownTimer) clearInterval(this.countdownTimer);
-            this.countdownTimer = setInterval(() => {
-                if (this.secondsLeft > 0) {
-                    this.secondsLeft--;
-                }
-                if (this.secondsLeft <= 0) {
-                    clearInterval(this.countdownTimer);
-                    this.status = 'ready_to_claim';
-                    this.statusMessage = 'Kijktijd voltooid! Klik hieronder om je advertentieweergave te verifiëren en de beloning direct te claimen.';
-                }
-            }, 1000);
         },
         claim(robinToken = null, robinRewardId = null, fallbackToken = null) {
             this.status = 'claiming';
@@ -266,7 +264,6 @@
             });
         },
         closeModal() {
-            if (this.countdownTimer) clearInterval(this.countdownTimer);
             this.isOpen = false;
             this.isStarting = false;
         }
@@ -279,8 +276,7 @@
      x-cloak
      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 select-none">
         
-        <div :class="(popupUrl && (status === 'watching_inscreen' || status === 'ready_to_claim')) ? 'max-w-xl' : 'max-w-md'"
-             class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 w-full shadow-2xl relative overflow-hidden text-center space-y-5 transition-all transform-gpu will-change-transform">
+        <div class="bg-white border border-purple-200 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative overflow-hidden text-center space-y-5 transition-all transform-gpu will-change-transform">
             
             <!-- Top Badges -->
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -318,71 +314,7 @@
                         <i class="fa-solid fa-play"></i>
                     </div>
                     <p class="text-xs text-slate-700 font-bold leading-relaxed" x-text="statusMessage"></p>
-                    <span class="text-[11px] text-slate-400 block">Kijk de video volledig tot het einde om je beloning te ontgrendelen.</span>
-                </div>
-            </template>
-
-            <!-- IN-SCREEN EMBEDDED MODAL WATCHING -->
-            <template x-if="status === 'watching_inscreen'">
-                <div class="space-y-4">
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-                            <span>Sponsor bekijken in scherm...</span>
-                            <span class="font-mono text-purple-700 text-sm font-black" x-text="secondsLeft + 's resterend'">15s</span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-3 border border-slate-200 overflow-hidden">
-                            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 h-full rounded-full transition-all duration-1000 shadow-xs"
-                                 :style="'width: ' + ((totalSeconds - secondsLeft) / totalSeconds * 100) + '%;'"></div>
-                        </div>
-                    </div>
-
-                    <!-- ROBIN ADS IN-SCREEN DISPLAY (IF AVAILABLE) -->
-                    <template x-if="popupUrl">
-                        <div class="w-full h-72 sm:h-80 rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-800 bg-slate-900 shadow-inner relative my-2">
-                            <iframe :src="popupUrl" class="w-full h-full border-0" allow="autoplay; fullscreen; encrypted-media"></iframe>
-                        </div>
-                    </template>
-
-                    <!-- CLEAN ROBINADS IN-SCREEN CARD (WHEN NO DIRECT IFRAME) -->
-                    <template x-if="!popupUrl">
-                        <div class="w-full rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-800/80 bg-gradient-to-br from-purple-50 via-indigo-50/40 to-white dark:from-slate-900 dark:via-purple-950/60 dark:to-slate-900 p-5 text-center shadow-lg relative my-2 space-y-3">
-                            <div class="w-14 h-14 rounded-2xl bg-purple-600/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/40 flex items-center justify-center text-2xl mx-auto shadow-inner animate-pulse">
-                                <i class="fa-solid fa-play"></i>
-                            </div>
-                            <div>
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-600 text-white shadow-xs">
-                                    <i class="fa-solid fa-tv text-[9px]"></i> RobinAds Sponsor
-                                </span>
-                                <h4 class="text-base font-black text-slate-900 dark:text-white mt-1.5">Sponsoradvertentie Wordt Afgespeeld</h4>
-                                <p class="text-xs text-slate-600 dark:text-purple-200/80 mt-1 max-w-sm mx-auto leading-relaxed">
-                                    Wacht tot de teller op 0 staat om je beloning direct te kunnen claimen!
-                                </p>
-                            </div>
-                        </div>
-                    </template>
-
-                    <p class="text-xs text-slate-500 leading-relaxed" x-text="statusMessage"></p>
-                </div>
-            </template>
-
-            <!-- READY TO CLAIM BUTTON -->
-            <template x-if="status === 'ready_to_claim'">
-                <div class="space-y-4 animate-fade-in">
-                    <div class="w-full rounded-2xl overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 p-5 text-white shadow-xl relative mb-2 text-center space-y-2">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center text-xl mx-auto shadow-inner">
-                            <i class="fa-solid fa-circle-check"></i>
-                        </div>
-                        <h4 class="text-sm font-black text-white">Sponsor Kijktijd Voltooid!</h4>
-                        <p class="text-xs text-emerald-200/80 max-w-sm mx-auto leading-relaxed">
-                            Je hebt de advertentie succesvol bekeken. Claim nu direct je beloning!
-                        </p>
-                    </div>
-
-                    <button type="button" @click="claim()"
-                            class="w-full py-3.5 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition transform hover:scale-102 active:scale-98 cursor-pointer flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-gift text-base"></i>
-                        <span>Verifieer & Claim Beloning</span>
-                    </button>
+                    <span class="text-[11px] text-slate-400 block">Kijk de fullscreen video advertentie volledig tot het einde om je beloning te ontgrendelen.</span>
                 </div>
             </template>
 
