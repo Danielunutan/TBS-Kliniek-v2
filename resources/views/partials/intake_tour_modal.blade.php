@@ -8,11 +8,11 @@
     playerLevel: {{ (int) ($character->level ?? 1) }},
 
     init() {
-        // Alleen automatisch tonen voor echte groentjes (level 1 t/m 3) die de tour nog niet gedaan of gesloten hebben
-        if (this.playerLevel <= 3 && !this.tourCompleted && !sessionStorage.getItem('tbs_tour_dismissed') && !localStorage.getItem('tbs_tour_dismissed')) {
+        // Toon automatisch aan elke speler (zowel bestaand als nieuw) die de rondleiding nog niet heeft afgerond in de database
+        if (!this.tourCompleted && !sessionStorage.getItem('tbs_tour_dismissed')) {
             setTimeout(() => {
                 this.isOpen = true;
-            }, 1200);
+            }, 800);
         }
 
         window.addEventListener('tbs-start-intake-tour', () => {

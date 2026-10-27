@@ -1,7 +1,7 @@
 <!-- ROOKIE OVERLEVINGSTAKEN & BELONINGSSPOOR -->
 @if(! ($rookieData['grand_claimed'] ?? false))
 <div x-data="{
-    collapsed: localStorage.getItem('tbs_rookie_collapsed') !== null ? (localStorage.getItem('tbs_rookie_collapsed') === '1') : ({{ (int) ($character->level ?? 1) }} > 3),
+    collapsed: localStorage.getItem('tbs_rookie_collapsed') === '1',
     isClaiming: null,
     async claim(key) {
         if (this.isClaiming) return;
