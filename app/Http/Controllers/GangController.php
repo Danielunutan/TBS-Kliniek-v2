@@ -639,7 +639,7 @@ class GangController extends Controller
 
         // Leave fee multiplier deduction (only if not disbanding as leader)
         if ($gang && $character->gang_role !== 'leader') {
-            $hourlyWage = 150 + (($gang->bling_shops ?? 0) * 50);
+            $hourlyWage = $this->wageService->calculateHourlyWage($gang);
             $multiplier = min(50, max(0, (int) ($gang->leave_fee_multiplier ?? 0)));
             $leaveFee = $hourlyWage * $multiplier;
 

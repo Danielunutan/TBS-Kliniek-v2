@@ -266,7 +266,10 @@ if (!window.tbsFormInterceptorInitialized) {
 
                 // Background refresh the main container to show updated counts/states without reload
                 try {
-                    const getRes = await fetch(window.location.href, {
+                    const refreshUrl = new URL(window.location.href);
+                    refreshUrl.searchParams.set('_tbs_ts', String(Date.now()));
+                    const getRes = await fetch(refreshUrl.toString(), {
+                        cache: 'no-store',
                         headers: { 
                             'X-Requested-With': 'XMLHttpRequest',
                             'X-TBS-Background-Refresh': 'true'

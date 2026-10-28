@@ -1959,11 +1959,17 @@
                         
                         <!-- Item 1: Smokkelkiosken (Kantine Kiosk) -->
                         <div x-data="{ qty: {{ $possibleBlingShops }} }" class="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                    <i class="fa-solid fa-store text-purple-600"></i>
-                                    <span>Smokkelkiosken (Kantine Kiosk)</span>
-                                </h3>
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-store text-purple-600"></i>
+                                        <span>Smokkelkiosken (Kantine Kiosk)</span>
+                                    </h3>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-[11px] font-mono">
+                                        <i class="fa-solid fa-store text-[10px]"></i>
+                                        <span>In bezit: {{ number_format($myGang->bling_shops ?? 0, 0, ',', '.') }} kiosken</span>
+                                    </span>
+                                </div>
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     Verhoogt het uurloon met +€100/uur per kiosk. Prijs: <strong class="text-slate-900">€50.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
@@ -1980,6 +1986,13 @@
                                        max="{{ max(1, $possibleBlingShops) }}" 
                                        value="{{ $possibleBlingShops }}" 
                                        class="w-20 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 text-center focus:outline-none focus:border-purple-600">
+                                @if($possibleBlingShops > 0)
+                                <button type="button" 
+                                        @click="qty = {{ $possibleBlingShops }}"
+                                        class="px-2 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-[10px] uppercase transition cursor-pointer">
+                                    Max
+                                </button>
+                                @endif
                                 <button type="submit" 
                                         :disabled="qty < 1 || qty > {{ max(0, $possibleBlingShops) }}"
                                         @if($possibleBlingShops <= 0) disabled @endif
@@ -1991,11 +2004,17 @@
 
                         <!-- Item 2: Bescherming -->
                         <div x-data="{ qty: {{ $possibleProtection }} }" class="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                    <i class="fa-solid fa-shield text-indigo-600"></i>
-                                    <span>Bescherming</span>
-                                </h3>
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-shield text-indigo-600"></i>
+                                        <span>Bescherming</span>
+                                    </h3>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] font-mono">
+                                        <i class="fa-solid fa-shield text-[10px]"></i>
+                                        <span>In bezit: {{ number_format($myGang->protection_points ?? 1000, 0, ',', '.') }} punten</span>
+                                    </span>
+                                </div>
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     Prijs per stuk: <strong class="text-slate-900">€15.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
@@ -2012,6 +2031,13 @@
                                        max="{{ max(1, $possibleProtection) }}" 
                                        value="{{ $possibleProtection }}" 
                                        class="w-20 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 text-center focus:outline-none focus:border-purple-600">
+                                @if($possibleProtection > 0)
+                                <button type="button" 
+                                        @click="qty = {{ $possibleProtection }}"
+                                        class="px-2 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-[10px] uppercase transition cursor-pointer">
+                                    Max
+                                </button>
+                                @endif
                                 <button type="submit" 
                                         :disabled="qty < 1 || qty > {{ max(0, $possibleProtection) }}"
                                         @if($possibleProtection <= 0) disabled @endif
@@ -2023,11 +2049,17 @@
 
                         <!-- Item 3: Power -->
                         <div x-data="{ qty: {{ $possiblePower }} }" class="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                                    <i class="fa-solid fa-bolt text-amber-500"></i>
-                                    <span>Power</span>
-                                </h3>
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5 flex-wrap">
+                                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt text-amber-500"></i>
+                                        <span>Power</span>
+                                    </h3>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-extrabold text-[11px] font-mono">
+                                        <i class="fa-solid fa-bolt text-[10px]"></i>
+                                        <span>In bezit: {{ number_format($myGang->attack_power ?? 500, 0, ',', '.') }} power</span>
+                                    </span>
+                                </div>
                                 <p class="text-xs text-slate-500 mt-0.5">
                                     Prijs per stuk: <strong class="text-slate-900">€15.000</strong>
                                     <span class="text-slate-400 mx-1">&bull;</span>
@@ -2044,6 +2076,13 @@
                                        max="{{ max(1, $possiblePower) }}" 
                                        value="{{ $possiblePower }}" 
                                        class="w-20 bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 text-center focus:outline-none focus:border-purple-600">
+                                @if($possiblePower > 0)
+                                <button type="button" 
+                                        @click="qty = {{ $possiblePower }}"
+                                        class="px-2 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-[10px] uppercase transition cursor-pointer">
+                                    Max
+                                </button>
+                                @endif
                                 <button type="submit" 
                                         :disabled="qty < 1 || qty > {{ max(0, $possiblePower) }}"
                                         @if($possiblePower <= 0) disabled @endif
