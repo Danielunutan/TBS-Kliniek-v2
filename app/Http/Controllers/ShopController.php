@@ -1013,4 +1013,184 @@ class ShopController extends Controller
                 ->with('success', "🎉 Gefeliciteerd! {$bundle['name']} ontvangen voor {$totalCost} Sterren ⭐{$bonusMsg} Inhoud: +€".number_format($totalCash, 0, ',', '.')." bankgeld, +{$totalBags} koffers, +{$totalMasks} maskers en +{$totalCodes} kluiscodes!");
         });
     }
+
+    /**
+     * Automatically consume items from inventory in 1 click until Energy, Health, or both reach 100%.
+     */
+    public function autoRefill(Request $request): RedirectResponse|JsonResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $targetStat = (string) $request->input('stat', 'both');
+        if (! in_array($targetStat, ['energy', 'health', 'both'], true)) {
+            $targetStat = 'both';
+        }
+
+        return DB::transaction(function () use ($request, $character, $targetStat): RedirectResponse|JsonResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            $this->energyService->refresh($lockedCharacter);
+
+            $needsEnergy = in_array($targetStat, ['energy', 'both'], true) && $lockedCharacter->energy < $lockedCharacter->max_energy;
+            $needsHealth = in_array($targetStat, ['health', 'both'], true) && $lockedCharacter->health < $lockedCharacter->max_health;
+
+            if (! $needsEnergy && ! $needsHealth) {
+                $msg = $targetStat === 'energy'
+                    ? "Je Energie zit al op 100% ({$lockedCharacter->energy}/{$lockedCharacter->max_energy})!"
+                    : ($targetStat === 'health'
+                        ? "Je Gezondheid zit al op 100% ({$lockedCharacter->health}/{$lockedCharacter->max_health} HP)!"
+                        : 'Je Energie en Gezondheid zitten allebei al op 100%!');
+
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+
+                return back()->with('info', $msg);
+            }
+
+            $items = CharacterItem::where('character_id', $lockedCharacter->id)
+                ->where('quantity', '>', 0)
+                ->with('item')
+                ->lockForUpdate()
+                ->get()
+                ->filter(function (CharacterItem $ci) {
+                    $item = $ci->item;
+                    if (! $item || $item->category === 'equipment') {
+                        return false;
+                    }
+                    if (in_array($item->slug, ['bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje', 'eiwitshake-bodybuilder', 'multivitaminen-focus'], true)) {
+                        return false;
+                    }
+
+                    return $item->energy_restore > 0 || $item->health_restore > 0 || in_array($item->slug, ['sigaretten', 'ritalin', 'telefoon', 'strip-oxazepam', 'strip-ritalin', 'haloperidol-forte', 'adrenaline-injectie', 'ehbo-noodverbanddoos'], true);
+                });
+
+            if ($items->isEmpty()) {
+                $msg = 'Geen geschikte snacks of herstel-items gevonden in je rugzak! Haal voorraad in de Kantine & Winkel.';
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+
+                return back()->with('error', $msg);
+            }
+
+            $energyBefore = $lockedCharacter->energy;
+            $healthBefore = $lockedCharacter->health;
+            $consumedSummary = [];
+
+            foreach ($items as $ci) {
+                $wantEnergyNow = in_array($targetStat, ['energy', 'both'], true) && $lockedCharacter->energy < $lockedCharacter->max_energy;
+                $wantHealthNow = in_array($targetStat, ['health', 'both'], true) && $lockedCharacter->health < $lockedCharacter->max_health;
+
+                if (! $wantEnergyNow && ! $wantHealthNow) {
+                    break;
+                }
+
+                $item = $ci->item;
+                $perEnergy = (int) ($item->energy_restore ?? 0);
+                $perHealth = (int) ($item->health_restore ?? 0);
+
+                if ($item->slug === 'sigaretten') {
+                    $perEnergy = max($perEnergy, 20);
+                    $perHealth = max($perHealth, 10);
+                } elseif ($item->slug === 'ritalin') {
+                    $perEnergy = max($perEnergy, 35);
+                    $perHealth = max($perHealth, 15);
+                } elseif ($item->slug === 'telefoon') {
+                    $perEnergy = max($perEnergy, 50);
+                    $perHealth = max($perHealth, 25);
+                } elseif ($item->slug === 'strip-oxazepam') {
+                    $perHealth = max($perHealth, 35);
+                } elseif ($item->slug === 'strip-ritalin') {
+                    $perEnergy = max($perEnergy, 45);
+                } elseif ($item->slug === 'haloperidol-forte') {
+                    $perEnergy = max($perEnergy, 20);
+                    $perHealth = max($perHealth, 60);
+                } elseif ($item->slug === 'adrenaline-injectie') {
+                    $perEnergy = $lockedCharacter->max_energy;
+                } elseif ($item->slug === 'ehbo-noodverbanddoos') {
+                    $perHealth = $lockedCharacter->max_health;
+                }
+
+                $helpsEnergy = $wantEnergyNow && $perEnergy > 0;
+                $helpsHealth = $wantHealthNow && $perHealth > 0;
+
+                if (! $helpsEnergy && ! $helpsHealth) {
+                    continue;
+                }
+
+                $energyDeficit = $helpsEnergy ? max(0, $lockedCharacter->max_energy - $lockedCharacter->energy) : 0;
+                $healthDeficit = $helpsHealth ? max(0, $lockedCharacter->max_health - $lockedCharacter->health) : 0;
+
+                $neededE = ($helpsEnergy && $perEnergy > 0) ? (int) ceil($energyDeficit / $perEnergy) : 0;
+                $neededH = ($helpsHealth && $perHealth > 0) ? (int) ceil($healthDeficit / $perHealth) : 0;
+                $needed = max(1, max($neededE, $neededH));
+                $useQty = min((int) $ci->quantity, $needed);
+
+                if ($useQty <= 0) {
+                    continue;
+                }
+
+                if ($perEnergy > 0) {
+                    $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + ($perEnergy * $useQty));
+                }
+                if ($perHealth > 0) {
+                    $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + ($perHealth * $useQty));
+                }
+
+                $ci->quantity -= $useQty;
+                if ($ci->quantity <= 0) {
+                    $ci->delete();
+                } else {
+                    $ci->save();
+                }
+
+                $consumedSummary[] = "{$useQty}x {$item->name}";
+            }
+
+            if (empty($consumedSummary)) {
+                $msg = $targetStat === 'energy'
+                    ? 'Je hebt geen snacks in je rugzak die Energie aanvullen!'
+                    : 'Je hebt geen items in je rugzak die Gezondheid (HP) aanvullen!';
+
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+
+                return back()->with('error', $msg);
+            }
+
+            $lockedCharacter->save();
+            Cache::forget("char_realtime_stats_{$lockedCharacter->id}");
+
+            $energyGained = $lockedCharacter->energy - $energyBefore;
+            $healthGained = $lockedCharacter->health - $healthBefore;
+
+            $gains = [];
+            if ($energyGained > 0) {
+                $gains[] = "+{$energyGained} Energie ⚡ ({$lockedCharacter->energy}/{$lockedCharacter->max_energy})";
+            }
+            if ($healthGained > 0) {
+                $gains[] = "+{$healthGained} HP ❤️ ({$lockedCharacter->health}/{$lockedCharacter->max_health})";
+            }
+
+            $msg = 'Snel aangevuld uit je voorraad ('.implode(', ', $consumedSummary).'): '.implode(' & ', $gains).'!';
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'energy' => $lockedCharacter->energy,
+                    'max_energy' => $lockedCharacter->max_energy,
+                    'health' => $lockedCharacter->health,
+                    'max_health' => $lockedCharacter->max_health,
+                    'reload_dropdown' => true,
+                ]);
+            }
+
+            return back()->with('success', $msg);
+        });
+    }
 }

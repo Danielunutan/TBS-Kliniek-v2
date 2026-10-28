@@ -446,6 +446,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/winkel/{item}/kopen', [ShopController::class, 'buy'])->name('shop.buy');
     Route::post('/winkel/sterren-kopen', [ShopController::class, 'buyStarItem'])->name('shop.buy-star-item');
     Route::post('/winkel/bundel-kopen', [ShopController::class, 'buyBundle'])->name('shop.buy-bundle');
+    Route::post('/inventaris/auto-aanvullen', [ShopController::class, 'autoRefill'])->name('shop.auto-refill');
     Route::post('/inventaris/{characterItem}/gebruiken', [ShopController::class, 'consume'])
         ->name('shop.consume')
         ->missing(function (Request $request) {

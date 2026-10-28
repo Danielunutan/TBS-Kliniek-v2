@@ -55,6 +55,13 @@ class CombatTrainingController extends Controller
         ];
 
         $session = $config[$validated['session_id']];
+        $statKey = $session['stat'];
+        $maxStat = $character->getMaxStatForLevel();
+        $atStatCap = ((int) $character->{$statKey}) >= $maxStat;
+
+        if ($atStatCap && $character->getColdBloodedPct() >= 100) {
+            return back()->with('error', "Je hebt het maximum voor {$session['label']} op jouw huidige level bereikt ({$maxStat}/{$maxStat}) en je Koudbloedigheid staat al op 100%! Stijg eerst in level om verder te trainen.");
+        }
 
         if ($character->cash < $session['cost']) {
             return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
@@ -64,14 +71,15 @@ class CombatTrainingController extends Controller
             return back()->with('error', "Je hebt minimaal {$session['energy']} energie nodig voor deze trainingssessie!");
         }
 
+        $actualGain = $atStatCap ? 0 : min($session['gain'], max(0, $maxStat - (int) $character->{$statKey}));
         $character->cash -= $session['cost'];
-        $character->{$session['stat']} += $session['gain'];
+        $character->{$statKey} += $actualGain;
         $character->save();
 
         TrainingLog::create([
             'character_id' => $character->id,
-            'stat' => $session['stat'],
-            'stat_gain' => $session['gain'],
+            'stat' => $statKey,
+            'stat_gain' => $actualGain,
             'energy_cost' => $session['energy'],
             'cash_cost' => $session['cost'],
             'trainer' => 'Barry Biceps',
@@ -82,6 +90,10 @@ class CombatTrainingController extends Controller
 
         HalloweenService::record($character, 'training', 1);
 
-        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$session['gain']} én +4% Koudbloedigheid (nu {$newFocus}%)! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
+        if ($actualGain === 0) {
+            return back()->with('success', "Training voltooid! ({$session['label']} zit op je level-plafond van {$maxStat}, stijg in level voor meer stats). Je kreeg wél +4% Koudbloedigheid (nu {$newFocus}%) en +{$session['xp']} XP!");
+        }
+
+        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$actualGain} ({$character->{$statKey}}/{$maxStat}) én +4% Koudbloedigheid (nu {$newFocus}%)! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
     }
 }

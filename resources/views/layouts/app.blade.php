@@ -794,7 +794,9 @@
                     // 3. Update or remove item row from dropdown
                     if (itemRow) {
                         const qtyBadge = itemRow.querySelector('[data-item-qty]');
-                        if (data.remaining_quantity > 0) {
+                        if (data.reload_dropdown) {
+                            setTimeout(() => window.tbsReloadPage(), 550);
+                        } else if (data.remaining_quantity > 0) {
                             if (qtyBadge) qtyBadge.textContent = 'x' + data.remaining_quantity;
                             rowButtons.forEach(b => {
                                 b.disabled = false;
@@ -878,6 +880,154 @@
                 });
             }
         };
+
+        window.tbsSidebarController = function(activeCategory) {
+            const defaultFavorites = [
+                { url: '{{ route('hustle.index') }}', label: 'Hosselen', icon: 'fa-solid fa-hand-holding-dollar text-emerald-500' },
+                { url: '{{ route('theft.index') }}', label: 'Diefstal', icon: 'fa-solid fa-briefcase text-blue-500' },
+                { url: '{{ route('bank.index') }}', label: 'Bank', icon: 'fa-solid fa-building-columns text-emerald-500' },
+                { url: '{{ route('gangs.index') }}', label: 'Bende', icon: 'fa-solid fa-shield-halved text-purple-600 dark:text-purple-400' },
+                { url: '{{ route('daycare.index') }}', label: 'Werken', icon: 'fa-solid fa-person-digging text-amber-500' },
+                { url: '{{ route('infirmary.index') }}', label: 'Kliniek', icon: 'fa-solid fa-hospital-user text-teal-500' }
+            ];
+            return {
+                openCategories: [],
+                favorites: [],
+                allCats: ['algemeen', 'bende', 'event', 'voortgang', 'misdaad', 'bonus', 'specials', 'geweld', 'economie', 'account'],
+                init() {
+                    try {
+                        const savedCats = JSON.parse(localStorage.getItem('tbs_sidebar_open_cats') || 'null');
+                        if (Array.isArray(savedCats)) {
+                            this.openCategories = savedCats;
+                        } else {
+                            const legacy = localStorage.getItem('tbs_sidebar_category');
+                            this.openCategories = legacy ? [legacy] : ['misdaad', 'geweld'];
+                        }
+                    } catch (e) {
+                        this.openCategories = ['misdaad', 'geweld'];
+                    }
+                    if (activeCategory && !this.openCategories.includes(activeCategory)) {
+                        this.openCategories.push(activeCategory);
+                        this.saveCats();
+                    }
+                    try {
+                        const savedFavs = JSON.parse(localStorage.getItem('tbs_sidebar_favorites_v1') || 'null');
+                        this.favorites = (Array.isArray(savedFavs) && savedFavs.length > 0) ? savedFavs : defaultFavorites;
+                    } catch (e) {
+                        this.favorites = defaultFavorites;
+                    }
+
+                    this.$nextTick(() => this.injectFavoriteStars());
+                },
+                isOpen(cat) {
+                    return this.openCategories.includes(cat);
+                },
+                toggleCategory(cat) {
+                    if (this.openCategories.includes(cat)) {
+                        this.openCategories = this.openCategories.filter(c => c !== cat);
+                    } else {
+                        this.openCategories.push(cat);
+                    }
+                    this.saveCats();
+                },
+                expandAll() {
+                    if (this.openCategories.length >= this.allCats.length) {
+                        this.openCategories = activeCategory ? [activeCategory] : [];
+                    } else {
+                        this.openCategories = [...this.allCats];
+                    }
+                    this.saveCats();
+                },
+                saveCats() {
+                    try {
+                        localStorage.setItem('tbs_sidebar_open_cats', JSON.stringify(this.openCategories));
+                    } catch (e) {}
+                },
+                normalizeUrl(u) {
+                    try {
+                        const parsed = new URL(u, window.location.origin);
+                        return parsed.pathname + parsed.search;
+                    } catch (e) {
+                        return u;
+                    }
+                },
+                isFav(url) {
+                    const norm = this.normalizeUrl(url);
+                    return this.favorites.some(f => this.normalizeUrl(f.url) === norm);
+                },
+                toggleFav(item) {
+                    const norm = this.normalizeUrl(item.url);
+                    if (this.isFav(item.url)) {
+                        if (this.favorites.length <= 1) {
+                            if (window.tbsToast) window.tbsToast('Houd minimaal 1 snelkoppeling in je Snelle Toegang!', 'info');
+                            return;
+                        }
+                        this.favorites = this.favorites.filter(f => this.normalizeUrl(f.url) !== norm);
+                        if (window.tbsToast) window.tbsToast(item.label + ' verwijderd uit Favorieten ⭐', 'info');
+                    } else {
+                        if (this.favorites.length >= 9) {
+                            this.favorites.shift();
+                        }
+                        this.favorites.push(item);
+                        if (window.tbsToast) window.tbsToast(item.label + ' toegevoegd aan Snelle Toegang ⭐', 'success');
+                    }
+                    try {
+                        localStorage.setItem('tbs_sidebar_favorites_v1', JSON.stringify(this.favorites));
+                    } catch (e) {}
+                    this.refreshStarButtons();
+                },
+                injectFavoriteStars() {
+                    const root = this.$el;
+                    if (!root) return;
+                    const links = root.querySelectorAll('a[href]:not([data-no-fav])');
+                    links.forEach(a => {
+                        if (a.dataset.favReady) return;
+                        const href = a.getAttribute('href');
+                        if (!href || href === '#' || href.startsWith('javascript')) return;
+                        if (a.closest('[data-favorites-grid]')) return;
+                        if (a.querySelector('img')) return;
+                        const spans = a.querySelectorAll('span');
+                        if (!spans.length) return;
+                        const labelEl = a.querySelector('div > span') || spans[0];
+                        const rawLabel = (labelEl ? labelEl.textContent : a.textContent).trim();
+                        if (!rawLabel || rawLabel.includes('Online') || rawLabel.includes('TBS')) return;
+
+                        const iconEl = a.querySelector('i.fa-solid, i.fa-regular, i.fa-brands');
+                        const iconClass = iconEl ? iconEl.className.replace(/\bw-4\b|\btext-center\b/g, '').trim() : 'fa-solid fa-star text-amber-400';
+
+                        a.dataset.favReady = '1';
+                        a.classList.add('group/navitem', 'relative');
+
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.dataset.favUrl = href;
+                        btn.title = 'Favoriet maken voor Snelle Toegang ⭐';
+                        btn.className = 'ml-auto pl-1.5 text-[11px] transition shrink-0 cursor-pointer focus:outline-none';
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            this.toggleFav({
+                                url: href,
+                                label: rawLabel.replace(/\s+/g, ' ').slice(0, 14),
+                                icon: iconClass
+                            });
+                        });
+                        a.appendChild(btn);
+                    });
+                    this.refreshStarButtons();
+                },
+                refreshStarButtons() {
+                    const root = this.$el;
+                    if (!root) return;
+                    root.querySelectorAll('button[data-fav-url]').forEach(btn => {
+                        const active = this.isFav(btn.dataset.favUrl);
+                        btn.innerHTML = active
+                            ? '<i class="fa-solid fa-star text-amber-400 drop-shadow-2xs"></i>'
+                            : '<i class="fa-regular fa-star text-slate-300 dark:text-slate-600 opacity-60 group-hover/navitem:opacity-100 hover:text-amber-400"></i>';
+                    });
+                }
+            };
+        };
     </script>
     @else
     <script>
@@ -918,27 +1068,10 @@
     @if($character)
     <!-- SIDEBAR NAVIGATION (Desktop & Tablet) - Clean Modern White Sidebar -->
     <aside class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200/90 shrink-0 min-h-screen text-slate-700 z-40 sticky top-0 h-screen overflow-y-auto shadow-xs select-none"
-           x-data="{
-               openCategory: '{{ $activeCategory ?? '' }}',
-               init() {
-                   const serverCat = '{{ $activeCategory ?? '' }}';
-                   if (!serverCat) {
-                       const saved = localStorage.getItem('tbs_sidebar_category');
-                       if (saved) {
-                           this.openCategory = saved;
-                       }
-                   } else {
-                       localStorage.setItem('tbs_sidebar_category', serverCat);
-                   }
-               },
-               toggleCategory(cat) {
-                   this.openCategory = (this.openCategory === cat) ? '' : cat;
-                   localStorage.setItem('tbs_sidebar_category', this.openCategory);
-               }
-           }">
+           x-data="window.tbsSidebarController('{{ $activeCategory ?? '' }}')">
         <!-- Logo Header (TBS Kliniek Brand Emblem & Typography) -->
         <div class="px-5 py-4 flex items-center border-b border-slate-100 bg-white sticky top-0 z-10">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group" title="TBS Kliniek Dashboard">
+            <a href="{{ route('dashboard') }}" data-no-fav="1" class="flex items-center gap-3 group" title="TBS Kliniek Dashboard">
                 <div class="w-11 h-11 shrink-0 drop-shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
                     <img src="{{ asset('assets/logo.png') }}?v=3" alt="TBS Kliniek Emblem" class="w-full h-full object-contain">
                 </div>
@@ -947,7 +1080,7 @@
                         <span class="text-sm font-black tracking-tight text-slate-900 leading-none">TBS <span class="text-purple-600">KLINIEK</span></span>
                     </div>
                     <div class="mt-1">
-                        <a href="{{ route('members.index', ['filter' => 'online']) }}" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 transition cursor-pointer" title="{{ $onlineCount }} patiënten momenteel online in de kliniek (klik voor online lijst)">
+                        <a href="{{ route('members.index', ['filter' => 'online']) }}" data-no-fav="1" class="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 dark:hover:bg-emerald-900/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 transition cursor-pointer" title="{{ $onlineCount }} patiënten momenteel online in de kliniek (klik voor online lijst)">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>{{ $onlineCount }} Online</span>
                         </a>
@@ -972,51 +1105,23 @@
                 </button>
             </div>
 
-            <!-- ⭐ SNELLE TOEGANG (Favorieten 6-Grid) -->
-            <div class="mb-2.5 p-2 rounded-xl bg-slate-50/80 dark:bg-purple-950/30 border border-slate-200/70 dark:border-purple-900/40">
+            <!-- ⭐ SNELLE TOEGANG (Persoonlijke Favorieten Grid + Alles Openen) -->
+            <div class="mb-2.5 p-2 rounded-xl bg-slate-50/80 dark:bg-purple-950/30 border border-slate-200/70 dark:border-purple-900/40" data-favorites-grid="1">
                 <div class="flex items-center justify-between px-1 mb-1.5 text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-purple-400/80">
-                    <span class="flex items-center gap-1">
+                    <span class="flex items-center gap-1" title="Klik op het sterretje ☆ achter een menu-item om jouw favorieten hier vast te pinnen!">
                         <i class="fa-solid fa-star text-amber-400 text-[8px]"></i> Snelle Toegang
                     </span>
-                    <span class="text-[8px] opacity-70">Favorieten</span>
+                    <button type="button" @click="expandAll()" class="text-[8px] font-black text-purple-600 dark:text-purple-300 hover:underline cursor-pointer" x-text="openCategories.length >= allCats.length ? 'Sluit menu\'s' : 'Alles openen'"></button>
                 </div>
                 <div class="grid grid-cols-3 gap-1">
-                    <a href="{{ route('hustle.index') }}" 
-                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-emerald-300 transition text-center group"
-                       title="Hosselen">
-                        <i class="fa-solid fa-hand-holding-dollar text-emerald-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
-                        <span class="text-[9px] font-bold truncate w-full">Hosselen</span>
-                    </a>
-                    <a href="{{ route('theft.index') }}" 
-                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-blue-300 transition text-center group"
-                       title="Diefstal">
-                        <i class="fa-solid fa-briefcase text-blue-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
-                        <span class="text-[9px] font-bold truncate w-full">Diefstal</span>
-                    </a>
-                    <a href="{{ route('bank.index') }}" 
-                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-emerald-300 transition text-center group"
-                       title="De Bank">
-                        <i class="fa-solid fa-building-columns text-emerald-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
-                        <span class="text-[9px] font-bold truncate w-full">Bank</span>
-                    </a>
-                    <a href="{{ route('gangs.index') }}" 
-                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-purple-300 transition text-center group"
-                       title="Mijn Bende">
-                        <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
-                        <span class="text-[9px] font-bold truncate w-full">Bende</span>
-                    </a>
-                    <a href="{{ route('daycare.index') }}" 
-                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-amber-300 transition text-center group"
-                       title="Dagbesteding">
-                        <i class="fa-solid fa-person-digging text-amber-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
-                        <span class="text-[9px] font-bold truncate w-full">Werken</span>
-                    </a>
-                    <a href="{{ route('infirmary.index') }}" 
-                       class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-teal-50 dark:hover:bg-teal-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-teal-300 transition text-center group"
-                       title="Ziekenboeg">
-                        <i class="fa-solid fa-hospital-user text-teal-500 group-hover:scale-110 transition-transform text-xs mb-0.5"></i>
-                        <span class="text-[9px] font-bold truncate w-full">Kliniek</span>
-                    </a>
+                    <template x-for="fav in favorites" :key="fav.url">
+                        <a :href="fav.url" data-no-fav="1"
+                           class="flex flex-col items-center justify-center p-1.5 rounded-lg bg-white dark:bg-[#160b2e] hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-purple-900/40 hover:border-purple-300 transition text-center group"
+                           :title="fav.label">
+                            <i :class="fav.icon + ' group-hover:scale-110 transition-transform text-xs mb-0.5'"></i>
+                            <span class="text-[9px] font-bold truncate w-full" x-text="fav.label"></span>
+                        </a>
+                    </template>
                 </div>
             </div>
 
@@ -1058,9 +1163,9 @@
                         <span class="w-5 h-5 rounded-md bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-shield-halved"></i></span>
                         <span>Algemeen & Info</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'algemeen' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('algemeen') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'algemeen'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'algemeen') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('algemeen')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'algemeen') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('news.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-newspaper w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Kliniek Nieuws</span>
@@ -1136,10 +1241,10 @@
                                 [{{ $character->gang->tag }}]
                             </span>
                         @endif
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bende' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bende') style="transform: rotate(180deg);" @endif></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('bende') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bende') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
-                <div x-show="openCategory === 'bende'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bende') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('bende')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bende') style="display: none;" @endif class="space-y-0.5 pl-1">
                     @if($character->gang)
                         <a href="{{ route('gangs.index', ['tab' => 'mijn_gang']) }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'mijn_gang') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
@@ -1222,10 +1327,10 @@
                         <span class="text-[8px] font-black uppercase text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-950/80 px-1.5 py-0.5 rounded border border-orange-300 dark:border-orange-800 tracking-wider">
                             HALLOWEEN
                         </span>
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'event' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'event') style="transform: rotate(180deg);" @endif></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('event') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'event') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
-                <div x-show="openCategory === 'event'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'event') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('event')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'event') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('halloween.quests') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*') ? 'nav-item-active bg-orange-500/10 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold border border-orange-500/30' : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-scroll w-4 text-center text-orange-500"></i>
@@ -1254,9 +1359,9 @@
                         <span class="w-5 h-5 rounded-md bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-chart-line"></i></span>
                         <span>Voortgang & Gezondheid</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('voortgang') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'voortgang'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('voortgang')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('battlepass.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battlepass.*') ? 'nav-item-active bg-amber-500/15 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-black border border-amber-500/40' : 'text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50/50 dark:hover:bg-amber-950/20' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 animate-pulse"></i>
@@ -1320,9 +1425,9 @@
                         <span class="w-5 h-5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-handcuffs"></i></span>
                         <span>Illegale Acties</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'misdaad' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('misdaad') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'misdaad'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'misdaad') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('misdaad')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'misdaad') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('hustle.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-hand-holding-dollar w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>Hosselen</span>
@@ -1368,9 +1473,9 @@
                         <span class="w-5 h-5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-gift"></i></span>
                         <span>Bonus & Kluizen</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'bonus' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('bonus') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'bonus'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bonus') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('bonus')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bonus') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('daily.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500 dark:text-amber-400"></i>
@@ -1418,10 +1523,10 @@
                         <span>Minigames & Specials</span>
                     </span>
                     <div class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'specials' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'specials') style="transform: rotate(180deg);" @endif></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('specials') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'specials') style="transform: rotate(180deg);" @endif></i>
                     </div>
                 </button>
-                <div x-show="openCategory === 'specials'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'specials') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('specials')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'specials') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('connect_four.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-chess-board w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
@@ -1458,9 +1563,9 @@
                         <span class="w-5 h-5 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-fire"></i></span>
                         <span>Geweld & Strijd</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'geweld' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('geweld') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'geweld'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'geweld') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('geweld')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'geweld') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('fight.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-skull w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Respectlijst</span>
@@ -1505,9 +1610,9 @@
                         <span class="w-5 h-5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-coins"></i></span>
                         <span>Economie & Gokken</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'economie' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('economie') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
                 </button>
-                <div x-show="openCategory === 'economie'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'economie') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('economie')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'economie') style="display: none;" @endif class="space-y-0.5 pl-1">
                     <a href="{{ route('bank.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-building-columns w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>De Bank</span>
@@ -1895,35 +2000,57 @@
                                 </span>
                             </div>
 
-                            <!-- Live Mini Status Bars -->
-                            <div class="px-4 py-2.5 bg-slate-50/70 dark:bg-purple-950/30 border-b border-slate-100 dark:border-purple-900/30 grid grid-cols-2 gap-3 text-[10px]">
-                                <!-- Energie -->
-                                <div class="space-y-1 min-w-0">
-                                    <div class="flex items-center justify-between font-bold gap-1">
-                                        <span class="text-emerald-600 dark:text-emerald-400 truncate flex items-center gap-1 font-black">
-                                            <i class="fa-solid fa-bolt text-[9px]"></i> Energie
-                                        </span>
-                                        <span class="font-mono text-slate-700 dark:text-slate-200 shrink-0 font-extrabold text-[10px]" x-text="stats.energy + '/' + stats.max_energy">
-                                            {{ $character->energy }}/{{ $character->max_energy }}
-                                        </span>
+                            <!-- Live Mini Status Bars & 1-Click Auto-Refill Buttons -->
+                            <div class="px-4 py-2.5 bg-slate-50/70 dark:bg-purple-950/30 border-b border-slate-100 dark:border-purple-900/30 space-y-2.5 text-[10px]">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <!-- Energie -->
+                                    <div class="space-y-1 min-w-0">
+                                        <div class="flex items-center justify-between font-bold gap-1">
+                                            <span class="text-emerald-600 dark:text-emerald-400 truncate flex items-center gap-1 font-black">
+                                                <i class="fa-solid fa-bolt text-[9px]"></i> Energie
+                                            </span>
+                                            <span class="font-mono text-slate-700 dark:text-slate-200 shrink-0 font-extrabold text-[10px]" x-text="stats.energy + '/' + stats.max_energy">
+                                                {{ $character->energy }}/{{ $character->max_energy }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                                            <div class="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                                        </div>
                                     </div>
-                                    <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
-                                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                                    <!-- Gezondheid -->
+                                    <div class="space-y-1 min-w-0">
+                                        <div class="flex items-center justify-between font-bold gap-1">
+                                            <span class="text-rose-600 dark:text-rose-400 truncate flex items-center gap-1 font-black">
+                                                <i class="fa-solid fa-heart text-[9px]"></i> Gezondheid
+                                            </span>
+                                            <span class="font-mono text-slate-700 dark:text-slate-200 shrink-0 font-extrabold text-[10px]" x-text="stats.health + '/' + stats.max_health">
+                                                {{ $character->health }}/{{ $character->max_health }}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                                            <div class="bg-rose-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- Gezondheid -->
-                                <div class="space-y-1 min-w-0">
-                                    <div class="flex items-center justify-between font-bold gap-1">
-                                        <span class="text-rose-600 dark:text-rose-400 truncate flex items-center gap-1 font-black">
-                                            <i class="fa-solid fa-heart text-[9px]"></i> Gezondheid
-                                        </span>
-                                        <span class="font-mono text-slate-700 dark:text-slate-200 shrink-0 font-extrabold text-[10px]" x-text="stats.health + '/' + stats.max_health">
-                                            {{ $character->health }}/{{ $character->max_health }}
-                                        </span>
-                                    </div>
-                                    <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
-                                        <div class="bg-rose-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
-                                    </div>
+
+                                <!-- 1-Click Auto-Refill from Inventory Row -->
+                                <div class="grid grid-cols-2 gap-2 pt-1">
+                                    <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                        @csrf
+                                        <input type="hidden" name="stat" value="energy">
+                                        <button type="submit" class="w-full py-1.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Eet automatisch genoeg snacks uit je voorraad tot 100% Energie">
+                                            <i class="fa-solid fa-bolt text-[9px]"></i>
+                                            <span>Vul Energie 100%</span>
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                        @csrf
+                                        <input type="hidden" name="stat" value="health">
+                                        <button type="submit" class="w-full py-1.5 px-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Gebruik automatisch genoeg items uit je voorraad tot 100% Gezondheid (HP)">
+                                            <i class="fa-solid fa-heart text-[9px]"></i>
+                                            <span>Vul HP 100%</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
 
@@ -2781,9 +2908,13 @@
                         <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 my-1.5 overflow-hidden">
                             <div class="bg-emerald-500 h-full rounded-full transition-all" :style="'width: ' + stats.energy_pct + '%'"></div>
                         </div>
-                        <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" class="w-full py-1 px-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-pills text-[9px]"></i> Booster Nemen
-                        </a>
+                        <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                            @csrf
+                            <input type="hidden" name="stat" value="energy">
+                            <button type="submit" class="w-full py-1 px-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-bolt text-[9px]"></i> Vul 100% Aan
+                            </button>
+                        </form>
                     </div>
 
                     <!-- Health -->
@@ -2795,9 +2926,13 @@
                         <div class="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 my-1.5 overflow-hidden">
                             <div class="bg-rose-500 h-full rounded-full transition-all" :style="'width: ' + stats.health_pct + '%'"></div>
                         </div>
-                        <a href="{{ route('infirmary.index') }}" class="w-full py-1 px-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-kit-medical text-[9px]"></i> Genezen
-                        </a>
+                        <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                            @csrf
+                            <input type="hidden" name="stat" value="health">
+                            <button type="submit" class="w-full py-1 px-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase tracking-wider transition active:scale-95 shadow-xs flex items-center justify-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-heart text-[9px]"></i> Vul 100% Aan
+                            </button>
+                        </form>
                     </div>
                 </div>
 

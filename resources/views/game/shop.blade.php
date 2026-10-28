@@ -828,33 +828,33 @@
                                     </span>
                                     @endif
                                     @if($item->strength_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+{{ $item->strength_bonus }} Kracht</span> <i class="fa-solid fa-dumbbell text-purple-500 text-[9px]"></i>
+                                    <span class="px-2 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Kracht: Verhoogt jouw schade op de Luchtplaats, bij Armpjedrukken en kogel-impact bij Liquidaties">
+                                        <span>+{{ $item->strength_bonus }} Kracht</span> <i class="fa-solid fa-circle-info text-purple-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->defense_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+{{ $item->defense_bonus }} Verdediging</span> <i class="fa-solid fa-shield text-blue-500 text-[9px]"></i>
+                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Verdediging: Vermindert schade die je oploopt bij gevechten en maakt je moeilijker te liquideren">
+                                        <span>+{{ $item->defense_bonus }} Verdediging</span> <i class="fa-solid fa-circle-info text-blue-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->stamina_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+{{ $item->stamina_bonus }} Conditie</span> <i class="fa-solid fa-person-running text-amber-500 text-[9px]"></i>
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Conditie: Verhoogt je slagingskans bij fysieke diefstallen, klusjes en cel-ontsnappingen">
+                                        <span>+{{ $item->stamina_bonus }} Conditie</span> <i class="fa-solid fa-circle-info text-amber-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if($item->intelligence_bonus > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+{{ $item->intelligence_bonus }} Kennis</span> <i class="fa-solid fa-brain text-indigo-500 text-[9px]"></i>
+                                    <span class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Intelligentie: Verhoogt je slagingskans bij complexe misdaden, smokkel en kluiskraken">
+                                        <span>+{{ $item->intelligence_bonus }} Intelligentie</span> <i class="fa-solid fa-circle-info text-indigo-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if(($item->charisma_bonus ?? 0) > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1" title="Biedt extra winkelkorting en sociale voordelen">
-                                        <span>+{{ $item->charisma_bonus }} Charisma</span> <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-[9px]"></i>
+                                    <span class="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Charisma: Geeft tot 15% korting in de Kliniek Shop en verhoogt je hossel- en afperswinst">
+                                        <span>+{{ $item->charisma_bonus }} Charisma</span> <i class="fa-solid fa-circle-info text-amber-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                     @if(($item->discipline_bonus ?? 0) > 0)
-                                    <span class="px-2 py-0.5 rounded-md bg-cyan-50 border border-cyan-200 text-cyan-700 text-[10px] font-bold inline-flex items-center gap-1">
-                                        <span>+{{ $item->discipline_bonus }} Discipline</span> <i class="fa-solid fa-shield-halved text-cyan-500 text-[9px]"></i>
+                                    <span class="px-2 py-0.5 rounded-md bg-cyan-50 border border-cyan-200 text-cyan-700 text-[10px] font-bold inline-flex items-center gap-1 cursor-help" title="Discipline: Zorgt voor hogere slagingskans bij behandelaarsgesprekken, verlof en gevechtsfocus">
+                                        <span>+{{ $item->discipline_bonus }} Discipline</span> <i class="fa-solid fa-circle-info text-cyan-500 text-[9px]"></i>
                                     </span>
                                     @endif
                                 </div>

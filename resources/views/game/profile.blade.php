@@ -596,53 +596,62 @@
         @endif
 
         <!-- Attributen & Stats -->
-        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Statistieken & Vaardigheden</h3>
+        @php
+            $statCatalog = \App\Models\Character::statDescriptionsCatalog();
+        @endphp
+        <div class="bg-white rounded-xl shadow-xs border border-slate-200/80 p-6" x-data="{ openStatInfo: null }">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Statistieken &amp; Vaardigheden</h3>
+                <span class="text-[10px] font-bold text-slate-400">Klik op <i class="fa-solid fa-circle-info text-purple-500"></i> voor uitleg</span>
+            </div>
             
-            <div class="space-y-3">
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
-                        <i class="fa-solid fa-hand-fist text-rose-500 w-4"></i> Kracht
-                    </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->strength }}</span>
+            <div class="space-y-2.5">
+                @php
+                    $profileStatsList = [
+                        ['key' => 'strength', 'label' => 'Kracht', 'icon' => 'fa-hand-fist text-rose-500', 'base' => $profileCharacter->strength, 'eff' => $profileCharacter->getEffectiveStrength()],
+                        ['key' => 'defense', 'label' => 'Verdediging', 'icon' => 'fa-shield-halved text-indigo-500', 'base' => $profileCharacter->defense, 'eff' => $profileCharacter->getEffectiveDefense()],
+                        ['key' => 'stamina', 'label' => 'Conditie / Stamina', 'icon' => 'fa-bolt text-emerald-500', 'base' => $profileCharacter->stamina, 'eff' => $profileCharacter->getEffectiveStamina()],
+                        ['key' => 'intelligence', 'label' => 'Intelligentie', 'icon' => 'fa-brain text-purple-500', 'base' => $profileCharacter->intelligence ?? 10, 'eff' => $profileCharacter->getEffectiveIntelligence()],
+                        ['key' => 'charisma', 'label' => 'Charisma', 'icon' => 'fa-face-smile-wink text-amber-500', 'base' => $profileCharacter->charisma ?? 10, 'eff' => $profileCharacter->getEffectiveCharisma()],
+                        ['key' => 'discipline', 'label' => 'Discipline', 'icon' => 'fa-scale-balanced text-sky-500', 'base' => $profileCharacter->discipline ?? 10, 'eff' => $profileCharacter->getEffectiveDiscipline()],
+                    ];
+                @endphp
+
+                @foreach($profileStatsList as $sRow)
+                @php
+                    $sDesc = $statCatalog[$sRow['key']] ?? ['short' => '', 'detail' => ''];
+                    $bonus = max(0, (int) $sRow['eff'] - (int) $sRow['base']);
+                @endphp
+                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                    <div class="flex justify-between items-center text-xs">
+                        <button type="button"
+                                @click="openStatInfo = (openStatInfo === '{{ $sRow['key'] }}' ? null : '{{ $sRow['key'] }}')"
+                                title="{{ $sDesc['detail'] }}"
+                                class="font-bold text-slate-700 flex items-center gap-2 cursor-pointer text-left group">
+                            <i class="fa-solid {{ $sRow['icon'] }} w-4"></i>
+                            <span>{{ $sRow['label'] }}</span>
+                            <i class="fa-solid fa-circle-info text-slate-400 group-hover:text-purple-600 transition text-[11px]"></i>
+                        </button>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-extrabold text-slate-900">{{ $sRow['eff'] }}</span>
+                            @if($bonus > 0)
+                                <span class="text-[10px] font-bold text-emerald-600" title="Basis: {{ $sRow['base'] }} + {{ $bonus }} uitrusting">(+{{ $bonus }})</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div x-show="openStatInfo === '{{ $sRow['key'] }}'" x-cloak class="mt-2 pt-2 border-t border-slate-200/80 text-[11px] text-slate-500 leading-relaxed">
+                        {{ $sDesc['detail'] }}
+                    </div>
                 </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
-                        <i class="fa-solid fa-shield-halved text-indigo-500 w-4"></i> Verdediging
-                    </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->defense }}</span>
-                </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
-                        <i class="fa-solid fa-bolt text-emerald-500 w-4"></i> Conditie / Stamina
-                    </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->stamina }}</span>
-                </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
-                        <i class="fa-solid fa-brain text-purple-500 w-4"></i> Intelligentie
-                    </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->intelligence ?? 10 }}</span>
-                </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
-                        <i class="fa-solid fa-face-smile-wink text-amber-500 w-4"></i> Charisma
-                    </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->charisma ?? 10 }}</span>
-                </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
-                    <span class="font-bold text-slate-600 flex items-center gap-2.5">
-                        <i class="fa-solid fa-scale-balanced text-sky-500 w-4"></i> Discipline
-                    </span>
-                    <span class="font-extrabold text-slate-900">{{ $profileCharacter->discipline ?? 10 }}</span>
-                </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+                @endforeach
+
+                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <span class="font-bold text-slate-600 flex items-center gap-2.5">
                         <i class="fa-solid fa-bullseye text-orange-500 w-4"></i> Voltooide Missies
                     </span>
                     <span class="font-extrabold text-slate-900">{{ $profileCharacter->missions_completed }}</span>
                 </div>
-                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg">
+                <div class="flex justify-between items-center text-xs p-2.5 bg-slate-50 rounded-lg border border-slate-100">
                     <span class="font-bold text-slate-600 flex items-center gap-2.5">
                         <i class="fa-solid fa-trophy text-amber-500 w-4"></i> Gevechten Gewonnen / Verloren
                     </span>

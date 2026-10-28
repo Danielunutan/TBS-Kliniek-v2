@@ -202,9 +202,9 @@ class MissionService
         };
 
         // Lowered base chance for real gameplay suspense + Stat bonus from character & gear
-        $baseChance = ($mission->success_rate >= 100) ? 100 : min(65, (int) round($mission->success_rate * 0.75));
-        $bonus = (int) floor(($primaryVal * 1.5 + $secondaryVal) / 15);
-        $totalChance = ($mission->success_rate >= 100) ? 100 : min(85, max(20, $baseChance + $bonus));
+        $baseChance = ($mission->success_rate >= 100) ? 100 : min(72, (int) round($mission->success_rate * 0.80));
+        $bonus = (int) floor(($primaryVal * 1.5 + $secondaryVal) / 14);
+        $totalChance = ($mission->success_rate >= 100) ? 100 : min(90, max(35, $baseChance + $bonus));
 
         $roll = random_int(1, 100);
         $isSuccess = $roll <= $totalChance;
@@ -278,7 +278,7 @@ class MissionService
         }
 
         // On arrest: Discipline reduces jail time
-        $failMsg = $mission->fail_message ?: 'Missie mislukt! Ondanks je poging liep de afhandeling door onvoorziene patrouilles in het honderd.';
+        $failMsg = 'Je tactische antwoord klopte, maar tijdens de uitvoering liep je tegen een onverwachte controle aan (slagingskans was '.$totalChance.'% — train je eigenschappen voor hogere kans).';
         $jailReduction = min(60, (int) floor($character->getEffectiveDiscipline() / 5));
         $jailSeconds = max(45, random_int(60, 180) - $jailReduction);
         $this->prisonService->jailSeconds($character, $jailSeconds, "Mislukte criminele missie: {$mission->title}");

@@ -3164,20 +3164,73 @@ class Character extends Model
     }
 
     /**
-     * Count currently occupied standard storage places (items quantity + masks, excluding unlimited event varia items).
+     * Count currently occupied standard storage places (excluding masks and unlimited event varia items).
      */
     public function getStorageUsed(): int
     {
-        $itemsTotal = (int) CharacterItem::where('character_id', $this->id)
+        return (int) CharacterItem::where('character_id', $this->id)
             ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'not like', 'halloween_%')
+                    ->where('slug', '!=', 'bivakmuts-masker')
                     ->whereNotIn('category', ['special', 'collectible']);
             })
             ->sum('quantity');
-        $masks = (int) ($this->masks ?? 0);
+    }
 
-        return $itemsTotal + $masks;
+    /**
+     * Check if character has unlocked the 1-Click Max Energy/HP Auto-Refill module (free for VIP or 50 Stars permanent unlock).
+     */
+    public function hasAutoRefillPerk(): bool
+    {
+        return $this->isVip() || $this->hasPerk('auto_refill_module');
+    }
+
+    /**
+     * Detailed descriptions of what each character stat does in TBS Kliniek.
+     *
+     * @return array<string, array{label: string, icon: string, short: string, detail: string}>
+     */
+    public static function statDescriptionsCatalog(): array
+    {
+        return [
+            'strength' => [
+                'label' => 'Kracht',
+                'icon' => 'fa-solid fa-dumbbell',
+                'short' => 'Schade in gevechten, Armpjedrukken & Liquidatie-vuurkracht',
+                'detail' => 'Verhoogt jouw aanvalskracht op de Luchtplaats, je kracht in de Armpjedruk Arena en je kogel-impact bij Liquidaties.',
+            ],
+            'defense' => [
+                'label' => 'Verdediging',
+                'icon' => 'fa-solid fa-shield-halved',
+                'short' => 'Weerstand tegen gevechten, overvallen & kogels',
+                'detail' => 'Vermindert schade die je oploopt bij aanvallen op de Luchtplaats en maakt het moeilijker voor vijanden om door je pantser te schieten.',
+            ],
+            'stamina' => [
+                'label' => 'Conditie',
+                'icon' => 'fa-solid fa-heart-pulse',
+                'short' => 'Uithoudingsvermogen bij fysieke klusjes, diefstal & ontsnappingen',
+                'detail' => 'Verhoogt je kans om te slagen bij fysieke diefstallen, cel-ontsnappingen en langdurige gevechten.',
+            ],
+            'intelligence' => [
+                'label' => 'Intelligentie',
+                'icon' => 'fa-solid fa-brain',
+                'short' => 'Hogere slagingskans bij misdaden, smokkel & kluiskraken',
+                'detail' => 'Verhoogt je slagingskans bij ingewikkelde diefstallen, smokkelroutes en kluiskraken, en verlaagt de kans om betrapt te worden.',
+            ],
+            'charisma' => [
+                'label' => 'Charisma',
+                'icon' => 'fa-solid fa-comments-dollar',
+                'short' => 'Tot 15% korting in de Kliniek Shop + hogere hossel-opbrengst',
+                'detail' => 'Geeft 1% korting op alle aankopen in de Kliniek Shop per 10 Charisma (tot 15% korting) en verhoogt je winst bij hosselen en afpersen.',
+            ],
+            'discipline' => [
+                'label' => 'Discipline',
+                'icon' => 'fa-solid fa-scale-balanced',
+                'short' => 'Betere kans bij behandelaarsgesprekken, verlof & gevechtsfocus',
+                'detail' => 'Zorgt voor hogere slagingskansen bij behandelaarsgesprekken, verlof-acties en geeft mentale stabiliteit tijdens gevechten.',
+            ],
+        ];
     }
 
     /**

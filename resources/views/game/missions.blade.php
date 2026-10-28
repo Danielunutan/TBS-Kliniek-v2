@@ -226,6 +226,25 @@
                     </div>
                     @endif
 
+                    @php
+                        $mPrimary = match ($m->category) {
+                            'gevecht', 'intimidatie', 'kracht' => $character->getEffectiveStrength(),
+                            'smokkel', 'vluchten' => $character->getEffectiveStamina(),
+                            'inbraak', 'tactisch', 'hack', 'ontsnapping' => $character->getEffectiveIntelligence(),
+                            'kantine', 'sociaal', 'afpersing', 'bende' => $character->getEffectiveCharisma(),
+                            default => $character->getEffectiveDiscipline(),
+                        };
+                        $mSecondary = match ($m->category) {
+                            'gevecht', 'intimidatie', 'kracht' => $character->getEffectiveDefense(),
+                            'smokkel', 'vluchten' => $character->getEffectiveCharisma(),
+                            'inbraak', 'tactisch', 'hack', 'ontsnapping' => $character->getEffectiveDiscipline(),
+                            'kantine', 'sociaal', 'afpersing', 'bende' => $character->getEffectiveIntelligence(),
+                            default => $character->getEffectiveStamina(),
+                        };
+                        $mBaseChance = ($m->success_rate >= 100) ? 100 : min(72, (int) round($m->success_rate * 0.80));
+                        $mBonus = (int) floor(($mPrimary * 1.5 + $mSecondary) / 14);
+                        $mSuccessChance = ($m->success_rate >= 100) ? 100 : min(90, max(35, $mBaseChance + $mBonus));
+                    @endphp
                     <!-- Reward Chips Row -->
                     <div class="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] font-bold">
                         <span class="flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2 py-0.5 rounded-md text-[10px]" title="Wit geld op bankrekening">
@@ -243,6 +262,10 @@
                         <span class="flex items-center gap-1 bg-purple-50 text-purple-800 border border-purple-200/80 px-2 py-0.5 rounded-md text-[10px]">
                             <i class="fa-solid fa-fire text-[9px] text-purple-600"></i>
                             +{{ $m->respect_reward }} Resp
+                        </span>
+                        <span class="flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200/80 px-2 py-0.5 rounded-md text-[10px]" title="Jouw uitvoeringskans bij het juiste antwoord (hogere stats verhogen deze kans)">
+                            <i class="fa-solid fa-dice text-[9px] text-amber-600"></i>
+                            {{ $mSuccessChance }}% Slagingskans
                         </span>
                     </div>
                 </div>
@@ -268,7 +291,10 @@
 
                             @if($scenario)
                             <div class="space-y-1">
-                                <span class="text-[9px] font-black uppercase text-purple-900 block tracking-wider">Kies tactische actie:</span>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[9px] font-black uppercase text-purple-900 dark:text-purple-300 block tracking-wider">Kies tactische actie:</span>
+                                    <span class="text-[9px] font-bold text-slate-400 dark:text-slate-500">Juist antwoord + {{ $mSuccessChance }}% kansrol</span>
+                                </div>
                                 <div class="grid grid-cols-1 gap-1">
                                     @foreach($scenario['choices'] as $optKey => $optText)
                                     <label class="flex items-start gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-600 hover:bg-purple-50/50 dark:hover:bg-purple-950/40 has-[:checked]:border-purple-600 dark:has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50/80 dark:has-[:checked]:bg-purple-950/60 cursor-pointer text-[11px] font-medium text-slate-800 dark:text-slate-200 transition">
