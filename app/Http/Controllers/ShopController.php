@@ -1044,7 +1044,21 @@ class ShopController extends Controller
                         : 'Je Energie en Gezondheid zitten allebei al op 100%!');
 
                 if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => $msg], 422);
+                    return response()->json([
+                        'success' => false,
+                        'already_full' => true,
+                        'message' => $msg,
+                        'energy' => $lockedCharacter->energy,
+                        'max_energy' => $lockedCharacter->max_energy,
+                        'health' => $lockedCharacter->health,
+                        'max_health' => $lockedCharacter->max_health,
+                        'character' => [
+                            'energy' => $lockedCharacter->energy,
+                            'max_energy' => $lockedCharacter->max_energy,
+                            'health' => $lockedCharacter->health,
+                            'max_health' => $lockedCharacter->max_health,
+                        ],
+                    ], 200);
                 }
 
                 return back()->with('info', $msg);
@@ -1070,7 +1084,20 @@ class ShopController extends Controller
             if ($items->isEmpty()) {
                 $msg = 'Geen geschikte snacks of herstel-items gevonden in je rugzak! Haal voorraad in de Kantine & Winkel.';
                 if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json(['success' => false, 'message' => $msg], 422);
+                    return response()->json([
+                        'success' => false,
+                        'message' => $msg,
+                        'energy' => $lockedCharacter->energy,
+                        'max_energy' => $lockedCharacter->max_energy,
+                        'health' => $lockedCharacter->health,
+                        'max_health' => $lockedCharacter->max_health,
+                        'character' => [
+                            'energy' => $lockedCharacter->energy,
+                            'max_energy' => $lockedCharacter->max_energy,
+                            'health' => $lockedCharacter->health,
+                            'max_health' => $lockedCharacter->max_health,
+                        ],
+                    ], 422);
                 }
 
                 return back()->with('error', $msg);
@@ -1187,6 +1214,12 @@ class ShopController extends Controller
                     'health' => $lockedCharacter->health,
                     'max_health' => $lockedCharacter->max_health,
                     'reload_dropdown' => true,
+                    'character' => [
+                        'energy' => $lockedCharacter->energy,
+                        'max_energy' => $lockedCharacter->max_energy,
+                        'health' => $lockedCharacter->health,
+                        'max_health' => $lockedCharacter->max_health,
+                    ],
                 ]);
             }
 

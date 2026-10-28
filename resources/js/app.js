@@ -158,7 +158,7 @@ if (!window.tbsFormInterceptorInitialized) {
 
     document.addEventListener('submit', async function(e) {
         const form = e.target;
-        if (!form || form.tagName !== 'FORM') return;
+        if (!form || form.tagName !== 'FORM' || e.defaultPrevented) return;
 
         // Strict guard: ONLY intercept explicit Laravel POST action forms
         const actionAttr = form.getAttribute('action') || '';
@@ -168,9 +168,12 @@ if (!window.tbsFormInterceptorInitialized) {
         if (!actionAttr ||
             methodAttr !== 'post' ||
             !hasCsrf ||
+            e.defaultPrevented ||
             form.hasAttribute('@submit.prevent') ||
             form.hasAttribute('x-on:submit.prevent') ||
             form.hasAttribute('data-no-async') ||
+            (form.hasAttribute('onsubmit') && form.getAttribute('onsubmit').includes('tbsQuickConsume')) ||
+            form.dataset.tbsConsuming === 'true' ||
             window.location.pathname.startsWith('/chat') ||
             actionAttr.includes('/chat') ||
             actionAttr.includes('/logout') ||

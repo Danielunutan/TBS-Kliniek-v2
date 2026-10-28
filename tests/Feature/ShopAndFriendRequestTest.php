@@ -350,4 +350,69 @@ class ShopAndFriendRequestTest extends TestCase
         $char->refresh();
         $this->assertEquals(11, $char->strength);
     }
+
+    public function test_auto_refill_refills_energy_and_returns_full_stats(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'energy' => 0,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+        ]);
+
+        $item = Item::firstOrCreate(
+            ['slug' => 'chocoladereep'],
+            [
+                'name' => 'Chocoladereep',
+                'description' => 'Lekkere chocoladereep voor snelle energie.',
+                'category' => 'consumable',
+                'price_kc' => 10,
+                'is_buyable' => true,
+                'energy_restore' => 25,
+                'health_restore' => 0,
+            ]
+        );
+
+        CharacterItem::updateOrCreate(
+            ['character_id' => $char->id, 'item_id' => $item->id],
+            ['quantity' => 10]
+        );
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('shop.auto-refill'), ['stat' => 'energy']);
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'reload_dropdown' => true,
+        ]);
+
+        $char->refresh();
+        $this->assertEquals(100, $char->energy);
+    }
+
+    public function test_auto_refill_when_already_full_returns_200_with_stats(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'energy' => 100,
+            'max_energy' => 100,
+            'health' => 100,
+            'max_health' => 100,
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson(route('shop.auto-refill'), ['stat' => 'energy']);
+        $response->assertOk();
+        $response->assertJson([
+            'success' => false,
+            'already_full' => true,
+            'energy' => 100,
+            'max_energy' => 100,
+        ]);
+    }
 }

@@ -765,9 +765,23 @@
         };
 
         window.tbsQuickConsume = async function(event, form) {
-            event.preventDefault();
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (typeof event.stopImmediatePropagation === 'function') {
+                    event.stopImmediatePropagation();
+                }
+            }
+
+            if (!form || form.dataset.tbsConsuming === 'true') {
+                return false;
+            }
+            form.dataset.tbsConsuming = 'true';
+
             const itemRow = form.closest('[data-quick-item-id]');
-            const rowButtons = itemRow ? itemRow.querySelectorAll('button') : [];
+            const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+            const rowButtons = itemRow ? itemRow.querySelectorAll('button') : (submitBtn ? [submitBtn] : []);
+
             rowButtons.forEach(b => {
                 b.disabled = true;
                 b.classList.add('opacity-50', 'pointer-events-none');
@@ -787,28 +801,31 @@
                     }
                 });
                 const data = await res.json();
-                if (data.success) {
-                    // 1. Instantly apply realtime stats to Alpine stats tracker (Health & Energy & Bars)
-                    if (typeof window.tbsApplyStats === 'function') {
-                        window.tbsApplyStats({
-                            energy: data.energy,
-                            max_energy: data.max_energy,
-                            health: data.health,
-                            max_health: data.max_health
-                        });
-                    }
 
+                // 1. Instantly apply realtime stats if returned in response (even if already_full)
+                const statPayload = data.character || (data.energy !== undefined ? data : null);
+                if (statPayload && typeof window.tbsApplyStats === 'function') {
+                    window.tbsApplyStats(statPayload);
+                }
+
+                if (data.success) {
                     // 2. Show toast
                     if (typeof window.tbsToast === 'function') {
                         window.tbsToast(data.message, 'success');
                     }
 
-                    // 3. Update or remove item row from dropdown
-                    if (itemRow) {
+                    // 3. Dropdown reload or row update
+                    if (data.reload_dropdown) {
+                        setTimeout(() => {
+                            if (typeof window.tbsReloadPage === 'function') {
+                                window.tbsReloadPage();
+                            } else {
+                                window.location.reload();
+                            }
+                        }, 550);
+                    } else if (itemRow) {
                         const qtyBadge = itemRow.querySelector('[data-item-qty]');
-                        if (data.reload_dropdown) {
-                            setTimeout(() => window.tbsReloadPage(), 550);
-                        } else if (data.remaining_quantity > 0) {
+                        if (data.remaining_quantity > 0) {
                             if (qtyBadge) qtyBadge.textContent = 'x' + data.remaining_quantity;
                             rowButtons.forEach(b => {
                                 b.disabled = false;
@@ -859,9 +876,11 @@
                         setTimeout(() => window.tbsRefreshStats(true), 400);
                     }
                 } else {
+                    const toastType = data.already_full ? 'info' : 'error';
                     if (typeof window.tbsToast === 'function') {
-                        window.tbsToast(data.message || 'Kon item niet consumeren', 'error');
+                        window.tbsToast(data.message || 'Kon item niet consumeren', toastType);
                     }
+
                     if (itemRow && (data.already_consumed || (data.message && data.message.includes('niet meer aanwezig')))) {
                         itemRow.remove();
                         const list = document.querySelector('#quick-eat-items-list');
@@ -890,6 +909,8 @@
                     b.disabled = false;
                     b.classList.remove('opacity-50', 'pointer-events-none');
                 });
+            } finally {
+                form.dataset.tbsConsuming = 'false';
             }
         };
 
@@ -2065,7 +2086,7 @@
 
                                 <!-- 1-Click Auto-Refill from Inventory Row -->
                                 <div class="grid grid-cols-2 gap-2 pt-1">
-                                    <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                    <form action="{{ route('shop.auto-refill') }}" method="POST" data-no-async="true" onsubmit="window.tbsQuickConsume(event, this)">
                                         @csrf
                                         <input type="hidden" name="stat" value="energy">
                                         <button type="submit" class="w-full py-1.5 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Eet automatisch genoeg snacks uit je voorraad tot 100% Energie">
@@ -2073,7 +2094,7 @@
                                             <span>Vul Energie 100%</span>
                                         </button>
                                     </form>
-                                    <form action="{{ route('shop.auto-refill') }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                    <form action="{{ route('shop.auto-refill') }}" method="POST" data-no-async="true" onsubmit="window.tbsQuickConsume(event, this)">
                                         @csrf
                                         <input type="hidden" name="stat" value="health">
                                         <button type="submit" class="w-full py-1.5 px-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-[10px] shadow-2xs transition cursor-pointer flex items-center justify-center gap-1.5" title="Gebruik automatisch genoeg items uit je voorraad tot 100% Gezondheid (HP)">
