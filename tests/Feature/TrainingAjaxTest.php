@@ -121,4 +121,32 @@ class TrainingAjaxTest extends TestCase
         $character->refresh();
         $this->assertEquals(10, $character->strength);
     }
+
+    public function test_combat_training_allows_training_even_at_stat_cap_and_awards_xp(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'level' => 1,
+            'cash' => 5000,
+            'energy' => 100,
+            'strength' => 65, // Cap for level 1 (50 + 1 * 15 = 65)
+            'perks' => ['cold_blooded_pct' => 100],
+        ]);
+
+        $this->assertTrue($character->strength >= $character->getMaxStatForLevel());
+
+        $response = $this->actingAs($user)
+            ->post(route('combat_training.train'), [
+                'session_id' => 1, // Schaduwboksen (strength)
+            ]);
+
+        $response->assertSessionHas('success');
+        $this->assertStringContainsString('Training voltooid', session('success'));
+
+        $character->refresh();
+        $this->assertEquals(65, $character->strength); // Does not exceed cap
+        $this->assertEquals(40, $character->xp); // XP awarded
+        $this->assertEquals(90, $character->energy); // Energy consumed
+        $this->assertEquals(5000 - 150, $character->cash); // Cost deducted
+    }
 }

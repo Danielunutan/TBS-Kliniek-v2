@@ -432,35 +432,35 @@
 
                         <div class="shrink-0">
                             <span x-show="selectedTargetSameWing" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold border border-emerald-200 dark:border-emerald-800/60">
-                                <i class="fa-solid fa-check-circle"></i> In dezelfde ruimte ({{ $currentWing }}) — Klaar om te vuren!
+                                <i class="fa-solid fa-check-circle"></i> In dezelfde ruimte ({{ $currentWing }}) — +25% Sluipaanval-bonus actief!
                             </span>
                             <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-extrabold border border-amber-200 dark:border-amber-800/60">
-                                <i class="fa-solid fa-location-dot"></i> Doelwit staat op: <span x-text="selectedTargetRevealedWing"></span>
+                                <i class="fa-solid fa-location-dot"></i> Op <span x-text="selectedTargetRevealedWing"></span> — Afstandsschot mogelijk (Reis voor +25% bonus)
                             </span>
-                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 text-xs font-extrabold border border-rose-200 dark:border-rose-800/60">
-                                <i class="fa-solid fa-user-secret"></i> Niet op {{ $currentWing }} — Start 15m Schaduw-Inlichtingen!
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 text-xs font-extrabold border border-indigo-200 dark:border-indigo-800/60">
+                                <i class="fa-solid fa-crosshairs"></i> Schot op afstand mogelijk — Start Schaduwing voor locatie &amp; bonus!
                             </span>
                         </div>
                     </div>
 
                     <!-- Helper action if not in same wing -->
                     <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="pt-2.5 border-t border-slate-200 dark:border-purple-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Reis direct naar de vleugel van het doelwit om te kunnen vuren:</span>
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Wil je de <strong>+25% Sluipaanval-bonus</strong>? Reis direct naar dezelfde vleugel:</span>
                         <form action="{{ route('hitman.quick_travel') }}" method="POST" class="shrink-0">
                             @csrf
                             <input type="hidden" name="destination" :value="selectedTargetRevealedWing">
                             <button type="submit" class="w-full sm:w-auto py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-person-running"></i>
-                                <span>Reis naar <span x-text="selectedTargetRevealedWing"></span> (€{{ number_format($travelCost, 0, ',', '.') }})</span>
+                                <span>Reis direct naar <span x-text="selectedTargetRevealedWing"></span> (€{{ number_format($travelCost, 0, ',', '.') }})</span>
                             </button>
                         </form>
                     </div>
 
                     <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="pt-2.5 border-t border-slate-200 dark:border-purple-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Weet je niet in welke ruimte dit doelwit zit?</span>
+                        <span class="text-xs text-slate-600 dark:text-slate-300 font-medium">Je kunt direct op afstand vuren, of schaduwen om zijn afdeling te vinden (+25% bonus):</span>
                         <form action="{{ route('hitman.intel') }}" method="POST" class="shrink-0">
                             @csrf
-                            <input type="hidden" name="target_id" :value="selectedTargetId">
+                            <input type="hidden" name="target_id" :value="selectedTargetId" value="{{ $initialTarget?->id ?? '' }}">
                             <input type="hidden" name="intel_type" value="standard_15m">
                             <input type="hidden" name="currency" value="cash">
                             <button type="submit" class="w-full sm:w-auto py-2 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-purple-700 dark:hover:bg-purple-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
@@ -474,8 +474,8 @@
                 <!-- Shooting Form -->
                 <form action="{{ route('hitman.shoot') }}" method="POST" class="space-y-4 pt-2 border-t border-slate-100 dark:border-purple-900/40">
                     @csrf
-                    <input type="hidden" name="target_id" :value="selectedTargetId">
-                    <input type="hidden" name="target_name" :value="selectedTargetName">
+                    <input type="hidden" name="target_id" :value="selectedTargetId" value="{{ $initialTarget?->id ?? '' }}">
+                    <input type="hidden" name="target_name" :value="selectedTargetName" value="{{ $initialTarget?->name ?? '' }}">
 
                     @if($canOneTap)
                     <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -499,12 +499,12 @@
                                 <i class="fa-solid fa-lock text-slate-500 dark:text-slate-400"></i> 1-Patroon Genadeschot Vereiste
                             </span>
                             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                                Vereist <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25+</strong> (nu Graad {{ $gradeInfo['grade'] }}) én <strong class="text-slate-800 dark:text-slate-200">minimaal 30% Koudbloedigheid</strong> (nu {{ $coldBloodedPct }}%). Jouw huidige minimum salvo is <strong class="text-slate-800 dark:text-slate-200">{{ number_format($minBullets, 0, ',', '.') }} patronen</strong>.
+                                Vereist <strong class="text-slate-800 dark:text-slate-200">Dossier-Graad 25+</strong> (nu Graad {{ $gradeInfo['grade'] }}) én <strong class="text-slate-800 dark:text-slate-200">minimaal 30% Koudbloedigheid</strong> (nu {{ $coldBloodedPct }}%). Minimaal <strong>10 patronen</strong> per salvo; voor jouw graad is een salvo van <strong class="text-slate-800 dark:text-slate-200">{{ number_format($minBullets, 0, ',', '.') }} patronen</strong> aanbevolen (+20% Barrage Bonus).
                             </p>
                         </div>
                         <button type="button" @click="bulletAmount = {{ $minBullets }}"
                                 class="py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-purple-900/60 dark:hover:bg-purple-800 text-slate-800 dark:text-purple-200 text-xs font-black transition cursor-pointer shrink-0 whitespace-nowrap">
-                            Min. Salvo ({{ $minBullets }})
+                            Aanbevolen ({{ $minBullets }})
                         </button>
                     </div>
                     @endif
@@ -512,7 +512,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                         <div class="sm:col-span-5 space-y-1">
                             <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-300">Aantal Patronen Vuren</label>
-                            <input type="number" name="bullets" x-model.number="bulletAmount" min="1" max="10000"
+                            <input type="number" name="bullets" x-model.number="bulletAmount" value="{{ $canOneTap ? 1 : $minBullets }}" min="1" max="10000"
                                    class="w-full p-3 bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 rounded-xl text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500">
                         </div>
 
@@ -520,7 +520,9 @@
                             <button type="submit"
                                     class="w-full py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
                                 <i class="fa-solid fa-crosshairs"></i>
-                                <span x-text="bulletAmount === 1 ? 'Voer 1-Patroon Genadeschot Uit' : 'Vuur Salvo (' + bulletAmount + ' Patronen)'"></span>
+                                <span x-text="bulletAmount === 1 ? 'Voer 1-Patroon Genadeschot Uit' : 'Vuur Salvo (' + bulletAmount + ' Patronen)'">
+                                    Vuur Salvo ({{ $canOneTap ? 1 : $minBullets }} Patronen)
+                                </span>
                             </button>
                         </div>
                     </div>

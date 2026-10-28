@@ -121,13 +121,13 @@ class LiquidatiePvPAndComaTest extends TestCase
 
         $this->actingAs($user);
 
-        // 1. Shooting while in a different clinic wing must be blocked
+        // 1. Salvo with too few bullets (< 10) is rejected
         $wrongWingResp = $this->post(route('hitman.shoot'), [
             'target_id' => $target->id,
-            'bullets' => 1,
+            'bullets' => 5,
         ]);
         $wrongWingResp->assertSessionHas('error');
-        $this->assertStringContainsString('DOELWIT NIET IN DEZE RUIMTE', session('error'));
+        $this->assertStringContainsString('Een salvo vereist minimaal 10 patronen', session('error'));
 
         // 2. Start 15-minute Shadow Intel operation (€350.000)
         $intelResp = $this->post(route('hitman.intel'), [

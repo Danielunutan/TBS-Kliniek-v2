@@ -659,35 +659,29 @@ class HitmanController extends Controller
             return back()->with('error', "{$defender->name} heeft momenteel een actief Medisch Infuus-Schild of Isolatiebescherming en kan even niet worden beschoten.");
         }
 
-        // Check Same Clinic Wing requirement
+        // Clinic Wing / Location status
         $attackerWing = $attacker->current_location ?? 'Paviljoen 1 (Gesloten)';
         $defenderWing = $defender->current_location ?? 'Paviljoen 1 (Gesloten)';
-
-        if ($attackerWing !== $defenderWing) {
-            $intel = $attacker->getIntelForTarget($defender->id);
-            if ($intel && $intel['is_ready']) {
-                return back()->with('error', "📍 VERKEERDE AFDELING! Jij staat op {$attackerWing}, maar uit je Schaduw-Inlichtingen blijkt dat {$defender->name} zich op {$defenderWing} bevindt! Gebruik de 'Reis direct naar {$defenderWing}' knop om in dezelfde ruimte te komen.");
-            }
-
-            return back()->with('error', "📍 DOELWIT NIET IN DEZE RUIMTE! {$defender->name} bevindt zich niet op {$attackerWing}. Start eerst een 15-minuten Schaduw-Inlichtingen operatie om te achterhalen in welke kliniek-vleugel het doelwit rondloopt!");
-        }
+        $isSameWing = ($attackerWing === $defenderWing);
 
         // Validate Dossier Grade & Koudbloedigheid bullet requirements
         $bulletCount = (int) $validated['bullets'];
         $gradeInfo = $attacker->getSyndicateGradeInfo();
         $coldBloodedPct = $attacker->getColdBloodedPct();
-        $minRequired = $attacker->getMinimumBulletsRequired();
+        $isOneTap = ($bulletCount === 1 && $attacker->canOneTapExecute());
 
-        if ($bulletCount < $minRequired) {
-            if ($bulletCount === 1 && $gradeInfo['grade'] < 25) {
-                return back()->with('error', "🔒 GENADESCHOT VERGRENDELD! Voor een 1-patroon executie heb je minimaal Dossier-Graad 25 (Forensisch Scherpschutter) nodig. Jouw huidige status is Graad {$gradeInfo['grade']} ({$gradeInfo['title']}), waarvoor minimaal {$minRequired} patronen vereist zijn.");
+        if ($bulletCount === 1 && ! $attacker->canOneTapExecute()) {
+            if ($gradeInfo['grade'] < 25) {
+                return back()->with('error', "🔒 1-PATROON GENADESCHOT VERGRENDELD! Voor een 1-patroon precisie-executie heb je minimaal Dossier-Graad 25 (Forensisch Scherpschutter) nodig. Jouw huidige status is Graad {$gradeInfo['grade']} ({$gradeInfo['title']}). Vuur een salvo af (minimaal 10 patronen) of train je Koudbloedigheid!");
             }
 
-            if ($bulletCount === 1 && $coldBloodedPct < 30) {
-                return back()->with('error', "❄️ TE WEINIG KOUDBLOEDIGHEID! Je Koudbloedigheid is {$coldBloodedPct}% (minimaal 30% vereist voor een 1-patroon Genadeschot). Train eerst je Koudbloedigheid op de Schietbaan of vuur een salvo van minimaal {$minRequired} patronen af!");
+            if ($coldBloodedPct < 30) {
+                return back()->with('error', "❄️ TE WEINIG KOUDBLOEDIGHEID! Je Koudbloedigheid is {$coldBloodedPct}% (minimaal 30% vereist voor een 1-patroon Genadeschot). Train eerst je Koudbloedigheid op de Schietbaan of vuur een salvo af!");
             }
+        }
 
-            return back()->with('error', "Met Dossier-Graad {$gradeInfo['grade']} ({$gradeInfo['title']}) heb je minimaal {$minRequired} patronen nodig om een aanslag uit te voeren!");
+        if ($bulletCount < 10 && ! $isOneTap) {
+            return back()->with('error', 'Een salvo vereist minimaal 10 patronen (tenzij je het 1-Patroon Genadeschot hebt ontgrendeld)!');
         }
 
         if (($attacker->bullets ?? 0) < $bulletCount) {
@@ -708,16 +702,25 @@ class HitmanController extends Controller
         $attacker->breakProtection();
 
         // Deduct bullets & Koudbloedigheid focus
-        $isOneTap = ($bulletCount === 1 && $attacker->canOneTapExecute());
         $attacker->bullets -= $bulletCount;
         $attacker->save();
         $attacker->adjustColdBloodedPct($isOneTap ? -12 : -6);
 
         // Calculate Attack Power vs Defender Armor
         if ($isOneTap) {
-            $attackerPower = 600 + ($gradeInfo['grade'] * 20) + ($attacker->getEffectiveStrength() * 2.2) + ($coldBloodedPct * 3);
+            $attackerPower = 650 + ($gradeInfo['grade'] * 25) + ($attacker->getEffectiveStrength() * 2.5) + ($coldBloodedPct * 3.5);
         } else {
-            $attackerPower = ($bulletCount * 1.45) + ($attacker->getEffectiveStrength() * 2.0) + ($gradeInfo['grade'] * 12) + rand(15, 45);
+            $attackerPower = ($bulletCount * 1.5) + ($attacker->getEffectiveStrength() * 2.0) + ($gradeInfo['grade'] * 12) + rand(15, 45);
+
+            // Bonus if player fires at or above their grade's recommended heavy barrage
+            if ($bulletCount >= $gradeInfo['min_bullets']) {
+                $attackerPower *= 1.20; // +20% heavy barrage bonus!
+            }
+        }
+
+        // Sluipaanval / Direct Zicht Bonus (+25% power when in the same clinic wing!)
+        if ($isSameWing) {
+            $attackerPower *= 1.25;
         }
 
         $defenderDefense = ($defender->getEffectiveDefense() * 1.8) + rand(10, 30);
@@ -871,7 +874,8 @@ class HitmanController extends Controller
             $this->level->addXp($attacker, 400);
             $attacker->save();
 
-            $shotTypeLabel = $isOneTap ? 'een 1-Patroon Genadeschot' : "{$bulletCount} patronen";
+            $shotTypeLabel = $isOneTap ? 'een 1-Patroon Genadeschot' : "een salvo van {$bulletCount} patronen".($bulletCount >= $gradeInfo['min_bullets'] ? ' (Zware Barrage)' : '');
+            $locationNotice = $isSameWing ? "op {$defenderWing} (+25% Sluipaanval-bonus)" : "op {$defenderWing} (Afstandssalvo vanaf {$attackerWing})";
             $lootBreakdown = '€'.number_format($stolenCash, 0, ',', '.').' contant (45%) + €'.number_format($stolenBank, 0, ',', '.').' bank (7%)';
 
             if ($defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
@@ -880,7 +884,7 @@ class HitmanController extends Controller
                     'type' => 'skull',
                     'icon' => 'fa-heart-crack',
                     'title' => '🚨 10/10 GELIQUIDEERD — CODE BLAUW!',
-                    'message' => "{$attacker->name} heeft je op {$defenderWing} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!',
+                    'message' => "{$attacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!',
                 ]);
             } else {
                 GameNotification::create([
@@ -888,7 +892,7 @@ class HitmanController extends Controller
                     'type' => 'skull',
                     'icon' => 'fa-skull',
                     'title' => "🚨 GELIQUIDEERD OP {$defenderWing} ({$defenderStreak}/10)!",
-                    'message' => "{$attacker->name} heeft je op {$defenderWing} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!",
+                    'message' => "{$attacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!",
                 ]);
             }
 
@@ -904,7 +908,7 @@ class HitmanController extends Controller
                 ? " {$defender->name} heeft 10/10 liquidaties bereikt en ligt in Code Blauw Hartstilstand!"
                 : " Doelwit ({$defenderStreak}/10) is per brancard afgevoerd naar een onbekende afdeling.";
 
-            return back()->with('success', "🎯 LIQUIDATIE VOLTROKKEN! Je hebt {$defender->name} op {$defenderWing} neergeschoten met {$shotTypeLabel}! Totale buit: €".number_format($totalStolen, 0, ',', '.')." ({$lootBreakdown}){$bountyMsg}{$feudMsg}{$codeBlauwMsg} +{$baseRespect} Respect, +400 XP!");
+            return back()->with('success', "🎯 LIQUIDATIE VOLTROKKEN! Je hebt {$defender->name} {$locationNotice} neergeschoten met {$shotTypeLabel}! Totale buit: €".number_format($totalStolen, 0, ',', '.')." ({$lootBreakdown}){$bountyMsg}{$feudMsg}{$codeBlauwMsg} +{$baseRespect} Respect, +400 XP!");
         }
 
         // 3. GRAZED / SURVIVED (Attacker didn't have enough firepower to penetrate defense)
@@ -917,10 +921,10 @@ class HitmanController extends Controller
             'type' => 'attack',
             'icon' => 'fa-gun',
             'title' => "Onder vuur genomen op {$defenderWing}!",
-            'message' => "{$attacker->name} vuurde {$bulletCount} patro(o)n(en) op je af! Je raakte gewond (-{$dmg} HP), maar je verdediging hield stand.",
+            'message' => "{$attacker->name} vuurde {$bulletCount} patro(o)n(en) op je af vanaf {$attackerWing}! Je raakte gewond (-{$dmg} HP), maar je verdediging hield stand.",
         ]);
 
-        return back()->with('error', "⚠️ SCHampschot! Je vuurde {$bulletCount} patro(o)n(en) af op {$defender->name} (-{$dmg} HP), maar zijn verdediging/pantser hield stand. Vuur een zwaarder salvo af of verhoog je Dossier-Graad & Kracht!");
+        return back()->with('error', "⚠️ SCHAMPSCHOT! Je vuurde {$bulletCount} patro(o)n(en) af op {$defender->name} (-{$dmg} HP), maar zijn verdediging/pantser hield stand. Vuur een zwaarder salvo af (aanbevolen: {$gradeInfo['min_bullets']} patronen) of verhoog je Dossier-Graad & Kracht!");
     }
 
     /**
