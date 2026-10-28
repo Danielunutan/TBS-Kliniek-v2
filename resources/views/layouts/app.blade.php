@@ -1984,7 +1984,6 @@
                             <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[11px] shadow-2xs group-hover:scale-110 transition-transform shrink-0">
                                 <i class="fa-solid fa-utensils"></i>
                             </span>
-                            <span class="hidden 2xl:inline tracking-tight font-black text-xs whitespace-nowrap">Eten</span>
                             <span id="quick-eat-top-badge" class="{{ $foodTotalQty > 0 ? 'bg-emerald-600 text-white px-1.5 py-0.5 rounded-full' : 'text-slate-400 dark:text-emerald-400/60 font-semibold' }} text-[10px] font-black leading-none shrink-0">
                                 {{ $foodTotalQty }}
                             </span>
