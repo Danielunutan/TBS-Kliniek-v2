@@ -46,6 +46,112 @@ window.tbsVibrate = function(pattern = 15) {
     }
 };
 
+// Interactive TBS Confetti Cannon (Purple, Violet, Gold & Emerald Syndicate Particles)
+window.tbsFireConfetti = function(mode = 'normal') {
+    try {
+        let canvas = document.getElementById('tbs-confetti-canvas');
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.id = 'tbs-confetti-canvas';
+            canvas.style.position = 'fixed';
+            canvas.style.inset = '0';
+            canvas.style.width = '100vw';
+            canvas.style.height = '100vh';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '99999';
+            document.body.appendChild(canvas);
+        }
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const colors = ['#a855f7', '#7c3aed', '#f59e0b', '#fbbf24', '#c084fc', '#10b981', '#e879f9', '#ffffff'];
+        const count = mode === 'mega' ? 160 : 85;
+        const particles = [];
+
+        const spawnBurst = (originX, originY, burstCount) => {
+            for (let i = 0; i < burstCount; i++) {
+                const angle = (Math.random() * Math.PI) + Math.PI; // Upward cone
+                const speed = 7 + Math.random() * 14;
+                particles.push({
+                    x: originX + (Math.random() - 0.5) * 80,
+                    y: originY,
+                    vx: Math.cos(angle) * speed * (0.6 + Math.random() * 0.8),
+                    vy: Math.sin(angle) * speed - (Math.random() * 5),
+                    size: 6 + Math.random() * 7,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 14,
+                    gravity: 0.28 + Math.random() * 0.12,
+                    drag: 0.985,
+                    wobble: Math.random() * 10,
+                    wobbleSpeed: 0.08 + Math.random() * 0.08,
+                    opacity: 1,
+                    shape: Math.random() > 0.35 ? 'rect' : 'circle'
+                });
+            }
+        };
+
+        if (mode === 'mega') {
+            spawnBurst(canvas.width * 0.2, canvas.height * 0.75, Math.floor(count / 2));
+            spawnBurst(canvas.width * 0.8, canvas.height * 0.75, Math.floor(count / 2));
+            setTimeout(() => spawnBurst(canvas.width * 0.5, canvas.height * 0.65, 90), 220);
+        } else {
+            spawnBurst(canvas.width * 0.5, canvas.height * 0.7, count);
+        }
+
+        let animFrame;
+        const render = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = 0;
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                if (p.opacity <= 0.02 || p.y > canvas.height + 40) continue;
+                active++;
+
+                p.vx *= p.drag;
+                p.vy = (p.vy * p.drag) + p.gravity;
+                p.x += p.vx + Math.sin(p.wobble) * 1.2;
+                p.y += p.vy;
+                p.rotation += p.rotationSpeed;
+                p.wobble += p.wobbleSpeed;
+
+                if (p.y > canvas.height * 0.75) {
+                    p.opacity -= 0.022;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.opacity);
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation * Math.PI) / 180);
+                ctx.fillStyle = p.color;
+
+                if (p.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size * 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.66);
+                }
+                ctx.restore();
+            }
+
+            if (active > 0) {
+                animFrame = requestAnimationFrame(render);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        };
+
+        if (animFrame) cancelAnimationFrame(animFrame);
+        requestAnimationFrame(render);
+    } catch (err) {
+        console.error('Confetti error:', err);
+    }
+};
+
 // Global In-App Form Action Interceptor (Zero Reloads, Debounced, No Duplicate Submits)
 if (!window.tbsFormInterceptorInitialized) {
     window.tbsFormInterceptorInitialized = true;
@@ -152,6 +258,9 @@ if (!window.tbsFormInterceptorInitialized) {
                         window.tbsVibrate([30, 40, 30]);
                     } else {
                         window.tbsVibrate(25);
+                        if (actionAttr.includes('/battlepass/claim') && typeof window.tbsFireConfetti === 'function') {
+                            window.tbsFireConfetti(actionAttr.includes('claim-all') ? 'mega' : 'normal');
+                        }
                     }
                 }
 
