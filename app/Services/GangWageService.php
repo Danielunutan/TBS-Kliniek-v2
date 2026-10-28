@@ -210,7 +210,9 @@ class GangWageService
             return null;
         }
 
-        $secondsElapsed = (int) $character->last_gang_wage_at->diffInSeconds($now);
+        // Always calculate from the start of the hour anchor so all members stay globally synchronized to :00:00
+        $lastWageAnchor = $character->last_gang_wage_at->copy()->startOfHour();
+        $secondsElapsed = (int) $lastWageAnchor->diffInSeconds($now);
 
         if ($secondsElapsed < self::WAGE_INTERVAL_SECONDS) {
             return null;
@@ -225,7 +227,7 @@ class GangWageService
         $totalPayout = $hours * $hourlyWage;
 
         // Advance last_gang_wage_at by exactly the paid hours, snapped to the start of the hour
-        $character->last_gang_wage_at = $character->last_gang_wage_at->copy()->addHours($hours)->startOfHour();
+        $character->last_gang_wage_at = $lastWageAnchor->copy()->addHours($hours)->startOfHour();
 
         if ($totalPayout > 0) {
             // Contant geld uitbetaling direct op zak van het personage

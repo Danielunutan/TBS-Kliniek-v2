@@ -408,7 +408,7 @@ class GangController extends Controller
 
         $character->gang_id = $gang->id;
         $character->gang_role = 'leader';
-        $character->last_gang_wage_at = now();
+        $character->last_gang_wage_at = now()->startOfHour();
         $character->is_vip = true;
         $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
             ? $character->vip_expires_at
@@ -561,7 +561,7 @@ class GangController extends Controller
             DB::transaction(function () use ($candidate, $gang, $requestRecord, $character) {
                 $candidate->gang_id = $gang->id;
                 $candidate->gang_role = 'member';
-                $candidate->last_gang_wage_at = now();
+                $candidate->last_gang_wage_at = now()->startOfHour();
                 $candidate->is_vip = true;
                 $currentExpiry = ($candidate->vip_expires_at && $candidate->vip_expires_at->isFuture())
                     ? $candidate->vip_expires_at
