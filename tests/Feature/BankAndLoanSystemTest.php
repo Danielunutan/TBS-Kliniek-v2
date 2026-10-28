@@ -191,4 +191,47 @@ class BankAndLoanSystemTest extends TestCase
             'amount' => -2000,
         ]);
     }
+
+    public function test_player_can_setup_and_verify_atm_pin(): void
+    {
+        [$user, $character] = $this->createInmate();
+
+        $this->assertFalse($character->hasBankPin());
+
+        // Attempt verify before setup should fail / redirect
+        $failVerify = $this->actingAs($user)->post(route('bank.pin.verify'), [
+            'pin' => '1234',
+        ]);
+        $failVerify->assertSessionHas('error');
+
+        // Setup PIN '7391'
+        $setupRes = $this->actingAs($user)->post(route('bank.pin.set'), [
+            'pin' => '7391',
+            'pin_confirmation' => '7391',
+        ]);
+        $setupRes->assertRedirect(route('bank.index', ['tab' => 'vault']));
+        $setupRes->assertSessionHas('success');
+
+        $character->refresh();
+        $this->assertTrue($character->hasBankPin());
+        $this->assertTrue($character->verifyBankPin('7391'));
+        $this->assertFalse($character->verifyBankPin('0000'));
+
+        // Eject card
+        $ejectRes = $this->actingAs($user)->post(route('bank.pin.eject'));
+        $ejectRes->assertRedirect(route('bank.index', ['tab' => 'vault']));
+
+        // Verify with wrong PIN
+        $wrongPinRes = $this->actingAs($user)->post(route('bank.pin.verify'), [
+            'pin' => '9999',
+        ]);
+        $wrongPinRes->assertSessionHas('error');
+
+        // Verify with correct PIN
+        $correctPinRes = $this->actingAs($user)->post(route('bank.pin.verify'), [
+            'pin' => '7391',
+        ]);
+        $correctPinRes->assertRedirect(route('bank.index', ['tab' => 'vault']));
+        $correctPinRes->assertSessionHas('success');
+    }
 }

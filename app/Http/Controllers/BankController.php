@@ -10,6 +10,7 @@ use App\Services\AllowanceService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LoanService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -61,6 +62,9 @@ class BankController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $hasBankPin = $character->hasBankPin();
+        $isAtmUnlocked = (bool) session('atm_unlocked_'.$character->id, false);
+
         return view('game.bank', compact(
             'character',
             'allowanceDetails',
@@ -71,6 +75,8 @@ class BankController extends Controller
             'openstaandeSchuld',
             'beschikbareLening',
             'transactions',
+            'hasBankPin',
+            'isAtmUnlocked',
         ));
     }
 
@@ -210,5 +216,100 @@ class BankController extends Controller
 
         return redirect()->route('bank.index', ['tab' => 'loans'])
             ->with('error', $result['message']);
+    }
+
+    /**
+     * Set a 4-digit PIN for the Geldmaat ATM.
+     */
+    public function setPin(Request $request): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'pin' => ['required', 'digits:4'],
+            'pin_confirmation' => ['required', 'same:pin'],
+        ], [
+            'pin.required' => 'Voer een 4-cijferige pincode in.',
+            'pin.digits' => 'De pincode moet exact 4 cijfers bevatten.',
+            'pin_confirmation.same' => 'De bevestigingscode komt niet overeen.',
+        ]);
+
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $character->setBankPin($validated['pin']);
+        session(['atm_unlocked_'.$character->id => true]);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pincode succesvol ingesteld! Uw Kliniek Betaalpas is geactiveerd.',
+            ]);
+        }
+
+        return redirect()->route('bank.index', ['tab' => 'vault'])
+            ->with('success', 'Pincode succesvol ingesteld! Uw Kliniek Betaalpas is geactiveerd.');
+    }
+
+    /**
+     * Verify 4-digit PIN to unlock the Geldmaat ATM.
+     */
+    public function verifyPin(Request $request): JsonResponse|RedirectResponse
+    {
+        $validated = $request->validate([
+            'pin' => ['required', 'digits:4'],
+        ], [
+            'pin.required' => 'Voer uw 4-cijferige pincode in.',
+            'pin.digits' => 'Voer exact 4 cijfers in.',
+        ]);
+
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        if ($character->verifyBankPin($validated['pin'])) {
+            session(['atm_unlocked_'.$character->id => true]);
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pincode akkoord! Welkom bij de Geldmaat.',
+                ]);
+            }
+
+            return redirect()->route('bank.index', ['tab' => 'vault'])
+                ->with('success', 'Pincode akkoord! Welkom bij de Geldmaat.');
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Onjuiste pincode! Controleer uw cijfers en probeer opnieuw.',
+            ], 422);
+        }
+
+        return redirect()->route('bank.index', ['tab' => 'vault'])
+            ->with('error', 'Onjuiste pincode! Probeer opnieuw.');
+    }
+
+    /**
+     * Eject card / lock Geldmaat ATM session.
+     */
+    public function ejectCard(Request $request): JsonResponse|RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        session()->forget('atm_unlocked_'.$character->id);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Uw betaalpas is uitgeworpen. Vergeet uw pas niet mee te nemen!',
+            ]);
+        }
+
+        return redirect()->route('bank.index', ['tab' => 'vault'])
+            ->with('info', 'Betaalpas uitgeworpen. Tot ziens!');
     }
 }

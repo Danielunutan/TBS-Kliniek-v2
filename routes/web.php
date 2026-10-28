@@ -429,13 +429,16 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/luchtplaats/arena/{defender}', [FightController::class, 'arena'])->name('fight.arena');
     Route::post('/luchtplaats/attack', [FightController::class, 'attack'])->middleware('throttle:60,1')->name('fight.attack');
 
-    // Bank & Financieel Centrum
+    // Bank & Financieel Centrum (Geldmaat)
     Route::get('/bank', [BankController::class, 'index'])->name('bank.index');
     Route::post('/bank/storten', [BankController::class, 'deposit'])->name('bank.deposit');
     Route::post('/bank/opnemen', [BankController::class, 'withdraw'])->name('bank.withdraw');
     Route::post('/bank/leningen/aanvragen', [BankController::class, 'requestLoan'])->name('bank.loans.request');
     Route::post('/bank/leningen/{loan}/aflossen', [BankController::class, 'repayLoan'])->name('bank.loans.repay');
     Route::post('/bank/leningen/{loan}/alles-aflossen', [BankController::class, 'repayLoanFull'])->name('bank.loans.repay-full');
+    Route::post('/bank/pincode/instellen', [BankController::class, 'setPin'])->name('bank.pin.set');
+    Route::post('/bank/pincode/verifieren', [BankController::class, 'verifyPin'])->name('bank.pin.verify');
+    Route::post('/bank/pincode/uitwerpen', [BankController::class, 'ejectCard'])->name('bank.pin.eject');
 
     // Casino
     Route::get('/casino', [CasinoController::class, 'index'])->name('casino.index');

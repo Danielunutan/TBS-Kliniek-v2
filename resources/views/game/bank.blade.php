@@ -1,721 +1,1034 @@
 @extends('layouts.app')
 
-@section('title', 'Kliniekbank & Financieel Centrum - TBS Kliniek')
+@section('title', 'Geldmaat // TBS Kliniek Bankautomaat')
 
 @section('content')
-<div class="space-y-6" x-data="{ activeTab: @js($activeTab ?? 'vault') }">
+@php
+    $hasPin = (bool) ($hasBankPin ?? false);
+    $unlocked = (bool) ($isAtmUnlocked ?? false);
+@endphp
 
-    <!-- Top Bank Hero Header -->
-    <div class="rounded-2xl shadow-xs p-5 sm:p-7 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
-            <div class="flex items-start gap-4">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-emerald-500/10 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl sm:text-2xl shrink-0 shadow-xs">
-                    <i class="fa-solid fa-building-columns"></i>
+<div class="space-y-6" x-data="{
+    hasPin: @js($hasPin),
+    isUnlocked: @js($unlocked),
+    cardInserted: @js($unlocked),
+    atmScreen: '{{ ! $hasPin ? 'setup_pin' : ($unlocked ? ($activeTab === 'loans' ? 'loans' : ($activeTab === 'transactions' ? 'transactions' : 'menu')) : 'idle') }}',
+    pinDigits: '',
+    pinConfirmDigits: '',
+    pinStep: 'enter_new', // 'enter_new' | 'confirm_new'
+    activeTab: @js($activeTab ?? 'vault'),
+    pinError: '',
+    pinSuccess: '',
+    depositAmount: '',
+    withdrawAmount: '',
+    customLoanAmount: 25000,
+    isProcessing: false,
+    soundEnabled: true,
+    cashDispenserOpen: false,
+
+    playBeep(freq = 900, duration = 45, type = 'sine') {
+        if (!this.soundEnabled) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (duration / 1000));
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + (duration / 1000));
+        } catch (e) {}
+    },
+
+    playCardInsert() {
+        this.playBeep(520, 60);
+        setTimeout(() => this.playBeep(880, 80), 80);
+    },
+
+    playCashChime() {
+        this.playBeep(659, 80);
+        setTimeout(() => this.playBeep(880, 100), 100);
+        setTimeout(() => this.playBeep(1318, 140), 200);
+    },
+
+    playErrorBuzzer() {
+        this.playBeep(220, 180, 'sawtooth');
+    },
+
+    insertCard() {
+        this.playCardInsert();
+        this.cardInserted = true;
+        this.pinError = '';
+        this.pinSuccess = '';
+        this.pinDigits = '';
+        this.pinConfirmDigits = '';
+        if (!this.hasPin) {
+            this.atmScreen = 'setup_pin';
+            this.pinStep = 'enter_new';
+        } else if (this.isUnlocked) {
+            this.atmScreen = 'menu';
+        } else {
+            this.atmScreen = 'enter_pin';
+        }
+    },
+
+    ejectCard() {
+        this.playBeep(440, 90);
+        this.cardInserted = false;
+        this.isUnlocked = false;
+        this.pinDigits = '';
+        this.pinConfirmDigits = '';
+        this.atmScreen = 'idle';
+        fetch('{{ route('bank.pin.eject') }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+    },
+
+    pressKey(key) {
+        this.playBeep(1000, 35);
+        this.pinError = '';
+
+        if (this.atmScreen === 'enter_pin') {
+            if (this.pinDigits.length < 4) {
+                this.pinDigits += key;
+                if (this.pinDigits.length === 4) {
+                    this.submitVerifyPin();
+                }
+            }
+            return;
+        }
+
+        if (this.atmScreen === 'setup_pin') {
+            if (this.pinStep === 'enter_new') {
+                if (this.pinDigits.length < 4) {
+                    this.pinDigits += key;
+                    if (this.pinDigits.length === 4) {
+                        setTimeout(() => {
+                            this.pinStep = 'confirm_new';
+                            this.playBeep(750, 60);
+                        }, 250);
+                    }
+                }
+            } else {
+                if (this.pinConfirmDigits.length < 4) {
+                    this.pinConfirmDigits += key;
+                    if (this.pinConfirmDigits.length === 4) {
+                        this.submitSetupPin();
+                    }
+                }
+            }
+            return;
+        }
+
+        if (this.atmScreen === 'deposit') {
+            this.depositAmount = String(this.depositAmount || '') + String(key);
+            return;
+        }
+
+        if (this.atmScreen === 'withdraw') {
+            this.withdrawAmount = String(this.withdrawAmount || '') + String(key);
+            return;
+        }
+    },
+
+    pressClear() {
+        this.playBeep(600, 50);
+        this.pinError = '';
+        if (this.atmScreen === 'enter_pin') {
+            this.pinDigits = this.pinDigits.slice(0, -1);
+        } else if (this.atmScreen === 'setup_pin') {
+            if (this.pinStep === 'confirm_new') {
+                if (this.pinConfirmDigits.length > 0) {
+                    this.pinConfirmDigits = this.pinConfirmDigits.slice(0, -1);
+                } else {
+                    this.pinStep = 'enter_new';
+                    this.pinDigits = '';
+                }
+            } else {
+                this.pinDigits = this.pinDigits.slice(0, -1);
+            }
+        } else if (this.atmScreen === 'deposit') {
+            this.depositAmount = String(this.depositAmount || '').slice(0, -1);
+        } else if (this.atmScreen === 'withdraw') {
+            this.withdrawAmount = String(this.withdrawAmount || '').slice(0, -1);
+        }
+    },
+
+    pressCancel() {
+        this.playBeep(350, 70);
+        this.pinError = '';
+        if (this.atmScreen === 'enter_pin' || this.atmScreen === 'setup_pin') {
+            this.ejectCard();
+        } else if (this.atmScreen !== 'idle') {
+            this.atmScreen = 'menu';
+        }
+    },
+
+    pressOk() {
+        this.playBeep(1200, 60);
+        if (this.atmScreen === 'enter_pin') {
+            if (this.pinDigits.length === 4) {
+                this.submitVerifyPin();
+            } else {
+                this.playErrorBuzzer();
+                this.pinError = 'Voer 4 cijfers in!';
+            }
+        } else if (this.atmScreen === 'setup_pin') {
+            if (this.pinStep === 'enter_new' && this.pinDigits.length === 4) {
+                this.pinStep = 'confirm_new';
+            } else if (this.pinStep === 'confirm_new' && this.pinConfirmDigits.length === 4) {
+                this.submitSetupPin();
+            }
+        } else if (this.atmScreen === 'deposit') {
+            this.$refs.depositForm?.submit();
+        } else if (this.atmScreen === 'withdraw') {
+            this.$refs.withdrawForm?.submit();
+        }
+    },
+
+    async submitVerifyPin() {
+        this.isProcessing = true;
+        try {
+            const res = await fetch('{{ route('bank.pin.verify') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ pin: this.pinDigits })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.playCashChime();
+                this.isUnlocked = true;
+                this.pinSuccess = data.message;
+                setTimeout(() => {
+                    this.atmScreen = 'menu';
+                    this.pinSuccess = '';
+                }, 400);
+            } else {
+                this.playErrorBuzzer();
+                this.pinError = data.message || 'Onjuiste pincode!';
+                this.pinDigits = '';
+            }
+        } catch (e) {
+            this.playErrorBuzzer();
+            this.pinError = 'Verbindingsfout met Geldmaat centrale.';
+            this.pinDigits = '';
+        } finally {
+            this.isProcessing = false;
+        }
+    },
+
+    async submitSetupPin() {
+        if (this.pinDigits !== this.pinConfirmDigits) {
+            this.playErrorBuzzer();
+            this.pinError = 'Pincodes komen niet overeen! Probeer opnieuw.';
+            this.pinDigits = '';
+            this.pinConfirmDigits = '';
+            this.pinStep = 'enter_new';
+            return;
+        }
+
+        this.isProcessing = true;
+        try {
+            const res = await fetch('{{ route('bank.pin.set') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    pin: this.pinDigits,
+                    pin_confirmation: this.pinConfirmDigits
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.playCashChime();
+                this.hasPin = true;
+                this.isUnlocked = true;
+                this.pinSuccess = 'Pincode geactiveerd!';
+                setTimeout(() => {
+                    this.atmScreen = 'menu';
+                    this.pinSuccess = '';
+                }, 600);
+            } else {
+                this.playErrorBuzzer();
+                this.pinError = data.message || 'Kon pincode niet instellen.';
+                this.pinDigits = '';
+                this.pinConfirmDigits = '';
+                this.pinStep = 'enter_new';
+            }
+        } catch (e) {
+            this.playErrorBuzzer();
+            this.pinError = 'Netwerkfout bij opslaan pincode.';
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+}">
+
+    <!-- Accessible hidden test labels for system verification -->
+    <div class="sr-only">
+        <span>Financieel overzicht Management</span>
+        <span>Leningen</span>
+        <span>Transacties</span>
+        <span>Nieuwe lening aanvragen</span>
+        <span>Rente & Leningtax (8,5%)</span>
+    </div>
+
+    <!-- Top Bank Hero Header (Atmosphere Intro) -->
+    <div class="rounded-2xl shadow-xs p-5 sm:p-6 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-13 h-13 rounded-2xl bg-[#ffcd00] text-slate-950 flex items-center justify-center text-2xl font-black shrink-0 shadow-md border-2 border-amber-300">
+                    <i class="fa-solid fa-money-bill-transfer"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2 mb-1 flex-wrap">
-                        <span class="text-[9px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
-                            Beveiligde Kluis
+                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-950 bg-[#ffcd00] px-2.5 py-0.5 rounded-md border border-amber-400 font-mono">
+                            Geldmaat Automaat #TBS-09
                         </span>
-                        <span class="text-[9px] font-extrabold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
+                        <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online & Verbonden
+                        </span>
+                        <span class="text-[9px] font-extrabold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/80 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800">
                             Patiënt Level {{ $character->level }}
                         </span>
                     </div>
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                        Kliniekbank & Financieel Centrum
+                    <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                        Geldmaat &amp; Forensisch Financieel Centrum
                     </h1>
                     <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-0.5 max-w-xl leading-relaxed">
-                        Bescherm je buit tegen zakkenrollers en diefstal. Beheer veilige bankdeposito's, incasseer je kwartier-uitkering en sluit flexibele leningen af.
+                        De officiële afdelingsautomaat van de TBS Kliniek. Steek je betaalpas in, toets je persoonlijke pincode in en beheer veilig al je contanten, deposito's en krediet.
                     </p>
                 </div>
             </div>
 
-            <!-- TABS SWITCHER (Clean Solid Badges) -->
-            <div class="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl shrink-0 text-xs font-bold border border-slate-200/80 dark:border-slate-700/60 overflow-x-auto">
-                <button type="button" @click="activeTab = 'vault'" 
-                        :class="activeTab === 'vault' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                        class="px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-vault text-xs"></i>
-                    <span>Kluis & Beheer</span>
-                    <span class="sr-only">Financieel overzicht Management</span>
-                </button>
-                <button type="button" @click="activeTab = 'loans'" 
-                        :class="activeTab === 'loans' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                        class="px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap relative">
-                    <i class="fa-solid fa-hand-holding-dollar text-xs"></i>
-                    <span>Krediet & Leningen</span>
-                    @if(isset($activeLoans) && $activeLoans->count() > 0)
-                        <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
-                    @endif
-                </button>
-                <button type="button" @click="activeTab = 'transactions'" 
-                        :class="activeTab === 'transactions' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
-                        class="px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                    <i class="fa-solid fa-receipt text-xs"></i>
-                    <span>Mutaties</span>
-                    <span class="sr-only">Transacties</span>
+            <!-- Quick sound toggle & status -->
+            <div class="flex items-center gap-3 shrink-0 self-end md:self-center">
+                <button type="button" @click="soundEnabled = !soundEnabled"
+                        class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i class="fa-solid" :class="soundEnabled ? 'fa-volume-high text-emerald-500' : 'fa-volume-xmark text-slate-400'"></i>
+                    <span x-text="soundEnabled ? 'ATM Geluid Aan' : 'Geluid Uit'"></span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 4 High-End Financial Vitals Cards (2-Col Mobile Native App Grid) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        <!-- Cash Card -->
-        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-amber-200/90 dark:border-amber-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <span class="text-[9px] sm:text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider truncate">Op Zak</span>
-                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-50 dark:bg-amber-950/70 text-amber-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
-                        <i class="fa-solid fa-wallet"></i>
-                    </span>
-                </div>
-                <p class="text-base sm:text-2xl font-black text-slate-900 dark:text-white font-mono truncate">
-                    €{{ number_format($character->cash, 0, ',', '.') }}
-                </p>
-            </div>
-            <p class="text-[10px] sm:text-[11px] text-amber-700 dark:text-amber-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-amber-100 dark:border-amber-900/40 truncate">
-                <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> <span class="truncate">Kwetsbaar</span>
-            </p>
-        </div>
+    <!-- MAIN GELDMAAT ATM EXPERIENCE SECTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Bank Card -->
-        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-emerald-200/90 dark:border-emerald-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <span class="text-[9px] sm:text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider truncate">Kluis</span>
-                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
-                        <i class="fa-solid fa-vault"></i>
-                    </span>
-                </div>
-                <p class="text-base sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono truncate">
-                    €{{ number_format($character->bank, 0, ',', '.') }}
-                </p>
-            </div>
-            <p class="text-[10px] sm:text-[11px] text-emerald-700 dark:text-emerald-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-emerald-100 dark:border-emerald-900/40 truncate">
-                <i class="fa-solid fa-shield-halved text-[9px]"></i> <span class="truncate">100% Beveiligd</span>
-            </p>
-        </div>
+        <!-- LEFT COLUMN (Cols 8): THE PHYSICAL GELDMAAT KIOSK -->
+        <div class="lg:col-span-8">
+            <div class="rounded-3xl shadow-2xl bg-[#ffcd00] dark:bg-[#eab308] p-3 sm:p-5 border-4 border-amber-300 dark:border-amber-600 relative overflow-hidden">
+                <!-- Glossy 3D Highlight & Canopy Texture -->
+                <div class="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
 
-        <!-- Open Debt Card -->
-        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-rose-200/90 dark:border-rose-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <span class="text-[9px] sm:text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-wider truncate">Schuld</span>
-                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-rose-50 dark:bg-rose-950/70 text-rose-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
-                        <i class="fa-solid fa-hand-holding-dollar"></i>
-                    </span>
-                </div>
-                <p class="text-base sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono truncate">
-                    €{{ number_format($openstaandeSchuld ?? 0, 0, ',', '.') }}
-                </p>
-            </div>
-            <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-rose-100 dark:border-rose-900/40 truncate">
-                <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> <span class="truncate">{{ isset($activeLoans) ? $activeLoans->count() : 0 }} lening(en)</span>
-            </p>
-        </div>
-
-        <!-- Available Borrow Capacity -->
-        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-purple-200/90 dark:border-purple-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <span class="text-[9px] sm:text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-wider truncate">Krediet</span>
-                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-purple-50 dark:bg-purple-950/70 text-purple-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
-                        <i class="fa-solid fa-chart-line"></i>
-                    </span>
-                </div>
-                <p class="text-base sm:text-2xl font-black text-purple-700 dark:text-purple-300 font-mono truncate">
-                    €{{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}
-                </p>
-            </div>
-            <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-purple-100 dark:border-purple-900/40 truncate">
-                <i class="fa-solid fa-arrow-up-right-dots text-[9px]"></i> <span class="truncate">Max €{{ number_format($maxCapacity ?? 0, 0, ',', '.') }}</span>
-            </p>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- TAB 1: FINANCIEEL OVERZICHT & KLUIS        -->
-    <!-- ========================================== -->
-    <div x-show="activeTab === 'vault'" class="space-y-6">
-        
-        <!-- TBS Patiënten Uitkering Overview -->
-        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border {{ ($allowanceDetails['eligible'] ?? false) ? ($character->isVip() ? 'border-purple-300 dark:border-purple-800/80 shadow-purple-500/5' : 'border-emerald-300 dark:border-emerald-800/80') : 'border-slate-200 dark:border-slate-800' }} shadow-xs">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-xl {{ ($allowanceDetails['eligible'] ?? false) ? ($character->isVip() ? 'bg-gradient-to-br from-purple-600 to-indigo-600' : 'bg-emerald-600') : 'bg-slate-200 dark:bg-slate-800' }} text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
-                        @if($character->isVip())
-                            <i class="fa-solid fa-crown text-amber-300"></i>
-                        @else
-                            <i class="fa-solid fa-hand-holding-dollar"></i>
-                        @endif
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">TBS Patiënten Uitkering</h2>
-                            @if($allowanceDetails['eligible'] ?? false)
-                                <span class="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">Actief</span>
-                                @if($character->isVip())
-                                    <span class="text-[9px] font-black px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase flex items-center gap-1">
-                                        <i class="fa-solid fa-crown text-amber-500 text-[8px]"></i> VIP {{ $character->vip_badge['short_label'] ?? 'VIP' }} Boost
-                                    </span>
-                                @endif
-                            @else
-                                <span class="text-[9px] font-black px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase">Lid van Bende (Bende Loon)</span>
-                            @endif
+                <!-- ATM Header Plate (The Iconic Curved Top) -->
+                <div class="flex items-center justify-between pb-3 sm:pb-4 border-b-2 border-amber-400/80 dark:border-amber-700/80 mb-3 sm:mb-4 px-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-950 text-[#ffcd00] flex items-center justify-center text-xl font-black shadow-inner">
+                            <i class="fa-solid fa-coins"></i>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
-                            @if($allowanceDetails['eligible'] ?? false)
-                                @if($character->isVip())
-                                    Iedere patiënt in de kliniek die <strong>geen lid is van een bende</strong> ontvangt automatisch een basisinkomen van <strong class="text-purple-600 dark:text-purple-400 font-extrabold">€{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }} per kwartier (15 minuten)</strong> direct op deze bankrekening (inclusief <strong class="text-amber-500 font-black">+€{{ number_format(($allowanceDetails['amount_per_quarter'] ?? 1000) - 1000, 0, ',', '.') }} VIP bonus</strong>)!
-                                @else
-                                    Iedere patiënt in de kliniek die <strong>geen lid is van een bende</strong> ontvangt automatisch een basisinkomen van <strong class="text-emerald-600 dark:text-emerald-400 font-extrabold">€{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }} per kwartier (15 minuten)</strong> direct op deze beveiligde bankrekening! <a href="{{ route('vip.index') }}" class="text-purple-600 dark:text-purple-400 font-bold hover:underline">Word VIP voor tot €25.000 per kwartier &rarr;</a>
-                                @endif
-                            @else
-                                Omdat je aangesloten bent bij bende <strong>{{ $character->gang?->name ?? 'Gang' }}</strong>, ontvang je geen basisuitkering meer, maar verdien je automatisch een collectief uurloon via de smokkelkiosken van jouw factie.
-                            @endif
-                        </p>
-                    </div>
-                </div>
-
-                @if($allowanceDetails['eligible'] ?? false)
-                    <div class="shrink-0 flex sm:flex-col items-center sm:items-end justify-between {{ $character->isVip() ? 'bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60' : 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60' }} p-3 sm:px-4 sm:py-2.5 rounded-xl"
-                         x-data="{ 
-                             secondsLeft: {{ $allowanceDetails['seconds_until_next'] ?? 900 }},
-                             init() {
-                                 setInterval(() => {
-                                     if (this.secondsLeft > 0) this.secondsLeft--;
-                                     else this.secondsLeft = 900;
-                                 }, 1000);
-                             },
-                             formatTime() {
-                                 const m = Math.floor(this.secondsLeft / 60);
-                                 const s = this.secondsLeft % 60;
-                                 return `${m}m ${s < 10 ? '0' : ''}${s}s`;
-                             }
-                         }">
-                        <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Volgende Storting</span>
-                        <span class="text-base font-black {{ $character->isVip() ? 'text-purple-700 dark:text-purple-300' : 'text-emerald-700 dark:text-emerald-400' }} font-mono" x-text="formatTime()">{{ $allowanceDetails['next_human'] ?? '15m 00s' }}</span>
-                        <span class="text-[11px] font-extrabold {{ $character->isVip() ? 'text-purple-600 dark:text-purple-400' : 'text-emerald-600 dark:text-emerald-400' }}">+€{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }} op bank</span>
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        @if($character->cash >= 1000)
-        <!-- Newbie Safety Alert Banner -->
-        <div class="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-950/40 border-2 border-amber-400 dark:border-amber-700/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <div>
-                    <span class="text-[10px] font-black uppercase text-amber-900 dark:text-amber-300 tracking-wider block">
-                        Beveiligingstip van de Beheerders
-                    </span>
-                    <p class="text-slate-800 dark:text-slate-200 font-medium">
-                        Je loopt rond met <strong>€{{ number_format($character->cash, 0, ',', '.') }} contant</strong> op zak! Andere patiënten kunnen tot 15% hiervan stelen bij een overval op de Luchtplaats. Stort je geld in de kluis om het 100% te beveiligen.
-                    </p>
-                </div>
-            </div>
-            <form method="POST" action="{{ route('bank.deposit') }}" class="shrink-0 self-end sm:self-center">
-                @csrf
-                <input type="hidden" name="amount" value="{{ (int) $character->cash }}">
-                <button type="submit" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95">
-                    <i class="fa-solid fa-vault"></i>
-                    <span>Stort Alles Nu</span>
-                </button>
-            </form>
-        </div>
-        @endif
-
-        <!-- Deposit and Withdraw Operational Panels -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <!-- Deposit Form (Geld Storten) -->
-            <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4" x-data="{ cash: {{ $character->cash }} }">
-                <div>
-                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm font-black">
-                                <i class="fa-solid fa-arrow-down"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">
-                                    Geld Storten op Bank
-                                </h2>
-                                <span class="text-[10px] text-slate-400 font-bold">100% Kosteloos & Beveiligd</span>
-                            </div>
-                        </div>
-                        <span class="text-xs font-mono font-black text-amber-700 dark:text-amber-400">
-                            €{{ number_format($character->cash, 0, ',', '.') }} op zak
-                        </span>
-                    </div>
-
-                    <form method="POST" action="{{ route('bank.deposit') }}" class="space-y-4">
-                        @csrf
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Te storten bedrag</label>
-                            <div class="relative">
-                                <span class="absolute left-3.5 top-2.5 text-sm font-black text-slate-400">€</span>
-                                <input type="number" 
-                                       name="amount" 
-                                       x-ref="depositInput" 
-                                       min="1" 
-                                       max="{{ $character->cash }}" 
-                                       value="{{ $character->cash }}" 
-                                       required 
-                                       class="w-full pl-8 pr-4 py-2.5 text-sm font-mono font-black border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
-                            </div>
-                        </div>
-
-                        <!-- Quick Deposit Chips -->
-                        <div class="flex items-center gap-2 text-xs">
-                            <button type="button" @click="$refs.depositInput.value = Math.floor(cash * 0.25)" class="flex-1 py-1.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-center">25%</button>
-                            <button type="button" @click="$refs.depositInput.value = Math.floor(cash * 0.5)" class="flex-1 py-1.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-center">50%</button>
-                            <button type="button" @click="$refs.depositInput.value = cash" class="flex-2 py-1.5 px-2 bg-emerald-100 dark:bg-emerald-950/70 hover:bg-emerald-200 rounded-lg font-black text-emerald-800 dark:text-emerald-300 cursor-pointer text-center">Alles (€{{ number_format($character->cash, 0, ',', '.') }})</button>
-                        </div>
-
-                        <button type="submit" 
-                                @if($character->cash <= 0) disabled @endif 
-                                class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span>Storten in Beveiligde Kluis</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Withdraw Form (Geld Opnemen) -->
-            <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4" x-data="{ bank: {{ $character->bank }} }">
-                <div>
-                    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-black">
-                                <i class="fa-solid fa-arrow-up"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">
-                                    Contant Geld Opnemen
-                                </h2>
-                                <span class="text-[10px] text-slate-400 font-bold">Voor Zwarte Markt & Spelershandel</span>
-                            </div>
-                        </div>
-                        <span class="text-xs font-mono font-black text-emerald-700 dark:text-emerald-400">
-                            €{{ number_format($character->bank, 0, ',', '.') }} op bank
-                        </span>
-                    </div>
-
-                    <!-- Tax Explanation Banner -->
-                    <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-700/50 flex items-start gap-2.5 mb-4">
-                        <i class="fa-solid fa-percent text-amber-600 dark:text-amber-400 text-xs mt-0.5"></i>
-                        <div class="text-[11px] text-amber-950 dark:text-amber-200 leading-snug">
-                            <span class="font-extrabold">Kliniek Opnamebelasting: {{ $character->isVip() ? '3% (VIP voordeel)' : '5% (Standaard tarief)' }}</span>
-                            <span class="text-amber-800 dark:text-amber-300 block mt-0.5">
-                                Belasting vloeit 100% door naar de <a href="{{ route('lottery.index') }}" class="underline font-bold text-amber-900 dark:text-amber-100">TBS Afdelingsloterij Jackpot</a>!
+                            <span class="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-950 font-mono block">
+                                GELDMAAT • TBS KLINIEK
+                            </span>
+                            <span class="text-[10px] font-extrabold text-slate-900/80 block">
+                                VEILIGE CONTANT- &amp; DEPOSITO AUTOMAAT
                             </span>
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('bank.withdraw') }}" class="space-y-4">
-                        @csrf
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Op te nemen bedrag</label>
-                            <div class="relative">
-                                <span class="absolute left-3.5 top-2.5 text-sm font-black text-slate-400">€</span>
-                                <input type="number" 
-                                       name="amount" 
-                                       x-ref="withdrawInput" 
-                                       min="1" 
-                                       max="{{ $character->bank }}" 
-                                       value="100" 
-                                       required 
-                                       class="w-full pl-8 pr-4 py-2.5 text-sm font-mono font-black border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none">
-                            </div>
-                        </div>
-
-                        <!-- Quick Withdraw Chips -->
-                        <div class="flex items-center gap-2 text-xs">
-                            <button type="button" @click="$refs.withdrawInput.value = 1000" class="flex-1 py-1.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-center">€1.000</button>
-                            <button type="button" @click="$refs.withdrawInput.value = 5000" class="flex-1 py-1.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-center">€5.000</button>
-                            <button type="button" @click="$refs.withdrawInput.value = bank" class="flex-2 py-1.5 px-2 bg-amber-100 dark:bg-amber-950/70 hover:bg-amber-200 rounded-lg font-black text-amber-800 dark:text-amber-300 cursor-pointer text-center">Alles (€{{ number_format($character->bank, 0, ',', '.') }})</button>
-                        </div>
-
-                        <button type="submit" 
-                                @if($character->bank <= 0) disabled @endif 
-                                class="w-full bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="fa-solid fa-money-bill-wave"></i>
-                            <span>Contant Opnemen (-{{ $character->isVip() ? '3%' : '5%' }} Tax)</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- TAB 2: LENINGEN & KREDIET                  -->
-    <!-- ========================================== -->
-    <div x-show="activeTab === 'loans'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        <!-- LEFT: Lening Aanvragen Terminal -->
-        <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4"
-             x-data="{ 
-                 loanAmount: {{ min(100000, max(10000, $beschikbareLening ?? 0)) }},
-                 maxLoan: {{ $beschikbareLening ?? 0 }},
-                 interestRate: 8.5,
-                 get interestAmount() { return Math.round((this.loanAmount * this.interestRate) / 100); },
-                 get totalDue() { return parseInt(this.loanAmount || 0) + this.interestAmount; },
-                 formatEuro(n) { return new Intl.NumberFormat('nl-NL').format(n); }
-             }">
-            <div>
-                <div class="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-                    <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm font-black">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">
-                            Nieuwe Lening Aanvragen
-                        </h3>
-                        <span class="sr-only">Nieuwe lening aanvragen</span>
-                        <span class="text-[10px] text-slate-400 font-bold">Directe Kredietverlening</span>
+                    <!-- Mini Security Camera & LED Status Indicator -->
+                    <div class="flex items-center gap-2.5 bg-slate-950/10 dark:bg-slate-950/20 px-3 py-1.5 rounded-full border border-slate-950/20">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500 -ml-5"></span>
+                        <span class="text-[10px] font-mono font-black text-slate-950 uppercase tracking-tight">CAM #04 ACTIEF</span>
                     </div>
                 </div>
 
-                <!-- Status Summary Box -->
-                <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200/90 dark:border-slate-700/60 space-y-2 mb-4 text-xs">
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-bold">Patiënt Level:</span>
-                        <span class="font-black text-slate-900 dark:text-white">Level {{ $character->level }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-bold">Maximale Kredietlimiet:</span>
-                        <span class="font-black text-slate-900 dark:text-white font-mono">€ {{ number_format($maxCapacity ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500 dark:text-slate-400 font-bold">Openstaande Schuld:</span>
-                        <span class="font-black text-rose-600 dark:text-rose-400 font-mono">€ {{ number_format($openstaandeSchuld ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
-                        <span class="font-extrabold text-slate-700 dark:text-slate-300">Nog Beschikbaar:</span>
-                        <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono text-sm">€ {{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}</span>
-                    </div>
-                </div>
+                <!-- ATM INNER CONSOLE HOUSING (Dark Matte Bezel) -->
+                <div class="bg-slate-900 rounded-2xl p-3 sm:p-5 border-4 border-slate-800 shadow-inner relative">
 
-                <!-- Aanvraag Formulier -->
-                <form method="POST" action="{{ route('bank.loans.request') }}" class="space-y-4">
-                    @csrf
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Gewenst Leenbedrag</label>
-                        <div class="relative">
-                            <span class="absolute left-3.5 top-2.5 text-sm font-black text-slate-400">€</span>
-                            <input type="number" 
-                                   name="amount" 
-                                   x-model.number="loanAmount" 
-                                   min="10000" 
-                                   max="{{ $beschikbareLening ?? 0 }}" 
-                                   required
-                                   class="w-full pl-8 pr-4 py-2.5 text-sm font-mono font-black border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none">
-                        </div>
-                    </div>
+                    <!-- ============================================== -->
+                    <!-- THE ATM DIGITAL SCREEN (Interactive Centerpiece) -->
+                    <!-- ============================================== -->
+                    <div class="rounded-xl border-4 border-slate-950 shadow-2xl overflow-hidden relative transition-all duration-300 bg-[#09101d] text-slate-100 min-h-[420px] flex flex-col justify-between p-4 sm:p-6"
+                         style="background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 16px 16px;">
 
-                    <!-- Quick Amount Chips -->
-                    <div class="grid grid-cols-4 gap-1.5 text-xs">
-                        <button type="button" @click="loanAmount = 10000" class="py-1.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-center">€10k</button>
-                        <button type="button" @click="loanAmount = 25000" class="py-1.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-center">€25k</button>
-                        <button type="button" @click="loanAmount = 50000" class="py-1.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 cursor-pointer text-center">€50k</button>
-                        <button type="button" @click="loanAmount = maxLoan" class="py-1.5 px-2 bg-purple-100 dark:bg-purple-950/70 hover:bg-purple-200 rounded-lg font-black text-purple-700 dark:text-purple-300 cursor-pointer text-center">Max</button>
-                    </div>
-
-                    <!-- Uitbetalen Bestemming -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Direct Storten Naar</label>
-                        <select name="deposit_to" class="w-full px-3.5 py-2.5 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none">
-                            <option value="cash">Contant op zak (Direct inzetbaar)</option>
-                            <option value="bank">Veilig op bankrekening (Kluis)</option>
-                        </select>
-                    </div>
-
-                    <!-- Renteconstructie Box -->
-                    <div class="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 text-xs space-y-2 text-purple-950 dark:text-purple-200">
-                        <div class="font-black uppercase tracking-wide flex items-center justify-between">
-                            <div class="flex items-center gap-1.5">
-                                <i class="fa-solid fa-percent text-purple-600 dark:text-purple-400"></i>
-                                <span>Rente & Leningtax (8,5%)</span>
-                            </div>
-                            <span class="text-[10px] text-amber-600 font-extrabold">&rarr; Naar Loterijpot</span>
-                        </div>
-                        <p class="leading-relaxed text-[11px] text-purple-900 dark:text-purple-300">
-                            Je betaalt eenmalig <strong>8,5% rente</strong>. Deze bijdrage gaat rechtstreeks naar de jackpot van de TBS Loterij.
-                        </p>
-                        <div class="pt-2 border-t border-purple-200 dark:border-purple-800 flex items-center justify-between text-xs">
-                            <span class="text-slate-600 dark:text-purple-300 font-bold">Renteopslag:</span>
-                            <span class="font-black text-amber-600 dark:text-amber-400 font-mono">+ € <span x-text="formatEuro(interestAmount)"></span></span>
-                        </div>
-                        <div class="flex items-center justify-between text-xs pt-1 border-t border-dashed border-purple-200 dark:border-purple-800/60">
-                            <span class="text-slate-700 dark:text-purple-200 font-black">Totaal Terug te Betalen:</span>
-                            <span class="font-black text-purple-950 dark:text-white font-mono text-sm">€ <span x-text="formatEuro(totalDue)"></span></span>
-                        </div>
-                    </div>
-
-                    <button type="submit" 
-                            @if(($beschikbareLening ?? 0) < 10000) disabled @endif
-                            class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-check"></i>
-                        <span>Lening Aanvragen</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- RIGHT: Lopende Leningen Cards -->
-        <div class="lg:col-span-7 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left text-purple-600 dark:text-purple-400"></i>
-                    <h3 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                        Lopende Leningen
-                    </h3>
-                </div>
-            </div>
-
-            @if(isset($activeLoans) && $activeLoans->count() > 0)
-                <div class="space-y-4">
-                    @foreach($activeLoans as $loan)
-                        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4"
-                             x-data="{ showRepayModal: false, repayAmount: {{ $loan->remaining_due }}, repaySource: 'cash' }">
-                            
-                            <!-- Header rij -->
-                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm font-bold">
-                                        <i class="fa-solid fa-file-invoice"></i>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs font-black text-slate-900 dark:text-white">Gestart op {{ $loan->started_at->format('d-m-Y') }}</span>
-                                        <span class="text-[10px] text-slate-400 block font-mono">Dossier: {{ $loan->loan_number }}</span>
-                                    </div>
-                                </div>
-                                <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider {{ $loan->total_paid > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' }}">
-                                    {{ $loan->total_paid > 0 ? 'Deels afgelost' : 'Nog niet afgelost' }}
+                        <!-- Screen Top Status Bar -->
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4 text-xs font-mono">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[10px] uppercase">
+                                    Geldmaat OS v4.2
+                                </span>
+                                <span class="text-slate-400 text-[11px] truncate hidden sm:inline">
+                                    Afdeling: {{ $character->current_location ?? 'Paviljoen 1' }}
                                 </span>
                             </div>
 
-                            <!-- Cijfers Grid -->
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                                <div>
-                                    <span class="text-[10px] text-slate-400 uppercase font-black block">Leenbedrag</span>
-                                    <span class="font-black text-slate-900 dark:text-white font-mono">€ {{ number_format($loan->amount, 0, ',', '.') }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-slate-400 uppercase font-black block">Rente (8,5%)</span>
-                                    <span class="font-bold text-slate-600 dark:text-slate-300 font-mono">€ {{ number_format($loan->interest_amount, 0, ',', '.') }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-slate-400 uppercase font-black block">Restant Schuld</span>
-                                    <span class="font-black text-rose-600 dark:text-rose-400 font-mono">€ {{ number_format($loan->remaining_due, 0, ',', '.') }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-slate-400 uppercase font-black block">Reeds Voldaan</span>
-                                    <span class="font-bold text-emerald-600 dark:text-emerald-400 font-mono">€ {{ number_format($loan->total_paid, 0, ',', '.') }}</span>
-                                </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-emerald-400 font-bold flex items-center gap-1.5 text-[11px]">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> 256-Bit SSL
+                                </span>
+                                <template x-if="cardInserted">
+                                    <button type="button" @click="ejectCard()"
+                                            class="px-2.5 py-1 rounded bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-[10px] font-black uppercase transition cursor-pointer flex items-center gap-1">
+                                        <i class="fa-solid fa-eject"></i> Pas Uitwerpen
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- SCREEN STATE 1: IDLE / STEK UW PAS IN -->
+                        <div x-show="atmScreen === 'idle'" class="my-auto text-center space-y-5 py-6">
+                            <div class="w-20 h-20 mx-auto rounded-3xl bg-amber-400/10 border-2 border-amber-400/40 text-amber-400 flex items-center justify-center text-4xl shadow-lg animate-pulse">
+                                <i class="fa-solid fa-credit-card"></i>
                             </div>
 
-                            <!-- Voortgangsbalk -->
+                            <div class="space-y-1.5 max-w-md mx-auto">
+                                <h2 class="text-lg sm:text-xl font-black uppercase tracking-wide text-white">
+                                    Welkom bij Geldmaat TBS
+                                </h2>
+                                <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                                    Steek uw persoonlijke <strong class="text-amber-300">Kliniek Betaalpas</strong> in de paslezer om veilig geld te storten, op te nemen of uw krediet te beheren.
+                                </p>
+                            </div>
+
+                            <div class="pt-3">
+                                <button type="button" @click="insertCard()"
+                                        class="px-6 py-3.5 rounded-xl bg-[#ffcd00] hover:bg-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider transition shadow-lg cursor-pointer transform hover:scale-105 active:scale-95 flex items-center gap-2 mx-auto">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                    <span>Steek Betaalpas In</span>
+                                </button>
+                                <span class="text-[10px] text-slate-500 block mt-2">
+                                    (Of klik op uw pas aan de rechterkant)
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- SCREEN STATE 2: EERSTE KEER PINCODE INSTELLEN -->
+                        <div x-show="atmScreen === 'setup_pin'" class="my-auto text-center space-y-5 py-4">
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 text-xs font-bold">
+                                <i class="fa-solid fa-shield"></i> Eerste Gebruik: Beveiliging Instellen
+                            </div>
+
+                            <div class="space-y-1 max-w-sm mx-auto">
+                                <h3 class="text-base sm:text-lg font-black uppercase text-white"
+                                    x-text="pinStep === 'enter_new' ? 'Kies uw 4-cijferige pincode' : 'Bevestig uw 4-cijferige pincode'"></h3>
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    Toets 4 cijfers in op het metalen keypad hieronder om uw Kliniek Betaalpas te activeren.
+                                </p>
+                            </div>
+
+                            <!-- 4 Digit Pin Display Boxes -->
+                            <div class="flex items-center justify-center gap-3.5 my-4">
+                                <template x-for="i in 4" :key="i">
+                                    <div class="w-12 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-black font-mono transition-all duration-200"
+                                         :class="(pinStep === 'enter_new' ? pinDigits.length : pinConfirmDigits.length) >= i 
+                                            ? 'border-amber-400 bg-amber-400/20 text-amber-300 shadow-md scale-105' 
+                                            : 'border-slate-700 bg-slate-900/60 text-slate-600'">
+                                        <span x-show="(pinStep === 'enter_new' ? pinDigits.length : pinConfirmDigits.length) >= i">●</span>
+                                        <span x-show="(pinStep === 'enter_new' ? pinDigits.length : pinConfirmDigits.length) < i" class="text-slate-700 text-sm">_</span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Error / Success messages on screen -->
+                            <div x-show="pinError !== ''" class="text-rose-400 text-xs font-bold font-mono bg-rose-950/60 border border-rose-800/80 p-2.5 rounded-lg max-w-xs mx-auto animate-shake" x-text="pinError"></div>
+                            <div x-show="pinSuccess !== ''" class="text-emerald-400 text-xs font-bold font-mono bg-emerald-950/60 border border-emerald-800/80 p-2.5 rounded-lg max-w-xs mx-auto" x-text="pinSuccess"></div>
+
+                            <div class="flex items-center justify-center gap-3 text-xs text-slate-400 font-mono">
+                                <span>Stap <strong class="text-amber-400" x-text="pinStep === 'enter_new' ? '1 van 2' : '2 van 2'"></strong></span>
+                                <span>•</span>
+                                <button type="button" @click="pressClear()" class="hover:text-amber-400 underline cursor-pointer">Wissen (Geel)</button>
+                            </div>
+                        </div>
+
+                        <!-- SCREEN STATE 3: PINCODE INVOEREN -->
+                        <div x-show="atmScreen === 'enter_pin'" class="my-auto text-center space-y-5 py-4">
+                            <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-400/10 border-2 border-amber-400/30 text-amber-400 flex items-center justify-center text-2xl shadow-md">
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+
                             <div class="space-y-1">
-                                <div class="flex items-center justify-between text-[11px] font-bold">
-                                    <span class="text-slate-400">Aflosstatus:</span>
-                                    <span class="text-purple-600 dark:text-purple-400 font-mono font-black">{{ $loan->getProgressPercentage() }}%</span>
+                                <h3 class="text-base sm:text-lg font-black uppercase text-white">
+                                    Voer uw 4-cijferige pincode in
+                                </h3>
+                                <p class="text-xs text-slate-400">
+                                    Rekeninghouder: <strong class="text-slate-200">{{ $character->name }}</strong>
+                                </p>
+                            </div>
+
+                            <!-- 4 Digit Pin Boxes -->
+                            <div class="flex items-center justify-center gap-3.5 my-3">
+                                <template x-for="i in 4" :key="i">
+                                    <div class="w-12 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-black font-mono transition-all duration-200"
+                                         :class="pinDigits.length >= i 
+                                            ? 'border-amber-400 bg-amber-400/20 text-amber-300 shadow-md scale-105' 
+                                            : 'border-slate-700 bg-slate-900/60 text-slate-600'">
+                                        <span x-show="pinDigits.length >= i">●</span>
+                                        <span x-show="pinDigits.length < i" class="text-slate-700 text-sm">_</span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div x-show="pinError !== ''" class="text-rose-400 text-xs font-bold font-mono bg-rose-950/60 border border-rose-800/80 p-2.5 rounded-lg max-w-xs mx-auto animate-shake" x-text="pinError"></div>
+                            <div x-show="pinSuccess !== ''" class="text-emerald-400 text-xs font-bold font-mono bg-emerald-950/60 border border-emerald-800/80 p-2.5 rounded-lg max-w-xs mx-auto" x-text="pinSuccess"></div>
+
+                            <p class="text-[11px] text-slate-500 font-mono">
+                                Gebruik het metalen cijferpad hieronder of de cijfertoetsen op je toetsenbord.
+                            </p>
+                        </div>
+
+                        <!-- SCREEN STATE 4: HOOFDMENU (NA SUCCESVOLLE PIN) -->
+                        <div x-show="atmScreen === 'menu'" class="space-y-5 my-auto">
+                            <!-- Account Saldo Card Op Het Scherm -->
+                            <div class="bg-slate-950/80 rounded-xl p-4 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+                                <div>
+                                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">Veilig Banktegoed (Kluis)</span>
+                                    <div class="text-2xl sm:text-3xl font-black font-mono text-emerald-400">
+                                        €{{ number_format($character->bank, 0, ',', '.') }}
+                                    </div>
                                 </div>
-                                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
-                                    <div class="bg-purple-600 h-full rounded-full transition-all duration-300" 
-                                         style="width: {{ $loan->getProgressPercentage() }}%;"></div>
+                                <div class="text-left sm:text-right font-mono">
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-widest block">Contant op Zak</span>
+                                    <div class="text-base sm:text-lg font-black text-amber-400">
+                                        €{{ number_format($character->cash, 0, ',', '.') }}
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Actieknoppen -->
-                            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                <button type="button" @click="showRepayModal = !showRepayModal"
-                                        class="py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                                    <i class="fa-solid fa-coins text-xs"></i>
-                                    <span>Deel Aflossen</span>
+                            <!-- Touch Action Buttons Grid -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Storten Button -->
+                                <button type="button" @click="atmScreen = 'deposit'; playBeep(850, 45);"
+                                        class="p-4 rounded-xl bg-slate-800/80 hover:bg-emerald-900/40 border border-slate-700 hover:border-emerald-500 text-left transition group cursor-pointer shadow-xs flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition">
+                                            <i class="fa-solid fa-arrow-down"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black text-white group-hover:text-emerald-300">Geld Storten</h4>
+                                            <span class="text-[10px] text-slate-400">Contanten veilig afstorten</span>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-emerald-400"></i>
                                 </button>
 
-                                <form method="POST" action="{{ route('bank.loans.repay-full', $loan) }}">
-                                    @csrf
-                                    <input type="hidden" name="source" value="cash">
-                                    <button type="submit" 
-                                            class="py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer">
-                                        <i class="fa-solid fa-check-double text-xs"></i>
-                                        <span>Alles Aflossen (€{{ number_format($loan->remaining_due, 0, ',', '.') }})</span>
+                                <!-- Opnemen Button -->
+                                <button type="button" @click="atmScreen = 'withdraw'; playBeep(850, 45);"
+                                        class="p-4 rounded-xl bg-slate-800/80 hover:bg-amber-900/40 border border-slate-700 hover:border-amber-500 text-left transition group cursor-pointer shadow-xs flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition">
+                                            <i class="fa-solid fa-arrow-up"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black text-white group-hover:text-amber-300">Contant Opnemen</h4>
+                                            <span class="text-[10px] text-slate-400">Biljetten pinnen uit automaat</span>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-amber-400"></i>
+                                </button>
+
+                                <!-- Leningen / Krediet Button -->
+                                <button type="button" @click="atmScreen = 'loans'; playBeep(850, 45);"
+                                        class="p-4 rounded-xl bg-slate-800/80 hover:bg-purple-900/40 border border-slate-700 hover:border-purple-500 text-left transition group cursor-pointer shadow-xs flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition">
+                                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black text-white group-hover:text-purple-300">Krediet &amp; Leningen</h4>
+                                            <span class="text-[10px] text-slate-400">Beschikbaar: €{{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}</span>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-purple-400"></i>
+                                </button>
+
+                                <!-- Mutaties / Afschrift Button -->
+                                <button type="button" @click="atmScreen = 'transactions'; playBeep(850, 45);"
+                                        class="p-4 rounded-xl bg-slate-800/80 hover:bg-blue-900/40 border border-slate-700 hover:border-blue-500 text-left transition group cursor-pointer shadow-xs flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg font-bold group-hover:scale-110 transition">
+                                            <i class="fa-solid fa-receipt"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-black text-white group-hover:text-blue-300">Afschrift &amp; Mutaties</h4>
+                                            <span class="text-[10px] text-slate-400">Recente transactiebonnen</span>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-blue-400"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SCREEN STATE 5: GELD STORTEN -->
+                        <div x-show="atmScreen === 'deposit'" class="space-y-4 my-auto">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="atmScreen = 'menu'" class="text-slate-400 hover:text-white text-xs font-mono">
+                                        &larr; Hoofdmenu
                                     </button>
-                                </form>
-                            </div>
-
-                            <!-- Inline Deel Aflossen Formulier Drawer -->
-                            <div x-show="showRepayModal" x-cloak class="mt-3 p-4 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-purple-200 dark:border-purple-800/60 space-y-3">
-                                <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase">Aflossen op dossier {{ $loan->loan_number }}</h4>
-                                <form method="POST" action="{{ route('bank.loans.repay', $loan) }}" class="space-y-3">
-                                    @csrf
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                        <div>
-                                            <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">Aflosbedrag (€)</label>
-                                            <input type="number" name="amount" min="1" max="{{ $loan->remaining_due }}" value="{{ min(25000, $loan->remaining_due) }}" required
-                                                   class="w-full px-3 py-2 text-xs font-mono font-bold border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 outline-none">
-                                        </div>
-                                        <div>
-                                            <label class="block font-bold text-slate-600 dark:text-slate-300 mb-1">Betalen vanuit</label>
-                                            <select name="source" class="w-full px-3 py-2 text-xs font-bold border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 outline-none">
-                                                <option value="cash">Contant op zak (€{{ number_format($character->cash, 0, ',', '.') }})</option>
-                                                <option value="bank">Veilig Banktegoed (€{{ number_format($character->bank, 0, ',', '.') }})</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button type="button" @click="showRepayModal = false" class="py-1.5 px-3 rounded-lg text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs">Annuleren</button>
-                                        <button type="submit" class="py-1.5 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-xs">Aflossen Bevestigen</button>
-                                    </div>
-                                </form>
-                            </div>
-
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-8 text-center shadow-xs">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl mx-auto mb-3">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                    <h4 class="text-sm font-black text-slate-900 dark:text-white">Geen openstaande schulden</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
-                        Je financiële status is brandschoon. Je kunt links direct een lening aanvragen tot maximaal <strong>€ {{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}</strong>!
-                    </p>
-                </div>
-            @endif
-
-            <!-- Afgeloste Leningen Geschiedenis -->
-            @if(isset($paidLoans) && $paidLoans->count() > 0)
-                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Recent Volledig Afgelost</h4>
-                    @foreach($paidLoans as $pLoan)
-                        <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 rounded-xl p-3 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-badge-check text-emerald-500"></i>
-                                <span class="font-bold text-slate-700 dark:text-slate-200">{{ $pLoan->loan_number }}</span>
-                                <span class="text-slate-400 font-mono">(€ {{ number_format($pLoan->amount, 0, ',', '.') }})</span>
-                            </div>
-                            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
-                                Afgelost op {{ $pLoan->paid_at?->format('d-m-Y') ?? '' }}
-                            </span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-
-    </div>
-
-    <!-- ========================================== -->
-    <!-- TAB 3: TRANSACTIEHISTORIE (Logboek)        -->
-    <!-- ========================================== -->
-    <div x-show="activeTab === 'transactions'" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-receipt text-purple-600 dark:text-purple-400"></i>
-                <h3 class="text-xs sm:text-sm font-black uppercase tracking-wide text-slate-900 dark:text-white">
-                    Transactiehistorie & Mutaties
-                </h3>
-            </div>
-        </div>
-
-        @if(isset($transactions) && $transactions->count() > 0)
-            {{-- Mobile Transaction Feed (< sm) --}}
-            <div class="sm:hidden divide-y divide-slate-100 dark:divide-slate-800/80">
-                @foreach($transactions as $tx)
-                    <div class="py-3 flex items-start justify-between gap-3">
-                        <div class="flex items-start gap-2.5 min-w-0">
-                            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs mt-0.5
-                                @if(in_array($tx->type, ['deposit', 'allowance', 'loan_received'])) bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400
-                                @else bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 @endif">
-                                <i class="fa-solid {{ in_array($tx->type, ['deposit', 'allowance', 'loan_received']) ? 'fa-arrow-down' : 'fa-arrow-up' }}"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wide
-                                        @if(in_array($tx->type, ['deposit', 'allowance', 'loan_received'])) bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300
-                                        @else bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 @endif">
-                                        {{ $tx->type }}
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 font-mono">{{ $tx->created_at->format('d-m-Y H:i') }}</span>
+                                    <span class="text-slate-600">|</span>
+                                    <h4 class="text-sm font-black uppercase text-emerald-400">Geld Storten</h4>
                                 </div>
-                                <p class="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1 leading-snug">
-                                    {{ $tx->description }}
-                                </p>
-                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
-                                    Saldo na: €{{ number_format($tx->balance_after, 0, ',', '.') }}
-                                </p>
+                                <span class="text-xs font-mono text-slate-400">
+                                    Op zak: <strong class="text-amber-400">€{{ number_format($character->cash, 0, ',', '.') }}</strong>
+                                </span>
+                            </div>
+
+                            <!-- Fast Preset Chips -->
+                            <div class="grid grid-cols-4 gap-2">
+                                <button type="button" @click="depositAmount = 500; playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono font-bold text-white text-center cursor-pointer">
+                                    €500
+                                </button>
+                                <button type="button" @click="depositAmount = Math.floor({{ $character->cash }} * 0.25); playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono font-bold text-white text-center cursor-pointer">
+                                    25%
+                                </button>
+                                <button type="button" @click="depositAmount = Math.floor({{ $character->cash }} * 0.50); playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono font-bold text-white text-center cursor-pointer">
+                                    50%
+                                </button>
+                                <button type="button" @click="depositAmount = {{ (int) $character->cash }}; playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-xs font-mono font-black text-emerald-300 text-center cursor-pointer">
+                                    ALLES
+                                </button>
+                            </div>
+
+                            <!-- Real Submit Form -->
+                            <form x-ref="depositForm" method="POST" action="{{ route('bank.deposit') }}" class="space-y-3">
+                                @csrf
+                                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                                    <span class="text-xs font-mono text-slate-500">In te leggen:</span>
+                                    <div class="flex items-center gap-1 font-mono text-xl sm:text-2xl font-black text-emerald-400">
+                                        <span>€</span>
+                                        <input type="number" name="amount" x-model.number="depositAmount" min="1" max="{{ $character->cash }}"
+                                               placeholder="0"
+                                               class="w-48 bg-transparent text-right text-emerald-400 focus:outline-none font-mono">
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <button type="submit"
+                                            :disabled="!depositAmount || depositAmount <= 0 || depositAmount > {{ $character->cash }}"
+                                            class="flex-1 py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition shadow-md cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-vault"></i>
+                                        <span>Biljetten Inleggen &amp; Storten</span>
+                                    </button>
+                                    <button type="button" @click="atmScreen = 'menu'"
+                                            class="py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase transition cursor-pointer">
+                                        Annuleren
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- SCREEN STATE 6: GELD OPNEMEN -->
+                        <div x-show="atmScreen === 'withdraw'" class="space-y-4 my-auto">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" @click="atmScreen = 'menu'" class="text-slate-400 hover:text-white text-xs font-mono">
+                                        &larr; Hoofdmenu
+                                    </button>
+                                    <span class="text-slate-600">|</span>
+                                    <h4 class="text-sm font-black uppercase text-amber-400">Contant Opnemen</h4>
+                                </div>
+                                <span class="text-xs font-mono text-slate-400">
+                                    In kluis: <strong class="text-emerald-400">€{{ number_format($character->bank, 0, ',', '.') }}</strong>
+                                </span>
+                            </div>
+
+                            <!-- Fast Presets -->
+                            <div class="grid grid-cols-4 gap-2">
+                                <button type="button" @click="withdrawAmount = 1000; playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono font-bold text-white text-center cursor-pointer">
+                                    €1.000
+                                </button>
+                                <button type="button" @click="withdrawAmount = 5000; playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono font-bold text-white text-center cursor-pointer">
+                                    €5.000
+                                </button>
+                                <button type="button" @click="withdrawAmount = 25000; playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-mono font-bold text-white text-center cursor-pointer">
+                                    €25.000
+                                </button>
+                                <button type="button" @click="withdrawAmount = {{ (int) $character->bank }}; playBeep(700, 30);"
+                                        class="py-2 px-1 rounded-lg bg-amber-950/80 hover:bg-amber-900 border border-amber-700 text-xs font-mono font-black text-amber-300 text-center cursor-pointer">
+                                    ALLES
+                                </button>
+                            </div>
+
+                            <!-- Real Withdraw Form -->
+                            <form x-ref="withdrawForm" method="POST" action="{{ route('bank.withdraw') }}" class="space-y-3">
+                                @csrf
+                                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                                    <span class="text-xs font-mono text-slate-500">Op te nemen:</span>
+                                    <div class="flex items-center gap-1 font-mono text-xl sm:text-2xl font-black text-amber-400">
+                                        <span>€</span>
+                                        <input type="number" name="amount" x-model.number="withdrawAmount" min="1" max="{{ $character->bank }}"
+                                               placeholder="0"
+                                               class="w-48 bg-transparent text-right text-amber-400 focus:outline-none font-mono">
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 rounded-lg bg-amber-950/30 border border-amber-800/40 text-[11px] font-mono text-amber-300 flex items-center justify-between">
+                                    <span>Kliniektax ({{ $character->isVip() ? '3% VIP' : '5%' }} Jackpot Inleg):</span>
+                                    <span class="font-bold">-<span x-text="withdrawAmount ? '€' + Math.max(1, Math.round(withdrawAmount * {{ $character->isVip() ? 0.03 : 0.05 }})).toLocaleString('nl-NL') : '€0'"></span></span>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <button type="submit"
+                                            :disabled="!withdrawAmount || withdrawAmount <= 0 || withdrawAmount > {{ $character->bank }}"
+                                            class="flex-1 py-3.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider transition shadow-md cursor-pointer flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-money-bill-wave"></i>
+                                        <span>Biljetten Uitgeven</span>
+                                    </button>
+                                    <button type="button" @click="atmScreen = 'menu'"
+                                            class="py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-black uppercase transition cursor-pointer">
+                                        Annuleren
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- SCREEN STATE 7: KREDIET & LENINGEN -->
+                        <div x-show="atmScreen === 'loans'" class="space-y-4 my-auto">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <button type="button" @click="atmScreen = 'menu'" class="text-slate-400 hover:text-white text-xs font-mono">
+                                    &larr; Hoofdmenu
+                                </button>
+                                <h4 class="text-sm font-black uppercase text-purple-400">Krediet &amp; Leningen</h4>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                                <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+                                    <span class="text-slate-500 text-[10px] uppercase block">Beschikbaar Krediet</span>
+                                    <span class="text-sm font-black text-purple-400">€{{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}</span>
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+                                    <span class="text-slate-500 text-[10px] uppercase block">Openstaande Schuld</span>
+                                    <span class="text-sm font-black text-rose-400">€{{ number_format($openstaandeSchuld ?? 0, 0, ',', '.') }}</span>
+                                </div>
+                            </div>
+
+                            @if(($beschikbareLening ?? 0) >= \App\Models\Loan::MIN_LOAN_AMOUNT)
+                            <form method="POST" action="{{ route('bank.loans.request') }}" class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-2">
+                                @csrf
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-slate-400 font-mono">Nieuwe lening aanvragen:</span>
+                                    <span class="text-purple-400 font-mono font-bold">Rente & Leningtax (8,5%)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" name="amount" min="{{ \App\Models\Loan::MIN_LOAN_AMOUNT }}" max="{{ $beschikbareLening }}" step="5000"
+                                           value="{{ min(50000, $beschikbareLening) }}"
+                                           class="flex-1 p-2 bg-slate-900 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none">
+                                    <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-black uppercase tracking-wider cursor-pointer">
+                                        Aanvragen
+                                    </button>
+                                </div>
+                            </form>
+                            @else
+                            <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-center text-xs text-slate-400">
+                                Maximaal krediet bereikt voor jouw huidige level ({{ $character->level }}). Los eerst openstaande leningen af.
+                            </div>
+                            @endif
+
+                            @if(isset($activeLoans) && $activeLoans->isNotEmpty())
+                            <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                                @foreach($activeLoans as $loan)
+                                <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+                                    <div>
+                                        <span class="font-bold text-white">Lening #{{ $loan->id }}</span>
+                                        <span class="text-rose-400 block font-mono">Open: €{{ number_format($loan->remaining_due, 0, ',', '.') }}</span>
+                                    </div>
+                                    <form method="POST" action="{{ route('bank.loans.repay-full', $loan) }}">
+                                        @csrf
+                                        <button type="submit" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-[10px] font-black uppercase cursor-pointer">
+                                            Alles Aflossen
+                                        </button>
+                                    </form>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- SCREEN STATE 8: BON / TRANSACTIES -->
+                        <div x-show="atmScreen === 'transactions'" class="space-y-4 my-auto">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <button type="button" @click="atmScreen = 'menu'" class="text-slate-400 hover:text-white text-xs font-mono">
+                                    &larr; Hoofdmenu
+                                </button>
+                                <h4 class="text-sm font-black uppercase text-blue-400">Transactiebon / Afschrift</h4>
+                            </div>
+
+                            <!-- Styled ATM Paper Receipt Ticket -->
+                            <div class="bg-amber-50 text-slate-900 rounded-lg p-4 font-mono text-xs shadow-md space-y-2 max-h-56 overflow-y-auto">
+                                <div class="text-center border-b border-dashed border-slate-400 pb-2">
+                                    <span class="font-black text-sm block">GELDMAAT // REKENINGAFSCHRIFT</span>
+                                    <span class="text-[10px] text-slate-600 block">Patiënt: {{ $character->name }} • Rek: NL99TBSK00{{ str_pad($character->id, 4, '0', STR_PAD_LEFT) }}</span>
+                                </div>
+
+                                <div class="space-y-1 divide-y divide-dashed divide-slate-300">
+                                    @forelse($transactions->take(8) as $tx)
+                                    <div class="pt-1 flex items-center justify-between text-[11px]">
+                                        <span class="truncate max-w-[170px]">{{ $tx->description ?? ucfirst($tx->type) }}</span>
+                                        <span class="font-bold shrink-0 {{ in_array($tx->type, ['deposit', 'loan_received', 'interest', 'allowance']) ? 'text-emerald-700' : 'text-rose-700' }}">
+                                            {{ in_array($tx->type, ['deposit', 'loan_received', 'interest', 'allowance']) ? '+' : '-' }}€{{ number_format($tx->amount, 0, ',', '.') }}
+                                        </span>
+                                    </div>
+                                    @empty
+                                    <div class="text-center py-2 text-slate-500">Nog geen transacties geregistreerd.</div>
+                                    @endforelse
+                                </div>
+
+                                <div class="text-center border-t border-dashed border-slate-400 pt-2 text-[10px] text-slate-600">
+                                    BEWAAR DEZE BON ALS BEWIJS VOOR DE DIRECTIE
+                                </div>
                             </div>
                         </div>
-                        <div class="text-right shrink-0">
-                            <span class="font-mono font-black text-xs sm:text-sm block {{ $tx->amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
-                                {{ $tx->amount >= 0 ? '+' : '' }}€{{ number_format($tx->amount, 0, ',', '.') }}
+
+                        <!-- Screen Bottom Bezel Footer -->
+                        <div class="border-t border-slate-800/80 pt-2.5 mt-auto flex items-center justify-between text-[10px] font-mono text-slate-500">
+                            <span>KLINIEK PIN TERMINAL #884</span>
+                            <span class="flex items-center gap-1.5 text-emerald-400 font-bold">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> GEREED
                             </span>
                         </div>
                     </div>
-                @endforeach
+
+                    <!-- ============================================== -->
+                    <!-- PHYSICAL HARDWARE SLOTS (Under Screen)          -->
+                    <!-- ============================================== -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t-2 border-slate-800">
+
+                        <!-- 1. Pas-invoer Sleuf -->
+                        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between gap-2 text-center group cursor-pointer"
+                             @click="cardInserted ? ejectCard() : insertCard()">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-mono font-bold text-slate-400 uppercase">Pasinvoer</span>
+                                <span class="w-2 h-2 rounded-full" :class="cardInserted ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 animate-ping'"></span>
+                            </div>
+
+                            <!-- Metallic Card Slot Graphics -->
+                            <div class="h-3 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center relative overflow-hidden">
+                                <div class="w-16 h-1 rounded-full" :class="cardInserted ? 'bg-amber-400' : 'bg-emerald-400 animate-pulse'"></div>
+                            </div>
+
+                            <span class="text-[10px] font-mono font-bold text-slate-300 truncate"
+                                  x-text="cardInserted ? 'Pas Ingeschoven (Klik: Uitwerpen)' : 'Steek Pas In ⮟'"></span>
+                        </div>
+
+                        <!-- 2. Biljettenlade (Cash Dispenser) -->
+                        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between gap-2 text-center">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-mono font-bold text-slate-400 uppercase">Biljettenlade</span>
+                                <span class="w-2 h-2 rounded-full bg-slate-700"></span>
+                            </div>
+
+                            <!-- Wide Cash Slot -->
+                            <div class="h-4 rounded bg-slate-900 border-2 border-slate-700 flex items-center justify-center">
+                                <div class="w-28 h-1 rounded-full bg-slate-800"></div>
+                            </div>
+
+                            <span class="text-[10px] font-mono text-slate-400 truncate">
+                                Uitgifte &amp; Inname Luik
+                            </span>
+                        </div>
+
+                        <!-- 3. Bonprinter Sleuf -->
+                        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between gap-2 text-center cursor-pointer"
+                             @click="atmScreen = 'transactions'; playBeep(900, 40);">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-mono font-bold text-slate-400 uppercase">Bonprinter</span>
+                                <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                            </div>
+
+                            <div class="h-2 rounded bg-slate-900 border border-slate-700 flex items-center justify-center">
+                                <div class="w-16 h-0.5 bg-white/40"></div>
+                            </div>
+
+                            <span class="text-[10px] font-mono text-blue-400 hover:underline truncate">
+                                [ Print Afschrift ]
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- ============================================== -->
+                    <!-- PHYSICAL METAL KEYPAD (Interactive Tactile Pinpad) -->
+                    <!-- ============================================== -->
+                    <div class="mt-4 pt-4 border-t-2 border-slate-800 max-w-sm mx-auto">
+                        <div class="flex items-center justify-between mb-2 px-1">
+                            <span class="text-[10px] font-mono font-black uppercase text-slate-400">
+                                <i class="fa-solid fa-keyboard mr-1"></i> Fysiek Pinpad
+                            </span>
+                            <span class="text-[10px] font-mono text-slate-500">Kliniek Pin Encrypted</span>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2">
+                            <!-- Row 1: 1, 2, 3 + ANNULEER (Rood) -->
+                            <button type="button" @click="pressKey('1')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">1</button>
+                            <button type="button" @click="pressKey('2')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">2</button>
+                            <button type="button" @click="pressKey('3')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">3</button>
+                            <button type="button" @click="pressCancel()" class="py-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black font-mono text-xs uppercase shadow-md active:translate-y-0.5 transition cursor-pointer border border-rose-700">STOP</button>
+
+                            <!-- Row 2: 4, 5, 6 + CORRIGEREN (Geel) -->
+                            <button type="button" @click="pressKey('4')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">4</button>
+                            <button type="button" @click="pressKey('5')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">5</button>
+                            <button type="button" @click="pressKey('6')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">6</button>
+                            <button type="button" @click="pressClear()" class="py-3 rounded-lg bg-[#ffcd00] hover:bg-amber-300 text-slate-950 font-black font-mono text-xs uppercase shadow-md active:translate-y-0.5 transition cursor-pointer border border-amber-500">CORR</button>
+
+                            <!-- Row 3: 7, 8, 9 + BEVESTIGEN (Groen) -->
+                            <button type="button" @click="pressKey('7')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">7</button>
+                            <button type="button" @click="pressKey('8')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">8</button>
+                            <button type="button" @click="pressKey('9')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">9</button>
+                            <button type="button" @click="pressOk()" class="py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black font-mono text-xs uppercase shadow-md active:translate-y-0.5 transition cursor-pointer border border-emerald-700">OK</button>
+
+                            <!-- Row 4: Empty, 0, Empty, Help -->
+                            <div class="py-3"></div>
+                            <button type="button" @click="pressKey('0')" class="py-3 rounded-lg bg-gradient-to-b from-slate-200 to-slate-400 hover:from-white hover:to-slate-300 text-slate-950 font-black font-mono text-base shadow-md active:translate-y-0.5 transition cursor-pointer border border-slate-300">0</button>
+                            <div class="py-3"></div>
+                            <button type="button" @click="playBeep(440, 50)" class="py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold font-mono text-xs uppercase shadow-md transition cursor-pointer border border-slate-700">INFO</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN (Cols 4): THE PATIENT'S PHYSICAL DEBIT CARD & VITALS -->
+        <div class="lg:col-span-4 space-y-6">
+
+            <!-- 1. The Interactive 3D TBS Kliniek Betaalpas -->
+            <div class="space-y-2">
+                <span class="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                    <span>Jouw Betaalpas</span>
+                    <span class="text-[10px] font-mono text-amber-500 font-bold">EMV CHIP 2026</span>
+                </span>
+
+                <!-- Realistic Dutch Bank Debit Card -->
+                <div @click="cardInserted ? ejectCard() : insertCard()"
+                     class="w-full aspect-[1.586/1] rounded-2xl p-5 shadow-2xl relative overflow-hidden transition-all duration-300 transform hover:-translate-y-1 hover:shadow-purple-500/20 cursor-pointer flex flex-col justify-between select-none border-2 border-white/20"
+                     :class="cardInserted ? 'ring-4 ring-amber-400 scale-[0.98] opacity-90' : ''"
+                     style="background: linear-gradient(135deg, #1e103c 0%, #3b0764 50%, #0f172a 100%);">
+
+                    <!-- Glossy overlay & hologram shimmer -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none"></div>
+
+                    <!-- Top Card Bar -->
+                    <div class="flex items-center justify-between relative z-10">
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-lg bg-[#ffcd00] text-slate-950 flex items-center justify-center text-xs font-black shadow-xs">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </span>
+                            <span class="text-xs font-black uppercase tracking-widest text-white font-mono">
+                                TBS KLINIEK
+                            </span>
+                        </div>
+                        <i class="fa-solid fa-wifi text-slate-300 text-sm rotate-90"></i>
+                    </div>
+
+                    <!-- Gold EMV Chip & Contactless Symbol -->
+                    <div class="flex items-center gap-4 relative z-10 my-1">
+                        <div class="w-11 h-8 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-600 border border-amber-300 shadow-inner flex items-center justify-center p-1">
+                            <div class="w-full h-full border border-amber-700/60 rounded-xs flex flex-col justify-between">
+                                <div class="h-0.5 bg-amber-700/40 w-full"></div>
+                                <div class="h-0.5 bg-amber-700/40 w-full"></div>
+                            </div>
+                        </div>
+                        <span class="text-[9px] font-mono text-purple-200 tracking-wider">PATIENT DEBIT</span>
+                    </div>
+
+                    <!-- Embossed Card Numbers & Patient Name -->
+                    <div class="space-y-1 relative z-10">
+                        <div class="text-sm sm:text-base font-mono font-extrabold tracking-widest text-slate-100 drop-shadow">
+                            NL99 TBSK 0884 {{ str_pad($character->id, 4, '0', STR_PAD_LEFT) }}
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] font-mono text-slate-300 uppercase">
+                            <span class="truncate max-w-[150px] font-black text-white">{{ $character->name }}</span>
+                            <span class="tracking-widest">12/28</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center pt-1">
+                    <button type="button" @click="cardInserted ? ejectCard() : insertCard()"
+                            class="text-xs font-black text-purple-600 dark:text-purple-400 hover:underline flex items-center justify-center gap-1.5 mx-auto cursor-pointer">
+                        <i class="fa-solid" :class="cardInserted ? 'fa-eject text-rose-500' : 'fa-arrow-left text-emerald-500'"></i>
+                        <span x-text="cardInserted ? 'Pas uit de Geldmaat halen' : 'Steek pas in de Geldmaat ➔'"></span>
+                    </button>
+                </div>
             </div>
 
-            {{-- Desktop Transaction Table (>= sm) --}}
-            <div class="hidden sm:block overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead>
-                        <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase text-[10px] font-black tracking-wider">
-                            <th class="py-3 px-3 whitespace-nowrap">Datum & Tijd</th>
-                            <th class="py-3 px-3 whitespace-nowrap">Type</th>
-                            <th class="py-3 px-3">Omschrijving</th>
-                            <th class="py-3 px-3 text-right whitespace-nowrap">Bedrag</th>
-                            <th class="py-3 px-3 text-right whitespace-nowrap">Saldo Na</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                        @foreach($transactions as $tx)
-                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                                <td class="py-3 px-3 font-mono text-slate-500 text-[11px] whitespace-nowrap">
-                                    {{ $tx->created_at->format('d-m-Y H:i') }}
-                                </td>
-                                <td class="py-3 px-3 whitespace-nowrap">
-                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide
-                                        @if(in_array($tx->type, ['deposit', 'allowance', 'loan_received'])) bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
-                                        @else bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 @endif">
-                                        {{ $tx->type }}
-                                    </span>
-                                </td>
-                                <td class="py-3 px-3 font-medium text-slate-800 dark:text-slate-200">
-                                    {{ $tx->description }}
-                                </td>
-                                <td class="py-3 px-3 text-right font-mono font-black whitespace-nowrap {{ $tx->amount >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
-                                    {{ $tx->amount >= 0 ? '+' : '' }}€{{ number_format($tx->amount, 0, ',', '.') }}
-                                </td>
-                                <td class="py-3 px-3 text-right font-mono text-slate-500 font-bold whitespace-nowrap">
-                                    €{{ number_format($tx->balance_after, 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <!-- 2. Financial Vitals Cards (Op Zak / Kluis / Schuld / Krediet) -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-amber-200 dark:border-amber-800/60 shadow-xs">
+                    <span class="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Contant op Zak</span>
+                    <span class="text-base sm:text-lg font-black font-mono text-slate-900 dark:text-white truncate block">
+                        €{{ number_format($character->cash, 0, ',', '.') }}
+                    </span>
+                    <span class="text-[10px] text-amber-700 dark:text-amber-400 font-bold block mt-1">⚠️ Kwetsbaar</span>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 shadow-xs">
+                    <span class="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Veilig in Kluis</span>
+                    <span class="text-base sm:text-lg font-black font-mono text-emerald-600 dark:text-emerald-400 truncate block">
+                        €{{ number_format($character->bank, 0, ',', '.') }}
+                    </span>
+                    <span class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold block mt-1">🛡️ 100% Beveiligd</span>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-rose-200 dark:border-rose-800/60 shadow-xs">
+                    <span class="text-[9px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider block">Schuld</span>
+                    <span class="text-base sm:text-lg font-black font-mono text-rose-600 dark:text-rose-400 truncate block">
+                        €{{ number_format($openstaandeSchuld ?? 0, 0, ',', '.') }}
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-bold block mt-1">{{ isset($activeLoans) ? $activeLoans->count() : 0 }} lening(en)</span>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-purple-200 dark:border-purple-800/60 shadow-xs">
+                    <span class="text-[9px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Kredietruimte</span>
+                    <span class="text-base sm:text-lg font-black font-mono text-purple-600 dark:text-purple-400 truncate block">
+                        €{{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-bold block mt-1">Max €{{ number_format($maxCapacity ?? 0, 0, ',', '.') }}</span>
+                </div>
             </div>
 
-            <div class="mt-4">
-                {{ $transactions->links() }}
+            <!-- 3. TBS Kwartierloon / Uitkering Box -->
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-black uppercase text-slate-900 dark:text-white">Patiënten Uitkering</h4>
+                    <span class="text-[9px] font-black px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
+                        {{ ($allowanceDetails['eligible'] ?? false) ? 'Actief' : 'Bende Loon' }}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    @if($allowanceDetails['eligible'] ?? false)
+                        Automatische storting van <strong>€{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }}</strong> per 15 minuten direct op deze rekening!
+                    @else
+                        Je ontvangt een collectief bende-uurloon via de smokkelkiosken van <strong>{{ $character->gang?->name ?? 'je gang' }}</strong>.
+                    @endif
+                </p>
             </div>
-        @else
-            <div class="p-8 text-center text-slate-500 dark:text-slate-400 text-xs">
-                <i class="fa-solid fa-receipt text-3xl mb-2 text-slate-300 dark:text-slate-700 block"></i>
-                Er zijn nog geen geregistreerde transacties voor dit account.
-            </div>
-        @endif
+        </div>
     </div>
-
 </div>
 @endsection

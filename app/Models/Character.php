@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Class Character
@@ -1442,6 +1443,39 @@ class Character extends Model
     public function getMaxStatForLevel(): int
     {
         return 100 + ((int) ($this->level ?? 1) * 50);
+    }
+
+    /**
+     * Check if character has set up a 4-digit Geldmaat ATM PIN.
+     */
+    public function hasBankPin(): bool
+    {
+        $perks = $this->perks ?? [];
+
+        return ! empty($perks['bank_pin']);
+    }
+
+    /**
+     * Set or update character's 4-digit Geldmaat ATM PIN.
+     */
+    public function setBankPin(string $pin): void
+    {
+        $perks = $this->perks ?? [];
+        $perks['bank_pin'] = Hash::make($pin);
+        $this->perks = $perks;
+        $this->save();
+    }
+
+    /**
+     * Verify if provided PIN matches stored ATM PIN.
+     */
+    public function verifyBankPin(string $pin): bool
+    {
+        if (! $this->hasBankPin()) {
+            return false;
+        }
+
+        return Hash::check($pin, (string) ($this->perks['bank_pin'] ?? ''));
     }
 
     /**
