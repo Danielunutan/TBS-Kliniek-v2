@@ -70,14 +70,18 @@
             </div>
             <div>
                 <h4 class="text-xs font-black text-slate-900 dark:text-white">Afpersen Cooldown Actief</h4>
-                <p class="text-xs text-amber-800 dark:text-amber-300 mt-0.5">Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-200 font-black" x-text="format(seconds)">{{ gmdate('i:s', $extortCooldown) }}</strong> of reset direct via een sponsor advertentie.</p>
+                <p class="text-xs text-amber-800 dark:text-amber-300 mt-0.5">Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-200 font-black" x-text="format(seconds)">{{ gmdate('i:s', $extortCooldown) }}</strong> of omzeil direct met Sterren.</p>
             </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                <i class="fa-solid fa-tv text-[11px]"></i>
-                <span>Kijk Ad (Reset Cooldown)</span>
-            </button>
+            <form method="POST" action="{{ route('cooldown.skip') }}">
+                @csrf
+                <input type="hidden" name="action" value="extort">
+                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                    <i class="fa-solid fa-star text-[11px]"></i>
+                    <span>Omzeilen (10 Sterren)</span>
+                </button>
+            </form>
         </div>
     </div>
 

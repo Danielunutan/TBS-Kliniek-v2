@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('gang:pay-wages')->hourly();
 Schedule::command('patients:pay-allowances')->everyFifteenMinutes();
 Schedule::command('vault:evening-drop')->dailyAt('22:00')->timezone('Europe/Amsterdam');
+Schedule::command('lottery:draw')->everyMinute();

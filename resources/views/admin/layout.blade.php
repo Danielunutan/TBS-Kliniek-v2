@@ -56,6 +56,18 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.referrals*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-user-plus"></i> Referrals & VIP Beloningen
             </a>
+            <a href="{{ route('admin.buymeacoffee.index') }}" 
+               class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.buymeacoffee*') ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+                <i class="fa-solid fa-mug-hot {{ request()->routeIs('admin.buymeacoffee*') ? 'text-white' : 'text-amber-500' }}"></i> Buy Me a Coffee
+                @php
+                    $unmatchedBmcCount = \Illuminate\Support\Facades\Schema::hasTable('buymeacoffee_orders') ? \App\Models\BuyMeACoffeeOrder::where('status', 'unmatched')->count() : 0;
+                @endphp
+                @if($unmatchedBmcCount > 0)
+                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ request()->routeIs('admin.buymeacoffee*') ? 'bg-white text-amber-700' : 'bg-amber-500 text-white animate-pulse' }}">
+                    {{ $unmatchedBmcCount }} nieuw
+                </span>
+                @endif
+            </a>
             <a href="{{ route('admin.news.index') }}" 
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.news.*') ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
                 <i class="fa-solid fa-newspaper"></i> Nieuws Artikelen

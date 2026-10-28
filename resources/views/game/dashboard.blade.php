@@ -56,36 +56,71 @@
         <!-- Main Content (Left) -->
         <div class="xl:col-span-8 space-y-6">
 
+            <!-- Seizoen 1 Teller Widget (3 Maanden) -->
+            @include('partials.season_countdown_widget')
+
+            <!-- SEIZOEN 1 BATTLE PASS BANNER (4 SPOREN) -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-600/15 to-indigo-600/10 dark:from-amber-950/40 dark:via-purple-950/50 dark:to-indigo-950/40 p-4 sm:p-5 text-slate-900 dark:text-white shadow-md border-2 border-amber-400 dark:border-amber-500/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-xl shadow-md shrink-0">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                                4 Sporen Actief
+                            </span>
+                            <span class="text-xs font-black text-amber-600 dark:text-amber-400">
+                                1x Gratis Spoor + 3x VIP Tiers
+                            </span>
+                        </div>
+                        <h3 class="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                            Seizoen 1 Battle Pass &bull; 20 Niveaus vol Beloningen
+                        </h3>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                            Claim gratis cash, kogels, respect en koffers op basis van je level! Upgrade naar VIP om alle exclusieve VIP Tier tracks tegelijk vrij te spelen.
+                        </p>
+                    </div>
+                </div>
+                <div class="shrink-0">
+                    <a href="{{ route('battlepass.index') }}" class="btn-star-gold w-full sm:w-auto px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-gift"></i>
+                        <span>Open Battle Pass</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
             <!-- Rookie Overlevingstaken & Beloningsspoor voor Beginners -->
             @include('partials.rookie_quests_widget')
             
             @if(isset($latestNews) && $latestNews->isNotEmpty())
                 @php $featuredNews = $latestNews->first(); @endphp
-                <!-- PROMINENT NIEUWS HIGHLIGHT BOVENIN DASHBOARD -->
-                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 p-5 sm:p-6 text-white shadow-lg border border-purple-500/30">
+                <!-- PROMINENT NIEUWS HIGHLIGHT BOVENIN DASHBOARD (Licht & Donker Modus) -->
+                <div class="relative overflow-hidden rounded-2xl bg-white dark:bg-[#110726] p-5 sm:p-6 text-slate-900 dark:text-white shadow-md border-2 border-purple-200 dark:border-purple-800/80">
                     <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="flex items-start gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-600/30 border border-purple-200 dark:border-purple-400/30 flex items-center justify-center text-2xl shrink-0 shadow-xs">
                                 <span>{{ $featuredNews->emoji ?? '🛡️' }}</span>
                             </div>
                             <div class="space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-200 border border-purple-400/30">
-                                        <i class="fa-solid fa-bullhorn text-[9px] text-amber-300"></i>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-400/30">
+                                        <i class="fa-solid fa-bullhorn text-[9px] text-amber-500 dark:text-amber-300"></i>
                                         Nieuwste Kliniek Update
                                     </span>
-                                    <span class="text-[11px] text-purple-300/80 font-medium font-mono">
+                                    <span class="text-[11px] text-slate-500 dark:text-purple-300/80 font-medium font-mono">
                                         {{ $featuredNews->created_at?->diffForHumans() }}
                                     </span>
                                 </div>
-                                <h3 class="text-base sm:text-lg font-black tracking-tight text-white hover:text-purple-200 transition">
+                                <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-200 transition">
                                     <a href="{{ route('news.show', $featuredNews->slug) }}">
                                         {{ $featuredNews->title }}
                                     </a>
                                 </h3>
-                                <p class="text-xs text-slate-300 font-medium line-clamp-2 max-w-2xl leading-relaxed">
-                                    {{ Str::limit(strip_tags($featuredNews->content), 140) }}
+                                <p class="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-2 max-w-2xl leading-relaxed">
+                                    {{ Str::limit(html_entity_decode(strip_tags($featuredNews->content), ENT_QUOTES, 'UTF-8'), 140) }}
                                 </p>
                             </div>
                         </div>
@@ -96,7 +131,7 @@
                                 <i class="fa-solid fa-arrow-right text-[11px]"></i>
                             </a>
                             <a href="{{ route('news.index') }}" 
-                               class="hidden sm:inline-flex px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white font-bold text-xs transition border border-white/10 items-center justify-center">
+                               class="hidden sm:inline-flex px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-purple-200 hover:text-slate-900 dark:hover:text-white font-bold text-xs transition border border-slate-200 dark:border-white/10 items-center justify-center">
                                 <span>Alle Berichten</span>
                             </a>
                         </div>
@@ -287,13 +322,13 @@
                             <!-- TBS Uitkering -->
                             <div class="bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 shadow-2xs">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <div class="w-6 h-6 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px]">
-                                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                                    <div class="w-6 h-6 rounded-md {{ $character->isVip() ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400' : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' }} flex items-center justify-center text-[10px]">
+                                        <i class="fa-solid {{ $character->isVip() ? 'fa-crown text-amber-500' : 'fa-hand-holding-dollar' }}"></i>
                                     </div>
                                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-400">Uitkering</span>
                                 </div>
-                                <div class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 truncate">
-                                    €1.000 <span class="text-[10px] font-bold text-slate-400">/ 15m</span>
+                                <div class="text-sm sm:text-base font-black {{ $character->isVip() ? 'text-purple-600 dark:text-purple-400' : 'text-emerald-600 dark:text-emerald-400' }} truncate">
+                                    €{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }} <span class="text-[10px] font-bold text-slate-400">/ 15m</span>
                                 </div>
                             </div>
                         </div>
@@ -350,8 +385,8 @@
                             <input type="hidden" name="widget_key" value="radio">
                             <button type="submit" 
                                     :disabled="unlockingKey === 'radio'"
-                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'radio' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                    class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'radio' ? 'fa-spinner fa-spin' : 'fa-star text-amber-900 dark:text-amber-200'"></i>
                                 <span x-text="unlockingKey === 'radio' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                             </button>
                         </form>
@@ -725,8 +760,8 @@
                             <input type="hidden" name="widget_key" value="weather">
                             <button type="submit" 
                                     :disabled="unlockingKey === 'weather'"
-                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'weather' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                    class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'weather' ? 'fa-spinner fa-spin' : 'fa-star text-amber-900 dark:text-amber-200'"></i>
                                 <span x-text="unlockingKey === 'weather' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
                             </button>
                         </form>
@@ -866,8 +901,8 @@
                             <input type="hidden" name="widget_key" value="nunl">
                             <button type="submit" 
                                     :disabled="unlockingKey === 'nunl'"
-                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'nunl' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                    class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'nunl' ? 'fa-spinner fa-spin' : 'fa-star text-amber-900 dark:text-amber-200'"></i>
                                 <span x-text="unlockingKey === 'nunl' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 15 Sterren'"></span>
                             </button>
                         </form>
@@ -947,8 +982,8 @@
                             <input type="hidden" name="widget_key" value="tunnel">
                             <button type="submit" 
                                     :disabled="unlockingKey === 'tunnel'"
-                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'tunnel' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                    class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'tunnel' ? 'fa-spinner fa-spin' : 'fa-star text-amber-900 dark:text-amber-200'"></i>
                                 <span x-text="unlockingKey === 'tunnel' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                             </button>
                         </form>
@@ -1082,8 +1117,8 @@
                             <input type="hidden" name="widget_key" value="treatment">
                             <button type="submit" 
                                     :disabled="unlockingKey === 'treatment'"
-                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'treatment' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                    class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'treatment' ? 'fa-spinner fa-spin' : 'fa-star text-amber-900 dark:text-amber-200'"></i>
                                 <span x-text="unlockingKey === 'treatment' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                             </button>
                         </form>
@@ -1198,8 +1233,8 @@
                             <input type="hidden" name="widget_key" value="packages">
                             <button type="submit" 
                                     :disabled="unlockingKey === 'packages'"
-                                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
-                                <i class="fa-solid" :class="unlockingKey === 'packages' ? 'fa-spinner fa-spin' : 'fa-star text-amber-950'"></i>
+                                    class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition cursor-pointer inline-flex items-center gap-2 disabled:opacity-60">
+                                <i class="fa-solid" :class="unlockingKey === 'packages' ? 'fa-spinner fa-spin' : 'fa-star text-amber-900 dark:text-amber-200'"></i>
                                 <span x-text="unlockingKey === 'packages' ? 'Bezig met ontgrendelen...' : 'Ontgrendel voor 20 Sterren'"></span>
                             </button>
                         </form>
@@ -1591,7 +1626,7 @@
                                     <input type="hidden" name="widget_key" :value="item.key">
                                     <button type="submit" 
                                             :disabled="unlockingKey === item.key"
-                                            class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 active:scale-95 text-slate-950 font-black text-[10px] shadow-xs transition cursor-pointer shrink-0 inline-flex items-center gap-1 disabled:opacity-60">
+                                            class="btn-star-gold px-2.5 py-1.5 rounded-lg active:scale-95 text-slate-900 dark:text-white font-black text-[10px] shadow-xs transition cursor-pointer shrink-0 inline-flex items-center gap-1 disabled:opacity-60">
                                         <i class="fa-solid" :class="unlockingKey === item.key ? 'fa-spinner fa-spin' : 'fa-star text-[8px]'"></i>
                                         <span>Koop (<span x-text="item.cost"></span>)</span>
                                     </button>

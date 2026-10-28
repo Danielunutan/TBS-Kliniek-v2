@@ -242,6 +242,35 @@ class ConnectFourController extends Controller
     }
 
     /**
+     * Skip tournament cooldown using Stars (10 Stars).
+     */
+    public function skipCooldownWithStars(): RedirectResponse
+    {
+        /** @var Character $character */
+        $character = Auth::user()->character;
+
+        if (($character->stars ?? 0) < 10) {
+            return back()->with('error', 'Je hebt minimaal 10 Sterren nodig om de wachttijd over te slaan!');
+        }
+
+        $character->stars = ($character->stars ?? 0) - 10;
+        $character->save();
+
+        /** @var CharacterConnectFourStat $stat */
+        $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $character->id]);
+
+        $stat->update([
+            'cooldown_until' => null,
+            'matches_played' => 0,
+            'current_player_wins' => 0,
+            'current_arjan_wins' => 0,
+            'current_draws' => 0,
+        ]);
+
+        return redirect()->route('connect_four.index')->with('success', '⭐ Wachttijd overgeslagen voor 10 Sterren! OOHPA Arjan staat direct klaar voor een nieuw 5-potjes toernooi!');
+    }
+
+    /**
      * Skip tournament cooldown via Sponsor Ad watch.
      */
     public function skipCooldownWithAd(Request $request): RedirectResponse

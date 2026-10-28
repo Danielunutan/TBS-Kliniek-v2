@@ -169,6 +169,34 @@ class CooldownService
      */
     public function skipWithStars(Character $character, string $action): array
     {
+        if ($action === 'coma' || $action === 'coma_revive') {
+            if (! $character->isComatose()) {
+                return [
+                    'success' => false,
+                    'message' => 'Je ligt momenteel niet in de Intensive Care Coma!',
+                ];
+            }
+
+            $cost = 15;
+            if (($character->stars ?? 0) < $cost) {
+                return [
+                    'success' => false,
+                    'message' => "Je hebt {$cost} Sterren ⭐ nodig om direct uit coma te ontwaken! (Je hebt: ".($character->stars ?? 0).')',
+                ];
+            }
+
+            $character->stars -= $cost;
+            $character->coma_until = null;
+            $character->ad_coma_progress = 0;
+            $character->health = max(50, (int) $character->health);
+            $character->save();
+
+            return [
+                'success' => true,
+                'message' => '💉 Medisch wonder: Je bent direct ontwaakt uit Intensive Care Coma met 15 Sterren ⭐!',
+            ];
+        }
+
         $cost = $this->calculateDynamicSkipCost($character, $action);
 
         if ($cost <= 0) {

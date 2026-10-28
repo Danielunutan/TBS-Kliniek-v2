@@ -466,10 +466,12 @@
         $onlineCount = $character ? \App\Models\Character::getOnlineCount() : 0;
         $reqXp = 100;
         $pctXp = 0;
+        $quickFoodItems = collect();
         if ($character) {
             $lvlService = app(\App\Services\LevelService::class);
             $reqXp = $lvlService->getXpRequiredForNextLevel($character->level);
             $pctXp = min(100, max(0, round(($character->xp / max(1, $reqXp)) * 100)));
+            $quickFoodItems = $character->getConsumableInventoryItems();
         }
         $activeCategory = '';
         if (request()->routeIs('halloween.*') || request()->is('event*', 'halloween*')) {
@@ -705,6 +707,133 @@
                 window.Turbo.visit(window.location.href, { action: 'replace' });
             } else {
                 window.location.reload();
+            }
+        };
+
+        window.tbsQuickConsume = async function(event, form) {
+            event.preventDefault();
+            const itemRow = form.closest('[data-quick-item-id]');
+            const rowButtons = itemRow ? itemRow.querySelectorAll('button') : [];
+            rowButtons.forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'pointer-events-none');
+            });
+
+            try {
+                const formData = new FormData(form);
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // 1. Instantly apply realtime stats to Alpine stats tracker (Health & Energy & Bars)
+                    if (typeof window.tbsApplyStats === 'function') {
+                        window.tbsApplyStats({
+                            energy: data.energy,
+                            max_energy: data.max_energy,
+                            health: data.health,
+                            max_health: data.max_health
+                        });
+                    }
+
+                    // 2. Show toast
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast(data.message, 'success');
+                    }
+
+                    // 3. Update or remove item row from dropdown
+                    if (itemRow) {
+                        const qtyBadge = itemRow.querySelector('[data-item-qty]');
+                        if (data.remaining_quantity > 0) {
+                            if (qtyBadge) qtyBadge.textContent = 'x' + data.remaining_quantity;
+                            rowButtons.forEach(b => {
+                                b.disabled = false;
+                                b.classList.remove('opacity-50', 'pointer-events-none');
+                            });
+                        } else {
+                            itemRow.style.transition = 'all 0.25s ease-out';
+                            itemRow.style.opacity = '0';
+                            itemRow.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                itemRow.remove();
+                                const list = document.querySelector('#quick-eat-items-list');
+                                if (list && list.querySelectorAll('[data-quick-item-id]').length === 0) {
+                                    const emptyState = document.querySelector('#quick-eat-empty-state');
+                                    if (emptyState) emptyState.classList.remove('hidden');
+                                    list.classList.add('hidden');
+                                    const topBadge = document.querySelector('#quick-eat-top-badge');
+                                    if (topBadge) {
+                                        topBadge.textContent = '0';
+                                        topBadge.className = 'text-slate-400 dark:text-emerald-400/60 font-semibold text-[10px] leading-none shrink-0';
+                                    }
+                                    const headerBadge = document.querySelector('#quick-eat-header-badge');
+                                    if (headerBadge) headerBadge.textContent = '0 stuks';
+                                }
+                            }, 250);
+                        }
+                    }
+
+                    // 4. Update total food count badge if row not completely removed yet
+                    const itemRows = document.querySelectorAll('#quick-eat-items-list [data-quick-item-id]');
+                    let totalCount = 0;
+                    itemRows.forEach(row => {
+                        const qEl = row.querySelector('[data-item-qty]');
+                        if (qEl) {
+                            const val = parseInt(qEl.textContent.replace(/\D/g, '')) || 0;
+                            totalCount += val;
+                        }
+                    });
+                    if (totalCount > 0) {
+                        const topBadge = document.querySelector('#quick-eat-top-badge');
+                        if (topBadge) topBadge.textContent = totalCount;
+                        const headerBadge = document.querySelector('#quick-eat-header-badge');
+                        if (headerBadge) headerBadge.textContent = totalCount + ' stuks';
+                    }
+
+                    // 5. In background refresh to keep server perks in sync
+                    if (typeof window.tbsRefreshStats === 'function') {
+                        setTimeout(() => window.tbsRefreshStats(true), 400);
+                    }
+                } else {
+                    if (typeof window.tbsToast === 'function') {
+                        window.tbsToast(data.message || 'Kon item niet consumeren', 'error');
+                    }
+                    if (itemRow && (data.already_consumed || (data.message && data.message.includes('niet meer aanwezig')))) {
+                        itemRow.remove();
+                        const list = document.querySelector('#quick-eat-items-list');
+                        if (list && list.querySelectorAll('[data-quick-item-id]').length === 0) {
+                            const emptyState = document.querySelector('#quick-eat-empty-state');
+                            if (emptyState) emptyState.classList.remove('hidden');
+                            list.classList.add('hidden');
+                            const topBadge = document.querySelector('#quick-eat-top-badge');
+                            if (topBadge) {
+                                topBadge.textContent = '0';
+                                topBadge.className = 'text-slate-400 dark:text-emerald-400/60 font-semibold text-[10px] leading-none shrink-0';
+                            }
+                            const headerBadge = document.querySelector('#quick-eat-header-badge');
+                            if (headerBadge) headerBadge.textContent = '0 stuks';
+                        }
+                    } else {
+                        rowButtons.forEach(b => {
+                            b.disabled = false;
+                            b.classList.remove('opacity-50', 'pointer-events-none');
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Quick consume error:', e);
+                rowButtons.forEach(b => {
+                    b.disabled = false;
+                    b.classList.remove('opacity-50', 'pointer-events-none');
+                });
             }
         };
     </script>
@@ -1029,7 +1158,7 @@
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Bende Ranglijst</span>
                         </a>
-                        <a href="{{ route('gangs.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+                        <a href="{{ route('gangs.index', ['tab' => 'oprichten']) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'oprichten' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-plus w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                             <span>Bende Oprichten</span>
                         </a>
@@ -1086,6 +1215,15 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
                 </button>
                 <div x-show="openCategory === 'voortgang'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-0.5 pl-1">
+                    <a href="{{ route('battlepass.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battlepass.*') ? 'nav-item-active bg-amber-500/15 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-black border border-amber-500/40' : 'text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50/50 dark:hover:bg-amber-950/20' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-trophy w-4 text-center text-amber-500 animate-pulse"></i>
+                            <span class="font-bold">Seizoen 1 Battle Pass</span>
+                        </div>
+                        <span class="text-[9px] font-black uppercase text-amber-900 dark:text-amber-200 bg-amber-400/30 px-2 py-0.5 rounded-full border border-amber-400/50">
+                            4 Sporen
+                        </span>
+                    </a>
                     <a href="{{ route('depot.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('depot.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-boxes-stacked w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Depot (Inventaris)</span>
@@ -1622,41 +1760,218 @@
                 <!-- VERTICAL DIVIDER -->
                 <div class="h-10 w-px bg-slate-200/90 dark:bg-purple-900/40 shrink-0 hidden xl:block"></div>
 
-                <!-- 2. CENTER-LEFT: Clean Energy & Health Dual Filled Pill Bars -->
-                <div class="hidden xl:flex flex-col justify-center gap-1.5 w-36 2xl:w-44 shrink-0">
-                    <!-- Energy (Clickable to Inventory) -->
-                    <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
-                       class="group cursor-pointer block"
-                       title="Energie: klik voor Inventaris">
-                        <div class="flex items-center justify-between text-[10px] font-bold mb-1 leading-none">
-                            <span class="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1 transition">
-                                <i class="fa-solid fa-bolt text-emerald-500 text-[9px]"></i> ENERGIE
-                            </span>
-                            <span class="text-emerald-600 dark:text-emerald-400 font-extrabold font-mono text-[10px]" x-text="stats.energy + '/' + stats.max_energy">
-                                {{ $character->energy }}/{{ $character->max_energy }}
-                            </span>
-                        </div>
-                        <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
-                            <div class="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.energy <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
-                        </div>
-                    </a>
+                <!-- 2. CENTER-LEFT: Clean Energy & Health Dual Filled Pill Bars & Quick Eat Dropdown -->
+                <div class="hidden xl:flex items-center gap-2.5 2xl:gap-3.5 shrink-0">
+                    <div class="flex flex-col justify-center gap-1.5 w-32 2xl:w-40">
+                        <!-- Energy (Clickable to Inventory) -->
+                        <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
+                           class="group cursor-pointer block"
+                           title="Energie: klik voor Inventaris">
+                            <div class="flex items-center justify-between text-[10px] font-bold mb-1 leading-none">
+                                <span class="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1 transition">
+                                    <i class="fa-solid fa-bolt text-emerald-500 text-[9px]"></i> ENERGIE
+                                </span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-extrabold font-mono text-[10px]" x-text="stats.energy + '/' + stats.max_energy">
+                                    {{ $character->energy }}/{{ $character->max_energy }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
+                                <div class="bg-emerald-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.energy <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                            </div>
+                        </a>
 
-                    <!-- Health (Clickable to Inventory) -->
-                    <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
-                       class="group cursor-pointer block"
-                       title="Gezondheid: klik voor Inventaris">
-                        <div class="flex items-center justify-between text-[10px] font-bold mb-1 leading-none">
-                            <span class="group-hover:text-rose-600 dark:group-hover:text-rose-400 text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1 transition">
-                                <i class="fa-solid fa-heart text-rose-500 text-[9px]"></i> GEZONDHEID
+                        <!-- Health (Clickable to Inventory) -->
+                        <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" 
+                           class="group cursor-pointer block"
+                           title="Gezondheid: klik voor Inventaris">
+                            <div class="flex items-center justify-between text-[10px] font-bold mb-1 leading-none">
+                                <span class="group-hover:text-rose-600 dark:group-hover:text-rose-400 text-slate-500 dark:text-purple-300/80 font-black uppercase tracking-wider flex items-center gap-1 transition">
+                                    <i class="fa-solid fa-heart text-rose-500 text-[9px]"></i> GEZONDHEID
+                                </span>
+                                <span class="text-rose-600 dark:text-rose-400 font-extrabold font-mono text-[10px]" x-text="stats.health + '/' + stats.max_health">
+                                    {{ $character->health }}/{{ $character->max_health }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
+                                <div class="bg-rose-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.health <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- QUICK EAT / INVENTORY CONSUME DROPDOWN (DESKTOP) -->
+                    @php $foodTotalQty = $quickFoodItems->sum('quantity'); @endphp
+                    <div class="relative" x-data="{ quickEatOpen: false }" @click.outside="quickEatOpen = false">
+                        <button type="button" 
+                                @click="quickEatOpen = !quickEatOpen"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/90 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/90 dark:border-emerald-800/60 transition cursor-pointer text-xs font-black shadow-2xs active:scale-95 group select-none shrink-0"
+                                title="Snel Eten & Drinken vanuit je rugzak">
+                            <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[11px] shadow-2xs group-hover:scale-110 transition-transform shrink-0">
+                                <i class="fa-solid fa-utensils"></i>
                             </span>
-                            <span class="text-rose-600 dark:text-rose-400 font-extrabold font-mono text-[10px]" x-text="stats.health + '/' + stats.max_health">
-                                {{ $character->health }}/{{ $character->max_health }}
+                            <span class="hidden 2xl:inline tracking-tight font-black text-xs whitespace-nowrap">Eten</span>
+                            <span id="quick-eat-top-badge" class="{{ $foodTotalQty > 0 ? 'bg-emerald-600 text-white px-1.5 py-0.5 rounded-full' : 'text-slate-400 dark:text-emerald-400/60 font-semibold' }} text-[10px] font-black leading-none shrink-0">
+                                {{ $foodTotalQty }}
                             </span>
+                            <i class="fa-solid fa-chevron-down text-[9px] text-emerald-600/70 dark:text-emerald-400/70 transition-transform duration-200 shrink-0" :class="quickEatOpen ? 'rotate-180' : ''"></i>
+                        </button>
+
+                        <!-- DROPDOWN PANEL -->
+                        <div x-show="quickEatOpen"
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave="transition ease-in duration-100"
+                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                             x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                             class="absolute left-0 mt-2 bg-white dark:bg-[#120826] rounded-2xl shadow-2xl border border-slate-200 dark:border-purple-800/70 z-50 overflow-hidden text-slate-800 dark:text-slate-100"
+                             style="width: 360px; min-width: 320px; max-width: min(380px, calc(100vw - 2rem));">
+                             
+                            <!-- Dropdown Header -->
+                            <div class="px-4 py-3 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-transparent dark:from-emerald-950/60 dark:via-purple-950/40 dark:to-transparent border-b border-slate-100 dark:border-purple-900/40 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xs shadow-md shadow-emerald-500/20 shrink-0">
+                                        <i class="fa-solid fa-burger"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h4 class="font-black text-xs text-slate-900 dark:text-white leading-tight truncate">Rugzak &bull; Snel Eten</h4>
+                                        <p class="text-[10px] text-slate-400 dark:text-purple-300/70 leading-tight truncate">Direct herstellen vanuit je rugzak</p>
+                                    </div>
+                                </div>
+                                <span id="quick-eat-header-badge" class="shrink-0 text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 shadow-2xs">
+                                    {{ $foodTotalQty }} stuks
+                                </span>
+                            </div>
+
+                            <!-- Live Mini Status Bars -->
+                            <div class="px-4 py-2.5 bg-slate-50/70 dark:bg-purple-950/30 border-b border-slate-100 dark:border-purple-900/30 grid grid-cols-2 gap-3 text-[10px]">
+                                <!-- Energie -->
+                                <div class="space-y-1 min-w-0">
+                                    <div class="flex items-center justify-between font-bold gap-1">
+                                        <span class="text-emerald-600 dark:text-emerald-400 truncate flex items-center gap-1 font-black">
+                                            <i class="fa-solid fa-bolt text-[9px]"></i> Energie
+                                        </span>
+                                        <span class="font-mono text-slate-700 dark:text-slate-200 shrink-0 font-extrabold text-[10px]" x-text="stats.energy + '/' + stats.max_energy">
+                                            {{ $character->energy }}/{{ $character->max_energy }}
+                                        </span>
+                                    </div>
+                                    <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                                        <div class="bg-emerald-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
+                                    </div>
+                                </div>
+                                <!-- Gezondheid -->
+                                <div class="space-y-1 min-w-0">
+                                    <div class="flex items-center justify-between font-bold gap-1">
+                                        <span class="text-rose-600 dark:text-rose-400 truncate flex items-center gap-1 font-black">
+                                            <i class="fa-solid fa-heart text-[9px]"></i> Gezondheid
+                                        </span>
+                                        <span class="font-mono text-slate-700 dark:text-slate-200 shrink-0 font-extrabold text-[10px]" x-text="stats.health + '/' + stats.max_health">
+                                            {{ $character->health }}/{{ $character->max_health }}
+                                        </span>
+                                    </div>
+                                    <div class="w-full bg-slate-200/80 dark:bg-purple-900/50 rounded-full h-1.5 overflow-hidden">
+                                        <div class="bg-rose-500 h-full rounded-full transition-all duration-300 ease-out" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Consumable Items List -->
+                            <div id="quick-eat-items-list" class="max-h-64 overflow-y-auto custom-scrollbar p-2 space-y-1.5 divide-y divide-slate-100 dark:divide-purple-900/30 {{ $quickFoodItems->isEmpty() ? 'hidden' : '' }}">
+                                @foreach($quickFoodItems as $ci)
+                                    @php $item = $ci->item; @endphp
+                                    @if($item)
+                                    <div data-quick-item-id="{{ $ci->id }}" class="pt-1.5 first:pt-0 flex items-center justify-between gap-2 p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-purple-950/40 transition">
+                                        <!-- Item Info -->
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center text-xs shadow-2xs {{ $item->energy_restore > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' }}">
+                                                <i class="fa-solid {{ $item->icon ?? 'fa-utensils' }}"></i>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="font-black text-xs text-slate-900 dark:text-white truncate" title="{{ $item->name }}">
+                                                        {{ $item->name }}
+                                                    </span>
+                                                    <span data-item-qty class="bg-slate-200 dark:bg-purple-900 text-slate-700 dark:text-purple-200 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0">
+                                                        x{{ $ci->quantity }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex items-center gap-1.5 text-[10px] mt-0.5">
+                                                    @if($item->energy_restore > 0)
+                                                        <span class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
+                                                            <i class="fa-solid fa-bolt text-[8px]"></i>+{{ $item->energy_restore }}
+                                                        </span>
+                                                    @endif
+                                                    @if($item->health_restore > 0)
+                                                        <span class="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-0.5">
+                                                            <i class="fa-solid fa-heart text-[8px]"></i>+{{ $item->health_restore }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Consume Action Buttons -->
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <!-- 1x Consume Form -->
+                                            <form action="{{ route('shop.consume', $ci->id) }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                                @csrf
+                                                <input type="hidden" name="quantity" value="1">
+                                                <button type="submit" 
+                                                        class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-[10px] shadow-xs cursor-pointer transition flex items-center gap-1"
+                                                        title="Eet of gebruik 1 stuk">
+                                                    <span>1x Eten</span>
+                                                </button>
+                                            </form>
+
+                                            <!-- Fill Max Form -->
+                                            @if($ci->quantity > 1 || ($item->energy_restore > 0 && ($character->max_energy - $character->energy) > $item->energy_restore) || ($item->health_restore > 0 && ($character->max_health - $character->health) > $item->health_restore))
+                                            <form action="{{ route('shop.consume', $ci->id) }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                                @csrf
+                                                <input type="hidden" name="fill_max" value="1">
+                                                <button type="submit" 
+                                                        class="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 dark:bg-purple-950/80 dark:hover:bg-purple-900 text-slate-700 dark:text-purple-200 border border-slate-200 dark:border-purple-800 font-black text-[10px] shadow-2xs cursor-pointer transition active:scale-95 flex items-center gap-0.5"
+                                                        title="Eet automatisch genoeg om je energie/hp vol te maken">
+                                                    <span>Max ⚡</span>
+                                                </button>
+                                            </form>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            <!-- Empty State (No scrollbar, clean and neat) -->
+                            <div id="quick-eat-empty-state" class="py-6 px-5 text-center {{ $quickFoodItems->isEmpty() ? '' : 'hidden' }}">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-950/70 dark:to-purple-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg mb-2.5 shadow-inner">
+                                    <i class="fa-solid fa-utensils"></i>
+                                </div>
+                                <h5 class="font-black text-xs text-slate-800 dark:text-slate-100 mb-1">Geen snacks in je rugzak</h5>
+                                <p class="text-[11px] text-slate-500 dark:text-purple-300/70 leading-relaxed mb-4 max-w-[260px] mx-auto">
+                                    Haal kantinesnacks of maaltijden om snel je energie en HP aan te vullen tijdens overvallen!
+                                </p>
+                                <a href="{{ route('shop.index') }}" 
+                                   class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs shadow-md shadow-emerald-600/20 active:scale-95 transition">
+                                    <i class="fa-solid fa-store text-xs"></i>
+                                    <span>Kantine & Shop Bezoeken</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px] opacity-75"></i>
+                                </a>
+                            </div>
+
+                            <!-- Dropdown Footer -->
+                            <div class="px-3.5 py-2.5 bg-slate-50/80 dark:bg-purple-950/50 border-t border-slate-100 dark:border-purple-900/40 flex items-center justify-between text-[11px] gap-2">
+                                <a href="{{ route('shop.index') }}" class="text-slate-500 hover:text-emerald-600 dark:text-purple-300 dark:hover:text-emerald-400 font-bold flex items-center gap-1.5 transition truncate">
+                                    <i class="fa-solid fa-store text-[11px] text-emerald-500"></i>
+                                    <span>Kantine</span>
+                                </a>
+                                <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" class="text-indigo-600 hover:text-indigo-700 dark:text-purple-400 dark:hover:text-purple-300 font-black flex items-center gap-1 transition shrink-0">
+                                    <span>Volledige Rugzak</span>
+                                    <i class="fa-solid fa-arrow-right text-[9px]"></i>
+                                </a>
+                            </div>
+
                         </div>
-                        <div class="w-full bg-slate-100 dark:bg-purple-950/60 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-purple-900/40">
-                            <div class="bg-rose-500 h-full rounded-full transition-all duration-500 ease-out" :class="stats.health <= 0 ? 'opacity-0 !w-0' : 'opacity-100'" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
-                        </div>
-                    </a>
+                    </div>
                 </div>
 
                 <!-- VERTICAL DIVIDER -->
@@ -1951,13 +2266,16 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-                    <button type="button" 
-                            onclick="window.tbsOpenSponsorAd('coma_revive')" 
-                            class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-95 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-md">
-                        <i class="fa-solid fa-syringe text-sm"></i>
-                        <span>Kijk Video ({{ (int)($character->ad_coma_progress ?? 0) }}/3 Ads Ontwaken)</span>
-                    </button>
+                <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
+                    <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full sm:w-auto">
+                        @csrf
+                        <input type="hidden" name="action" value="coma">
+                        <button type="submit" 
+                                class="btn-star-gold w-full sm:w-auto py-2.5 px-5 rounded-xl text-slate-900 dark:text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-md active:scale-95">
+                            <i class="fa-solid fa-star text-[12px]"></i>
+                            <span>Direct Uit Coma Ontwaken (15 Sterren ⭐)</span>
+                        </button>
+                    </form>
                 </div>
             </div>
             @endif
@@ -2032,16 +2350,19 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40">
-                    <button type="button" 
-                            onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
-                            title="Elke ad vermindert je straftijd met 3 minuten. Bij {{ $topReqPrisonAds }} ads word je direct vrijgelaten!">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-tv text-amber-300 text-xs"></i>
-                            <span>Kijk Ad</span>
-                        </div>
-                        <span class="px-2 py-0.5 rounded-md bg-purple-900/80 text-[10px] font-black text-purple-200">{{ $topCurrPrisonAds }}/{{ $topReqPrisonAds }} Vrijlating</span>
-                    </button>
+                    <form action="{{ route('shop.buy-star-item') }}" method="POST" class="w-full">
+                        @csrf
+                        <input type="hidden" name="item_type" value="prison_escape">
+                        <button type="submit" 
+                                class="btn-star-gold w-full py-2.5 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
+                                title="Direct vrijkomen voor 10 Gouden Sterren ⭐">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-star text-xs"></i>
+                                <span>Vrijkopen (10 Sterren)</span>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-md bg-amber-400/30 text-[10px] font-black text-slate-900 dark:text-white border border-amber-300/40">10 Sterren ⭐</span>
+                        </button>
+                    </form>
                     <a href="{{ route('prison') }}" class="w-full py-2.5 px-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-extrabold text-xs transition text-center shadow-xs flex items-center justify-center gap-2">
                         <i class="fa-solid fa-building-shield"></i>
                         <span>Naar Isoleercel & Uitbreken</span>
@@ -2466,11 +2787,11 @@
                             <span class="text-[9px] truncate w-full">Markt</span>
                         </a>
 
-                        <a href="{{ route('sponsor.index') }}" class="p-2 rounded-2xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-800/40 flex flex-col items-center gap-1 transition active:scale-95">
-                            <div class="w-8 h-8 rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-300 flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-tv"></i>
+                        <a href="{{ route('shop.index') }}" class="p-2 rounded-2xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800/40 flex flex-col items-center gap-1 transition active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-star"></i>
                             </div>
-                            <span class="text-[9px] truncate w-full text-purple-700 dark:text-purple-300 font-black">Sponsor Ads</span>
+                            <span class="text-[9px] truncate w-full text-amber-800 dark:text-amber-300 font-black">Sterren Shop</span>
                         </a>
 
                         <button type="button" 

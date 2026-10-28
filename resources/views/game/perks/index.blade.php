@@ -152,14 +152,13 @@
                     <span>Hoe kom je aan Sterren ⭐?</span>
                 </h4>
                 <p class="text-xs text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-                    Cooldowns en de isoleercel kun je nu gratis skippen via een sponsor advertentie. Hierdoor zijn Sterren een pure verzamel- en prestige-valuta geworden! Verdien dagelijks <strong>5 gratis Sterren</strong> via de sponsor-ads in de header, behaal prestaties, heists en open speciale kisten.
+                    Sterren ⭐ zijn de premium valuta in TBS Kliniek! Gebruik Sterren om wachttijden over te slaan, kogels en kogelwerende vesten te kopen, direct uit coma te ontwaken, of zeldzame koffers en maskers te bemachtigen in de Sterren Shop.
                 </p>
             </div>
-            <a href="{{ route('sponsor.index') }}" 
-               onclick="if(window.tbsOpenSponsorAd){ window.tbsOpenSponsorAd('stars'); return false; }"
-               class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-2 shrink-0 cursor-pointer">
+            <a href="{{ route('shop.index') }}" 
+               class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-2 shrink-0 cursor-pointer">
                 <i class="fa-solid fa-star"></i>
-                <span>Claim Dagelijkse Sterren</span>
+                <span>Naar Sterren Shop</span>
             </a>
         </div>
     </div>

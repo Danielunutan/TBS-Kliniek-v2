@@ -107,6 +107,8 @@ class Character extends Model
         'unopened_bags' => 'integer',
         'xxl_cases' => 'integer',
         'daily_attacks_count' => 'integer',
+        'daily_deaths_count' => 'integer',
+        'daily_deaths_date' => 'string',
         'claimed_level_rewards' => 'array',
         'strength' => 'integer',
         'defense' => 'integer',
@@ -808,6 +810,59 @@ class Character extends Model
     }
 
     /**
+     * Get rich VIP badge details for profile, lists, and comments.
+     *
+     * @return array{tier: int, label: string, short_label: string, icon: string, class: string, border_color: string, glow: string}|null
+     */
+    public function getVipBadgeAttribute(): ?array
+    {
+        if (! $this->isVip()) {
+            return null;
+        }
+
+        $tier = $this->getSupporterTier();
+
+        return match ($tier) {
+            4 => [
+                'tier' => 4,
+                'label' => 'Lifetime V.I.P.',
+                'short_label' => 'Lifetime',
+                'icon' => 'fa-crown',
+                'class' => 'bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 text-slate-950 border-amber-300 shadow-md shadow-amber-500/20',
+                'border_color' => 'border-amber-400',
+                'glow' => 'shadow-[0_0_15px_rgba(251,191,36,0.6)]',
+            ],
+            3 => [
+                'tier' => 3,
+                'label' => 'Kliniek Baas V.I.P.',
+                'short_label' => 'Tier 3 Baas',
+                'icon' => 'fa-dragon',
+                'class' => 'bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white border-purple-400 shadow-md shadow-purple-600/30',
+                'border_color' => 'border-purple-500',
+                'glow' => 'shadow-[0_0_15px_rgba(168,85,247,0.6)]',
+            ],
+            2 => [
+                'tier' => 2,
+                'label' => 'Gangster Elite V.I.P.',
+                'short_label' => 'Tier 2 Elite',
+                'icon' => 'fa-gem',
+                'class' => 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white border-emerald-400 shadow-md shadow-emerald-500/20',
+                'border_color' => 'border-emerald-500',
+                'glow' => 'shadow-[0_0_12px_rgba(16,185,129,0.5)]',
+            ],
+            default => [
+                'tier' => 1,
+                'label' => 'TBS V.I.P. Lid',
+                'short_label' => 'Tier 1 VIP',
+                'icon' => 'fa-star',
+                'class' => 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border-blue-400 shadow-md shadow-blue-500/20',
+                'border_color' => 'border-blue-400',
+                'glow' => 'shadow-[0_0_10px_rgba(59,130,246,0.4)]',
+            ],
+        };
+    }
+
+    /**
      * Can the character customize their name color (Tier 2+ or explicit perk).
      */
     public function canCustomizeNameColor(): bool
@@ -1047,6 +1102,26 @@ class Character extends Model
     }
 
     /**
+     * Get consumable food, drink and medicine items in inventory.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, CharacterItem>
+     */
+    public function getConsumableInventoryItems(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->items()
+            ->where('quantity', '>', 0)
+            ->whereHas('item', function ($q) {
+                $q->where('category', 'consumable')
+                    ->orWhere('energy_restore', '>', 0)
+                    ->orWhere('health_restore', '>', 0);
+            })
+            ->with('item')
+            ->get()
+            ->filter(fn ($ci) => ! in_array($ci->item?->slug, ['bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje'], true))
+            ->values();
+    }
+
+    /**
      * Get total item bonus for a specific stat.
      * Capped at 1 of each unique equipment item in backpack to prevent stacking duplicate items infinitely.
      */
@@ -1228,6 +1303,45 @@ class Character extends Model
     public function isProtected(): bool
     {
         return $this->protection_until && now()->lt($this->protection_until);
+    }
+
+    /**
+     * Check how many times the character has suffered a fatal liquidation today.
+     */
+    public function getDailyDeathsCount(): int
+    {
+        if ($this->daily_deaths_date !== now()->format('Y-m-d')) {
+            return 0;
+        }
+
+        return $this->daily_deaths_count ?? 0;
+    }
+
+    /**
+     * Record a fatal liquidation against this character today.
+     */
+    public function incrementDailyDeaths(): void
+    {
+        $today = now()->format('Y-m-d');
+        if ($this->daily_deaths_date !== $today) {
+            $this->daily_deaths_count = 1;
+            $this->daily_deaths_date = $today;
+        } else {
+            $this->daily_deaths_count = ($this->daily_deaths_count ?? 0) + 1;
+        }
+
+        $this->save();
+    }
+
+    /**
+     * Cancel voluntary or recovery protection when the character initiates an attack.
+     */
+    public function breakProtection(): void
+    {
+        if ($this->isProtected()) {
+            $this->protection_until = null;
+            $this->save();
+        }
     }
 
     /**

@@ -18,6 +18,23 @@ class AllowanceService
     public const ALLOWANCE_AMOUNT = 1000;
 
     /**
+     * Determine allowance amount paid out per 15 minutes based on character VIP status and tier.
+     */
+    public function getAllowanceAmountFor(Character $character): int
+    {
+        if (! $character->isVip()) {
+            return self::ALLOWANCE_AMOUNT;
+        }
+
+        return match ($character->getSupporterTier()) {
+            4 => 25000, // Tier 4 / Lifetime: €25.000 per kwartier (€100.000/uur)
+            3 => 10000, // Tier 3 Kliniek Baas: €10.000 per kwartier (€40.000/uur)
+            2 => 5000,  // Tier 2 Gangster Elite: €5.000 per kwartier (€20.000/uur)
+            default => 2500, // Tier 1 / General VIP: €2.500 per kwartier (€10.000/uur)
+        };
+    }
+
+    /**
      * Check and pay out pending allowance to character bank account for inmates without a gang.
      *
      * @return array{cycles: int, amount: int, amount_per_quarter: int}|null
@@ -47,11 +64,13 @@ class AllowanceService
             return null;
         }
 
-        // Cap backlog at max 96 cycles (24 hours = €96.000)
+        $amountPerQuarter = $this->getAllowanceAmountFor($character);
+
+        // Cap backlog at max 96 cycles (24 hours)
         $rawCycles = (int) floor($secondsElapsed / self::ALLOWANCE_INTERVAL_SECONDS);
         $cycles = min(96, $rawCycles);
         $leftoverSeconds = $secondsElapsed % self::ALLOWANCE_INTERVAL_SECONDS;
-        $totalPayout = $cycles * self::ALLOWANCE_AMOUNT;
+        $totalPayout = $cycles * $amountPerQuarter;
 
         if ($totalPayout <= 0) {
             $character->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
@@ -65,26 +84,27 @@ class AllowanceService
         $character->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
         $character->save();
 
+        $vipNote = $character->isVip() ? ' (VIP Bonus)' : '';
         BankTransaction::record(
             $character,
             'allowance',
             'bank',
             $totalPayout,
             $character->bank,
-            'TBS Patiënten Uitkering ontvangen (+€'.number_format($totalPayout, 0, ',', '.').')'
+            'TBS Patiënten Uitkering'.$vipNote.' ontvangen (+€'.number_format($totalPayout, 0, ',', '.').')'
         );
 
         return [
             'cycles' => $cycles,
             'amount' => $totalPayout,
-            'amount_per_quarter' => self::ALLOWANCE_AMOUNT,
+            'amount_per_quarter' => $amountPerQuarter,
         ];
     }
 
     /**
      * Get detailed status and countdown for character allowance.
      *
-     * @return array{eligible: bool, amount_per_quarter: int, pending_cycles: int, pending_amount: int, seconds_until_next: int, next_human: string, last_payout_at: ?string}
+     * @return array{eligible: bool, amount_per_quarter: int, base_amount: int, vip_bonus: int, is_vip: bool, vip_tier: int, pending_cycles: int, pending_amount: int, seconds_until_next: int, next_human: string, last_payout_at: ?string}
      */
     public function getAllowanceDetails(Character $character): array
     {
@@ -92,6 +112,10 @@ class AllowanceService
             return [
                 'eligible' => false,
                 'amount_per_quarter' => 0,
+                'base_amount' => self::ALLOWANCE_AMOUNT,
+                'vip_bonus' => 0,
+                'is_vip' => $character->isVip(),
+                'vip_tier' => $character->getSupporterTier(),
                 'pending_cycles' => 0,
                 'pending_amount' => 0,
                 'seconds_until_next' => self::ALLOWANCE_INTERVAL_SECONDS,
@@ -104,8 +128,12 @@ class AllowanceService
         $lastPayout = $character->last_allowance_at ?? $character->created_at ?? $now;
         $secondsElapsed = ($lastPayout > $now) ? 0 : (int) $lastPayout->diffInSeconds($now);
 
+        $amountPerQuarter = $this->getAllowanceAmountFor($character);
+        $baseAmount = self::ALLOWANCE_AMOUNT;
+        $vipBonus = max(0, $amountPerQuarter - $baseAmount);
+
         $pendingCycles = (int) floor($secondsElapsed / self::ALLOWANCE_INTERVAL_SECONDS);
-        $pendingAmount = $pendingCycles * self::ALLOWANCE_AMOUNT;
+        $pendingAmount = $pendingCycles * $amountPerQuarter;
 
         $secondsUntilNext = self::ALLOWANCE_INTERVAL_SECONDS - ($secondsElapsed % self::ALLOWANCE_INTERVAL_SECONDS);
         $minutesLeft = (int) floor($secondsUntilNext / 60);
@@ -114,7 +142,11 @@ class AllowanceService
 
         return [
             'eligible' => true,
-            'amount_per_quarter' => self::ALLOWANCE_AMOUNT,
+            'amount_per_quarter' => $amountPerQuarter,
+            'base_amount' => $baseAmount,
+            'vip_bonus' => $vipBonus,
+            'is_vip' => $character->isVip(),
+            'vip_tier' => $character->getSupporterTier(),
             'pending_cycles' => $pendingCycles,
             'pending_amount' => $pendingAmount,
             'seconds_until_next' => $secondsUntilNext,

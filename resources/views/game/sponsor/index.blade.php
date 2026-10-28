@@ -326,15 +326,25 @@
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-emerald-600 transition">Coma Ontwaken 💉</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Neergeschoten of ricochet gehad? Ontwaak direct uit het 6-uurs Intensive Care Coma en herstel naar 50% HP door 3 sponsor ads te kijken!
+                        Neergeschoten of ricochet gehad? Ontwaak direct uit het Intensive Care Coma en herstel naar 50% HP door 3 sponsor ads te kijken!
                     </p>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                     @if($character->isComatose())
-                        <button type="button" onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                            <i class="fa-solid fa-syringe text-xs"></i>
-                            <span>Kijk Ad ({{ (int)($character->ad_coma_progress ?? 0) }}/3 Ads)</span>
-                        </button>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full">
+                                @csrf
+                                <input type="hidden" name="action" value="coma">
+                                <button type="submit" class="btn-star-gold w-full h-11 px-3 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                    <i class="fa-solid fa-star text-xs"></i>
+                                    <span>Ontwaken (15 ⭐)</span>
+                                </button>
+                            </form>
+                            <button type="button" onclick="window.tbsOpenSponsorAd('coma_revive', () => { window.location.reload(); })" class="w-full h-11 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                                <i class="fa-solid fa-syringe text-xs"></i>
+                                <span>Kijk Ad ({{ (int)($character->ad_coma_progress ?? 0) }}/3)</span>
+                            </button>
+                        </div>
                     @else
                         <button type="button" disabled class="w-full h-11 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 font-extrabold text-xs shadow-2xs transition flex items-center justify-center gap-1.5 cursor-not-allowed whitespace-nowrap">
                             <i class="fa-solid fa-check text-xs text-emerald-500"></i>

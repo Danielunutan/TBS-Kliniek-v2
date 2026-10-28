@@ -80,19 +80,19 @@
 
             <!-- AD SKIP COOLDOWN BUTTON -->
             <div class="p-5 rounded-2xl bg-gradient-to-r from-amber-50 via-purple-50 to-pink-50 dark:from-amber-950/40 dark:via-purple-950/40 dark:to-pink-950/40 border border-amber-300/80 dark:border-purple-800 max-w-md mx-auto space-y-3">
-                <div class="flex items-center justify-center gap-2 text-xs font-black text-purple-900 dark:text-purple-200">
-                    <i class="fa-solid fa-bolt text-amber-500 animate-bounce"></i>
-                    <span>Geen geduld? Reset direct via een sponsor-ad!</span>
+                <div class="flex items-center justify-center gap-2 text-xs font-black text-amber-900 dark:text-amber-200">
+                    <i class="fa-solid fa-star text-amber-500 animate-bounce"></i>
+                    <span>Geen geduld? Reset direct met Sterren!</span>
                 </div>
-                <form action="{{ route('memory.skip_cooldown_ad') }}" method="POST">
+                <form action="{{ route('memory.skip_cooldown_stars') }}" method="POST">
                     @csrf
                     <button type="submit" 
-                            class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shadow-purple-600/30 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i>
-                        <span>Bekijk Sponsor-Ad (Direct Opnieuw Spelen)</span>
+                            class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider transition cursor-pointer shadow-md shadow-amber-500/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-star text-[12px]"></i>
+                        <span>Direct Opnieuw Spelen (10 Sterren ⭐)</span>
                     </button>
                 </form>
-                <p class="text-[10px] text-slate-400">Bekijk 1 sponsor-video en begin onmiddellijk weer een nieuwe Memory sessie.</p>
+                <p class="text-[10px] text-slate-500 dark:text-slate-400">Gebruik 10 Sterren ⭐ om de wachttijd over te slaan en onmiddellijk weer te spelen.</p>
             </div>
         </div>
     </template>

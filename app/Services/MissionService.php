@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Character;
 use App\Models\CharacterMission;
 use App\Models\Mission;
+use App\Support\MissionScenarioCatalog;
 
 class MissionService
 {
@@ -124,7 +125,7 @@ class MissionService
         }
 
         // Check interactive scenario choice if defined
-        $scenario = self::SCENARIOS[$mission->id] ?? null;
+        $scenario = MissionScenarioCatalog::get($mission) ?? (self::SCENARIOS[$mission->id] ?? null);
         if ($scenario) {
             if (empty($userChoice) && $mission->success_rate < 100) {
                 return [

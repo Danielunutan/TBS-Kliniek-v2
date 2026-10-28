@@ -138,24 +138,37 @@
     <div x-show="activeTab === 'vault'" class="space-y-6">
         
         <!-- TBS Patiënten Uitkering Overview -->
-        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border {{ ($allowanceDetails['eligible'] ?? false) ? 'border-emerald-300 dark:border-emerald-800/80' : 'border-slate-200 dark:border-slate-800' }} shadow-xs">
+        <div class="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border {{ ($allowanceDetails['eligible'] ?? false) ? ($character->isVip() ? 'border-purple-300 dark:border-purple-800/80 shadow-purple-500/5' : 'border-emerald-300 dark:border-emerald-800/80') : 'border-slate-200 dark:border-slate-800' }} shadow-xs">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-xl {{ ($allowanceDetails['eligible'] ?? false) ? 'bg-emerald-600' : 'bg-slate-200 dark:bg-slate-800' }} text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
-                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    <div class="w-12 h-12 rounded-xl {{ ($allowanceDetails['eligible'] ?? false) ? ($character->isVip() ? 'bg-gradient-to-br from-purple-600 to-indigo-600' : 'bg-emerald-600') : 'bg-slate-200 dark:bg-slate-800' }} text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
+                        @if($character->isVip())
+                            <i class="fa-solid fa-crown text-amber-300"></i>
+                        @else
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        @endif
                     </div>
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <h2 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">TBS Patiënten Uitkering</h2>
                             @if($allowanceDetails['eligible'] ?? false)
                                 <span class="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase">Actief</span>
+                                @if($character->isVip())
+                                    <span class="text-[9px] font-black px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 uppercase flex items-center gap-1">
+                                        <i class="fa-solid fa-crown text-amber-500 text-[8px]"></i> VIP {{ $character->vip_badge['short_label'] ?? 'VIP' }} Boost
+                                    </span>
+                                @endif
                             @else
                                 <span class="text-[9px] font-black px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase">Lid van Bende (Bende Loon)</span>
                             @endif
                         </div>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
                             @if($allowanceDetails['eligible'] ?? false)
-                                Iedere patiënt in de kliniek die <strong>geen lid is van een bende</strong> ontvangt automatisch een basisinkomen van <strong class="text-emerald-600 dark:text-emerald-400 font-extrabold">€1.000 per kwartier (15 minuten)</strong> direct op deze beveiligde bankrekening!
+                                @if($character->isVip())
+                                    Iedere patiënt in de kliniek die <strong>geen lid is van een bende</strong> ontvangt automatisch een basisinkomen van <strong class="text-purple-600 dark:text-purple-400 font-extrabold">€{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }} per kwartier (15 minuten)</strong> direct op deze bankrekening (inclusief <strong class="text-amber-500 font-black">+€{{ number_format(($allowanceDetails['amount_per_quarter'] ?? 1000) - 1000, 0, ',', '.') }} VIP bonus</strong>)!
+                                @else
+                                    Iedere patiënt in de kliniek die <strong>geen lid is van een bende</strong> ontvangt automatisch een basisinkomen van <strong class="text-emerald-600 dark:text-emerald-400 font-extrabold">€{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }} per kwartier (15 minuten)</strong> direct op deze beveiligde bankrekening! <a href="{{ route('vip.index') }}" class="text-purple-600 dark:text-purple-400 font-bold hover:underline">Word VIP voor tot €25.000 per kwartier &rarr;</a>
+                                @endif
                             @else
                                 Omdat je aangesloten bent bij bende <strong>{{ $character->gang?->name ?? 'Gang' }}</strong>, ontvang je geen basisuitkering meer, maar verdien je automatisch een collectief uurloon via de smokkelkiosken van jouw factie.
                             @endif
@@ -164,7 +177,7 @@
                 </div>
 
                 @if($allowanceDetails['eligible'] ?? false)
-                    <div class="shrink-0 flex sm:flex-col items-center sm:items-end justify-between bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 p-3 sm:px-4 sm:py-2.5 rounded-xl"
+                    <div class="shrink-0 flex sm:flex-col items-center sm:items-end justify-between {{ $character->isVip() ? 'bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60' : 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60' }} p-3 sm:px-4 sm:py-2.5 rounded-xl"
                          x-data="{ 
                              secondsLeft: {{ $allowanceDetails['seconds_until_next'] ?? 900 }},
                              init() {
@@ -180,8 +193,8 @@
                              }
                          }">
                         <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Volgende Storting</span>
-                        <span class="text-base font-black text-emerald-700 dark:text-emerald-400 font-mono" x-text="formatTime()">{{ $allowanceDetails['next_human'] ?? '15m 00s' }}</span>
-                        <span class="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400">+€1.000 op bank</span>
+                        <span class="text-base font-black {{ $character->isVip() ? 'text-purple-700 dark:text-purple-300' : 'text-emerald-700 dark:text-emerald-400' }} font-mono" x-text="formatTime()">{{ $allowanceDetails['next_human'] ?? '15m 00s' }}</span>
+                        <span class="text-[11px] font-extrabold {{ $character->isVip() ? 'text-purple-600 dark:text-purple-400' : 'text-emerald-600 dark:text-emerald-400' }}">+€{{ number_format($allowanceDetails['amount_per_quarter'] ?? 1000, 0, ',', '.') }} op bank</span>
                     </div>
                 @endif
             </div>

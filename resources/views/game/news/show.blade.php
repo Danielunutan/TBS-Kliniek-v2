@@ -22,25 +22,25 @@
     </div>
 
     <!-- Main Article Card (Matching the user screenshot structure) -->
-    <article class="bg-white rounded-2xl shadow-xs border border-slate-200/90 overflow-hidden">
+    <article class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden">
         
         <!-- Header Ribbon -->
-        <div class="bg-purple-50/80 border-b border-purple-100 p-4 sm:p-5 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-purple-700">
+        <div class="bg-purple-50/80 dark:bg-purple-950/40 border-b border-purple-100 dark:border-purple-900/50 p-4 sm:p-5 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-300">
                 <i class="fa-solid fa-bullhorn text-purple-500"></i>
                 <span>Nieuws & Updates</span>
             </div>
             @if($article->is_pinned)
-                <span class="bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
-                    <i class="fa-solid fa-thumbtack text-[9px] text-amber-600"></i> Vastgepind
+                <span class="bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                    <i class="fa-solid fa-thumbtack text-[9px] text-amber-600 dark:text-amber-400"></i> Vastgepind
                 </span>
             @endif
         </div>
 
         <div class="p-6 sm:p-8 space-y-6">
             <!-- Title with Emoji -->
-            <div class="border-b border-slate-100 pb-5">
-                <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
+                <h1 class="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                     <span class="text-3xl shrink-0">{{ $article->emoji }}</span>
                     <span>{{ $article->title }}</span>
                 </h1>
@@ -50,13 +50,13 @@
             <div class="flex flex-col md:flex-row items-start gap-6">
                 
                 <!-- Author Sidebar / Card -->
-                <div class="shrink-0 w-full md:w-44 flex flex-row md:flex-col items-center text-center p-4 rounded-2xl bg-slate-50 border border-slate-200/70 gap-3">
+                <div class="shrink-0 w-full md:w-44 flex flex-row md:flex-col items-center text-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700 gap-3">
                     @if($article->author)
                         <a href="{{ route('profile.show', $article->author->name) }}" class="relative group">
-                            <img src="{{ $article->author->avatar_url }}" alt="{{ $article->author->name }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-purple-200 shadow-2xs group-hover:scale-105 transition-transform">
+                            <img src="{{ $article->author->avatar_url }}" alt="{{ $article->author->name }}" class="w-16 h-16 rounded-2xl object-cover border-2 border-purple-200 dark:border-purple-700 shadow-2xs group-hover:scale-105 transition-transform">
                         </a>
                         <div class="text-left md:text-center min-w-0 flex-1 md:flex-initial">
-                            <a href="{{ route('profile.show', $article->author->name) }}" class="text-xs sm:text-sm font-black text-slate-900 hover:text-purple-600 transition block truncate">
+                            <a href="{{ route('profile.show', $article->author->name) }}" class="text-xs sm:text-sm font-black text-slate-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition block truncate">
                                 {{ $article->author->name }}
                             </a>
                             @if($article->author->user && $article->author->user->role !== 'user')
@@ -70,11 +70,11 @@
                             </div>
                         </div>
                     @else
-                        <div class="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl">
+                        <div class="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 flex items-center justify-center text-2xl">
                             <i class="fa-solid fa-shield-halved"></i>
                         </div>
                         <div>
-                            <span class="text-xs font-black text-slate-900 block">Directie Kliniek</span>
+                            <span class="text-xs font-black text-slate-900 dark:text-white block">Directie Kliniek</span>
                             <span class="text-[10px] text-slate-400 font-semibold block mt-1">
                                 {{ $article->created_at->diffForHumans() }}
                             </span>
@@ -85,12 +85,12 @@
                 <!-- Article Content Body -->
                 <div class="flex-1 min-w-0 w-full">
                     @if($article->image_url)
-                    <div class="mb-5 rounded-2xl overflow-hidden border border-slate-200 shadow-xs">
+                    <div class="mb-5 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xs">
                         <img src="{{ $article->image_url }}" alt="{{ $article->title }}" class="w-full max-h-96 object-cover" onerror="this.style.display='none'">
                     </div>
                     @endif
 
-                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed news-content">
+                    <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed news-content prose dark:prose-invert max-w-none">
                         {!! $article->formatted_content !!}
                     </div>
                 </div>
@@ -98,12 +98,12 @@
         </div>
 
         <!-- Article Footer Bar -->
-        <div class="px-6 sm:px-8 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-bold">
+        <div class="px-6 sm:px-8 py-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-bold">
             <div class="flex items-center gap-3">
                 <span><i class="fa-solid fa-clock mr-1 text-slate-400"></i>{{ $article->created_at->translatedFormat('d F Y, H:i') }}</span>
             </div>
             <div class="flex items-center gap-3">
-                <span class="flex items-center gap-1 text-purple-700">
+                <span class="flex items-center gap-1 text-purple-700 dark:text-purple-300">
                     <i class="fa-solid fa-comments"></i>
                     <span>{{ $article->comments()->count() }} Reacties</span>
                 </span>
@@ -113,27 +113,27 @@
 
     <!-- Comments Section -->
     <div class="space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-            <h2 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
-                <i class="fa-solid fa-comments text-purple-600"></i>
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-comments text-purple-600 dark:text-purple-400"></i>
                 <span>Reacties op dit artikel ({{ $comments->total() }})</span>
             </h2>
         </div>
 
         <!-- Topic status banner: Closed vs Open -->
         @if(! $article->comments_enabled)
-        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center shadow-xs">
-            <div class="inline-flex items-center gap-2 text-rose-600 font-extrabold text-xs sm:text-sm">
+        <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center shadow-xs">
+            <div class="inline-flex items-center gap-2 text-rose-600 dark:text-rose-400 font-extrabold text-xs sm:text-sm">
                 <i class="fa-solid fa-lock text-rose-500"></i>
                 <span>Je kunt niet reageren op een gesloten topic</span>
             </div>
-            <p class="text-[11px] text-slate-500 mt-1 font-medium">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
                 De reacties voor dit artikel zijn gesloten door de moderators of leiding.
             </p>
         </div>
         @else
         <!-- New Comment Form -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5" x-data="{ commentText: '' }">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-5" x-data="{ commentText: '' }">
             <form action="{{ route('news.comment', $article) }}" method="POST" class="space-y-3">
                 @csrf
                 <div class="flex items-start gap-3.5">
@@ -141,11 +141,11 @@
                     <div class="flex-1 min-w-0">
                         <textarea name="content" 
                                   x-model="commentText"
-                                  maxlength="500"
+                                   maxlength="500"
                                   required 
                                   rows="3" 
                                   placeholder="Laat een respectvolle reactie achter op dit nieuwsbericht, {{ $character->name }}..."
-                                  class="w-full text-xs sm:text-sm font-semibold bg-slate-50 border border-slate-200 text-slate-800 rounded-xl p-3.5 focus:bg-white focus:border-purple-600 focus:ring-2 focus:ring-purple-200 outline-none resize-none transition"></textarea>
+                                  class="w-full text-xs sm:text-sm font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl p-3.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-600 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-900 outline-none resize-none transition"></textarea>
                     </div>
                 </div>
 
@@ -166,26 +166,26 @@
 
         <!-- Comments List -->
         @if($comments->isEmpty())
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-8 text-center space-y-2">
-            <div class="w-12 h-12 mx-auto rounded-full bg-purple-50 text-purple-400 flex items-center justify-center text-xl">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-8 text-center space-y-2">
+            <div class="w-12 h-12 mx-auto rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-400 flex items-center justify-center text-xl">
                 <i class="fa-regular fa-comment-dots"></i>
             </div>
-            <h4 class="text-xs font-black text-slate-700">Nog geen reacties</h4>
-            <p class="text-xs text-slate-400 max-w-sm mx-auto">
+            <h4 class="text-xs font-black text-slate-700 dark:text-slate-200">Nog geen reacties</h4>
+            <p class="text-xs text-slate-400 dark:text-slate-500 max-w-sm mx-auto">
                 Wees de allereerste patiënt die zijn mening deelt onder dit nieuwsbericht!
             </p>
         </div>
         @else
         <div class="space-y-3">
             @foreach($comments as $comment)
-            <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex items-start justify-between gap-4">
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex items-start justify-between gap-4">
                 <div class="flex items-start gap-3.5 min-w-0 flex-1">
                     <a href="{{ route('profile.show', $comment->character->name) }}" class="shrink-0">
-                        <img src="{{ $comment->character->avatar_url }}" alt="{{ $comment->character->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-2xs">
+                        <img src="{{ $comment->character->avatar_url }}" alt="{{ $comment->character->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs">
                     </a>
                     <div class="flex-1 min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
-                            <a href="{{ route('profile.show', $comment->character->name) }}" class="font-black text-xs sm:text-sm text-slate-900 hover:text-purple-700 transition">
+                            <a href="{{ route('profile.show', $comment->character->name) }}" class="font-black text-xs sm:text-sm text-slate-900 dark:text-white hover:text-purple-700 dark:hover:text-purple-400 transition">
                                 {{ $comment->character->name }}
                             </a>
                             @if($comment->character->user && $comment->character->user->role !== 'user')
@@ -194,11 +194,11 @@
                                     <i class="fa-solid {{ $cBadge['icon'] }} text-[8px]"></i> {{ $cBadge['label'] }}
                                 </span>
                             @endif
-                            <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded">
                                 Lvl {{ $comment->character->level }}
                             </span>
                             @if($comment->character->gang)
-                            <span class="text-[10px] font-black text-purple-700 bg-purple-50 border border-purple-100 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950 border border-purple-100 dark:border-purple-800 px-1.5 py-0.2 rounded">
                                 [{{ $comment->character->gang->tag }}]
                             </span>
                             @endif
@@ -206,7 +206,7 @@
                                 • {{ $comment->created_at->diffForHumans() }}
                             </span>
                         </div>
-                        <p class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed mt-2 whitespace-pre-line">
+                        <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-medium leading-relaxed mt-2 whitespace-pre-line">
                             {{ $comment->content }}
                         </p>
                     </div>

@@ -23,9 +23,14 @@
             cash: '{{ number_format($target->cash, 0, ',', '.') }}',
             avatar: '{{ $target->avatar_url }}',
             isOnline: {{ $target->isOnline() ? 'true' : 'false' }},
-            inPrison: false,
-            inComa: false,
-            isProtected: false
+            inPrison: {{ $target->isImprisoned() ? 'true' : 'false' }},
+            inComa: {{ $target->isComatose() ? 'true' : 'false' }},
+            isProtected: {{ $target->isProtected() ? 'true' : 'false' }},
+            hasBloodFeud: {{ $target->has_blood_feud ? 'true' : 'false' }},
+            onCooldown: {{ $target->on_cooldown ? 'true' : 'false' }},
+            cooldownSeconds: {{ $target->cooldown_seconds ?? 0 }},
+            dailyDeathsReached: {{ $target->daily_deaths_reached ? 'true' : 'false' }},
+            isLevelRestricted: {{ $target->is_level_restricted ? 'true' : 'false' }}
         },
         @endforeach
     ],
@@ -94,7 +99,7 @@
                         Liquidatie & Wapenarsenaal
                     </h1>
                     <p class="text-xs text-slate-300 max-w-xl leading-snug hidden sm:block">
-                        Schiet rivalen neer met kogels en plunder al hun losse geld. Pas op voor <strong class="text-rose-400">Backfire</strong> als de tegenstander een kogelvrij vest draagt!
+                        Schiet rivalen neer met kogels en plunder 35% van hun contante geld. Pas op voor <strong class="text-rose-400">Backfire</strong> als de tegenstander een kogelvrij vest draagt!
                     </p>
                 </div>
             </div>
@@ -119,11 +124,11 @@
         </div>
     </div>
 
-    <!-- QUICK WEAPON & AD REWARD STATS (Earn Bullets & Armor via Video Ads) -->
+    <!-- QUICK WEAPON & ARMOR STATS (Koop Kogels & Vest met Sterren) -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
         
         <!-- 1. BULLETS CARD -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between gap-2.5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm font-black shrink-0">
@@ -136,17 +141,25 @@
                         </span>
                     </div>
                 </div>
+                <span class="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                    50 ⭐ = 50 Kogels
+                </span>
             </div>
-            <button type="button" 
-                    onclick="window.tbsOpenSponsorAd('bullets')"
-                    class="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                <i class="fa-solid fa-tv text-[11px]"></i>
-                <span>+50 Kogels (Kijk Video)</span>
-            </button>
+
+            <div>
+                <form action="{{ route('hitman.buy_bullets') }}" method="POST" class="w-full">
+                    @csrf
+                    <button type="submit" 
+                            class="btn-star-gold w-full py-2.5 px-3 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
+                        <i class="fa-solid fa-star text-xs"></i>
+                        <span>Koop +50 Kogels (50 Sterren ⭐)</span>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- 2. BULLETPROOF VEST CARD -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between gap-2.5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between gap-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-sm font-black shrink-0">
@@ -163,13 +176,21 @@
                         </span>
                     </div>
                 </div>
+                <span class="text-[10px] font-black text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">
+                    150 ⭐ = 12u Vest
+                </span>
             </div>
-            <button type="button" 
-                    onclick="window.tbsOpenSponsorAd('vest')"
-                    class="w-full py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                <i class="fa-solid fa-tv text-[11px]"></i>
-                <span>12u Vest (Kijk Video)</span>
-            </button>
+
+            <div>
+                <form action="{{ route('hitman.buy_vest') }}" method="POST" class="w-full">
+                    @csrf
+                    <button type="submit" 
+                            class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
+                        <i class="fa-solid fa-shield-halved text-amber-300 text-xs"></i>
+                        <span>Koop 12u Vest (150 Sterren ⭐)</span>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <!-- 3. COMBAT RECORD -->
@@ -195,6 +216,74 @@
 
     </div>
 
+    <!-- FAIR PLAY BALANCERING & RIVALITEIT REGELS -->
+    <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs space-y-2.5">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-black text-xs uppercase tracking-wide">
+                <i class="fa-solid fa-scale-balanced text-amber-500 text-sm"></i>
+                <span>Eerlijk Spel &amp; Rivaliteit Regels</span>
+            </div>
+            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full">Anti-Griefing Actief</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-slate-600 dark:text-slate-400">
+            <div class="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+                <strong class="text-slate-900 dark:text-white block font-black mb-0.5"><i class="fa-solid fa-clock-rotate-left text-purple-500 mr-1"></i> 3 Uur Doelwit Cooldown</strong>
+                Je kunt dezelfde speler maximaal 1x per 3 uur viseren om continu treiteren te voorkomen.
+            </div>
+            <div class="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+                <strong class="text-slate-900 dark:text-white block font-black mb-0.5"><i class="fa-solid fa-shield-heart text-emerald-500 mr-1"></i> 30m Herstelschild &amp; Max 3/Dag</strong>
+                Na ontwaken 30 min rust. Slachtoffers kunnen maximaal 3x per 24 uur fatale schade oplopen.
+            </div>
+            <div class="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
+                <strong class="text-slate-900 dark:text-white block font-black mb-0.5"><i class="fa-solid fa-layer-group text-rose-500 mr-1"></i> Max 15 Levels &amp; 35% Buit</strong>
+                Alleen gelijke tegenstanders. Bij actieve Bloedwraak vervallen levelrestricties!
+            </div>
+        </div>
+    </div>
+
+    @if(isset($bloodFeuds) && $bloodFeuds->isNotEmpty())
+        <!-- BLOEDWRAAK VETES BANNER -->
+        <div class="bg-gradient-to-r from-red-950 via-rose-950 to-slate-950 border-2 border-red-600/70 rounded-2xl p-4 sm:p-5 text-white shadow-xl space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-red-600/30 border border-red-500/60 text-red-400 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-skull-crossbones animate-pulse"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-white flex items-center gap-1.5">
+                            <span>🩸 ACTIEVE BLOEDWRAAK VETES</span>
+                            <span class="text-[10px] bg-red-600 px-2 py-0.5 rounded-full font-black">{{ $bloodFeuds->count() }}</span>
+                        </h3>
+                        <p class="text-xs text-rose-200">
+                            Jij of een bendelid is neergeschoten! Vergeld de aanval voor <strong>+50 extra Respect</strong>, <strong>+€10.000 bonus</strong> en <strong>+150 Bende Respect</strong> (level- en cooldownrestricties vervallen).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                @foreach($bloodFeuds as $feud)
+                    <div class="bg-black/50 border border-red-700/60 rounded-xl p-3 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <img src="{{ $feud->attacker->avatar_url ?? '' }}" class="w-10 h-10 rounded-xl object-cover border border-red-500/60 shrink-0">
+                            <div class="min-w-0">
+                                <span class="font-black text-xs text-white block truncate">{{ $feud->attacker->name ?? 'Onbekend' }}</span>
+                                <span class="text-[10px] text-rose-300 block truncate">
+                                    Schoot {{ $feud->victim->name ?? 'jouw bendelid' }} neer • nog {{ max(0, (int) round(now()->diffInHours($feud->expires_at, false))) }}u
+                                </span>
+                            </div>
+                        </div>
+                        <button type="button" 
+                                @click="select({ id: '{{ $feud->attacker_id }}', name: '{{ addslashes($feud->attacker->name ?? '') }}' }); activeTab = 'shoot'"
+                                class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 active:scale-95 text-white font-black text-[11px] shrink-0 transition cursor-pointer shadow-xs">
+                            Vergelden &raquo;
+                        </button>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <!-- TAB 1: LIQUIDATIE MET KOGELS & BACKFIRE -->
     <div x-show="activeTab === 'shoot'" class="space-y-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
@@ -205,7 +294,7 @@
                     <span>Patiënt Liquideren (Schieten)</span>
                 </h2>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Selecteer een doelwit en bepaal hoeveel kogels je vuurt. Dodelijke voltreffer = doelwit 6 uur in Coma (ICU) en al zijn contant geld geplunderd!
+                    Selecteer een doelwit en bepaal hoeveel kogels je vuurt. Dodelijke voltreffer = doelwit 1 uur in Coma (ICU), 30m herstelschild en 35% contant geld geplunderd!
                 </p>
             </div>
 
@@ -259,6 +348,9 @@
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <span class="font-extrabold text-slate-900 dark:text-white group-hover:text-rose-500 block truncate" x-text="t.name"></span>
+                                            <template x-if="t.hasBloodFeud">
+                                                <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-red-600 text-white animate-pulse">🩸 Bloedwraak</span>
+                                            </template>
                                             <template x-if="t.inPrison">
                                                 <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">Isoleercel</span>
                                             </template>
@@ -267,6 +359,15 @@
                                             </template>
                                             <template x-if="t.isProtected">
                                                 <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20">Beschermd</span>
+                                            </template>
+                                            <template x-if="t.dailyDeathsReached">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Max 3/dag</span>
+                                            </template>
+                                            <template x-if="t.onCooldown">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Wachttijd</span>
+                                            </template>
+                                            <template x-if="t.isLevelRestricted">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-500/10 text-slate-400 border border-slate-500/20">>15 Lvl Verschil</span>
                                             </template>
                                         </div>
                                         <span class="text-[10px] text-slate-400 truncate block">Lvl <span x-text="t.level"></span> • <span class="text-emerald-500 font-mono font-bold" x-text="'€' + t.cash"></span> op zak</span>
@@ -323,7 +424,7 @@
                 <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-400/40 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5">
                     <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm mt-0.5 shrink-0"></i>
                     <div class="leading-relaxed text-[11px]">
-                        <strong>Pas op voor Backfire!</strong> Als het doelwit een kogelwerend vest draagt of te sterk is, ketsen je kogels af en schiet je jezelf 6 uur in coma!
+                        <strong>Pas op voor Backfire!</strong> Als het doelwit een kogelwerend vest draagt of te sterk is, ketsen je kogels af en schiet je jezelf 1 uur in coma!
                     </div>
                 </div>
 

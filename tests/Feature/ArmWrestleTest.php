@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -125,6 +126,8 @@ class ArmWrestleTest extends TestCase
             'energy' => 100,
         ]);
 
+        Carbon::setTestNow('2026-01-01 12:00:00');
+
         // First match succeeds
         $first = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
             'npc_key' => 'sjonnie',
@@ -134,7 +137,19 @@ class ArmWrestleTest extends TestCase
         ]);
         $first->assertStatus(200);
 
-        // Immediate second match is blocked by cooldown (HTTP 422)
+        // Immediate duplicate request within 1 second returns 200 without breaking or throwing 422
+        $duplicate = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
+            'npc_key' => 'sjonnie',
+            'won' => true,
+            'clicks' => 20,
+            'duration_seconds' => 4,
+        ]);
+        $duplicate->assertStatus(200);
+        $duplicate->assertJson(['success' => true]);
+
+        // After duplicate grace period (e.g. 5 seconds later), attempts while on cooldown are blocked with 422
+        $this->travel(5)->seconds();
+
         $second = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
             'npc_key' => 'sjonnie',
             'won' => true,

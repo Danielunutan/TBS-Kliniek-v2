@@ -56,21 +56,25 @@
         </div>
     </div>
 
-    <div x-show="seconds > 0" class="p-4 rounded-xl bg-amber-500/10 border border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $lockerCooldown > 0 ? '' : 'display: none;' }}">
+    <div x-show="seconds > 0" class="p-4 rounded-xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/60 flex flex-col sm:flex-row items-center justify-between gap-4" style="{{ $lockerCooldown > 0 ? '' : 'display: none;' }}">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
                 <i class="fa-solid fa-clock"></i>
             </div>
             <div>
-                <h4 class="text-xs font-black text-amber-950">Kluisjes Cooldown Actief</h4>
-                <p class="text-[11px] text-amber-800">Wacht nog <strong class="font-mono text-amber-950 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $lockerCooldown) }}</strong> of reset direct via een sponsor advertentie.</p>
+                <h4 class="text-xs font-black text-amber-950 dark:text-amber-200">Kluisjes Cooldown Actief</h4>
+                <p class="text-[11px] text-amber-800 dark:text-amber-300">Wacht nog <strong class="font-mono text-amber-950 dark:text-amber-100 font-bold" x-text="format(seconds)">{{ gmdate('i:s', $lockerCooldown) }}</strong> of omzeil direct met Sterren.</p>
             </div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                <i class="fa-solid fa-tv text-[11px]"></i>
-                <span>Kijk Ad (Reset Cooldown)</span>
-            </button>
+            <form method="POST" action="{{ route('cooldown.skip') }}">
+                @csrf
+                <input type="hidden" name="action" value="locker">
+                <button type="submit" class="btn-star-gold h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                    <i class="fa-solid fa-star text-[11px]"></i>
+                    <span>Omzeilen (10 Sterren)</span>
+                </button>
+            </form>
         </div>
     </div>
 

@@ -235,7 +235,7 @@
         </div>
         <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
             <button type="button" @click="setShopTab('donaties')" 
-                    class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-purple-950 font-black text-xs uppercase tracking-wider shadow-md transition text-center cursor-pointer">
+                    class="btn-star-gold w-full sm:w-auto px-4 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider shadow-md transition text-center cursor-pointer">
                 <i class="fa-solid fa-mug-hot mr-1"></i> Koffie Doneren
             </button>
             <a href="{{ route('vip.index') }}" 
@@ -413,20 +413,16 @@
                         </div>
                     </div>
 
-                    <!-- Koppelcode info -->
-                    <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                        <div class="text-slate-700 dark:text-purple-200">
-                            Vul in het Buy Me a Coffee donatiebericht je koppelcode <strong>TBS-{{ $character->id }}</strong> of spelersnaam <strong>{{ $character->name }}</strong> in voor razendsnelle automatische bijschrijving!
-                        </div>
-                        <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="font-black text-purple-700 dark:text-purple-300 underline shrink-0">
-                            Open Direct Buy Me a Coffee &rarr;
-                        </a>
-                    </div>
+                    <!-- Uitgebreide Buy Me a Coffee Instructies & Koppelcode -->
+                    @include('partials.bmac_instructions')
                 </div>
             </div>
 
             <!-- TAB: PAKKETTEN & BUNDELS -->
             <div x-show="shopTab === 'pakketten'" class="space-y-6">
+
+                <!-- Snelinstructie Buy Me a Coffee Koppeling -->
+                @include('partials.bmac_banner')
 
                 <!-- Special Action Banner -->
                 <div class="bg-gradient-to-r from-purple-50 via-pink-50 to-purple-50 dark:from-purple-950/40 dark:via-pink-950/20 dark:to-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-xl p-4 text-center shadow-xs">
@@ -638,6 +634,9 @@
 
             <!-- TAB: REGULIERE ITEMS (CONTANT GELD / EURO) -->
             <div x-show="shopTab === 'items'" class="space-y-6">
+                <!-- Snelinstructie Buy Me a Coffee Koppeling -->
+                @include('partials.bmac_banner')
+
                 <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-xs space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                         <div class="flex items-center gap-2.5">
@@ -1398,23 +1397,26 @@
 
             <!-- TAB: STERREN & DIAMANTEN -->
             <div x-show="shopTab === 'sterren'" class="space-y-6">
+                <!-- Snelinstructie Buy Me a Coffee Koppeling -->
+                @include('partials.bmac_banner')
+
                 <!-- Info Header Banner -->
-                <div class="bg-gradient-to-br from-amber-500/10 via-purple-500/10 to-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-xs relative overflow-hidden">
+                <div class="bg-white dark:bg-slate-900 border-2 border-amber-400/80 dark:border-amber-500/50 rounded-2xl p-6 shadow-sm relative overflow-hidden">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
                         <div>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase tracking-wider mb-2">
-                                <i class="fa-solid fa-star text-amber-400"></i> Exclusieve Gouden Sterren Kiosk
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/80 text-[10px] font-black uppercase tracking-wider mb-2">
+                                <i class="fa-solid fa-star text-amber-500 dark:text-amber-400"></i> Exclusieve Gouden Sterren Kiosk
                             </span>
-                            <h2 class="text-xl sm:text-2xl font-black text-white">Krachtige Voordelen & Schaarste</h2>
-                            <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
+                            <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Krachtige Voordelen &amp; Schaarste</h2>
+                            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-xl leading-relaxed">
                                 Sterren zijn zeldzaam en geven enorme privileges zoals direct herstel, celontsnappingen, kogelmagazijnen en kluiscodes. Verdien ze gratis via het Rad van Fortuin, de 7-Dagen Inlogstreak en Level Mijlpalen, of scoor ze direct via Buy Me a Coffee!
                             </p>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
-                            <span class="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-black text-sm flex items-center gap-2">
-                                <i class="fa-solid fa-star text-amber-400"></i> {{ $character->stars ?? 0 }} Saldo
+                            <span class="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-black text-sm flex items-center gap-2 shadow-2xs">
+                                <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Saldo
                             </span>
-                            <button type="button" @click="setShopTab('donaties')" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-purple-950 font-black text-xs transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
+                            <button type="button" @click="setShopTab('donaties')" class="btn-star-gold w-full sm:w-auto px-4 py-2 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-plus-circle"></i> Sterren Kopen
                             </button>
                         </div>
@@ -1477,6 +1479,33 @@
                         </form>
                     </div>
 
+                    <!-- 2b. Coma Ontwaken (15 Sterren) -->
+                    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-rose-400/50 transition">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                </span>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
+                                    15 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Direct Uit Coma Ontwaken</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                    Neergeschoten of geraakt door backfire? Ontwaak direct uit Intensive Care Coma en herstel naar 50% HP!
+                                </p>
+                            </div>
+                        </div>
+                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
+                            @csrf
+                            <input type="hidden" name="item_type" value="coma_revive">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-syringe"></i> Ontwaken (15 Sterren)
+                            </button>
+                        </form>
+                    </div>
+
                     <!-- 3. Maskers Pack (5x) -->
                     <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-400/50 transition">
                         <div class="space-y-3">
@@ -1504,29 +1533,56 @@
                         </form>
                     </div>
 
-                    <!-- 4. Hitman Ammo Pack -->
-                    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-rose-400/50 transition">
+                    <!-- 4a. Munitievoorraad (50 Kogels) -->
+                    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-amber-400/50 transition">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-crosshairs"></i>
+                                <span class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-boxes-stacked"></i>
                                 </span>
                                 <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                    20 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                                    50 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
                                 </span>
                             </div>
                             <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Hitman Kogelmagazijn + Vest</h4>
+                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Munitievoorraad (+50 Kogels)</h4>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Ontvang +250 Kogels en 24 uur actieve kogelvrije bescherming voor liquidaties en gevechten.
+                                    Ontvang direct +50 kogels voor liquidaties en aanslagen op rivalen in het hitman arsenaal.
                                 </p>
                             </div>
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
-                            <input type="hidden" name="item_type" value="ammo_pack">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-gun"></i> Magazijn (20 Sterren)
+                            <input type="hidden" name="item_type" value="bullets_50">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-crosshairs"></i> Kogels Kopen (50 Sterren)
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- 4b. Kogelwerend Vest (12 Uur) -->
+                    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-purple-400/50 transition">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </span>
+                                <span class="px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 font-black text-xs flex items-center gap-1">
+                                    150 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                                </span>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Kogelwerend Vest (12 Uur)</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                    12 uur zware bepantsering tegen vijandige kogels met 45% ricochet-kans waardoor aanvallers zichzelf neerschieten.
+                                </p>
+                            </div>
+                        </div>
+                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
+                            @csrf
+                            <input type="hidden" name="item_type" value="bulletproof_vest">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
+                                <i class="fa-solid fa-shield-halved"></i> Vest Kopen (150 Sterren)
                             </button>
                         </form>
                     </div>

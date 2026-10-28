@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BuyMeACoffeeOrder;
 use App\Models\Character;
+use App\Models\GameNotification;
 use App\Models\User;
 use App\Services\AuditLogService;
 use Carbon\Carbon;
@@ -45,9 +47,79 @@ class BuyMeACoffeeWebhookController extends Controller
 
         $event = $payload['event'] ?? $payload['type'] ?? 'unknown';
         $data = $payload['data'] ?? $payload['response'] ?? $payload;
+        $eventNormalized = strtolower(str_replace(['.', ' '], '_', (string) $event));
+
+        // Extract metadata from BMC payload
+        $externalId = (string) ($data['subscription_id'] ?? $data['sub_id'] ?? $data['membership_id'] ?? $data['support_id'] ?? $data['id'] ?? '');
+        $supporterName = (string) ($data['supporter_name'] ?? $data['payer_name'] ?? $data['name'] ?? '');
+        $supporterEmail = strtolower(trim((string) ($data['supporter_email'] ?? $data['payer_email'] ?? $data['email'] ?? '')));
+        $amount = (float) ($data['amount'] ?? $data['total_amount'] ?? $data['item_price'] ?? 0);
+        $currency = (string) ($data['currency'] ?? 'EUR');
+        $tierName = (string) ($data['membership_tier_name'] ?? $data['tier_name'] ?? $data['level_name'] ?? '');
+        $isMembership = str_contains($eventNormalized, 'membership') || str_contains($eventNormalized, 'recurring') || ! empty($tierName);
+        $message = (string) ($data['support_message'] ?? $data['message'] ?? $data['note'] ?? '');
 
         // Try to identify the player
         $character = $this->resolveCharacter($data);
+
+        // Check if this is a cancellation or pause
+        $isCancelled = str_contains($eventNormalized, 'cancelled') || str_contains($eventNormalized, 'paused') || str_contains($eventNormalized, 'deleted');
+
+        if ($isCancelled) {
+            $existingOrder = ! empty($externalId) ? BuyMeACoffeeOrder::where('external_id', $externalId)->first() : null;
+            if (! $character && $existingOrder && $existingOrder->character) {
+                $character = $existingOrder->character;
+            }
+
+            if ($character) {
+                $this->revokeMembership($character, $tierName, $data);
+            }
+
+            BuyMeACoffeeOrder::updateOrCreate(
+                ['external_id' => $externalId ?: ('cancelled_'.uniqid())],
+                [
+                    'event' => $event,
+                    'supporter_name' => $supporterName ?: null,
+                    'supporter_email' => $supporterEmail ?: null,
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'membership_tier' => $tierName ?: ($existingOrder?->membership_tier),
+                    'message' => $message ?: null,
+                    'character_id' => $character?->id,
+                    'status' => 'cancelled',
+                    'is_membership' => true,
+                    'membership_status' => 'cancelled',
+                    'payload' => $payload,
+                    'cancelled_at' => now(),
+                ]
+            );
+
+            return response()->json([
+                'status' => 'success',
+                'action' => 'membership_cancelled',
+                'matched' => $character !== null,
+            ], 200);
+        }
+
+        // Normal Order / Donation / Membership
+        $order = BuyMeACoffeeOrder::updateOrCreate(
+            ['external_id' => $externalId ?: ('order_'.uniqid())],
+            [
+                'event' => $event,
+                'supporter_name' => $supporterName ?: null,
+                'supporter_email' => $supporterEmail ?: null,
+                'amount' => $amount,
+                'currency' => $currency,
+                'membership_tier' => $tierName ?: null,
+                'message' => $message ?: null,
+                'character_id' => $character?->id,
+                'status' => $character ? 'matched' : 'unmatched',
+                'is_membership' => $isMembership,
+                'membership_status' => $isMembership ? 'active' : null,
+                'payload' => $payload,
+                'linked_at' => $character ? now() : null,
+            ]
+        );
 
         if ($character) {
             $this->processEvent($event, $data, $character);
@@ -55,11 +127,13 @@ class BuyMeACoffeeWebhookController extends Controller
             Log::warning('BuyMeACoffee Webhook: Player could not be matched automatically', [
                 'event' => $event,
                 'data' => $data,
+                'order_id' => $order->id,
             ]);
         }
 
         return response()->json([
             'status' => 'success',
+            'order_id' => $order->id,
             'matched' => $character !== null,
         ], 200);
     }
@@ -67,7 +141,7 @@ class BuyMeACoffeeWebhookController extends Controller
     /**
      * Resolve character from message, note, email, questions or custom fields.
      */
-    protected function resolveCharacter(array $data): ?Character
+    public function resolveCharacter(array $data): ?Character
     {
         // Gather all potential text fields
         $textPool = [];
@@ -127,7 +201,7 @@ class BuyMeACoffeeWebhookController extends Controller
     /**
      * Process different BMC events.
      */
-    protected function processEvent(string $event, array $data, Character $character): void
+    public function processEvent(string $event, array $data, Character $character): void
     {
         $eventNormalized = strtolower(str_replace(['.', ' '], '_', $event));
 
@@ -140,7 +214,6 @@ class BuyMeACoffeeWebhookController extends Controller
 
             // A. Single Coffee / Donation / Support
             if (str_contains($eventNormalized, 'donation') || str_contains($eventNormalized, 'support')) {
-                // Check if refunded
                 if (str_contains($eventNormalized, 'refunded')) {
                     Log::info("BuyMeACoffee: Donation refunded for {$locked->name}", $data);
 
@@ -150,7 +223,6 @@ class BuyMeACoffeeWebhookController extends Controller
                 $coffees = (int) ($data['support_coffees'] ?? $data['quantity'] ?? 1);
                 $amount = (float) ($data['amount'] ?? $data['total_amount'] ?? 0);
 
-                // Tiered rewards based on number of coffees or total donation amount
                 if ($coffees >= 5 || $amount >= 15.0) {
                     $starsAwarded = 160;
                     $masksAwarded = 6;
@@ -182,6 +254,15 @@ class BuyMeACoffeeWebhookController extends Controller
 
                 $locked->save();
 
+                GameNotification::create([
+                    'character_id' => $locked->id,
+                    'type' => 'bmac_donation',
+                    'icon' => 'fa-mug-hot',
+                    'title' => 'Buy Me a Coffee Donatie Ontvangen!',
+                    'message' => "Bedankt voor je gulle donatie! Je hebt direct +{$starsAwarded} Sterren, +{$masksAwarded} Maskers en +{$bulletsAwarded} Kogels ontvangen.",
+                    'is_read' => false,
+                ]);
+
                 AuditLogService::log(
                     action: 'buymeacoffee_donation',
                     category: 'economy',
@@ -208,7 +289,7 @@ class BuyMeACoffeeWebhookController extends Controller
             // C. Membership Started or Renewed
             if (str_contains($eventNormalized, 'membership') || str_contains($eventNormalized, 'recurring')) {
                 if (str_contains($eventNormalized, 'cancelled') || str_contains($eventNormalized, 'paused')) {
-                    Log::info("BuyMeACoffee: Membership cancelled or paused for {$locked->name}");
+                    $this->revokeMembership($locked, (string) ($data['membership_tier_name'] ?? ''), $data);
 
                     return;
                 }
@@ -220,9 +301,50 @@ class BuyMeACoffeeWebhookController extends Controller
     }
 
     /**
+     * Revoke membership and expire VIP for a character.
+     */
+    public function revokeMembership(Character $character, string $tierName = '', array $data = []): void
+    {
+        DB::transaction(function () use ($character, $data): void {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return;
+            }
+
+            $locked->is_vip = false;
+            $locked->vip_expires_at = now();
+            $perks = $locked->perks ?? [];
+            $perks['supporter_tier'] = 0;
+            $perks['has_custom_name_color'] = false;
+            $perks['has_sparkle_effect'] = false;
+            $locked->perks = $perks;
+            $locked->save();
+
+            GameNotification::create([
+                'character_id' => $locked->id,
+                'type' => 'vip_expired',
+                'icon' => 'fa-crown',
+                'title' => 'Buy Me a Coffee Membership Opgezegd',
+                'message' => 'Je supporterslidmaatschap is beëindigd of stopgezet. Je VIP status en privileges zijn per direct verlopen. Heel erg bedankt voor je eerdere support!',
+                'is_read' => false,
+            ]);
+
+            AuditLogService::log(
+                action: 'buymeacoffee_membership_cancelled',
+                category: 'vip',
+                description: "BuyMeACoffee Membership opgezegd voor {$locked->name}, VIP privileges beëindigd",
+                character: $locked,
+                user: $locked->user,
+                details: $data
+            );
+        });
+    }
+
+    /**
      * Grant rewards for an Extra purchase.
      */
-    protected function grantExtraReward(Character $character, string $title, array $data): void
+    public function grantExtraReward(Character $character, string $title, array $data = []): void
     {
         $titleLower = strtolower($title);
 
@@ -240,7 +362,6 @@ class BuyMeACoffeeWebhookController extends Controller
             $character->xxl_cases = ($character->xxl_cases ?? 0) + 2;
             $character->masks = ($character->masks ?? 0) + 3;
         } else {
-            // Default generic star reward
             $character->stars = ($character->stars ?? 0) + 100;
             $character->masks = ($character->masks ?? 0) + 3;
         }
@@ -260,13 +381,12 @@ class BuyMeACoffeeWebhookController extends Controller
     /**
      * Grant VIP and tier perks based on the 4 live membership packages.
      */
-    protected function grantMembershipTier(Character $character, string $tierName, array $data): void
+    public function grantMembershipTier(Character $character, string $tierName, array $data = []): void
     {
         $tierLower = strtolower($tierName);
         $character->is_vip = true;
         $perks = $character->perks ?? [];
 
-        // Check if Lifetime or recurring monthly
         if (str_contains($tierLower, 'lifetime')) {
             $character->vip_expires_at = Carbon::now()->addYears(99);
             $character->stars = ($character->stars ?? 0) + 1500;
@@ -276,6 +396,7 @@ class BuyMeACoffeeWebhookController extends Controller
             $perks['has_custom_name_color'] = true;
             $perks['has_sparkle_effect'] = true;
             $perks['hourly_cash_bonus'] = 50000;
+            $tierLabel = 'VIP LIFETIME';
         } elseif (str_contains($tierLower, 'baas')) {
             $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
                 ? $character->vip_expires_at
@@ -288,6 +409,7 @@ class BuyMeACoffeeWebhookController extends Controller
             $perks['has_custom_name_color'] = true;
             $perks['has_sparkle_effect'] = true;
             $perks['hourly_cash_bonus'] = 20000;
+            $tierLabel = 'TBS Kliniek Baas';
         } elseif (str_contains($tierLower, 'elite') || str_contains($tierLower, 'gangster')) {
             $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
                 ? $character->vip_expires_at
@@ -300,6 +422,7 @@ class BuyMeACoffeeWebhookController extends Controller
             $perks['has_custom_name_color'] = true;
             $perks['has_sparkle_effect'] = false;
             $perks['hourly_cash_bonus'] = 7500;
+            $tierLabel = 'TBS Gangster Elite';
         } else {
             // TBS V.I.P. Lid (Tier 1)
             $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
@@ -312,10 +435,20 @@ class BuyMeACoffeeWebhookController extends Controller
             $perks['has_custom_name_color'] = false;
             $perks['has_sparkle_effect'] = false;
             $perks['hourly_cash_bonus'] = 2500;
+            $tierLabel = 'TBS V.I.P. Lid';
         }
 
         $character->perks = $perks;
         $character->save();
+
+        GameNotification::create([
+            'character_id' => $character->id,
+            'type' => 'vip_membership',
+            'icon' => 'fa-crown',
+            'title' => "Buy Me a Coffee: {$tierLabel} Geactiveerd!",
+            'message' => "Gefeliciteerd! Je {$tierLabel} membership is succesvol geactiveerd tot {$character->vip_expires_at->format('d-m-Y H:i')}. Geniet van je VIP privileges en beloningen!",
+            'is_read' => false,
+        ]);
 
         AuditLogService::log(
             action: 'buymeacoffee_membership',

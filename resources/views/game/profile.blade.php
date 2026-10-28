@@ -205,10 +205,34 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                     <div>
                         <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-                            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">{{ $profileCharacter->name }}</h1>
+                            <h1 class="text-2xl font-black tracking-tight flex items-center gap-1.5 text-slate-900 dark:text-white"
+                                @if($profileCharacter->getCustomNameColor()) style="color: {{ $profileCharacter->getCustomNameColor() }};" @endif>
+                                <span class="{{ $profileCharacter->isSparkleActive() ? 'animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]' : '' }}">
+                                    {{ $profileCharacter->name }}
+                                </span>
+                                @if($profileCharacter->isSparkleActive())
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm"></i>
+                                @endif
+                            </h1>
                             <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
                                 Level {{ $profileCharacter->level }}
                             </span>
+
+                            @if($profileCharacter->user && $profileCharacter->user->isStaff())
+                                @php $staffBadge = $profileCharacter->user->role_badge; @endphp
+                                <span class="{{ $staffBadge['bg'] }} {{ $staffBadge['text'] }} border {{ $staffBadge['border'] }} text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 shadow-2xs">
+                                    <i class="fa-solid {{ $staffBadge['icon'] }}"></i> {{ $staffBadge['label'] }}
+                                </span>
+                            @endif
+
+                            @if($profileCharacter->isVip())
+                                @php $pViBadge = $profileCharacter->vip_badge; @endphp
+                                @if($pViBadge)
+                                    <span class="{{ $pViBadge['class'] }} text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 shadow-sm border {{ $pViBadge['glow'] }}">
+                                        <i class="fa-solid {{ $pViBadge['icon'] }}"></i> {{ $pViBadge['label'] }}
+                                    </span>
+                                @endif
+                            @endif
 
                             @if($profileBorder)
                             <a href="{{ route('halloween.shop') }}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500/15 via-amber-500/15 to-orange-500/10 text-orange-700 dark:text-orange-300 border border-orange-400/50 hover:border-orange-500 hover:scale-105 transition shadow-xs" title="Halloween Frame: {{ $profileBorder['name'] }}">

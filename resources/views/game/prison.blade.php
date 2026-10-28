@@ -12,7 +12,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Gevangenis</h1>
                 <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Patiënten die betrapt zijn bij illegale acties of mislukte uitbraken zitten hier vast. Breek mede-patiënten uit voor respect en aanzien, of bekijk een sponsoradvertentie om direct vrij te komen!
+                    Patiënten die betrapt zijn bij illegale acties of mislukte uitbraken zitten hier vast. Breek mede-patiënten uit voor respect en aanzien, of koop jezelf direct vrij met 10 Gouden Sterren ⭐!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -145,16 +145,19 @@
                 $reqPrisonAds = $character ? $character->getRequiredPrisonAds() : 1;
                 $currPrisonAds = $character ? (int) ($character->ad_prison_progress ?? 0) : 0;
             @endphp
-            <button type="button" 
-                    onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" 
-                    class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
-                    title="Elke ad vermindert je straftijd met 3 minuten. Bij {{ $reqPrisonAds }} ads word je direct vrijgelaten!">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-tv text-amber-300 text-xs"></i>
-                    <span>Kijk Ad</span>
-                </div>
-                <span class="px-2 py-0.5 rounded-md bg-purple-900/80 text-[10px] font-black text-purple-200">{{ $currPrisonAds }}/{{ $reqPrisonAds }} Vrijlating</span>
-            </button>
+            <form action="{{ route('shop.buy-star-item') }}" method="POST" class="w-full">
+                @csrf
+                <input type="hidden" name="item_type" value="prison_escape">
+                <button type="submit" 
+                        class="btn-star-gold w-full py-2.5 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
+                        title="Direct vrijkomen voor 10 Gouden Sterren ⭐">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-star text-xs"></i>
+                        <span>Vrijkopen</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-md bg-amber-400/30 text-[10px] font-black text-slate-900 dark:text-white border border-amber-300/40">10 Sterren ⭐</span>
+                </button>
+            </form>
 
             <!-- Escape Button -->
             <template x-if="!attempted">
@@ -179,12 +182,12 @@
                 <button type="button" 
                         disabled
                         class="w-full py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs flex items-center justify-between gap-2 cursor-not-allowed opacity-80"
-                        title="Je hebt je ontsnappingspoging voor deze straf al verbruikt. Bekijk ads om alsnog direct vrijgelaten te worden!">
+                        title="Je hebt je ontsnappingspoging voor deze straf al verbruikt. Koop jezelf vrij met 10 Gouden Sterren om alsnog direct vrijgelaten te worden!">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-lock text-slate-400 dark:text-slate-500 text-xs"></i>
                         <span>Poging Verbruikt</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[10px] font-semibold text-slate-500 dark:text-slate-400">Kijk Ads</span>
+                    <span class="px-2 py-0.5 rounded-md bg-amber-500/10 text-[10px] font-semibold text-amber-500 border border-amber-500/20">Vrijkopen ⭐</span>
                 </button>
             </template>
         </div>

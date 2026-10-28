@@ -349,6 +349,32 @@ class MemoryController extends Controller
     }
 
     /**
+     * Skip cooldown using Stars (10 Stars).
+     */
+    public function skipCooldownWithStars(): RedirectResponse
+    {
+        /** @var Character $character */
+        $character = Auth::user()->character;
+
+        if (($character->stars ?? 0) < 10) {
+            return back()->with('error', 'Je hebt minimaal 10 Sterren nodig om de wachttijd over te slaan!');
+        }
+
+        $character->stars = ($character->stars ?? 0) - 10;
+        $character->save();
+
+        /** @var CharacterMemoryStat $stat */
+        $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $character->id]);
+
+        $stat->update([
+            'cooldown_until' => null,
+        ]);
+
+        return redirect()->route('memory.index')
+            ->with('success', '⭐ Wachttijd overgeslagen voor 10 Sterren! Je kunt direct weer een nieuwe Memory sessie starten!');
+    }
+
+    /**
      * Skip cooldown via Sponsor Ad watch.
      */
     public function skipCooldownWithAd(Request $request): RedirectResponse

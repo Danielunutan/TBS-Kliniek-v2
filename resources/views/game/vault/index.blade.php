@@ -249,31 +249,30 @@
                 </form>
             </div>
 
-            <!-- Sponsor Video Voucher Booster -->
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <!-- Sterren Booster -->
+            <div class="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-black shrink-0 shadow-2xs">
-                        <i class="fa-solid fa-tv"></i>
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-sm font-black shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-star"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h4 class="text-xs font-black text-slate-900 dark:text-white">Gratis Bonus Kluiscode</h4>
-                            <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.2 rounded">
-                                Voortgang: {{ $character->ad_vault_progress ?? 0 }}/3 Ads
+                            <h4 class="text-xs font-black text-slate-900 dark:text-white">Extra Kluiscodes &amp; Tokens Aanschaffen</h4>
+                            <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.2 rounded">
+                                Direct Beschikbaar
                             </span>
                         </div>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            Bekijk 3 korte sponsor video's en ontvang gratis een kluiscode t.w.v. <strong>€5.000 bankgeld & 2 sterren</strong>!
+                            Koop direct extra kluiscodes, tokens en megabuit met Sterren ⭐ in de Sterren Shop!
                         </p>
                     </div>
                 </div>
 
-                <button type="button" 
-                        onclick="window.tbsOpenSponsorAd('vault_code', () => window.location.reload())" 
-                        class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-play text-[10px]"></i>
-                    <span>Kijk Ad ({{ ($character->ad_vault_progress ?? 0) + 1 }}/3{{ ($character->ad_vault_progress ?? 0) === 2 ? ' - Claim!' : '' }})</span>
-                </button>
+                <a href="{{ route('shop.index') }}" 
+                   class="btn-star-gold px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-star text-[10px]"></i>
+                    <span>Naar Sterren Shop</span>
+                </a>
             </div>
         </div>
 

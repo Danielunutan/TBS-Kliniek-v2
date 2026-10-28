@@ -30,45 +30,31 @@ class LiquidatiePvPAndComaTest extends TestCase
         $response->assertSee('Kogelwerend Vest');
     }
 
-    public function test_sponsor_ad_claims_bullets_vest_and_coma_revive(): void
+    public function test_buy_bullets_and_vest_with_stars(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $char = $user->character;
         $char->update([
+            'stars' => 300,
             'bullets' => 10,
             'vest_until' => null,
-            'coma_until' => Carbon::now()->addHours(5),
         ]);
 
         $this->actingAs($user);
 
-        // Claim bullets (3 ads required)
-        for ($i = 1; $i <= 3; $i++) {
-            $start1 = $this->postJson(route('sponsor.start'), ['type' => 'bullets'])->json();
-            $resp1 = $this->postJson(route('sponsor.claim'), ['type' => 'bullets', 'token' => $start1['token'], 'robin_token' => 'verified_test']);
-            $resp1->assertJson(['success' => true]);
-        }
+        // Buy +50 bullets with 50 stars
+        $respBullets = $this->post(route('hitman.buy_bullets'));
+        $respBullets->assertSessionHas('success');
         $char->refresh();
         $this->assertEquals(60, $char->bullets);
+        $this->assertEquals(250, $char->stars);
 
-        // Claim vest (3 ads required)
-        for ($i = 1; $i <= 3; $i++) {
-            $start2 = $this->postJson(route('sponsor.start'), ['type' => 'vest'])->json();
-            $resp2 = $this->postJson(route('sponsor.claim'), ['type' => 'vest', 'token' => $start2['token'], 'robin_token' => 'verified_test']);
-            $resp2->assertJson(['success' => true]);
-        }
+        // Buy 12u vest with 150 stars
+        $respVest = $this->post(route('hitman.buy_vest'));
+        $respVest->assertSessionHas('success');
         $char->refresh();
         $this->assertTrue($char->hasVest());
-
-        // Coma revive (3 ads required)
-        $this->assertTrue($char->isComatose());
-        for ($i = 1; $i <= 3; $i++) {
-            $start3 = $this->postJson(route('sponsor.start'), ['type' => 'coma_revive'])->json();
-            $resp3 = $this->postJson(route('sponsor.claim'), ['type' => 'coma_revive', 'token' => $start3['token'], 'robin_token' => 'verified_test']);
-            $resp3->assertJson(['success' => true]);
-        }
-        $char->refresh();
-        $this->assertFalse($char->isComatose());
+        $this->assertEquals(100, $char->stars);
     }
 
     public function test_player_cannot_hustle_while_comatose(): void
@@ -87,7 +73,7 @@ class LiquidatiePvPAndComaTest extends TestCase
         $this->assertStringContainsString('Intensive Care', session('error'));
     }
 
-    public function test_shooting_target_puts_target_in_coma(): void
+    public function test_shooting_target_applies_balance_loot_cooldown_and_blood_feud(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $shooter = $user->character;
@@ -104,6 +90,7 @@ class LiquidatiePvPAndComaTest extends TestCase
         $targetUser = User::where('email', '!=', 'demo@tbskliniek.nl')->first();
         $target = $targetUser->character;
         $target->update([
+            'level' => 10,
             'protection_until' => null,
             'coma_until' => null,
             'defense' => 10,
@@ -124,13 +111,35 @@ class LiquidatiePvPAndComaTest extends TestCase
         $shooter->refresh();
         $target->refresh();
 
-        // Target should be comatose or shooter took backfire
         $this->assertEquals(100, $shooter->bullets);
+
         if ($target->isComatose()) {
-            $this->assertGreaterThan(500, $shooter->cash);
-            $this->assertEquals(0, $target->cash);
+            // 35% Cash plunder (not 100%)
+            $expectedLoot = (int) round(2500 * 0.35); // 875
+            $this->assertEquals(500 + $expectedLoot, $shooter->cash);
+            $this->assertEquals(2500 - $expectedLoot, $target->cash);
             $this->assertEquals(1, $shooter->kills_count);
             $this->assertEquals(1, $target->deaths_count);
+
+            // Recovery protection is active
+            $this->assertTrue($target->isProtected());
+
+            // Blood Feud created
+            $this->assertDatabaseHas('blood_feuds', [
+                'attacker_id' => $shooter->id,
+                'victim_id' => $target->id,
+                'is_avenged' => false,
+            ]);
+
+            // Attempting to shoot again immediately triggers personal 3h cooldown
+            $shooter->update(['bullets' => 100, 'energy' => 100]);
+            $target->update(['coma_until' => null, 'protection_until' => null]);
+            $cooldownResp = $this->post(route('hitman.shoot'), [
+                'target_id' => $target->id,
+                'bullets' => 50,
+            ]);
+            $cooldownResp->assertSessionHas('error');
+            $this->assertStringContainsString('recent al geviseerd', session('error'));
         } else {
             // In case of backfire
             $this->assertTrue($shooter->isComatose());

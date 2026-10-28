@@ -72,12 +72,14 @@
     <template x-teleport="body">
         <div x-show="isOpen" 
              x-cloak 
-             class="fixed inset-0 z-[999990] flex items-center justify-center p-4 sm:p-6 select-none"
+             class="fixed inset-0 flex items-center justify-center p-4 sm:p-6 select-none"
+             style="z-index: 999999 !important;"
              aria-modal="true" 
              role="dialog">
 
             <!-- Solid Dark Backdrop -->
-            <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity" 
+            <div class="fixed inset-0 transition-opacity" 
+                 style="background-color: rgba(4, 2, 14, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999998 !important;"
                  x-show="isOpen"
                  x-transition:enter="ease-out duration-200"
                  x-transition:enter-start="opacity-0"
@@ -88,7 +90,8 @@
                  @click="dismiss()"></div>
 
             <!-- Completely Opaque Modal Box (No Transparency Bleed) -->
-            <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-purple-400 dark:border-purple-600 overflow-hidden z-[999999] transition-all p-6 sm:p-7 text-left"
+            <div class="relative w-full max-w-lg bg-white dark:bg-[#110726] text-slate-900 dark:text-slate-100 rounded-3xl shadow-2xl border-2 border-purple-500 overflow-hidden transition-all p-6 sm:p-7 text-left"
+                 style="z-index: 1000000 !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 30px rgba(168, 85, 247, 0.25);"
                  x-show="isOpen"
                  x-transition:enter="ease-out duration-250"
                  x-transition:enter-start="opacity-0 translate-y-4 scale-95"

@@ -338,7 +338,7 @@
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Bende Ranglijst</span>
                         </a>
-                        <a href="{{ route('gangs.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60">
+                        <a href="{{ route('gangs.index', ['tab' => 'oprichten']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'oprichten' ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-plus w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                             <span>Bende Oprichten</span>
                         </a>
@@ -359,6 +359,15 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openCategory === 'voortgang' ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
                 </button>
                 <div x-show="openCategory === 'voortgang'" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-0.5 pl-1">
+                    <a href="{{ route('battlepass.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battlepass.*') ? 'nav-item-active bg-amber-500/15 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-black border border-amber-500/40' : 'text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50/50 dark:hover:bg-amber-950/20' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-trophy w-4 text-center text-amber-500 animate-pulse"></i>
+                            <span class="font-bold">Seizoen 1 Battle Pass</span>
+                        </div>
+                        <span class="text-[9px] font-black uppercase text-amber-900 dark:text-amber-200 bg-amber-400/30 px-2 py-0.5 rounded-full border border-amber-400/50">
+                            4 Sporen
+                        </span>
+                    </a>
                     <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-list-check w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Missies & Opdrachten</span>

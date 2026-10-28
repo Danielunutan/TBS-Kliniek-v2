@@ -106,6 +106,8 @@ html.dark footer {
     border-color: #1e293b !important;
 }
 
+html.dark .text-slate-950,
+html.dark .text-purple-950,
 html.dark .text-slate-900,
 html.dark .text-slate-800 {
     color: #f8fafc !important;
@@ -559,4 +561,71 @@ html, body, button, a, input, select, textarea {
     .active\:scale-95:active {
         transform: scale(0.95);
     }
+}
+
+/* ======================================================== */
+/* STAR / COOLDOWN SKIP / WIDGET UNLOCK BUTTON STYLING       */
+/* Guaranteed high contrast in both Light & Dark modes      */
+/* ======================================================== */
+.btn-star-gold,
+.btn-skip-cooldown,
+.btn-widget-unlock,
+button[class*="from-amber"],
+a[class*="from-amber"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: #0f172a !important;
+    font-weight: 900 !important;
+    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+    text-shadow: none !important;
+}
+
+.btn-star-gold:hover,
+.btn-skip-cooldown:hover,
+.btn-widget-unlock:hover,
+button[class*="from-amber"]:hover,
+a[class*="from-amber"]:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    color: #020617 !important;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5) !important;
+}
+
+/* DARK MODE: Vibrant glowing gold with crisp white text & star */
+html.dark .btn-star-gold,
+html.dark .btn-skip-cooldown,
+html.dark .btn-widget-unlock,
+html.dark button[class*="from-amber"],
+html.dark a[class*="from-amber"] {
+    background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid #fbbf24 !important;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+}
+
+html.dark .btn-star-gold:hover,
+html.dark .btn-skip-cooldown:hover,
+html.dark .btn-widget-unlock:hover,
+html.dark button[class*="from-amber"]:hover,
+html.dark a[class*="from-amber"]:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+html.dark .btn-star-gold i,
+html.dark .btn-skip-cooldown i,
+html.dark .btn-widget-unlock i,
+html.dark button[class*="from-amber"] i,
+html.dark a[class*="from-amber"] i {
+    color: #ffffff !important;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6)) !important;
+}
+
+html.dark .btn-star-gold span,
+html.dark .btn-skip-cooldown span,
+html.dark .btn-widget-unlock span,
+html.dark button[class*="from-amber"] span,
+html.dark a[class*="from-amber"] span {
+    color: #ffffff !important;
 }

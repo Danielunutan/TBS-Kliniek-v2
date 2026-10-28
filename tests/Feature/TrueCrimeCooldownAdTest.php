@@ -82,7 +82,7 @@ class TrueCrimeCooldownAdTest extends TestCase
         $this->assertFalse($state->isOnCooldown());
     }
 
-    public function test_cooldown_screen_displays_5_ads_progress_and_sponsor_button(): void
+    public function test_cooldown_screen_displays_star_skip_option_and_skips_successfully(): void
     {
         $user = User::factory()->create();
         $character = Character::create([
@@ -94,15 +94,15 @@ class TrueCrimeCooldownAdTest extends TestCase
             'health' => 100,
             'max_health' => 100,
             'cash' => 1000,
-            'stars' => 0,
+            'stars' => 20,
             'respect' => 0,
             'is_onboarded' => true,
         ]);
 
-        CharacterTrueCrimeState::create([
+        $state = CharacterTrueCrimeState::create([
             'character_id' => $character->id,
             'cooldown_until' => now()->addHours(24),
-            'cooldown_ads_watched' => 2,
+            'cooldown_ads_watched' => 0,
         ]);
 
         $this->actingAs($user);
@@ -110,7 +110,14 @@ class TrueCrimeCooldownAdTest extends TestCase
         $response = $this->get(route('true_crime.index'));
 
         $response->assertOk();
-        $response->assertSee('2/5 Ads Bekeken');
-        $response->assertSee("tbsOpenSponsorAd('true_crime'", false);
+        $response->assertSee('Wachttijd Direct Overslaan (15 Sterren ⭐)');
+
+        $skipResponse = $this->post(route('true_crime.skip_cooldown_stars'));
+        $skipResponse->assertRedirect(route('true_crime.index'));
+
+        $character->refresh();
+        $state->refresh();
+        $this->assertEquals(5, $character->stars);
+        $this->assertFalse($state->isOnCooldown());
     }
 }

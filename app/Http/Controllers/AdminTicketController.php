@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\CharacterVehicle;
 use App\Models\Gang;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
@@ -159,8 +160,17 @@ class AdminTicketController extends Controller
             return back()->with('error', 'Personage van indiener kon niet gevonden worden.');
         }
 
-        // Leave existing gang if any
+        // Leave existing gang if any and return stored vehicles
         if ($character->gang_id) {
+            CharacterVehicle::where('character_id', $character->id)
+                ->where('in_gang_garage', true)
+                ->update([
+                    'in_gang_garage' => false,
+                    'gang_id' => null,
+                    'stored_at' => null,
+                    'stored_by_character_id' => null,
+                ]);
+
             $character->gang_id = null;
             $character->gang_role = 'member';
             $character->save();

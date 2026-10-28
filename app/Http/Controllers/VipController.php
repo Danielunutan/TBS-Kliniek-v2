@@ -71,37 +71,43 @@ class VipController extends Controller
         $character = Auth::user()->character;
 
         $validated = $request->validate([
-            'reward_type' => 'required|string|in:cash_protection,energy_restore,respect_boost,vip_extend_24h,vip_lootbag,stars_pack',
+            'reward_type' => 'required|string|in:cash_protection,energy_restore,respect_boost,week_vip_stars,vip_lootbag,stars_pack',
         ]);
 
         $rewards = [
             'cash_protection' => [
                 'cost' => 20,
+                'currency' => 'vip_points',
                 'name' => '24 Uur Cash Bescherming',
                 'description' => 'Je cash is 24 uur beschermd tegen diefstal bij aanvallen.',
             ],
             'energy_restore' => [
                 'cost' => 10,
+                'currency' => 'vip_points',
                 'name' => 'Direct Volledig Herstel',
                 'description' => '100% Energie en Gezondheid direct hersteld.',
             ],
             'respect_boost' => [
                 'cost' => 15,
+                'currency' => 'vip_points',
                 'name' => '+50 Kliniek Respect',
                 'description' => 'Direct +50 extra respect op je dossier.',
             ],
-            'vip_extend_24h' => [
-                'cost' => 20,
-                'name' => '+24 Uur VIP Status',
-                'description' => 'Verleng of activeer direct 24 uur VIP status met alle voordelen.',
+            'week_vip_stars' => [
+                'cost' => 500,
+                'currency' => 'stars',
+                'name' => '+1 Week VIP Status',
+                'description' => 'Activeer of verleng direct 7 dagen VIP status voor 500 Gouden Sterren.',
             ],
             'vip_lootbag' => [
                 'cost' => 25,
+                'currency' => 'vip_points',
                 'name' => 'VIP Buitpakket (XXL Cases + €500.000)',
                 'description' => '2x XXL Cases en €500.000 contant geld.',
             ],
             'stars_pack' => [
                 'cost' => 30,
+                'currency' => 'vip_points',
                 'name' => '100 Exclusieve Sterren',
                 'description' => 'Direct +100 sterren voor bende- of kofferupgrades.',
             ],
@@ -109,12 +115,19 @@ class VipController extends Controller
 
         $reward = $rewards[$validated['reward_type']];
         $cost = $reward['cost'];
+        $currency = $reward['currency'] ?? 'vip_points';
 
-        if (($character->vip_points ?? 0) < $cost) {
-            return back()->with('error', "Niet genoeg VIP Punten! Je hebt {$character->vip_points} punten, maar {$cost} punten zijn vereist.");
+        if ($currency === 'stars') {
+            if (($character->stars ?? 0) < $cost) {
+                return back()->with('error', "Niet genoeg Gouden Sterren! Je hebt {$character->stars} sterren, maar {$cost} sterren zijn vereist.");
+            }
+            $character->stars -= $cost;
+        } else {
+            if (($character->vip_points ?? 0) < $cost) {
+                return back()->with('error', "Niet genoeg VIP Punten! Je hebt {$character->vip_points} punten, maar {$cost} punten zijn vereist.");
+            }
+            $character->vip_points -= $cost;
         }
-
-        $character->vip_points -= $cost;
 
         switch ($validated['reward_type']) {
             case 'cash_protection':
@@ -127,11 +140,11 @@ class VipController extends Controller
             case 'respect_boost':
                 $character->respect += 50;
                 break;
-            case 'vip_extend_24h':
+            case 'week_vip_stars':
                 $character->is_vip = true;
                 $character->vip_expires_at = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
-                    ? $character->vip_expires_at->addDay()
-                    : now()->addDay();
+                    ? $character->vip_expires_at->addDays(7)
+                    : now()->addDays(7);
                 break;
             case 'vip_lootbag':
                 $character->xxl_cases += 2;
@@ -144,7 +157,9 @@ class VipController extends Controller
 
         $character->save();
 
-        return back()->with('success', "🎉 Gefeliciteerd! Je hebt succesvol '{$reward['name']}' geclaimd voor {$cost} VIP Punten!");
+        $currencyLabel = $currency === 'stars' ? 'Gouden Sterren ⭐' : 'VIP Punten';
+
+        return back()->with('success', "🎉 Gefeliciteerd! Je hebt succesvol '{$reward['name']}' geclaimd voor {$cost} {$currencyLabel}!");
     }
 
     /**

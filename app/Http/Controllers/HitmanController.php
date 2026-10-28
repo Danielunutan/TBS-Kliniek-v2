@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BloodFeud;
 use App\Models\Character;
 use App\Models\GameNotification;
+use App\Models\User;
+use App\Services\AuditLogService;
 use App\Services\ChatBotService;
+use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -13,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HitmanController extends Controller
@@ -22,6 +27,7 @@ class HitmanController extends Controller
         protected EnergyService $energy,
         protected LevelService $level,
         protected PrisonService $prison,
+        protected CooldownService $cooldownService,
     ) {}
 
     public function index(): View
@@ -29,12 +35,39 @@ class HitmanController extends Controller
         $character = Auth::user()->character;
         $this->energy->refresh($character);
 
+        // Active Blood Feuds that the character (or their gang) can avenge
+        $bloodFeuds = BloodFeud::active()
+            ->with(['attacker', 'victim'])
+            ->where(function ($query) use ($character) {
+                $query->where('victim_id', $character->id);
+                if ($character->gang_id) {
+                    $query->orWhere('victim_gang_id', $character->gang_id);
+                }
+            })
+            ->latest()
+            ->get();
+
         // Potential targets: active players excluding self
         $targets = Character::where('id', '!=', $character->id)
             ->where('is_in_prison', false)
             ->orderByDesc('level')
             ->limit(15)
-            ->get();
+            ->get()
+            ->map(function (Character $target) use ($character) {
+                $hasBloodFeud = BloodFeud::hasClaimAgainst($character, $target->id) !== null;
+                $onCooldown = $this->cooldownService->isOnCooldown($character, "hitman_target_{$target->id}");
+                $cooldownSec = $onCooldown ? $this->cooldownService->getRemainingSeconds($character, "hitman_target_{$target->id}") : 0;
+                $dailyDeathsReached = $target->getDailyDeathsCount() >= 3;
+                $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
+
+                $target->has_blood_feud = $hasBloodFeud;
+                $target->on_cooldown = $onCooldown;
+                $target->cooldown_seconds = $cooldownSec;
+                $target->daily_deaths_reached = $dailyDeathsReached;
+                $target->is_level_restricted = $isLevelRestricted;
+
+                return $target;
+            });
 
         $contracts = [
             ['id' => 1, 'name' => 'Waarschuwingsslag',   'desc' => 'Stuur een dreigend pakket. Geen dodelijk letsel, wel schade.', 'cost' => 800,  'energy' => 15, 'damage' => 20, 'rate' => 75, 'xp' => 60],
@@ -42,7 +75,7 @@ class HitmanController extends Controller
             ['id' => 3, 'name' => 'Gewelddadige overval', 'desc' => 'Bewusteloos slaan en beroven op de luchtplaats.',             'cost' => 5000, 'energy' => 25, 'damage' => 55, 'rate' => 50, 'xp' => 200],
         ];
 
-        return view('game.hitman.index', compact('character', 'targets', 'contracts'));
+        return view('game.hitman.index', compact('character', 'targets', 'contracts', 'bloodFeuds'));
     }
 
     /**
@@ -65,19 +98,32 @@ class HitmanController extends Controller
             ->orderBy('name')
             ->limit(20)
             ->get()
-            ->map(fn (Character $target) => [
-                'id' => (string) $target->id,
-                'name' => $target->name,
-                'level' => $target->level,
-                'respect' => $target->respect,
-                'health' => $target->health,
-                'cash' => number_format($target->cash, 0, ',', '.'),
-                'avatar' => $target->avatar_url,
-                'isOnline' => $target->isOnline(),
-                'inPrison' => $target->isImprisoned(),
-                'inComa' => $target->isComatose(),
-                'isProtected' => $target->isProtected(),
-            ]);
+            ->map(function (Character $target) use ($character) {
+                $hasBloodFeud = BloodFeud::hasClaimAgainst($character, $target->id) !== null;
+                $onCooldown = $this->cooldownService->isOnCooldown($character, "hitman_target_{$target->id}");
+                $cooldownSec = $onCooldown ? $this->cooldownService->getRemainingSeconds($character, "hitman_target_{$target->id}") : 0;
+                $dailyDeathsReached = $target->getDailyDeathsCount() >= 3;
+                $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
+
+                return [
+                    'id' => (string) $target->id,
+                    'name' => $target->name,
+                    'level' => $target->level,
+                    'respect' => $target->respect,
+                    'health' => $target->health,
+                    'cash' => number_format($target->cash, 0, ',', '.'),
+                    'avatar' => $target->avatar_url,
+                    'isOnline' => $target->isOnline(),
+                    'inPrison' => $target->isImprisoned(),
+                    'inComa' => $target->isComatose(),
+                    'isProtected' => $target->isProtected(),
+                    'hasBloodFeud' => $hasBloodFeud,
+                    'onCooldown' => $onCooldown,
+                    'cooldownSeconds' => $cooldownSec,
+                    'dailyDeathsReached' => $dailyDeathsReached,
+                    'isLevelRestricted' => $isLevelRestricted,
+                ];
+            });
 
         return response()->json(['targets' => $targets]);
     }
@@ -118,6 +164,34 @@ class HitmanController extends Controller
             return back()->with('error', 'Je kunt geen contract op jezelf plaatsen!');
         }
 
+        if ($target->isImprisoned()) {
+            return back()->with('error', 'Dit doelwit zit in de isoleercel en kan niet worden aangevallen.');
+        }
+
+        if ($target->isComatose()) {
+            return back()->with('error', "{$target->name} ligt al in Intensive Care Coma!");
+        }
+
+        if ($target->isProtected()) {
+            return back()->with('error', "{$target->name} heeft actieve bescherming en kan niet worden aangevallen.");
+        }
+
+        if ($target->getDailyDeathsCount() >= 3) {
+            return back()->with('error', "{$target->name} is vandaag al 3 keer neergeschoten en heeft voor vandaag bescherming tegen verdere liquidaties.");
+        }
+
+        $bloodFeud = BloodFeud::hasClaimAgainst($character, $target->id);
+
+        if (! $bloodFeud && ($character->level - $target->level > 15)) {
+            return back()->with('error', "{$target->name} is te laag in level (maximaal 15 levels verschil). Zoek een tegenstander van jouw niveau!");
+        }
+
+        if (! $bloodFeud && $this->cooldownService->isOnCooldown($character, "hitman_target_{$target->id}")) {
+            $remMins = ceil($this->cooldownService->getRemainingSeconds($character, "hitman_target_{$target->id}") / 60);
+
+            return back()->with('error', "Je hebt {$target->name} recent al geviseerd. Wacht nog {$remMins} minuten.");
+        }
+
         if ($character->cash < $contract['cost']) {
             return back()->with('error', 'Dit contract kost €'.number_format($contract['cost'], 0, ',', '.').'. Je hebt onvoldoende contant geld.');
         }
@@ -125,6 +199,9 @@ class HitmanController extends Controller
         if (! $this->energy->consume($character, $contract['energy'])) {
             return back()->with('error', "Je hebt minimaal {$contract['energy']} energie nodig voor dit contract!");
         }
+
+        $character->breakProtection();
+        $this->cooldownService->setCooldown($character, "hitman_target_{$target->id}", 3 * 3600);
 
         $character->cash -= $contract['cost'];
         $character->save();
@@ -194,7 +271,7 @@ class HitmanController extends Controller
 
         $bulletCount = (int) $validated['bullets'];
         if (($attacker->bullets ?? 0) < $bulletCount) {
-            return back()->with('error', "Je hebt niet genoeg kogels (je bezit {$attacker->bullets}, minimaal {$bulletCount} nodig). Bekijk een sponsor video voor +50 gratis kogels!");
+            return back()->with('error', "Je hebt niet genoeg kogels (je bezit {$attacker->bullets}, minimaal {$bulletCount} nodig). Schaf direct +50 kogels aan met Sterren ⭐!");
         }
 
         if (! $this->energy->consume($attacker, 20)) {
@@ -216,8 +293,28 @@ class HitmanController extends Controller
         }
 
         if ($defender->isProtected()) {
-            return back()->with('error', "{$defender->name} heeft tijdelijke nieuwkomer-bescherming.");
+            return back()->with('error', "{$defender->name} heeft tijdelijke herstel- of isolatiebescherming en kan niet worden geliquideerd.");
         }
+
+        if ($defender->getDailyDeathsCount() >= 3) {
+            return back()->with('error', "{$defender->name} is vandaag al 3 keer neergeschoten en heeft voor de rest van de dag bescherming tegen verdere liquidaties.");
+        }
+
+        $bloodFeud = BloodFeud::hasClaimAgainst($attacker, $defender->id);
+
+        if (! $bloodFeud && ($attacker->level - $defender->level > 15)) {
+            return back()->with('error', "{$defender->name} is te laag in level (maximaal 15 levels verschil). Zoek een tegenstander van jouw niveau!");
+        }
+
+        if (! $bloodFeud && $this->cooldownService->isOnCooldown($attacker, "hitman_target_{$defender->id}")) {
+            $remMins = ceil($this->cooldownService->getRemainingSeconds($attacker, "hitman_target_{$defender->id}") / 60);
+
+            return back()->with('error', "Je hebt {$defender->name} recent al geviseerd. Wacht nog {$remMins} minuten voordat je deze speler opnieuw kunt aanvallen.");
+        }
+
+        // Attacker breaks own protection and incurs 3h personal cooldown against target
+        $attacker->breakProtection();
+        $this->cooldownService->setCooldown($attacker, "hitman_target_{$defender->id}", 3 * 3600);
 
         // Deduct bullets from attacker
         $attacker->bullets -= $bulletCount;
@@ -235,10 +332,12 @@ class HitmanController extends Controller
         // 1. BACKFIRE CHECK (Attacker shoots themselves / bullets ricochet)
         $backfireChance = $hasVest ? 45 : 18;
         if ($attackerPower < $defenderDefense && rand(1, 100) <= $backfireChance) {
-            $attacker->coma_until = now()->addHours(6);
-            $attacker->health = 1;
+            $attacker->coma_until = now()->addHours(1);
+            $attacker->protection_until = now()->addMinutes(90); // 1h coma + 30m recovery shield
+            $attacker->health = 15;
             $attacker->respect = max(0, $attacker->respect - 20);
             $attacker->deaths_count = ($attacker->deaths_count ?? 0) + 1;
+            $attacker->incrementDailyDeaths();
             $attacker->save();
 
             GameNotification::create([
@@ -246,13 +345,13 @@ class HitmanController extends Controller
                 'type' => 'shield',
                 'icon' => 'fa-shield-halved',
                 'title' => '🛡️ BACKFIRE AFGESLAGEN!',
-                'message' => "{$attacker->name} vuurde {$bulletCount} kogels op je af, maar jouw pantser kaatste de kogels terug! {$attacker->name} ligt nu zelf 6 uur in Intensive Care Coma!",
+                'message' => "{$attacker->name} vuurde {$bulletCount} kogels op je af, maar jouw pantser kaatste de kogels terug! {$attacker->name} ligt nu zelf 1 uur in Intensive Care Coma!",
             ]);
 
-            return back()->with('error', "💥 BACKFIRE! De verdediging van {$defender->name} was te sterk en jouw kogels ketsten af op het pantser! Je schoot jezelf neer en ligt nu zélf 6 uur in Intensive Care Coma!");
+            return back()->with('error', "💥 BACKFIRE! De verdediging van {$defender->name} was te sterk en jouw kogels ketsten af op het pantser! Je schoot jezelf neer en ligt nu zélf 1 uur in Intensive Care Coma (gevolgd door 30m herstelschild)!");
         }
 
-        // 2. LETHAL KILL CHECK (Target enters ICU Coma, 100% Cash Looted)
+        // 2. LETHAL KILL CHECK (Target enters ICU Coma, 35% Cash Looted & 30 min recovery shield)
         if ($attackerPower >= $defenderDefense) {
             // Check if vest saves defender's life with partial armor damage
             if ($hasVest && rand(1, 100) <= 30) {
@@ -272,8 +371,8 @@ class HitmanController extends Controller
                 return back()->with('info', "🎯 Raak, maar {$defender->name} droeg een Kogelwerend Vest! Het vest ving de klap op en is vernietigd (-{$dmg} HP). Doelwit overleefde ternauwernood!");
             }
 
-            // FULL LETHAL HIT -> Intensive Care Coma & 100% Cash Plunder!
-            $stolenCash = (int) $defender->cash;
+            // FULL LETHAL HIT -> Intensive Care Coma, 35% Cash Plunder & 30 min recovery shield!
+            $stolenCash = (int) round($defender->cash * 0.35);
             if ($stolenCash > 0) {
                 $this->economy->deductCash($defender, $stolenCash);
                 $this->economy->addCash($attacker, $stolenCash);
@@ -281,13 +380,45 @@ class HitmanController extends Controller
 
             $lostRespect = max(10, (int) round($defender->respect * 0.10));
             $defender->respect = max(0, $defender->respect - $lostRespect);
-            $defender->health = 0;
-            $defender->coma_until = now()->addHours(6);
+            $defender->health = 25;
+            $defender->coma_until = now()->addHours(1);
+            $defender->protection_until = now()->addMinutes(90); // 1h coma + 30 min recovery shield
             $defender->deaths_count = ($defender->deaths_count ?? 0) + 1;
+            $defender->incrementDailyDeaths();
             $defender->save();
 
             $attacker->kills_count = ($attacker->kills_count ?? 0) + 1;
-            $attacker->respect += 50;
+            $baseRespect = 50;
+
+            // Handle Blood Feud resolution or creation
+            if ($bloodFeud) {
+                $bloodFeud->update([
+                    'is_avenged' => true,
+                    'avenged_by_id' => $attacker->id,
+                    'avenged_at' => now(),
+                ]);
+                $baseRespect += 50; // Extra respect for avenging
+                $extraCashBonus = 10000;
+                $this->economy->addCash($attacker, $extraCashBonus);
+                if ($attacker->gang) {
+                    $attacker->gang->increment('respect', 150);
+                }
+
+                try {
+                    app(ChatBotService::class)->broadcast("🩸 BLOEDWRAAK VOLTROKKEN: {$attacker->name} heeft {$defender->name} neergeschoten en de eerdere aanval gewroken (+50 extra Respect, +€10.000 bonus)!");
+                } catch (\Throwable $e) {
+                }
+            } else {
+                // Open new Blood Feud for defender and their gang for 24 hours
+                BloodFeud::create([
+                    'attacker_id' => $attacker->id,
+                    'victim_id' => $defender->id,
+                    'victim_gang_id' => $defender->gang_id,
+                    'expires_at' => now()->addHours(24),
+                ]);
+            }
+
+            $attacker->respect += $baseRespect;
             $this->level->addXp($attacker, 350);
             $attacker->save();
 
@@ -297,19 +428,20 @@ class HitmanController extends Controller
                 'type' => 'skull',
                 'icon' => 'fa-skull',
                 'title' => '🚨 JE BENT NEERGESCHOTEN!',
-                'message' => "{$attacker->name} heeft je neergeschoten met {$bulletCount} kogels! Je ligt 6 uur in Intensive Care Coma en al je contant geld (€".number_format($stolenCash, 0, ',', '.').') is geplunderd!',
+                'message' => "{$attacker->name} heeft je neergeschoten met {$bulletCount} kogels! Je ligt 1 uur in Intensive Care Coma en 35% van je contant geld (€".number_format($stolenCash, 0, ',', '.').') is geplunderd. Na ontwaken heb je 30 minuten herstelschild. Bloedwraak is 24 uur geopend tegen de dader!',
             ]);
 
             // Broadcast to chat bot
             try {
-                $cashTxt = $stolenCash > 0 ? ' en heeft €'.number_format($stolenCash, 0, ',', '.').' contant geplunderd' : '';
+                $cashTxt = $stolenCash > 0 ? ' en heeft €'.number_format($stolenCash, 0, ',', '.').' (35% contant) geplunderd' : '';
                 app(ChatBotService::class)->broadcast("🚨 NOODGEVAL OP DE AFDELING: {$attacker->name} heeft {$defender->name} zojuist neergeschoten{$cashTxt}! Slachtoffer ligt in Intensive Care Coma!");
             } catch (\Throwable $e) {
             }
 
-            $lootMsg = $stolenCash > 0 ? ' Buit: €'.number_format($stolenCash, 0, ',', '.').' contant geld geplunderd!' : '';
+            $lootMsg = $stolenCash > 0 ? ' Buit: €'.number_format($stolenCash, 0, ',', '.').' (35% contant geld) geplunderd!' : '';
+            $feudMsg = $bloodFeud ? ' 🩸 BLOEDWRAAK VOLTROKKEN (+50 extra Respect, +€10.000 Bonus)!' : '';
 
-            return back()->with('success', "🎯 DODELIJKE VOLTREFFER! {$defender->name} is neergeschoten en ligt 6 uur in Intensive Care Coma!{$lootMsg} +50 Respect, +350 XP!");
+            return back()->with('success', "🎯 DODELIJKE VOLTREFFER! {$defender->name} is neergeschoten en ligt 1 uur in Intensive Care Coma (gevolgd door 30m herstelschild)!{$lootMsg}{$feudMsg} +{$baseRespect} Respect, +350 XP!");
         }
 
         // 3. WOUNDED / ESCAPED
@@ -325,6 +457,81 @@ class HitmanController extends Controller
             'message' => "{$attacker->name} heeft {$bulletCount} kogels op je afgevuurd! Je raakte gewond (-{$dmg} HP) maar wist te ontkomen.",
         ]);
 
-        return back()->with('error', "⚠️ Kogels afgevuurd ({$bulletCount} stuks)! Enkele kogels raakten {$defender->name} (-{$dmg} HP), maar het doelwit wist gewond te ontkomen. Schaf meer kogels aan via de Sponsorkamer!");
+        return back()->with('error', "⚠️ Kogels afgevuurd ({$bulletCount} stuks)! Enkele kogels raakten {$defender->name} (-{$dmg} HP), maar het doelwit wist gewond te ontkomen. Schaf meer kogels aan via de Sterren Shop!");
+    }
+
+    /**
+     * Buy bullets with stars (50 stars for 50 bullets).
+     */
+    public function buyBullets(): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $cost = 50;
+        $bullets = 50;
+
+        return DB::transaction(function () use ($character, $cost, $bullets): RedirectResponse {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (($locked->stars ?? 0) < $cost) {
+                return back()->with('error', "Onvoldoende sterren! Je hebt {$cost} Sterren ⭐ nodig voor +{$bullets} Kogels. (Je bezit momenteel {$locked->stars} sterren).");
+            }
+
+            $locked->stars -= $cost;
+            $locked->bullets = ($locked->bullets ?? 0) + $bullets;
+            $locked->save();
+
+            AuditLogService::log(
+                action: 'hitman_buy_bullets',
+                category: 'economy',
+                description: "{$locked->name} kocht +{$bullets} kogels voor {$cost} Sterren",
+                character: $locked,
+                user: $locked->user,
+                amount: $bullets
+            );
+
+            return back()->with('success', "🎯 Munitie aangeschaft! +{$bullets} Kogels toegevoegd aan je voorraad voor {$cost} Sterren ⭐!");
+        });
+    }
+
+    /**
+     * Buy bulletproof vest with stars (150 stars for 12 hours vest protection).
+     */
+    public function buyVest(): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $character = $user->character;
+
+        $cost = 150;
+
+        return DB::transaction(function () use ($character, $cost): RedirectResponse {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (($locked->stars ?? 0) < $cost) {
+                return back()->with('error', "Onvoldoende sterren! Je hebt {$cost} Sterren ⭐ nodig voor een Kogelwerend Vest. (Je bezit momenteel {$locked->stars} sterren).");
+            }
+
+            $locked->stars -= $cost;
+            $currentVest = $locked->vest_until && now()->lt($locked->vest_until) ? $locked->vest_until : now();
+            $locked->vest_until = $currentVest->copy()->addHours(12);
+            $locked->save();
+
+            AuditLogService::log(
+                action: 'hitman_buy_vest',
+                category: 'economy',
+                description: "{$locked->name} kocht 12u Kogelwerend Vest voor {$cost} Sterren",
+                character: $locked,
+                user: $locked->user
+            );
+
+            $hoursLeft = ceil(now()->diffInSeconds($locked->vest_until) / 3600);
+
+            return back()->with('success', "🛡️ Kogelwerend Vest geactiveerd! Je bent nu {$hoursLeft} uur beschermd tegen kogels en vijanden riskeren backfire ({$cost} Sterren ⭐ betaald)!");
+        });
     }
 }

@@ -155,14 +155,17 @@
                     </div>
                 </div>
 
-                <!-- Cooldown Reset via Ad -->
+                <!-- Cooldown Reset via Sterren -->
                 <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-                    <button type="button" 
-                            onclick="window.tbsOpenSponsorAd('cooldown')" 
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs cursor-pointer">
-                        <i class="fa-solid fa-tv text-white"></i>
-                        <span>Kijk Ad (Reset Wachttijd)</span>
-                    </button>
+                    <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
+                        @csrf
+                        <input type="hidden" name="action" value="treatment_session">
+                        <button type="submit" 
+                                class="btn-star-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs cursor-pointer">
+                            <i class="fa-solid fa-star text-[11px]"></i>
+                            <span>Omzeilen (35 Sterren)</span>
+                        </button>
+                    </form>
                 </div>
             </div>
             @else

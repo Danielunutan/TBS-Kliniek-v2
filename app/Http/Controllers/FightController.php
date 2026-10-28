@@ -190,6 +190,9 @@ class FightController extends Controller
             return back()->with('error', 'Je hebt niet genoeg energie (20 nodig) om geld te stelen.');
         }
 
+        // Attacker breaks own protection when initiating attack
+        $attacker->breakProtection();
+
         // Apply 3-second cooldown
         $this->cooldownService->setCooldown($attacker, 'fight_attack', 3);
 

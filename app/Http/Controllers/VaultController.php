@@ -37,11 +37,11 @@ class VaultController extends Controller
     ];
 
     /**
-     * Universal Season 2 Starter Vault Codes claimable by every player once.
+     * Universal Season 1 Starter Vault Codes claimable by every player once.
      */
     public const SEASON_CODES = [
-        'SEIZOEN2' => [
-            'name' => 'Seizoen 2 Kickstart Code',
+        'SEIZOEN1' => [
+            'name' => 'Seizoen 1 Kickstart Code',
             'cash' => 2500,
             'stars' => 1,
             'tokens' => 3,
@@ -55,6 +55,23 @@ class VaultController extends Controller
             'tokens' => 5,
             'masks' => 3,
             'respect' => 10,
+        ],
+        'TBSKLINIEK1' => [
+            'name' => 'TBS Kliniek Seizoenscode',
+            'cash' => 10000,
+            'stars' => 2,
+            'tokens' => 5,
+            'masks' => 5,
+            'respect' => 25,
+        ],
+        // Backwards compatibility alias
+        'SEIZOEN2' => [
+            'name' => 'Seizoen 1 Kickstart Code',
+            'cash' => 2500,
+            'stars' => 1,
+            'tokens' => 3,
+            'masks' => 2,
+            'respect' => 15,
         ],
         'TBSKLINIEK2' => [
             'name' => 'TBS Kliniek Seizoenscode',

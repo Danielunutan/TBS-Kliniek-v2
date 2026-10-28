@@ -205,6 +205,33 @@ class TrueCrimeController extends Controller
     }
 
     /**
+     * Skip 24-hour cooldown using Stars (15 Stars).
+     */
+    public function skipCooldownWithStars(): RedirectResponse
+    {
+        /** @var Character $character */
+        $character = Auth::user()->character;
+
+        if (($character->stars ?? 0) < 15) {
+            return back()->with('error', 'Je hebt minimaal 15 Sterren nodig om Caroline\'s wachttijd over te slaan!');
+        }
+
+        /** @var CharacterTrueCrimeState $state */
+        $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $character->id]);
+
+        $character->stars = ($character->stars ?? 0) - 15;
+        $character->save();
+
+        $state->update([
+            'cooldown_until' => null,
+            'cooldown_ads_watched' => 0,
+            'current_case_id' => null,
+        ]);
+
+        return redirect()->route('true_crime.index')->with('success', '⭐ Wachttijd succesvol overgeslagen voor 15 Sterren! Caroline heeft direct een nieuw dossier voor je klaarstaan.');
+    }
+
+    /**
      * Skip 24-hour cooldown using Sponsor Ad (5 ads required).
      */
     public function skipCooldownWithAd(Request $request): RedirectResponse

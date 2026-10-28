@@ -50,7 +50,7 @@ class SeasonResetCommand extends Command
         $this->line("Aantal karakters in database: {$characterCount}");
 
         if (! $this->option('force') && ! $isDryRun) {
-            if (! $this->confirm('Weet je 100% zeker dat je Seizoen 2 wilt starten en alle statistieken wilt resetten?')) {
+            if (! $this->confirm('Weet je 100% zeker dat je Seizoen 1 wilt starten en alle statistieken wilt resetten?')) {
                 $this->warn('Reset geannuleerd.');
 
                 return 0;
@@ -64,7 +64,7 @@ class SeasonResetCommand extends Command
             $this->info('1. Karakters resetten naar basiswaarden (Sterren, VIP-punten, Gangs en Namen blijven behouden)...');
 
             $now = now();
-            $protectionUntil = $now->copy()->addHours(48); // 48 uur startersbescherming
+            $protectionUntil = null; // Geen blokkade op beroven
 
             $updateData = [
                 // Level & XP
@@ -152,6 +152,10 @@ class SeasonResetCommand extends Command
                 'marketplace_listings',
                 'halloween_quest_progress',
                 'arm_wrestling_matches',
+                'gang_items',
+                'gang_properties',
+                'gang_npcs',
+                'gang_attacks',
             ];
 
             $this->info('2. Seizoenstabellen en voortgang leegmaken...');
@@ -164,14 +168,37 @@ class SeasonResetCommand extends Command
                 }
             }
 
-            // 3. Reset Control Points (bendes kunnen ze opnieuw veroveren)
-            if (Schema::hasTable('control_points')) {
+            // 3. Reset Gangs to 0
+            $this->info('3. Alle bendes resetten naar 0 (kas, respect, maskers)...');
+            if (Schema::hasTable('gangs')) {
+                $gangUpdate = [
+                    'treasury' => 0,
+                    'respect' => 0,
+                    'masks' => 0,
+                    'shield_until' => null,
+                    'vip_boost_until' => null,
+                    'last_attack_at' => null,
+                ];
+                $gangColumns = Schema::getColumnListing('gangs');
+                $filteredGangUpdates = array_intersect_key($gangUpdate, array_flip($gangColumns));
                 if (! $isDryRun) {
-                    DB::table('control_points')->update([
-                        'controlling_gang_id' => null,
-                        'control_level' => 0,
-                        'last_contested_at' => null,
-                    ]);
+                    DB::table('gangs')->update($filteredGangUpdates);
+                }
+                $this->info('   -> Alle bendes gereset naar 0.');
+            }
+
+            // 4. Reset Control Points (bendes kunnen ze opnieuw veroveren)
+            if (Schema::hasTable('control_points')) {
+                $cpUpdates = [
+                    'current_gang_id' => null,
+                    'gang_id' => null,
+                    'control_level' => 0,
+                    'last_contested_at' => null,
+                ];
+                $cpColumns = Schema::getColumnListing('control_points');
+                $filteredCpUpdates = array_intersect_key($cpUpdates, array_flip($cpColumns));
+                if (! $isDryRun && ! empty($filteredCpUpdates)) {
+                    DB::table('control_points')->update($filteredCpUpdates);
                 }
                 $this->info('   -> Controleposten gereset naar neutraal.');
             }
@@ -182,7 +209,7 @@ class SeasonResetCommand extends Command
             } else {
                 DB::commit();
                 $this->info('=========================================');
-                $this->info('SEIZOEN 2 RESET MET SUCCES VOLTOOID!');
+                $this->info('SEIZOEN 1 RESET MET SUCCES VOLTOOID!');
                 $this->info('Alle spelers starten gelijk met behoud van Sterren, VIP Punten & Bendes.');
                 $this->info('=========================================');
             }

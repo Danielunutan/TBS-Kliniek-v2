@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Character;
 use App\Models\LotteryRound;
 use App\Models\LotteryTicket;
 use Illuminate\Http\RedirectResponse;
@@ -21,11 +20,9 @@ class LotteryController extends Controller
         $character = Auth::user()->character;
         $round = LotteryRound::current();
 
-        // Check if drawing time has passed and trigger automatic draw
-        if ($round->draws_at && now()->gte($round->draws_at) && ! $round->is_drawn) {
-            $this->performDraw($round);
-            $round = LotteryRound::current();
-        }
+        $isLastQuarter = $round->isLastQuarter();
+        $cashPricePerTicket = $round->getCashPricePerTicket();
+        $starsPricePerTicket = $round->getStarsPricePerTicket();
 
         // User's tickets in active round
         $userTickets = LotteryTicket::where('lottery_round_id', $round->id)
@@ -37,7 +34,7 @@ class LotteryController extends Controller
         $totalTickets = max(1, $round->total_tickets_sold);
         $winChance = $userTicketsCount > 0 ? round(($userTicketsCount / $totalTickets) * 100, 2) : 0;
 
-        // Recent winners (past 5 rounds)
+        // Recent winners (past 6 rounds)
         $pastRounds = LotteryRound::with('winner')
             ->where('is_drawn', true)
             ->orderByDesc('id')
@@ -47,6 +44,9 @@ class LotteryController extends Controller
         return view('game.lottery.index', compact(
             'character',
             'round',
+            'isLastQuarter',
+            'cashPricePerTicket',
+            'starsPricePerTicket',
             'userTickets',
             'userTicketsCount',
             'winChance',
@@ -69,9 +69,10 @@ class LotteryController extends Controller
         $currency = $validated['currency'];
 
         $round = LotteryRound::current();
+        $isDiscounted = $round->isLastQuarter();
 
         if ($currency === 'cash') {
-            $pricePerTicket = 10000;
+            $pricePerTicket = $round->getCashPricePerTicket();
             $totalCost = $pricePerTicket * $quantity;
 
             if ($character->cash < $totalCost) {
@@ -102,11 +103,13 @@ class LotteryController extends Controller
                 LotteryTicket::insert($tickets);
             });
 
-            return back()->with('success', "Succes! Je hebt {$quantity} lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').'. Veel geluk bij de 14-daagse trekking!');
+            $discountMsg = $isDiscounted ? ' (met 50% laatste kwartier korting!)' : '';
+
+            return back()->with('success', "Succes! Je hebt {$quantity} lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
         }
 
-        // Currency is stars (15 stars per ticket, contributes €25.000 bonus cash to the jackpot!)
-        $starsPerTicket = 15;
+        // Currency is stars (contributes €25.000 bonus cash to the jackpot per ticket)
+        $starsPerTicket = $round->getStarsPricePerTicket();
         $totalStarsCost = $starsPerTicket * $quantity;
 
         if (($character->stars ?? 0) < $totalStarsCost) {
@@ -137,7 +140,9 @@ class LotteryController extends Controller
             LotteryTicket::insert($tickets);
         });
 
-        return back()->with('success', "Geweldig! Je hebt {$quantity} VIP lot(en) gekocht met {$totalStarsCost} sterren. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
+        $discountMsg = $isDiscounted ? ' (met 50% korting!)' : '';
+
+        return back()->with('success', "Geweldig! Je hebt {$quantity} VIP lot(en) gekocht met {$totalStarsCost} sterren{$discountMsg}. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
     }
 
     /**
@@ -145,61 +150,6 @@ class LotteryController extends Controller
      */
     protected function performDraw(LotteryRound $round): void
     {
-        $allTickets = $round->tickets()->get();
-
-        if ($allTickets->isEmpty()) {
-            // No tickets sold: roll over jackpot into next round
-            $nextRound = LotteryRound::create([
-                'round_number' => $round->round_number + 1,
-                'jackpot' => $round->jackpot + 25000,
-                'tax_collected' => 0,
-                'starts_at' => now(),
-                'draws_at' => now()->addDays(14),
-                'is_drawn' => false,
-                'total_tickets_sold' => 0,
-            ]);
-
-            $round->update([
-                'is_drawn' => true,
-                'winner_character_id' => null,
-                'winner_payout' => 0,
-                'winning_ticket_number' => 'GEEN LOTEN',
-            ]);
-
-            return;
-        }
-
-        /** @var LotteryTicket $winningTicket */
-        $winningTicket = $allTickets->random();
-        /** @var Character $winner */
-        $winner = $winningTicket->character;
-
-        $payout = $round->jackpot;
-
-        DB::transaction(function () use ($round, $winningTicket, $winner, $payout): void {
-            // Credit winner's bank
-            if ($winner) {
-                $winner->increment('bank', $payout);
-            }
-
-            // Mark round as drawn
-            $round->update([
-                'is_drawn' => true,
-                'winner_character_id' => $winner?->id,
-                'winner_payout' => $payout,
-                'winning_ticket_number' => $winningTicket->ticket_number,
-            ]);
-
-            // Create next round with fresh jackpot base
-            LotteryRound::create([
-                'round_number' => $round->round_number + 1,
-                'jackpot' => 25000,
-                'tax_collected' => 0,
-                'starts_at' => now(),
-                'draws_at' => now()->addDays(14),
-                'is_drawn' => false,
-                'total_tickets_sold' => 0,
-            ]);
-        });
+        $round->executeDraw();
     }
 }

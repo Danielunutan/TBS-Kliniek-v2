@@ -98,10 +98,14 @@
                     </p>
                 </div>
             </div>
-            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="w-full sm:w-auto h-9 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
-                <i class="fa-solid fa-tv text-[11px]"></i>
-                <span>Kijk Ad (Reset Cooldown)</span>
-            </button>
+            <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full sm:w-auto">
+                @csrf
+                <input type="hidden" name="action" value="hustle">
+                <button type="submit" class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl active:scale-95 text-slate-900 dark:text-white text-xs font-black transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                    <i class="fa-solid fa-star text-[11px]"></i>
+                    <span>Omzeilen (10 Sterren)</span>
+                </button>
+            </form>
         </div>
     </div>
 

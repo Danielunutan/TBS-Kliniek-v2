@@ -41,7 +41,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Hoe herstelt mijn Energie en hoe krijg ik sneller energie?',
-                        'a' => "Jouw energie vult zich automatisch elke 3 minuten aan met een vast aantal punten. Wil je direct weer verder spelen?\n• Eet kantinesnacks zoals chocoladerepen of energiedrankjes uit je inventaris (te koop in de Kliniek Winkel).\n• Draai aan het Rad van Fortuin voor een gratis energieboost.\n• Bekijk een korte sponsoradvertentie in de Sponsorkamer om je cooldowns te resetten.\n• Koop een energie-refill in de VIP Shop met VIP Punten.",
+                        'a' => "Jouw energie vult zich automatisch elke 3 minuten aan met een vast aantal punten. Wil je direct weer verder spelen?\n• Eet kantinesnacks zoals chocoladerepen of energiedrankjes uit je inventaris (te koop in de Kliniek Winkel).\n• Draai aan het Rad van Fortuin voor een gratis energieboost.\n• Gebruik de Sterren Shop voor een direct 100% energie herstel met Sterren ⭐.\n• Koop een energie-refill in de VIP Shop met VIP Punten.",
                     ],
                     [
                         'q' => 'Wat moet ik doen als mijn Gezondheid (HP) bijna 0 is?',
@@ -75,11 +75,41 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Hoe werken Kopgeld (Bounties) en Liquidatie (Hitman)?',
-                        'a' => "•  KOPGELD: Plaats een geldbeloning op het hoofd van een rivaal. De eerste patiënt die dat doelwit knock-out slaat op de luchtplaats int automatisch de volledige premie!\n•  LIQUIDATIE (Hitman): Onder 'Geweld & Strijd > Liquidatie' kun je anonieme huurmoordenaars inhuren om een doelwit direct een flinke klap toe te brengen, waardoor ze meteen veel HP verliezen.",
+                        'a' => "•  KOPGELD: Plaats een geldbeloning op het hoofd van een rivaal. De eerste patiënt die dat doelwit knock-out slaat op de luchtplaats int automatisch de volledige premie!\n•  LIQUIDATIE (Hitman): Onder 'Geweld & Strijd > Liquidatie' vuur je kogels af op rivalen om ze in Coma te schieten en contant geld te plunderen. Zie het speciale Liquidatie hoofdstuk voor alle regels!",
                     ],
                     [
                         'q' => 'Wat doen Informanten en Vechtoefening?',
                         'a' => "• ️ INFORMANTEN: Koop vertrouwelijke inlichtingen over vermogende patiënten, actuele bewakingsroutes en geheime geldstromen.\n•  VECHTOEFENING: Spar met trainingspoppen en medepatiënten om je gevechtstechniek te perfectioneren zonder het risico op respectverlies.",
+                    ],
+                ],
+            ],
+            'liquidatie_pvp' => [
+                'title' => ' Nieuwe PvP Liquidatie & Bloedwraak',
+                'icon' => 'fa-crosshairs',
+                'questions' => [
+                    [
+                        'q' => 'Wat is Liquidatie & Wapenarsenaal en hoe werkt het?',
+                        'a' => "Onder 'Geweld & Strijd > Liquidatie' betreed je het vernieuwde PvP-wapenarsenaal. Hier kun je met echte kogels schieten op rivalen om ze naar de Intensive Care (Coma) te schieten en direct 35% van al hun losse contante geld op zak te plunderen!\n\n• Kogels koop je veilig in bundels van 50 stuks voor 50 Gouden Sterren.\n• Je vuurt zelf gekozen kogels af (maximaal 500 per schot).\n• Hoe meer kogels je afvuurt ten opzichte van de verdediging van het doelwit, hoe groter de kans op een dodelijke voltreffer!",
+                    ],
+                    [
+                        'q' => 'Wat zijn de Fair Play anti-griefing regels bij Liquidatie?',
+                        'a' => "Om te voorkomen dat beginnende of actieve spelers continu worden getreiterd of leeggeschoten, gelden er strikte Fair Play regels:\n\n1. ⚖️ Maximaal 15 Levels verschil: Je kunt alleen spelers aanvallen die maximaal 15 levels boven of onder jouw niveau zitten. Hoge spelers kunnen beginners dus nooit zomaar neerschieten!\n2. ⏱️ 3 Uur Persoonlijke Cooldown: Nadat je een specifieke speler hebt geviseerd, kun je diezelfde speler 3 uur lang niet opnieuw beschieten.\n3. 🛡️ 30 Minuten Herstelschild: Zodra een slachtoffer ontwaakt uit coma, krijgt diegene 30 minuten automatische herstelbescherming waarin niemand hem kan liquideren.\n4. 🚫 Maximaal 3x Dood per 24 Uur: Een speler kan maximaal 3 keer per dag fatale schade oplopen. Daarna is het doelwit voor de rest van de dag beschermd tegen nieuwe schoten.\n5. 💰 35% Buitlimiet: Je rooft maximaal 35% van het contante zakgeld. De overige 65% én het volledige banksaldo blijven altijd veilig!",
+                    ],
+                    [
+                        'q' => 'Hoe werkt het Kogelwerend Vest en wat is het Backfire risico?',
+                        'a' => "Een Kogelwerend Vest beschermt je 12 uur lang tegen inkomende kogels en kan worden aangeschaft voor 150 Gouden Sterren.\n\n⚠️ BACKFIRE RISICO:\nAls jij schiet op een speler die een actief kogelwerend vest draagt, ketst jouw kogelregen af! Het vest vangt de kogel op en er treedt Backfire op: jij raakt zelf zwaargewond en belandt per direct zelf 1 uur in Coma op de Intensive Care! Controleer je doelwitten dus zorgvuldig.",
+                    ],
+                    [
+                        'q' => 'Wat is Bloedwraak (Blood Feuds) en hoe neem je wraak met je Bende?',
+                        'a' => "Als jij of een lid van jouw bende wordt neergeschoten door een rivaal, ontstaat er automatisch een officiële Bloedwraak Vete die 24 uur actief blijft!\n\n🔥 DE VOORDELEN VAN BLOEDWRAAK:\n• Levelrestricties vervallen: De dader mag direct worden neergeschoten, zelfs als het levelverschil groter is dan 15 levels!\n• Cooldowns vervallen: De 3-uur wachttijd geldt niet tegen de dader.\n• Enorme Wraakbonussen: De speler of het bendelid dat de dader terugslaat verdient +50 extra Respect, een contante bonus van €10.000 én +150 Bende Respect voor de hele club!\nActieve vetes verschijnen direct bovenaan in een speciale rode Bloedwraak banner op de Liquidatie pagina.",
+                    ],
+                    [
+                        'q' => 'Wat gebeurt er als ik in Coma (Intensive Care) lig?',
+                        'a' => "Wanneer je bent neergeschoten lig je 1 uur op de Intensive Care van de TBS Kliniek. Tijdens coma kun je tijdelijk geen misdaden plegen of vechten.\n\nOntwaken kan op 2 manieren:\n1. ⏱️ Rustig uitzitten: Wacht tot de 60 minuten timer afloopt.\n2. ⭐ Direct Ontwaken met Sterren: Druk op de gouden knop 'Direct Uit Coma Ontwaken' voor 15 Gouden Sterren om binnen 1 seconde weer rond te lopen!\nNa ontwaken treedt direct jouw 30 minuten beschermende herstelschild in werking.",
+                    ],
+                    [
+                        'q' => 'Hoe bescherm ik als beginner mijn geld tegen Liquidatie?',
+                        'a' => 'Het advies is simpel en doeltreffend: zet ALTIJD je geld op de Bank! Bankgeld kan NOOIT worden geplunderd door kogels of gevechten. Houd alleen op zak wat je direct nodig hebt voor inkopen in de winkel.',
                     ],
                 ],
             ],
@@ -93,7 +123,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Hoe kom ik sneller vrij uit de Isoleercel?',
-                        'a' => "Je hebt 4 opties om weer op vrije voeten te komen:\n1. ⏱️ Uitzitten: Wacht rustig tot de straftimer afloopt.\n2. 📺 Sponsor Video Ads: Bekijk korte 15-seconden videoadvertenties in de isoleercel of Sponsorkamer! Elke advertentie haalt direct 3 minuten van je straftijd af. Afhankelijk van je strafduur (bijv. 1 tot 3-5 ads) word je direct volledig vrijgelaten!\n3. 🚪 Celdeur forceren: Vraag een vriend of ganggenoot om jouw celdeur open te breken vanaf de gevangenispagina.\n4. ⭐ Vrijkopen met Sterren: Gebruik Sterren om per direct vrijgelaten te worden.",
+                        'a' => "Je hebt 3 opties om weer op vrije voeten te komen:\n1. ⏱️ Uitzitten: Wacht rustig tot de straftimer afloopt.\n2. 🚪 Celdeur forceren: Vraag een vriend of ganggenoot om jouw celdeur open te breken vanaf de gevangenispagina.\n3. ⭐ Vrijkopen met Sterren: Gebruik 10 Gouden Sterren in de isoleercel om Zaalwacht Arjan om te kopen en per direct vrijgelaten te worden.",
                     ],
                     [
                         'q' => 'Wat is de Uitbraaktunnel onder mijn cel?',
@@ -188,8 +218,8 @@ class FaqController extends Controller
                         'a' => 'Op de Marktplaats handelen patiënten onderling in wapens, bepantsering, koffers en zeldzame kluismunten. Je kunt zelf voorwerpen te koop aanbieden voor je eigen gekozen vraagprijs, of koopjes inslaan van andere spelers.',
                     ],
                     [
-                        'q' => 'Wat is de TBS Afdelingsloterij?',
-                        'a' => 'De loterij heeft een automatische trekking elke 14 dagen. Je koopt loten met contant geld. 70% van alle inleg vult de gigantische Jackpot. Na 14 dagen trekt het systeem één winnend lotnummer dat de hele pot in één keer wint!',
+                        'q' => 'Wat is de TBS Afdelingsloterij en hoe wordt de jackpot uitbetaald?',
+                        'a' => "De Afdelingsloterij is de officiële megatrekking van de TBS Kliniek! Iedere cent bank-opnamebelasting en leningrente stroomt rechtstreeks in deze gigantische Jackpot.\n\n👑 Belangrijke Loterij Regels:\n• 💰 Uitbetaling Jackpot: De winnaar ontvangt de volledige pot automatisch uitbetaald: 30% veilig op de Bank en 70% direct contant als zakgeld!\n• ⚡ Laatste Kwartier Korting: In de laatste 15 minuten voor de trekking geldt een spectaculaire 50% korting op alle loten (€5.000 i.p.v. €10.000 per lot)!\n• 🔄 Automatische Nieuwe Ronde: Zodra een ronde getrokken is, start per direct een nieuwe ronde en verschijnt er een officieel nieuwsbericht met de winnaar in het Afdelingsnieuws.",
                     ],
                 ],
             ],
@@ -307,7 +337,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Hoe werkt het Moord & Liquidatie systeem?',
-                        'a' => "In de TBS Kliniek kun je vijanden definitief uitschakelen via 'Illegale Acties > Huurmoordenaar / Liquidatie'! Koop scherpe kogels bij de Wapenhandelaar of verdien ze gratis via de Sponsorkamer. Selecteer je doelwit, kies het aantal kogels en haal de trekker over! Als je liquidatie slaagt, schiet je het slachtoffer neer in een 6-uurs Intensive Care Coma en plunder je een flink deel van zijn contante geld en respect!",
+                        'a' => "In de TBS Kliniek kun je vijanden definitief uitschakelen via 'Illegale Acties > Huurmoordenaar / Liquidatie'! Koop scherpe kogels bij de Wapenhandelaar of verdien ze gratis via de Sponsorkamer. Selecteer je doelwit, kies het aantal kogels en haal de trekker over! Als je liquidatie slaagt, schiet je het slachtoffer neer in een 1-uurs Intensive Care Coma en plunder je een flink deel van zijn contante geld en respect!",
                     ],
                     [
                         'q' => 'Hoe kom ik aan kogels en wat kosten ze?',

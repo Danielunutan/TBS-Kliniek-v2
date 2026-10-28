@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\EnergyService;
 use App\Services\LevelService;
 use App\Services\MissionService;
+use App\Support\MissionScenarioCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,7 @@ class MissionController extends Controller
 
         $missions = $query->get();
         $characterProgress = $character->missions()->pluck('completed_count', 'mission_id');
-        $scenarios = MissionService::SCENARIOS;
+        $scenarios = array_merge(MissionScenarioCatalog::allById(), MissionScenarioCatalog::scenarios());
         $totalMissionsCount = Mission::count();
         $completedMissionsCount = $character->missions()->where('completed_count', '>', 0)->count();
 

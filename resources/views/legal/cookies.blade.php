@@ -124,12 +124,6 @@
                                 <td class="py-1">Gerichte advertentieweergave op basis van eerdere bezoeken</td>
                                 <td class="py-1">12 maanden</td>
                             </tr>
-                            <tr>
-                                <td class="py-1 font-mono font-bold text-slate-800">robin_reward, robin_sid</td>
-                                <td class="py-1">Robins Ads</td>
-                                <td class="py-1">Verificatie van voltooide sponsor video-advertenties en toekennen van in-game beloningen</td>
-                                <td class="py-1">Sessie / 30 dagen</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>

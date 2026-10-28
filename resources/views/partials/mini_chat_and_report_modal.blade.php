@@ -633,7 +633,7 @@
                         @csrf
                         <input type="hidden" name="item_type" value="gang_chat">
                         <input type="hidden" name="quantity" value="1">
-                        <button type="submit" :disabled="characterStars < 500 && gangStars < 500" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black text-xs shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5">
+                        <button type="submit" :disabled="characterStars < 500 && gangStars < 500" class="btn-star-gold w-full py-2.5 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-cart-shopping"></i>
                             <span>Koop Bende Chat (500 ⭐)</span>
                         </button>
@@ -1496,9 +1496,9 @@
                 if (cfg.isInPrison) {
                     return [{
                         from: 'bot',
-                        text: '🚨 Zaalwacht Arjan: Je zit momenteel in de isoleercel!\n\nJe hoeft hier niet lang te blijven: kijk een 15s video in de Sponsorkamer voor directe strafvermindering (-15 min), of laat een medegevangene je cel openbreken!',
+                        text: '🚨 Zaalwacht Arjan: Je zit momenteel in de isoleercel!\n\nJe hoeft hier niet lang te blijven: koop jezelf direct vrij met 10 Gouden Sterren ⭐, of laat een medegevangene je cel openbreken!',
                         links: [
-                            { text: '📺 Sponsorkamer (-15 min)', url: '{{ route('sponsor.index') }}' },
+                            { text: '⭐ Vrijkopen (10 Sterren)', url: '{{ route('prison') }}' },
                             { text: '🔒 Naar Isoleercel', url: '{{ route('prison') }}' }
                         ]
                     }];
@@ -2464,7 +2464,7 @@
                             text: 'Geen exact antwoord gevonden op "' + query + '". Hier zijn snelle links naar de meest bezochte onderdelen, of open direct een Support Ticket:',
                             links: [
                                 { text: '💰 Snel Geld & Bank', url: '{{ route('bank.index') }}' },
-                                { text: '⚡ Energie Herstel', url: '{{ route('sponsor.index') }}' },
+                                { text: '⭐ Sterren Shop', url: '{{ route('shop.index') }}' },
                                 { text: '🥊 Vechten & Respect', url: '{{ route('fight.index') }}' },
                                 { text: '🎫 Support Ticket', url: '{{ route('help.tickets.create') }}' }
                             ]

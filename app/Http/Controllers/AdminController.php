@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BuyMeACoffeeOrder;
 use App\Models\Character;
+use App\Models\GameNotification;
 use App\Models\GameSetting;
 use App\Models\Gang;
 use App\Models\Referral;
 use App\Models\User;
 use App\Models\VaultCode;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -102,6 +105,12 @@ class AdminController extends Controller
             'vip_points' => 'required|numeric|min:0',
             'is_vip' => 'nullable|boolean',
             'vip_days' => 'nullable|integer|min:0',
+            'vip_tier' => 'nullable|integer|between:0,4',
+            'vip_action' => 'nullable|string|in:no_change,add_days,set_days,lifetime,revoke',
+            'custom_vip_days' => 'nullable|integer|min:0|max:3650',
+            'has_custom_name_color' => 'nullable|boolean',
+            'has_sparkle_effect' => 'nullable|boolean',
+            'custom_name_color' => 'nullable|string|max:10',
             'release_prison' => 'nullable|boolean',
             'health' => 'required|integer|between:0,100',
             'energy' => 'required|integer|between:0,1000',
@@ -130,7 +139,7 @@ class AdminController extends Controller
 
         // Update user platform role if provided
         if ($request->filled('role') && $character->user) {
-            $newRole = $validated['role'];
+            $newRole = (string) $validated['role'];
             $targetUser = $character->user;
 
             // Only owner can assign owner role or change an existing owner's role
@@ -142,9 +151,26 @@ class AdminController extends Controller
                 return back()->with('error', 'Je hebt geen bevoegdheid om de rol van een Eigenaar te wijzigen.');
             }
 
+            $oldRole = $targetUser->role;
             $targetUser->role = $newRole;
             $targetUser->is_staff = in_array($newRole, ['owner', 'admin', 'moderator'], true);
             $targetUser->save();
+
+            if ($oldRole !== $newRole) {
+                GameNotification::create([
+                    'character_id' => $character->id,
+                    'type' => 'role_change',
+                    'icon' => match ($newRole) {
+                        'owner' => 'fa-crown',
+                        'admin' => 'fa-user-shield',
+                        'moderator' => 'fa-gavel',
+                        default => 'fa-user',
+                    },
+                    'title' => 'Rol Status Aangepast',
+                    'message' => 'Je accountrol is aangepast naar '.ucfirst($newRole).' door de directie.',
+                    'is_read' => false,
+                ]);
+            }
         }
 
         $character->cash = $validated['cash'];
@@ -155,15 +181,85 @@ class AdminController extends Controller
         $character->health = $validated['health'];
         $character->energy = $validated['energy'];
 
-        // VIP status toggle
-        $isVip = $request->boolean('is_vip');
-        $character->is_vip = $isVip;
+        // VIP beheer & handmatige toekenning
+        $vipAction = $request->input('vip_action', 'no_change');
+        $vipTier = (int) $request->input('vip_tier', ($character->getSupporterTier() ?: 1));
+        $perks = $character->perks ?? [];
+        $wasVip = $character->isVip();
 
-        if ($isVip && ! empty($validated['vip_days']) && $validated['vip_days'] > 0) {
-            $character->vip_expires_at = now()->addDays((int) $validated['vip_days']);
-        } elseif (! $isVip) {
+        if ($vipAction === 'revoke' || (! $request->boolean('is_vip') && in_array($vipAction, ['no_change', 'revoke'], true) && ! $request->has('vip_tier'))) {
+            $character->is_vip = false;
             $character->vip_expires_at = null;
+            $perks['supporter_tier'] = 0;
+            $perks['has_custom_name_color'] = false;
+            $perks['has_sparkle_effect'] = false;
+        } else {
+            $character->is_vip = true;
+            $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
+                ? $character->vip_expires_at
+                : now();
+
+            $daysToAdd = (int) ($request->input('custom_vip_days') ?: ($request->input('vip_days') ?: 30));
+
+            if ($vipAction === 'lifetime') {
+                $character->vip_expires_at = now()->addYears(99);
+                if ($vipTier < 4) {
+                    $vipTier = 4;
+                }
+            } elseif ($vipAction === 'add_days') {
+                $character->vip_expires_at = $currentExpiry->copy()->addDays($daysToAdd);
+            } elseif ($vipAction === 'set_days') {
+                $character->vip_expires_at = now()->addDays($daysToAdd);
+            } elseif ($request->boolean('is_vip') && ! $character->vip_expires_at) {
+                $character->vip_expires_at = now()->addDays($daysToAdd > 0 ? $daysToAdd : 30);
+            }
+
+            $perks['supporter_tier'] = max(1, $vipTier);
+            $perks['hourly_cash_bonus'] = match ($perks['supporter_tier']) {
+                4 => 50000,
+                3 => 20000,
+                2 => 7500,
+                default => 2500,
+            };
+
+            // Custom perks toggles
+            if ($request->has('has_custom_name_color')) {
+                $perks['has_custom_name_color'] = $request->boolean('has_custom_name_color');
+            } elseif ($vipTier >= 2) {
+                $perks['has_custom_name_color'] = true;
+            }
+
+            if ($request->has('has_sparkle_effect')) {
+                $perks['has_sparkle_effect'] = $request->boolean('has_sparkle_effect');
+                $perks['sparkle_enabled'] = $request->boolean('has_sparkle_effect');
+            } elseif ($vipTier >= 3) {
+                $perks['has_sparkle_effect'] = true;
+                $perks['sparkle_enabled'] = true;
+            }
+
+            if ($request->filled('custom_name_color')) {
+                $perks['custom_name_color'] = (string) $request->input('custom_name_color');
+            }
+
+            if (! $wasVip || $vipAction !== 'no_change') {
+                $tierTitle = match ($perks['supporter_tier']) {
+                    4 => 'Lifetime V.I.P.',
+                    3 => 'Kliniek Baas V.I.P. (Tier 3)',
+                    2 => 'Gangster Elite V.I.P. (Tier 2)',
+                    default => 'TBS V.I.P. Lid (Tier 1)',
+                };
+                GameNotification::create([
+                    'character_id' => $character->id,
+                    'type' => 'vip_granted',
+                    'icon' => 'fa-crown',
+                    'title' => 'VIP Status Toegekend!',
+                    'message' => "Gefeliciteerd! De administratie heeft je {$tierTitle} status toegekend.",
+                    'is_read' => false,
+                ]);
+            }
         }
+
+        $character->perks = $perks;
 
         // Release from prison if requested
         if ($request->boolean('release_prison')) {
@@ -375,5 +471,261 @@ class AdminController extends Controller
         } catch (\Throwable $e) {
             return back()->with('error', 'Migratie fout: '.$e->getMessage());
         }
+    }
+
+    /**
+     * View Buy Me a Coffee orders, memberships, and unlinked supporters.
+     */
+    public function buymeacoffee(Request $request): View
+    {
+        $query = BuyMeACoffeeOrder::with('character.user');
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('supporter_name', 'like', "%{$search}%")
+                    ->orWhere('supporter_email', 'like', "%{$search}%")
+                    ->orWhere('external_id', 'like', "%{$search}%")
+                    ->orWhere('membership_tier', 'like', "%{$search}%")
+                    ->orWhereHas('character', function ($cq) use ($search) {
+                        $cq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $filter = $request->input('filter', 'all');
+        if ($filter === 'unmatched') {
+            $query->where('status', 'unmatched');
+        } elseif ($filter === 'matched') {
+            $query->whereIn('status', ['matched', 'manually_linked']);
+        } elseif ($filter === 'memberships') {
+            $query->where('is_membership', true);
+        } elseif ($filter === 'cancelled') {
+            $query->where('status', 'cancelled');
+        }
+
+        $orders = $query->latest()->paginate(25)->withQueryString();
+
+        $totalOrders = BuyMeACoffeeOrder::count();
+        $unmatchedCount = BuyMeACoffeeOrder::where('status', 'unmatched')->count();
+        $activeMembershipsCount = BuyMeACoffeeOrder::where('is_membership', true)->where('status', '!=', 'cancelled')->count();
+        $cancelledCount = BuyMeACoffeeOrder::where('status', 'cancelled')->count();
+
+        // Get character list for quick linking
+        $allCharacters = Character::select('id', 'name', 'level', 'is_vip')->orderBy('name')->get();
+
+        return view('admin.buymeacoffee', compact(
+            'orders',
+            'totalOrders',
+            'unmatchedCount',
+            'activeMembershipsCount',
+            'cancelledCount',
+            'allCharacters',
+            'filter'
+        ));
+    }
+
+    /**
+     * Manually link a Buy Me a Coffee order/membership to a player character.
+     */
+    public function linkBuyMeACoffee(Request $request, BuyMeACoffeeOrder $order): RedirectResponse
+    {
+        $validated = $request->validate([
+            'character_id' => 'required|exists:characters,id',
+            'membership_tier' => 'nullable|string',
+            'is_membership' => 'nullable|boolean',
+            'grant_rewards' => 'nullable|boolean',
+        ]);
+
+        $character = Character::findOrFail($validated['character_id']);
+        $tierName = $validated['membership_tier'] ?: ($order->membership_tier ?: 'TBS V.I.P. Lid');
+        $isMembership = $request->boolean('is_membership') || $order->is_membership || ! empty($validated['membership_tier']);
+
+        $order->character_id = $character->id;
+        $order->status = 'manually_linked';
+        $order->membership_tier = $tierName;
+        $order->is_membership = $isMembership;
+        $order->membership_status = $isMembership ? 'active' : null;
+        $order->linked_at = now();
+        $order->save();
+
+        if ($request->boolean('grant_rewards', true)) {
+            $webhookController = app(BuyMeACoffeeWebhookController::class);
+            $tierLower = strtolower($tierName);
+            $isCoffee = str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie') || (! $isMembership);
+
+            if (! $isCoffee && $isMembership) {
+                $webhookController->grantMembershipTier($character, $tierName, $order->payload ?? []);
+            } else {
+                $coffees = 1;
+                if (str_contains($tierName, '5x') || (float) $order->amount >= 15.0) {
+                    $coffees = 5;
+                } elseif (str_contains($tierName, '3x') || (float) $order->amount >= 9.0) {
+                    $coffees = 3;
+                }
+                $payload = array_merge($order->payload ?? [], [
+                    'support_coffees' => $coffees,
+                    'quantity' => $coffees,
+                    'amount' => max((float) $order->amount, $coffees * 3.0),
+                ]);
+                $webhookController->processEvent('donation', $payload, $character);
+            }
+        }
+
+        GameNotification::create([
+            'character_id' => $character->id,
+            'type' => 'bmac_linked',
+            'icon' => 'fa-mug-hot',
+            'title' => 'Buy Me a Coffee Gekoppeld!',
+            'message' => "Je Buy Me a Coffee bijdrage van {$order->formatted_amount} is handmatig door het beheer gekoppeld aan je account. Al je voordelen zijn direct geactiveerd!",
+            'is_read' => false,
+        ]);
+
+        AuditLogService::log(
+            action: 'buymeacoffee_manual_link',
+            category: 'vip',
+            description: "BuyMeACoffee order #{$order->id} ({$order->supporter_name}) handmatig gekoppeld aan {$character->name} met tier {$tierName}",
+            character: $character,
+            user: $character->user,
+            amount: (int) $order->amount,
+            details: ['order_id' => $order->id, 'tier' => $tierName]
+        );
+
+        return back()->with('success', "Buy Me a Coffee order succesvol gekoppeld aan {$character->name}!");
+    }
+
+    /**
+     * Re-grant rewards for a linked Buy Me a Coffee order to ensure player receives items.
+     */
+    public function regrantBuyMeACoffee(BuyMeACoffeeOrder $order): RedirectResponse
+    {
+        if (! $order->character) {
+            return back()->with('error', 'Koppel eerst een speler aan deze order voordat je beloningen kunt uitkeren!');
+        }
+
+        $character = $order->character;
+        $webhookController = app(BuyMeACoffeeWebhookController::class);
+
+        $tier = (string) ($order->membership_tier ?? '');
+        $tierLower = strtolower($tier);
+        $isCoffee = str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie') || (! $order->is_membership);
+
+        if (! $isCoffee && $order->is_membership) {
+            $webhookController->grantMembershipTier($character, $tier, $order->payload ?? []);
+        } else {
+            $coffees = 1;
+            if (str_contains($tier, '5x') || (float) $order->amount >= 15.0) {
+                $coffees = 5;
+            } elseif (str_contains($tier, '3x') || (float) $order->amount >= 9.0) {
+                $coffees = 3;
+            }
+            $payload = array_merge($order->payload ?? [], [
+                'support_coffees' => $coffees,
+                'quantity' => $coffees,
+                'amount' => max((float) $order->amount, $coffees * 3.0),
+            ]);
+            $webhookController->processEvent('donation', $payload, $character);
+        }
+
+        AuditLogService::log(
+            action: 'buymeacoffee_regrant',
+            category: 'vip',
+            description: "BuyMeACoffee order #{$order->id} beloningen ({$order->rewards_summary}) handmatig her-uitgekeerd aan {$character->name}",
+            character: $character,
+            user: $character->user,
+            amount: (int) $order->amount,
+            details: ['order_id' => $order->id]
+        );
+
+        return back()->with('success', "Beloningen ({$order->rewards_summary}) zijn zojuist succesvol uitgekeerd aan {$character->name}!");
+    }
+
+    /**
+     * Cancel / expire membership and revoke VIP status.
+     */
+    public function cancelBuyMeACoffee(BuyMeACoffeeOrder $order): RedirectResponse
+    {
+        $character = $order->character;
+
+        $order->status = 'cancelled';
+        $order->membership_status = 'cancelled';
+        $order->cancelled_at = now();
+        $order->save();
+
+        if ($character) {
+            app(BuyMeACoffeeWebhookController::class)->revokeMembership($character, (string) $order->membership_tier, [
+                'reason' => 'cancelled_by_admin',
+                'order_id' => $order->id,
+            ]);
+        }
+
+        return back()->with('success', 'Membership geannuleerd en VIP privileges zijn beëindigd!');
+    }
+
+    /**
+     * Manually add and link a Buy Me a Coffee transaction.
+     */
+    public function createBuyMeACoffeeManual(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'supporter_name' => 'required|string|max:100',
+            'supporter_email' => 'nullable|email|max:150',
+            'character_id' => 'required|exists:characters,id',
+            'amount' => 'required|numeric|min:0',
+            'membership_tier' => 'required|string',
+            'is_membership' => 'required|boolean',
+            'message' => 'nullable|string|max:500',
+        ]);
+
+        $character = Character::findOrFail($validated['character_id']);
+
+        $tier = (string) $validated['membership_tier'];
+        $tierLower = strtolower($tier);
+        $isMembership = (bool) $validated['is_membership'];
+        if (str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie')) {
+            $isMembership = false;
+        }
+
+        $coffees = 1;
+        if (str_contains($tier, '5x') || (float) $validated['amount'] >= 15.0) {
+            $coffees = 5;
+        } elseif (str_contains($tier, '3x') || (float) $validated['amount'] >= 9.0) {
+            $coffees = 3;
+        }
+
+        $order = BuyMeACoffeeOrder::create([
+            'event' => $isMembership ? 'membership.manual' : 'donation.manual',
+            'external_id' => 'manual_'.uniqid(),
+            'supporter_name' => $validated['supporter_name'],
+            'supporter_email' => $validated['supporter_email'],
+            'amount' => $validated['amount'],
+            'currency' => 'EUR',
+            'membership_tier' => $validated['membership_tier'],
+            'message' => $validated['message'],
+            'character_id' => $character->id,
+            'status' => 'manually_linked',
+            'is_membership' => $isMembership,
+            'membership_status' => $isMembership ? 'active' : null,
+            'linked_at' => now(),
+            'payload' => [
+                'manual' => true,
+                'created_by' => Auth::id(),
+                'support_coffees' => $coffees,
+                'quantity' => $coffees,
+                'amount' => max((float) $validated['amount'], $coffees * 3.0),
+            ],
+        ]);
+
+        $webhookController = app(BuyMeACoffeeWebhookController::class);
+        if ($isMembership) {
+            $webhookController->grantMembershipTier($character, $validated['membership_tier'], ['manual' => true]);
+        } else {
+            $webhookController->processEvent('donation', [
+                'support_coffees' => $coffees,
+                'quantity' => $coffees,
+                'amount' => max((float) $validated['amount'], $coffees * 3.0),
+            ], $character);
+        }
+
+        return back()->with('success', "Handmatige Buy Me a Coffee registratie succesvol gekoppeld aan {$character->name}!");
     }
 }

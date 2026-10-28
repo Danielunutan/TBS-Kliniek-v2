@@ -321,7 +321,7 @@
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs select-none">
         
         <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden"
-             @keydown.space.window="if (isMatchActive && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) { $event.preventDefault(); pushArm(); }">
+             @keydown.space.window="if (isMatchActive && !isSubmitting && !matchResult && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) { $event.preventDefault(); pushArm(); }">
             
             <!-- Top Match Status Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -413,6 +413,19 @@
                 <p class="text-[10px] text-slate-400 dark:text-slate-500 text-center">Tip: Klik snel achter elkaar én raak de groene zone voor maximale doordruk!</p>
             </div>
 
+            <!-- Loading Indicator while submitting -->
+            <template x-if="isSubmitting && !matchResult">
+                <div class="absolute inset-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center space-y-3 z-20 animate-in fade-in duration-150">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-950/70 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-2xl text-purple-600 dark:text-purple-400 shadow-sm animate-pulse">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="text-base font-black text-slate-900 dark:text-white">Uitslag Verwerken...</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">De tafel scheidsrechter controleert de slag.</p>
+                    </div>
+                </div>
+            </template>
+
             <!-- Floating Result Screen (Victory / Defeat) -->
             <template x-if="matchResult">
                 <div class="absolute inset-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200 z-10">
@@ -442,6 +455,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         cooldownSeconds: initialCooldown,
         cdInterval: null,
         isMatchActive: false,
+        isSubmitting: false,
         activeNpcKey: null,
         activeNpc: null,
         armPosition: 50, // 0 = opponent wins, 100 = player wins
@@ -478,7 +492,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         },
 
         startMatch(npcKey) {
-            if (this.cooldownSeconds > 0) {
+            if (this.cooldownSeconds > 0 || this.isSubmitting) {
                 return;
             }
 
@@ -489,6 +503,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             this.clicks = 0;
             this.lastPushTime = 0;
             this.matchResult = null;
+            this.isSubmitting = false;
             this.isMatchActive = true;
             this.matchStartTime = Date.now();
 
@@ -496,10 +511,12 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         },
 
         cancelMatch() {
+            if (this.isSubmitting) return;
             clearInterval(this.gameLoopInterval);
             clearInterval(this.sweetSpotInterval);
             clearInterval(this.timerInterval);
             this.isMatchActive = false;
+            this.isSubmitting = false;
             this.matchResult = null;
         },
 
@@ -509,10 +526,9 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             const opponentStamina = this.activeNpc ? this.activeNpc.npc_stamina : 10;
             
             this.gameLoopInterval = setInterval(() => {
-                if (!this.isMatchActive || this.matchResult) return;
+                if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
 
                 // Opponent pushes back towards 0
-                // Opponent pressure scales with their strength and slight randomness
                 const decay = 0.55 + (opponentStrength * 0.04);
                 this.armPosition = Math.max(0, this.armPosition - decay);
 
@@ -524,7 +540,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             // Sweet Spot Needle Animation Loop
             const speedFactor = Math.max(1, 3 - (this.playerStamina * 0.02));
             this.sweetSpotInterval = setInterval(() => {
-                if (!this.isMatchActive || this.matchResult) return;
+                if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
                 
                 this.sweetSpotPos += (this.sweetSpotDir * 2.8);
                 if (this.sweetSpotPos >= 96) {
@@ -538,7 +554,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
 
             // Countdown Timer Loop
             this.timerInterval = setInterval(() => {
-                if (!this.isMatchActive || this.matchResult) return;
+                if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
 
                 this.timeLeft--;
                 if (this.timeLeft <= 0) {
@@ -553,7 +569,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         },
 
         pushArm() {
-            if (!this.isMatchActive || this.matchResult) return;
+            if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
 
             const now = Date.now();
             if (this.lastPushTime && (now - this.lastPushTime < 70)) {
@@ -580,6 +596,10 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         },
 
         endMatch(won, reason) {
+            if (this.isSubmitting || this.matchResult) return;
+            this.isSubmitting = true;
+            this.isMatchActive = false;
+
             clearInterval(this.gameLoopInterval);
             clearInterval(this.sweetSpotInterval);
             clearInterval(this.timerInterval);
@@ -592,7 +612,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
@@ -603,13 +623,24 @@ function tbsArmWrestleArena(initialCooldown = 0) {
                     duration_ms: durationMs,
                 })
             })
-            .then(res => res.json())
+            .then(res => {
+                return res.json().catch(() => ({
+                    success: false,
+                    message: 'Er ging iets mis met de serververbinding (HTTP ' + res.status + ').'
+                }));
+            })
             .then(data => {
+                this.isSubmitting = false;
                 if (data.cooldown) {
                     this.cooldownSeconds = data.cooldown;
                     this.startCooldownTimer();
                 }
                 if (data.success) {
+                    if (window.dispatchEvent) {
+                        window.dispatchEvent(new CustomEvent('stats-updated', {
+                            detail: { cash: data.cash, energy: data.energy }
+                        }));
+                    }
                     this.matchResult = {
                         won: Boolean(data.won),
                         title: data.title || (data.won ? 'GEWELDIGE OVERWINNING!' : 'DUEL VERLOREN'),
@@ -624,6 +655,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
                 }
             })
             .catch(() => {
+                this.isSubmitting = false;
                 this.matchResult = {
                     won: false,
                     title: 'VERBINDINGSFOUT',
@@ -634,6 +666,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
 
         closeMatch() {
             this.isMatchActive = false;
+            this.isSubmitting = false;
             this.matchResult = null;
             // Reload page to update cash, energy and stats
             window.location.reload();

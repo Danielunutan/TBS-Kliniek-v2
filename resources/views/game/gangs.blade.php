@@ -16,6 +16,11 @@
         if (!'{{ session('active_gang_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_active_gang_tab')) {
             this.activeGangTab = sessionStorage.getItem('tbs_active_gang_tab');
         }
+        @if(!$myGang)
+            if (this.activeGangTab === 'mijn_gang') {
+                this.activeGangTab = '{{ request('tab', 'alle_bendes') }}';
+            }
+        @endif
         if (!'{{ session('beheer_tab') }}' && !'{{ request('beheer_tab') }}' && sessionStorage.getItem('tbs_gang_beheer_tab')) {
             this.beheerTab = sessionStorage.getItem('tbs_gang_beheer_tab');
         }
@@ -358,13 +363,23 @@
                 </button>
             </div>
             @else
-            <!-- Spelers zonder bende: Alle Bendes & Ranglijst -->
-            <div class="flex items-center gap-1.5">
+            <!-- Spelers zonder bende: Alle Bendes, Bende Oprichten & Ranglijst -->
+            <div class="flex items-center gap-1.5 flex-wrap">
                 <button type="button" @click="setGangTab('alle_bendes')" 
                         :class="activeGangTab === 'alle_bendes' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-black' : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50/70 dark:hover:bg-purple-950/40 border-slate-200/80 dark:border-slate-700/60 hover:border-purple-300 dark:hover:border-purple-700 font-bold shadow-2xs'"
                         class="h-8 px-3 rounded-lg text-xs shrink-0 inline-flex items-center gap-1.5 border transition-all duration-150 cursor-pointer group">
                     <i class="fa-solid fa-globe text-xs" :class="activeGangTab === 'alle_bendes' ? 'text-white' : 'text-purple-500 group-hover:scale-110 transition-transform'"></i>
                     <span>Alle Bendes</span>
+                </button>
+
+                <button type="button" @click="setGangTab('oprichten')" 
+                        :class="activeGangTab === 'oprichten' ? 'bg-purple-600 text-white shadow-xs border-purple-600 font-black' : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50/70 dark:hover:bg-purple-950/40 border-slate-200/80 dark:border-slate-700/60 hover:border-purple-300 dark:hover:border-purple-700 font-bold shadow-2xs'"
+                        class="h-8 px-3 rounded-lg text-xs shrink-0 inline-flex items-center gap-1.5 border transition-all duration-150 cursor-pointer group">
+                    <i class="fa-solid fa-crown text-xs" :class="activeGangTab === 'oprichten' ? 'text-white' : 'text-amber-500 group-hover:scale-110 transition-transform'"></i>
+                    <span>Bende Oprichten</span>
+                    <span class="inline-flex items-center justify-center px-1.5 h-4 rounded-full text-[10px] font-mono font-black" :class="activeGangTab === 'oprichten' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'">
+                        25 ⭐ / €50K
+                    </span>
                 </button>
 
                 <button type="button" @click="setGangTab('ranglijst')" 
@@ -391,9 +406,9 @@
                     Start je eigen syndicaat en domineer de TBS kliniek met je bendeleden.
                 </p>
             </div>
-            <button type="button" @click="showCreateModal = true" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shrink-0 transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
-                <i class="fa-solid fa-star text-amber-300 text-xs"></i>
-                <span>25 Sterren</span>
+            <button type="button" @click="setGangTab('oprichten'); showCreateModal = true" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shrink-0 transition shadow-xs cursor-pointer inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-crown text-amber-300 text-xs"></i>
+                <span>25 ⭐ / €50K</span>
             </button>
         </div>
 
@@ -1160,6 +1175,160 @@
 
                 </div>
 
+            </div>
+            @endif
+
+            <!-- TAB: BENDE OPRICHTEN (DIRECT IN-PAGE FORM) -->
+            @if(!$character->gang_id)
+            <div x-show="activeGangTab === 'oprichten'" class="space-y-6" style="display: none;">
+                <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center text-xl shrink-0">
+                                <i class="fa-solid fa-crown text-amber-500"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                    Nieuwe Bende Oprichten
+                                </h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                                    Start je eigen syndicaat, verenig patiënten, heers over de kliniek en ontvang direct 3 dagen gratis VIP!
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Sterren
+                            </span>
+                            <span class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5 font-mono">
+                                <i class="fa-solid fa-money-bill-wave text-emerald-500"></i> €{{ number_format(($character->cash ?? 0) + ($character->bank ?? 0), 0, ',', '.') }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('gangs.create') }}" method="POST" class="mt-6 space-y-6 max-w-2xl" x-data="{ paymentMethod: '{{ ($character->stars ?? 0) >= 25 ? 'stars' : 'cash' }}' }">
+                        @csrf
+
+                        <!-- Betaalmethode Kiezen -->
+                        <div>
+                            <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                                1. Kies Jouw Betaalmethode
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Optie A: 25 Sterren -->
+                                <label class="relative flex items-center gap-3 p-4 rounded-xl border-2 transition cursor-pointer"
+                                       :class="paymentMethod === 'stars' ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300'">
+                                    <input type="radio" name="payment_method" value="stars" x-model="paymentMethod" class="sr-only">
+                                    <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0 text-base">
+                                        <i class="fa-solid fa-star"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-black text-slate-900 dark:text-white">25 Sterren</span>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="{{ ($character->stars ?? 0) >= 25 ? 'true' : 'false' }} ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'">
+                                                {{ $character->stars ?? 0 }}/25 ⭐
+                                            </span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                            Direct van je sterren saldo
+                                        </p>
+                                    </div>
+                                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                         :class="paymentMethod === 'stars' ? 'border-purple-600 bg-purple-600 text-white' : 'border-slate-300 dark:border-slate-600'">
+                                        <i x-show="paymentMethod === 'stars'" class="fa-solid fa-check text-[9px]"></i>
+                                    </div>
+                                </label>
+
+                                <!-- Optie B: €50.000 KliniekCash -->
+                                <label class="relative flex items-center gap-3 p-4 rounded-xl border-2 transition cursor-pointer"
+                                       :class="paymentMethod === 'cash' ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/40' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-slate-300'">
+                                    <input type="radio" name="payment_method" value="cash" x-model="paymentMethod" class="sr-only">
+                                    <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0 text-base">
+                                        <i class="fa-solid fa-money-bill-wave"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-black text-slate-900 dark:text-white">€50.000 Cash</span>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" :class="{{ (($character->cash ?? 0) + ($character->bank ?? 0)) >= 50000 ? 'true' : 'false' }} ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'">
+                                                {{ (($character->cash ?? 0) + ($character->bank ?? 0)) >= 50000 ? 'Voldoende' : 'Te weinig' }}
+                                            </span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                                            Contant of van de bank
+                                        </p>
+                                    </div>
+                                    <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                         :class="paymentMethod === 'cash' ? 'border-purple-600 bg-purple-600 text-white' : 'border-slate-300 dark:border-slate-600'">
+                                        <i x-show="paymentMethod === 'cash'" class="fa-solid fa-check text-[9px]"></i>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Bende Informatie -->
+                        <div class="space-y-4">
+                            <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                                2. Bende Gegevens
+                            </label>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        Bende Naam <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="name" required minlength="3" maxlength="25" placeholder="bijv. De Peaky Blinders" 
+                                           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                                    <span class="text-[11px] text-slate-400 mt-1 block">Tussen 3 en 25 tekens, moet uniek zijn</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        Tag <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" name="tag" required minlength="2" maxlength="4" placeholder="bijv. PB" 
+                                           class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-black uppercase text-purple-600 dark:text-purple-400 font-mono focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                                    <span class="text-[11px] text-slate-400 mt-1 block">2 tot 4 letters (afkorting)</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Specialiteit
+                                </label>
+                                <input type="text" name="specialty" maxlength="50" placeholder="bijv. Kantine Controle, Smokkel & Afpersing" 
+                                       class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Beschrijving & Bende Motief
+                                </label>
+                                <textarea name="description" rows="3" maxlength="300" placeholder="Beschrijf jullie visie, regels of intimiderende boodschap naar andere bendes..." 
+                                          class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-purple-600 focus:bg-white dark:focus:bg-slate-800 transition"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Bonus Perks Notice -->
+                        <div class="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 flex items-start gap-3 text-xs text-purple-900 dark:text-purple-200">
+                            <i class="fa-solid fa-gift text-purple-600 dark:text-purple-400 text-base shrink-0 mt-0.5"></i>
+                            <div class="space-y-0.5 leading-relaxed">
+                                <strong class="font-black text-purple-950 dark:text-white">Leiders Bonus:</strong>
+                                <p>Als oprichter en bendeleider ontvang je per direct <strong class="font-bold text-purple-700 dark:text-purple-300">3 Dagen Gratis VIP Status ⭐</strong> en een startkas van €1.000 voor jouw bende!</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 pt-2">
+                            <button type="submit" 
+                                    class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md hover:shadow-lg cursor-pointer flex items-center gap-2">
+                                <i class="fa-solid fa-crown text-amber-300"></i>
+                                <span>Bende Oprichten & Starten</span>
+                            </button>
+                            <button type="button" @click="setGangTab('alle_bendes')" class="px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs transition cursor-pointer">
+                                Bekijk Eerst Andere Bendes
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
             @endif
 
@@ -4068,17 +4237,19 @@
                 </div>
             </div>
     </div>
-    </div>
 
-    <!-- CREATE GANG MODAL (25 STARS) -->
-    <div x-show="showCreateModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;">
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full text-slate-900 shadow-xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">Nieuwe Bende Oprichten</h3>
-                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-700 text-lg cursor-pointer">&times;</button>
+    <!-- CREATE GANG MODAL (25 STARS OF €50.000 CASH) -->
+    <div x-show="showCreateModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4" style="display: none;" @keydown.escape.window="showCreateModal = false">
+        <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-md w-full text-slate-900 dark:text-white shadow-xl space-y-4" @click.outside="showCreateModal = false" x-data="{ paymentMethod: '{{ ($character->stars ?? 0) >= 25 ? 'stars' : 'cash' }}' }">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-crown text-amber-500"></i>
+                    <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wide">Nieuwe Bende Oprichten</h3>
+                </div>
+                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg cursor-pointer">&times;</button>
             </div>
             @if($myGang)
-                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2">
+                <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2">
                     <p class="font-extrabold flex items-center gap-2">
                         <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
                         <span>Je bent al lid van een bende!</span>
@@ -4088,40 +4259,60 @@
                     </p>
                 </div>
                 <div class="flex justify-end pt-2">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Sluiten</button>
+                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer">Sluiten</button>
                 </div>
             @else
-                <p class="text-xs text-slate-500 font-medium">
-                    Kosten: <strong class="text-amber-600 inline-flex items-center gap-1">25 Sterren <i class="fa-solid fa-star text-amber-500 text-xs"></i></strong> (Je hebt er {{ $character->stars ?? 0 }}).
-                </p>
-                <form action="{{ route('gangs.create') }}" method="POST" class="space-y-3">
+                <form action="{{ route('gangs.create') }}" method="POST" class="space-y-3.5">
                     @csrf
+                    <!-- Betaalopties in modal -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="p-2.5 rounded-xl border text-xs cursor-pointer flex flex-col gap-1 transition"
+                               :class="paymentMethod === 'stars' ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/40 font-bold' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'">
+                            <input type="radio" name="payment_method" value="stars" x-model="paymentMethod" class="sr-only">
+                            <span class="flex items-center justify-between">
+                                <span class="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-black"><i class="fa-solid fa-star"></i> 25 Sterren</span>
+                                <i x-show="paymentMethod === 'stars'" class="fa-solid fa-check text-purple-600 text-[10px]"></i>
+                            </span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400">Saldo: {{ $character->stars ?? 0 }} ⭐</span>
+                        </label>
+                        <label class="p-2.5 rounded-xl border text-xs cursor-pointer flex flex-col gap-1 transition"
+                               :class="paymentMethod === 'cash' ? 'border-purple-600 bg-purple-50/60 dark:bg-purple-950/40 font-bold' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'">
+                            <input type="radio" name="payment_method" value="cash" x-model="paymentMethod" class="sr-only">
+                            <span class="flex items-center justify-between">
+                                <span class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-black"><i class="fa-solid fa-money-bill-wave"></i> €50.000 Cash</span>
+                                <i x-show="paymentMethod === 'cash'" class="fa-solid fa-check text-purple-600 text-[10px]"></i>
+                            </span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Saldo: €{{ number_format(($character->cash ?? 0) + ($character->bank ?? 0), 0, ',', '.') }}</span>
+                        </label>
+                    </div>
+
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Bende Naam</label>
-                        <input type="text" name="name" required placeholder="bijv. NoMercy" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-600">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Bende Naam</label>
+                        <input type="text" name="name" required minlength="3" maxlength="25" placeholder="bijv. NoMercy" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-purple-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Tag (2-4 letters)</label>
-                        <input type="text" name="tag" required placeholder="bijv. NM" maxlength="4" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 uppercase focus:outline-none focus:border-purple-600">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Tag (2-4 letters)</label>
+                        <input type="text" name="tag" required minlength="2" maxlength="4" placeholder="bijv. NM" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-black uppercase text-purple-600 dark:text-purple-400 font-mono focus:outline-none focus:border-purple-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Specialiteit</label>
-                        <input type="text" name="specialty" placeholder="Kantine Controle" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-600">
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Specialiteit</label>
+                        <input type="text" name="specialty" maxlength="50" placeholder="Kantine Controle" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-purple-600">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Beschrijving</label>
-                        <textarea name="description" rows="2" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs font-medium text-slate-900 focus:outline-none focus:border-purple-600"></textarea>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Beschrijving</label>
+                        <textarea name="description" rows="2" maxlength="300" placeholder="Beschrijf jullie bende..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-purple-600"></textarea>
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">Annuleren</button>
-                        <button type="submit" @if(($character->stars ?? 0) < 25) disabled @endif class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white font-bold text-xs uppercase cursor-pointer inline-flex items-center gap-1.5">
-                            <i class="fa-solid fa-star text-amber-300 text-xs"></i>
-                            <span>Oprichten (25 Sterren)</span>
+                        <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer">Annuleren</button>
+                        <button type="submit" class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase cursor-pointer inline-flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-crown text-amber-300 text-xs"></i>
+                            <span x-text="paymentMethod === 'stars' ? 'Oprichten (25 Sterren)' : 'Oprichten (€50.000)'">Oprichten</span>
                         </button>
                     </div>
                 </form>
             @endif
         </div>
+    </div>
 
     <!-- Bottom Podium Ranglijst -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-5">

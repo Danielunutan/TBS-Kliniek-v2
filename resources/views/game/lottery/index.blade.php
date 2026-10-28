@@ -20,7 +20,7 @@
                     Iedere cent bank opnamebelasting én leningtax stroomt rechtstreeks in deze pot. Koop loten met contant geld of sterren en maak kans op de volledige pot bij de 14-daagse trekking!
                 </p>
 
-                <!-- Tax info pill -->
+                <!-- Tax and Payout info pills -->
                 <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-1">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200">
                         <i class="fa-solid fa-receipt text-amber-500"></i>
@@ -29,6 +29,10 @@
                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200">
                         <i class="fa-solid fa-ticket text-emerald-600 dark:text-emerald-400"></i>
                         <span>Totaal verkochte loten: <strong class="text-slate-900 dark:text-white">{{ number_format($round->total_tickets_sold, 0, ',', '.') }}</strong></span>
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-xs font-bold text-blue-800 dark:text-blue-300">
+                        <i class="fa-solid fa-scale-balanced text-blue-500"></i>
+                        <span>Uitbetaling: <strong>30% Bank</strong> / <strong>70% Contant</strong></span>
                     </span>
                 </div>
             </div>
@@ -63,14 +67,46 @@
                              setInterval(() => { if (this.left > 0) this.left--; }, 1000);
                          }
                      }">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Tijd tot trekking (1x per 14 dagen)</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Tijd tot trekking</span>
                     <span class="text-sm font-extrabold text-slate-900 dark:text-white font-mono mt-0.5 block" x-text="format()">
                         {{ now()->diffForHumans($round->draws_at, true) }}
                     </span>
+                    @if($isLastQuarter)
+                        <span class="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-md bg-rose-500 text-white font-black text-[10px] tracking-wide animate-pulse">
+                            🔥 LAATSTE KWARTIER: 50% KORTING!
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
+
+    @if($isLastQuarter)
+    <!-- Flash Deal Banner: Last Quarter 50% Discount Active -->
+    <div class="rounded-2xl bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-yellow-500/15 border-2 border-amber-400 dark:border-amber-500 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 text-white flex items-center justify-center text-xl font-black shrink-0 shadow-md">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider">
+                    ⚡ LAATSTE KWARTIER ACTIE
+                </div>
+                <h3 class="text-sm sm:text-base font-black text-slate-900 dark:text-white mt-1">
+                    50% Korting op alle Loterijloten is NU Actief!
+                </h3>
+                <p class="text-xs text-slate-600 dark:text-slate-300">
+                    Er is minder dan 15 minuten tot de ontknoping. Pak extra loten voor slechts <strong class="text-emerald-600 dark:text-emerald-400">€5.000</strong> per lot (normaal €10.000). Bij de start van de nieuwe ronde geldt weer het standaardtijdperk!
+                </p>
+            </div>
+        </div>
+        <div class="shrink-0 self-start sm:self-center">
+            <span class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow-xs inline-block">
+                50% PRIJSVERLAGING TOEGEPAST
+            </span>
+        </div>
+    </div>
+    @endif
 
     <!-- MAIN TWO COLUMN: BUY TICKETS & USER TICKETS -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -101,12 +137,20 @@
 
             <!-- TAB 1: Kopen met Cash -->
             <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-3">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div class="flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold">€</span>
                         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">Kopen met Contant Geld</h3>
                     </div>
-                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">€10.000 per lot (80% naar pot)</span>
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        @if($isLastQuarter)
+                            <span class="line-through text-slate-400 mr-1">€10.000</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-black">€{{ number_format($cashPricePerTicket, 0, ',', '.') }} per lot</span>
+                            <span class="text-rose-500 text-[10px] font-black uppercase bg-rose-100 dark:bg-rose-950 px-1.5 py-0.5 rounded ml-1">-50%</span>
+                        @else
+                            €{{ number_format($cashPricePerTicket, 0, ',', '.') }} per lot (80% naar pot)
+                        @endif
+                    </span>
                 </div>
 
                 <form action="{{ route('lottery.buy') }}" method="POST" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
@@ -116,37 +160,65 @@
                     <button type="submit" name="quantity" value="1" 
                             class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">1 Lot</span>
-                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">€ 10.000</span>
+                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                            € {{ number_format($cashPricePerTicket * 1, 0, ',', '.') }}
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">€ 10.000</span>
+                            @endif
+                        </span>
                     </button>
 
                     <button type="submit" name="quantity" value="5" 
                             class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">5 Loten</span>
-                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">€ 50.000</span>
+                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                            € {{ number_format($cashPricePerTicket * 5, 0, ',', '.') }}
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">€ 50.000</span>
+                            @endif
+                        </span>
                     </button>
 
                     <button type="submit" name="quantity" value="10" 
                             class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">10 Loten</span>
-                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">€ 100.000</span>
+                        <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
+                            € {{ number_format($cashPricePerTicket * 10, 0, ',', '.') }}
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">€ 100.000</span>
+                            @endif
+                        </span>
                     </button>
 
                     <button type="submit" name="quantity" value="25" 
                             class="p-3 rounded-xl border border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-purple-950 dark:text-purple-100">25 Loten</span>
-                        <span class="block text-[11px] text-purple-700 dark:text-purple-300 font-bold mt-0.5">€ 250.000</span>
+                        <span class="block text-[11px] text-purple-700 dark:text-purple-300 font-bold mt-0.5">
+                            € {{ number_format($cashPricePerTicket * 25, 0, ',', '.') }}
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">€ 250.000</span>
+                            @endif
+                        </span>
                     </button>
                 </form>
             </div>
 
             <!-- TAB 2: Kopen met VIP Sterren -->
             <div class="p-5 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 space-y-3">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                     <div class="flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold">★</span>
                         <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-slate-100">Kopen met VIP Sterren</h3>
                     </div>
-                    <span class="text-xs font-bold text-amber-700 dark:text-amber-300">15 Sterren / lot (+€25.000 jackpot bonus!)</span>
+                    <span class="text-xs font-bold text-amber-700 dark:text-amber-300">
+                        @if($isLastQuarter)
+                            <span class="line-through text-slate-400 mr-1">15 Sterren</span>
+                            <span class="font-black text-amber-600 dark:text-amber-400">{{ $starsPricePerTicket }} Sterren / lot</span>
+                            <span class="text-rose-500 text-[10px] font-black uppercase bg-rose-100 dark:bg-rose-950 px-1.5 py-0.5 rounded ml-1">-50%</span>
+                        @else
+                            {{ $starsPricePerTicket }} Sterren / lot (+€25.000 jackpot bonus!)
+                        @endif
+                    </span>
                 </div>
 
                 <form action="{{ route('lottery.buy') }}" method="POST" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
@@ -156,75 +228,47 @@
                     <button type="submit" name="quantity" value="1" 
                             class="p-3 rounded-xl border border-amber-200 dark:border-amber-700/50 bg-white dark:bg-slate-800 hover:border-amber-400 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">1 VIP Lot</span>
-                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">15 Sterren</span>
+                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
+                            {{ $starsPricePerTicket * 1 }} Sterren
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">15 Sterren</span>
+                            @endif
+                        </span>
                     </button>
 
                     <button type="submit" name="quantity" value="5" 
                             class="p-3 rounded-xl border border-amber-200 dark:border-amber-700/50 bg-white dark:bg-slate-800 hover:border-amber-400 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">5 VIP Loten</span>
-                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">75 Sterren</span>
+                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
+                            {{ $starsPricePerTicket * 5 }} Sterren
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">75 Sterren</span>
+                            @endif
+                        </span>
                     </button>
 
                     <button type="submit" name="quantity" value="10" 
                             class="p-3 rounded-xl border border-amber-200 dark:border-amber-700/50 bg-white dark:bg-slate-800 hover:border-amber-400 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">10 VIP Loten</span>
-                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">150 Sterren</span>
+                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
+                            {{ $starsPricePerTicket * 10 }} Sterren
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">150 Sterren</span>
+                            @endif
+                        </span>
                     </button>
 
                     <button type="submit" name="quantity" value="25" 
                             class="p-3 rounded-xl border border-amber-400 bg-amber-100 dark:bg-amber-900/40 hover:bg-amber-200 dark:hover:bg-amber-800/40 transition text-center group cursor-pointer shadow-2xs">
                         <span class="block text-xs font-black text-amber-950 dark:text-amber-100">25 VIP Loten</span>
-                        <span class="block text-[11px] text-amber-800 dark:text-amber-300 font-bold mt-0.5">375 Sterren</span>
+                        <span class="block text-[11px] text-amber-800 dark:text-amber-300 font-bold mt-0.5">
+                            {{ $starsPricePerTicket * 25 }} Sterren
+                            @if($isLastQuarter)
+                                <span class="line-through text-slate-400 text-[9px] block">375 Sterren</span>
+                            @endif
+                        </span>
                     </button>
                 </form>
-            </div>
-
-            <!-- TAB 3: Gratis Loten via Sponsor Advertenties (15 Ads = 1 Lot) -->
-            <div class="p-5 rounded-2xl bg-gradient-to-br from-purple-500/10 via-indigo-500/5 to-transparent border-2 border-purple-300 dark:border-purple-700/60 space-y-3 relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs font-bold shadow-2xs">
-                            <i class="fa-solid fa-rectangle-ad"></i>
-                        </span>
-                        <div>
-                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                <span>Gratis Loterij Ticket</span>
-                                <span class="px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[9px] font-black uppercase">Onbeperkt Herhaalbaar</span>
-                            </h3>
-                        </div>
-                    </div>
-                    <span class="text-xs font-bold text-purple-700 dark:text-purple-300">15 Ads = 1 Gratis Lot</span>
-                </div>
-
-                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Bekijk 15 korte sponsor video's (15 sec) en ontvang direct een officieel Loterij Ticket voor de 14-daagse trekking. Je mag dit zo vaak herhalen als je wilt!
-                </p>
-
-                <!-- Progress Bar -->
-                <div class="space-y-1.5 pt-1">
-                    <div class="flex items-center justify-between text-xs font-extrabold">
-                        <span class="text-slate-500 dark:text-slate-400">Jouw Voortgang:</span>
-                        <span class="text-purple-600 dark:text-purple-400 font-mono">
-                            {{ $character->ad_lottery_progress ?? 0 }} / 15 Ads Bekeken
-                        </span>
-                    </div>
-                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden p-0.5 border border-slate-300 dark:border-slate-600">
-                        <div class="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full transition-all duration-300 shadow-xs" 
-                             style="width: {{ min(100, max(2, (($character->ad_lottery_progress ?? 0) / 15) * 100)) }}%;"></div>
-                    </div>
-                </div>
-
-                <div class="pt-2">
-                    <button type="button" 
-                            onclick="if(window.tbsOpenSponsorAd) { window.tbsOpenSponsorAd('lottery_ticket', () => window.location.reload()); } else { window.location.href = '{{ route('sponsor.index') }}'; }" 
-                            class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-purple-900/20 flex items-center justify-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-play"></i>
-                        <span>Kijk Sponsor Ad (+1/15) &raquo;</span>
-                        @if(($character->ad_lottery_progress ?? 0) >= 14)
-                            <span class="ml-1 px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 text-[10px] font-black animate-pulse">Claim Lot!</span>
-                        @endif
-                    </button>
-                </div>
             </div>
         </div>
 

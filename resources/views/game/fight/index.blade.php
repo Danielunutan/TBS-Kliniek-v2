@@ -62,11 +62,9 @@
             <span>Je hebt minimaal <strong>20⚡ Energie</strong> nodig om een patiënt te beroven (je hebt nu {{ $character->energy }}⚡).</span>
         </div>
         <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
-            <a href="{{ route('sponsor.index') }}" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition">
-                Gratis Energie (Ads) &raquo;
-            </a>
-            <a href="{{ route('shop.index') }}" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition">
-                Shop Snacks &raquo;
+            <a href="{{ route('shop.index') }}" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-star text-[10px]"></i>
+                <span>Energie Herstellen in Shop &raquo;</span>
             </a>
         </div>
     </div>

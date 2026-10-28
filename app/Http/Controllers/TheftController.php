@@ -59,7 +59,7 @@ class TheftController extends Controller
         if ($character->isComatose()) {
             $mins = ceil($character->getComaRemainingSeconds() / 60);
 
-            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via een sponsor advertentie.");
+            return back()->with('error', "⚠️ Je ligt in Intensive Care Coma (nog {$mins} min)! Ontwaak direct via de Sterren Shop.");
         }
 
         $victim = null;

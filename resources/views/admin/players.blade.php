@@ -107,9 +107,21 @@
                         </td>
                         <td class="py-3.5 px-3 text-center">
                             @if($player->is_vip)
-                                <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border border-amber-200">
-                                    <i class="fa-solid fa-crown text-amber-600"></i> VIP
-                                </span>
+                                @php $vipBadge = $player->vip_badge; @endphp
+                                @if($vipBadge)
+                                    <span class="{{ $vipBadge['class'] }} text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full inline-flex items-center gap-1 border">
+                                        <i class="fa-solid {{ $vipBadge['icon'] }}"></i> {{ $vipBadge['short_label'] }}
+                                    </span>
+                                @else
+                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border border-amber-200">
+                                        <i class="fa-solid fa-crown text-amber-600"></i> VIP
+                                    </span>
+                                @endif
+                                @if($player->vip_expires_at)
+                                    <div class="text-[9px] text-slate-400 font-mono mt-0.5">{{ $player->vip_expires_at->format('d-m-Y') }}</div>
+                                @else
+                                    <div class="text-[9px] text-amber-600 font-bold mt-0.5">Permanent</div>
+                                @endif
                             @else
                                 <span class="text-slate-400 text-[10px]">Nee</span>
                             @endif
@@ -203,15 +215,57 @@
                                         </div>
                                     </div>
 
-                                    <!-- VIP Toggle & Days -->
-                                    <div class="bg-white p-3.5 rounded-xl border border-purple-200 space-y-2">
-                                        <label class="flex items-center gap-2 cursor-pointer">
-                                            <input type="checkbox" name="is_vip" value="1" {{ $player->is_vip ? 'checked' : '' }} class="rounded text-purple-600 focus:ring-purple-500">
-                                            <span class="text-xs font-bold text-slate-900">VIP Status Actief</span>
-                                        </label>
-                                        <div>
-                                            <label class="text-[10px] font-bold text-slate-500 block">Dagen toevoegen (0 = ongewijzigd)</label>
-                                            <input type="number" name="vip_days" value="30" min="0" class="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs font-mono font-bold">
+                                    <!-- VIP Tier & Handmatige Toekenning -->
+                                    <div class="bg-white p-3.5 rounded-xl border border-purple-200 space-y-2 col-span-1 sm:col-span-2">
+                                        <div class="flex items-center justify-between">
+                                            <label class="text-[10px] font-black text-purple-900 uppercase tracking-wider block flex items-center gap-1.5">
+                                                <i class="fa-solid fa-crown text-amber-500"></i> VIP Tier &amp; Handmatig Toekennen
+                                            </label>
+                                            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-purple-800">
+                                                <input type="checkbox" name="is_vip" value="1" {{ $player->is_vip ? 'checked' : '' }} class="rounded text-purple-600">
+                                                <span>VIP Actief</span>
+                                            </label>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <div>
+                                                <label class="text-[10px] font-bold text-slate-500 block">Kies VIP Tier</label>
+                                                <select name="vip_tier" class="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-xs font-bold text-slate-800">
+                                                    <option value="1" {{ $player->getSupporterTier() <= 1 ? 'selected' : '' }}>Tier 1: TBS V.I.P. Lid</option>
+                                                    <option value="2" {{ $player->getSupporterTier() === 2 ? 'selected' : '' }}>Tier 2: Gangster Elite</option>
+                                                    <option value="3" {{ $player->getSupporterTier() === 3 ? 'selected' : '' }}>Tier 3: Kliniek Baas</option>
+                                                    <option value="4" {{ $player->getSupporterTier() === 4 ? 'selected' : '' }}>Tier 4: Lifetime V.I.P.</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-bold text-slate-500 block">Actie / Looptijd</label>
+                                                <select name="vip_action" class="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1.5 text-xs font-bold text-slate-800">
+                                                    <option value="no_change">Behoud huidige status</option>
+                                                    <option value="add_days">Dagen toevoegen (+X)</option>
+                                                    <option value="set_days">Instellen op X dagen vanaf nu</option>
+                                                    <option value="lifetime">Permanent (Levenslang)</option>
+                                                    <option value="revoke">Direct intrekken / Uitzetten</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 items-center">
+                                            <div>
+                                                <label class="text-[10px] font-bold text-slate-500 block">Aantal Dagen (X)</label>
+                                                <input type="number" name="custom_vip_days" value="30" min="1" max="3650" class="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs font-mono font-bold">
+                                            </div>
+                                            <div class="flex items-center pt-3">
+                                                <label class="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 cursor-pointer">
+                                                    <input type="checkbox" name="has_custom_name_color" value="1" {{ !empty($player->perks['has_custom_name_color']) ? 'checked' : '' }} class="rounded text-purple-600">
+                                                    <span>Kleur Naam</span>
+                                                </label>
+                                            </div>
+                                            <div class="flex items-center pt-3">
+                                                <label class="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 cursor-pointer">
+                                                    <input type="checkbox" name="has_sparkle_effect" value="1" {{ !empty($player->perks['has_sparkle_effect']) ? 'checked' : '' }} class="rounded text-purple-600">
+                                                    <span>Sparkle Effect</span>
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\SponsorAdController;
 use App\Models\Character;
 use App\Models\LotteryRound;
 use App\Models\LotteryTicket;
@@ -319,21 +320,20 @@ class SponsorRewardsTest extends TestCase
         $this->assertEquals(15, $newTicket->price_paid);
         $this->assertStringStartsWith('ADS-', $newTicket->ticket_number);
 
-        // Can immediately start watching again (unlimited!)
+        // If ads are disabled globally, start returns 403; otherwise 200
         $startRes = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'lottery_ticket']);
-        $startRes->assertStatus(200);
+        $expectedStatus = SponsorAdController::ADS_ENABLED ? 200 : 403;
+        $startRes->assertStatus($expectedStatus);
     }
 
-    public function test_lottery_index_shows_free_ads_tab_and_progress(): void
+    public function test_lottery_index_shows_cash_and_vip_sterren_tabs(): void
     {
         [$user, $character] = $this->createTestUser();
-        $character->update(['ad_lottery_progress' => 7]);
 
         $response = $this->actingAs($user)->get(route('lottery.index'));
         $response->assertStatus(200);
-        $response->assertSee('Gratis Loten via Sponsor Advertenties (15 Ads = 1 Lot)');
-        $response->assertSee('7 / 15 Ads Bekeken');
-        $response->assertSee('Onbeperkt Herhaalbaar');
+        $response->assertSee('Kopen met Contant Geld');
+        $response->assertSee('Kopen met VIP Sterren');
     }
 
     public function test_claim_succeeds_via_timer_even_when_robin_reward_id_exists_but_not_verified(): void

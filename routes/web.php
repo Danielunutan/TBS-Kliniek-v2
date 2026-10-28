@@ -10,6 +10,7 @@ use App\Http\Controllers\AdminTicketController;
 use App\Http\Controllers\ArmWrestleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankController;
+use App\Http\Controllers\BattlePassController;
 use App\Http\Controllers\BountyController;
 use App\Http\Controllers\BuyMeACoffeeWebhookController;
 use App\Http\Controllers\CasinoController;
@@ -88,6 +89,7 @@ use App\Http\Controllers\VipController;
 use App\Http\Controllers\WarningController;
 use App\Http\Middleware\EnsureUserIsOwner;
 use App\Http\Middleware\EnsureUserIsStaff;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Guest Authentication Routes
@@ -368,6 +370,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/liquidatie/zoeken', [HitmanController::class, 'search'])->name('hitman.search');
     Route::post('/liquidatie/contract', [HitmanController::class, 'contract'])->name('hitman.contract');
     Route::post('/liquidatie/schieten', [HitmanController::class, 'shoot'])->name('hitman.shoot');
+    Route::post('/liquidatie/koop-kogels', [HitmanController::class, 'buyBullets'])->name('hitman.buy_bullets');
+    Route::post('/liquidatie/koop-vest', [HitmanController::class, 'buyVest'])->name('hitman.buy_vest');
 
     // Kopgeld & Opsporingsbord (Bounty Hunter)
     Route::get('/kopgeld', [BountyController::class, 'index'])->name('bounties.index');
@@ -438,7 +442,20 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/winkel/{item}/kopen', [ShopController::class, 'buy'])->name('shop.buy');
     Route::post('/winkel/sterren-kopen', [ShopController::class, 'buyStarItem'])->name('shop.buy-star-item');
     Route::post('/winkel/bundel-kopen', [ShopController::class, 'buyBundle'])->name('shop.buy-bundle');
-    Route::post('/inventaris/{characterItem}/gebruiken', [ShopController::class, 'consume'])->name('shop.consume');
+    Route::post('/inventaris/{characterItem}/gebruiken', [ShopController::class, 'consume'])
+        ->name('shop.consume')
+        ->missing(function (Request $request) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dit voorwerp is al verbruikt of niet meer aanwezig in je inventaris.',
+                    'already_consumed' => true,
+                ], 200);
+            }
+
+            return redirect()->route('shop.index', ['tab' => 'inventaris'])
+                ->with('info', 'Dit voorwerp is al verbruikt of niet meer aanwezig in je inventaris.');
+        });
 
     // Permanente Karakter Perks (Sterren ⭐)
     Route::get('/perks', [PerkController::class, 'index'])->name('perks.index');
@@ -494,18 +511,25 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/gangs/depot', fn () => redirect()->route('gangs.index', ['tab' => 'depot']))->name('gangs.depot');
     Route::get('/gangs/leden', [GangController::class, 'leden'])->name('gangs.leden');
     Route::get('/gangs/beheer', [GangController::class, 'beheer'])->name('gangs.beheer');
-    Route::get('/gangs/instellingen', [GangController::class, 'instellingen'])->name('gangs.instellingen');
+    Route::get('/gangs/oprichten', fn () => redirect()->route('gangs.index', ['tab' => 'oprichten']))->name('gangs.oprichten');
+    Route::get('/bende/oprichten', fn () => redirect()->route('gangs.index', ['tab' => 'oprichten']));
     Route::post('/gangs/aanmaken', [GangController::class, 'create'])->name('gangs.create');
+    Route::post('/bende/aanmaken', [GangController::class, 'create']);
+    Route::post('/bende/oprichten', [GangController::class, 'create']);
+    Route::post('/gangs/create', [GangController::class, 'create']);
     Route::post('/gangs/{gang}/aansluiten', [GangController::class, 'join'])->name('gangs.join');
     Route::post('/gangs/{gang}/aanvragen', [GangController::class, 'requestJoin'])->name('gangs.request-join');
     Route::post('/gangs/verlaten', [GangController::class, 'leave'])->name('gangs.leave');
     Route::post('/gangs/doneren', [GangController::class, 'donate'])->name('gangs.donate');
+    Route::get('/gangs/doneren', fn () => redirect()->route('gangs.index', ['tab' => 'donaties']));
     Route::post('/gangs/doneren/sterren', [GangController::class, 'donateStars'])->name('gangs.donate-stars');
     Route::post('/gangs/doneren/maskers', [GangController::class, 'donateMasks'])->name('gangs.donate-masks');
     Route::post('/gangs/doneren/item', [GangController::class, 'donateItem'])->name('gangs.donate-item');
     Route::post('/gangs/depot/maskers-verkopen', [GangController::class, 'sellGangMasks'])->name('gangs.sell-masks');
     Route::post('/gangs/depot/item-verkopen/{gangItem}', [GangController::class, 'sellGangItem'])->name('gangs.sell-item');
     Route::post('/gangs/winkel/kopen', [GangController::class, 'buyShopItem'])->name('gangs.shop-buy');
+    Route::get('/gangs/winkel/kopen', fn () => redirect()->route('gangs.index', ['tab' => 'shop']));
+    Route::get('/gangs/winkel', fn () => redirect()->route('gangs.index', ['tab' => 'shop']));
     Route::post('/gangs/instellingen', [GangController::class, 'updateSettings'])->name('gangs.settings');
     Route::post('/gangs/kick/{member}', [GangController::class, 'kick'])->name('gangs.kick');
     Route::post('/gangs/promote/{member}', [GangController::class, 'promote'])->name('gangs.promote');
@@ -582,17 +606,25 @@ Route::middleware('auth')->group(function (): void {
     // Partner Minigame 1: 4 op 'n Rij met OOHPA Arjan
     Route::get('/vier-op-een-rij', [ConnectFourController::class, 'index'])->name('connect_four.index');
     Route::post('/vier-op-een-rij/finish', [ConnectFourController::class, 'finishGame'])->name('connect_four.finish');
+    Route::post('/vier-op-een-rij/skip-cooldown-stars', [ConnectFourController::class, 'skipCooldownWithStars'])->name('connect_four.skip_cooldown_stars');
     Route::post('/vier-op-een-rij/skip-cooldown-ad', [ConnectFourController::class, 'skipCooldownWithAd'])->name('connect_four.skip_cooldown_ad');
 
     // Partner Minigame 2: True Crime Dossiers met Caroline (500 Cold Cases)
     Route::get('/true-crime', [TrueCrimeController::class, 'index'])->name('true_crime.index');
     Route::post('/true-crime/solve', [TrueCrimeController::class, 'solve'])->name('true_crime.solve');
+    Route::post('/true-crime/skip-cooldown-stars', [TrueCrimeController::class, 'skipCooldownWithStars'])->name('true_crime.skip_cooldown_stars');
     Route::post('/true-crime/skip-cooldown-ad', [TrueCrimeController::class, 'skipCooldownWithAd'])->name('true_crime.skip_cooldown_ad');
 
     // Minigame: TBS Kliniek Memory (Extreem Geheugenspel met Rainbow)
     Route::get('/memory', [MemoryController::class, 'index'])->name('memory.index');
     Route::post('/memory/finish', [MemoryController::class, 'finish'])->name('memory.finish');
+    Route::post('/memory/skip-cooldown-stars', [MemoryController::class, 'skipCooldownWithStars'])->name('memory.skip_cooldown_stars');
     Route::post('/memory/skip-cooldown-ad', [MemoryController::class, 'skipCooldownWithAd'])->name('memory.skip_cooldown_ad');
+
+    // Seizoen 1: Battle Pass (4 Sporen: 1 Gratis + 3 VIP Tiers)
+    Route::get('/seizoen-1/battle-pass', [BattlePassController::class, 'index'])->name('battlepass.index');
+    Route::post('/seizoen-1/battle-pass/claim', [BattlePassController::class, 'claim'])->name('battlepass.claim');
+    Route::post('/seizoen-1/battle-pass/claim-alles', [BattlePassController::class, 'claimAll'])->name('battlepass.claim_all');
 
     // Staff Medewerkers Admin Panel
     Route::middleware(EnsureUserIsStaff::class)->prefix('admin')->name('admin.')->group(function (): void {
@@ -607,6 +639,11 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/kluis', [AdminController::class, 'updateVault'])->name('vault.update');
         Route::post('/kluis/nieuwe-code', [AdminController::class, 'randomizeVaultCode'])->name('vault.randomize');
         Route::get('/referrals', [AdminController::class, 'referrals'])->name('referrals');
+        Route::get('/buymeacoffee', [AdminController::class, 'buymeacoffee'])->name('buymeacoffee.index');
+        Route::post('/buymeacoffee/{order}/link', [AdminController::class, 'linkBuyMeACoffee'])->name('buymeacoffee.link');
+        Route::post('/buymeacoffee/{order}/regrant', [AdminController::class, 'regrantBuyMeACoffee'])->name('buymeacoffee.regrant');
+        Route::post('/buymeacoffee/{order}/cancel', [AdminController::class, 'cancelBuyMeACoffee'])->name('buymeacoffee.cancel');
+        Route::post('/buymeacoffee/handmatig', [AdminController::class, 'createBuyMeACoffeeManual'])->name('buymeacoffee.manual');
         Route::post('/systeem/migreren', [AdminController::class, 'runMigrations'])->name('system.migrate');
         Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets.index');
         Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');

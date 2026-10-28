@@ -184,10 +184,14 @@
                                 <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $sigCooldown) }}</span>
                                 </span>
-                                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_sigaretten')" title="Kijk Ad (Reset Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
-                                    <i class="fa-solid fa-tv text-[11px]"></i>
-                                    <span>Reset Ad</span>
-                                </button>
+                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
+                                    @csrf
+                                    <input type="hidden" name="action" value="produce_sigaretten">
+                                    <button type="submit" title="Omzeil cooldown met 20 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                        <i class="fa-solid fa-star text-[11px]"></i>
+                                        <span>Omzeilen (20 ⭐)</span>
+                                    </button>
+                                </form>
                             </div>
                             <div x-show="cd <= 0" style="{{ $sigCooldown <= 0 ? '' : 'display: none;' }}">
                                 <form action="{{ route('smuggle.produce') }}" method="POST">
@@ -242,10 +246,14 @@
                                 <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $ritCooldown) }}</span>
                                 </span>
-                                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_ritalin')" title="Kijk Ad (Reset Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
-                                    <i class="fa-solid fa-tv text-[11px]"></i>
-                                    <span>Reset Ad</span>
-                                </button>
+                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
+                                    @csrf
+                                    <input type="hidden" name="action" value="produce_ritalin">
+                                    <button type="submit" title="Omzeil cooldown met 35 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                        <i class="fa-solid fa-star text-[11px]"></i>
+                                        <span>Omzeilen (35 ⭐)</span>
+                                    </button>
+                                </form>
                             </div>
                             <div x-show="cd <= 0" style="{{ $ritCooldown <= 0 ? '' : 'display: none;' }}">
                                 <form action="{{ route('smuggle.produce') }}" method="POST">
@@ -300,10 +308,14 @@
                                 <span class="text-[11px] font-black text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/70 px-2.5 py-1 rounded-lg">
                                     <i class="fa-regular fa-clock mr-1"></i><span class="font-mono" x-text="format(cd)">{{ gmdate('i:s', $phoneCooldown) }}</span>
                                 </span>
-                                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown:produce_telefoon')" title="Kijk Ad (Reset Cooldown)" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
-                                    <i class="fa-solid fa-tv text-[11px]"></i>
-                                    <span>Reset Ad</span>
-                                </button>
+                                <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
+                                    @csrf
+                                    <input type="hidden" name="action" value="produce_telefoon">
+                                    <button type="submit" title="Omzeil cooldown met 50 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-lg text-xs shadow-xs transition cursor-pointer inline-flex items-center gap-1.5">
+                                        <i class="fa-solid fa-star text-[11px]"></i>
+                                        <span>Omzeilen (50 ⭐)</span>
+                                    </button>
+                                </form>
                             </div>
                             <div x-show="cd <= 0" style="{{ $phoneCooldown <= 0 ? '' : 'display: none;' }}">
                                 <form action="{{ route('smuggle.produce') }}" method="POST">
@@ -323,8 +335,8 @@
             </div>
 
             <div class="pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-medium flex items-center justify-between">
-                <span>Bekijk een korte sponsor video om cooldowns direct te ontgrendelen!</span>
-                <span class="font-mono text-amber-600 dark:text-amber-400 font-bold">⚡ Snelle Doorloop</span>
+                <span>Gebruik Sterren ⭐ om cooldowns direct over te slaan!</span>
+                <span class="font-mono text-amber-600 dark:text-amber-400 font-bold">⭐ Directe Doorloop</span>
             </div>
         </div>
 

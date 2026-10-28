@@ -133,9 +133,9 @@
                 </div>
                 <div x-show="activeSolver === 'energie'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
                     <p>• <strong>Wachten:</strong> Je energie herstelt automatisch elke 3 minuten.</p>
-                    <p>• <strong>Sponsorkamer:</strong> Bekijk 15s video's voor directe energie en beloningen.</p>
+                    <p>• <strong>Sterren Shop:</strong> Koop direct 100% Energie herstel met Sterren ⭐.</p>
                     <p>• <strong>Kantine:</strong> Koop snacks in de kliniekwinkel.</p>
-                    <a href="{{ route('sponsor.index') }}" class="inline-block mt-1 px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-[10px]">Naar Sponsorkamer &raquo;</a>
+                    <a href="{{ route('shop.index') }}" class="inline-block mt-1 px-3 py-1 bg-amber-500 text-slate-950 rounded-lg font-bold text-[10px]">Naar Sterren Shop &raquo;</a>
                 </div>
             </div>
 

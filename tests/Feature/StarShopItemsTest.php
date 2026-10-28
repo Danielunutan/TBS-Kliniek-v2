@@ -166,20 +166,68 @@ class StarShopItemsTest extends TestCase
         $this->assertGreaterThanOrEqual(15000, $code->reward_cash);
     }
 
-    public function test_insufficient_stars_returns_error(): void
+    public function test_character_can_purchase_bullets_50_with_stars(): void
     {
-        $character = $this->createCharacter('BrokePatient', [
-            'stars' => 2,
+        $character = $this->createCharacter('BulletShooter', [
+            'stars' => 70,
+            'bullets' => 10,
         ]);
 
         $response = $this->actingAs($character->user)->post(route('shop.buy-star-item'), [
-            'item_type' => 'full_restore',
+            'item_type' => 'bullets_50',
         ]);
 
         $response->assertRedirect();
-        $response->assertSessionHas('error');
+        $response->assertSessionHas('success');
 
         $character->refresh();
-        $this->assertEquals(2, $character->stars);
+        $this->assertEquals(20, $character->stars); // 70 - 50
+        $this->assertEquals(60, $character->bullets); // 10 + 50
+    }
+
+    public function test_character_can_purchase_bulletproof_vest_with_stars(): void
+    {
+        $character = $this->createCharacter('VestArmorGuy', [
+            'stars' => 200,
+            'vest_until' => null,
+        ]);
+
+        $response = $this->actingAs($character->user)->post(route('shop.buy-star-item'), [
+            'item_type' => 'bulletproof_vest',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $character->refresh();
+        $this->assertEquals(50, $character->stars); // 200 - 150
+        $this->assertTrue($character->hasVest());
+    }
+
+    public function test_character_can_purchase_bullets_and_vest_from_hitman_page(): void
+    {
+        $character = $this->createCharacter('HitmanBuyer', [
+            'stars' => 250,
+            'bullets' => 25,
+            'vest_until' => null,
+        ]);
+
+        // 1. Buy bullets via hitman route (50 stars)
+        $resp1 = $this->actingAs($character->user)->post(route('hitman.buy_bullets'));
+        $resp1->assertRedirect();
+        $resp1->assertSessionHas('success');
+
+        $character->refresh();
+        $this->assertEquals(200, $character->stars); // 250 - 50
+        $this->assertEquals(75, $character->bullets); // 25 + 50
+
+        // 2. Buy vest via hitman route (150 stars)
+        $resp2 = $this->actingAs($character->user)->post(route('hitman.buy_vest'));
+        $resp2->assertRedirect();
+        $resp2->assertSessionHas('success');
+
+        $character->refresh();
+        $this->assertEquals(50, $character->stars); // 200 - 150
+        $this->assertTrue($character->hasVest());
     }
 }

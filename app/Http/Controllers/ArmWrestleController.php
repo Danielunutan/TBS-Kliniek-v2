@@ -187,8 +187,30 @@ class ArmWrestleController extends Controller
             ], 422);
         }
 
+        $character->cooldownsMap = null;
         $remaining = $this->cooldownService->getRemainingSeconds($character, 'arm_wrestling');
         if ($remaining > 2) {
+            // Check if this is a duplicate submission for a match processed in the last 4 seconds
+            $recentMatch = ArmWrestleMatch::where('challenger_id', $character->id)
+                ->where('type', 'npc')
+                ->where('created_at', '>=', now()->subSeconds(2))
+                ->latest()
+                ->first();
+
+            if ($recentMatch) {
+                $isWinner = $recentMatch->winner_id === $character->id;
+
+                return response()->json([
+                    'success' => true,
+                    'won' => $isWinner,
+                    'title' => $isWinner ? 'KNAL! Tafelwinst!' : 'Verloren aan de Tafel...',
+                    'message' => $isWinner ? 'Je hebt dit duel gewonnen en de beloning ontvangen!' : 'Dit duel is verwerkt.',
+                    'cash' => $character->cash,
+                    'energy' => $character->energy,
+                    'cooldown' => $remaining,
+                ]);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => "Je spieren moeten nog even bijkomen van de vorige partij! Wacht nog {$remaining} seconden.",
@@ -228,6 +250,27 @@ class ArmWrestleController extends Controller
             }
 
             if ($lockedCharacter->energy < 5) {
+                // Check if this was caused by a duplicate request after energy was already deducted
+                $recentMatch = ArmWrestleMatch::where('challenger_id', $lockedCharacter->id)
+                    ->where('type', 'npc')
+                    ->where('created_at', '>=', now()->subSeconds(2))
+                    ->latest()
+                    ->first();
+
+                if ($recentMatch) {
+                    $isWinner = $recentMatch->winner_id === $lockedCharacter->id;
+
+                    return response()->json([
+                        'success' => true,
+                        'won' => $isWinner,
+                        'title' => $isWinner ? 'KNAL! Tafelwinst!' : 'Verloren aan de Tafel...',
+                        'message' => $isWinner ? 'Je hebt dit duel gewonnen en de beloning ontvangen!' : 'Dit duel is verwerkt.',
+                        'cash' => $lockedCharacter->cash,
+                        'energy' => $lockedCharacter->energy,
+                        'cooldown' => $this->cooldownService->getRemainingSeconds($lockedCharacter, 'arm_wrestling'),
+                    ]);
+                }
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Je hebt minimaal 5 Energie nodig om een armpjedrukduel aan te gaan!',
@@ -261,9 +304,15 @@ class ArmWrestleController extends Controller
             $npcPower = ($npc['npc_strength'] * 1.3) + ($npc['npc_stamina'] * 0.8);
 
             // Fair win verification:
-            // Client achieved victory with humanly possible clicks or sustained dominance
+            // Client achieved victory with reasonable clicks and duration
+            $minClicks = match ($npc['key']) {
+                'mike' => 8,
+                'bennie' => 5,
+                'karel' => 3,
+                default => 2,
+            };
             $clientWon = (bool) $validated['won'];
-            $isWon = $clientWon && ($effectiveClicks >= 1 || $durationMs >= 8000);
+            $isWon = $clientWon && $durationMs >= 1000 && ($effectiveClicks >= $minClicks || $durationMs >= 8000);
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);

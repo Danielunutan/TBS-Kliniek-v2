@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Character;
 use App\Models\CharacterItem;
+use App\Models\CharacterVehicle;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
@@ -332,7 +333,7 @@ class GangController extends Controller
     }
 
     /**
-     * Create a new gang (costs 25 Stars).
+     * Create a new gang (costs 25 Stars or €50.000 Cash).
      */
     public function create(Request $request): RedirectResponse
     {
@@ -348,19 +349,51 @@ class GangController extends Controller
             return back()->with('error', 'Je bent al lid van een bende. Verlaat eerst je huidige bende.');
         }
 
-        $starCost = 25;
-        if (($character->stars ?? 0) < $starCost) {
-            return back()->with('error', "Een bende oprichten kost {$starCost} Sterren ⭐! Je hebt momenteel {$character->stars} sterren.");
-        }
-
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:25', 'unique:gangs,name'],
             'tag' => ['required', 'string', 'min:2', 'max:4'],
             'specialty' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:300'],
+            'payment_method' => ['nullable', 'string', 'in:stars,cash'],
         ]);
 
-        $character->stars -= $starCost;
+        $starCost = 25;
+        $cashCost = 50000;
+        $paymentMethod = $validated['payment_method'] ?? (($character->stars ?? 0) >= $starCost ? 'stars' : 'cash');
+
+        if ($paymentMethod === 'cash') {
+            $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
+            if ($totalFunds < $cashCost) {
+                return back()->with('error', 'Een bende oprichten met geld kost €'.number_format($cashCost, 0, ',', '.').' contant of van de bank. Je hebt momenteel €'.number_format($totalFunds, 0, ',', '.').'.');
+            }
+
+            if ($character->cash >= $cashCost) {
+                $character->cash -= $cashCost;
+            } else {
+                $remaining = $cashCost - $character->cash;
+                $character->cash = 0;
+                $character->bank -= $remaining;
+            }
+        } else {
+            if (($character->stars ?? 0) < $starCost) {
+                $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
+                if ($totalFunds >= $cashCost) {
+                    // Automatically fallback to cash if user has cash
+                    if ($character->cash >= $cashCost) {
+                        $character->cash -= $cashCost;
+                    } else {
+                        $remaining = $cashCost - $character->cash;
+                        $character->cash = 0;
+                        $character->bank -= $remaining;
+                    }
+                } else {
+                    return back()->with('error', "Een bende oprichten kost {$starCost} Sterren ⭐ of €".number_format($cashCost, 0, ',', '.')." KliniekCash! Je hebt momenteel {$character->stars} sterren en €".number_format($totalFunds, 0, ',', '.').'.');
+                }
+            } else {
+                $character->stars -= $starCost;
+            }
+        }
+
         $character->save();
 
         $gang = Gang::create([
@@ -383,7 +416,10 @@ class GangController extends Controller
         $character->vip_expires_at = $currentExpiry->copy()->addDays(3);
         $character->save();
 
-        return back()->with('success', "Gefeliciteerd! Bende '{$gang->name}' [{$gang->tag}] is succesvol opgericht! Je ontvangt direct 3 dagen gratis VIP status ⭐!");
+        session()->flash('active_gang_tab', 'mijn_gang');
+
+        return redirect()->route('gangs.index', ['tab' => 'mijn_gang'])
+            ->with('success', "Gefeliciteerd! Bende '{$gang->name}' [{$gang->tag}] is succesvol opgericht! Je ontvangt direct 3 dagen gratis VIP status ⭐!");
     }
 
     /**
@@ -626,9 +662,27 @@ class GangController extends Controller
                 $nextMember->gang_role = 'leader';
                 $nextMember->save();
             } else {
+                CharacterVehicle::where('gang_id', $gang->id)
+                    ->where('in_gang_garage', true)
+                    ->update([
+                        'in_gang_garage' => false,
+                        'gang_id' => null,
+                        'stored_at' => null,
+                        'stored_by_character_id' => null,
+                    ]);
                 $gang->delete();
             }
         }
+
+        // Return all gang-stored vehicles owned by the departing character back to their personal garage
+        CharacterVehicle::where('character_id', $character->id)
+            ->where('in_gang_garage', true)
+            ->update([
+                'in_gang_garage' => false,
+                'gang_id' => null,
+                'stored_at' => null,
+                'stored_by_character_id' => null,
+            ]);
 
         $this->wageService->payoutPendingWages($character);
         $character->gang_id = null;
@@ -1006,6 +1060,16 @@ class GangController extends Controller
             return back()->with('error', 'Je kunt de bendeleider niet verwijderen.');
         }
 
+        // Return all gang-stored vehicles owned by the kicked member back to their personal garage
+        CharacterVehicle::where('character_id', $member->id)
+            ->where('in_gang_garage', true)
+            ->update([
+                'in_gang_garage' => false,
+                'gang_id' => null,
+                'stored_at' => null,
+                'stored_by_character_id' => null,
+            ]);
+
         $this->wageService->payoutPendingWages($member);
         $member->gang_id = null;
         $member->gang_role = 'none';
@@ -1226,6 +1290,16 @@ class GangController extends Controller
         if (! $gang || $character->gang_role !== 'leader') {
             return back()->with('error', 'Alleen de oprichter/leider kan de bende definitief opheffen!');
         }
+
+        // Return all vehicles stored in the disbanding gang garage back to their owners
+        CharacterVehicle::where('gang_id', $gang->id)
+            ->where('in_gang_garage', true)
+            ->update([
+                'in_gang_garage' => false,
+                'gang_id' => null,
+                'stored_at' => null,
+                'stored_by_character_id' => null,
+            ]);
 
         // Unlink all members
         $gang->members()->update([

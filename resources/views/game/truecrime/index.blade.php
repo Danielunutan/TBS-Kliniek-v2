@@ -77,35 +77,17 @@
                     </div>
 
                     <!-- Progress Bar & Segments -->
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                            <span>Sponsor-Ad Voortgang</span>
-                            <span class="text-purple-600 dark:text-purple-400 font-extrabold">{{ $adsWatched }}/5</span>
-                        </div>
-                        <div class="grid grid-cols-5 gap-1.5">
-                            @for ($i = 1; $i <= 5; $i++)
-                                <div class="h-2 rounded-full transition-all duration-300 {{ $adsWatched >= $i ? 'bg-gradient-to-r from-purple-500 to-indigo-500 shadow-xs' : 'bg-slate-200 dark:bg-slate-700' }}"></div>
-                            @endfor
-                        </div>
-                    </div>
-
-                    <button type="button" 
-                            onclick="if(window.tbsOpenSponsorAd) { window.tbsOpenSponsorAd('true_crime', () => { window.location.reload(); }); } else { window.location.href = '{{ route('sponsor.index') }}'; }" 
-                            class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-700 hover:to-indigo-800 active:scale-95 text-white font-black text-xs transition cursor-pointer shadow-lg shadow-purple-500/20 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play text-amber-300"></i>
-                        <span>
-                            @if ($adsWatched >= 4)
-                                Laatste Sponsor-Ad Kijken (5/5) &amp; Starten!
-                            @elseif ($adsWatched > 0)
-                                Volgende Sponsor-Ad Kijken ({{ $adsWatched + 1 }}/5)
-                            @else
-                                Sponsor-Ad Kijken (1/5)
-                            @endif
-                        </span>
-                    </button>
+                    <form action="{{ route('true_crime.skip_cooldown_stars') }}" method="POST" class="w-full">
+                        @csrf
+                        <button type="submit" 
+                                class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition cursor-pointer shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-star text-[12px]"></i>
+                            <span>Wachttijd Direct Overslaan (15 Sterren ⭐)</span>
+                        </button>
+                    </form>
                     
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                        Bekijk 5 korte sponsor video's om Caroline's 24-uurs wachttijd direct te omzeilen. Nog <strong class="text-purple-600 dark:text-purple-400 font-extrabold">{{ max(0, 5 - $adsWatched) }}</strong> {{ (5 - $adsWatched) === 1 ? 'advertentie' : 'advertenties' }} te gaan!
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed text-center">
+                        Geen zin om 24 uur te wachten? Sla de wachttijd direct over voor <strong>15 Sterren ⭐</strong> en start onmiddellijk het volgende dossier!
                     </p>
                 </div>
             </div>

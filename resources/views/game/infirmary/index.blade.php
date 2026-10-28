@@ -91,9 +91,14 @@
                     <span class="font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
                         <i class="fa-solid fa-clock text-amber-500"></i> Doseerschema actief: wacht nog {{ $takeCooldown }}s
                     </span>
-                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-[11px] transition shrink-0 cursor-pointer">
-                        Reset via Ad
-                    </button>
+                    <form method="POST" action="{{ route('cooldown.skip') }}" class="inline">
+                        @csrf
+                        <input type="hidden" name="action" value="infirmary_take">
+                        <button type="submit" class="btn-star-gold px-3 py-1 rounded-lg text-slate-900 dark:text-white font-black text-[11px] transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95">
+                            <i class="fa-solid fa-star text-[10px]"></i>
+                            <span>Omzeilen (10 ⭐)</span>
+                        </button>
+                    </form>
                 </div>
                 @endif
             </div>
@@ -157,9 +162,14 @@
                         <i class="fa-solid fa-eye text-amber-500"></i> Ingrid let scherp op: wacht nog {{ $palmCooldown }}s
                     </span>
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="window.tbsOpenSponsorAd('cooldown')" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-black text-xs transition shrink-0 cursor-pointer shadow-xs">
-                            Kijk Ad (Reset Cooldown)
-                        </button>
+                        <form method="POST" action="{{ route('cooldown.skip') }}" class="inline">
+                            @csrf
+                            <input type="hidden" name="action" value="infirmary_palm">
+                            <button type="submit" class="btn-star-gold px-3 py-1.5 rounded-lg text-slate-900 dark:text-white font-black text-xs transition shrink-0 cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95">
+                                <i class="fa-solid fa-star text-[10px]"></i>
+                                <span>Omzeilen (10 ⭐)</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 @endif

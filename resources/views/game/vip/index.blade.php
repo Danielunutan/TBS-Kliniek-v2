@@ -385,7 +385,7 @@
                         </div>
                         <div class="p-6 pt-0">
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'VIP LIFETIME (€125 eenmalig)')"
-                               class="w-full block text-center py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-purple-950 font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg cursor-pointer">
+                               class="btn-star-gold w-full block text-center py-3.5 rounded-xl text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider hover:brightness-110 transition shadow-lg cursor-pointer">
                                 Neem Lifetime VIP (€125)
                             </button>
                         </div>
@@ -446,7 +446,7 @@
                                 </ul>
                             </div>
                             <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '3x Bakkie Koffie (€9)')"
-                               class="block w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-purple-950 font-black text-xs shadow-xs transition cursor-pointer">
+                               class="btn-star-gold block w-full py-2.5 rounded-xl text-slate-900 dark:text-white font-black text-xs shadow-xs transition cursor-pointer">
                                 Doneer 3 Koffies (€9)
                             </button>
                         </div>
@@ -648,17 +648,19 @@
                                     'iconColor' => 'text-rose-500 bg-rose-50 dark:bg-rose-950/60',
                                 ],
                                 [
-                                    'type' => 'vip_extend_24h',
-                                    'name' => '+24 Uur VIP Status',
-                                    'cost' => 20,
-                                    'desc' => 'Verleng je huidige VIP status direct met 24 uur.',
-                                    'icon' => 'fa-crown',
-                                    'iconColor' => 'text-purple-500 bg-purple-50 dark:bg-purple-950/60',
+                                    'type' => 'week_vip_stars',
+                                    'name' => '+1 Week VIP Status',
+                                    'cost' => 500,
+                                    'currency' => 'stars',
+                                    'desc' => 'Activeer of verleng direct 7 dagen VIP status voor 500 Gouden Sterren!',
+                                    'icon' => 'fa-star',
+                                    'iconColor' => 'text-amber-500 bg-amber-50 dark:bg-amber-950/60',
                                 ],
                                 [
                                     'type' => 'vip_lootbag',
                                     'name' => 'VIP Buitpakket (XXL Cases + €500.000)',
                                     'cost' => 25,
+                                    'currency' => 'vip_points',
                                     'desc' => '2x XXL Zaak Kisten en €500.000 contant geld.',
                                     'icon' => 'fa-briefcase',
                                     'iconColor' => 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/60',
@@ -667,6 +669,7 @@
                                     'type' => 'stars_pack',
                                     'name' => '100 Exclusieve Sterren',
                                     'cost' => 30,
+                                    'currency' => 'vip_points',
                                     'desc' => 'Direct +100 sterren voor winkelaankopen en upgrades.',
                                     'icon' => 'fa-star',
                                     'iconColor' => 'text-amber-500 bg-amber-50 dark:bg-amber-950/60',
@@ -675,6 +678,12 @@
                         @endphp
 
                         @foreach($redeemOptions as $opt)
+                            @php 
+                                $isStars = ($opt['currency'] ?? 'vip_points') === 'stars';
+                                $canAfford = $isStars 
+                                    ? (($character->stars ?? 0) >= $opt['cost']) 
+                                    : (($character->vip_points ?? 0) >= $opt['cost']);
+                            @endphp
                             <div class="p-5 rounded-2xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/60 flex flex-col justify-between gap-4">
                                 <div class="flex items-start gap-3.5">
                                     <div class="w-10 h-10 rounded-xl {{ $opt['iconColor'] }} flex items-center justify-center text-lg shrink-0">
@@ -686,15 +695,15 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-purple-900/60">
-                                    <span class="text-xs font-black text-amber-600 dark:text-amber-400 flex items-center gap-1 font-mono">
-                                        <span>{{ $opt['cost'] }} VIP Punten</span>
+                                    <span class="text-xs font-black {{ $isStars ? 'text-amber-500' : 'text-amber-600 dark:text-amber-400' }} flex items-center gap-1 font-mono">
+                                        <span>{{ $opt['cost'] }} {{ $isStars ? 'Sterren ⭐' : 'VIP Punten' }}</span>
                                     </span>
                                     <form method="POST" action="{{ route('vip.redeem') }}">
                                         @csrf
                                         <input type="hidden" name="reward_type" value="{{ $opt['type'] }}">
                                         <button type="submit" 
-                                                {{ ($character->vip_points ?? 0) < $opt['cost'] ? 'disabled' : '' }}
-                                                class="px-4 py-1.5 rounded-lg text-xs font-black transition {{ ($character->vip_points ?? 0) >= $opt['cost'] ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-xs cursor-pointer' : 'bg-slate-200 dark:bg-purple-950/80 text-slate-400 cursor-not-allowed' }}">
+                                                {{ ! $canAfford ? 'disabled' : '' }}
+                                                class="px-4 py-1.5 rounded-lg text-xs font-black transition {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-xs cursor-pointer' : 'bg-slate-200 dark:bg-purple-950/80 text-slate-400 cursor-not-allowed' }}">
                                             Inwisselen
                                         </button>
                                     </form>
@@ -740,7 +749,7 @@
                         <span class="text-xs font-black text-amber-700 dark:text-amber-400">Automatische Koppeling</span>
                     </div>
                     <p class="text-xs text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
-                        Vul bij Buy Me a Coffee in het veld <strong>"Name or say something nice"</strong> (bericht/notitie) exact jouw spelersnaam of koppelcode in:
+                        Vul bij Buy Me a Coffee in het <strong>BERICHT-veld ("Say something nice")</strong> en <strong>NIET als naam</strong> exact jouw spelersnaam of koppelcode in:
                     </p>
                     
                     <div class="flex items-center gap-2 bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-amber-300 dark:border-amber-600/60 shadow-inner">
@@ -753,8 +762,8 @@
                             <span x-text="copiedName ? 'Gekopieerd!' : 'Kopieer'"></span>
                         </button>
                     </div>
-                    <p class="text-[11px] text-amber-800 dark:text-amber-300">
-                        💡 <em>Onze webhook koppelt deze naam en activeert je VIP status, sterren en beloningen direct binnen enkele seconden!</em>
+                    <p class="text-[11px] text-amber-800 dark:text-amber-300 font-bold">
+                        ⚠️ Belangrijk: Het veld "Name" mag je eigen voornaam zijn, maar het veld <u>Say something nice (Bericht)</u> moet jouw spelersnaam of code bevatten! Onze webhook leest namelijk het bericht-veld uit.
                     </p>
                 </div>
 

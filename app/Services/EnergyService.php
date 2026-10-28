@@ -29,9 +29,17 @@ class EnergyService
 
         $secondsElapsed = $now->diffInSeconds($lastRefill);
 
-        if ($secondsElapsed >= self::REGEN_SECONDS) {
-            $pointsToRegen = (int) floor($secondsElapsed / self::REGEN_SECONDS);
-            $leftoverSeconds = $secondsElapsed % self::REGEN_SECONDS;
+        $regenInterval = match ($character->getSupporterTier()) {
+            4 => 120, // Tier 4 / Lifetime: 2 min per punt (60% sneller)
+            3 => 120, // Tier 3 Baas: 2 min per punt (60% sneller)
+            2 => 150, // Tier 2 Elite: 2.5 min per punt (50% sneller)
+            1 => 180, // Tier 1 VIP: 3 min per punt (40% sneller)
+            default => $character->isVip() ? 180 : self::REGEN_SECONDS,
+        };
+
+        if ($secondsElapsed >= $regenInterval) {
+            $pointsToRegen = (int) floor($secondsElapsed / $regenInterval);
+            $leftoverSeconds = $secondsElapsed % $regenInterval;
 
             $newEnergy = min($character->max_energy, $character->energy + $pointsToRegen);
             $newHealth = min($character->max_health, $character->health + $pointsToRegen);
