@@ -1002,7 +1002,7 @@
                         btn.type = 'button';
                         btn.dataset.favUrl = href;
                         btn.title = 'Favoriet maken voor Snelle Toegang ⭐';
-                        btn.className = 'ml-auto pl-1.5 text-[11px] transition shrink-0 cursor-pointer focus:outline-none';
+                        btn.className = 'text-[11px] transition shrink-0 cursor-pointer focus:outline-none';
                         btn.addEventListener('click', (e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -1012,7 +1012,26 @@
                                 icon: iconClass
                             });
                         });
-                        a.appendChild(btn);
+
+                        const existingBadgeWrap = a.querySelector('.nav-badge-wrap');
+                        if (existingBadgeWrap) {
+                            existingBadgeWrap.appendChild(btn);
+                        } else {
+                            const children = Array.from(a.children).filter(el => el.tagName !== 'SCRIPT' && !el.matches('button[data-fav-url]'));
+                            if (children.length >= 2 && (a.classList.contains('justify-between') || children[0].tagName === 'DIV')) {
+                                const badgeWrap = document.createElement('div');
+                                badgeWrap.className = 'nav-badge-wrap flex items-center gap-1.5 shrink-0 ml-auto pl-1';
+                                for (let i = 1; i < children.length; i++) {
+                                    badgeWrap.appendChild(children[i]);
+                                }
+                                badgeWrap.appendChild(btn);
+                                a.classList.add('gap-2');
+                                a.appendChild(badgeWrap);
+                            } else {
+                                btn.classList.add('ml-auto', 'pl-1.5');
+                                a.appendChild(btn);
+                            }
+                        }
                     });
                     this.refreshStarButtons();
                 },
@@ -1131,26 +1150,26 @@
                     <i class="fa-solid fa-gauge w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="{{ route('chat.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('chat.*') ? 'nav-item-active bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                    <div class="flex items-center gap-3">
+                <a href="{{ route('chat.index') }}" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition {{ request()->routeIs('chat.*') ? 'nav-item-active bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <div class="flex items-center gap-3 min-w-0">
                         <i class="fa-solid fa-comments w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
-                        <span>Live Chat</span>
+                        <span class="truncate">Live Chat</span>
                     </div>
                     @php
                         $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
                     @endphp
                     @if($unreadChatCount > 0)
-                        <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full animate-pulse">{{ $unreadChatCount }}</span>
+                        <span class="bg-emerald-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full leading-none shrink-0 animate-pulse">{{ $unreadChatCount }}</span>
                     @else
-                        <span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">Live</span>
+                        <span class="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide shrink-0">Live</span>
                     @endif
                 </a>
-                <a href="{{ route('cinema.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('cinema.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                    <div class="flex items-center gap-3">
+                <a href="{{ route('cinema.index') }}" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition {{ request()->routeIs('cinema.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                    <div class="flex items-center gap-3 min-w-0">
                         <i class="fa-solid fa-film w-4 text-center text-purple-500 dark:text-purple-400"></i>
-                        <span>Cinema Watchparties</span>
+                        <span class="truncate">Cinema Watchparties</span>
                     </div>
-                    <span class="bg-gradient-to-r from-purple-500 to-amber-500 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide shadow-2xs">NIEUW</span>
+                    <span class="bg-gradient-to-r from-purple-500 to-amber-500 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide shadow-2xs shrink-0">NIEUW</span>
                 </a>
             </div>
 
@@ -1237,7 +1256,7 @@
                     </span>
                     <div class="flex items-center gap-1.5">
                         @if($character->gang)
-                            <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800">
+                            <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-1.5 py-0.5 leading-none rounded border border-purple-200 dark:border-purple-800">
                                 [{{ $character->gang->tag }}]
                             </span>
                         @endif
@@ -2070,7 +2089,7 @@
                                                     <span class="font-black text-xs text-slate-900 dark:text-white truncate" title="{{ $item->name }}">
                                                         {{ $item->name }}
                                                     </span>
-                                                    <span data-item-qty class="bg-slate-200 dark:bg-purple-900 text-slate-700 dark:text-purple-200 text-[10px] font-black px-1.5 py-0.2 rounded-md shrink-0">
+                                                    <span data-item-qty class="bg-slate-200 dark:bg-purple-900 text-slate-700 dark:text-purple-200 text-[10px] font-black px-1.5 py-0.5 leading-none rounded-md shrink-0">
                                                         x{{ $ci->quantity }}
                                                     </span>
                                                 </div>
