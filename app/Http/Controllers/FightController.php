@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bounty;
 use App\Models\Character;
+use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Services\CooldownService;
 use App\Services\DailyBattleService;
@@ -311,6 +312,18 @@ class FightController extends Controller
                 'title' => 'Bestolen op de luchtplaats!',
                 'message' => $notificationMessage,
             ]);
+
+            if ($stolenCash > 0) {
+                GameMessage::create([
+                    'recipient_id' => $defender->id,
+                    'sender_id' => $attacker->id,
+                    'sender_name' => 'Kliniek Beveiliging Alert',
+                    'subject' => '🚨 ALARM: Bestolen op de Luchtplaats!',
+                    'content' => "Patiënt {$defender->name},\n\nTerwijl je op de Luchtplaats stond, heeft {$attacker->name} je zojuist overmeesterd en €"
+                        .number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'.($claimedBountyCash > 0 ? "\n\nTevens is het openstaande kopgeld van €".number_format($claimedBountyCash, 0, ',', '.').' op jouw hoofd geïncasseerd!' : '')."\n\nTip: Breng je geld regelmatig in veiligheid bij de Geldmaat.",
+                    'type' => 'theft',
+                ]);
+            }
 
             session()->flash('arena_battle', [
                 'attacker_id' => $attacker->id,

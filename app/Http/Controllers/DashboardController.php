@@ -541,19 +541,32 @@ class DashboardController extends Controller
             ];
         });
 
-        // Check for urgent unread notifications (e.g. attacked/robbed on Luchtplaats, prison, hitman) within the last 120 seconds
-        $latestAlert = GameNotification::where('character_id', $character->id)
+        // Check for urgent unread notifications (e.g. attacked/robbed on Luchtplaats, prison, hitman)
+        $unreadAlerts = GameNotification::where('character_id', $character->id)
             ->where('is_read', false)
             ->whereIn('type', ['theft', 'bounty_claimed', 'prison', 'hitman_hit', 'attack'])
-            ->where('created_at', '>=', now()->subSeconds(120))
-            ->latest('id')
-            ->first();
+            ->where('created_at', '>=', now()->subHours(24))
+            ->orderByDesc('id')
+            ->get();
 
-        if ($latestAlert) {
+        if ($unreadAlerts->isNotEmpty()) {
+            $latestAlert = $unreadAlerts->first();
+            $timeStr = $latestAlert->created_at ? $latestAlert->created_at->format('H:i') : '';
+            $message = (string) $latestAlert->message;
+
+            if ($timeStr && ! str_contains($message, 'om ')) {
+                $message .= " (om {$timeStr} uur)";
+            }
+
+            $count = $unreadAlerts->count();
+            if ($count > 1) {
+                $message .= ' — (+'.($count - 1).' eerdere meldingen)';
+            }
+
             $data['alert'] = [
                 'id' => (int) $latestAlert->id,
                 'title' => (string) $latestAlert->title,
-                'message' => (string) $latestAlert->message,
+                'message' => $message,
                 'icon' => (string) $latestAlert->icon,
                 'type' => match ($latestAlert->type) {
                     'theft', 'hitman_hit', 'attack' => 'danger',
@@ -562,7 +575,9 @@ class DashboardController extends Controller
                     default => 'info',
                 },
             ];
-            $latestAlert->update(['is_read' => true]);
+
+            // Mark all pending alerts as read so they don't trickle in 1-by-1 every 10 seconds causing confusion
+            GameNotification::whereIn('id', $unreadAlerts->pluck('id'))->update(['is_read' => true]);
         }
 
         return response()->json($data);
