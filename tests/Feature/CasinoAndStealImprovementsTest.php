@@ -115,4 +115,36 @@ class CasinoAndStealImprovementsTest extends TestCase
             $this->assertArrayHasKey('message', $res);
         }
     }
+
+    public function test_protected_victim_cannot_be_robbed(): void
+    {
+        $theftService = app(TheftService::class);
+
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $attacker = $user->character;
+        $target = Character::where('id', '!=', $attacker->id)->first();
+
+        $attacker->update([
+            'energy' => 100,
+            'cash' => 100,
+            'is_in_prison' => false,
+            'level' => 5,
+        ]);
+
+        $target->update([
+            'cash' => 50000,
+            'protection_until' => now()->addHours(24),
+            'is_in_prison' => false,
+            'level' => 5,
+        ]);
+
+        $res = $theftService->stealFromInmate($attacker, $target);
+
+        $this->assertFalse($res['success']);
+        $this->assertStringContainsString('actieve cash-bescherming', $res['message']);
+        $this->assertEquals(0, $res['cash_stolen']);
+
+        $target->refresh();
+        $this->assertEquals(50000, $target->cash);
+    }
 }

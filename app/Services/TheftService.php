@@ -152,6 +152,22 @@ class TheftService
                 ];
             }
 
+            if ($victim->isProtected()) {
+                $remaining = $victim->protection_until->diffForHumans(null, true);
+
+                return [
+                    'success' => false,
+                    'message' => "{$victim->name} heeft actieve cash-bescherming (nog {$remaining}) en kan momenteel niet worden bestolen!",
+                    'cash_stolen' => 0,
+                    'xp_gained' => 0,
+                    'jailed' => false,
+                    'jail_minutes' => 0,
+                ];
+            }
+
+            // Attacker breaks own protection when initiating theft
+            $character->breakProtection();
+
             // Daily PvP attack limit: 100 per day (1000 for VIP)
             $dailyKey = 'pvp_thefts_today_'.$character->id.'_'.now()->toDateString();
             $dailyCount = cache()->get($dailyKey, 0);
