@@ -212,6 +212,6 @@ class LiquidatiePvPAndComaTest extends TestCase
         $this->assertNotNull($latestPinned);
         $this->assertStringContainsString('Liquidatie 2.0', $latestPinned->title);
         $this->assertStringContainsString('45% van het contante geld', $latestPinned->content);
-        $this->assertStringContainsString('7% van de bankrekening', $latestPinned->content);
+        $this->assertStringContainsString('7% van het geld op de bankrekening', $latestPinned->content);
     }
 }
