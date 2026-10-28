@@ -13,7 +13,7 @@ use Illuminate\View\View;
 
 class BattlePassController extends Controller
 {
-    public const MAX_PASS_LEVEL = 60;
+    public const MAX_PASS_LEVEL = 150;
 
     public function __construct(
         protected EnergyService $energyService,
@@ -21,7 +21,7 @@ class BattlePassController extends Controller
     ) {}
 
     /**
-     * Get the full configuration of the 3-Month Season Battle Pass (60 Levels, 4 Tracks: FREE, VIP 1, VIP 2, VIP 3).
+     * Get the full configuration of the Season Battle Pass (150 Levels, 4 Tracks: FREE, TBS V.I.P. Lid, Gangster Elite V.I.P., Kliniek Baas V.I.P.).
      * Rewards feature scarce Stars, minimal Masks, Vault Codes (Kluiscodex), XP, Respect, Cash/Bank, and Strength (Kracht).
      *
      * @return array<int, array{level: int, req_level: int, req_respect: int, tracks: array<string, array{title: string, icon: string, rewards: array<string, int>, summary: string}>}>
@@ -44,58 +44,59 @@ class BattlePassController extends Controller
         ];
 
         $vip1Titles = [
-            1 => ['VIP 1 Smokkel Start', 'fa-star'],
-            2 => ['VIP 1 Spierkracht & Cash', 'fa-dumbbell'],
-            3 => ['VIP 1 Kluiscodex Decoder', 'fa-key'],
-            4 => ['VIP 1 Dossier XP & Respect', 'fa-bolt'],
-            5 => ['VIP 1 Mijlpaal Koffer', 'fa-briefcase'],
-            6 => ['VIP 1 Witwas Storting', 'fa-building-columns'],
-            7 => ['VIP 1 Zware Training', 'fa-dumbbell'],
-            8 => ['VIP 1 Dubbele Kluiscodex', 'fa-unlock-keyhole'],
-            9 => ['VIP 1 Paviljoen Aanzien', 'fa-handshake-simple'],
-            0 => ['VIP 1 Hoofdmijlpaal Pakket', 'fa-crown'],
+            1 => ['TBS V.I.P. Lid Startpakket', 'fa-star'],
+            2 => ['TBS V.I.P. Lid Spierkracht', 'fa-dumbbell'],
+            3 => ['TBS V.I.P. Lid Kluiscodex', 'fa-key'],
+            4 => ['TBS V.I.P. Lid Dossier XP', 'fa-bolt'],
+            5 => ['TBS V.I.P. Lid Mijlpaal Koffer', 'fa-briefcase'],
+            6 => ['TBS V.I.P. Lid Witwas Storting', 'fa-building-columns'],
+            7 => ['TBS V.I.P. Lid Zware Training', 'fa-dumbbell'],
+            8 => ['TBS V.I.P. Lid Dubbele Codex', 'fa-unlock-keyhole'],
+            9 => ['TBS V.I.P. Lid Paviljoen Aanzien', 'fa-handshake-simple'],
+            0 => ['TBS V.I.P. Lid Hoofdmijlpaal', 'fa-crown'],
         ];
 
         $vip2Titles = [
-            1 => ['VIP 2 Elite Kapitaal', 'fa-gem'],
-            2 => ['VIP 2 Kracht & Anabolen', 'fa-dumbbell'],
-            3 => ['VIP 2 Master Kluiscodex', 'fa-key'],
-            4 => ['VIP 2 Syndicaat XP & Status', 'fa-fire-flame-curved'],
-            5 => ['VIP 2 Elite Mijlpaal', 'fa-box-open'],
-            6 => ['VIP 2 Off-Shore Bank', 'fa-vault'],
-            7 => ['VIP 2 Boksring Dominant', 'fa-hand-fist'],
-            8 => ['VIP 2 Elektronische Codex', 'fa-microchip'],
-            9 => ['VIP 2 Onderwereld Respect', 'fa-award'],
-            0 => ['VIP 2 Gangster Elite Kist', 'fa-gem'],
+            1 => ['Gangster Elite Kapitaal', 'fa-gem'],
+            2 => ['Gangster Elite Kracht & Anabolen', 'fa-dumbbell'],
+            3 => ['Gangster Elite Master Kluiscodex', 'fa-key'],
+            4 => ['Gangster Elite Syndicaat XP', 'fa-fire-flame-curved'],
+            5 => ['Gangster Elite Mijlpaal', 'fa-box-open'],
+            6 => ['Gangster Elite Off-Shore Bank', 'fa-vault'],
+            7 => ['Gangster Elite Boksring Dominant', 'fa-hand-fist'],
+            8 => ['Gangster Elite Elektronische Codex', 'fa-microchip'],
+            9 => ['Gangster Elite Onderwereld Respect', 'fa-award'],
+            0 => ['Gangster Elite Hoofdkist', 'fa-gem'],
         ];
 
         $vip3Titles = [
-            1 => ['VIP 3 Baas Imperium', 'fa-crown'],
-            2 => ['VIP 3 Titanen Kracht', 'fa-dumbbell'],
-            3 => ['VIP 3 Directeur Kluiscodex', 'fa-key'],
-            4 => ['VIP 3 Meesterbrein XP', 'fa-bolt-lightning'],
-            5 => ['VIP 3 Syndicaat Kluiskist', 'fa-box-open'],
-            6 => ['VIP 3 Zwarte Bankrekening', 'fa-sack-dollar'],
-            7 => ['VIP 3 Onverslaanbare Kracht', 'fa-hand-fist'],
-            8 => ['VIP 3 Hoofdkluis Codex', 'fa-fingerprint'],
-            9 => ['VIP 3 Kliniek Autoriteit', 'fa-dragon'],
-            0 => ['VIP 3 Kliniek Baas Trofee', 'fa-trophy'],
+            1 => ['Kliniek Baas Imperium', 'fa-crown'],
+            2 => ['Kliniek Baas Titanen Kracht', 'fa-dumbbell'],
+            3 => ['Kliniek Baas Directeur Kluiscodex', 'fa-key'],
+            4 => ['Kliniek Baas Meesterbrein XP', 'fa-bolt-lightning'],
+            5 => ['Kliniek Baas Syndicaat Kluiskist', 'fa-box-open'],
+            6 => ['Kliniek Baas Zwarte Bankrekening', 'fa-sack-dollar'],
+            7 => ['Kliniek Baas Onverslaanbare Kracht', 'fa-hand-fist'],
+            8 => ['Kliniek Baas Hoofdkluis Codex', 'fa-fingerprint'],
+            9 => ['Kliniek Baas Autoriteit', 'fa-dragon'],
+            0 => ['Kliniek Baas Trofee', 'fa-trophy'],
         ];
 
         for ($lvl = 1; $lvl <= self::MAX_PASS_LEVEL; $lvl++) {
             $mod = $lvl % 10;
             $isMilestone5 = ($lvl % 5 === 0);
             $isMilestone10 = ($lvl % 10 === 0);
+            $isMilestone25 = ($lvl % 25 === 0);
             $isFinale = ($lvl === self::MAX_PASS_LEVEL);
 
-            // Smooth 3-month respect recommendation curve (0 up to ~45.000 at level 60)
-            $reqRespect = $lvl === 1 ? 0 : (int) round(12 * ($lvl ** 2) / 25) * 25;
+            // Smooth respect recommendation curve across 150 levels
+            $reqRespect = $lvl === 1 ? 0 : (int) round(8 * ($lvl ** 1.85) / 25) * 25;
 
-            // Base scaling values per level
-            $baseCash = 1500 + ($lvl * 1500) + ((int) floor($lvl / 10) * 5000);
-            $baseXp = 60 + ($lvl * 35);
-            $baseRespect = 5 + (int) floor($lvl * 1.5);
-            $baseStrength = 2 + (int) floor($lvl / 3);
+            // Base scaling values per level (1..150)
+            $baseCash = 1200 + ($lvl * 1250) + ((int) floor($lvl / 15) * 4500);
+            $baseXp = 50 + ($lvl * 30);
+            $baseRespect = 5 + (int) floor($lvl * 1.2);
+            $baseStrength = 2 + (int) floor($lvl / 4);
 
             // -------------------------
             // TRACK 1: FREE PASS
@@ -103,57 +104,63 @@ class BattlePassController extends Controller
             $freeRewards = [];
             if ($isFinale) {
                 $freeRewards = [
-                    'cash' => 150000,
-                    'xp' => 3500,
-                    'strength' => 40,
-                    'respect' => 150,
-                    'vault_tokens' => 4,
-                    'stars' => 5,
+                    'cash' => 350000,
+                    'xp' => 7500,
+                    'strength' => 80,
+                    'respect' => 300,
+                    'vault_tokens' => 5,
+                    'stars' => 10,
                     'masks' => 1,
+                ];
+            } elseif ($isMilestone25) {
+                $freeRewards = [
+                    'cash' => (int) round($baseCash * 2.2),
+                    'xp' => (int) round($baseXp * 1.6),
+                    'respect' => $baseRespect + 20,
+                    'strength' => $baseStrength + 6,
+                    'vault_tokens' => 2,
+                    'stars' => 3,
+                    'masks' => $lvl === 75 ? 1 : 0,
                 ];
             } elseif ($isMilestone10) {
                 $freeRewards = [
-                    'cash' => $baseCash * 2,
-                    'xp' => (int) round($baseXp * 1.5),
-                    'respect' => $baseRespect + 15,
+                    'cash' => (int) round($baseCash * 1.8),
+                    'xp' => (int) round($baseXp * 1.4),
+                    'respect' => $baseRespect + 12,
                     'strength' => $baseStrength + 4,
                     'vault_tokens' => 2,
                     'stars' => 2,
                 ];
             } elseif ($isMilestone5) {
                 $freeRewards = [
-                    'cash' => (int) round($baseCash * 1.4),
+                    'cash' => (int) round($baseCash * 1.35),
                     'xp' => $baseXp,
-                    'respect' => $baseRespect + 8,
+                    'respect' => $baseRespect + 6,
                     'vault_tokens' => 1,
                     'stars' => 1,
                     'unopened_bags' => 1,
                 ];
             } elseif (in_array($mod, [2, 7], true)) {
-                // Kracht + Cash + XP focus
                 $freeRewards = [
                     'cash' => $baseCash,
                     'strength' => $baseStrength,
                     'xp' => $baseXp,
                 ];
             } elseif (in_array($mod, [3, 8], true)) {
-                // Kluiscodex + Respect + XP focus
                 $freeRewards = [
                     'cash' => $baseCash,
                     'vault_tokens' => 1,
                     'respect' => $baseRespect,
-                    'xp' => (int) round($baseXp * 0.8),
+                    'xp' => (int) round($baseXp * 0.85),
                 ];
             } elseif (in_array($mod, [4, 9], true)) {
-                // Respect + Kracht + XP focus
                 $freeRewards = [
                     'cash' => $baseCash,
                     'respect' => $baseRespect + 5,
-                    'strength' => max(2, (int) round($baseStrength * 0.8)),
+                    'strength' => max(2, (int) round($baseStrength * 0.85)),
                     'xp' => $baseXp,
                 ];
             } else {
-                // Standard Level (1, 6): Cash + XP + Energy/Respect
                 $freeRewards = [
                     'cash' => $baseCash,
                     'xp' => $baseXp,
@@ -161,42 +168,52 @@ class BattlePassController extends Controller
                     'energy' => 30 + ($lvl % 4) * 10,
                 ];
             }
+            $freeRewards = array_filter($freeRewards, fn (int $v): bool => $v > 0);
 
             // -------------------------
-            // TRACK 2: VIP 1 PASS
+            // TRACK 2: TBS V.I.P. LID (VIP 1)
             // -------------------------
             $vip1Cash = $baseCash * 2;
             $vip1Xp = (int) round($baseXp * 1.5);
-            $vip1Respect = (int) round($baseRespect * 1.8);
+            $vip1Respect = (int) round($baseRespect * 1.75);
             $vip1Strength = (int) round($baseStrength * 1.6);
 
             if ($isFinale) {
                 $vip1Rewards = [
-                    'cash' => 350000,
-                    'xp' => 5500,
-                    'strength' => 65,
-                    'respect' => 250,
-                    'vault_tokens' => 6,
-                    'stars' => 12,
+                    'cash' => 750000,
+                    'xp' => 12000,
+                    'strength' => 125,
+                    'respect' => 500,
+                    'vault_tokens' => 8,
+                    'stars' => 20,
+                    'masks' => 1,
+                ];
+            } elseif ($isMilestone25) {
+                $vip1Rewards = [
+                    'cash' => (int) round($vip1Cash * 1.8),
+                    'xp' => $vip1Xp,
+                    'strength' => $vip1Strength + 8,
+                    'respect' => $vip1Respect + 25,
+                    'vault_tokens' => 3,
+                    'stars' => 5,
                     'masks' => 1,
                 ];
             } elseif ($isMilestone10) {
                 $vip1Rewards = [
-                    'cash' => (int) round($vip1Cash * 1.6),
+                    'cash' => (int) round($vip1Cash * 1.5),
                     'xp' => $vip1Xp,
                     'strength' => $vip1Strength + 5,
-                    'respect' => $vip1Respect + 20,
+                    'respect' => $vip1Respect + 15,
                     'vault_tokens' => 3,
-                    'stars' => 4,
-                    'masks' => $lvl % 20 === 0 ? 1 : 0,
+                    'stars' => 3,
                 ];
             } elseif ($isMilestone5) {
                 $vip1Rewards = [
-                    'cash' => (int) round($vip1Cash * 1.3),
+                    'cash' => (int) round($vip1Cash * 1.25),
                     'xp' => $vip1Xp,
                     'respect' => $vip1Respect,
                     'vault_tokens' => 2,
-                    'stars' => 3,
+                    'stars' => 2,
                     'unopened_bags' => 1,
                 ];
             } elseif (in_array($mod, [2, 7], true)) {
@@ -212,7 +229,7 @@ class BattlePassController extends Controller
                     'vault_tokens' => 2,
                     'xp' => $vip1Xp,
                     'respect' => $vip1Respect,
-                    'stars' => 2,
+                    'stars' => 1,
                 ];
             } else {
                 $vip1Rewards = [
@@ -220,47 +237,58 @@ class BattlePassController extends Controller
                     'xp' => $vip1Xp,
                     'respect' => $vip1Respect,
                     'strength' => max(3, (int) round($vip1Strength * 0.75)),
-                    'stars' => 1 + ($lvl % 2),
+                    'stars' => 1,
                 ];
             }
             $vip1Rewards = array_filter($vip1Rewards, fn (int $v): bool => $v > 0);
 
             // -------------------------
-            // TRACK 3: VIP 2 PASS
+            // TRACK 3: GANGSTER ELITE V.I.P. (VIP 2)
             // -------------------------
-            $vip2Cash = (int) round($baseCash * 3.8);
+            $vip2Cash = (int) round($baseCash * 3.6);
             $vip2Xp = (int) round($baseXp * 2.2);
-            $vip2Respect = (int) round($baseRespect * 2.8);
-            $vip2Strength = (int) round($baseStrength * 2.4);
+            $vip2Respect = (int) round($baseRespect * 2.6);
+            $vip2Strength = (int) round($baseStrength * 2.3);
 
             if ($isFinale) {
                 $vip2Rewards = [
-                    'cash' => 750000,
-                    'xp' => 8500,
-                    'strength' => 100,
-                    'respect' => 450,
-                    'vault_tokens' => 10,
-                    'stars' => 20,
+                    'cash' => 1500000,
+                    'xp' => 18000,
+                    'strength' => 190,
+                    'respect' => 850,
+                    'vault_tokens' => 12,
+                    'stars' => 35,
                     'masks' => 2,
+                    'xxl_cases' => 1,
+                ];
+            } elseif ($isMilestone25) {
+                $vip2Rewards = [
+                    'cash' => (int) round($vip2Cash * 1.75),
+                    'xp' => $vip2Xp,
+                    'strength' => $vip2Strength + 10,
+                    'respect' => $vip2Respect + 35,
+                    'vault_tokens' => 4,
+                    'stars' => 8,
+                    'masks' => 1,
                     'xxl_cases' => 1,
                 ];
             } elseif ($isMilestone10) {
                 $vip2Rewards = [
-                    'cash' => (int) round($vip2Cash * 1.5),
+                    'cash' => (int) round($vip2Cash * 1.45),
                     'xp' => $vip2Xp,
-                    'strength' => $vip2Strength + 8,
-                    'respect' => $vip2Respect + 30,
-                    'vault_tokens' => 4,
-                    'stars' => 7,
-                    'masks' => 1,
+                    'strength' => $vip2Strength + 7,
+                    'respect' => $vip2Respect + 25,
+                    'vault_tokens' => 3,
+                    'stars' => 5,
+                    'masks' => $lvl % 30 === 0 ? 1 : 0,
                 ];
             } elseif ($isMilestone5) {
                 $vip2Rewards = [
                     'cash' => (int) round($vip2Cash * 1.25),
                     'xp' => $vip2Xp,
                     'strength' => $vip2Strength,
-                    'vault_tokens' => 3,
-                    'stars' => 5,
+                    'vault_tokens' => 2,
+                    'stars' => 4,
                     'unopened_bags' => 1,
                 ];
             } elseif (in_array($mod, [2, 7], true)) {
@@ -269,15 +297,15 @@ class BattlePassController extends Controller
                     'strength' => $vip2Strength + 4,
                     'xp' => $vip2Xp,
                     'respect' => $vip2Respect,
-                    'stars' => 3,
+                    'stars' => 2,
                 ];
             } elseif (in_array($mod, [3, 8], true)) {
                 $vip2Rewards = [
                     'cash' => $vip2Cash,
-                    'vault_tokens' => 3,
+                    'vault_tokens' => 2,
                     'xp' => $vip2Xp,
                     'strength' => max(4, (int) round($vip2Strength * 0.8)),
-                    'stars' => 3,
+                    'stars' => 2,
                 ];
             } else {
                 $vip2Rewards = [
@@ -286,40 +314,50 @@ class BattlePassController extends Controller
                     'respect' => $vip2Respect,
                     'strength' => $vip2Strength,
                     'vault_tokens' => 1,
-                    'stars' => 2 + ($lvl % 2),
+                    'stars' => 2,
                 ];
             }
             $vip2Rewards = array_filter($vip2Rewards, fn (int $v): bool => $v > 0);
 
             // -------------------------
-            // TRACK 4: VIP 3 PASS
+            // TRACK 4: KLINIEK BAAS V.I.P. (VIP 3)
             // -------------------------
-            $vip3Cash = $baseCash * 7;
-            $vip3Xp = (int) round($baseXp * 3.2);
-            $vip3Respect = $baseRespect * 4;
-            $vip3Strength = (int) round($baseStrength * 3.5);
+            $vip3Cash = (int) round($baseCash * 6.5);
+            $vip3Xp = (int) round($baseXp * 3.0);
+            $vip3Respect = (int) round($baseRespect * 3.8);
+            $vip3Strength = (int) round($baseStrength * 3.4);
 
             if ($isFinale) {
                 $vip3Rewards = [
-                    'cash' => 1500000,
-                    'xp' => 15000,
-                    'strength' => 160,
-                    'respect' => 800,
-                    'vault_tokens' => 15,
-                    'stars' => 35,
+                    'cash' => 3000000,
+                    'xp' => 30000,
+                    'strength' => 300,
+                    'respect' => 1500,
+                    'vault_tokens' => 20,
+                    'stars' => 60,
                     'masks' => 2,
                     'xxl_cases' => 2,
                 ];
-            } elseif ($isMilestone10) {
+            } elseif ($isMilestone25) {
                 $vip3Rewards = [
-                    'cash' => (int) round($vip3Cash * 1.5),
+                    'cash' => (int) round($vip3Cash * 1.75),
                     'xp' => $vip3Xp,
-                    'strength' => $vip3Strength + 12,
-                    'respect' => $vip3Respect + 50,
+                    'strength' => $vip3Strength + 15,
+                    'respect' => $vip3Respect + 60,
                     'vault_tokens' => 6,
                     'stars' => 12,
                     'masks' => 1,
                     'xxl_cases' => 1,
+                ];
+            } elseif ($isMilestone10) {
+                $vip3Rewards = [
+                    'cash' => (int) round($vip3Cash * 1.45),
+                    'xp' => $vip3Xp,
+                    'strength' => $vip3Strength + 10,
+                    'respect' => $vip3Respect + 40,
+                    'vault_tokens' => 5,
+                    'stars' => 8,
+                    'masks' => 1,
                 ];
             } elseif ($isMilestone5) {
                 $vip3Rewards = [
@@ -327,9 +365,9 @@ class BattlePassController extends Controller
                     'xp' => $vip3Xp,
                     'strength' => $vip3Strength,
                     'respect' => $vip3Respect,
-                    'vault_tokens' => 4,
-                    'stars' => 8,
-                    'masks' => 1,
+                    'vault_tokens' => 3,
+                    'stars' => 6,
+                    'unopened_bags' => 1,
                 ];
             } elseif (in_array($mod, [2, 7], true)) {
                 $vip3Rewards = [
@@ -338,16 +376,16 @@ class BattlePassController extends Controller
                     'xp' => $vip3Xp,
                     'respect' => $vip3Respect,
                     'vault_tokens' => 2,
-                    'stars' => 5,
+                    'stars' => 3,
                 ];
             } elseif (in_array($mod, [3, 8], true)) {
                 $vip3Rewards = [
                     'cash' => $vip3Cash,
-                    'vault_tokens' => 4,
+                    'vault_tokens' => 3,
                     'xp' => $vip3Xp,
                     'strength' => $vip3Strength,
                     'respect' => $vip3Respect,
-                    'stars' => 5,
+                    'stars' => 3,
                 ];
             } else {
                 $vip3Rewards = [
@@ -355,8 +393,8 @@ class BattlePassController extends Controller
                     'xp' => $vip3Xp,
                     'respect' => $vip3Respect,
                     'strength' => $vip3Strength,
-                    'vault_tokens' => 2,
-                    'stars' => 4 + ($lvl % 2),
+                    'vault_tokens' => 1,
+                    'stars' => 3 + ($lvl % 2),
                 ];
             }
             $vip3Rewards = array_filter($vip3Rewards, fn (int $v): bool => $v > 0);
@@ -373,19 +411,19 @@ class BattlePassController extends Controller
                         'summary' => self::formatSummary($freeRewards),
                     ],
                     'vip1' => [
-                        'title' => $isFinale ? 'VIP 1 Seizoen Kampioen' : $vip1Titles[$mod][0],
+                        'title' => $isFinale ? 'TBS V.I.P. Lid Kampioen' : $vip1Titles[$mod][0],
                         'icon' => $isFinale ? 'fa-crown' : $vip1Titles[$mod][1],
                         'rewards' => $vip1Rewards,
                         'summary' => self::formatSummary($vip1Rewards),
                     ],
                     'vip2' => [
-                        'title' => $isFinale ? 'VIP 2 Gangster Elite Keizer' : $vip2Titles[$mod][0],
+                        'title' => $isFinale ? 'Gangster Elite V.I.P. Keizer' : $vip2Titles[$mod][0],
                         'icon' => $isFinale ? 'fa-gem' : $vip2Titles[$mod][1],
                         'rewards' => $vip2Rewards,
                         'summary' => self::formatSummary($vip2Rewards),
                     ],
                     'vip3' => [
-                        'title' => $isFinale ? 'VIP 3 Kliniek Baas Legende' : $vip3Titles[$mod][0],
+                        'title' => $isFinale ? 'Kliniek Baas V.I.P. Legende' : $vip3Titles[$mod][0],
                         'icon' => $isFinale ? 'fa-dragon' : $vip3Titles[$mod][1],
                         'rewards' => $vip3Rewards,
                         'summary' => self::formatSummary($vip3Rewards),
@@ -432,7 +470,7 @@ class BattlePassController extends Controller
     }
 
     /**
-     * Display the Battle Pass page with all 60 levels and 4 tracks.
+     * Display the Battle Pass page with all 150 levels and 4 tracks.
      */
     public function index(): View
     {
@@ -444,28 +482,7 @@ class BattlePassController extends Controller
         $claims = $character->perks['battle_pass_claims'] ?? [];
         $supporterTier = $character->getSupporterTier();
         $isVip = $character->isVip();
-
-        // Calculate how many claimable rewards are waiting
-        $claimableCount = 0;
-        foreach ($config as $lvlNum => $data) {
-            $isUnlocked = $character->level >= $data['req_level'];
-            if (! $isUnlocked) {
-                continue;
-            }
-
-            if (! in_array("lvl_{$lvlNum}_free", $claims, true)) {
-                $claimableCount++;
-            }
-            if ($isVip && $supporterTier >= 1 && ! in_array("lvl_{$lvlNum}_vip1", $claims, true)) {
-                $claimableCount++;
-            }
-            if ($isVip && $supporterTier >= 2 && ! in_array("lvl_{$lvlNum}_vip2", $claims, true)) {
-                $claimableCount++;
-            }
-            if ($isVip && $supporterTier >= 3 && ! in_array("lvl_{$lvlNum}_vip3", $claims, true)) {
-                $claimableCount++;
-            }
-        }
+        $claimableCount = $character->getUnclaimedBattlePassCount();
 
         return view('game.battlepass.index', compact('character', 'config', 'claims', 'supporterTier', 'isVip', 'claimableCount'));
     }
@@ -503,15 +520,15 @@ class BattlePassController extends Controller
         $isVip = $character->isVip();
 
         if ($track === 'vip1' && (! $isVip || $supporterTier < 1)) {
-            return back()->with('error', 'Voor dit spoor heb je minimaal VIP 1 (TBS V.I.P. Lid) status nodig.');
+            return back()->with('error', 'Voor deze pas heb je minimaal TBS V.I.P. Lid (VIP 1) status nodig.');
         }
 
         if ($track === 'vip2' && (! $isVip || $supporterTier < 2)) {
-            return back()->with('error', 'Voor dit spoor heb je minimaal VIP 2 (Gangster Elite) status nodig.');
+            return back()->with('error', 'Voor deze pas heb je minimaal Gangster Elite V.I.P. (VIP 2) status nodig.');
         }
 
         if ($track === 'vip3' && (! $isVip || $supporterTier < 3)) {
-            return back()->with('error', 'Voor dit spoor heb je minimaal VIP 3 (Kliniek Baas) status nodig.');
+            return back()->with('error', 'Voor deze pas heb je minimaal Kliniek Baas V.I.P. (VIP 3) status nodig.');
         }
 
         $perks = $character->perks ?? [];

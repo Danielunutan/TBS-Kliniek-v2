@@ -810,6 +810,44 @@ class Character extends Model
     }
 
     /**
+     * Get the number of unclaimed Battle Pass rewards currently unlocked for this character.
+     */
+    public function getUnclaimedBattlePassCount(): int
+    {
+        $maxUnlocked = min(150, max(0, (int) $this->level));
+        if ($maxUnlocked < 1) {
+            return 0;
+        }
+
+        $claims = $this->perks['battle_pass_claims'] ?? [];
+        if (! is_array($claims)) {
+            $claims = [];
+        }
+        $claimLookup = array_flip($claims);
+
+        $isVip = $this->isVip();
+        $tier = $this->getSupporterTier();
+
+        $count = 0;
+        for ($lvl = 1; $lvl <= $maxUnlocked; $lvl++) {
+            if (! isset($claimLookup["lvl_{$lvl}_free"])) {
+                $count++;
+            }
+            if ($isVip && $tier >= 1 && ! isset($claimLookup["lvl_{$lvl}_vip1"])) {
+                $count++;
+            }
+            if ($isVip && $tier >= 2 && ! isset($claimLookup["lvl_{$lvl}_vip2"])) {
+                $count++;
+            }
+            if ($isVip && $tier >= 3 && ! isset($claimLookup["lvl_{$lvl}_vip3"])) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
      * Get rich VIP badge details for profile, lists, and comments.
      *
      * @return array{tier: int, label: string, short_label: string, icon: string, class: string, border_color: string, glow: string}|null

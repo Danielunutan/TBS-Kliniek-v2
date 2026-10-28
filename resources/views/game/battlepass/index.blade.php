@@ -47,6 +47,7 @@
     $tracksMeta = [
         'free' => [
             'code'        => 'FREE',
+            'rank_title'  => 'FREE Pass (Gratis)',
             'badge'       => 'PAS 1 • GRATIS',
             'name'        => 'FREE Pass',
             'subtitle'    => 'Geld, XP, Kracht & Kluiscodex',
@@ -61,14 +62,15 @@
             'icon'        => 'fa-unlock-keyhole',
         ],
         'vip1' => [
-            'code'        => 'VIP 1',
-            'badge'       => 'PAS 2 • TIER 1',
-            'name'        => 'VIP 1 Pass',
+            'code'        => 'VIP 1 • TBS V.I.P. LID',
+            'rank_title'  => 'TBS V.I.P. Lid (VIP 1)',
+            'badge'       => 'PAS 2 • VIP 1',
+            'name'        => 'TBS V.I.P. Lid Pass',
             'subtitle'    => 'Sterren, Kracht, Kluiscodex & Cash',
             'image'       => asset('assets/illustrations/bp_track_vip1.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_smuggle.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 1,
-            'req_text'    => 'Vereist VIP 1',
+            'req_text'    => 'Vereist TBS V.I.P. Lid',
             'header_grad' => 'from-purple-900 via-indigo-950 to-slate-950',
             'border'      => 'border-violet-400/70 dark:border-violet-700/80',
             'badge_cls'   => 'bg-violet-500/25 text-violet-200 border-violet-400/50',
@@ -76,14 +78,15 @@
             'icon'        => 'fa-star',
         ],
         'vip2' => [
-            'code'        => 'VIP 2',
-            'badge'       => 'PAS 3 • TIER 2',
-            'name'        => 'VIP 2 Pass',
+            'code'        => 'VIP 2 • GANGSTER ELITE',
+            'rank_title'  => 'Gangster Elite V.I.P. (VIP 2)',
+            'badge'       => 'PAS 3 • VIP 2',
+            'name'        => 'Gangster Elite V.I.P. Pass',
             'subtitle'    => 'Extra Sterren, Kracht, XP & Maskers',
             'image'       => asset('assets/illustrations/bp_track_vip2.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_gangs.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 2,
-            'req_text'    => 'Vereist VIP 2',
+            'req_text'    => 'Vereist Gangster Elite V.I.P.',
             'header_grad' => 'from-fuchsia-950 via-purple-950 to-slate-950',
             'border'      => 'border-fuchsia-400/70 dark:border-fuchsia-700/80',
             'badge_cls'   => 'bg-fuchsia-500/25 text-fuchsia-200 border-fuchsia-400/50',
@@ -91,14 +94,15 @@
             'icon'        => 'fa-gem',
         ],
         'vip3' => [
-            'code'        => 'VIP 3',
-            'badge'       => 'PAS 4 • TIER 3 BAAS',
-            'name'        => 'VIP 3 Pass',
+            'code'        => 'VIP 3 • KLINIEK BAAS',
+            'rank_title'  => 'Kliniek Baas V.I.P. (VIP 3)',
+            'badge'       => 'PAS 4 • VIP 3 BAAS',
+            'name'        => 'Kliniek Baas V.I.P. Pass',
             'subtitle'    => 'Maximale Kracht, Kluiscodex & Kapitaal',
             'image'       => asset('assets/illustrations/bp_track_vip3.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_vault.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 3,
-            'req_text'    => 'Vereist VIP 3',
+            'req_text'    => 'Vereist Kliniek Baas V.I.P.',
             'header_grad' => 'from-amber-950/90 via-purple-950 to-slate-950',
             'border'      => 'border-amber-400/80 dark:border-amber-500/80',
             'badge_cls'   => 'bg-amber-400/25 text-amber-200 border-amber-400/60',
@@ -184,27 +188,27 @@
             <div class="space-y-3 max-w-2xl">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="inline-flex items-center gap-1.5 bg-purple-500/25 text-purple-200 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-purple-400/40">
-                        <i class="fa-solid fa-calendar-days text-purple-300"></i>
-                        <span>Seizoen 1 (3 Maanden) • {{ $maxPassLevel }} Levels</span>
+                        <i class="fa-solid fa-trophy text-purple-300"></i>
+                        <span>Seizoen 1 • {{ $maxPassLevel }} Niveaus</span>
                     </span>
                     <span class="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-amber-400/40">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <span>4 Passen: FREE • VIP 1 • VIP 2 • VIP 3</span>
+                        <i class="fa-solid fa-crown"></i>
+                        <span>FREE • TBS V.I.P. Lid • Gangster Elite • Kliniek Baas</span>
                     </span>
                 </div>
 
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3 flex-wrap">
                     <span>TBS Kliniek Battle Pass</span>
                     <span class="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-purple-600/50 border border-purple-400/50 text-purple-100">
-                        {{ $unlockedCount }} / {{ $maxPassLevel }} Niveaus Bereikt
+                        {{ $unlockedCount }} / {{ $maxPassLevel }} Levels Ontgrendeld
                     </span>
                 </h1>
 
                 <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    Speel 3 maanden lang door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong>! Gebruik de paarse pijlen om door de slider te bladeren en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Kluiscodex, Sterren en schaarse Maskers</strong> op je actieve passen (<strong class="text-white">FREE, VIP 1, VIP 2 &amp; VIP 3</strong>).
+                    Blader met de paarse pijlen door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong> en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Kluiscodex, Sterren en schaarse Maskers</strong>! Speel extra rangen vrij met <strong class="text-white">TBS V.I.P. Lid (VIP 1), Gangster Elite V.I.P. (VIP 2) &amp; Kliniek Baas V.I.P. (VIP 3)</strong>.
                 </p>
 
-                <!-- Speler Status & Voortgangsbalk -->
+                <!-- Speler Status & Directe Link naar VIP Lidmaatschap Winkel -->
                 <div class="pt-1 flex flex-wrap items-center gap-2.5">
                     <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/40 text-xs font-bold text-purple-100">
                         <i class="fa-solid fa-user-shield text-purple-400"></i>
@@ -215,22 +219,22 @@
                         <span>{{ number_format($character->strength, 0, ',', '.') }} Kracht</span>
                     </div>
 
-                    @if($isVip && $supporterTier >= 1)
+                    @if($isVip && $character->vip_badge)
                         <span class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white text-xs font-black uppercase tracking-wider border border-purple-300/50 flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-crown text-amber-300"></i>
-                            <span>VIP {{ $supporterTier }} Ontgrendeld</span>
+                            <i class="fa-solid {{ $character->vip_badge['icon'] }} text-amber-300"></i>
+                            <span>{{ $character->vip_badge['label'] }}</span>
                         </span>
                     @else
                         <span class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-slate-300 text-xs font-bold flex items-center gap-1.5">
                             <i class="fa-solid fa-unlock text-purple-400"></i>
-                            <span>Actieve Pas: FREE</span>
+                            <span>Actieve Pas: FREE Pass</span>
                         </span>
                     @endif
 
                     @if(!$isVip || $supporterTier < 3)
-                        <a href="{{ route('vip.index') }}" class="btn-star-gold px-3.5 py-1.5 rounded-xl text-xs uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-bolt"></i>
-                            <span>Upgrade naar VIP {{ min(3, ($isVip ? $supporterTier + 1 : 1)) }}</span>
+                        <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold px-3.5 py-1.5 rounded-xl text-xs uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+                            <i class="fa-solid fa-crown"></i>
+                            <span>Naar VIP Lidmaatschap Winkel</span>
                         </a>
                     @endif
                 </div>
@@ -256,10 +260,10 @@
                     </button>
                 </div>
 
-                <!-- Seizoen Progressie Balk (3 Maanden / 60 Levels) -->
+                <!-- Battle Pass Progressie Balk (150 Levels) -->
                 <div class="space-y-1">
                     <div class="flex justify-between text-[10px] font-bold text-purple-200">
-                        <span>3-Maanden Pas Voortgang ({{ $unlockedCount }}/{{ $maxPassLevel }})</span>
+                        <span>Battle Pass Voortgang ({{ $unlockedCount }}/{{ $maxPassLevel }})</span>
                         <span>{{ round(($unlockedCount / $maxPassLevel) * 100) }}%</span>
                     </div>
                     <div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden p-0.5 border border-purple-500/30">
@@ -288,8 +292,8 @@
         </div>
     </div>
 
-    <!-- DE 4 BATTLE PASSEN OVERZICHT (FREE • VIP 1 • VIP 2 • VIP 3) MET PAARSE TBS ASSETS -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <!-- DE 4 BATTLE PASSEN OVERZICHT (FREE • TBS V.I.P. LID • GANGSTER ELITE V.I.P. • KLINIEK BAAS V.I.P.) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         @foreach($tracksMeta as $trackKey => $tMeta)
             <div class="relative overflow-hidden rounded-2xl border {{ $tMeta['border'] }} bg-slate-950 text-white p-3.5 sm:p-4 shadow-md group">
                 <div class="absolute inset-0 bg-cover bg-center opacity-40 group-hover:scale-105 transition duration-500"
@@ -306,8 +310,8 @@
                                 <i class="fa-solid fa-check text-[9px]"></i> Actief
                             </span>
                         @else
-                            <a href="{{ route('vip.index') }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/90 hover:bg-purple-900 border border-purple-400/40 text-purple-200 text-[10px] font-bold transition">
-                                <i class="fa-solid fa-lock text-[9px] text-amber-400"></i> {{ $tMeta['req_text'] }}
+                            <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/50 text-amber-200 text-[10px] font-black transition">
+                                <i class="fa-solid fa-crown text-[9px] text-amber-400"></i> VIP Winkel
                             </a>
                         @endif
                     </div>
@@ -317,7 +321,7 @@
                             <i class="fa-solid {{ $tMeta['icon'] }} text-base {{ $trackKey === 'vip3' ? 'text-amber-300' : '' }}"></i>
                         </div>
                         <div class="min-w-0">
-                            <h3 class="font-black text-sm text-white truncate">{{ $tMeta['name'] }}</h3>
+                            <h3 class="font-black text-sm text-white truncate">{{ $tMeta['rank_title'] }}</h3>
                             <p class="text-[11px] text-purple-200/80 truncate">{{ $tMeta['subtitle'] }}</p>
                         </div>
                     </div>
@@ -326,7 +330,7 @@
         @endforeach
     </div>
 
-    <!-- INTERACTIEVE NIVEAU BALK (60 LEVELS / 3 MAANDEN) + PIJLEN VOOR & ACHTER -->
+    <!-- INTERACTIEVE NIVEAU BALK (150 LEVELS) + PIJLEN VOOR & ACHTER -->
     <div class="bg-white dark:bg-slate-900 border border-purple-200/80 dark:border-purple-900/60 rounded-2xl p-3 sm:p-4 shadow-sm space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
@@ -338,12 +342,12 @@
                         Niveau Kiezer &bull; <span class="text-purple-600 dark:text-purple-400" x-text="'Level ' + activeLevel + ' van ' + totalLevels"></span>
                     </h2>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                        Spring direct naar een seizoensfase of blader met de grote paarse pijlen voor &amp; achter
+                        Spring direct naar een level-reeks of blader met de grote paarse pijlen voor &amp; achter
                     </p>
                 </div>
             </div>
 
-            <!-- Snelle Maand / Fase Sprong Knoppen (voor 60 Levels) -->
+            <!-- Snelle Level-Reeks Sprong Knoppen (voor 150 Levels, niet op maanden gebaseerd) -->
             <div class="flex flex-wrap items-center gap-1.5">
                 @if($firstClaimableLevel)
                     <button type="button"
@@ -358,25 +362,17 @@
                         class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-[11px] font-bold transition cursor-pointer">
                     Huidig (Lvl {{ $highestUnlockedLevel }})
                 </button>
-                <button type="button" @click="scrollToLevel(1)"
-                        :class="activeLevel >= 1 && activeLevel <= 20 ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
-                        class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
-                    Maand 1 (1-20)
-                </button>
-                <button type="button" @click="scrollToLevel(21)"
-                        :class="activeLevel >= 21 && activeLevel <= 40 ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
-                        class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
-                    Maand 2 (21-40)
-                </button>
-                <button type="button" @click="scrollToLevel(41)"
-                        :class="activeLevel >= 41 && activeLevel <= 60 ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
-                        class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
-                    Maand 3 (41-60)
-                </button>
+                @foreach([[1, 30], [31, 60], [61, 90], [91, 120], [121, 150]] as [$startLvl, $endLvl])
+                    <button type="button" @click="scrollToLevel({{ $startLvl }})"
+                            :class="activeLevel >= {{ $startLvl }} && activeLevel <= {{ $endLvl }} ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-purple-500/20'"
+                            class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
+                        Lvl {{ $startLvl }}–{{ $endLvl }}
+                    </button>
+                @endforeach
             </div>
         </div>
 
-        <!-- Level 1..60 Mini Pills met Voor/Achter Pijlen -->
+        <!-- Level 1..150 Mini Pills met Voor/Achter Pijlen -->
         <div class="flex items-center gap-2">
             <button type="button"
                     @click="prevSlide()"
@@ -443,7 +439,7 @@
             <i class="fa-solid fa-chevron-right text-xl"></i>
         </button>
 
-        <!-- Horizontale Snap Carousel voor de 60 Niveaus -->
+        <!-- Horizontale Snap Carousel voor de 150 Niveaus -->
         <div x-ref="levelCarousel"
              @scroll.debounce.40ms="onCarouselScroll()"
              class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 px-1 sm:px-8 scrollbar-none">
@@ -451,6 +447,7 @@
             @foreach($config as $lvlNum => $item)
                 @php
                     $isLevelUnlocked = $character->level >= $item['req_level'];
+                    $isMilestone25 = ($lvlNum % 25 === 0);
                     $isMilestone10 = ($lvlNum % 10 === 0);
                     $isMilestone5 = ($lvlNum % 5 === 0);
                 @endphp
@@ -482,7 +479,11 @@
                                         </h3>
                                         @if($lvlNum === $maxPassLevel)
                                             <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
-                                                👑 Level 60 Seizoen Finale
+                                                👑 Level {{ $maxPassLevel }} Ultieme Finale
+                                            </span>
+                                        @elseif($isMilestone25)
+                                            <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase">
+                                                💎 Mega Mijlpaal
                                             </span>
                                         @elseif($isMilestone10)
                                             <span class="px-2.5 py-0.5 rounded-full bg-amber-400/25 border border-amber-400/60 text-amber-200 text-[10px] font-black uppercase">
@@ -517,7 +518,7 @@
                         </div>
                     </div>
 
-                    <!-- De 4 Passen Rijen / Kolommen (FREE, VIP 1, VIP 2, VIP 3) -->
+                    <!-- De 4 Passen Rijen / Kolommen (FREE, TBS V.I.P. Lid, Gangster Elite V.I.P., Kliniek Baas V.I.P.) -->
                     <div class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                         @foreach(['free', 'vip1', 'vip2', 'vip3'] as $tKey)
                             @php
@@ -541,20 +542,20 @@
                                     <div class="absolute inset-0 bg-gradient-to-r {{ $tInfo['header_grad'] }} opacity-80"></div>
 
                                     <div class="relative z-10 flex items-center justify-between gap-1">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border {{ $tInfo['badge_cls'] }}">
-                                            {{ $tInfo['code'] }}
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border {{ $tInfo['badge_cls'] }} truncate">
+                                            {{ $tInfo['rank_title'] }}
                                         </span>
 
                                         @if($isClaimed)
-                                            <span class="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-black shadow">
+                                            <span class="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-black shadow shrink-0">
                                                 <i class="fa-solid fa-check"></i>
                                             </span>
                                         @elseif($canClaim)
-                                            <span class="px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[9px] font-black uppercase animate-pulse">
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[9px] font-black uppercase animate-pulse shrink-0">
                                                 Klaar!
                                             </span>
                                         @else
-                                            <span class="w-6 h-6 rounded-full bg-slate-900/80 border border-white/15 text-slate-300 flex items-center justify-center text-[10px]">
+                                            <span class="w-6 h-6 rounded-full bg-slate-900/80 border border-white/15 text-slate-300 flex items-center justify-center text-[10px] shrink-0">
                                                 <i class="fa-solid fa-lock"></i>
                                             </span>
                                         @endif
@@ -601,13 +602,13 @@
                                                 <input type="hidden" name="track" value="{{ $tKey }}">
                                                 <button type="submit" class="w-full py-2 rounded-xl {{ $tInfo['btn_cls'] }} text-[11px] font-black uppercase tracking-wider transition shadow-md cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
                                                     <i class="fa-solid fa-gift"></i>
-                                                    <span>Claim {{ $tInfo['code'] }}</span>
+                                                    <span>Claim Beloning</span>
                                                 </button>
                                             </form>
                                         @elseif(!$tInfo['unlocked'])
-                                            <a href="{{ route('vip.index') }}" class="w-full py-2 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-200 border border-purple-500/40 text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition">
-                                                <i class="fa-solid fa-lock text-amber-400 text-[9px]"></i>
-                                                <span>Ontgrendel {{ $tInfo['code'] }}</span>
+                                            <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold w-full py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer text-center">
+                                                <i class="fa-solid fa-crown text-[10px]"></i>
+                                                <span>VIP Lidmaatschap Winkel</span>
                                             </a>
                                         @else
                                             <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-bold flex items-center justify-center gap-1.5">
