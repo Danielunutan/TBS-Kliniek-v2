@@ -31,23 +31,22 @@
     </div>
 
     <!-- STATS OVERVIEW CARDS -->
-    @php $maxStatCap = $character->getMaxStatForLevel(); @endphp
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Kracht (Max Lvl Cap)</div>
-            <div class="text-xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">{{ number_format($character->strength, 0) }} <span class="text-xs text-slate-400">/ {{ $maxStatCap }}</span></div>
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Kracht</div>
+            <div class="text-xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">{{ number_format($character->strength, 0) }}</div>
         </div>
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Verdediging (Max Lvl Cap)</div>
-            <div class="text-xl font-black text-blue-600 dark:text-blue-400 font-mono mt-0.5">{{ number_format($character->defense, 0) }} <span class="text-xs text-slate-400">/ {{ $maxStatCap }}</span></div>
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Verdediging</div>
+            <div class="text-xl font-black text-blue-600 dark:text-blue-400 font-mono mt-0.5">{{ number_format($character->defense, 0) }}</div>
         </div>
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Conditie (Max Lvl Cap)</div>
-            <div class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{ number_format($character->stamina, 0) }} <span class="text-xs text-slate-400">/ {{ $maxStatCap }}</span></div>
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Conditie</div>
+            <div class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{ number_format($character->stamina, 0) }}</div>
         </div>
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Discipline (Max Lvl Cap)</div>
-            <div class="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5">{{ number_format($character->discipline, 0) }} <span class="text-xs text-slate-400">/ {{ $maxStatCap }}</span></div>
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Discipline</div>
+            <div class="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5">{{ number_format($character->discipline, 0) }}</div>
         </div>
     </div>
 

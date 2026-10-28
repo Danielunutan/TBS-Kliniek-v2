@@ -144,7 +144,7 @@ class TrainingAjaxTest extends TestCase
         $this->assertStringContainsString('Training voltooid', session('success'));
 
         $character->refresh();
-        $this->assertEquals(65, $character->strength); // Does not exceed cap
+        $this->assertEquals(66, $character->strength); // Combat training increases stat (+1) without gym cap
         $this->assertEquals(40, $character->xp); // XP awarded
         $this->assertEquals(90, $character->energy); // Energy consumed
         $this->assertEquals(5000 - 150, $character->cash); // Cost deducted
