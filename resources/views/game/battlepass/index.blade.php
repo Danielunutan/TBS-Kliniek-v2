@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    // Calculate unlocked levels count & initial active level for the slider
+    $maxPassLevel = count($config);
     $unlockedCount = 0;
     $firstClaimableLevel = null;
     $highestUnlockedLevel = 1;
@@ -26,18 +26,20 @@
 
     $initialTargetLevel = $firstClaimableLevel ?? $highestUnlockedLevel;
 
-    // Reward chip helper for visual badges
+    // Reward chip helper for visual badges (Cash, Bank, XP, Kracht, Respect, Kluiscodex, Sterren, Maskers, etc.)
     $rewardMeta = [
         'cash'          => ['icon' => 'fa-sack-dollar',      'label' => 'Cash',       'prefix' => '€', 'color' => 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'],
         'bank'          => ['icon' => 'fa-building-columns', 'label' => 'Bank',       'prefix' => '€', 'color' => 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'],
-        'stars'         => ['icon' => 'fa-star',             'label' => 'Sterren',    'prefix' => '',  'color' => 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/35'],
-        'vip_points'    => ['icon' => 'fa-crown',            'label' => 'VIP Pnt',    'prefix' => '',  'color' => 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'],
+        'xp'            => ['icon' => 'fa-bolt-lightning',   'label' => 'XP',         'prefix' => '+', 'color' => 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/35'],
+        'strength'      => ['icon' => 'fa-dumbbell',         'label' => 'Kracht',     'prefix' => '+', 'color' => 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/35'],
         'respect'       => ['icon' => 'fa-handshake-simple', 'label' => 'Respect',    'prefix' => '+', 'color' => 'bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/30'],
-        'bullets'       => ['icon' => 'fa-crosshairs',       'label' => 'Kogels',     'prefix' => '',  'color' => 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'],
-        'unopened_bags' => ['icon' => 'fa-briefcase',        'label' => 'Koffer',     'prefix' => '',  'color' => 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30'],
+        'vault_tokens'  => ['icon' => 'fa-key',              'label' => 'Kluiscodex', 'prefix' => '',  'color' => 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/35'],
+        'stars'         => ['icon' => 'fa-star',             'label' => 'Sterren',    'prefix' => '',  'color' => 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/35'],
+        'masks'         => ['icon' => 'fa-mask',             'label' => 'Masker',     'prefix' => '',  'color' => 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30'],
+        'unopened_bags' => ['icon' => 'fa-briefcase',        'label' => 'Koffer',     'prefix' => '',  'color' => 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'],
         'xxl_cases'     => ['icon' => 'fa-box-open',         'label' => 'XXL Kist',   'prefix' => '',  'color' => 'bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-400/50'],
-        'masks'         => ['icon' => 'fa-mask',             'label' => 'Maskers',    'prefix' => '',  'color' => 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30'],
-        'vault_tokens'  => ['icon' => 'fa-key',              'label' => 'Kluis Loper','prefix' => '',  'color' => 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/30'],
+        'bullets'       => ['icon' => 'fa-crosshairs',       'label' => 'Kogels',     'prefix' => '',  'color' => 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'],
+        'vip_points'    => ['icon' => 'fa-crown',            'label' => 'VIP Pnt',    'prefix' => '+', 'color' => 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'],
         'energy'        => ['icon' => 'fa-bolt',             'label' => 'Energie',    'prefix' => '+', 'color' => 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'],
         'health'        => ['icon' => 'fa-heart-pulse',      'label' => 'HP',         'prefix' => '+', 'color' => 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30'],
     ];
@@ -47,7 +49,7 @@
             'code'        => 'FREE',
             'badge'       => 'PAS 1 • GRATIS',
             'name'        => 'FREE Pass',
-            'subtitle'    => 'Standaard Afdeling Rantsoen',
+            'subtitle'    => 'Geld, XP, Kracht & Kluiscodex',
             'image'       => asset('assets/illustrations/bp_track_free.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_prison.jpg'),
             'unlocked'    => true,
@@ -62,7 +64,7 @@
             'code'        => 'VIP 1',
             'badge'       => 'PAS 2 • TIER 1',
             'name'        => 'VIP 1 Pass',
-            'subtitle'    => 'TBS V.I.P. Smokkelwaar',
+            'subtitle'    => 'Sterren, Kracht, Kluiscodex & Cash',
             'image'       => asset('assets/illustrations/bp_track_vip1.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_smuggle.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 1,
@@ -77,7 +79,7 @@
             'code'        => 'VIP 2',
             'badge'       => 'PAS 3 • TIER 2',
             'name'        => 'VIP 2 Pass',
-            'subtitle'    => 'Gangster Elite Arsenaal',
+            'subtitle'    => 'Extra Sterren, Kracht, XP & Maskers',
             'image'       => asset('assets/illustrations/bp_track_vip2.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_gangs.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 2,
@@ -92,7 +94,7 @@
             'code'        => 'VIP 3',
             'badge'       => 'PAS 4 • TIER 3 BAAS',
             'name'        => 'VIP 3 Pass',
-            'subtitle'    => 'Kliniek Baas Kluisautoriteit',
+            'subtitle'    => 'Maximale Kracht, Kluiscodex & Kapitaal',
             'image'       => asset('assets/illustrations/bp_track_vip3.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_vault.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 3,
@@ -109,7 +111,7 @@
 <div class="space-y-5"
      x-data="{
         activeLevel: {{ $initialTargetLevel }},
-        totalLevels: 20,
+        totalLevels: {{ $maxPassLevel }},
         scrollToLevel(lvl, smooth = true) {
             const target = Math.max(1, Math.min(this.totalLevels, lvl));
             this.activeLevel = target;
@@ -182,8 +184,8 @@
             <div class="space-y-3 max-w-2xl">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="inline-flex items-center gap-1.5 bg-purple-500/25 text-purple-200 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-purple-400/40">
-                        <i class="fa-solid fa-dungeon text-purple-300"></i>
-                        <span>Seizoen 1 • TBS Kliniek Dossierpas</span>
+                        <i class="fa-solid fa-calendar-days text-purple-300"></i>
+                        <span>Seizoen 1 (3 Maanden) • {{ $maxPassLevel }} Levels</span>
                     </span>
                     <span class="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full border border-amber-400/40">
                         <i class="fa-solid fa-layer-group"></i>
@@ -194,12 +196,12 @@
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3 flex-wrap">
                     <span>TBS Kliniek Battle Pass</span>
                     <span class="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-purple-600/50 border border-purple-400/50 text-purple-100">
-                        {{ $unlockedCount }} / 20 Niveaus Bereikt
+                        {{ $unlockedCount }} / {{ $maxPassLevel }} Niveaus Bereikt
                     </span>
                 </h1>
 
                 <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    Gebruik de pijlen op de slider om door alle 20 kliniek-niveaus te bladeren. Elke pas (<strong class="text-white">FREE, VIP 1, VIP 2 &amp; VIP 3</strong>) heeft een eigen kluisspoor vol zwart geld, kogels, maskers en kisten!
+                    Speel 3 maanden lang door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong>! Gebruik de paarse pijlen om door de slider te bladeren en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Kluiscodex, Sterren en schaarse Maskers</strong> op je actieve passen (<strong class="text-white">FREE, VIP 1, VIP 2 &amp; VIP 3</strong>).
                 </p>
 
                 <!-- Speler Status & Voortgangsbalk -->
@@ -209,6 +211,8 @@
                         <span>Jouw Level: <strong class="text-white">{{ $character->level }}</strong></span>
                         <span class="text-purple-400">&bull;</span>
                         <span>{{ number_format($character->respect, 0, ',', '.') }} Respect</span>
+                        <span class="text-purple-400">&bull;</span>
+                        <span>{{ number_format($character->strength, 0, ',', '.') }} Kracht</span>
                     </div>
 
                     @if($isVip && $supporterTier >= 1)
@@ -233,7 +237,7 @@
             </div>
 
             <!-- Rechts: Claim Alles + Confetti Box -->
-            <div class="bg-purple-950/75 backdrop-blur-md border-2 border-purple-400/40 rounded-2xl p-4 sm:p-5 shrink-0 flex flex-col justify-between space-y-3 min-w-[260px] shadow-lg">
+            <div class="bg-purple-950/75 backdrop-blur-md border-2 border-purple-400/40 rounded-2xl p-4 sm:p-5 shrink-0 flex flex-col justify-between space-y-3 min-w-[265px] shadow-lg">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-purple-300 block">Klaar in je Kluis</span>
@@ -246,21 +250,21 @@
                     </div>
                     <button type="button"
                             @click="fireConfetti('normal')"
-                            title="Test Confetti!"
+                            title="Schiet Confetti!"
                             class="w-11 h-11 rounded-2xl bg-purple-600/40 hover:bg-purple-500/60 border border-purple-400/50 flex items-center justify-center text-amber-300 text-lg transition cursor-pointer active:scale-90">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </button>
                 </div>
 
-                <!-- Seizoen Progressie Balk -->
+                <!-- Seizoen Progressie Balk (3 Maanden / 60 Levels) -->
                 <div class="space-y-1">
                     <div class="flex justify-between text-[10px] font-bold text-purple-200">
-                        <span>Seizoenspas Voortgang</span>
-                        <span>{{ round(($unlockedCount / 20) * 100) }}%</span>
+                        <span>3-Maanden Pas Voortgang ({{ $unlockedCount }}/{{ $maxPassLevel }})</span>
+                        <span>{{ round(($unlockedCount / $maxPassLevel) * 100) }}%</span>
                     </div>
                     <div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden p-0.5 border border-purple-500/30">
                         <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-amber-400 transition-all duration-500"
-                             style="width: {{ min(100, round(($unlockedCount / 20) * 100)) }}%"></div>
+                             style="width: {{ min(100, round(($unlockedCount / $maxPassLevel) * 100)) }}%"></div>
                     </div>
                 </div>
 
@@ -274,10 +278,10 @@
                     </form>
                 @else
                     <button type="button"
-                            @click="scrollToLevel({{ min(20, $highestUnlockedLevel + 1) }})"
+                            @click="scrollToLevel({{ min($maxPassLevel, $highestUnlockedLevel + 1) }})"
                             class="w-full py-2.5 px-4 rounded-xl bg-purple-900/50 hover:bg-purple-800/60 border border-purple-500/40 text-purple-200 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-crosshairs text-purple-300"></i>
-                        <span>Bekijk Volgend Doel (Lvl {{ min(20, $highestUnlockedLevel + 1) }})</span>
+                        <span>Bekijk Volgend Doel (Lvl {{ min($maxPassLevel, $highestUnlockedLevel + 1) }})</span>
                     </button>
                 @endif
             </div>
@@ -322,41 +326,57 @@
         @endforeach
     </div>
 
-    <!-- INTERACTIEVE NIVEAU BALK + PIJLEN VOOR & ACHTER -->
+    <!-- INTERACTIEVE NIVEAU BALK (60 LEVELS / 3 MAANDEN) + PIJLEN VOOR & ACHTER -->
     <div class="bg-white dark:bg-slate-900 border border-purple-200/80 dark:border-purple-900/60 rounded-2xl p-3 sm:p-4 shadow-sm space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+                <span class="w-9 h-9 rounded-xl bg-purple-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
                     <span x-text="activeLevel"></span>
                 </span>
                 <div>
                     <h2 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white leading-tight">
-                        Niveau Kiezer &bull; <span class="text-purple-600 dark:text-purple-400" x-text="'Level ' + activeLevel + ' van 20'"></span>
+                        Niveau Kiezer &bull; <span class="text-purple-600 dark:text-purple-400" x-text="'Level ' + activeLevel + ' van ' + totalLevels"></span>
                     </h2>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                        Klik op een nummer of gebruik de grote paarse pijlen om door de Battle Pass te sliden
+                        Spring direct naar een seizoensfase of blader met de grote paarse pijlen voor &amp; achter
                     </p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-1.5">
+            <!-- Snelle Maand / Fase Sprong Knoppen (voor 60 Levels) -->
+            <div class="flex flex-wrap items-center gap-1.5">
                 @if($firstClaimableLevel)
                     <button type="button"
                             @click="scrollToLevel({{ $firstClaimableLevel }})"
-                            class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-black transition cursor-pointer flex items-center gap-1.5">
+                            class="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-black transition cursor-pointer flex items-center gap-1">
                         <i class="fa-solid fa-gift animate-bounce"></i>
-                        <span>Spring naar Claimbaar (Lvl {{ $firstClaimableLevel }})</span>
+                        <span>Claimbaar (Lvl {{ $firstClaimableLevel }})</span>
                     </button>
                 @endif
                 <button type="button"
                         @click="scrollToLevel({{ $highestUnlockedLevel }})"
-                        class="px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-xs font-bold transition cursor-pointer">
-                    Huidig Niveau (Lvl {{ $highestUnlockedLevel }})
+                        class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-[11px] font-bold transition cursor-pointer">
+                    Huidig (Lvl {{ $highestUnlockedLevel }})
+                </button>
+                <button type="button" @click="scrollToLevel(1)"
+                        :class="activeLevel >= 1 && activeLevel <= 20 ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+                        class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
+                    Maand 1 (1-20)
+                </button>
+                <button type="button" @click="scrollToLevel(21)"
+                        :class="activeLevel >= 21 && activeLevel <= 40 ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+                        class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
+                    Maand 2 (21-40)
+                </button>
+                <button type="button" @click="scrollToLevel(41)"
+                        :class="activeLevel >= 41 && activeLevel <= 60 ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+                        class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
+                    Maand 3 (41-60)
                 </button>
             </div>
         </div>
 
-        <!-- Level 1..20 Mini Pills met Voor/Achter Pijlen -->
+        <!-- Level 1..60 Mini Pills met Voor/Achter Pijlen -->
         <div class="flex items-center gap-2">
             <button type="button"
                     @click="prevSlide()"
@@ -423,7 +443,7 @@
             <i class="fa-solid fa-chevron-right text-xl"></i>
         </button>
 
-        <!-- Horizontale Snap Carousel voor de 20 Niveaus -->
+        <!-- Horizontale Snap Carousel voor de 60 Niveaus -->
         <div x-ref="levelCarousel"
              @scroll.debounce.40ms="onCarouselScroll()"
              class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 px-1 sm:px-8 scrollbar-none">
@@ -431,7 +451,8 @@
             @foreach($config as $lvlNum => $item)
                 @php
                     $isLevelUnlocked = $character->level >= $item['req_level'];
-                    $isMilestone = ($lvlNum % 5 === 0);
+                    $isMilestone10 = ($lvlNum % 10 === 0);
+                    $isMilestone5 = ($lvlNum % 5 === 0);
                 @endphp
 
                 <!-- Niveau Slide Kaart -->
@@ -459,13 +480,17 @@
                                         <h3 class="text-base sm:text-lg font-black text-white tracking-tight">
                                             TBS Dossier Niveau {{ $lvlNum }}
                                         </h3>
-                                        @if($lvlNum === 20)
+                                        @if($lvlNum === $maxPassLevel)
                                             <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
-                                                👑 Hoofddirecteur Finale
+                                                👑 Level 60 Seizoen Finale
                                             </span>
-                                        @elseif($isMilestone)
+                                        @elseif($isMilestone10)
+                                            <span class="px-2.5 py-0.5 rounded-full bg-amber-400/25 border border-amber-400/60 text-amber-200 text-[10px] font-black uppercase">
+                                                🏆 Hoofdmijlpaal
+                                            </span>
+                                        @elseif($isMilestone5)
                                             <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-300/50 text-purple-200 text-[10px] font-black uppercase">
-                                                ⭐ Mijlpaal Kluis
+                                                ⭐ Kluis Mijlpaal
                                             </span>
                                         @endif
                                     </div>
@@ -551,13 +576,13 @@
                                         @foreach($tData['rewards'] as $rKey => $rVal)
                                             @php
                                                 $meta = $rewardMeta[$rKey] ?? ['icon' => 'fa-gift', 'label' => ucfirst($rKey), 'prefix' => '', 'color' => 'bg-purple-500/15 text-purple-300 border-purple-500/30'];
-                                                $formattedVal = $rKey === 'cash' || $rKey === 'bank'
-                                                    ? number_format($rVal, 0, ',', '.')
-                                                    : number_format($rVal, 0, ',', '.');
+                                                $formattedVal = number_format($rVal, 0, ',', '.');
+                                                $chipLabel = ($rKey === 'masks' && $rVal > 1) ? 'Maskers' : $meta['label'];
+                                                $chipLabel = ($rKey === 'stars' && $rVal === 1) ? 'Ster' : $chipLabel;
                                             @endphp
                                             <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-extrabold {{ $meta['color'] }}">
                                                 <i class="fa-solid {{ $meta['icon'] }} text-[10px]"></i>
-                                                <span>{{ $meta['prefix'] }}{{ $formattedVal }} {{ $meta['label'] }}</span>
+                                                <span>{{ $meta['prefix'] }}{{ $formattedVal }} {{ $chipLabel }}</span>
                                             </span>
                                         @endforeach
                                     </div>
@@ -596,7 +621,7 @@
                         @endforeach
                     </div>
 
-                    <!-- Mobiele Onder-Navigatie Pijlen (Voor en Achter) binnen de kaart -->
+                    <!-- Onder-Navigatie Pijlen (Voor en Achter) binnen de kaart -->
                     <div class="px-4 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
                         <button type="button"
                                 @click="prevSlide()"
@@ -606,7 +631,7 @@
                         </button>
 
                         <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
-                            Niveau {{ $lvlNum }} / 20
+                            Niveau {{ $lvlNum }} / {{ $maxPassLevel }}
                         </span>
 
                         <button type="button"
