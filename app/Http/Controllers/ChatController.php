@@ -208,10 +208,17 @@ class ChatController extends Controller
 
     /**
      * Validate that message does not contain disallowed links.
-     * Only discord invites (discord.gg/..., discord.com/invite/...) are permitted.
+     * Staff members can post links without restriction.
+     * Regular players are only permitted discord invites.
      */
     protected function validateChatLinks(string $message): ?JsonResponse
     {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user && ($user->isStaff() || $user->isAdmin() || $user->isOwner() || $user->isModerator())) {
+            return null;
+        }
+
         $hasUrlPattern = (bool) preg_match('/(?:https?:\/\/|www\.)[^\s]+/i', $message)
             || (bool) preg_match('/\b[a-zA-Z0-9_\-]+\.(?:com|nl|be|net|org|io|gg|me|xyz|ru|co|de|info|online|site|app|link|top|tv)\b/i', $message);
 

@@ -132,6 +132,12 @@ function tbsLiveMessenger(config) {
                 return buildMentionPill(username);
             });
 
+            // 3. Convert links (https:// or http://) into safe clickable links
+            const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;
+            safe = safe.replace(urlRegex, (url) => {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold text-amber-300 dark:text-amber-400 hover:text-amber-200 dark:hover:text-amber-300 break-all transition">${url}</a>`;
+            });
+
             return safe;
         },
 
