@@ -33,12 +33,12 @@ class BattlePassController extends Controller
         $freeTitles = [
             1 => ['Afdeling Startpakket', 'fa-bolt'],
             2 => ['Luchtplaats Krachttraining', 'fa-dumbbell'],
-            3 => ['Kliniek Kluiscodex & XP', 'fa-key'],
+            3 => ['Kliniek Kluiscodes & XP', 'fa-key'],
             4 => ['Paviljoen Respect & Ervaring', 'fa-handshake-simple'],
             5 => ['Mijlpaal Kluispakket', 'fa-briefcase'],
             6 => ['Celdienst Zakgeld & XP', 'fa-sack-dollar'],
             7 => ['Halterbank Kracht Boost', 'fa-dumbbell'],
-            8 => ['Bewaker Kluiscodex & Cash', 'fa-key'],
+            8 => ['Bewaker Kluiscodes & Cash', 'fa-key'],
             9 => ['Afdeling Status & XP', 'fa-award'],
             0 => ['Grote Seizoens Mijlpaal', 'fa-trophy'],
         ];
@@ -46,12 +46,12 @@ class BattlePassController extends Controller
         $vip1Titles = [
             1 => ['TBS V.I.P. Lid Startpakket', 'fa-star'],
             2 => ['TBS V.I.P. Lid Spierkracht', 'fa-dumbbell'],
-            3 => ['TBS V.I.P. Lid Kluiscodex', 'fa-key'],
+            3 => ['TBS V.I.P. Lid Kluiscodes', 'fa-key'],
             4 => ['TBS V.I.P. Lid Dossier XP', 'fa-bolt'],
             5 => ['TBS V.I.P. Lid Mijlpaal Koffer', 'fa-briefcase'],
             6 => ['TBS V.I.P. Lid Witwas Storting', 'fa-building-columns'],
             7 => ['TBS V.I.P. Lid Zware Training', 'fa-dumbbell'],
-            8 => ['TBS V.I.P. Lid Dubbele Codex', 'fa-unlock-keyhole'],
+            8 => ['TBS V.I.P. Lid Dubbele Codes', 'fa-unlock-keyhole'],
             9 => ['TBS V.I.P. Lid Paviljoen Aanzien', 'fa-handshake-simple'],
             0 => ['TBS V.I.P. Lid Hoofdmijlpaal', 'fa-crown'],
         ];
@@ -59,12 +59,12 @@ class BattlePassController extends Controller
         $vip2Titles = [
             1 => ['Gangster Elite Kapitaal', 'fa-gem'],
             2 => ['Gangster Elite Kracht & Anabolen', 'fa-dumbbell'],
-            3 => ['Gangster Elite Master Kluiscodex', 'fa-key'],
+            3 => ['Gangster Elite Master Kluiscodes', 'fa-key'],
             4 => ['Gangster Elite Syndicaat XP', 'fa-fire-flame-curved'],
             5 => ['Gangster Elite Mijlpaal', 'fa-box-open'],
             6 => ['Gangster Elite Off-Shore Bank', 'fa-vault'],
             7 => ['Gangster Elite Boksring Dominant', 'fa-hand-fist'],
-            8 => ['Gangster Elite Elektronische Codex', 'fa-microchip'],
+            8 => ['Gangster Elite Elektronische Codes', 'fa-microchip'],
             9 => ['Gangster Elite Onderwereld Respect', 'fa-award'],
             0 => ['Gangster Elite Hoofdkist', 'fa-gem'],
         ];
@@ -72,12 +72,12 @@ class BattlePassController extends Controller
         $vip3Titles = [
             1 => ['Kliniek Baas Imperium', 'fa-crown'],
             2 => ['Kliniek Baas Titanen Kracht', 'fa-dumbbell'],
-            3 => ['Kliniek Baas Directeur Kluiscodex', 'fa-key'],
+            3 => ['Kliniek Baas Directeur Kluiscodes', 'fa-key'],
             4 => ['Kliniek Baas Meesterbrein XP', 'fa-bolt-lightning'],
             5 => ['Kliniek Baas Syndicaat Kluiskist', 'fa-box-open'],
             6 => ['Kliniek Baas Zwarte Bankrekening', 'fa-sack-dollar'],
             7 => ['Kliniek Baas Onverslaanbare Kracht', 'fa-hand-fist'],
-            8 => ['Kliniek Baas Hoofdkluis Codex', 'fa-fingerprint'],
+            8 => ['Kliniek Baas Hoofdkluis Codes', 'fa-fingerprint'],
             9 => ['Kliniek Baas Autoriteit', 'fa-dragon'],
             0 => ['Kliniek Baas Trofee', 'fa-trophy'],
         ];
@@ -449,7 +449,7 @@ class BattlePassController extends Controller
             'xp' => fn (int $v): string => '+'.number_format($v, 0, ',', '.').' XP',
             'strength' => fn (int $v): string => '+'.number_format($v, 0, ',', '.').' Kracht',
             'respect' => fn (int $v): string => '+'.number_format($v, 0, ',', '.').' Respect',
-            'vault_tokens' => fn (int $v): string => $v.'x Kluiscodex',
+            'vault_tokens' => fn (int $v): string => $v.' '.($v === 1 ? 'Code' : 'Codes'),
             'stars' => fn (int $v): string => $v.' '.($v === 1 ? 'Ster' : 'Sterren'),
             'masks' => fn (int $v): string => $v.' '.($v === 1 ? 'Masker' : 'Maskers'),
             'unopened_bags' => fn (int $v): string => $v.'x Koffer',

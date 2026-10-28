@@ -26,14 +26,14 @@
 
     $initialTargetLevel = $firstClaimableLevel ?? $highestUnlockedLevel;
 
-    // Reward chip helper for visual badges (Cash, Bank, XP, Kracht, Respect, Kluiscodex, Sterren, Maskers, etc.)
+    // Reward chip helper for visual badges (Cash, Bank, XP, Kracht, Respect, Codes, Sterren, Maskers, etc.)
     $rewardMeta = [
         'cash'          => ['icon' => 'fa-sack-dollar',      'label' => 'Cash',       'prefix' => '€', 'color' => 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'],
         'bank'          => ['icon' => 'fa-building-columns', 'label' => 'Bank',       'prefix' => '€', 'color' => 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'],
         'xp'            => ['icon' => 'fa-bolt-lightning',   'label' => 'XP',         'prefix' => '+', 'color' => 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/35'],
         'strength'      => ['icon' => 'fa-dumbbell',         'label' => 'Kracht',     'prefix' => '+', 'color' => 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/35'],
         'respect'       => ['icon' => 'fa-handshake-simple', 'label' => 'Respect',    'prefix' => '+', 'color' => 'bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/30'],
-        'vault_tokens'  => ['icon' => 'fa-key',              'label' => 'Kluiscodex', 'prefix' => '',  'color' => 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/35'],
+        'vault_tokens'  => ['icon' => 'fa-key',              'label' => 'Codes',      'prefix' => '',  'color' => 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/35'],
         'stars'         => ['icon' => 'fa-star',             'label' => 'Sterren',    'prefix' => '',  'color' => 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/35'],
         'masks'         => ['icon' => 'fa-mask',             'label' => 'Masker',     'prefix' => '',  'color' => 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30'],
         'unopened_bags' => ['icon' => 'fa-briefcase',        'label' => 'Koffer',     'prefix' => '',  'color' => 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'],
@@ -50,7 +50,7 @@
             'rank_title'  => 'FREE Pass (Gratis)',
             'badge'       => 'PAS 1 • GRATIS',
             'name'        => 'FREE Pass',
-            'subtitle'    => 'Geld, XP, Kracht & Kluiscodex',
+            'subtitle'    => 'Geld, XP, Kracht & Codes',
             'image'       => asset('assets/illustrations/bp_track_free.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_prison.jpg'),
             'unlocked'    => true,
@@ -66,7 +66,7 @@
             'rank_title'  => 'TBS V.I.P. Lid (VIP 1)',
             'badge'       => 'PAS 2 • VIP 1',
             'name'        => 'TBS V.I.P. Lid Pass',
-            'subtitle'    => 'Sterren, Kracht, Kluiscodex & Cash',
+            'subtitle'    => 'Sterren, Kracht, Codes & Cash',
             'image'       => asset('assets/illustrations/bp_track_vip1.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_smuggle.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 1,
@@ -98,7 +98,7 @@
             'rank_title'  => 'Kliniek Baas V.I.P. (VIP 3)',
             'badge'       => 'PAS 4 • VIP 3 BAAS',
             'name'        => 'Kliniek Baas V.I.P. Pass',
-            'subtitle'    => 'Maximale Kracht, Kluiscodex & Kapitaal',
+            'subtitle'    => 'Maximale Kracht, Codes & Kapitaal',
             'image'       => asset('assets/illustrations/bp_track_vip3.jpg'),
             'fallback_bg' => asset('assets/illustrations/banner_vault.jpg'),
             'unlocked'    => $isVip && $supporterTier >= 3,
@@ -205,7 +205,7 @@
                 </h1>
 
                 <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    Blader met de paarse pijlen door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong> en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Kluiscodex, Sterren en schaarse Maskers</strong>! Speel extra rangen vrij met <strong class="text-white">TBS V.I.P. Lid (VIP 1), Gangster Elite V.I.P. (VIP 2) &amp; Kliniek Baas V.I.P. (VIP 3)</strong>.
+                    Blader met de paarse pijlen door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong> en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Codes, Sterren en schaarse Maskers</strong>! Speel extra rangen vrij met <strong class="text-white">TBS V.I.P. Lid (VIP 1), Gangster Elite V.I.P. (VIP 2) &amp; Kliniek Baas V.I.P. (VIP 3)</strong>.
                 </p>
 
                 <!-- Speler Status & Directe Link naar VIP Lidmaatschap Winkel -->
@@ -580,6 +580,7 @@
                                                 $formattedVal = number_format($rVal, 0, ',', '.');
                                                 $chipLabel = ($rKey === 'masks' && $rVal > 1) ? 'Maskers' : $meta['label'];
                                                 $chipLabel = ($rKey === 'stars' && $rVal === 1) ? 'Ster' : $chipLabel;
+                                                $chipLabel = ($rKey === 'vault_tokens' && $rVal === 1) ? 'Code' : $chipLabel;
                                             @endphp
                                             <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-extrabold {{ $meta['color'] }}">
                                                 <i class="fa-solid {{ $meta['icon'] }} text-[10px]"></i>

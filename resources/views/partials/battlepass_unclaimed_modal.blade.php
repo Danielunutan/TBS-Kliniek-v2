@@ -87,7 +87,7 @@
         <!-- Body -->
         <div class="p-5 space-y-4">
             <p class="text-xs text-purple-100/90 leading-relaxed">
-                Je hebt op je huidige level (<strong class="text-white">Level {{ $bpPopupChar->level }}</strong>) nog <strong class="text-amber-300">{{ $bpUnclaimedCount }} ongeclaimde Battle Pass {{ $bpUnclaimedCount === 1 ? 'prijs' : 'prijzen' }}</strong> klaarliggen in je kluis! Haal direct je gratis <strong class="text-white">Geld, XP, Kracht, Respect, Kluiscodex en Sterren</strong> op.
+                Je hebt op je huidige level (<strong class="text-white">Level {{ $bpPopupChar->level }}</strong>) nog <strong class="text-amber-300">{{ $bpUnclaimedCount }} ongeclaimde Battle Pass {{ $bpUnclaimedCount === 1 ? 'prijs' : 'prijzen' }}</strong> klaarliggen in je kluis! Haal direct je gratis <strong class="text-white">Geld, XP, Kracht, Respect, Codes en Sterren</strong> op.
             </p>
 
             <!-- Reward Preview Chips -->
@@ -102,7 +102,7 @@
                     <i class="fa-solid fa-dumbbell text-[10px]"></i> +Kracht
                 </span>
                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-yellow-500/15 border border-yellow-500/35 text-yellow-300 text-[11px] font-extrabold">
-                    <i class="fa-solid fa-key text-[10px]"></i> Kluiscodex
+                    <i class="fa-solid fa-key text-[10px]"></i> Codes
                 </span>
                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/35 text-amber-300 text-[11px] font-extrabold">
                     <i class="fa-solid fa-star text-[10px]"></i> Sterren
@@ -137,3 +137,4 @@
 </div>
 @endif
 @endauth
+
