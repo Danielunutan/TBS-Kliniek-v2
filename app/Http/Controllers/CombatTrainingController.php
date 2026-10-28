@@ -56,6 +56,12 @@ class CombatTrainingController extends Controller
 
         $session = $config[$validated['session_id']];
         $statKey = $session['stat'];
+        $maxStat = $character->getMaxStatForLevel();
+        $currentStat = (int) $character->{$statKey};
+
+        if ($currentStat >= $maxStat) {
+            return back()->with('error', "🔒 LEVEL-PLAFOND BEREIKT! Je hebt het maximum van {$maxStat} {$session['label']} bereikt voor Level {$character->level}. Stijg eerst naar Level ".($character->level + 1)." om je {$session['label']} verder te kunnen trainen!");
+        }
 
         if ($character->cash < $session['cost']) {
             return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
@@ -86,6 +92,6 @@ class CombatTrainingController extends Controller
 
         $coldText = $newFocus < 100 ? " én +4% Koudbloedigheid (nu {$newFocus}%)" : '';
 
-        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} (nu {$character->{$statKey}}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
+        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} ({$character->{$statKey}}/{$maxStat}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
     }
 }

@@ -31,22 +31,55 @@
     </div>
 
     <!-- STATS OVERVIEW CARDS -->
+    @php $maxStatCap = $character->getMaxStatForLevel(); @endphp
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Kracht</div>
-            <div class="text-xl font-black text-rose-600 dark:text-rose-400 font-mono mt-0.5">{{ number_format($character->strength, 0) }}</div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs flex flex-col justify-between">
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Kracht (Lvl {{ $character->level }} Max)</div>
+            <div class="text-xl font-black {{ $character->strength >= $maxStatCap ? 'text-amber-500 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400' }} font-mono mt-0.5">
+                {{ number_format($character->strength, 0) }}
+                <span class="text-xs text-slate-400">/ {{ number_format($maxStatCap, 0) }}</span>
+            </div>
+            @if($character->strength >= $maxStatCap)
+                <span class="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 self-center">
+                    Level Max
+                </span>
+            @endif
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Verdediging</div>
-            <div class="text-xl font-black text-blue-600 dark:text-blue-400 font-mono mt-0.5">{{ number_format($character->defense, 0) }}</div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs flex flex-col justify-between">
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Verdediging (Lvl {{ $character->level }} Max)</div>
+            <div class="text-xl font-black {{ $character->defense >= $maxStatCap ? 'text-amber-500 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400' }} font-mono mt-0.5">
+                {{ number_format($character->defense, 0) }}
+                <span class="text-xs text-slate-400">/ {{ number_format($maxStatCap, 0) }}</span>
+            </div>
+            @if($character->defense >= $maxStatCap)
+                <span class="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 self-center">
+                    Level Max
+                </span>
+            @endif
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Conditie</div>
-            <div class="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{ number_format($character->stamina, 0) }}</div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs flex flex-col justify-between">
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Conditie (Lvl {{ $character->level }} Max)</div>
+            <div class="text-xl font-black {{ $character->stamina >= $maxStatCap ? 'text-amber-500 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }} font-mono mt-0.5">
+                {{ number_format($character->stamina, 0) }}
+                <span class="text-xs text-slate-400">/ {{ number_format($maxStatCap, 0) }}</span>
+            </div>
+            @if($character->stamina >= $maxStatCap)
+                <span class="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 self-center">
+                    Level Max
+                </span>
+            @endif
         </div>
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs">
-            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Discipline</div>
-            <div class="text-xl font-black text-purple-600 dark:text-purple-400 font-mono mt-0.5">{{ number_format($character->discipline, 0) }}</div>
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center shadow-xs flex flex-col justify-between">
+            <div class="text-[10px] font-black uppercase tracking-wider text-slate-400">Discipline (Lvl {{ $character->level }} Max)</div>
+            <div class="text-xl font-black {{ $character->discipline >= $maxStatCap ? 'text-amber-500 dark:text-amber-400' : 'text-purple-600 dark:text-purple-400' }} font-mono mt-0.5">
+                {{ number_format($character->discipline, 0) }}
+                <span class="text-xs text-slate-400">/ {{ number_format($maxStatCap, 0) }}</span>
+            </div>
+            @if($character->discipline >= $maxStatCap)
+                <span class="inline-block mt-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 self-center">
+                    Level Max
+                </span>
+            @endif
         </div>
     </div>
 
@@ -90,16 +123,35 @@
                     </div>
                 </div>
 
-                <form action="{{ route('combat_training.train') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="session_id" value="{{ $session['id'] }}">
-                    <button type="submit"
-                            {{ $character->isImprisoned() || $character->energy < $session['energy'] || $character->cash < $session['cost'] ? 'disabled' : '' }}
-                            class="px-4 py-2.5 rounded-xl text-xs font-black transition shadow-xs flex items-center gap-1.5 {{ $character->isImprisoned() || $character->energy < $session['energy'] || $character->cash < $session['cost'] ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer active:scale-95 shadow-xs' }}">
-                        <i class="fa-solid fa-dumbbell text-[11px]"></i>
-                        <span>Trainen</span>
-                    </button>
-                </form>
+                @php
+                    $isStatCapped = ((int) $character->{$session['stat']}) >= $maxStatCap;
+                    $canAfford = $character->cash >= $session['cost'];
+                    $hasEnergy = $character->energy >= $session['energy'];
+                    $isDisabled = $character->isImprisoned() || ! $hasEnergy || ! $canAfford || $isStatCapped;
+                @endphp
+                <div class="flex flex-col items-end gap-1">
+                    <form action="{{ route('combat_training.train') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="session_id" value="{{ $session['id'] }}">
+                        @if($isStatCapped)
+                            <button type="button" disabled
+                                    class="px-4 py-2.5 rounded-xl text-xs font-black transition shadow-xs flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700/60 cursor-not-allowed">
+                                <i class="fa-solid fa-lock text-[11px] text-amber-500"></i>
+                                <span>Max Lvl {{ $character->level }} Bereikt</span>
+                            </button>
+                        @else
+                            <button type="submit"
+                                    {{ $isDisabled ? 'disabled' : '' }}
+                                    class="px-4 py-2.5 rounded-xl text-xs font-black transition shadow-xs flex items-center gap-1.5 {{ $isDisabled ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 text-white cursor-pointer active:scale-95 shadow-xs' }}">
+                                <i class="fa-solid fa-dumbbell text-[11px]"></i>
+                                <span>Trainen</span>
+                            </button>
+                        @endif
+                    </form>
+                    @if($isStatCapped)
+                        <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Stijg naar Lvl {{ $character->level + 1 }} voor meer stats</span>
+                    @endif
+                </div>
             </div>
         </div>
         @endforeach

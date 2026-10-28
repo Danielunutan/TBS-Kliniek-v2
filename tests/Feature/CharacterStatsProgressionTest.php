@@ -87,7 +87,7 @@ class CharacterStatsProgressionTest extends TestCase
             'strength' => 20,
         ]);
 
-        // Max stat for level 10: 50 + 10 * 15 = 200
-        $this->assertEquals(200, $character->getMaxStatForLevel());
+        // Max stat for level 10: 100 + 10 * 50 = 600
+        $this->assertEquals(600, $character->getMaxStatForLevel());
     }
 }

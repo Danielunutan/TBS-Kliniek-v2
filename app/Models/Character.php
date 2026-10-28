@@ -1436,10 +1436,12 @@ class Character extends Model
 
     /**
      * Maximum natural stat cap based on character level.
+     * Generous dynamic cap (100 base + 50 per level) that prevents low-level twink exploits
+     * while giving active players plenty of training room per level.
      */
     public function getMaxStatForLevel(): int
     {
-        return 50 + ($this->level * 15);
+        return 100 + ((int) ($this->level ?? 1) * 50);
     }
 
     /**

@@ -122,18 +122,16 @@ class TrainingAjaxTest extends TestCase
         $this->assertEquals(10, $character->strength);
     }
 
-    public function test_combat_training_allows_training_even_at_stat_cap_and_awards_xp(): void
+    public function test_combat_training_increases_stat_below_cap(): void
     {
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
             'level' => 1,
             'cash' => 5000,
             'energy' => 100,
-            'strength' => 65, // Cap for level 1 (50 + 1 * 15 = 65)
-            'perks' => ['cold_blooded_pct' => 100],
+            'strength' => 50, // Cap is 100 + (1 * 50) = 150
+            'perks' => ['cold_blooded_pct' => 50],
         ]);
-
-        $this->assertTrue($character->strength >= $character->getMaxStatForLevel());
 
         $response = $this->actingAs($user)
             ->post(route('combat_training.train'), [
@@ -144,9 +142,36 @@ class TrainingAjaxTest extends TestCase
         $this->assertStringContainsString('Training voltooid', session('success'));
 
         $character->refresh();
-        $this->assertEquals(66, $character->strength); // Combat training increases stat (+1) without gym cap
-        $this->assertEquals(40, $character->xp); // XP awarded
-        $this->assertEquals(90, $character->energy); // Energy consumed
-        $this->assertEquals(5000 - 150, $character->cash); // Cost deducted
+        $this->assertEquals(51, $character->strength);
+        $this->assertEquals(40, $character->xp);
+        $this->assertEquals(90, $character->energy);
+        $this->assertEquals(5000 - 150, $character->cash);
+    }
+
+    public function test_combat_training_blocks_when_stat_cap_is_reached_without_wasting_resources(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'level' => 1,
+            'cash' => 5000,
+            'energy' => 100,
+            'strength' => 150, // Max cap for level 1 (100 + 1 * 50 = 150)
+            'perks' => ['cold_blooded_pct' => 100],
+        ]);
+
+        $this->assertEquals(150, $character->getMaxStatForLevel());
+
+        $response = $this->actingAs($user)
+            ->post(route('combat_training.train'), [
+                'session_id' => 1, // Schaduwboksen (strength)
+            ]);
+
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('LEVEL-PLAFOND BEREIKT', session('error'));
+
+        $character->refresh();
+        $this->assertEquals(150, $character->strength); // Unchanged
+        $this->assertEquals(100, $character->energy); // Energy not deducted!
+        $this->assertEquals(5000, $character->cash); // Cash not deducted!
     }
 }
