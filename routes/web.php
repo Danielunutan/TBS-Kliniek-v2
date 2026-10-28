@@ -372,6 +372,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/liquidatie/schieten', [HitmanController::class, 'shoot'])->name('hitman.shoot');
     Route::post('/liquidatie/koop-kogels', [HitmanController::class, 'buyBullets'])->name('hitman.buy_bullets');
     Route::post('/liquidatie/koop-vest', [HitmanController::class, 'buyVest'])->name('hitman.buy_vest');
+    Route::post('/liquidatie/inlichtingen', [HitmanController::class, 'startIntel'])->name('hitman.intel');
+    Route::post('/liquidatie/schietbaan', [HitmanController::class, 'trainColdBlooded'])->name('hitman.train_cold_blooded');
+    Route::post('/liquidatie/snel-reizen', [HitmanController::class, 'quickTravel'])->name('hitman.quick_travel');
+    Route::post('/liquidatie/reanimatie-serum', [HitmanController::class, 'buyReviveSerum'])->name('hitman.revive_serum');
 
     // Kopgeld & Opsporingsbord (Bounty Hunter)
     Route::get('/kopgeld', [BountyController::class, 'index'])->name('bounties.index');

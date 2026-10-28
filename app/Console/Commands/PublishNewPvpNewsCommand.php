@@ -11,7 +11,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
 #[Signature('tbs:publish-pvp-news')]
-#[Description('Publiceert het uitgebreide newbfriendly PvP nieuwsbericht over Liquidatie, Fair Play en Bloedwraak')]
+#[Description('Verwijdert het oude PvP nieuwsbericht en publiceert het nieuwe Liquidatie & Schaduw-Inlichtingen 2.0 artikel')]
 class PublishNewPvpNewsCommand extends Command
 {
     /**
@@ -20,6 +20,7 @@ class PublishNewPvpNewsCommand extends Command
     public function handle(): int
     {
         $authorCharacter = Character::where('name', 'Daniel')
+            ->orWhere('name', 'Daniël')
             ->orWhere('username', 'daniel')
             ->first();
 
@@ -38,80 +39,69 @@ class PublishNewPvpNewsCommand extends Command
         }
 
         $authorId = $authorCharacter?->id;
-        $title = 'Grote PvP Update: Eerlijke Liquidatie, Fair Play & Bloedwraak';
+
+        // 1. Delete old PvP update articles
+        $oldSlugs = [
+            'grote-pvp-update-eerlijke-liquidatie-fair-play-bloedwraak',
+            Str::slug('Grote PvP Update: Eerlijke Liquidatie, Fair Play & Bloedwraak'),
+        ];
+
+        $deletedCount = NewsArticle::whereIn('slug', $oldSlugs)
+            ->orWhere('title', 'like', '%Eerlijke Liquidatie, Fair Play%')
+            ->delete();
+
+        $this->info("Oude PvP nieuwsberichten verwijderd: {$deletedCount}");
+
+        // 2. Create & Pin the new Liquidatie 2.0 article
+        $title = 'Grote Update: Liquidatie 2.0, 30 Dossier-Gradaties, 3-Uurs Backfire-Vest & Schaduw-Inlichtingen';
         $slug = Str::slug($title);
 
-        $content = 'Beste patiënten, bendeleiders en nieuwkomers in de TBS Kliniek!
+        $content = 'Beste patiënten en bendeleiders van de TBS Kliniek!
 
-Vandaag lanceren we een van de belangrijkste gameplay updates van het seizoen: een complete herziening en balancering van het **Liquidatie (PvP) Wapenarsenaal**!
+Op basis van jullie feedback hebben we het **Liquidatie- & Inlichtingensysteem** vanaf de grond opnieuw opgebouwd tot een diepgaand, tactisch en meedogenloos systeem waarin **jagen door de kliniek-ruimtes, schaduw-inlichtingen, zware Backfire-vesten voor geld en precisie-executies** centraal staan!
 
-In het verleden kon het voorkomen dat een speler herhaaldelijk door dezelfde sterke rivaal werd neergeschoten, in één klap 100% van al het contante geld verloor en direct na het ontwaken opnieuw werd neergeknald. Dat zorgde voor frustratie en jaagt spelers weg. 
-
-Met dit gloednieuwe systeem blijft de spanning, rivaliteit en adrenaline volop aanwezig, maar krijgt iedereen een eerlijke kans om te groeien, terug te vechten en tactisch te spelen!
+Hieronder lees je precies hoe **Liquidatie 2.0** werkt:
 
 ---
 
-### 🛡️ 1. Eerlijk Levelbereik (Maximaal 15 Levels Verschil)
-Een speler van level 60 kan niet langer zomaar een pas gestarte speler van level 8 executeren.
-- Je kunt uitsluitend schieten op doelwitten die maximaal **15 levels boven of onder** jouw eigen niveau zitten.
-- Zo vecht je altijd tegen tegenstanders van vergelijkbaar niveau en blijft elke overwinning echt verdiend!
+### 🎯 1. De 30 TBS Dossier-Gradaties & Koudbloedigheid (%)
+In plaats van dat iedereen hetzelfde aantal kogels schiet, wordt jouw status in het liquidatiecircuit bepaald door de **30 Forensische Dossier-Gradaties** (gebaseerd op je Level en je voltooide afrekeningen) en je **Koudbloedigheid (0% – 100%)**:
+- **Vanaf Dossier-Graad 1 (*Observatiepatiënt*)** kan iedereen schieten, maar heb je een zwaar salvo aan patronen nodig. Hoe hoger je Dossier-Graad klimt, hoe minder patronen je nodig hebt.
+- **Genadeschot (1-Patroon Precisie-Executie):** Zodra je **Dossier-Graad 25 (*Forensisch Scherpschutter*)** of hoger bereikt én je **Koudbloedigheid op minimaal 30%** staat, ontgrendel je het dodelijke **1-Patroon Genadeschot**!
+- **Zit je onder de 30% Koudbloedigheid?** Dan trilt je hand en kun je niet met 1 patroon schieten totdat je je Koudbloedigheid weer hebt opgetraind op de **Ondergrondse Schietbaan** of via **Vechtoefening**.
 
 ---
 
-### ⏱️ 2. Persoonlijke Doelwit Cooldown (3 Uur Wachttijd)
-Geen pesterijen of doelloos farmen op dezelfde persoon:
-- Als jij speler B beschiet, mag jij speler B de komende **3 uur lang** niet opnieuw viseren.
-- Na een aanval moet je dus andere doelwitten zoeken, waardoor iedereen rust krijgt.
+### 🕵️ 2. Zelfde Kliniek-Afdeling Vereist & 15-Minuten Schaduw-Inlichtingen
+Je kunt niet langer blind vanuit een andere vleugel op iemand vuren:
+- **Zelfde Ruimte Vereist:** Om de trekker over te halen moet je in **exact dezelfde kliniek-afdeling** staan als je doelwit (bijv. *Paviljoen 1*, *De Luchtplaats*, *Het Kookhuis*, *Recreatiezaal*, etc.).
+- **Camera- & Gangpad Schaduwing (15 Minuten):** Weet je niet op welke afdeling een rivaal rondloopt? Start een **Schaduw-Inlichtingen Operatie (€350.000)**. Na **15 minuten** ontvang je een live rapport met de exacte kliniek-vleugel van je doelwit, zijn gedragen pantser en zijn vermogen, inclusief een **1-klik knop om direct naar die vleugel te reizen**!
+- **Celblok-Lockdown (€1.750.000):** Wil je voorkomen dat je doelwit wegvlucht? Met een Celblok-Lockdown wordt de afdeling van het doelwit zodra het rapport binnen is **10 minuten lang vergrendeld**!
 
 ---
 
-### 🕊️ 3. Automatische Herstelbescherming na Coma (30 Minuten Schild)
-Als je bent neergeschoten en ontwaakt uit de Intensive Care:
-- Ontvang je direct een automatisch **Herstelschild van 30 minuten**.
-- Gedurende deze tijd kan niemand jou liquideren.
-- Dit geeft je rustig de tijd om contant geld veilig naar de bank te brengen, je HP te herstellen in de ziekenboeg en je inventaris op orde te brengen.
-- *Let op: Als je tijdens deze hersteltijd zelf besluit om iemand aan te vallen, vervalt je bescherming uiteraard meteen!*
+### 🛡️ 3. Nieuw: 3-Uurs Backfire-Vest voor Geld & Uitgebreid Arsenaal
+Jullie vroegen massaal om een **3-uurs Backfire-vest dat met in-game geld te koop is**. Het Wapenarsenaal biedt nu 4 pantserklassen die zowel met **Geld (Contant + Bank)** als **Sterren** verkrijgbaar zijn:
+- **Licht Kevlar Ondervest (1 Uur):** €500.000 (of 35 ⭐) — +180 Def & **30% Backfire-kans**
+- **Zwaar Tactisch Backfire-Vest (3 Uur):** **€1.250.000** (of 65 ⭐) — +350 Def & **55% Backfire-kans**
+- **Syndicaat Keramisch Pantser (6 Uur):** €2.400.000 (of 110 ⭐) — +480 Def & **65% Backfire-kans**
+- **Directie Titanium Exosuit (12 Uur):** €4.500.000 (of 150 ⭐) — +650 Def & **75% Backfire-kans**
 
 ---
 
-### 🚫 4. Daglimiet op Slachtofferschap (Maximaal 3x per 24 Uur)
-Om actieve spelers en bendeleden te beschermen tegen massale gerichte heksenjachten:
-- Een speler kan maximaal **3 keer per 24 uur** fatale schade oplopen door liquidaties.
-- Zodra dit aantal is bereikt, is het doelwit voor de rest van de dag volledig beschermd tegen kogels.
+### 💰 4. Verhoogde Buit: 45% Contant Geld + 7% Bankrekening!
+Liquideren levert voortaan serieuze buit op:
+- Bij elke dodelijke voltreffer roof je direct **45% van het contante geld** én **7% van de bankrekening** van het slachtoffer!
+- Daarnaast verdien je **+60 Respect**, **+400 XP** en strijk je automatisch eventuele openstaande **Kopgeld-premies** en **Bloedwraak-bonussen** op.
 
 ---
 
-### 💰 5. Buit Verlaagd van 100% naar 35% Contant Geld
-Het plunderen van slachtoffers is eerlijker afgesteld:
-- Bij een dodelijke voltreffer verliest het slachtoffer **35% van het losse contante geld op zak** (in plaats van alles).
-- Dit levert de schutter nog steeds een gigantische beloning op, maar voorkomt dat een slachtoffer in één klap weken aan spaargeld kwijt is.
-- **Gouden Tip voor Beginners:** Geld op je bankrekening kan NOOIT worden geplunderd! Zet overtollig geld dus altijd direct op de bank.
+### 💉 5. Onbeperkt Jagen, Brancard-Evacuatie & Code Blauw bij 10x Geliquideerd
+We hebben de frustrerende 1-uurs coma-blokkade bij losse treffers én de daglimiet van 3 kills verwijderd:
+- **Liquidatie 1 t/m 9 (Direct Healen & Brancard-Evacuatie):** Word je neergeschoten? Dan zit je **niet** vast in een coma! Je overleeft met **20 HP**, kunt **direct eten en healen**, en wordt per brancard geëvacueerd naar een **willekeurige andere kliniek-afdeling** met **15 minuten Medisch Infuus-Schild**. Wil een jager je opnieuw pakken, dan moet hij eerst opnieuw 15 minuten schaduwen om je nieuwe vleugel te vinden!
+- **10x Geliquideerd = Code Blauw (Forensisch Reanimatie-Serum):** Ben je **10 keer geliquideerd (10/10)**? Dan treedt **Code Blauw (Hartstilstand)** in! Om weer tot leven te komen met 100% HP en je teller terug te zetten naar **0/10**, moet je in de kliniek het **Forensisch Reanimatie-Serum (Epinefrine-Ampul)** aanschaffen voor **€1.500.000** (of 75 Sterren).
 
----
-
-### 🩸 6. Bloedwraak (Blood Feuds): Samen Terugslaan met je Bende!
-Neergeschoten worden is niet langer het einde van het verhaal, maar het begin van een echte bendeoorlog!
-- Als jij of een lid van jouw bende wordt neergeschoten, start er automatisch een **24-uurs Bloedwraak Vete**.
-- **Levelgrenzen vervallen:** Zowel jij als al jouw bendeleden mogen de dader direct liquideren, ongeacht levelverschil!
-- **Cooldowns vervallen:** De 3-uurs wachttijd geldt niet tegen de dader.
-- **Enorme Wraakbeloningen:** De speler die de dader terugslaat verdient **+50 extra Respect**, een contante premie van **€ 10.000**, én **+150 Bende Respect** voor jullie gezamenlijke gang!
-
----
-
-### 🦺 7. Kogelwerend Vest & Het Gevaar van Backfire
-Wil je jezelf optimaal beschermen?
-- In het Wapenarsenaal schaf je voor 150 Gouden Sterren een **Kogelwerend Vest** aan dat 12 uur actief blijft.
-- **Backfire Risico:** Als een rivaal kogels op jou afvuurt terwijl jij een vest draagt, kunnen de kogels afketsen op je pantser. De schutter raakt dan zélf zwaargewond en belandt zelf 1 uur in Coma op de Intensive Care!
-
----
-
-### 💡 Handige Tips voor Beginnende Patiënten
-1. **Zet je geld op de Bank:** Houd nooit miljoenen los op zak. De bank is 100% veilig en geeft dagelijks rente.
-2. **Train je Verdediging:** Onder Krachttraining zorgt bankdrukken voor hogere verdediging, waardoor kogels minder snel fataal zijn.
-3. **Sluit je aan bij een Bende:** Samen sta je sterker. Als iemand jou aanvalt, kunnen jouw bendeleden direct Bloedwraak nemen!
-4. **Gebruik de Sterren Shop:** Heb je snel kogels nodig of wil je direct ontwaken uit coma? In de Sterren Shop regel je dit direct.
-
-Heb je vragen of opmerkingen over het nieuwe systeem? Laat hieronder een reactie achter of open een ticket bij het kliniekpersoneel!';
+Ga nu naar **Liquidatie** in het menu, bekijk je Dossier-Graad en beheers de kliniek!';
 
         NewsArticle::where('is_pinned', true)->update(['is_pinned' => false]);
 
@@ -130,7 +120,7 @@ Heb je vragen of opmerkingen over het nieuwe systeem? Laat hieronder een reactie
             ]
         );
 
-        $this->info("PvP Nieuwsbericht succesvol geplaatst! ID: {$article->id}, Slug: {$article->slug}");
+        $this->info("Nieuw Liquidatie 2.0 artikel succesvol geplaatst! ID: {$article->id}, Slug: {$article->slug}");
 
         return self::SUCCESS;
     }

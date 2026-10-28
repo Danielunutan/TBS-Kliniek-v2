@@ -2279,10 +2279,10 @@
             @endforeach
             @endif
 
-            <!-- Active Intensive Care Coma Alert Banner -->
-            @if(isset($character) && $character->isComatose())
+            <!-- Active Code Blauw (10/10 Liquidations / Intensive Care) Alert Banner -->
+            @if(isset($character) && $character->needsReviveSerum())
             <div x-data="{ 
-                    sec: {{ $character->getComaRemainingSeconds() }},
+                    sec: {{ max(1, $character->getComaRemainingSeconds()) }},
                     formatTime(s) {
                         if (s <= 0) return '00:00';
                         const h = Math.floor(s / 3600);
@@ -2302,30 +2302,38 @@
                         }
                     }
                  }" 
-                 x-show="sec > 0"
-                 class="mb-6 bg-red-950/90 text-white border-2 border-red-500 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-4 relative z-20">
+                 class="mb-6 bg-white dark:bg-slate-900 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 relative z-20">
                 <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center text-xl shadow-md shrink-0 animate-pulse">
-                        <i class="fa-solid fa-heart-pulse"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0 animate-pulse">
+                        <i class="fa-solid fa-syringe"></i>
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-500 text-white">Noodgeval</span>
-                            <h3 class="text-sm sm:text-base font-black tracking-tight text-white">Intensive Care: Je ligt in Coma!</h3>
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-600 text-white">Code Blauw • 10/10 Geliquideerd</span>
+                            <h3 class="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">{{ \App\Models\Character::REVIVE_SERUM_NAME }} Vereist!</h3>
                         </div>
-                        <p class="text-xs text-red-200 mt-0.5">
-                            Je bent neergeschoten of geraakt door backfire. Resterende comatijd: <span class="font-mono font-black text-amber-300" x-text="formatTime(sec)"></span>.
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                            Je bent 10x geliquideerd en verkeert in hartstilstand. Dien een <strong>{{ \App\Models\Character::REVIVE_SERUM_NAME }}</strong> toe om direct weer tot leven te komen (100% HP & teller naar 0/10).
                         </p>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
-                    <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full sm:w-auto">
+                    <form method="POST" action="{{ route('hitman.revive_serum') }}" class="w-full sm:w-auto">
                         @csrf
-                        <input type="hidden" name="action" value="coma">
+                        <input type="hidden" name="currency" value="cash">
                         <button type="submit" 
-                                class="btn-star-gold w-full sm:w-auto py-2.5 px-5 rounded-xl text-slate-900 dark:text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-md active:scale-95">
-                            <i class="fa-solid fa-star text-[12px]"></i>
-                            <span>Direct Uit Coma Ontwaken (15 Sterren ⭐)</span>
+                                class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95">
+                            <i class="fa-solid fa-syringe text-emerald-400"></i>
+                            <span>Koop Epinefrine-Ampul (€1.500.000)</span>
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ route('hitman.revive_serum') }}" class="w-full sm:w-auto">
+                        @csrf
+                        <input type="hidden" name="currency" value="stars">
+                        <button type="submit" 
+                                class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-2 shadow-xs active:scale-95">
+                            <i class="fa-solid fa-star text-amber-200"></i>
+                            <span>{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</span>
                         </button>
                     </form>
                 </div>

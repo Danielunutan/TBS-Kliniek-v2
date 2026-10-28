@@ -84,6 +84,17 @@ class TravelController extends Controller
             return redirect()->route('prison')->with('error', 'Je kunt je niet verplaatsen zolang je vastzit in de isoleercel!');
         }
 
+        if ($character->needsReviveSerum()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand na 10 liquidaties)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe om weer te kunnen bewegen.');
+        }
+
+        if ($character->isWingLocked()) {
+            $lockRem = $character->getWingLockRemainingSeconds();
+            $mins = (int) ceil($lockRem / 60);
+
+            return back()->with('error', "🔒 AFDELING VERGRENDELD! Een rivaal heeft de deuren van {$character->current_location} op slot laten zetten via een Celblok-Lockdown. Je kunt nog {$mins} min. niet wegvluchten!");
+        }
+
         $request->validate([
             'location' => ['required', 'string'],
         ]);

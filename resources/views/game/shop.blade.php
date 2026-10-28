@@ -1479,31 +1479,40 @@
                         </form>
                     </div>
 
-                    <!-- 2b. Coma Ontwaken (15 Sterren) -->
+                    <!-- 2b. Forensisch Reanimatie-Serum (Epinefrine-Ampul) -->
                     <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-rose-400/50 transition">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <span class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-500 flex items-center justify-center text-lg">
-                                    <i class="fa-solid fa-heart-pulse"></i>
+                                    <i class="fa-solid fa-syringe"></i>
                                 </span>
-                                <span class="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-black text-xs flex items-center gap-1">
-                                    15 <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
+                                <span class="px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 font-black text-xs flex items-center gap-1 border border-rose-200 dark:border-rose-800">
+                                    €1,5M of {{ \App\Models\Character::REVIVE_SERUM_STARS }} <i class="fa-solid fa-star text-amber-500 text-[10px]"></i>
                                 </span>
                             </div>
                             <div>
-                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">Direct Uit Coma Ontwaken</h4>
+                                <h4 class="text-sm font-extrabold text-slate-900 dark:text-white">{{ \App\Models\Character::REVIVE_SERUM_NAME }}</h4>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    Neergeschoten of geraakt door backfire? Ontwaak direct uit Intensive Care Coma en herstel naar 50% HP!
+                                    10x geliquideerd (Code Blauw)? Wek jezelf direct weer tot leven met 100% HP, 30m schild en reset je liquidatieteller ({{ $character->getLiquidationStreakDeaths() }}/10) naar 0/10!
                                 </p>
                             </div>
                         </div>
-                        <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
-                            @csrf
-                            <input type="hidden" name="item_type" value="coma_revive">
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-syringe"></i> Ontwaken (15 Sterren)
-                            </button>
-                        </form>
+                        <div class="grid grid-cols-2 gap-2 mt-4">
+                            <form action="{{ route('hitman.revive_serum') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="currency" value="cash">
+                                <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-money-bill-wave"></i> €1.500.000
+                                </button>
+                            </form>
+                            <form action="{{ route('hitman.revive_serum') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="currency" value="stars">
+                                <button type="submit" class="w-full py-2.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-star text-amber-200"></i> {{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     <!-- 3. Maskers Pack (5x) -->

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Character;
+use App\Models\NewsArticle;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,24 +19,28 @@ class LiquidatiePvPAndComaTest extends TestCase
         $this->seed();
     }
 
-    public function test_liquidatie_page_renders_successfully(): void
+    public function test_liquidatie_page_renders_v2_features_without_video_ad_button(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $this->actingAs($user);
 
         $response = $this->get(route('hitman.index'));
         $response->assertStatus(200);
-        $response->assertSee('Liquidatie');
-        $response->assertSee('Wapenarsenaal');
-        $response->assertSee('Munitievoorraad');
-        $response->assertSee('Kogelwerend Vest');
+        $response->assertSee('Liquidatie &amp; Wapenarsenaal', false);
+        $response->assertSee('Zwaar Tactisch Backfire-Vest');
+        $response->assertSee(Character::REVIVE_SERUM_NAME);
+        $response->assertSee('Schaduw-Inlichtingen (15m)');
+        $response->assertDontSee('Gratis Kogel');
+        $response->assertDontSee('claimAdBullet');
     }
 
-    public function test_buy_bullets_and_vest_with_stars(): void
+    public function test_buy_3_hour_backfire_vest_with_cash_and_bullets_with_stars(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $char = $user->character;
         $char->update([
+            'cash' => 500000,
+            'bank' => 1000000,
             'stars' => 300,
             'bullets' => 10,
             'vest_until' => null,
@@ -43,18 +49,26 @@ class LiquidatiePvPAndComaTest extends TestCase
         $this->actingAs($user);
 
         // Buy +50 bullets with 50 stars
-        $respBullets = $this->post(route('hitman.buy_bullets'));
+        $respBullets = $this->post(route('hitman.buy_bullets'), [
+            'ammo_tier' => 'box_50',
+            'currency' => 'stars',
+        ]);
         $respBullets->assertSessionHas('success');
         $char->refresh();
         $this->assertEquals(60, $char->bullets);
         $this->assertEquals(250, $char->stars);
 
-        // Buy 12u vest with 150 stars
-        $respVest = $this->post(route('hitman.buy_vest'));
+        // Buy 3-hour Tactical Backfire Vest with €1.250.000 cash + bank
+        $respVest = $this->post(route('hitman.buy_vest'), [
+            'vest_tier' => 'tactical_3h',
+            'currency' => 'cash',
+        ]);
         $respVest->assertSessionHas('success');
         $char->refresh();
         $this->assertTrue($char->hasVest());
-        $this->assertEquals(100, $char->stars);
+        $this->assertEquals('tactical_3h', $char->getActiveVestInfo()['id']);
+        $this->assertEquals(55, $char->getVestBackfireChance());
+        $this->assertEquals(250000, $char->cash + $char->bank);
     }
 
     public function test_player_cannot_hustle_while_comatose(): void
@@ -73,76 +87,131 @@ class LiquidatiePvPAndComaTest extends TestCase
         $this->assertStringContainsString('Intensive Care', session('error'));
     }
 
-    public function test_shooting_target_applies_balance_loot_cooldown_and_blood_feud(): void
+    public function test_same_wing_requirement_15m_intel_one_tap_loot_and_10x_revive_serum(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();
         $shooter = $user->character;
         $shooter->update([
-            'bullets' => 200,
+            'bullets' => 50,
             'energy' => 100,
-            'level' => 10,
-            'power' => 200,
-            'cash' => 500,
+            'level' => 26, // Dossier-Graad 26+ (Forensisch Scherpschutter)
+            'strength' => 500,
+            'cash' => 1000000,
+            'bank' => 0,
+            'current_location' => 'Paviljoen 1 (Gesloten)',
             'coma_until' => null,
             'protection_until' => null,
+            'perks' => ['cold_blooded_pct' => 50],
         ]);
 
         $targetUser = User::where('email', '!=', 'demo@tbskliniek.nl')->first();
         $target = $targetUser->character;
         $target->update([
-            'level' => 10,
+            'level' => 20,
             'protection_until' => null,
             'coma_until' => null,
             'defense' => 10,
-            'power' => 10,
-            'cash' => 2500,
+            'cash' => 100000,
+            'bank' => 200000,
             'respect' => 1000,
             'vest_until' => null,
+            'current_location' => 'Het Kookhuis (Keuken)',
+            'perks' => ['liquidation_streak_deaths' => 8],
         ]);
 
         $this->actingAs($user);
 
-        $response = $this->post(route('hitman.shoot'), [
+        // 1. Shooting while in a different clinic wing must be blocked
+        $wrongWingResp = $this->post(route('hitman.shoot'), [
             'target_id' => $target->id,
-            'bullets' => 100,
+            'bullets' => 1,
         ]);
+        $wrongWingResp->assertSessionHas('error');
+        $this->assertStringContainsString('DOELWIT NIET IN DEZE RUIMTE', session('error'));
 
-        $response->assertSessionHasNoErrors();
+        // 2. Start 15-minute Shadow Intel operation (€350.000)
+        $intelResp = $this->post(route('hitman.intel'), [
+            'target_id' => $target->id,
+            'intel_type' => 'standard_15m',
+            'currency' => 'cash',
+        ]);
+        $intelResp->assertSessionHas('success');
+        $shooter->refresh();
+        $this->assertEquals(650000, $shooter->cash);
+        $this->assertNotNull($shooter->getIntelForTarget($target->id));
+
+        // 3. Travel to the target's wing ('Het Kookhuis (Keuken)')
+        $shooter->update(['current_location' => 'Het Kookhuis (Keuken)']);
+
+        // 4. Execute 1-Bullet Genadeschot (9th liquidation for target -> survives at 20 HP, evacuated to new wing, 45% cash + 7% bank stolen!)
+        $shootResp = $this->post(route('hitman.shoot'), [
+            'target_id' => $target->id,
+            'bullets' => 1,
+        ]);
+        $shootResp->assertSessionHas('success');
+
         $shooter->refresh();
         $target->refresh();
 
-        $this->assertEquals(100, $shooter->bullets);
+        // 45% of 100,000 cash = 45,000; 7% of 200,000 bank = 14,000; total = 59,000
+        $this->assertEquals(49, $shooter->bullets);
+        $this->assertEquals(650000 + 59000, $shooter->cash);
+        $this->assertEquals(55000, $target->cash);
+        $this->assertEquals(186000, $target->bank);
+        $this->assertEquals(9, $target->getLiquidationStreakDeaths());
+        $this->assertFalse($target->isComatose());
+        $this->assertEquals(20, $target->health);
+        $this->assertNotEquals('Het Kookhuis (Keuken)', $target->current_location);
 
-        if ($target->isComatose()) {
-            // 35% Cash plunder (not 100%)
-            $expectedLoot = (int) round(2500 * 0.35); // 875
-            $this->assertEquals(500 + $expectedLoot, $shooter->cash);
-            $this->assertEquals(2500 - $expectedLoot, $target->cash);
-            $this->assertEquals(1, $shooter->kills_count);
-            $this->assertEquals(1, $target->deaths_count);
+        // 5. 10th liquidation triggers Code Blauw (Coma) requiring the Forensisch Reanimatie-Serum
+        $target->update([
+            'protection_until' => null,
+            'current_location' => 'De Luchtplaats',
+        ]);
+        $shooter->update([
+            'energy' => 100,
+            'current_location' => 'De Luchtplaats',
+            'perks' => ['cold_blooded_pct' => 50],
+        ]);
 
-            // Recovery protection is active
-            $this->assertTrue($target->isProtected());
+        $tenthResp = $this->post(route('hitman.shoot'), [
+            'target_id' => $target->id,
+            'bullets' => 1,
+        ]);
+        $tenthResp->assertSessionHas('success');
 
-            // Blood Feud created
-            $this->assertDatabaseHas('blood_feuds', [
-                'attacker_id' => $shooter->id,
-                'victim_id' => $target->id,
-                'is_avenged' => false,
-            ]);
+        $target->refresh();
+        $this->assertEquals(10, $target->getLiquidationStreakDeaths());
+        $this->assertTrue($target->needsReviveSerum());
+        $this->assertTrue($target->isComatose());
 
-            // Attempting to shoot again immediately triggers personal 3h cooldown
-            $shooter->update(['bullets' => 100, 'energy' => 100]);
-            $target->update(['coma_until' => null, 'protection_until' => null]);
-            $cooldownResp = $this->post(route('hitman.shoot'), [
-                'target_id' => $target->id,
-                'bullets' => 50,
-            ]);
-            $cooldownResp->assertSessionHas('error');
-            $this->assertStringContainsString('recent al geviseerd', session('error'));
-        } else {
-            // In case of backfire
-            $this->assertTrue($shooter->isComatose());
-        }
+        // 6. Target buys Forensisch Reanimatie-Serum (€1.500.000) to come back to life and reset counter to 0/10
+        $target->update(['bank' => 2000000]);
+        $this->actingAs($targetUser);
+
+        $reviveResp = $this->post(route('hitman.revive_serum'), [
+            'currency' => 'cash',
+        ]);
+        $reviveResp->assertSessionHas('success');
+
+        $target->refresh();
+        $this->assertEquals(0, $target->getLiquidationStreakDeaths());
+        $this->assertFalse($target->isComatose());
+        $this->assertEquals($target->max_health, $target->health);
+    }
+
+    public function test_pvp_news_command_replaces_old_article_with_new_v2_article(): void
+    {
+        $this->artisan('tbs:publish-pvp-news')->assertExitCode(0);
+
+        $this->assertDatabaseMissing('news_articles', [
+            'slug' => 'grote-pvp-update-eerlijke-liquidatie-fair-play-bloedwraak',
+        ]);
+
+        $latestPinned = NewsArticle::where('is_pinned', true)->first();
+        $this->assertNotNull($latestPinned);
+        $this->assertStringContainsString('Liquidatie 2.0', $latestPinned->title);
+        $this->assertStringContainsString('45% van het contante geld', $latestPinned->content);
+        $this->assertStringContainsString('7% van de bankrekening', $latestPinned->content);
     }
 }

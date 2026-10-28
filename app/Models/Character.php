@@ -2669,6 +2669,460 @@ class Character extends Model
         return max(0, (int) now()->diffInSeconds($this->vest_until, false));
     }
 
+    public const REVIVE_SERUM_NAME = 'Forensisch Reanimatie-Serum (Epinefrine-Ampul)';
+
+    public const REVIVE_SERUM_CASH = 1500000;
+
+    public const REVIVE_SERUM_STARS = 75;
+
+    public const MAX_LIQUIDATIONS_BEFORE_SERUM = 10;
+
+    /**
+     * Catalog of the 30 TBS Forensic & Syndicate Dossier Grades.
+     *
+     * @return array<int, array{grade: int, title: string, phase: string, min_bullets: int, can_one_tap: bool, armor_pierce: int}>
+     */
+    public static function syndicateGradesCatalog(): array
+    {
+        return [
+            1 => ['grade' => 1, 'title' => 'Observatiepatiënt', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 3200, 'can_one_tap' => false, 'armor_pierce' => 0],
+            2 => ['grade' => 2, 'title' => 'Intake-Recruut', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2900, 'can_one_tap' => false, 'armor_pierce' => 0],
+            3 => ['grade' => 3, 'title' => 'Gangpad-Loopjongen', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2600, 'can_one_tap' => false, 'armor_pierce' => 0],
+            4 => ['grade' => 4, 'title' => 'Celblok-Verkenner', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2300, 'can_one_tap' => false, 'armor_pierce' => 0],
+            5 => ['grade' => 5, 'title' => 'Paviljoen-Ronselaar', 'phase' => 'Fase I: Observatie & Loopwerk', 'min_bullets' => 2000, 'can_one_tap' => false, 'armor_pierce' => 2],
+            6 => ['grade' => 6, 'title' => 'Celblok-Intimidator', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1750, 'can_one_tap' => false, 'armor_pierce' => 4],
+            7 => ['grade' => 7, 'title' => 'Kantine-Afperser', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1500, 'can_one_tap' => false, 'armor_pierce' => 5],
+            8 => ['grade' => 8, 'title' => 'Luchtplaats-Handhaver', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1300, 'can_one_tap' => false, 'armor_pierce' => 6],
+            9 => ['grade' => 9, 'title' => 'Afdelings-Breker', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1150, 'can_one_tap' => false, 'armor_pierce' => 8],
+            10 => ['grade' => 10, 'title' => 'Nachtdienst-Schrik', 'phase' => 'Fase II: Celblok Handhaving', 'min_bullets' => 1000, 'can_one_tap' => false, 'armor_pierce' => 10],
+            11 => ['grade' => 11, 'title' => 'Smokkel-Coördinator', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 880, 'can_one_tap' => false, 'armor_pierce' => 12],
+            12 => ['grade' => 12, 'title' => 'Kluis-Manipulator', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 760, 'can_one_tap' => false, 'armor_pierce' => 14],
+            13 => ['grade' => 13, 'title' => 'Paviljoen-Strateeg', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 650, 'can_one_tap' => false, 'armor_pierce' => 15],
+            14 => ['grade' => 14, 'title' => 'Binnenplaats-Veldheer', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 560, 'can_one_tap' => false, 'armor_pierce' => 16],
+            15 => ['grade' => 15, 'title' => 'Isolatie-Overlever', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 490, 'can_one_tap' => false, 'armor_pierce' => 18],
+            16 => ['grade' => 16, 'title' => 'Paviljoen-Commandant', 'phase' => 'Fase III: Paviljoen Commando', 'min_bullets' => 420, 'can_one_tap' => false, 'armor_pierce' => 20],
+            17 => ['grade' => 17, 'title' => 'Schaduw-Operateur', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 360, 'can_one_tap' => false, 'armor_pierce' => 22],
+            18 => ['grade' => 18, 'title' => 'Stille Informant-Jager', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 310, 'can_one_tap' => false, 'armor_pierce' => 24],
+            19 => ['grade' => 19, 'title' => 'Forensisch Saboteur', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 270, 'can_one_tap' => false, 'armor_pierce' => 25],
+            20 => ['grade' => 20, 'title' => 'Dossier-Wisser', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 235, 'can_one_tap' => false, 'armor_pierce' => 26],
+            21 => ['grade' => 21, 'title' => 'Kliniek-Infiltrant', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 200, 'can_one_tap' => false, 'armor_pierce' => 28],
+            22 => ['grade' => 22, 'title' => 'Onderwereld-Aanklager', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 175, 'can_one_tap' => false, 'armor_pierce' => 30],
+            23 => ['grade' => 23, 'title' => 'Nachtvleugel-Specialist', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 150, 'can_one_tap' => false, 'armor_pierce' => 32],
+            24 => ['grade' => 24, 'title' => 'Kliniek-Examinator', 'phase' => 'Fase IV: Schaduw-Operaties', 'min_bullets' => 130, 'can_one_tap' => false, 'armor_pierce' => 35],
+            25 => ['grade' => 25, 'title' => 'Forensisch Scherpschutter', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 110, 'can_one_tap' => true, 'armor_pierce' => 40],
+            26 => ['grade' => 26, 'title' => 'Tactisch Liquidateur', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 95, 'can_one_tap' => true, 'armor_pierce' => 45],
+            27 => ['grade' => 27, 'title' => 'Hoofd-Liquidateur', 'phase' => 'Fase V: Scherpschutter (Genadeschot)', 'min_bullets' => 80, 'can_one_tap' => true, 'armor_pierce' => 50],
+            28 => ['grade' => 28, 'title' => 'Syndicaat-Chirurg', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 65, 'can_one_tap' => true, 'armor_pierce' => 55],
+            29 => ['grade' => 29, 'title' => 'Schaduw-Directeur', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 50, 'can_one_tap' => true, 'armor_pierce' => 60],
+            30 => ['grade' => 30, 'title' => 'Opper-Directeur (Code Zwart)', 'phase' => 'Fase VI: Code Zwart Directie', 'min_bullets' => 40, 'can_one_tap' => true, 'armor_pierce' => 65],
+        ];
+    }
+
+    /**
+     * Get the character's current TBS Dossier Grade (1 - 30).
+     */
+    public function getSyndicateGrade(): int
+    {
+        $perks = $this->perks ?? [];
+        if (isset($perks['syndicate_grade_override'])) {
+            return max(1, min(30, (int) $perks['syndicate_grade_override']));
+        }
+
+        $levelScore = (int) ($this->level ?? 1);
+        $killsBonus = (int) floor(($this->kills_count ?? 0) / 2);
+
+        return max(1, min(30, $levelScore + $killsBonus));
+    }
+
+    /**
+     * Get full dossier grade info for this character.
+     *
+     * @return array{grade: int, title: string, phase: string, min_bullets: int, can_one_tap: bool, armor_pierce: int}
+     */
+    public function getSyndicateGradeInfo(): array
+    {
+        $catalog = self::syndicateGradesCatalog();
+        $grade = $this->getSyndicateGrade();
+
+        return $catalog[$grade] ?? $catalog[1];
+    }
+
+    /**
+     * Get Koudbloedigheid / Kaliberfocus percentage (0 - 100%).
+     */
+    public function getColdBloodedPct(): int
+    {
+        $perks = $this->perks ?? [];
+        if (! array_key_exists('cold_blooded_pct', $perks)) {
+            return 35;
+        }
+
+        return max(0, min(100, (int) $perks['cold_blooded_pct']));
+    }
+
+    /**
+     * Adjust Koudbloedigheid percentage and persist.
+     */
+    public function adjustColdBloodedPct(int $delta): int
+    {
+        $perks = $this->perks ?? [];
+        $current = $this->getColdBloodedPct();
+        $next = max(0, min(100, $current + $delta));
+        $perks['cold_blooded_pct'] = $next;
+        $this->perks = $perks;
+        $this->save();
+
+        return $next;
+    }
+
+    /**
+     * Check if character can execute a 1-bullet precision shot (Genadeschot).
+     * Requires Dossier-Graad >= 25 AND Koudbloedigheid >= 30%.
+     */
+    public function canOneTapExecute(): bool
+    {
+        return $this->getSyndicateGrade() >= 25 && $this->getColdBloodedPct() >= 30;
+    }
+
+    /**
+     * Minimum bullets required to fire at a target right now.
+     */
+    public function getMinimumBulletsRequired(): int
+    {
+        if ($this->canOneTapExecute()) {
+            return 1;
+        }
+
+        return $this->getSyndicateGradeInfo()['min_bullets'];
+    }
+
+    /**
+     * Catalog of Black Market Backfire Vests.
+     *
+     * @return array<string, array{id: string, name: string, subtitle: string, hours: int, cost_cash: int, cost_stars: int, defense_bonus: int, backfire_chance: int, badge: string, icon: string}>
+     */
+    public static function vestCatalog(): array
+    {
+        return [
+            'kevlar_1h' => [
+                'id' => 'kevlar_1h',
+                'name' => 'Licht Kevlar Ondervest',
+                'subtitle' => '1 uur lichte afdelingsbescherming onder je kliniekkleding',
+                'hours' => 1,
+                'cost_cash' => 500000,
+                'cost_stars' => 35,
+                'defense_bonus' => 180,
+                'backfire_chance' => 30,
+                'badge' => '1 Uur • 30% Backfire',
+                'icon' => 'fa-solid fa-vest',
+            ],
+            'tactical_3h' => [
+                'id' => 'tactical_3h',
+                'name' => 'Zwaar Tactisch Backfire-Vest',
+                'subtitle' => '3 uur zwaar stalen/keramisch terugslag-vest — populairste keus voor geld!',
+                'hours' => 3,
+                'cost_cash' => 1250000,
+                'cost_stars' => 65,
+                'defense_bonus' => 350,
+                'backfire_chance' => 55,
+                'badge' => '3 Uur • 55% Backfire',
+                'icon' => 'fa-solid fa-shield-halved',
+            ],
+            'ceramic_6h' => [
+                'id' => 'ceramic_6h',
+                'name' => 'Syndicaat Keramisch Pantser',
+                'hours' => 6,
+                'subtitle' => '6 uur militair interventiepantser met hoge ricochet-terugslag',
+                'cost_cash' => 2400000,
+                'cost_stars' => 110,
+                'defense_bonus' => 480,
+                'backfire_chance' => 65,
+                'badge' => '6 Uur • 65% Backfire',
+                'icon' => 'fa-solid fa-user-shield',
+            ],
+            'titanium_12h' => [
+                'id' => 'titanium_12h',
+                'name' => 'Directie Titanium Exosuit',
+                'subtitle' => '12 uur maximale pantserplaten met dodelijke 75% kogel-terugslag',
+                'hours' => 12,
+                'cost_cash' => 4500000,
+                'cost_stars' => 150,
+                'defense_bonus' => 650,
+                'backfire_chance' => 75,
+                'badge' => '12 Uur • 75% Backfire',
+                'icon' => 'fa-solid fa-helmet-safety',
+            ],
+        ];
+    }
+
+    /**
+     * Get the active vest configuration if `hasVest()` is true.
+     *
+     * @return array{id: string, name: string, subtitle: string, hours: int, cost_cash: int, cost_stars: int, defense_bonus: int, backfire_chance: int, badge: string, icon: string}|null
+     */
+    public function getActiveVestInfo(): ?array
+    {
+        if (! $this->hasVest()) {
+            return null;
+        }
+
+        $catalog = self::vestCatalog();
+        $tier = ($this->perks ?? [])['vest_tier'] ?? 'tactical_3h';
+
+        return $catalog[$tier] ?? $catalog['tactical_3h'];
+    }
+
+    public function getVestDefenseBonus(): int
+    {
+        $info = $this->getActiveVestInfo();
+
+        return $info ? $info['defense_bonus'] : 0;
+    }
+
+    public function getVestBackfireChance(): int
+    {
+        $info = $this->getActiveVestInfo();
+
+        return $info ? $info['backfire_chance'] : 0;
+    }
+
+    /**
+     * Catalog of Black Market Ammunition Crates.
+     *
+     * @return array<string, array{id: string, name: string, subtitle: string, bullets: int, cost_cash: int, cost_stars: int, cold_blooded_bonus: int, icon: string}>
+     */
+    public static function ammoCatalog(): array
+    {
+        return [
+            'box_50' => [
+                'id' => 'box_50',
+                'name' => 'Smokkeldoos (+50 Patronen)',
+                'subtitle' => 'Compacte munitiedoos voor scherpschutters',
+                'bullets' => 50,
+                'cost_cash' => 250000,
+                'cost_stars' => 50,
+                'cold_blooded_bonus' => 0,
+                'icon' => 'fa-solid fa-box',
+            ],
+            'crate_250' => [
+                'id' => 'crate_250',
+                'name' => 'Paviljoen Munitiekist (+250 Patronen)',
+                'subtitle' => 'Inclusief +5% Koudbloedigheid kaliberfocus',
+                'bullets' => 250,
+                'cost_cash' => 1100000,
+                'cost_stars' => 180,
+                'cold_blooded_bonus' => 5,
+                'icon' => 'fa-solid fa-boxes-stacked',
+            ],
+            'crate_1000' => [
+                'id' => 'crate_1000',
+                'name' => 'Syndicaat Wapenkist (+1.000 Patronen)',
+                'subtitle' => 'Inclusief +10% Koudbloedigheid kaliberfocus',
+                'bullets' => 1000,
+                'cost_cash' => 3850000,
+                'cost_stars' => 550,
+                'cold_blooded_bonus' => 10,
+                'icon' => 'fa-solid fa-crates',
+            ],
+            'container_2500' => [
+                'id' => 'container_2500',
+                'name' => 'Kartel Arsenaalcontainer (+2.500 Patronen)',
+                'subtitle' => 'Zwaar salvo-arsenaal + +15% Koudbloedigheid kaliberfocus',
+                'bullets' => 2500,
+                'cost_cash' => 8500000,
+                'cost_stars' => 1100,
+                'cold_blooded_bonus' => 15,
+                'icon' => 'fa-solid fa-truck-ramp-box',
+            ],
+        ];
+    }
+
+    /**
+     * Catalog of Shadow Intel Operations (15-minute target tracking).
+     *
+     * @return array<string, array{id: string, name: string, subtitle: string, wait_minutes: int, valid_minutes: int, lockdown_minutes: int, cost_cash: int, cost_stars: int, icon: string}>
+     */
+    public static function intelCatalog(): array
+    {
+        return [
+            'standard_15m' => [
+                'id' => 'standard_15m',
+                'name' => 'Camera- & Gangpad Schaduwing',
+                'subtitle' => 'Duurt 15 minuten. Onthult 30 min lang de exacte kliniek-vleugel, gedragen pantser en geld op zak.',
+                'wait_minutes' => 15,
+                'valid_minutes' => 30,
+                'lockdown_minutes' => 0,
+                'cost_cash' => 350000,
+                'cost_stars' => 20,
+                'icon' => 'fa-solid fa-video',
+            ],
+            'express_7m' => [
+                'id' => 'express_7m',
+                'name' => 'Hoofdbewaker Spoed-Dossier',
+                'subtitle' => 'Versnelde opsporing in 7 minuten via omgekochte afdelingshoofden. 45 minuten geldig.',
+                'wait_minutes' => 7,
+                'valid_minutes' => 45,
+                'lockdown_minutes' => 0,
+                'cost_cash' => 850000,
+                'cost_stars' => 40,
+                'icon' => 'fa-solid fa-bolt',
+            ],
+            'lockdown_15m' => [
+                'id' => 'lockdown_15m',
+                'name' => 'Celblok-Lockdown & Schaduwing',
+                'subtitle' => 'Duurt 15 minuten. Zodra gelokaliseerd wordt de vleugel van het doelwit 10 min vergrendeld tegen vluchten!',
+                'wait_minutes' => 15,
+                'valid_minutes' => 45,
+                'lockdown_minutes' => 10,
+                'cost_cash' => 1750000,
+                'cost_stars' => 75,
+                'icon' => 'fa-solid fa-lock',
+            ],
+        ];
+    }
+
+    /**
+     * Get all non-expired shadow intel operations for this character.
+     *
+     * @return list<array{target_id: int, target_name: string, type: string, type_name: string, started_at: int, ready_at: int, expires_at: int, is_ready: bool, wait_remaining_sec: int, valid_remaining_sec: int, lockdown_minutes: int}>
+     */
+    public function getActiveIntelOps(): array
+    {
+        $perks = $this->perks ?? [];
+        $ops = $perks['active_intel_ops'] ?? [];
+        if (! is_array($ops)) {
+            return [];
+        }
+
+        $nowTs = now()->timestamp;
+        $validOps = [];
+
+        foreach ($ops as $op) {
+            if (! is_array($op) || empty($op['target_id']) || empty($op['expires_at'])) {
+                continue;
+            }
+            if ((int) $op['expires_at'] <= $nowTs) {
+                continue;
+            }
+
+            $readyAt = (int) ($op['ready_at'] ?? $nowTs);
+            $expiresAt = (int) $op['expires_at'];
+            $isReady = $nowTs >= $readyAt;
+
+            $validOps[] = [
+                'target_id' => (int) $op['target_id'],
+                'target_name' => (string) ($op['target_name'] ?? 'Onbekend'),
+                'type' => (string) ($op['type'] ?? 'standard_15m'),
+                'type_name' => (string) ($op['type_name'] ?? 'Camera-Schaduwing'),
+                'started_at' => (int) ($op['started_at'] ?? $nowTs),
+                'ready_at' => $readyAt,
+                'expires_at' => $expiresAt,
+                'is_ready' => $isReady,
+                'wait_remaining_sec' => $isReady ? 0 : max(0, $readyAt - $nowTs),
+                'valid_remaining_sec' => max(0, $expiresAt - $nowTs),
+                'lockdown_minutes' => (int) ($op['lockdown_minutes'] ?? 0),
+            ];
+        }
+
+        return $validOps;
+    }
+
+    /**
+     * Get active intel operation for a specific target.
+     *
+     * @return array{target_id: int, target_name: string, type: string, type_name: string, started_at: int, ready_at: int, expires_at: int, is_ready: bool, wait_remaining_sec: int, valid_remaining_sec: int, lockdown_minutes: int}|null
+     */
+    public function getIntelForTarget(int $targetId): ?array
+    {
+        foreach ($this->getActiveIntelOps() as $op) {
+            if ($op['target_id'] === $targetId) {
+                return $op;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if character's clinic wing is currently locked down by a rival's Celblok-Lockdown operation.
+     */
+    public function isWingLocked(): bool
+    {
+        return $this->getWingLockRemainingSeconds() > 0;
+    }
+
+    /**
+     * Get remaining seconds of wing lockdown.
+     */
+    public function getWingLockRemainingSeconds(): int
+    {
+        $perks = $this->perks ?? [];
+        $nowTs = now()->timestamp;
+
+        $lockUntil = (int) ($perks['wing_lockdown_until'] ?? 0);
+        $lockStart = (int) ($perks['wing_lockdown_start'] ?? 0);
+
+        if ($lockUntil > $nowTs && $nowTs >= $lockStart) {
+            return max(0, $lockUntil - $nowTs);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Get current liquidation streak deaths count (0 to 10).
+     * At 10 liquidations, the player enters Code Blauw and requires the Forensisch Reanimatie-Serum.
+     */
+    public function getLiquidationStreakDeaths(): int
+    {
+        $perks = $this->perks ?? [];
+
+        return max(0, (int) ($perks['liquidation_streak_deaths'] ?? 0));
+    }
+
+    /**
+     * Increment liquidation streak deaths and trigger Code Blauw Coma on the 10th liquidation.
+     */
+    public function incrementLiquidationStreakDeaths(): int
+    {
+        $perks = $this->perks ?? [];
+        $count = max(0, (int) ($perks['liquidation_streak_deaths'] ?? 0)) + 1;
+        $perks['liquidation_streak_deaths'] = $count;
+        $this->perks = $perks;
+
+        if ($count >= self::MAX_LIQUIDATIONS_BEFORE_SERUM) {
+            $this->health = 0;
+            $this->coma_until = now()->addHours(4);
+        }
+
+        $this->save();
+
+        return $count;
+    }
+
+    /**
+     * Reset liquidation streak deaths back to 0 and revive from Code Blauw.
+     */
+    public function applyReviveSerum(): void
+    {
+        $perks = $this->perks ?? [];
+        $perks['liquidation_streak_deaths'] = 0;
+        $this->perks = $perks;
+        $this->coma_until = null;
+        $this->ad_coma_progress = 0;
+        $this->health = $this->max_health;
+        $this->protection_until = now()->addMinutes(30);
+        $this->save();
+    }
+
+    /**
+     * Check if character is at 10/10 liquidations or in Code Blauw Coma requiring the serum.
+     */
+    public function needsReviveSerum(): bool
+    {
+        return $this->isComatose() || $this->getLiquidationStreakDeaths() >= self::MAX_LIQUIDATIONS_BEFORE_SERUM;
+    }
+
     /**
      * Maximum item storage units allowed in personal storage based on level and VIP status.
      */

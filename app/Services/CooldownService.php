@@ -170,30 +170,27 @@ class CooldownService
     public function skipWithStars(Character $character, string $action): array
     {
         if ($action === 'coma' || $action === 'coma_revive') {
-            if (! $character->isComatose()) {
+            if (! $character->needsReviveSerum()) {
                 return [
                     'success' => false,
-                    'message' => 'Je ligt momenteel niet in de Intensive Care Coma!',
+                    'message' => 'Je verkeert momenteel niet in Code Blauw (Hartstilstand)!',
                 ];
             }
 
-            $cost = 15;
+            $cost = Character::REVIVE_SERUM_STARS;
             if (($character->stars ?? 0) < $cost) {
                 return [
                     'success' => false,
-                    'message' => "Je hebt {$cost} Sterren ⭐ nodig om direct uit coma te ontwaken! (Je hebt: ".($character->stars ?? 0).')',
+                    'message' => "Je hebt {$cost} Sterren ⭐ nodig voor een ".Character::REVIVE_SERUM_NAME.'! (Je hebt: '.($character->stars ?? 0).')',
                 ];
             }
 
             $character->stars -= $cost;
-            $character->coma_until = null;
-            $character->ad_coma_progress = 0;
-            $character->health = max(50, (int) $character->health);
-            $character->save();
+            $character->applyReviveSerum();
 
             return [
                 'success' => true,
-                'message' => '💉 Medisch wonder: Je bent direct ontwaakt uit Intensive Care Coma met 15 Sterren ⭐!',
+                'message' => '💉 '.Character::REVIVE_SERUM_NAME." toegediend! Je bent weer volledig tot leven gewekt met 100% HP en 0/10 liquidatieteller ({$cost} Sterren ⭐)!",
             ];
         }
 

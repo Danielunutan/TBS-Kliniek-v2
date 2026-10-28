@@ -1,508 +1,1075 @@
 @extends('layouts.app')
 
-@section('title', 'Liquidatie & Wapenarsenaal - TBS Kliniek')
-
 @section('content')
-<div class="space-y-4" x-data="{
-    activeTab: 'shoot',
-    search: '',
-    selectedId: '',
-    selectedName: '',
-    openDropdown: false,
-    bulletAmount: 50,
-    isSearching: false,
+@php
+    $coldBloodedPct = $character->getColdBloodedPct();
+    $canOneTap = $character->canOneTapExecute();
+    $minBullets = $character->getMinimumBulletsRequired();
+    $activeVest = $character->getActiveVestInfo();
+    $vestSeconds = $character->getVestRemainingSeconds();
+    $vestHours = (int) floor($vestSeconds / 3600);
+    $vestMins = (int) ceil(($vestSeconds % 3600) / 60);
+    $streakDeaths = $character->getLiquidationStreakDeaths();
+    $needsSerum = $character->needsReviveSerum();
+    $currentWing = $character->current_location ?? 'Paviljoen 1 (Gesloten)';
+    $totalWealth = (int) $character->cash + (int) $character->bank;
+
+    $initialTarget = $targets->firstWhere('in_same_wing', true)
+        ?? $targets->firstWhere('has_ready_intel', true)
+        ?? $targets->first();
+@endphp
+
+<div class="space-y-6" x-data="{
+    activeTab: '{{ request('tab', 'liquidatie') }}',
+    selectedTargetId: '{{ $initialTarget?->id ?? '' }}',
+    selectedTargetName: '{{ addslashes($initialTarget?->name ?? '') }}',
+    selectedTargetSameWing: {{ $initialTarget && $initialTarget->in_same_wing ? 'true' : 'false' }},
+    selectedTargetRevealedWing: '{{ addslashes($initialTarget?->revealed_location ?? '') }}',
+    bulletAmount: {{ $canOneTap ? 1 : $minBullets }},
+    minBullets: {{ $minBullets }},
+    canOneTap: {{ $canOneTap ? 'true' : 'false' }},
+    searchQuery: '',
     searchResults: [],
-    targets: [
-        @foreach($targets as $target)
-        {
-            id: '{{ $target->id }}',
-            name: '{{ addslashes($target->name ?? 'Onbekend') }}',
-            level: {{ $target->level }},
-            respect: {{ $target->respect }},
-            health: {{ $target->health }},
-            cash: '{{ number_format($target->cash, 0, ',', '.') }}',
-            avatar: '{{ $target->avatar_url }}',
-            isOnline: {{ $target->isOnline() ? 'true' : 'false' }},
-            inPrison: {{ $target->isImprisoned() ? 'true' : 'false' }},
-            inComa: {{ $target->isComatose() ? 'true' : 'false' }},
-            isProtected: {{ $target->isProtected() ? 'true' : 'false' }},
-            hasBloodFeud: {{ $target->has_blood_feud ? 'true' : 'false' }},
-            onCooldown: {{ $target->on_cooldown ? 'true' : 'false' }},
-            cooldownSeconds: {{ $target->cooldown_seconds ?? 0 }},
-            dailyDeathsReached: {{ $target->daily_deaths_reached ? 'true' : 'false' }},
-            isLevelRestricted: {{ $target->is_level_restricted ? 'true' : 'false' }}
-        },
-        @endforeach
-    ],
-    get displayedTargets() {
-        if (!this.search.trim()) return this.targets;
-        if (this.searchResults.length > 0) return this.searchResults;
-        return this.targets.filter(t => t.name.toLowerCase().includes(this.search.toLowerCase()));
+    isSearching: false,
+    selectTarget(id, name, sameWing, revealedWing) {
+        this.selectedTargetId = String(id);
+        this.selectedTargetName = name;
+        this.selectedTargetSameWing = Boolean(sameWing);
+        this.selectedTargetRevealedWing = revealedWing || '';
     },
     async performSearch() {
-        this.openDropdown = true;
-        this.selectedId = '';
-        const query = this.search.trim();
-        if (query.length >= 1) {
-            this.isSearching = true;
-            try {
-                const res = await fetch(`{{ route('hitman.search') }}?q=${encodeURIComponent(query)}`);
-                const data = await res.json();
-                this.searchResults = data.targets || [];
-            } catch(e) {
-                this.searchResults = [];
-            } finally {
-                this.isSearching = false;
-            }
-        } else {
+        if (this.searchQuery.trim().length < 1) {
             this.searchResults = [];
+            return;
         }
-    },
-    select(target) {
-        this.selectedId = target.id;
-        this.selectedName = target.name;
-        this.search = target.name;
-        this.openDropdown = false;
+        this.isSearching = true;
+        try {
+            const res = await fetch('{{ route('hitman.search') }}?q=' + encodeURIComponent(this.searchQuery.trim()), {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await res.json();
+            this.searchResults = data.targets || [];
+        } catch (e) {
+            this.searchResults = [];
+        } finally {
+            this.isSearching = false;
+        }
     }
 }">
 
-    <!-- Combat Mode App Tab Switcher -->
-    <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
-        <a href="{{ route('fight.index') }}" class="py-2.5 px-3 rounded-xl hover:bg-white/60 dark:hover:bg-slate-900/60 text-slate-600 dark:text-slate-300 font-extrabold text-xs text-center transition flex items-center justify-center gap-2">
-            <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
-            <span>Geld Stelen (Luchtplaats)</span>
-        </a>
-        <a href="{{ route('hitman.index') }}" class="py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 font-black text-xs text-center shadow-xs flex items-center justify-center gap-1.5 border border-rose-200 dark:border-rose-800">
-            <i class="fa-solid fa-crosshairs text-rose-600"></i>
-            <span>Liquidatie & Kogels</span>
-            <span class="text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-black px-1.5 py-0.5 rounded-full">ACTIEF</span>
-        </a>
+    <!-- Header Card (Matches Vrijwillige Isolatie clean Light/Dark style) -->
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 bg-white border border-slate-200">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-200 mb-3">
+                    <i class="fa-solid fa-crosshairs text-rose-600"></i> Forensische Afrekeningen &amp; Schaduw-Inlichtingen 2.0
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Liquidatie &amp; Wapenarsenaal</h1>
+                <p class="text-slate-500 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
+                    Spoor doelwitten op met 15-minuten Schaduw-Inlichtingen, reis naar exact dezelfde kliniek-afdeling en beroof rivalen van <strong>45% contant geld + 7% bankgeld</strong>. Vanaf <strong>Dossier-Graad 25</strong> met minimaal <strong>30% Koudbloedigheid</strong> schiet je met een dodelijk <strong>1-Patroon Genadeschot</strong>.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-extrabold text-emerald-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-wallet text-emerald-600"></i> €{{ number_format($totalWealth, 0, ',', '.') }}
+                </span>
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-extrabold text-amber-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-star text-amber-500"></i> {{ number_format($character->stars ?? 0, 0, ',', '.') }} Sterren
+                </span>
+                <span class="px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-gun text-rose-600"></i> {{ number_format($character->bullets ?? 0, 0, ',', '.') }} Patronen
+                </span>
+            </div>
+        </div>
     </div>
 
-    <!-- HERO HEADER (Compact & Mobile-Optimized) -->
-    <div class="bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 rounded-2xl p-4 sm:p-6 text-white shadow-lg border border-purple-900/60 relative overflow-hidden">
-        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-rose-600/30 border border-rose-500/50 text-rose-400 flex items-center justify-center text-xl sm:text-2xl shadow-inner shrink-0">
-                    <i class="fa-solid fa-crosshairs"></i>
+    <!-- Code Blauw / 10x Geliquideerd Alert Banner -->
+    @if($needsSerum || $streakDeaths >= 7)
+    <div class="bg-white border-2 {{ $needsSerum ? 'border-rose-500' : 'border-amber-400' }} rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl {{ $needsSerum ? 'bg-rose-600 text-white animate-pulse' : 'bg-amber-500 text-white' }} flex items-center justify-center text-lg font-bold shrink-0">
+                <i class="fa-solid fa-syringe"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $needsSerum ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200' }}">
+                        Reanimatie-Dossier: {{ $streakDeaths }} / 10 Liquidaties
+                    </span>
+                    <h3 class="text-sm font-extrabold text-slate-900">
+                        {{ $needsSerum ? 'CODE BLAUW: 10/10 Geliquideerd — Hartstilstand!' : 'Waarschuwing: Je nadert de 10/10 Liquidatiegrens!' }}
+                    </h3>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-rose-600 text-white">
-                            TBS Onderwereld
-                        </span>
-                        <span class="text-[10px] font-bold text-amber-400 flex items-center gap-1">
-                            <i class="fa-solid fa-shield-halved"></i> Backfire Actief
-                        </span>
+                <p class="text-xs text-slate-500 mt-1">
+                    Bij 10 liquidaties treedt Code Blauw in en moet je het <strong>{{ \App\Models\Character::REVIVE_SERUM_NAME }}</strong> (€1.500.000 of {{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren) aanschaffen om weer tot leven te komen en je teller te resetten naar 0/10.
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 w-full md:w-auto">
+            <form action="{{ route('hitman.revive_serum') }}" method="POST" class="flex-1 md:flex-initial">
+                @csrf
+                <input type="hidden" name="currency" value="cash">
+                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-syringe text-emerald-400"></i>
+                    <span>Koop Ampul (€1,5M)</span>
+                </button>
+            </form>
+            <form action="{{ route('hitman.revive_serum') }}" method="POST" class="flex-1 md:flex-initial">
+                @csrf
+                <input type="hidden" name="currency" value="stars">
+                <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-star text-amber-200"></i>
+                    <span>{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    <!-- Forensisch Status HUD (4 overzichtelijke kaarten) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Dossier-Graad (1 - 30) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-black uppercase tracking-wider text-purple-700">Dossier-Graad</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-[11px] font-extrabold">
+                    Graad {{ $gradeInfo['grade'] }} / 30
+                </span>
+            </div>
+            <div>
+                <div class="text-base font-extrabold text-slate-900">{{ $gradeInfo['title'] }}</div>
+                <p class="text-[11px] text-slate-500 mt-0.5">{{ $gradeInfo['phase'] }}</p>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-medium">Vereist salvo:</span>
+                @if($canOneTap)
+                    <span class="font-black text-emerald-600 flex items-center gap-1">
+                        <i class="fa-solid fa-bolt"></i> 1 Patroon (Genadeschot)
+                    </span>
+                @else
+                    <span class="font-black text-slate-900">{{ number_format($gradeInfo['min_bullets'], 0, ',', '.') }} patronen</span>
+                @endif
+            </div>
+        </div>
+
+        <!-- 2. Koudbloedigheid (%) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-black uppercase tracking-wider text-indigo-700">Koudbloedigheid</span>
+                <span class="px-2.5 py-0.5 rounded-full {{ $coldBloodedPct >= 30 ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700' }} border text-[11px] font-extrabold">
+                    {{ $coldBloodedPct }}% Focus
+                </span>
+            </div>
+            <div>
+                <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                    <div class="h-full rounded-full transition-all duration-300 {{ $coldBloodedPct >= 30 ? 'bg-emerald-500' : 'bg-rose-500' }}"
+                         style="width: {{ $coldBloodedPct }}%"></div>
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-500 font-bold mt-1.5">
+                    <span>0%</span>
+                    <span class="{{ $coldBloodedPct >= 30 ? 'text-emerald-600' : 'text-rose-600' }}">30% Genadeschot Grens</span>
+                    <span>100%</span>
+                </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-medium">Pantser-penetratie:</span>
+                <span class="font-black text-slate-900">+{{ $gradeInfo['armor_pierce'] }}%</span>
+            </div>
+        </div>
+
+        <!-- 3. Huidige Kliniek-Ruimte -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-black uppercase tracking-wider text-emerald-700">Huidige Afdeling</span>
+                @if($character->isWingLocked())
+                    <span class="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-extrabold">
+                        <i class="fa-solid fa-lock"></i> Lockdown ({{ ceil($character->getWingLockRemainingSeconds() / 60) }}m)
+                    </span>
+                @else
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold">
+                        Vrij Verplaatsbaar
+                    </span>
+                @endif
+            </div>
+            <div>
+                <div class="text-sm font-extrabold text-slate-900 truncate" title="{{ $currentWing }}">
+                    <i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i> {{ $currentWing }}
+                </div>
+                <p class="text-[11px] text-slate-500 mt-0.5">Je moet in dezelfde ruimte staan als je doelwit.</p>
+            </div>
+            <form action="{{ route('hitman.quick_travel') }}" method="POST" class="pt-2 border-t border-slate-100 flex items-center gap-1.5">
+                @csrf
+                <select name="destination" class="flex-1 py-1.5 px-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] font-bold text-slate-800 focus:outline-none">
+                    @foreach($locations as $locKey => $locItem)
+                        <option value="{{ $locKey }}" {{ $currentWing === $locItem['name'] ? 'selected' : '' }}>
+                            {{ $locItem['name'] }}
+                        </option>
+                    @endforeach
+                </select>
+                <button type="submit" class="py-1.5 px-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-black transition cursor-pointer shrink-0">
+                    Reis (€{{ number_format($travelCost, 0, ',', '.') }})
+                </button>
+            </form>
+        </div>
+
+        <!-- 4. Actief Backfire-Pantser & Reanimatie-Dossier -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-black uppercase tracking-wider text-amber-700">Pantser &amp; Status</span>
+                <span class="px-2.5 py-0.5 rounded-full {{ $streakDeaths >= 8 ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-slate-100 border-slate-200 text-slate-700' }} border text-[11px] font-extrabold">
+                    Dossier: {{ $streakDeaths }} / 10 Kills
+                </span>
+            </div>
+            <div>
+                @if($activeVest)
+                    <div class="text-sm font-extrabold text-emerald-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved"></i> {{ $activeVest['name'] }}
                     </div>
-                    <h1 class="text-lg sm:text-2xl font-black tracking-tight text-white mt-0.5">
-                        Liquidatie & Wapenarsenaal
-                    </h1>
-                    <p class="text-xs text-slate-300 max-w-xl leading-snug hidden sm:block">
-                        Schiet rivalen neer met kogels en plunder 35% van hun contante geld. Pas op voor <strong class="text-rose-400">Backfire</strong> als de tegenstander een kogelvrij vest draagt!
+                    <p class="text-[11px] text-slate-500 mt-0.5">
+                        Nog {{ $vestHours }}u {{ $vestMins }}m • +{{ $activeVest['defense_bonus'] }} Def • {{ $activeVest['backfire_chance'] }}% Backfire
+                    </p>
+                @else
+                    <div class="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shirt text-slate-400"></i> Geen Backfire-Vest Actief
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-0.5">
+                        Koop een 3-uurs Backfire-Vest in het Wapenarsenaal!
+                    </p>
+                @endif
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <button type="button" @click="activeTab = 'arsenaal'" class="text-purple-700 hover:underline font-extrabold text-[11px] cursor-pointer">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Open Pantser &amp; Munitie Shop &rarr;
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Blood Feuds Banner (Bloedwraak) -->
+    @if($bloodFeuds->isNotEmpty())
+    <div class="bg-white border-2 border-rose-300 rounded-2xl p-5 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center text-sm font-bold">
+                    <i class="fa-solid fa-droplet"></i>
+                </span>
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Actieve Bloedwraak Vetes (24 Uur)</h3>
+                    <p class="text-xs text-slate-500">Geen levelgrens tegen deze daders + extra €25.000 &amp; +50 Respect wraakpremie!</p>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            @foreach($bloodFeuds as $feud)
+                @if($feud->attacker)
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="text-xs font-extrabold text-slate-900">
+                            Dader: <span class="text-rose-600">{{ $feud->attacker->name }}</span> (Lvl {{ $feud->attacker->level }})
+                        </div>
+                        <div class="text-[11px] text-slate-500">
+                            Slachtoffer: {{ $feud->victim?->name ?? 'Bendelid' }} • Verloopt {{ $feud->expires_at->diffForHumans() }}
+                        </div>
+                    </div>
+                    <button type="button"
+                            @click="activeTab = 'inlichtingen'; selectTarget('{{ $feud->attacker->id }}', '{{ addslashes($feud->attacker->name) }}', false, '')"
+                            class="py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer shrink-0">
+                        <i class="fa-solid fa-crosshairs mr-1"></i> Spoor Op
+                    </button>
+                </div>
+                @endif
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    <!-- Navigation Tabs -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-2 shadow-xs flex flex-wrap gap-2">
+        <button type="button" @click="activeTab = 'liquidatie'"
+                :class="activeTab === 'liquidatie' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
+                class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-crosshairs"></i>
+            <span>1. Liquidatie &amp; Schietbaan</span>
+        </button>
+
+        <button type="button" @click="activeTab = 'inlichtingen'"
+                :class="activeTab === 'inlichtingen' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
+                class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-user-secret"></i>
+            <span>2. Schaduw-Inlichtingen (15m)</span>
+            @if(count($enrichedIntelOps) > 0)
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black">{{ count($enrichedIntelOps) }}</span>
+            @endif
+        </button>
+
+        <button type="button" @click="activeTab = 'arsenaal'"
+                :class="activeTab === 'arsenaal' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
+                class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>3. Pantser &amp; Munitie Arsenaal</span>
+        </button>
+
+        <button type="button" @click="activeTab = 'contracten'"
+                :class="activeTab === 'contracten' ? 'bg-slate-900 text-white shadow-xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
+                class="flex-1 min-w-[160px] py-2.5 px-4 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-file-contract"></i>
+            <span>4. Onderwereld Contracten</span>
+        </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: LIQUIDATIE & ONDERGRONDSE SCHIETBAAN                               -->
+    <!-- ========================================================================= -->
+    <div x-show="activeTab === 'liquidatie'" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- Left Column (7 cols): Target Selection & Fire Controls -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-gun text-rose-600"></i> Doelwit Viseren &amp; Vuren
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Buit bij voltreffer: <strong>45% Contant Geld + 7% Bankrekening</strong> + 60 Respect + 400 XP.
+                        </p>
+                    </div>
+                    <span class="px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700">
+                        20 Energie per aanslag
+                    </span>
+                </div>
+
+                <!-- Live Patient Search -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Zoek Patiënt op Naam</label>
+                    <div class="relative">
+                        <input type="text"
+                               x-model="searchQuery"
+                               @input.debounce.250ms="performSearch()"
+                               placeholder="Typ de naam van je doelwit..."
+                               class="w-full p-3 pl-9 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-3.5 text-xs"></i>
+                    </div>
+
+                    <!-- Search Dropdown Results -->
+                    <div x-show="searchResults.length > 0" class="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 max-h-56 overflow-y-auto shadow-sm">
+                        <template x-for="item in searchResults" :key="item.id">
+                            <div @click="selectTarget(item.id, item.name, item.inSameWing, item.revealedLocation); searchResults = []; searchQuery = '';"
+                                 class="p-3 hover:bg-slate-50 flex items-center justify-between gap-3 cursor-pointer transition">
+                                <div>
+                                    <div class="text-xs font-extrabold text-slate-900" x-text="item.name + ' (Lvl ' + item.level + ')'"></div>
+                                    <div class="text-[11px] text-slate-500">
+                                        <span x-show="item.inSameWing" class="text-emerald-600 font-bold">✅ Zelfde Afdeling (<span x-text="item.revealedLocation"></span>)</span>
+                                        <span x-show="!item.inSameWing && item.revealedLocation" class="text-amber-600 font-bold">📍 Gezien op: <span x-text="item.revealedLocation"></span></span>
+                                        <span x-show="!item.inSameWing && !item.revealedLocation" class="text-slate-500">🕵️ Afdeling Onbekend (Start 15m Schaduwing)</span>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold">Selecteer</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Target List Cards -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Actieve Doelwitten op de Afdelingen</span>
+                        <span class="text-[11px] text-slate-400">Jouw locatie: <strong>{{ $currentWing }}</strong></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto pr-1">
+                        @foreach($targets as $t)
+                        <div @click="selectTarget('{{ $t->id }}', '{{ addslashes($t->name) }}', {{ $t->in_same_wing ? 'true' : 'false' }}, '{{ addslashes($t->revealed_location ?? '') }}')"
+                             :class="selectedTargetId === '{{ $t->id }}' ? 'border-purple-600 bg-purple-50/40 ring-1 ring-purple-500' : 'border-slate-200 bg-slate-50 hover:bg-white'"
+                             class="p-3 rounded-xl border transition cursor-pointer flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="truncate">
+                                    <span class="text-xs font-extrabold text-slate-900">{{ $t->name }}</span>
+                                    <span class="text-[10px] font-bold text-slate-500 ml-1">Lvl {{ $t->level }}</span>
+                                </div>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full {{ $t->streak_deaths >= 10 ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700' }}">
+                                    {{ $t->streak_deaths }}/10
+                                </span>
+                            </div>
+
+                            <div class="flex items-center justify-between text-[11px]">
+                                @if($t->in_same_wing)
+                                    <span class="text-emerald-700 font-extrabold flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check text-emerald-600"></i> Zelfde ruimte!
+                                    </span>
+                                @elseif($t->has_ready_intel)
+                                    <span class="text-amber-700 font-extrabold truncate" title="{{ $t->revealed_location }}">
+                                        <i class="fa-solid fa-location-crosshairs"></i> {{ $t->revealed_location }}
+                                    </span>
+                                @elseif($t->has_pending_intel)
+                                    <span class="text-indigo-700 font-bold">
+                                        <i class="fa-solid fa-spinner fa-spin"></i> Schaduwen ({{ ceil($t->intel_wait_seconds / 60) }}m)
+                                    </span>
+                                @else
+                                    <span class="text-slate-500 font-medium">
+                                        <i class="fa-solid fa-eye-slash"></i> Afdeling onbekend
+                                    </span>
+                                @endif
+
+                                @if($t->isProtected())
+                                    <span class="text-amber-600 font-bold"><i class="fa-solid fa-shield"></i> Schild</span>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Selected Target Status & Quick Action Bar -->
+                <div x-show="selectedTargetId !== ''" class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <span class="text-[11px] font-bold text-slate-500 uppercase">Geselecteerd Doelwit:</span>
+                            <div class="text-sm font-extrabold text-slate-900" x-text="selectedTargetName"></div>
+                        </div>
+
+                        <div>
+                            <span x-show="selectedTargetSameWing" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold border border-emerald-200">
+                                <i class="fa-solid fa-check-circle"></i> In dezelfde ruimte ({{ $currentWing }}) — Klaar om te vuren!
+                            </span>
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-extrabold border border-amber-200">
+                                <i class="fa-solid fa-location-dot"></i> Doelwit staat op: <span x-text="selectedTargetRevealedWing"></span>
+                            </span>
+                            <span x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-extrabold border border-rose-200">
+                                <i class="fa-solid fa-user-secret"></i> Niet op {{ $currentWing }} — Start 15m Schaduw-Inlichtingen!
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Helper action if not in same wing -->
+                    <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing !== ''" class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                        <span class="text-xs text-slate-600 font-medium">Reis direct naar de vleugel van het doelwit om te kunnen vuren:</span>
+                        <form action="{{ route('hitman.quick_travel') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="destination" :value="selectedTargetRevealedWing">
+                            <button type="submit" class="py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-person-running"></i>
+                                <span>Reis naar <span x-text="selectedTargetRevealedWing"></span> (€{{ number_format($travelCost, 0, ',', '.') }})</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div x-show="!selectedTargetSameWing && selectedTargetRevealedWing === ''" class="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                        <span class="text-xs text-slate-600 font-medium">Weet je niet in welke ruimte dit doelwit zit?</span>
+                        <form action="{{ route('hitman.intel') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="target_id" :value="selectedTargetId">
+                            <input type="hidden" name="intel_type" value="standard_15m">
+                            <input type="hidden" name="currency" value="cash">
+                            <button type="submit" class="py-2 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-video"></i>
+                                <span>Start 15m Schaduwing (€350.000)</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Shooting Form -->
+                <form action="{{ route('hitman.shoot') }}" method="POST" class="space-y-4 pt-2 border-t border-slate-100">
+                    @csrf
+                    <input type="hidden" name="target_id" :value="selectedTargetId">
+                    <input type="hidden" name="target_name" :value="selectedTargetName">
+
+                    @if($canOneTap)
+                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <span class="text-xs font-black text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt text-emerald-600"></i> Genadeschot Ontgrendeld (Graad {{ $gradeInfo['grade'] }} &bull; {{ $coldBloodedPct }}% Focus)
+                            </span>
+                            <p class="text-xs text-emerald-800 mt-0.5">
+                                Je kunt met slechts <strong>1 patroon</strong> een dodelijke precisie-executie uitvoeren!
+                            </p>
+                        </div>
+                        <button type="button" @click="bulletAmount = 1"
+                                class="py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer shrink-0">
+                            Zet op 1 Patroon
+                        </button>
+                    </div>
+                    @else
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <span class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-lock text-slate-500"></i> 1-Patroon Genadeschot Vereiste
+                            </span>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Vereist <strong>Dossier-Graad 25+</strong> (nu Graad {{ $gradeInfo['grade'] }}) én <strong>minimaal 30% Koudbloedigheid</strong> (nu {{ $coldBloodedPct }}%). Jouw huidige minimum salvo is <strong>{{ number_format($minBullets, 0, ',', '.') }} patronen</strong>.
+                            </p>
+                        </div>
+                        <button type="button" @click="bulletAmount = {{ $minBullets }}"
+                                class="py-2 px-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black transition cursor-pointer shrink-0">
+                            Min. Salvo ({{ $minBullets }})
+                        </button>
+                    </div>
+                    @endif
+
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                        <div class="sm:col-span-5 space-y-1">
+                            <label class="block text-xs font-extrabold text-slate-700">Aantal Patronen Vuren</label>
+                            <input type="number" name="bullets" x-model.number="bulletAmount" min="1" max="10000"
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500">
+                        </div>
+
+                        <div class="sm:col-span-7">
+                            <button type="submit"
+                                    class="w-full py-3.5 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]">
+                                <i class="fa-solid fa-crosshairs"></i>
+                                <span x-text="bulletAmount === 1 ? 'Voer 1-Patroon Genadeschot Uit' : 'Vuur Salvo (' + bulletAmount + ' Patronen)'"></span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column (5 cols): Ondergrondse Schietbaan, Reanimatie-Serum & 30 Dossier-Gradaties -->
+        <div class="lg:col-span-5 space-y-6">
+
+            <!-- Ondergrondse Schietbaan (Train Koudbloedigheid %) -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye text-indigo-600"></i> Ondergrondse Schietbaan
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Verhoog je Koudbloedigheid (%) om met 1 patroon te kunnen schieten.</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-black">
+                        {{ $coldBloodedPct }}% / 100%
+                    </span>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between font-bold text-slate-700">
+                        <span>Standaard Schiettraining (+10% Focus &amp; +120 XP):</span>
+                        <span class="text-slate-900 font-black">€350.000 + 15 Energie</span>
+                    </div>
+                    <div class="flex items-center justify-between font-bold text-slate-700">
+                        <span>VIP Precisie-Sessie (+15% Focus &amp; +120 XP):</span>
+                        <span class="text-amber-600 font-black">25 Sterren ⭐</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <form action="{{ route('hitman.train_cold_blooded') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="currency" value="cash">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                            <span>Train (€350k)</span>
+                        </button>
+                    </form>
+                    <form action="{{ route('hitman.train_cold_blooded') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="currency" value="stars">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-star text-amber-200"></i>
+                            <span>Train (25 ⭐)</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Forensisch Reanimatie-Serum (Epinefrine-Ampul) Card -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-syringe text-rose-600"></i> {{ \App\Models\Character::REVIVE_SERUM_NAME }}
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Reset je 10x liquidatieteller naar 0/10 en wek jezelf direct tot leven bij Code Blauw.</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200 text-xs font-black">
+                        {{ $streakDeaths }} / 10
+                    </span>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                    <div class="flex items-center justify-between font-bold text-slate-700">
+                        <span>Prijs in geld (Contant + Bank):</span>
+                        <span class="text-slate-900 font-black">€{{ number_format(\App\Models\Character::REVIVE_SERUM_CASH, 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between font-bold text-slate-700">
+                        <span>Prijs in sterren:</span>
+                        <span class="text-amber-600 font-black">{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren ⭐</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <form action="{{ route('hitman.revive_serum') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="currency" value="cash">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-syringe"></i>
+                            <span>€1.500.000</span>
+                        </button>
+                    </form>
+                    <form action="{{ route('hitman.revive_serum') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="currency" value="stars">
+                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-star text-amber-200"></i>
+                            <span>{{ \App\Models\Character::REVIVE_SERUM_STARS }} Sterren</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 30 TBS Dossier-Gradaties Ladder -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-folder-open text-purple-600"></i> De 30 TBS Dossier-Gradaties
+                    </h3>
+                    <span class="text-[11px] font-bold text-slate-500">Graad 25+ = 1-Patroon Schot</span>
+                </div>
+
+                <div class="max-h-64 overflow-y-auto divide-y divide-slate-100 pr-1 text-xs">
+                    @foreach($gradesCatalog as $g)
+                    <div class="py-2 px-2.5 flex items-center justify-between rounded-lg {{ $g['grade'] === $gradeInfo['grade'] ? 'bg-purple-50 border border-purple-200 font-extrabold' : '' }}">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-md {{ $g['can_one_tap'] ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700' }} flex items-center justify-center text-[10px] font-black">
+                                {{ $g['grade'] }}
+                            </span>
+                            <div>
+                                <span class="text-slate-900 font-bold">{{ $g['title'] }}</span>
+                                @if($g['grade'] === $gradeInfo['grade'])
+                                    <span class="ml-1 text-[10px] text-purple-700 font-black">(Jij)</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            @if($g['can_one_tap'])
+                                <span class="text-emerald-600 font-black">1 Patroon (bij &ge;30%)</span>
+                            @else
+                                <span class="text-slate-600 font-bold">{{ number_format($g['min_bullets'], 0, ',', '.') }} patronen</span>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: SCHADUW-INLICHTINGEN (15 MINUTEN OPSPORING & VLEUGEL-LOCKDOWN)     -->
+    <!-- ========================================================================= -->
+    <div x-show="activeTab === 'inlichtingen'" class="space-y-6">
+
+        <!-- Start New Intel Operation -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+                <div>
+                    <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-user-secret text-indigo-600"></i> Schaduw-Inlichtingen Operatie Starten
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Om een speler te liquideren moet je weten in welke kliniek-vleugel hij zich bevindt. Onze corrupte bewaarders lokaliseren elk doelwit binnen 15 minuten!
                     </p>
                 </div>
             </div>
 
-            <!-- Tab Switcher (Touch Pills) -->
-            <div class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl shrink-0 border border-slate-700/60 w-full sm:w-auto">
-                <button type="button" 
-                        @click="activeTab = 'shoot'" 
-                        :class="activeTab === 'shoot' ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-400 font-bold hover:text-white'"
-                        class="flex-1 sm:flex-initial px-3 py-2 rounded-lg text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-gun"></i>
-                    <span>Liquidatie (Kogels)</span>
-                </button>
-                <button type="button" 
-                        @click="activeTab = 'contracts'" 
-                        :class="activeTab === 'contracts' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-400 font-bold hover:text-white'"
-                        class="flex-1 sm:flex-initial px-3 py-2 rounded-lg text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-file-contract"></i>
-                    <span>Contracten</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- QUICK WEAPON & ARMOR STATS (Koop Kogels & Vest met Sterren) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
-        
-        <!-- 1. BULLETS CARD -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between gap-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm font-black shrink-0">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                    </div>
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block leading-none">Munitievoorraad</span>
-                        <span class="text-base font-black text-slate-900 dark:text-white font-mono leading-tight">
-                            {{ number_format($character->bullets ?? 0, 0, ',', '.') }} Kogels
-                        </span>
-                    </div>
-                </div>
-                <span class="text-[10px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
-                    50 ⭐ = 50 Kogels
-                </span>
+            <div class="max-w-md space-y-1.5">
+                <label class="block text-xs font-extrabold text-slate-700 uppercase">Kies of typ de naam van het doelwit</label>
+                <input type="text" x-model="selectedTargetName" placeholder="Typ exacte spelersnaam..."
+                       class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <div>
-                <form action="{{ route('hitman.buy_bullets') }}" method="POST" class="w-full">
-                    @csrf
-                    <button type="submit" 
-                            class="btn-star-gold w-full py-2.5 px-3 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                        <i class="fa-solid fa-star text-xs"></i>
-                        <span>Koop +50 Kogels (50 Sterren ⭐)</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- 2. BULLETPROOF VEST CARD -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between gap-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-sm font-black shrink-0">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <div>
-                        <span class="text-[10px] uppercase font-bold text-slate-400 block leading-none">Kogelwerend Vest</span>
-                        <span class="text-xs font-black {{ $character->hasVest() ? 'text-emerald-500' : 'text-slate-400' }} leading-tight block mt-0.5">
-                            @if($character->hasVest())
-                                🛡️ Actief (nog {{ ceil($character->getVestRemainingSeconds() / 3600) }}u)
-                            @else
-                                ❌ Geen Pantser (Kwetsbaar)
-                            @endif
-                        </span>
-                    </div>
-                </div>
-                <span class="text-[10px] font-black text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800">
-                    150 ⭐ = 12u Vest
-                </span>
-            </div>
-
-            <div>
-                <form action="{{ route('hitman.buy_vest') }}" method="POST" class="w-full">
-                    @csrf
-                    <button type="submit" 
-                            class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
-                        <i class="fa-solid fa-shield-halved text-amber-300 text-xs"></i>
-                        <span>Koop 12u Vest (150 Sterren ⭐)</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- 3. COMBAT RECORD -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-3.5 shadow-xs flex flex-col justify-between gap-2">
-            <div>
-                <span class="text-[10px] uppercase font-bold text-slate-400 block leading-none mb-1">Moordstatistieken</span>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] text-slate-500 block">Geliquideerd</span>
-                        <span class="text-sm font-black text-rose-600 dark:text-rose-400 font-mono">{{ $character->kills_count ?? 0 }} Kills</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] text-slate-500 block">Neergeschoten</span>
-                        <span class="text-sm font-black text-slate-600 dark:text-slate-300 font-mono">{{ $character->deaths_count ?? 0 }} Dood</span>
-                    </div>
-                </div>
-            </div>
-            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
-                <span>Energie: <strong class="text-emerald-500">{{ $character->energy }}/{{ $character->max_energy }}</strong></span>
-                <span>Contant: <strong class="text-amber-500">€{{ number_format($character->cash, 0, ',', '.') }}</strong></span>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- FAIR PLAY BALANCERING & RIVALITEIT REGELS -->
-    <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs space-y-2.5">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-black text-xs uppercase tracking-wide">
-                <i class="fa-solid fa-scale-balanced text-amber-500 text-sm"></i>
-                <span>Eerlijk Spel &amp; Rivaliteit Regels</span>
-            </div>
-            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded-full">Anti-Griefing Actief</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-slate-600 dark:text-slate-400">
-            <div class="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
-                <strong class="text-slate-900 dark:text-white block font-black mb-0.5"><i class="fa-solid fa-clock-rotate-left text-purple-500 mr-1"></i> 3 Uur Doelwit Cooldown</strong>
-                Je kunt dezelfde speler maximaal 1x per 3 uur viseren om continu treiteren te voorkomen.
-            </div>
-            <div class="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
-                <strong class="text-slate-900 dark:text-white block font-black mb-0.5"><i class="fa-solid fa-shield-heart text-emerald-500 mr-1"></i> 30m Herstelschild &amp; Max 3/Dag</strong>
-                Na ontwaken 30 min rust. Slachtoffers kunnen maximaal 3x per 24 uur fatale schade oplopen.
-            </div>
-            <div class="bg-white dark:bg-slate-800/90 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
-                <strong class="text-slate-900 dark:text-white block font-black mb-0.5"><i class="fa-solid fa-layer-group text-rose-500 mr-1"></i> Max 15 Levels &amp; 35% Buit</strong>
-                Alleen gelijke tegenstanders. Bij actieve Bloedwraak vervallen levelrestricties!
-            </div>
-        </div>
-    </div>
-
-    @if(isset($bloodFeuds) && $bloodFeuds->isNotEmpty())
-        <!-- BLOEDWRAAK VETES BANNER -->
-        <div class="bg-gradient-to-r from-red-950 via-rose-950 to-slate-950 border-2 border-red-600/70 rounded-2xl p-4 sm:p-5 text-white shadow-xl space-y-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-10 h-10 rounded-xl bg-red-600/30 border border-red-500/60 text-red-400 flex items-center justify-center text-lg shrink-0">
-                        <i class="fa-solid fa-skull-crossbones animate-pulse"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-black text-white flex items-center gap-1.5">
-                            <span>🩸 ACTIEVE BLOEDWRAAK VETES</span>
-                            <span class="text-[10px] bg-red-600 px-2 py-0.5 rounded-full font-black">{{ $bloodFeuds->count() }}</span>
-                        </h3>
-                        <p class="text-xs text-rose-200">
-                            Jij of een bendelid is neergeschoten! Vergeld de aanval voor <strong>+50 extra Respect</strong>, <strong>+€10.000 bonus</strong> en <strong>+150 Bende Respect</strong> (level- en cooldownrestricties vervallen).
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                @foreach($bloodFeuds as $feud)
-                    <div class="bg-black/50 border border-red-700/60 rounded-xl p-3 flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <img src="{{ $feud->attacker->avatar_url ?? '' }}" class="w-10 h-10 rounded-xl object-cover border border-red-500/60 shrink-0">
-                            <div class="min-w-0">
-                                <span class="font-black text-xs text-white block truncate">{{ $feud->attacker->name ?? 'Onbekend' }}</span>
-                                <span class="text-[10px] text-rose-300 block truncate">
-                                    Schoot {{ $feud->victim->name ?? 'jouw bendelid' }} neer • nog {{ max(0, (int) round(now()->diffInHours($feud->expires_at, false))) }}u
-                                </span>
-                            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                @foreach($intelCatalog as $intel)
+                @php
+                    $canCash = $totalWealth >= $intel['cost_cash'];
+                    $canStars = ($character->stars ?? 0) >= $intel['cost_stars'];
+                @endphp
+                <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-4 shadow-xs">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center text-base font-bold">
+                                <i class="{{ $intel['icon'] }}"></i>
+                            </span>
+                            <span class="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-xs font-extrabold text-slate-800">
+                                <i class="fa-solid fa-clock text-indigo-600 mr-1"></i> {{ $intel['wait_minutes'] }} min zoektijd
+                            </span>
                         </div>
-                        <button type="button" 
-                                @click="select({ id: '{{ $feud->attacker_id }}', name: '{{ addslashes($feud->attacker->name ?? '') }}' }); activeTab = 'shoot'"
-                                class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 active:scale-95 text-white font-black text-[11px] shrink-0 transition cursor-pointer shadow-xs">
-                            Vergelden &raquo;
-                        </button>
+                        <h3 class="text-sm font-extrabold text-slate-900">{{ $intel['name'] }}</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">{{ $intel['subtitle'] }}</p>
                     </div>
+
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
+                        <div class="flex items-center justify-between font-bold text-slate-700">
+                            <span>Kosten in geld:</span>
+                            <span class="text-slate-900 font-black">€{{ number_format($intel['cost_cash'], 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between font-bold text-slate-700">
+                            <span>Kosten in sterren:</span>
+                            <span class="text-amber-600 font-black">{{ $intel['cost_stars'] }} Sterren ⭐</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                        <form action="{{ route('hitman.intel') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="target_id" :value="selectedTargetId">
+                            <input type="hidden" name="target_name" :value="selectedTargetName">
+                            <input type="hidden" name="intel_type" value="{{ $intel['id'] }}">
+                            <input type="hidden" name="currency" value="cash">
+                            <button type="submit" {{ ! $canCash ? 'disabled' : '' }}
+                                    class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canCash ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                <span>€{{ number_format($intel['cost_cash'] / 1000, 0, ',', '.') }}k</span>
+                            </button>
+                        </form>
+
+                        <form action="{{ route('hitman.intel') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="target_id" :value="selectedTargetId">
+                            <input type="hidden" name="target_name" :value="selectedTargetName">
+                            <input type="hidden" name="intel_type" value="{{ $intel['id'] }}">
+                            <input type="hidden" name="currency" value="stars">
+                            <button type="submit" {{ ! $canStars ? 'disabled' : '' }}
+                                    class="w-full py-2.5 px-3 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 {{ $canStars ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                <i class="fa-solid fa-star text-amber-200"></i>
+                                <span>{{ $intel['cost_stars'] }} ⭐</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
                 @endforeach
             </div>
         </div>
-    @endif
 
-    <!-- TAB 1: LIQUIDATIE MET KOGELS & BACKFIRE -->
-    <div x-show="activeTab === 'shoot'" class="space-y-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
-            
-            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-crosshairs text-rose-600"></i>
-                    <span>Patiënt Liquideren (Schieten)</span>
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Selecteer een doelwit en bepaal hoeveel kogels je vuurt. Dodelijke voltreffer = doelwit 1 uur in Coma (ICU), 30m herstelschild en 35% contant geld geplunderd!
-                </p>
+        <!-- Active & Ready Intel Dossiers -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-satellite-dish text-emerald-600"></i> Jouw Actieve Observatie-Dossiers
+                </h3>
+                <span class="text-xs text-slate-500">{{ count($enrichedIntelOps) }} actief</span>
             </div>
 
-            <form action="{{ route('hitman.shoot') }}" method="POST" class="space-y-4">
-                @csrf
-
-                <!-- Target Search / Select -->
-                <div class="relative">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                        1. Kies Doelwit (Zoek op naam)
-                    </label>
-                    <input type="hidden" name="target_id" :value="selectedId" required>
-                    <input type="hidden" name="target_name" :value="search">
-
-                    <div class="relative flex items-center">
-                        <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-rose-500 text-sm z-10">
-                            <i class="fa-solid fa-crosshairs"></i>
-                        </div>
-                        <input type="text"
-                               x-model="search"
-                               @focus="openDropdown = true; if(search.trim().length >= 1) performSearch()"
-                               @input.debounce.250ms="performSearch()"
-                               @click.outside="openDropdown = false"
-                               required
-                               autocomplete="off"
-                               placeholder="Typ naam van medepatiënt..."
-                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-purple-800/60 focus:bg-white dark:focus:bg-[#12082b] focus:border-rose-500 rounded-xl py-2.5 sm:py-3 pl-10 pr-10 text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none transition shadow-xs">
-                        <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
-                            <template x-if="isSearching">
-                                <i class="fa-solid fa-circle-notch fa-spin text-rose-500"></i>
-                            </template>
-                            <template x-if="!isSearching">
-                                <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
-                            </template>
-                        </div>
-                    </div>
-
-                    <!-- Dropdown List -->
-                    <div x-show="openDropdown" 
-                         x-transition
-                         class="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-white dark:bg-[#140830] rounded-xl shadow-xl border border-slate-200 dark:border-purple-800/80 divide-y divide-slate-100 dark:divide-purple-900/40">
-                        <template x-for="t in displayedTargets" :key="t.id">
-                            <button type="button" 
-                                    @click="select(t)"
-                                    class="w-full text-left px-3.5 py-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-between text-xs transition cursor-pointer group">
-                                <div class="flex items-center gap-2.5 min-w-0">
-                                    <div class="relative shrink-0">
-                                        <img :src="t.avatar" class="w-8 h-8 rounded-xl object-cover border border-slate-200 dark:border-slate-700">
-                                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full" :class="t.isOnline ? 'bg-emerald-500' : 'bg-slate-400'"></span>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                            <span class="font-extrabold text-slate-900 dark:text-white group-hover:text-rose-500 block truncate" x-text="t.name"></span>
-                                            <template x-if="t.hasBloodFeud">
-                                                <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-red-600 text-white animate-pulse">🩸 Bloedwraak</span>
-                                            </template>
-                                            <template x-if="t.inPrison">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">Isoleercel</span>
-                                            </template>
-                                            <template x-if="t.inComa">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-500 border border-rose-500/20">Coma</span>
-                                            </template>
-                                            <template x-if="t.isProtected">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-500 border border-blue-500/20">Beschermd</span>
-                                            </template>
-                                            <template x-if="t.dailyDeathsReached">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">Max 3/dag</span>
-                                            </template>
-                                            <template x-if="t.onCooldown">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Wachttijd</span>
-                                            </template>
-                                            <template x-if="t.isLevelRestricted">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-500/10 text-slate-400 border border-slate-500/20">>15 Lvl Verschil</span>
-                                            </template>
-                                        </div>
-                                        <span class="text-[10px] text-slate-400 truncate block">Lvl <span x-text="t.level"></span> • <span class="text-emerald-500 font-mono font-bold" x-text="'€' + t.cash"></span> op zak</span>
-                                    </div>
-                                </div>
-                                <span x-show="selectedId === t.id" class="text-rose-500 font-black text-sm shrink-0">
-                                    <i class="fa-solid fa-check"></i>
+            @if(empty($enrichedIntelOps))
+                <div class="p-8 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2">
+                    <i class="fa-solid fa-folder-Closed text-2xl text-slate-400"></i>
+                    <div class="text-sm font-extrabold text-slate-800">Geen lopende Schaduw-Inlichtingen</div>
+                    <p class="text-xs text-slate-500 max-w-md mx-auto">
+                        Start hierboven een 15-minuten Camera-Schaduwing om te achterhalen op welke kliniek-afdeling je doelwit rondloopt.
+                    </p>
+                </div>
+            @else
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach($enrichedIntelOps as $op)
+                    <div x-data="{
+                            waitSec: {{ (int) $op['wait_remaining_sec'] }},
+                            validSec: {{ (int) $op['valid_remaining_sec'] }},
+                            fmt(s) {
+                                if (s <= 0) return '00:00';
+                                const m = Math.floor(s / 60);
+                                const r = s % 60;
+                                return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+                            },
+                            init() {
+                                setInterval(() => {
+                                    if (this.waitSec > 0) {
+                                        this.waitSec--;
+                                        if (this.waitSec === 0) window.location.reload();
+                                    } else if (this.validSec > 0) {
+                                        this.validSec--;
+                                    }
+                                }, 1000);
+                            }
+                         }"
+                         class="p-5 rounded-2xl border {{ $op['is_ready'] ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200 bg-slate-50' }} flex flex-col justify-between gap-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $op['is_ready'] ? 'bg-emerald-600 text-white' : 'bg-indigo-100 text-indigo-800 border border-indigo-200' }}">
+                                    {{ $op['is_ready'] ? 'RAPPORT BINNEN' : 'BEZIG MET SCHADUWEN...' }}
                                 </span>
-                            </button>
-                        </template>
-                        <template x-if="isSearching">
-                            <div class="p-3 text-xs text-slate-400 text-center flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-circle-notch fa-spin text-rose-500"></i>
-                                <span>Zoeken in patiëntendossiers...</span>
+                                <h4 class="text-base font-extrabold text-slate-900 mt-1.5">{{ $op['target_name'] }}</h4>
+                                <p class="text-[11px] text-slate-500">{{ $op['type_name'] }}</p>
                             </div>
-                        </template>
-                        <template x-if="!isSearching && displayedTargets.length === 0">
-                            <div class="p-3 text-xs text-slate-400 text-center">
-                                Geen patiënt gevonden met '<span x-text="search"></span>'
+
+                            <div class="text-right">
+                                @if(! $op['is_ready'])
+                                    <div class="text-xs font-bold text-slate-500">Klaar over:</div>
+                                    <div class="text-lg font-mono font-black text-indigo-600" x-text="fmt(waitSec)"></div>
+                                @else
+                                    <div class="text-xs font-bold text-slate-500">Geldig:</div>
+                                    <div class="text-sm font-mono font-black text-emerald-700" x-text="fmt(validSec)"></div>
+                                @endif
                             </div>
-                        </template>
+                        </div>
+
+                        @if($op['is_ready'])
+                            <div class="p-3.5 rounded-xl bg-white border border-slate-200 text-xs space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-bold">Huidige Kliniek-Ruimte:</span>
+                                    <span class="font-black text-emerald-700"><i class="fa-solid fa-location-dot mr-1"></i> {{ $op['revealed_location'] }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-bold">Contant / Bank op naam:</span>
+                                    <span class="font-black text-slate-900">{{ $op['cash_formatted'] }} / {{ $op['bank_formatted'] }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-bold">Gedragen Pantser:</span>
+                                    <span class="font-black {{ $op['has_vest'] ? 'text-amber-600' : 'text-slate-700' }}">
+                                        {{ $op['has_vest'] ? $op['vest_name'] : 'Geen Vest' }}
+                                    </span>
+                                </div>
+                                @if($op['is_wing_locked'])
+                                <div class="flex items-center justify-between text-rose-600 font-black pt-1 border-t border-slate-100">
+                                    <span>Celblok-Lockdown:</span>
+                                    <span><i class="fa-solid fa-lock"></i> Doelwit zit vast op deze afdeling!</span>
+                                </div>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                @if(! $op['same_wing'])
+                                    <form action="{{ route('hitman.quick_travel') }}" method="POST" class="flex-1">
+                                        @csrf
+                                        <input type="hidden" name="destination" value="{{ $op['revealed_location'] }}">
+                                        <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                                            <i class="fa-solid fa-person-running"></i>
+                                            <span>Reis naar {{ $op['revealed_location'] }}</span>
+                                        </button>
+                                    </form>
+                                @endif
+                                <button type="button"
+                                        @click="selectTarget('{{ $op['target_id'] }}', '{{ addslashes($op['target_name']) }}', {{ $op['same_wing'] ? 'true' : 'false' }}, '{{ addslashes($op['revealed_location'] ?? '') }}'); activeTab = 'liquidatie';"
+                                        class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-crosshairs"></i>
+                                    <span>Direct Viseren</span>
+                                </button>
+                            </div>
+                        @else
+                            <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs text-slate-500 flex items-center gap-2">
+                                <i class="fa-solid fa-hourglass-half text-indigo-500"></i>
+                                <span>Bewaarders bekijken momenteel de camerabeelden en gangpaden om {{ $op['target_name'] }} te lokaliseren...</span>
+                            </div>
+                        @endif
                     </div>
+                    @endforeach
                 </div>
-
-                <!-- Bullets Selector (Quick Chips + Input) -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                        2. Aantal Kogels Afvuren
-                    </label>
-                    <div class="grid grid-cols-4 gap-2 mb-2">
-                        <template x-for="amt in [25, 50, 100, 250]" :key="amt">
-                            <button type="button" 
-                                    @click="bulletAmount = amt"
-                                    :class="bulletAmount === amt ? 'bg-rose-600 text-white font-black border-rose-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-rose-400'"
-                                    class="py-2 rounded-xl text-xs font-bold border transition cursor-pointer flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-gun text-[10px]"></i>
-                                <span x-text="amt + 'x'"></span>
-                            </button>
-                        </template>
-                    </div>
-                    <div class="relative flex items-center">
-                        <input type="number" 
-                               name="bullets" 
-                               x-model.number="bulletAmount" 
-                               min="25" 
-                               max="1000"
-                               required
-                               class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-300 dark:border-purple-800/60 focus:bg-white dark:focus:bg-[#12082b] focus:border-rose-500 rounded-xl py-2 px-3 text-xs sm:text-sm font-bold text-slate-900 dark:text-white font-mono">
-                        <span class="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">Kogels</span>
-                    </div>
-                </div>
-
-                <!-- Danger / Backfire Alert Warning -->
-                <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-400/40 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2.5">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-500 text-sm mt-0.5 shrink-0"></i>
-                    <div class="leading-relaxed text-[11px]">
-                        <strong>Pas op voor Backfire!</strong> Als het doelwit een kogelwerend vest draagt of te sterk is, ketsen je kogels af en schiet je jezelf 1 uur in coma!
-                    </div>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit"
-                        @click="if(window.tbsVibrate) window.tbsVibrate([20, 40, 20]);"
-                        {{ $character->isImprisoned() || ($character->bullets ?? 0) < 25 ? 'disabled' : '' }}
-                        class="w-full py-3.5 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-wider text-white transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95 {{ $character->isImprisoned() || ($character->bullets ?? 0) < 25 ? 'bg-slate-400 dark:bg-slate-800 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 hover:from-rose-700 hover:to-red-800' }}">
-                    <i class="fa-solid fa-crosshairs text-base"></i>
-                    <span>Vuur Kogels Af! (20 EP)</span>
-                </button>
-            </form>
-
+            @endif
         </div>
     </div>
 
-    <!-- TAB 2: ONDERWERELD CONTRACTEN (Huurmoorden) -->
-    <div x-show="activeTab === 'contracts'" class="space-y-4" style="display: none;">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-900/40 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
-            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h2 class="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="fa-solid fa-file-contract text-purple-600"></i>
-                    <span>Huurmoordenaar Inhuren</span>
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Geen kogels? Betaal een huurmoordenaar met contant geld om het vuile werk voor je op te knappen.
-                </p>
+    <!-- ========================================================================= -->
+    <!-- TAB 3: PANTSER & MUNITIE ARSENAAL (INCL. 3-UUR BACKFIRE VEST VOOR GELD)   -->
+    <!-- ========================================================================= -->
+    <div x-show="activeTab === 'arsenaal'" class="space-y-6">
+
+        <!-- Backfire Vests Section -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-indigo-600"></i> Zwarte Markt Backfire-Vesten &amp; Pantsers
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Bescherm jezelf tegen liquidaties. Als een schutter te weinig vuurkracht heeft, ketst het schot terug (Backfire) en raakt de aanvaller zelf zwaargewond!
+                    </p>
+                </div>
+                <span class="text-xs text-slate-400 font-medium">Betaal met Geld (Contant/Bank) of Sterren</span>
             </div>
 
-            <form action="{{ route('hitman.contract') }}" method="POST" class="space-y-4">
-                @csrf
-                <input type="hidden" name="target_id" :value="selectedId" required>
-                <input type="hidden" name="target_name" :value="search">
-
-                <!-- Target Confirmation -->
-                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
-                    <div>
-                        <span class="text-slate-400 block text-[10px]">Geselecteerd doelwit:</span>
-                        <strong class="text-slate-900 dark:text-white font-black" x-text="search || 'Selecteer eerst een doelwit in het hoofdtapje'"></strong>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                @foreach($vestCatalog as $vKey => $vest)
+                @php
+                    $canCashVest = $totalWealth >= $vest['cost_cash'];
+                    $canStarVest = ($character->stars ?? 0) >= $vest['cost_stars'];
+                    $isPopular = ($vKey === 'tactical_3h');
+                @endphp
+                <div class="p-5 rounded-2xl border {{ $isPopular ? 'border-purple-500 ring-1 ring-purple-400' : 'border-slate-200' }} bg-slate-50 flex flex-col justify-between gap-4 shadow-xs relative">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center text-sm font-bold">
+                                <i class="{{ $vest['icon'] }}"></i>
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded-full {{ $isPopular ? 'bg-purple-600 text-white' : 'bg-white border border-slate-200 text-slate-800' }} text-[10px] font-black">
+                                {{ $isPopular ? '🔥 POPULAIRST (3 UUR)' : $vest['badge'] }}
+                            </span>
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-900">{{ $vest['name'] }}</h3>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">{{ $vest['subtitle'] }}</p>
                     </div>
-                    <button type="button" @click="activeTab = 'shoot'" class="text-purple-600 dark:text-purple-400 font-bold hover:underline">
-                        Wijzig doelwit &raquo;
+
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
+                        <div class="flex items-center justify-between font-bold text-slate-700">
+                            <span>Verdediging / Backfire:</span>
+                            <span class="text-emerald-700 font-black">+{{ $vest['defense_bonus'] }} Def • {{ $vest['backfire_chance'] }}%</span>
+                        </div>
+                        <div class="flex items-center justify-between font-bold text-slate-700">
+                            <span>Prijs in geld:</span>
+                            <span class="text-slate-900 font-black">€{{ number_format($vest['cost_cash'], 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between font-bold text-slate-700">
+                            <span>Prijs in sterren:</span>
+                            <span class="text-amber-600 font-black">{{ $vest['cost_stars'] }} Sterren ⭐</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                        <form action="{{ route('hitman.buy_vest') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="vest_tier" value="{{ $vest['id'] }}">
+                            <input type="hidden" name="currency" value="cash">
+                            <button type="submit" {{ ! $canCashVest ? 'disabled' : '' }}
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canCashVest ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                <span>€{{ number_format($vest['cost_cash'] / 1000, 0, ',', '.') }}k</span>
+                            </button>
+                        </form>
+
+                        <form action="{{ route('hitman.buy_vest') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="vest_tier" value="{{ $vest['id'] }}">
+                            <input type="hidden" name="currency" value="stars">
+                            <button type="submit" {{ ! $canStarVest ? 'disabled' : '' }}
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canStarVest ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                <i class="fa-solid fa-star text-amber-200"></i>
+                                <span>{{ $vest['cost_stars'] }} ⭐</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Ammunition Crates Section -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-boxes-stacked text-rose-600"></i> Zwarte Markt Munitiekisten
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Sla zware patronen in voor salvo's of precisie-executies. Grote kisten verhogen direct je Koudbloedigheid (%)!
+                    </p>
+                </div>
+                <span class="text-xs font-extrabold text-slate-700">Voorraad: {{ number_format($character->bullets ?? 0, 0, ',', '.') }} patronen</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                @foreach($ammoCatalog as $ammo)
+                @php
+                    $canCashAmmo = $totalWealth >= $ammo['cost_cash'];
+                    $canStarAmmo = ($character->stars ?? 0) >= $ammo['cost_stars'];
+                @endphp
+                <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-4 shadow-xs">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-sm font-bold">
+                                <i class="{{ $ammo['icon'] }}"></i>
+                            </span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-[11px] font-black text-slate-800">
+                                +{{ number_format($ammo['bullets'], 0, ',', '.') }} Patronen
+                            </span>
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-900">{{ $ammo['name'] }}</h3>
+                        <p class="text-[11px] text-slate-500 leading-relaxed">{{ $ammo['subtitle'] }}</p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
+                        <div class="flex items-center justify-between font-bold text-slate-700">
+                            <span>Prijs in geld:</span>
+                            <span class="text-slate-900 font-black">€{{ number_format($ammo['cost_cash'], 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between font-bold text-slate-700">
+                            <span>Prijs in sterren:</span>
+                            <span class="text-amber-600 font-black">{{ $ammo['cost_stars'] }} Sterren ⭐</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                        <form action="{{ route('hitman.buy_bullets') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="ammo_tier" value="{{ $ammo['id'] }}">
+                            <input type="hidden" name="currency" value="cash">
+                            <button type="submit" {{ ! $canCashAmmo ? 'disabled' : '' }}
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canCashAmmo ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                                <span>€{{ number_format($ammo['cost_cash'] / 1000, 0, ',', '.') }}k</span>
+                            </button>
+                        </form>
+
+                        <form action="{{ route('hitman.buy_bullets') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="ammo_tier" value="{{ $ammo['id'] }}">
+                            <input type="hidden" name="currency" value="stars">
+                            <button type="submit" {{ ! $canStarAmmo ? 'disabled' : '' }}
+                                    class="w-full py-2.5 px-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1 {{ $canStarAmmo ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }}">
+                                <i class="fa-solid fa-star text-amber-200"></i>
+                                <span>{{ $ammo['cost_stars'] }} ⭐</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: ONDERWERELD CONTRACTEN                                             -->
+    <!-- ========================================================================= -->
+    <div x-show="activeTab === 'contracten'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5">
+        <div class="border-b border-slate-100 pb-3">
+            <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-file-contract text-purple-600"></i> Onderwereld Intimidatie-Contracten
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+                Laat een handlanger een rivaal verzwakken zonder zelf kogels te verbruiken.
+            </p>
+        </div>
+
+        <div class="max-w-md space-y-1.5">
+            <label class="block text-xs font-extrabold text-slate-700 uppercase">Doelwit Naam</label>
+            <input type="text" x-model="selectedTargetName" placeholder="Typ spelersnaam..."
+                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @foreach($contracts as $c)
+            <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col justify-between gap-4">
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-extrabold text-slate-900">{{ $c['name'] }}</span>
+                        <span class="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[11px] font-black text-rose-600">
+                            -{{ $c['damage'] }} HP
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500">{{ $c['desc'] }}</p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
+                    <div class="flex justify-between font-bold text-slate-700">
+                        <span>Kosten:</span>
+                        <span class="text-slate-900 font-black">€{{ number_format($c['cost'], 0, ',', '.') }}</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-slate-700">
+                        <span>Energie / Slagingskans:</span>
+                        <span class="text-slate-900 font-black">{{ $c['energy'] }} E • {{ $c['rate'] }}%</span>
+                    </div>
+                </div>
+
+                <form action="{{ route('hitman.contract') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="target_id" :value="selectedTargetId">
+                    <input type="hidden" name="target_name" :value="selectedTargetName">
+                    <input type="hidden" name="contract_id" value="{{ $c['id'] }}">
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition cursor-pointer">
+                        Voer Contract Uit (€{{ number_format($c['cost'], 0, ',', '.') }})
                     </button>
-                </div>
-
-                <!-- Contracts Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    @foreach($contracts as $contract)
-                    <label class="relative flex flex-col justify-between p-3.5 border-2 border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer hover:border-purple-500 transition has-[:checked]:border-purple-600 dark:has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50/20">
-                        <input type="radio" name="contract_id" value="{{ $contract['id'] }}" class="peer sr-only" required {{ $loop->first ? 'checked' : '' }}>
-                        <div>
-                            <div class="text-xs font-black text-slate-900 dark:text-white">{{ $contract['name'] }}</div>
-                            <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{{ $contract['desc'] }}</div>
-                        </div>
-                        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] space-y-1">
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Prijs:</span>
-                                <span class="font-extrabold text-amber-500">€{{ number_format($contract['cost'], 0, ',', '.') }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Energie:</span>
-                                <span class="font-bold text-emerald-500">{{ $contract['energy'] }} EP</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">Slagingskans:</span>
-                                <span class="font-bold text-purple-500">{{ $contract['rate'] }}%</span>
-                            </div>
-                        </div>
-                    </label>
-                    @endforeach
-                </div>
-
-                <button type="submit"
-                        {{ $character->isImprisoned() ? 'disabled' : '' }}
-                        class="w-full py-3 px-6 rounded-xl font-black text-xs uppercase tracking-wider text-white transition shadow-sm bg-purple-600 hover:bg-purple-700 cursor-pointer active:scale-95">
-                    <i class="fa-solid fa-file-contract mr-1.5"></i> Contract Bevestigen
-                </button>
-            </form>
+                </form>
+            </div>
+            @endforeach
         </div>
     </div>
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
 use App\Services\LevelService;
@@ -20,6 +21,7 @@ class InformantController extends Controller
 
     public function index(): View
     {
+        /** @var Character $character */
         $character = Auth::user()->character;
         $this->energy->refresh($character);
 
@@ -30,7 +32,43 @@ class InformantController extends Controller
             ['id' => 4, 'name' => 'Directie-insider',   'desc' => 'Topspion met toegang tot het kantoor van de directeur.', 'cost' => 8000, 'energy' => 18, 'reward_min' => 4000, 'reward_max' => 12000, 'xp' => 250, 'icon' => 'fa-user-tie'],
         ];
 
-        return view('game.informants.index', compact('character', 'informants'));
+        $intelCatalog = Character::intelCatalog();
+        $activeIntelOps = $character->getActiveIntelOps();
+        $attackerWing = $character->current_location ?? 'Paviljoen 1 (Gesloten)';
+        $intelTargetIds = collect($activeIntelOps)->pluck('target_id')->unique()->all();
+        $intelTargetsById = Character::whereIn('id', $intelTargetIds)->get()->keyBy('id');
+
+        $enrichedIntelOps = array_map(function (array $op) use ($intelTargetsById, $attackerWing): array {
+            /** @var Character|null $targetModel */
+            $targetModel = $intelTargetsById->get($op['target_id']);
+            if ($targetModel && $op['is_ready']) {
+                $targetWing = $targetModel->current_location ?? 'Paviljoen 1 (Gesloten)';
+                $op['revealed_location'] = $targetWing;
+                $op['same_wing'] = ($targetWing === $attackerWing);
+                $op['has_vest'] = $targetModel->hasVest();
+                $op['vest_name'] = $targetModel->getActiveVestInfo()['name'] ?? null;
+                $op['cash_formatted'] = '€'.number_format((int) $targetModel->cash, 0, ',', '.');
+                $op['bank_formatted'] = '€'.number_format((int) $targetModel->bank, 0, ',', '.');
+                $op['is_wing_locked'] = $targetModel->isWingLocked();
+            } else {
+                $op['revealed_location'] = null;
+                $op['same_wing'] = false;
+                $op['has_vest'] = false;
+                $op['vest_name'] = null;
+                $op['cash_formatted'] = '???';
+                $op['bank_formatted'] = '???';
+                $op['is_wing_locked'] = false;
+            }
+
+            return $op;
+        }, $activeIntelOps);
+
+        $patients = Character::where('id', '!=', $character->id)
+            ->orderByDesc('level')
+            ->limit(50)
+            ->get(['id', 'name', 'level']);
+
+        return view('game.informants.index', compact('character', 'informants', 'intelCatalog', 'enrichedIntelOps', 'patients'));
     }
 
     public function hire(Request $request): RedirectResponse

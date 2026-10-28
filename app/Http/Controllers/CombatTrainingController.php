@@ -78,9 +78,10 @@ class CombatTrainingController extends Controller
         ]);
 
         $this->level->addXp($character, $session['xp']);
+        $newFocus = $character->adjustColdBloodedPct(4);
 
         HalloweenService::record($character, 'training', 1);
 
-        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$session['gain']}! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
+        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$session['gain']} én +4% Koudbloedigheid (nu {$newFocus}%)! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
     }
 }

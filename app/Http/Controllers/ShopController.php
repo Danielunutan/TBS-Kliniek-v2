@@ -708,7 +708,7 @@ class ShopController extends Controller
         $configs = [
             'full_restore' => ['cost' => 5, 'name' => 'Adrenaline & Gezondheid 100% Herstel ⚡'],
             'prison_escape' => ['cost' => 10, 'name' => 'Directe Cel Uitbraak (Borgtocht) 🔓'],
-            'coma_revive' => ['cost' => 15, 'name' => 'Direct Ontwaken uit Coma (ICU) 💉'],
+            'coma_revive' => ['cost' => Character::REVIVE_SERUM_STARS, 'name' => Character::REVIVE_SERUM_NAME.' 💉'],
             'mask_1' => ['cost' => 5, 'name' => '1x Masker 🎭'],
             'mask_5' => ['cost' => 15, 'name' => '5x Maskers 🎭'],
             'ammo_pack' => ['cost' => 20, 'name' => 'Hitman Kogelmagazijn (250 Kogels + Vest) 🎯'],
@@ -748,19 +748,15 @@ class ShopController extends Controller
             }
 
             if ($validated['item_type'] === 'coma_revive') {
-                if (! $lockedCharacter->isComatose()) {
-                    return back()->with('shop_tab', 'sterren')->with('error', 'Je ligt momenteel niet in de Intensive Care Coma!');
+                if (! $lockedCharacter->needsReviveSerum() && $lockedCharacter->getLiquidationStreakDeaths() === 0) {
+                    return back()->with('shop_tab', 'sterren')->with('error', 'Je verkeert momenteel niet in Code Blauw (Hartstilstand) en je liquidatieteller staat al op 0/10!');
                 }
                 $lockedCharacter->stars -= $cfg['cost'];
-                $lockedCharacter->coma_until = null;
-                $lockedCharacter->protection_until = now()->addMinutes(30);
-                $lockedCharacter->ad_coma_progress = 0;
-                $lockedCharacter->health = max(50, (int) $lockedCharacter->health);
-                $lockedCharacter->save();
+                $lockedCharacter->applyReviveSerum();
 
                 return back()
                     ->with('shop_tab', 'sterren')
-                    ->with('success', "💉 MEDISCH WONDER! Je bent direct ontwaakt uit Intensive Care Coma voor {$cfg['cost']} Sterren ⭐, hersteld naar 50% HP en voorzien van 30 minuten herstelbescherming!");
+                    ->with('success', '💉 '.Character::REVIVE_SERUM_NAME." toegediend! Je bent direct ontwaakt uit Code Blauw voor {$cfg['cost']} Sterren ⭐, hersteld naar 100% HP, je teller staat op 0/10 en je hebt 30 minuten bescherming!");
             }
 
             $lockedCharacter->stars -= $cfg['cost'];
