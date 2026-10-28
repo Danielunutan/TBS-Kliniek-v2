@@ -689,7 +689,7 @@ class HitmanController extends Controller
         }
 
         $bloodFeud = BloodFeud::hasClaimAgainst($attacker, $defender->id);
-        $hasOpenBounty = class_exists(Bounty::class) && Bounty::where('target_id', $defender->id)->where('status', 'open')->exists();
+        $hasOpenBounty = class_exists(Bounty::class) && Bounty::where('target_character_id', $defender->id)->where('is_claimed', false)->exists();
 
         if (! $bloodFeud && ! $hasOpenBounty && ($attacker->level - $defender->level > 15)) {
             return back()->with('error', "{$defender->name} is te laag in level (maximaal 15 levels verschil, tenzij er Bloedwraak of een Kopgeld-premie openstaat).");
@@ -830,12 +830,12 @@ class HitmanController extends Controller
             // Claim any open Bounties on defender
             $bountyReward = 0;
             if (class_exists(Bounty::class)) {
-                $openBounties = Bounty::where('target_id', $defender->id)->where('status', 'open')->get();
+                $openBounties = Bounty::where('target_character_id', $defender->id)->where('is_claimed', false)->get();
                 foreach ($openBounties as $bounty) {
                     $bountyReward += (int) $bounty->amount;
                     $bounty->update([
-                        'status' => 'claimed',
-                        'claimed_by_id' => $attacker->id,
+                        'is_claimed' => true,
+                        'claimed_by_character_id' => $attacker->id,
                         'claimed_at' => now(),
                     ]);
                 }

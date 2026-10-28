@@ -36,6 +36,10 @@
         this.selectedTargetName = name;
         this.selectedTargetSameWing = Boolean(sameWing);
         this.selectedTargetRevealedWing = revealedWing || '';
+        this.$nextTick(() => {
+            const el = document.getElementById('selected-target-controls');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
     },
     async performSearch() {
         if (this.searchQuery.trim().length < 1) {
@@ -423,7 +427,7 @@
                 </div>
 
                 <!-- Selected Target Status & Quick Action Bar -->
-                <div x-show="selectedTargetId !== ''" class="p-4 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 space-y-3">
+                <div id="selected-target-controls" x-show="selectedTargetId !== ''" class="p-4 rounded-xl bg-slate-50 dark:bg-purple-950/40 border border-slate-200 dark:border-purple-800/50 space-y-3">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div class="min-w-0">
                             <span class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Geselecteerd Doelwit:</span>
