@@ -227,4 +227,52 @@ class GangWagePayoutTest extends TestCase
         // Expected = round(21650 * 1.12) = 24248
         $this->assertEquals(24248, $service->calculateHourlyWage($gang));
     }
+
+    public function test_hourly_wage_is_globally_synchronized_and_creates_notifications(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-28 14:15:30'));
+
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $character = $user->character;
+
+        $gang = Gang::create([
+            'name' => 'Sync Crew',
+            'tag' => 'SYNC',
+            'specialty' => 'Kantine Controle',
+            'treasury' => 10000,
+            'bling_shops' => 1,
+            'leader_character_id' => $character->id,
+        ]);
+
+        $character->gang_id = $gang->id;
+        $character->cash = 1000;
+        $character->last_gang_wage_at = Carbon::parse('2026-10-28 13:00:00');
+        $character->save();
+
+        $service = app(GangWageService::class);
+        $details = $service->getWageDetails($character);
+
+        // 14:15:30 -> next payout is at 15:00:00 (44m 30s = 2670 seconds)
+        $this->assertEquals(2670, $details['seconds_until_next']);
+        $this->assertEquals('44m 30s', $details['next_payout_human']);
+        $this->assertEquals(1, $details['pending_hours']);
+
+        // Fast forward to top of the hour (15:00:00)
+        Carbon::setTestNow(Carbon::parse('2026-10-28 15:00:00'));
+
+        $this->artisan('gang:pay-wages')->assertSuccessful();
+
+        $character->refresh();
+        // 13:00 to 15:00 = 2 hours * 250 = 500
+        $this->assertEquals(1500, $character->cash);
+        $this->assertEquals('2026-10-28 15:00:00', $character->last_gang_wage_at->format('Y-m-d H:i:s'));
+
+        // Notification created
+        $this->assertDatabaseHas('game_notifications', [
+            'character_id' => $character->id,
+            'type' => 'gang_wage',
+        ]);
+
+        Carbon::setTestNow();
+    }
 }

@@ -612,7 +612,15 @@
                                 </button>
                             </form>
                         @else
-                            <span class="text-[10px] text-slate-400 block font-medium">Dag: €{{ number_format($dailyWage, 0, ',', '.') }}</span>
+                            <div class="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5 font-medium"
+                                 x-data="{ seconds: {{ $wageDetails['seconds_until_next'] ?? 3600 }} }"
+                                 x-init="setInterval(() => { if (seconds > 0) seconds--; }, 1000)">
+                                <span class="text-emerald-600 dark:text-emerald-400 font-bold text-[9px] flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-clock text-[8px] animate-pulse"></i>
+                                    <span x-text="Math.floor(seconds / 60) + 'm ' + (seconds % 60) + 's'">{{ $wageDetails['next_payout_human'] ?? '0m 0s' }}</span>
+                                </span>
+                                <span class="block text-[9px] opacity-75">Collectief op heel uur</span>
+                            </div>
                         @endif
                     </div>
 

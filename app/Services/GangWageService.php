@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Character;
 use App\Models\GameMessage;
+use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Support\GangPropertyCatalog;
 
@@ -126,6 +127,7 @@ class GangWageService
 
     /**
      * Get detailed payout status and countdown for a character.
+     * All countdowns and payouts are globally synchronized to the top of the hour (:00:00).
      *
      * @return array{in_gang: bool, hourly_wage: int, daily_wage: int, pending_hours: int, pending_amount: int, seconds_until_next: int, next_payout_human: string, last_payout_at: ?string}
      */
@@ -148,16 +150,22 @@ class GangWageService
         $dailyWage = $hourlyWage * 24;
 
         $now = now();
-        $lastPayout = $character->last_gang_wage_at ?? $character->updated_at ?? $now;
-        $secondsElapsed = ($lastPayout > $now) ? 0 : (int) $lastPayout->diffInSeconds($now);
 
-        $pendingHours = (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS);
-        $pendingAmount = $pendingHours * $hourlyWage;
-
-        $secondsUntilNext = self::WAGE_INTERVAL_SECONDS - ($secondsElapsed % self::WAGE_INTERVAL_SECONDS);
+        // 1. Globally synchronized countdown to the top of the next hour (:00:00)
+        $nextHour = $now->copy()->addHour()->startOfHour();
+        $secondsUntilNext = max(0, (int) $now->diffInSeconds($nextHour));
         $minutesLeft = (int) floor($secondsUntilNext / 60);
         $secondsLeft = $secondsUntilNext % 60;
         $nextHuman = "{$minutesLeft}m {$secondsLeft}s";
+
+        // 2. Pending uncollected hours
+        $lastPayout = $character->last_gang_wage_at
+            ? $character->last_gang_wage_at->copy()->startOfHour()
+            : $now->copy()->startOfHour();
+
+        $secondsElapsed = ($lastPayout >= $now) ? 0 : (int) $lastPayout->diffInSeconds($now);
+        $pendingHours = (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS);
+        $pendingAmount = $pendingHours * $hourlyWage;
 
         return [
             'in_gang' => true,
@@ -172,7 +180,8 @@ class GangWageService
     }
 
     /**
-     * Check and automatically pay out all accrued hourly wages to the character's bank account.
+     * Check and automatically pay out all accrued hourly wages to the character's pocket (cash).
+     * Anchors timestamps cleanly to the top of the hour so timers stay synchronized across all players.
      *
      * @return array{hours: int, amount: int, hourly_wage: int, gang_name: string}|null
      */
@@ -189,9 +198,9 @@ class GangWageService
 
         $now = now();
 
-        // Initialize if never set
+        // Initialize if never set: anchor to the current hour boundary
         if (! $character->last_gang_wage_at) {
-            $character->last_gang_wage_at = $now;
+            $character->last_gang_wage_at = $now->copy()->startOfHour();
             $character->save();
 
             return null;
@@ -208,32 +217,44 @@ class GangWageService
         }
 
         $hours = (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS);
+        if ($hours <= 0) {
+            return null;
+        }
 
         $hourlyWage = $this->calculateHourlyWage($gang);
         $totalPayout = $hours * $hourlyWage;
 
-        if ($totalPayout <= 0) {
-            $character->last_gang_wage_at = $now;
-            $character->save();
+        // Advance last_gang_wage_at by exactly the paid hours, snapped to the start of the hour
+        $character->last_gang_wage_at = $character->last_gang_wage_at->copy()->addHours($hours)->startOfHour();
 
-            return null;
+        if ($totalPayout > 0) {
+            // Contant geld uitbetaling direct op zak van het personage
+            $character->cash += $totalPayout;
         }
 
-        // Contant geld uitbetaling direct op zak van het personage!
-        $character->cash += $totalPayout;
-        // Reset last wage payout timestamp directly to now so timer cleanly begins for the next hour
-        $character->last_gang_wage_at = $now;
         $character->save();
 
-        if ($sendNotificationMessage) {
-            GameMessage::create([
-                'recipient_id' => $character->id,
-                'sender_id' => $character->id,
-                'sender_name' => 'Bende Salaris Administratie',
-                'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
-                'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld ontvangen op zak (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
-                'type' => 'gang',
+        if ($totalPayout > 0) {
+            // In-game bell notification (instantly visible on every page in header)
+            GameNotification::create([
+                'character_id' => $character->id,
+                'type' => 'gang_wage',
+                'icon' => 'fa-coins',
+                'title' => '💰 Bende Uurloon Uitbetaald!',
+                'message' => "Je hebt zojuist voor {$hours} gewerkte uur(en) bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld op zak ontvangen!',
+                'is_read' => false,
             ]);
+
+            if ($sendNotificationMessage) {
+                GameMessage::create([
+                    'recipient_id' => $character->id,
+                    'sender_id' => $character->id,
+                    'sender_name' => 'Bende Salaris Administratie',
+                    'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
+                    'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld ontvangen op zak (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
+                    'type' => 'gang',
+                ]);
+            }
         }
 
         return [

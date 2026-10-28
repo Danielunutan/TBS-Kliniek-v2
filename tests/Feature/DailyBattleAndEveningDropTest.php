@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Character;
+use App\Models\DailyBattle;
 use App\Models\DailyBattleScore;
 use App\Models\GameMessage;
 use App\Models\User;
@@ -115,5 +116,37 @@ class DailyBattleAndEveningDropTest extends TestCase
             ->assertSuccessful();
 
         $this->assertEquals(3, VaultCode::where('character_id', $char->id)->count());
+    }
+
+    public function test_artisan_battle_settle_command_distributes_prizes(): void
+    {
+        $user = User::factory()->create();
+        $char = $this->createCharacter($user);
+
+        $yesterday = Carbon::yesterday()->toDateString();
+        $battle = DailyBattle::create([
+            'battle_date' => $yesterday,
+            'title' => 'Strijd Om De Stack 🏆',
+            'is_settled' => false,
+        ]);
+
+        DailyBattleScore::create([
+            'battle_date' => $yesterday,
+            'character_id' => $char->id,
+            'score_slay' => 50,
+        ]);
+
+        $this->artisan('battle:settle')
+            ->expectsOutputToContain('24 Uur Battles succesvol afgehandeld')
+            ->assertSuccessful();
+
+        $battle->refresh();
+        $this->assertTrue((bool) $battle->is_settled);
+
+        // Check winner received message
+        $this->assertDatabaseHas('game_messages', [
+            'recipient_id' => $char->id,
+            'sender_name' => 'TBS 24-Uur Toernooicommissie',
+        ]);
     }
 }

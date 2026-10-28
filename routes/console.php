@@ -55,7 +55,8 @@ Artisan::command('chat:directie-tiktok-announcement', function () {
     $this->info("TikTok Directie announcement verstuurd naar Plein Chat (ID: {$chatMessage->id})");
 })->purpose('Send TikTok promotion announcement to global chat as Kliniek Directie');
 
-Schedule::command('gang:pay-wages')->hourly();
+Schedule::command('gang:pay-wages')->everyMinute();
+Schedule::command('battle:settle')->everyMinute();
 Schedule::command('patients:pay-allowances')->everyFifteenMinutes();
 Schedule::command('vault:evening-drop')->dailyAt('22:00')->timezone('Europe/Amsterdam');
 Schedule::command('lottery:draw')->everyMinute();
