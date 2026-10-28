@@ -34,66 +34,77 @@
                 </div>
             </div>
 
-            <!-- INVENTORY & STATUS BADGES -->
-            <div class="flex items-center gap-2.5 flex-wrap shrink-0">
+            <!-- INVENTORY & STATUS BADGES (Mobile App Responsive Strip) -->
+            <div class="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2.5 shrink-0 w-full sm:w-auto">
                 <!-- Solo Maskers Badge -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2 flex items-center gap-2.5 shadow-2xs">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 flex items-center justify-center text-xs shrink-0">
+                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-300 flex items-center justify-center text-xs shrink-0">
                         <i class="fa-solid fa-mask"></i>
                     </div>
-                    <div>
-                        <span class="text-[9px] uppercase font-extrabold text-slate-400 dark:text-slate-500 block tracking-wider leading-none mb-0.5">Mijn Maskers</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white font-mono leading-none">{{ $character->masks ?? 0 }}x</span>
+                    <div class="min-w-0">
+                        <span class="text-[8px] sm:text-[9px] uppercase font-extrabold text-slate-400 dark:text-slate-500 block tracking-wider leading-none mb-0.5 truncate">Maskers</span>
+                        <span class="text-[11px] sm:text-xs font-black text-slate-900 dark:text-white font-mono leading-none">{{ $character->masks ?? 0 }}x</span>
                     </div>
-                    <a href="{{ route('shop.index', ['tab' => 'items']) }}" title="Koop meer maskers" class="ml-1 text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-extrabold whitespace-nowrap">+ Koop</a>
+                    <a href="{{ route('shop.index', ['tab' => 'items']) }}" title="Koop meer maskers" class="text-[10px] sm:text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-extrabold whitespace-nowrap hidden sm:inline">+ Koop</a>
                 </div>
 
                 @if($myGang)
                 <!-- Gang Depot Maskers Badge -->
-                <div class="bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl px-3.5 py-2 flex items-center gap-2.5 shadow-2xs">
-                    <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs shrink-0">
+                <div class="bg-amber-50/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-100 dark:bg-amber-900/60 border border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 flex items-center justify-center text-xs shrink-0">
                         <i class="fa-solid fa-box-archive"></i>
                     </div>
-                    <div>
-                        <span class="text-[9px] uppercase font-extrabold text-amber-600 dark:text-amber-400 block tracking-wider leading-none mb-0.5">Depot Maskers</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white font-mono leading-none">{{ $myGang->masks ?? 0 }}x</span>
+                    <div class="min-w-0">
+                        <span class="text-[8px] sm:text-[9px] uppercase font-extrabold text-amber-600 dark:text-amber-400 block tracking-wider leading-none mb-0.5 truncate">Depot</span>
+                        <span class="text-[11px] sm:text-xs font-black text-slate-900 dark:text-white font-mono leading-none">{{ $myGang->masks ?? 0 }}x</span>
                     </div>
-                    <a href="{{ route('gangs.index', ['tab' => 'depot']) }}" title="Bende Depot" class="ml-1 text-[11px] text-amber-700 dark:text-amber-400 hover:underline font-extrabold whitespace-nowrap">Depot</a>
+                    <a href="{{ route('gangs.index', ['tab' => 'depot']) }}" title="Bende Depot" class="text-[10px] sm:text-[11px] text-amber-700 dark:text-amber-400 hover:underline font-extrabold whitespace-nowrap hidden sm:inline">Depot</a>
+                </div>
+                @else
+                <!-- Geen Bende Placeholder Badge -->
+                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left opacity-60">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 flex items-center justify-center text-xs shrink-0">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <span class="text-[8px] sm:text-[9px] uppercase font-extrabold text-slate-400 block tracking-wider leading-none mb-0.5 truncate">Depot</span>
+                        <span class="text-[10px] sm:text-xs font-black text-slate-500 font-mono leading-none">Geen</span>
+                    </div>
                 </div>
                 @endif
 
                 <!-- Actief Voertuig Badge -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3.5 py-2 flex items-center gap-2.5 shadow-2xs">
-                    <div class="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0">
+                <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl p-2 sm:px-3.5 sm:py-2 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-2.5 shadow-2xs text-center sm:text-left">
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xs shrink-0">
                         <i class="fa-solid {{ $activeVehicle ? $activeVehicle->vehicle->icon : 'fa-car' }}"></i>
                     </div>
                     <div class="min-w-0">
-                        <span class="text-[9px] uppercase font-extrabold text-slate-400 dark:text-slate-500 block tracking-wider leading-none mb-0.5">Mijn Wagen</span>
-                        <span class="text-xs font-black text-slate-900 dark:text-white truncate max-w-[120px] block leading-none">
-                            {{ $activeVehicle ? $activeVehicle->vehicle->name : 'Geen wagen' }}
+                        <span class="text-[8px] sm:text-[9px] uppercase font-extrabold text-slate-400 dark:text-slate-500 block tracking-wider leading-none mb-0.5 truncate">Wagen</span>
+                        <span class="text-[10px] sm:text-xs font-black text-slate-900 dark:text-white truncate max-w-[80px] sm:max-w-[120px] block leading-none">
+                            {{ $activeVehicle ? $activeVehicle->vehicle->name : 'Geen' }}
                         </span>
                     </div>
-                    <a href="{{ route('garage.index') }}" title="Garage" class="ml-1 text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-extrabold whitespace-nowrap">Garage</a>
+                    <a href="{{ route('garage.index') }}" title="Garage" class="text-[10px] sm:text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-700 font-extrabold whitespace-nowrap hidden sm:inline">Garage</a>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- TABS CONTAINER (SOLO VS GANG) -->
-    <div x-data="{ mode: '{{ request('tab') === 'gang' ? 'gang' : 'solo' }}' }" class="space-y-6">
+    <div x-data="{ mode: '{{ request('tab') === 'gang' ? 'gang' : 'solo' }}' }" class="space-y-4 sm:space-y-6">
 
-        <!-- SEGMENTED PILL TAB SWITCHER -->
+        <!-- SEGMENTED PILL TAB SWITCHER (Full-Width Responsive App Switcher) -->
         <div class="flex items-center justify-between gap-4 flex-wrap">
-            <div class="bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl flex items-center gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+            <div class="w-full sm:w-auto grid grid-cols-2 sm:flex bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
                 <button type="button" 
                         @click="mode = 'solo'; window.history.replaceState({}, '', '{{ route('heists.index') }}?tab=solo')"
                         :class="mode === 'solo' 
                             ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-slate-200/90 dark:border-slate-700 font-black' 
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent font-bold'"
-                        class="px-5 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2">
+                        class="px-3 sm:px-5 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2">
                     <i class="fa-solid fa-user-secret"></i>
                     <span>Solo Overvallen</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black"
+                    <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-black"
                           :class="mode === 'solo' ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'">
                         {{ count($soloHeists) }}
                     </span>
@@ -104,11 +115,11 @@
                         :class="mode === 'gang' 
                             ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs border border-slate-200/90 dark:border-slate-700 font-black' 
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-transparent font-bold'"
-                        class="px-5 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2">
+                        class="px-3 sm:px-5 py-2.5 rounded-xl text-xs transition cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2">
                     <i class="fa-solid fa-users text-amber-500"></i>
-                    <span>Grote Bende Heists</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                        Co-Op ({{ count($gangHeists) }})
+                    <span>Bende Heists</span>
+                    <span class="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                        {{ count($gangHeists) }}
                     </span>
                 </button>
             </div>
@@ -193,42 +204,42 @@
                         </div>
                     </div>
 
-                    <!-- Requirements Checklist -->
-                    <div class="space-y-2 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <!-- Requirements Checklist (Compact 2x2 App Grid) -->
+                    <div class="grid grid-cols-2 gap-1.5 text-[11px] pt-2 border-t border-slate-100 dark:border-slate-800">
                         <!-- Level -->
-                        <div class="flex items-center justify-between {{ $hasLevel ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500' }}">
-                            <span class="flex items-center gap-1.5">
-                                <i class="fa-solid {{ $hasLevel ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-slate-300 dark:text-slate-600' }}"></i>
-                                Minimaal Level {{ $heist->min_level }}
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ $hasLevel ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800' }}">
+                            <span class="flex items-center gap-1 font-bold truncate">
+                                <i class="fa-solid {{ $hasLevel ? 'fa-check text-emerald-600' : 'fa-xmark text-slate-400' }}"></i>
+                                <span>Lvl {{ $heist->min_level }}</span>
                             </span>
-                            <span class="font-mono text-[11px] font-bold">{{ $character->level }}/{{ $heist->min_level }}</span>
+                            <span class="font-mono font-black text-[10px]">{{ $character->level }}/{{ $heist->min_level }}</span>
                         </div>
 
                         <!-- Maskers -->
-                        <div class="flex items-center justify-between {{ $hasMasks ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
-                            <span class="flex items-center gap-1.5">
-                                <i class="fa-solid {{ $hasMasks ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }}"></i>
-                                {{ $heist->required_mask_count }}x Bivakmuts / Masker
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ $hasMasks ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                            <span class="flex items-center gap-1 font-bold truncate">
+                                <i class="fa-solid fa-mask {{ $hasMasks ? 'text-emerald-600' : 'text-rose-500' }}"></i>
+                                <span>{{ $heist->required_mask_count }}x Masker</span>
                             </span>
-                            <span class="font-mono text-[11px] font-bold">{{ $character->masks ?? 0 }}/{{ $heist->required_mask_count }}</span>
+                            <span class="font-mono font-black text-[10px]">{{ $character->masks ?? 0 }}/{{ $heist->required_mask_count }}</span>
                         </div>
 
                         <!-- Vluchtwagen Conditie -->
-                        <div class="flex items-center justify-between {{ ($hasVehicle && $hasCondition) ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
-                            <span class="flex items-center gap-1.5 min-w-0">
-                                <i class="fa-solid {{ ($hasVehicle && $hasCondition) ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }}"></i>
-                                <span class="truncate">Wagen: Min. {{ $heist->min_condition_required }}% Conditie</span>
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ ($hasVehicle && $hasCondition) ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                            <span class="flex items-center gap-1 font-bold truncate">
+                                <i class="fa-solid fa-car {{ ($hasVehicle && $hasCondition) ? 'text-emerald-600' : 'text-rose-500' }}"></i>
+                                <span>Wagen &ge;{{ $heist->min_condition_required }}%</span>
                             </span>
-                            <span class="font-mono text-[11px] font-bold shrink-0">{{ $activeVehicle ? $activeVehicle->current_condition : 0 }}%</span>
+                            <span class="font-mono font-black text-[10px]">{{ $activeVehicle ? $activeVehicle->current_condition : 0 }}%</span>
                         </div>
 
                         <!-- Energie -->
-                        <div class="flex items-center justify-between {{ $character->energy >= $heist->energy_cost ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500' }}">
-                            <span class="flex items-center gap-1.5">
-                                <i class="fa-solid fa-bolt text-amber-500 text-[10px]"></i>
-                                Energie Kosten
+                        <div class="flex items-center justify-between p-2 rounded-xl {{ $character->energy >= $heist->energy_cost ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800' }}">
+                            <span class="flex items-center gap-1 font-bold truncate">
+                                <i class="fa-solid fa-bolt text-amber-500"></i>
+                                <span>Kosten</span>
                             </span>
-                            <span class="font-mono text-[11px] font-bold">{{ $heist->energy_cost }} Energie</span>
+                            <span class="font-mono font-black text-[10px]">{{ $heist->energy_cost }} EP</span>
                         </div>
                     </div>
 
@@ -488,65 +499,55 @@
                             </div>
                         </div>
 
-                        <!-- Checklist Requirements -->
-                        <div class="space-y-2 text-xs pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <!-- Checklist Requirements (Compact 2-col Grid) -->
+                        <div class="grid grid-cols-2 gap-1.5 text-[11px] pt-2 border-t border-slate-100 dark:border-slate-800">
                             <!-- 1. Gang Leden Quota -->
-                            <div class="flex items-center justify-between {{ $hasGangMembers ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
-                                <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid {{ $hasGangMembers ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }}"></i>
-                                    Minimaal {{ $heist->min_gang_members }} Bendeleden Quota
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMembers ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                                <span class="flex items-center gap-1 font-bold truncate">
+                                    <i class="fa-solid {{ $hasGangMembers ? 'fa-users text-emerald-600' : 'fa-users text-rose-500' }}"></i>
+                                    <span>Leden</span>
                                 </span>
-                                <span class="font-mono text-[11px] font-bold">{{ $gangMemberCount }}/{{ $heist->min_gang_members }}</span>
+                                <span class="font-mono font-black text-[10px]">{{ $gangMemberCount }}/{{ $heist->min_gang_members }}</span>
                             </div>
 
-                            <!-- 2. Benodigd Bende Pand -->
-                            @if($heist->required_property_name)
-                            <div class="flex items-center justify-between {{ $hasProperty ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
-                                <span class="flex items-center gap-1.5 min-w-0">
-                                    <i class="fa-solid {{ $hasProperty ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }} shrink-0"></i>
-                                    <span class="truncate">Pand: {{ $heist->required_property_name }}</span>
+                            <!-- 2. Depot Maskers -->
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasGangMasks ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                                <span class="flex items-center gap-1 font-bold truncate">
+                                    <i class="fa-solid fa-mask {{ $hasGangMasks ? 'text-emerald-600' : 'text-rose-500' }}"></i>
+                                    <span>Depot</span>
                                 </span>
-                                @if($hasProperty)
-                                    <span class="font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400 shrink-0">In Bezit ✓</span>
-                                @else
-                                    <a href="{{ route('gangs.panden') }}" class="text-[11px] font-black text-purple-600 dark:text-purple-400 underline hover:text-purple-700 shrink-0">Koop Pand →</a>
-                                @endif
+                                <span class="font-mono font-black text-[10px]">{{ $gangMaskCount }}/{{ $heist->required_mask_count }}</span>
                             </div>
-                            @endif
 
                             <!-- 3. Benodigd Voertuig in Bende Garage -->
-                            <div class="flex items-center justify-between {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
-                                <span class="flex items-center gap-1.5 min-w-0">
-                                    <i class="fa-solid {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }} shrink-0"></i>
-                                    <span class="truncate">Wagen: {{ $heist->required_vehicle_name ?? ($heist->required_vehicle_type . ' min. ' . $heist->min_speed_required . ' km/u') }}</span>
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                                <span class="flex items-center gap-1 font-bold truncate">
+                                    <i class="fa-solid fa-car {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? 'text-emerald-600' : 'text-rose-500' }}"></i>
+                                    <span>Garage Wagen</span>
                                 </span>
-                                @if($effectiveVehicle && $isGangGarageVehicle)
-                                    <span class="font-mono text-[11px] font-bold shrink-0">
-                                        {{ $effectiveVehicle->vehicle->name }} ({{ $effectiveVehicle->current_condition }}%)
-                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-black">Bende Garage</span>
-                                    </span>
-                                @else
-                                    <a href="{{ route('gangs.garage') }}" class="text-[11px] font-black text-purple-600 dark:text-purple-400 underline hover:text-purple-700 shrink-0">Bende Garage →</a>
-                                @endif
+                                <span class="font-mono font-black text-[10px] truncate">
+                                    {{ ($hasVehicle && $hasCondition && $isGangGarageVehicle) ? ($effectiveVehicle->current_condition . '%') : 'Nodig' }}
+                                </span>
                             </div>
 
-                            <!-- 4. Maskers in Bende Depot -->
-                            <div class="flex items-center justify-between {{ $hasGangMasks ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400 font-semibold' }}">
-                                <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid {{ $hasGangMasks ? 'fa-circle-check text-emerald-600 dark:text-emerald-400' : 'fa-circle-xmark text-rose-500' }}"></i>
-                                    {{ $heist->required_mask_count }}x Bivakmutsen (Bende Depot)
+                            <!-- 4. Pand of Energie -->
+                            @if($heist->required_property_name)
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $hasProperty ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-rose-50/70 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/60' }}">
+                                <span class="flex items-center gap-1 font-bold truncate">
+                                    <i class="fa-solid fa-building {{ $hasProperty ? 'text-emerald-600' : 'text-rose-500' }}"></i>
+                                    <span>Pand</span>
                                 </span>
-                                <span class="font-mono text-[11px] font-bold">{{ $gangMaskCount }}/{{ $heist->required_mask_count }}</span>
+                                <span class="font-mono font-black text-[10px]">{{ $hasProperty ? 'In bezit' : 'Nodig' }}</span>
                             </div>
-
-                            <!-- 5. Energie -->
-                            <div class="flex items-center justify-between {{ $character->energy >= $heist->energy_cost ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500' }}">
-                                <span class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-bolt text-amber-500 text-[10px]"></i>
-                                    Energie Kosten
+                            @else
+                            <div class="flex items-center justify-between p-2 rounded-xl {{ $character->energy >= $heist->energy_cost ? 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60' : 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800' }}">
+                                <span class="flex items-center gap-1 font-bold truncate">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i>
+                                    <span>Kosten</span>
                                 </span>
-                                <span class="font-mono text-[11px] font-bold">{{ $heist->energy_cost }} Energie</span>
+                                <span class="font-mono font-black text-[10px]">{{ $heist->energy_cost }} EP</span>
                             </div>
+                            @endif
                         </div>
 
                         @if($hasVehicle)

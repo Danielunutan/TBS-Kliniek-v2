@@ -245,11 +245,65 @@
         </div>
     </div>
 
+    <!-- MOBILE APP STICKY NAVIGATION BAR (Fast Mobile App Experience) -->
+    <div class="lg:hidden sticky top-2 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-md space-y-2">
+        <!-- Horizontal Scrollable Segmented Chips -->
+        <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 px-0.5">
+            <button type="button" @click="setShopTab('pakketten')" 
+                    :class="shopTab === 'pakketten' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800/80'" 
+                    class="px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                <i class="fa-solid fa-basket-shopping text-xs"></i>
+                <span>Pakketten</span>
+            </button>
+            <button type="button" @click="setShopTab('items')" 
+                    :class="shopTab === 'items' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800/80'" 
+                    class="px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                <i class="fa-solid fa-utensils text-xs"></i>
+                <span>Kantine</span>
+            </button>
+            <button type="button" @click="setShopTab('sterren')" 
+                    :class="shopTab === 'sterren' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800/80'" 
+                    class="px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                <i class="fa-solid fa-gem text-amber-500 text-xs"></i>
+                <span>Sterren</span>
+            </button>
+            <button type="button" @click="setShopTab('inventaris')" 
+                    :class="shopTab === 'inventaris' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-600 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800/80'" 
+                    class="px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                <i class="fa-solid fa-box-archive text-xs"></i>
+                <span>Rugzak</span>
+                <span class="px-1.5 py-0.2 rounded-full bg-purple-200 dark:bg-purple-950 text-purple-800 dark:text-purple-300 font-black text-[10px]" x-text="totalInvCount"></span>
+            </button>
+            <button type="button" @click="setShopTab('donaties')" 
+                    :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 shadow-xs font-black' : 'text-amber-700 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60'" 
+                    class="px-3 py-2 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                <i class="fa-solid fa-mug-hot text-xs text-amber-500"></i>
+                <span>Koffie &amp; VIP</span>
+            </button>
+        </div>
+
+        <!-- Mobile Quick-Wallet Strip -->
+        <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] px-1 font-bold">
+            <span class="text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <i class="fa-solid fa-star text-amber-500 text-[10px]"></i> {{ $character->stars ?? 0 }}
+            </span>
+            <span class="text-purple-700 dark:text-purple-400 flex items-center gap-1">
+                <i class="fa-solid fa-mask text-[10px]"></i> {{ $character->masks ?? 0 }}
+            </span>
+            <span class="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-mono">
+                <i class="fa-solid fa-wallet text-[10px]"></i> €{{ number_format($character->cash, 0, ',', '.') }}
+            </span>
+            <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <i class="fa-solid fa-warehouse text-[10px]"></i> <span x-text="storageUsed + '/' + storageCapacity"></span>
+            </span>
+        </div>
+    </div>
+
     <!-- MAIN TWO COLUMN SHOP LAYOUT -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Left Column: Shop Sidebar Navigation -->
-        <div class="lg:col-span-3 space-y-4">
+        <!-- Left Column: Shop Sidebar Navigation (Desktop only) -->
+        <div class="hidden lg:block lg:col-span-3 space-y-4">
             <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold text-slate-700 dark:text-slate-300">
                 <button type="button" @click="setShopTab('donaties')" 
                         :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 font-black shadow-md' : 'hover:bg-amber-50 dark:hover:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-300/80 dark:border-amber-800/80'"
@@ -681,17 +735,17 @@
                         }
                     @endphp
 
-                    <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-slate-100">
+                    <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-slate-100 dark:border-slate-800">
                         <button type="button"
                                 @click="itemFilter = 'all'"
                                 :class="itemFilter === 'all' 
                                     ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
-                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-border-all text-[11px]"></i>
                             <span>Alle Items</span>
                             <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
-                                  :class="itemFilter === 'all' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                  :class="itemFilter === 'all' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ count($items) }}
                             </span>
                         </button>
@@ -699,12 +753,12 @@
                                 @click="itemFilter = 'eten'"
                                 :class="itemFilter === 'eten' 
                                     ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
-                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-burger text-[11px]" :class="itemFilter === 'eten' ? 'text-white' : 'text-amber-500'"></i>
                             <span>Eten & Snacks</span>
                             <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
-                                  :class="itemFilter === 'eten' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                  :class="itemFilter === 'eten' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['eten'] ?? 0 }}
                             </span>
                         </button>
@@ -712,12 +766,12 @@
                                 @click="itemFilter = 'drank'"
                                 :class="itemFilter === 'drank' 
                                     ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
-                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-bolt text-[11px]" :class="itemFilter === 'drank' ? 'text-white' : 'text-cyan-500'"></i>
                             <span>Drank & Energie</span>
                             <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
-                                  :class="itemFilter === 'drank' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                  :class="itemFilter === 'drank' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['drank'] ?? 0 }}
                             </span>
                         </button>
@@ -725,12 +779,12 @@
                                 @click="itemFilter = 'medisch'"
                                 :class="itemFilter === 'medisch' 
                                     ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
-                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-kit-medical text-[11px]" :class="itemFilter === 'medisch' ? 'text-white' : 'text-rose-500'"></i>
                             <span>Medisch & Herstel</span>
                             <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
-                                  :class="itemFilter === 'medisch' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                  :class="itemFilter === 'medisch' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['medisch'] ?? 0 }}
                             </span>
                         </button>
@@ -738,12 +792,12 @@
                                 @click="itemFilter = 'kracht'"
                                 :class="itemFilter === 'kracht' 
                                     ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
-                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-dumbbell text-[11px]" :class="itemFilter === 'kracht' ? 'text-white' : 'text-indigo-500'"></i>
                             <span>Kracht & Uitrusting</span>
                             <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
-                                  :class="itemFilter === 'kracht' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                  :class="itemFilter === 'kracht' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['kracht'] ?? 0 }}
                             </span>
                         </button>
@@ -751,18 +805,18 @@
                                 @click="itemFilter = 'smokkel'"
                                 :class="itemFilter === 'smokkel' 
                                     ? 'bg-purple-600 text-white shadow-xs font-extrabold' 
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold'"
-                                class="px-3.5 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-2 shrink-0">
+                                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/60 dark:border-slate-700/60'"
+                                class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-mask text-[11px]" :class="itemFilter === 'smokkel' ? 'text-white' : 'text-slate-600'"></i>
                             <span>Smokkel & Sleutels</span>
                             <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
-                                  :class="itemFilter === 'smokkel' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 text-slate-600'">
+                                  :class="itemFilter === 'smokkel' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['smokkel'] ?? 0 }}
                             </span>
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
                         @foreach($items as $item)
                         @php
                             $ownedCount = $item->slug === 'bivakmuts-masker'
@@ -771,25 +825,25 @@
                             $itemData = $getItemData($item);
                         @endphp
                         <div x-show="itemFilter === 'all' || itemFilter === '{{ $itemData['cat'] }}'"
-                             class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 hover:border-purple-300 dark:hover:border-purple-500 rounded-xl p-4 flex flex-col justify-between gap-3 transition shadow-xs">
-                            <div class="space-y-2">
-                                <div class="flex items-start justify-between gap-2 min-h-[40px]">
-                                    <div class="w-10 h-10 rounded-xl {{ $itemData['badgeClass'] }} flex items-center justify-center text-base shrink-0 shadow-2xs">
+                             class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 hover:border-purple-300 dark:hover:border-purple-500 rounded-xl p-3 sm:p-4 flex flex-col justify-between gap-2.5 sm:gap-3 transition shadow-xs">
+                            <div class="space-y-1.5 sm:space-y-2">
+                                <div class="flex items-start justify-between gap-2 min-h-[36px] sm:min-h-[40px]">
+                                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl {{ $itemData['badgeClass'] }} flex items-center justify-center text-sm sm:text-base shrink-0 shadow-2xs">
                                         <i class="{{ $itemData['icon'] }}"></i>
                                     </div>
                                     <div class="h-6 flex items-center">
                                         <template x-if="ownedCounts[{{ $item->id }}] > 0">
-                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[10px] font-black shrink-0 transition"
-                                                  x-text="'{{ $item->category === 'equipment' ? '1x in bezit (Uniek)' : '' }}' || (ownedCounts[{{ $item->id }}] + 'x in bezit')">
-                                                {{ $item->category === 'equipment' ? '1x in bezit (Uniek)' : $ownedCount.'x in bezit' }}
+                                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 text-[9px] sm:text-[10px] font-black shrink-0 transition"
+                                                  x-text="'{{ $item->category === 'equipment' ? '1x (Uniek)' : '' }}' || (ownedCounts[{{ $item->id }}] + 'x')">
+                                                {{ $item->category === 'equipment' ? '1x (Uniek)' : $ownedCount.'x' }}
                                             </span>
                                         </template>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h4 class="text-xs font-extrabold text-slate-900 dark:text-white">{{ $item->name }}</h4>
-                                    <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">{{ $item->description ?: 'Heerlijke snack uit de kliniekkantine.' }}</p>
+                                    <h4 class="text-xs font-black text-slate-900 dark:text-white line-clamp-1 sm:line-clamp-none">{{ $item->name }}</h4>
+                                    <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 sm:line-clamp-2 mt-0.5">{{ $item->description ?: 'Heerlijke snack uit de kliniekkantine.' }}</p>
                                 </div>
 
                                 <!-- Effect Pills -->
@@ -967,11 +1021,11 @@
                                     </div>
                                 </template>
                                 <template x-if="!isEquipment && !isRestrictedStat">
-                                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
-                                        <button type="button" @click="setQty(1)" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">1x</button>
-                                        <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">5x</button>
-                                        <button type="button" @click="setQty(10)" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer">10x</button>
-                                        <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[11px] transition cursor-pointer" :title="'Max berekend op je saldo (' + maxBuyable + 'x)'">
+                                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 sm:p-1 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
+                                        <button type="button" @click="setQty(1)" :class="buyQty === 1 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">1x</button>
+                                        <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">5x</button>
+                                        <button type="button" @click="setQty(10)" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">10x</button>
+                                        <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer" :title="'Max berekend op je saldo (' + maxBuyable + 'x)'">
                                             <span x-text="maxBuyable > 0 ? 'Max (' + maxBuyable + ')' : 'Max'">Max</span>
                                         </button>
                                     </div>
@@ -1260,18 +1314,18 @@
                             </button>
                         </div>
                     @else
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4">
                             @foreach($inventory->where('quantity', '>', 0) as $inv)
                             @php
                                 $invItemData = $getItemData($inv->item);
                             @endphp
-                            <div class="bg-gradient-to-b from-white to-slate-50 dark:from-slate-800/80 dark:to-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/70 rounded-xl p-4 flex flex-col justify-between gap-3 shadow-xs transition group">
-                                <div class="space-y-2.5">
+                            <div class="bg-gradient-to-b from-white to-slate-50 dark:from-slate-800/80 dark:to-slate-900/90 border border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600/70 rounded-xl p-3 sm:p-4 flex flex-col justify-between gap-2.5 sm:gap-3 shadow-xs transition group">
+                                <div class="space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <div class="w-12 h-12 rounded-xl {{ $invItemData['badgeClass'] }} flex items-center justify-center text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl {{ $invItemData['badgeClass'] }} flex items-center justify-center text-lg sm:text-xl shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                                             <i class="{{ $invItemData['icon'] }}"></i>
                                         </div>
-                                        <span class="px-2.5 py-1 rounded-full bg-purple-600 text-white font-black text-xs font-mono shadow-xs">
+                                        <span class="px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-purple-600 text-white font-black text-[11px] sm:text-xs font-mono shadow-xs">
                                             {{ $inv->quantity }}x
                                         </span>
                                     </div>

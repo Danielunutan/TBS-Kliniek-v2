@@ -32,33 +32,33 @@
 }">
 
     <!-- Compact Title & Progress Card -->
-    <div class="rounded-xl bg-white p-4 sm:p-5 text-slate-800 shadow-2xs border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="rounded-xl bg-white dark:bg-slate-900 p-4 sm:p-5 text-slate-800 dark:text-slate-100 shadow-2xs border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-lg text-purple-600 shadow-2xs shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/70 border border-purple-100 dark:border-purple-800 flex items-center justify-center text-lg text-purple-600 dark:text-purple-400 shadow-2xs shrink-0">
                 <i class="fa-solid fa-list-check"></i>
             </div>
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-tight">
+                    <h1 class="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-tight">
                         Kliniek Missies & Dossiers
                     </h1>
-                    <span class="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200">
+                    <span class="text-[10px] font-bold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">
                         {{ $totalCount }} Missies
                     </span>
                 </div>
-                <p class="text-slate-500 text-xs mt-0.5 leading-snug">
-                    Elke missie is eenmalig. Beloningen zijn wit bankgeld , XP en dagelijks Respect!
+                <p class="text-slate-500 dark:text-slate-400 text-xs mt-0.5 leading-snug">
+                    Elke missie is eenmalig. Beloningen zijn wit bankgeld, XP en dagelijks Respect!
                 </p>
             </div>
         </div>
 
         <!-- Progress Widget -->
-        <div class="bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-xl shrink-0 min-w-[210px]">
-            <div class="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
+        <div class="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl shrink-0 min-w-[210px]">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 <span>Voortgang</span>
-                <span class="text-purple-700 font-extrabold">{{ $completedCount }} / {{ $totalCount }} ({{ $progressPct }}%)</span>
+                <span class="text-purple-700 dark:text-purple-400 font-extrabold">{{ $completedCount }} / {{ $totalCount }} ({{ $progressPct }}%)</span>
             </div>
-            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                 <div class="bg-gradient-to-r from-purple-600 to-emerald-500 h-full rounded-full transition-all duration-300" style="width: {{ $progressPct }}%"></div>
             </div>
         </div>
@@ -100,35 +100,35 @@
         </div>
 
         <!-- Level Range Pill Filters -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] font-semibold border-t border-slate-100 pt-2 scrollbar-none">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] font-semibold border-t border-slate-100 dark:border-slate-800 pt-2 scrollbar-none">
             <span class="text-slate-400 mr-1 uppercase text-[9px] font-black shrink-0">Niveau:</span>
             <button @click="levelFilter = 'all'"
-                :class="levelFilter === 'all' ? 'bg-slate-900 text-white font-bold' : 'text-slate-600 hover:bg-slate-100 border border-slate-200'"
+                :class="levelFilter === 'all' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0">
                 Alles
             </button>
             <button @click="levelFilter = 'starter'"
-                :class="levelFilter === 'starter' ? 'bg-slate-900 text-white font-bold' : 'text-slate-600 hover:bg-slate-100 border border-slate-200'"
+                :class="levelFilter === 'starter' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0">
                 Lvl 1 - 5 (Starter)
             </button>
             <button @click="levelFilter = 'mid'"
-                :class="levelFilter === 'mid' ? 'bg-slate-900 text-white font-bold' : 'text-slate-600 hover:bg-slate-100 border border-slate-200'"
+                :class="levelFilter === 'mid' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0">
                 Lvl 6 - 15 (Gevorderd)
             </button>
             <button @click="levelFilter = 'advanced'"
-                :class="levelFilter === 'advanced' ? 'bg-slate-900 text-white font-bold' : 'text-slate-600 hover:bg-slate-100 border border-slate-200'"
+                :class="levelFilter === 'advanced' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0">
                 Lvl 16 - 25 (Expert)
             </button>
             <button @click="levelFilter = 'elite'"
-                :class="levelFilter === 'elite' ? 'bg-slate-900 text-white font-bold' : 'text-slate-600 hover:bg-slate-100 border border-slate-200'"
+                :class="levelFilter === 'elite' ? 'bg-slate-900 dark:bg-purple-600 text-white font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0">
                 Lvl 26 - 35 (Elite)
             </button>
             <button @click="levelFilter = 'legendary'"
-                :class="levelFilter === 'legendary' ? 'bg-amber-500 text-slate-950 font-black shadow-xs' : 'text-amber-800 dark:text-amber-300 hover:bg-amber-50 border border-amber-300 dark:border-amber-700'"
+                :class="levelFilter === 'legendary' ? 'bg-amber-500 text-slate-950 font-black shadow-xs' : 'text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 border border-amber-300 dark:border-amber-700'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0 flex items-center gap-1">
                 <i class="fa-solid fa-crown text-[10px] text-amber-500"></i> Lvl 36+ (Legendes)
             </button>
@@ -154,14 +154,14 @@
                     isUnlocked: {{ $isUnlocked ? 'true' : 'false' }},
                     isCompleted: {{ $isCompleted ? 'true' : 'false' }}
                 })"
-                class="bg-white rounded-xl shadow-2xs border p-3.5 sm:p-4 flex flex-col justify-between transition hover:shadow-xs {{ $isCompleted ? 'border-emerald-300 bg-emerald-50/20' : (!$isUnlocked ? 'border-slate-200 bg-slate-50/70 opacity-70' : 'border-slate-200 hover:border-purple-300') }}">
+                class="rounded-xl shadow-2xs border p-3.5 sm:p-4 flex flex-col justify-between transition hover:shadow-xs {{ $isCompleted ? 'border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/20' : (!$isUnlocked ? 'border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 opacity-70' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-600') }}">
                 
                 <!-- Card Header -->
                 <div class="space-y-2">
                     <div class="flex items-start justify-between gap-2.5">
                         <div class="flex items-start gap-2.5 min-w-0">
                             <!-- Category Icon -->
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs shadow-2xs {{ $isCompleted ? 'bg-emerald-100 text-emerald-700' : ($isUnlocked ? 'bg-purple-100 text-purple-700' : 'bg-slate-200 text-slate-400') }}">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs shadow-2xs {{ $isCompleted ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' : ($isUnlocked ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300' : 'bg-slate-200 dark:bg-slate-800 text-slate-400') }}">
                                 @if($isCompleted)
                                     <i class="fa-solid fa-check"></i>
                                 @elseif($isUnlocked)
@@ -172,10 +172,10 @@
                             </div>
 
                             <div class="min-w-0">
-                                <h3 class="font-black text-slate-900 text-xs sm:text-sm leading-snug truncate {{ $isCompleted ? 'text-emerald-950' : '' }}">
+                                <h3 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm leading-snug truncate {{ $isCompleted ? 'text-emerald-950 dark:text-emerald-300' : '' }}">
                                     {{ $m->title }}
                                 </h3>
-                                <div class="flex items-center gap-1.5 text-[10px] text-slate-400 truncate">
+                                <div class="flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-slate-500 truncate">
                                     <span class="truncate"><i class="fa-solid fa-user text-[9px] mr-0.5"></i>{{ $m->giver_name }}</span>
                                     <span>&bull;</span>
                                     <span class="truncate"><i class="fa-solid fa-location-dot text-[9px] mr-0.5"></i>{{ $m->location_name }}</span>
@@ -202,23 +202,23 @@
                     </div>
 
                     <!-- Compact Description -->
-                    <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                    <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
                         {{ $m->description }}
                     </p>
 
                     <!-- Interactive Scenario (if defined and NOT yet completed) -->
                     @if($scenario && $isUnlocked && !$isCompleted)
-                    <div class="bg-purple-50/70 border border-purple-200/90 rounded-lg p-2.5 text-xs space-y-2">
+                    <div class="bg-purple-50/70 dark:bg-purple-950/40 border border-purple-200/90 dark:border-purple-800/60 rounded-lg p-2.5 text-xs space-y-2">
                         <div class="flex items-start gap-2.5">
                             <img src="{{ asset($scenario['npc_avatar']) }}" alt="{{ $scenario['npc_name'] }}" class="w-7 h-7 rounded-md object-cover border border-purple-200 bg-white shrink-0 mt-0.5 shadow-2xs">
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-1.5 flex-wrap">
-                                    <span class="font-black text-[11px] text-purple-950 leading-tight">{{ $scenario['npc_name'] }}</span>
+                                    <span class="font-black text-[11px] text-purple-950 dark:text-purple-200 leading-tight">{{ $scenario['npc_name'] }}</span>
                                     @if(!empty($scenario['npc_role']))
-                                    <span class="text-[9px] text-purple-600 font-semibold">({{ $scenario['npc_role'] }})</span>
+                                    <span class="text-[9px] text-purple-600 dark:text-purple-400 font-semibold">({{ $scenario['npc_role'] }})</span>
                                     @endif
                                 </div>
-                                <p class="text-[11px] text-purple-900 mt-1 leading-relaxed font-medium">
+                                <p class="text-[11px] text-purple-900 dark:text-purple-300 mt-1 leading-relaxed font-medium">
                                     "{{ $scenario['dilemma'] }}"
                                 </p>
                             </div>
@@ -271,16 +271,16 @@
                 </div>
 
                 <!-- Footer Action Area -->
-                <div class="pt-3 mt-3 border-t border-slate-100">
+                <div class="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
                     @if($isCompleted)
                         <!-- Completed Pill (Cannot execute again!) -->
-                        <div class="w-full py-1.5 px-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold text-center flex items-center justify-center gap-1.5 select-none">
-                            <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        <div class="w-full py-1.5 px-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold text-center flex items-center justify-center gap-1.5 select-none">
+                            <i class="fa-solid fa-circle-check text-emerald-600 dark:text-emerald-400"></i>
                             <span>Missie Voltooid (Eenmalig afgerond)</span>
                         </div>
                     @elseif(!$isUnlocked)
                         <!-- Locked Pill -->
-                        <div class="w-full py-1.5 px-3 rounded-lg bg-slate-100 text-slate-400 text-xs font-bold text-center flex items-center justify-center gap-1.5 select-none">
+                        <div class="w-full py-1.5 px-3 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700/50 text-xs font-bold text-center flex items-center justify-center gap-1.5 select-none">
                             <i class="fa-solid fa-lock text-[10px]"></i>
                             <span>Ontgrendelt op Level {{ $m->required_level }}</span>
                         </div>

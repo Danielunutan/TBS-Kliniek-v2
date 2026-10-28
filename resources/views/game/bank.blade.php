@@ -37,6 +37,7 @@
                         class="px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
                     <i class="fa-solid fa-vault text-xs"></i>
                     <span>Kluis & Beheer</span>
+                    <span class="sr-only">Financieel overzicht Management</span>
                 </button>
                 <button type="button" @click="activeTab = 'loans'" 
                         :class="activeTab === 'loans' ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
@@ -52,82 +53,83 @@
                         class="px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-2 whitespace-nowrap">
                     <i class="fa-solid fa-receipt text-xs"></i>
                     <span>Mutaties</span>
+                    <span class="sr-only">Transacties</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 4 High-End Financial Vitals Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- 4 High-End Financial Vitals Cards (2-Col Mobile Native App Grid) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <!-- Cash Card -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-amber-200/90 dark:border-amber-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-amber-200/90 dark:border-amber-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
             <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider">Contant op Zak</span>
-                    <span class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/70 text-amber-500 flex items-center justify-center text-sm">
+                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span class="text-[9px] sm:text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider truncate">Op Zak</span>
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-50 dark:bg-amber-950/70 text-amber-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
                         <i class="fa-solid fa-wallet"></i>
                     </span>
                 </div>
-                <p class="text-2xl font-black text-slate-900 dark:text-white font-mono">
+                <p class="text-base sm:text-2xl font-black text-slate-900 dark:text-white font-mono truncate">
                     €{{ number_format($character->cash, 0, ',', '.') }}
                 </p>
             </div>
-            <p class="text-[11px] text-amber-700 dark:text-amber-400 font-bold mt-3 flex items-center gap-1.5 pt-2 border-t border-amber-100 dark:border-amber-900/40">
-                <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Kwetsbaar voor zakkenrollers
+            <p class="text-[10px] sm:text-[11px] text-amber-700 dark:text-amber-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-amber-100 dark:border-amber-900/40 truncate">
+                <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> <span class="truncate">Kwetsbaar</span>
             </p>
         </div>
 
         <!-- Bank Card -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-emerald-200/90 dark:border-emerald-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-emerald-200/90 dark:border-emerald-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
             <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Veilig Banktegoed</span>
-                    <span class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-500 flex items-center justify-center text-sm">
+                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span class="text-[9px] sm:text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider truncate">Kluis</span>
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
                         <i class="fa-solid fa-vault"></i>
                     </span>
                 </div>
-                <p class="text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
+                <p class="text-base sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono truncate">
                     €{{ number_format($character->bank, 0, ',', '.') }}
                 </p>
             </div>
-            <p class="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold mt-3 flex items-center gap-1.5 pt-2 border-t border-emerald-100 dark:border-emerald-900/40">
-                <i class="fa-solid fa-shield-halved text-[10px]"></i> 100% beveiligd tegen beroving
+            <p class="text-[10px] sm:text-[11px] text-emerald-700 dark:text-emerald-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-emerald-100 dark:border-emerald-900/40 truncate">
+                <i class="fa-solid fa-shield-halved text-[9px]"></i> <span class="truncate">100% Beveiligd</span>
             </p>
         </div>
 
         <!-- Open Debt Card -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-rose-200/90 dark:border-rose-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-rose-200/90 dark:border-rose-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
             <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-wider">Openstaande Schuld</span>
-                    <span class="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/70 text-rose-500 flex items-center justify-center text-sm">
+                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span class="text-[9px] sm:text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-wider truncate">Schuld</span>
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-rose-50 dark:bg-rose-950/70 text-rose-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                     </span>
                 </div>
-                <p class="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
+                <p class="text-base sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono truncate">
                     €{{ number_format($openstaandeSchuld ?? 0, 0, ',', '.') }}
                 </p>
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-3 flex items-center gap-1.5 pt-2 border-t border-rose-100 dark:border-rose-900/40">
-                <i class="fa-solid fa-clock-rotate-left text-[10px]"></i> {{ isset($activeLoans) ? $activeLoans->count() : 0 }} lopende lening(en)
+            <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-rose-100 dark:border-rose-900/40 truncate">
+                <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> <span class="truncate">{{ isset($activeLoans) ? $activeLoans->count() : 0 }} lening(en)</span>
             </p>
         </div>
 
         <!-- Available Borrow Capacity -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-purple-200/90 dark:border-purple-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-5 rounded-2xl border border-purple-200/90 dark:border-purple-800/60 shadow-xs relative overflow-hidden flex flex-col justify-between">
             <div>
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-wider">Beschikbaar Krediet</span>
-                    <span class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/70 text-purple-500 flex items-center justify-center text-sm">
+                <div class="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span class="text-[9px] sm:text-[10px] font-black text-purple-700 dark:text-purple-400 uppercase tracking-wider truncate">Krediet</span>
+                    <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-purple-50 dark:bg-purple-950/70 text-purple-500 flex items-center justify-center text-xs sm:text-sm shrink-0">
                         <i class="fa-solid fa-chart-line"></i>
                     </span>
                 </div>
-                <p class="text-2xl font-black text-purple-700 dark:text-purple-300 font-mono">
+                <p class="text-base sm:text-2xl font-black text-purple-700 dark:text-purple-300 font-mono truncate">
                     €{{ number_format($beschikbareLening ?? 0, 0, ',', '.') }}
                 </p>
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-3 flex items-center gap-1.5 pt-2 border-t border-purple-100 dark:border-purple-900/40">
-                <i class="fa-solid fa-arrow-up-right-dots text-[10px]"></i> Max €{{ number_format($maxCapacity ?? 0, 0, ',', '.') }} bij Lvl {{ $character->level }}
+            <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 pt-1.5 sm:pt-2 border-t border-purple-100 dark:border-purple-900/40 truncate">
+                <i class="fa-solid fa-arrow-up-right-dots text-[9px]"></i> <span class="truncate">Max €{{ number_format($maxCapacity ?? 0, 0, ',', '.') }}</span>
             </p>
         </div>
     </div>
@@ -376,6 +378,7 @@
                         <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wide">
                             Nieuwe Lening Aanvragen
                         </h3>
+                        <span class="sr-only">Nieuwe lening aanvragen</span>
                         <span class="text-[10px] text-slate-400 font-bold">Directe Kredietverlening</span>
                     </div>
                 </div>
