@@ -19,7 +19,8 @@
         if (this.levelFilter === 'starter' && m.level > 5) return false;
         if (this.levelFilter === 'mid' && (m.level < 6 || m.level > 15)) return false;
         if (this.levelFilter === 'advanced' && (m.level < 16 || m.level > 25)) return false;
-        if (this.levelFilter === 'elite' && m.level < 26) return false;
+        if (this.levelFilter === 'elite' && (m.level < 26 || m.level > 35)) return false;
+        if (this.levelFilter === 'legendary' && m.level < 36) return false;
 
         if (this.search.trim() !== '') {
             const q = this.search.toLowerCase();
@@ -124,7 +125,12 @@
             <button @click="levelFilter = 'elite'"
                 :class="levelFilter === 'elite' ? 'bg-slate-900 text-white font-bold' : 'text-slate-600 hover:bg-slate-100 border border-slate-200'"
                 class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0">
-                Lvl 26+ (Mastermind)
+                Lvl 26 - 35 (Elite)
+            </button>
+            <button @click="levelFilter = 'legendary'"
+                :class="levelFilter === 'legendary' ? 'bg-amber-500 text-slate-950 font-black shadow-xs' : 'text-amber-800 dark:text-amber-300 hover:bg-amber-50 border border-amber-300 dark:border-amber-700'"
+                class="px-2.5 py-1 rounded-md transition cursor-pointer shrink-0 flex items-center gap-1">
+                <i class="fa-solid fa-crown text-[10px] text-amber-500"></i> Lvl 36+ (Legendes)
             </button>
         </div>
     </div>
@@ -136,7 +142,7 @@
                 $isUnlocked = $character->level >= $m->required_level;
                 $completedTimes = $characterProgress[$m->id] ?? 0;
                 $isCompleted = $completedTimes > 0;
-                $scenario = $scenarios[$m->id] ?? null;
+                $scenario = $scenarios[$m->slug] ?? ($scenarios[$m->id] ?? null);
             @endphp
 
             <div x-show="matches({

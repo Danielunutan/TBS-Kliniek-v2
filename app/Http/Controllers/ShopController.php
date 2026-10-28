@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -392,13 +393,13 @@ class ShopController extends Controller
     /**
      * Consume an item from inventory.
      */
-    public function consume(Request $request, CharacterItem $characterItem): RedirectResponse
+    public function consume(Request $request, CharacterItem $characterItem): RedirectResponse|JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
 
-        return DB::transaction(function () use ($request, $characterItem, $character): RedirectResponse {
+        return DB::transaction(function () use ($request, $characterItem, $character): RedirectResponse|JsonResponse {
             /** @var CharacterItem|null $lockedItem */
             $lockedItem = CharacterItem::where('id', $characterItem->id)
                 ->where('character_id', $character->id)
@@ -406,6 +407,10 @@ class ShopController extends Controller
                 ->first();
 
             if (! $lockedItem || $lockedItem->quantity < 1) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Voorwerp niet beschikbaar in je inventaris.'], 422);
+                }
+
                 return back()->with('shop_tab', 'inventaris')->with('error', 'Voorwerp niet beschikbaar in je inventaris.');
             }
 
@@ -418,15 +423,23 @@ class ShopController extends Controller
 
             $item = $lockedItem->item;
             if (! $item) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Item niet gevonden.'], 422);
+                }
+
                 return back()->with('shop_tab', 'inventaris')->with('error', 'Item niet gevonden.');
             }
 
             if ($item->category === 'equipment') {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!"], 422);
+                }
+
                 return back()->with('shop_tab', 'inventaris')->with('info', "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!");
             }
 
             // Voorkom verspilling van herstel-items als zowel energie als gezondheid al 100% vol zijn
-            $isPureRecovery = ! in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus', 'bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje'], true);
+            $isPureRecovery = ! in_array($item->slug, ['eiwitshake-bodybuilder', 'multivitaminen-focus', 'bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje', 'haloperidol-forte'], true);
             if ($isPureRecovery) {
                 $hasEnergyBenefit = ($item->energy_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'sigaretten', 'ritalin', 'telefoon'], true))
                     && $lockedCharacter->energy < $lockedCharacter->max_energy;
@@ -435,9 +448,14 @@ class ShopController extends Controller
                 $isRecoveryItem = ($item->energy_restore > 0 || $item->health_restore > 0 || in_array($item->slug, ['adrenaline-injectie', 'ehbo-noodverbanddoos', 'sigaretten', 'ritalin', 'telefoon'], true));
 
                 if ($isRecoveryItem && ! $hasEnergyBenefit && ! $hasHealthBenefit) {
+                    $alreadyFullMsg = "Zowel je Energie ({$lockedCharacter->energy}/{$lockedCharacter->max_energy}) als Gezondheid ({$lockedCharacter->health}/{$lockedCharacter->max_health}) zijn al maximaal! Bewaar {$item->name} voor wanneer je het nodig hebt.";
+                    if ($request->wantsJson() || $request->ajax()) {
+                        return response()->json(['success' => false, 'message' => $alreadyFullMsg], 422);
+                    }
+
                     return back()
                         ->with('shop_tab', 'inventaris')
-                        ->with('info', "Zowel je Energie ({$lockedCharacter->energy}/{$lockedCharacter->max_energy}) als Gezondheid ({$lockedCharacter->health}/{$lockedCharacter->max_health}) zijn al maximaal! Bewaar {$item->name} voor wanneer je het nodig hebt.");
+                        ->with('info', $alreadyFullMsg);
                 }
             }
 
@@ -654,6 +672,20 @@ class ShopController extends Controller
                 }
             }
 
+            Cache::forget("char_realtime_stats_{$lockedCharacter->id}");
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'energy' => $lockedCharacter->energy,
+                    'max_energy' => $lockedCharacter->max_energy,
+                    'health' => $lockedCharacter->health,
+                    'max_health' => $lockedCharacter->max_health,
+                    'remaining_quantity' => $lockedItem->quantity > 0 ? $lockedItem->quantity : 0,
+                ]);
+            }
+
             return back()
                 ->with('shop_tab', 'inventaris')
                 ->with('success', $msg);
@@ -670,15 +702,18 @@ class ShopController extends Controller
         $character = $user->character;
 
         $validated = $request->validate([
-            'item_type' => ['required', 'string', 'in:full_restore,prison_escape,mask_1,mask_5,ammo_pack,vault_code,protection_24h,xxl_cases_3,package_master,package_150,vip_week'],
+            'item_type' => ['required', 'string', 'in:full_restore,prison_escape,coma_revive,mask_1,mask_5,ammo_pack,bullets_50,bulletproof_vest,vault_code,protection_24h,xxl_cases_3,package_master,package_150,vip_week'],
         ]);
 
         $configs = [
             'full_restore' => ['cost' => 5, 'name' => 'Adrenaline & Gezondheid 100% Herstel ⚡'],
             'prison_escape' => ['cost' => 10, 'name' => 'Directe Cel Uitbraak (Borgtocht) 🔓'],
+            'coma_revive' => ['cost' => 15, 'name' => 'Direct Ontwaken uit Coma (ICU) 💉'],
             'mask_1' => ['cost' => 5, 'name' => '1x Masker 🎭'],
             'mask_5' => ['cost' => 15, 'name' => '5x Maskers 🎭'],
             'ammo_pack' => ['cost' => 20, 'name' => 'Hitman Kogelmagazijn (250 Kogels + Vest) 🎯'],
+            'bullets_50' => ['cost' => 50, 'name' => 'Munitievoorraad (+50 Kogels) 🎯'],
+            'bulletproof_vest' => ['cost' => 150, 'name' => 'Kogelwerend Vest (12 Uur Bescherming) 🛡️'],
             'vault_code' => ['cost' => 25, 'name' => 'Geheime Master Kluiscode Voucher 🔐'],
             'protection_24h' => ['cost' => 30, 'name' => '24-Uurs Onschendbaarheid (Kluisbeveiliging) 🛡️'],
             'xxl_cases_3' => ['cost' => 35, 'name' => '3x Zware XXL Buitkoffers 💼'],
@@ -710,6 +745,22 @@ class ShopController extends Controller
                 return back()
                     ->with('shop_tab', 'sterren')
                     ->with('success', "🔓 VRIJHEID! Je hebt de tralies omzeild en bent direct vrijgelaten uit de cel voor {$cfg['cost']} Sterren ⭐!");
+            }
+
+            if ($validated['item_type'] === 'coma_revive') {
+                if (! $lockedCharacter->isComatose()) {
+                    return back()->with('shop_tab', 'sterren')->with('error', 'Je ligt momenteel niet in de Intensive Care Coma!');
+                }
+                $lockedCharacter->stars -= $cfg['cost'];
+                $lockedCharacter->coma_until = null;
+                $lockedCharacter->protection_until = now()->addMinutes(30);
+                $lockedCharacter->ad_coma_progress = 0;
+                $lockedCharacter->health = max(50, (int) $lockedCharacter->health);
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "💉 MEDISCH WONDER! Je bent direct ontwaakt uit Intensive Care Coma voor {$cfg['cost']} Sterren ⭐, hersteld naar 50% HP en voorzien van 30 minuten herstelbescherming!");
             }
 
             $lockedCharacter->stars -= $cfg['cost'];
@@ -751,6 +802,25 @@ class ShopController extends Controller
                 return back()
                     ->with('shop_tab', 'sterren')
                     ->with('success', "🎯 Gekocht! +250 Kogels en een Kogelvrij Vest (24 uur actief) toegevoegd voor {$cfg['cost']} Sterren ⭐!");
+            }
+
+            if ($validated['item_type'] === 'bullets_50') {
+                $lockedCharacter->bullets = ($lockedCharacter->bullets ?? 0) + 50;
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "🎯 Gekocht! +50 Kogels toegevoegd aan je munitievoorraad voor {$cfg['cost']} Sterren ⭐!");
+            }
+
+            if ($validated['item_type'] === 'bulletproof_vest') {
+                $currentVest = $lockedCharacter->vest_until && now()->lt($lockedCharacter->vest_until) ? $lockedCharacter->vest_until : now();
+                $lockedCharacter->vest_until = $currentVest->copy()->addHours(12);
+                $lockedCharacter->save();
+
+                return back()
+                    ->with('shop_tab', 'sterren')
+                    ->with('success', "🛡️ Gekocht! Kogelwerend Vest (12 uur actief) geactiveerd voor {$cfg['cost']} Sterren ⭐!");
             }
 
             if ($validated['item_type'] === 'vault_code') {
