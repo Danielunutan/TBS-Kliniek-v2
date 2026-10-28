@@ -127,30 +127,53 @@
             display: none !important;
         }
 
-        /* VIP Sparkle & Shimmer Animation */
-        @keyframes vipNameSparkle {
-            0%, 100% {
-                text-shadow: 0 0 4px rgba(255, 215, 0, 0.7), 0 0 10px rgba(236, 72, 153, 0.6);
-                filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
-            }
-            50% {
-                text-shadow: 0 0 8px rgba(168, 85, 247, 0.9), 0 0 16px rgba(236, 72, 153, 0.8), 0 0 22px rgba(59, 130, 246, 0.7);
-                filter: drop-shadow(0 0 4px #ffd700);
-            }
-        }
+        /* ==========================================================================
+           TBS V.I.P. & PROFIEL NAAM STYLING (KLEUROVERLOOP, GLOW & SPARKLE SHIMMER)
+           Geen text-shadow op background-clip: text om blokkerige boxen te voorkomen!
+           ========================================================================== */
         @keyframes vipGradientShimmer {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+        @keyframes tbsNameGlowPulse {
+            0%, 100% {
+                filter: drop-shadow(0 0 3px var(--tbs-glow-color, rgba(168, 85, 247, 0.45)));
+            }
+            50% {
+                filter: drop-shadow(0 0 7px var(--tbs-glow-color, rgba(168, 85, 247, 0.85))) drop-shadow(0 0 12px var(--tbs-glow-color, rgba(236, 72, 153, 0.45)));
+            }
+        }
+        .tbs-name-gradient,
         .vip-sparkle-name {
-            background: linear-gradient(90deg, #ff66b2, #a855f7, #38bdf8, #f59e0b, #ff66b2);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: vipNameSparkle 2.5s infinite ease-in-out, vipGradientShimmer 4s linear infinite;
+            background-image: var(--tbs-name-gradient, linear-gradient(90deg, #c084fc, #f472b6, #fbbf24, #38bdf8, #c084fc));
+            background-size: 260% auto;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            color: transparent !important;
+            text-shadow: none !important;
             display: inline-block;
             font-weight: 900 !important;
+            padding: 0 2px;
+            margin: 0 -2px;
+        }
+        .tbs-name-shimmer,
+        .vip-sparkle-name {
+            animation: vipGradientShimmer 3.2s linear infinite;
+        }
+        .tbs-name-glow-subtle {
+            filter: drop-shadow(0 0 4px var(--tbs-glow-color, rgba(168, 85, 247, 0.5)));
+        }
+        .tbs-name-glow-neon {
+            filter: drop-shadow(0 0 5px var(--tbs-glow-color, rgba(168, 85, 247, 0.8))) drop-shadow(0 0 11px var(--tbs-glow-color, rgba(168, 85, 247, 0.45)));
+        }
+        .tbs-name-glow-pulse {
+            animation: tbsNameGlowPulse 2.4s ease-in-out infinite;
+        }
+        .tbs-name-shimmer.tbs-name-glow-pulse,
+        .vip-sparkle-name.tbs-name-glow-pulse {
+            animation: vipGradientShimmer 3.2s linear infinite, tbsNameGlowPulse 2.4s ease-in-out infinite;
         }
 
         /* TBS Floating In-App Toast Design System */
@@ -1638,9 +1661,9 @@
                         </div>
                         <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-[#110726]"></span>
                     </div>
-                    <div class="flex flex-col min-w-0 max-w-[50px] xs:max-w-[70px]">
-                        <span class="text-[11px] font-black truncate leading-none {{ $character->isSparkleActive() ? 'vip-sparkle-name' : 'text-slate-900 dark:text-white' }}" style="{{ $character->getCustomNameColor() && ! $character->isSparkleActive() ? 'color: ' . $character->getCustomNameColor() . ' !important;' : '' }}">{{ $character->name }}</span>
-                        <span class="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 leading-none mt-0.5">LVL {{ $character->level }}</span>
+                    <div class="flex flex-col min-w-0 max-w-[54px] xs:max-w-[74px]">
+                        <span class="text-[11px] font-black truncate leading-tight py-0.5 {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</span>
+                        <span class="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 leading-none">LVL {{ $character->level }}</span>
                     </div>
                 </a>
             </div>
@@ -1755,10 +1778,13 @@
                         </div>
                     </a>
                     <div class="flex flex-col gap-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('profile.me') }}" class="font-black text-sm hover:text-indigo-600 dark:hover:text-purple-400 transition leading-tight py-0.5 truncate max-w-[140px] {{ $character->isSparkleActive() ? 'vip-sparkle-name' : 'text-slate-900 dark:text-white' }}" style="{{ $character->getCustomNameColor() && ! $character->isSparkleActive() ? 'color: ' . $character->getCustomNameColor() . ' !important;' : '' }}">
+                        <div class="flex items-center gap-1.5">
+                            <a href="{{ route('profile.me') }}" class="font-black text-sm hover:opacity-90 transition leading-tight py-0.5 px-1 -mx-1 truncate max-w-[145px] {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">
                                 {{ $character->name }}
                             </a>
+                            @if($character->isSparkleActive())
+                                <i class="fa-solid fa-sparkles text-[10px] text-amber-400 animate-pulse shrink-0" title="VIP Glitter Shimmer"></i>
+                            @endif
                             <span class="bg-slate-100 dark:bg-purple-950/60 text-slate-700 dark:text-purple-300 border border-slate-200/80 dark:border-purple-800/40 font-black text-[9px] px-2 py-0.5 rounded uppercase tracking-wider shadow-2xs shrink-0">
                                 LVL {{ $character->level }}
                             </span>

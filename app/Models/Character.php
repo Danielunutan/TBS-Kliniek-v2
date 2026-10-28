@@ -901,19 +901,133 @@ class Character extends Model
     }
 
     /**
-     * Can the character customize their name color (Tier 2+ or explicit perk).
+     * Catalog of solid name colors available for VIP Tier 2+ / Staff.
+     *
+     * @return array<string, array{hex: string, name: string, class: string, glow: string}>
      */
-    public function canCustomizeNameColor(): bool
+    public static function nameColorCatalog(): array
     {
-        return $this->isVip() && ($this->getSupporterTier() >= 2 || ! empty($this->perks['has_custom_name_color']));
+        return [
+            '#f59e0b' => ['hex' => '#f59e0b', 'name' => 'Goudgeel', 'class' => 'bg-amber-500', 'glow' => 'rgba(245, 158, 11, 0.55)'],
+            '#a855f7' => ['hex' => '#a855f7', 'name' => 'TBS Neon Paars', 'class' => 'bg-purple-500', 'glow' => 'rgba(168, 85, 247, 0.55)'],
+            '#10b981' => ['hex' => '#10b981', 'name' => 'Smaragd Groen', 'class' => 'bg-emerald-500', 'glow' => 'rgba(16, 185, 129, 0.55)'],
+            '#ef4444' => ['hex' => '#ef4444', 'name' => 'Bloedrood', 'class' => 'bg-rose-500', 'glow' => 'rgba(239, 68, 68, 0.55)'],
+            '#06b6d4' => ['hex' => '#06b6d4', 'name' => 'Cyber Cyaan', 'class' => 'bg-cyan-500', 'glow' => 'rgba(6, 182, 212, 0.55)'],
+            '#ec4899' => ['hex' => '#ec4899', 'name' => 'Neon Roze', 'class' => 'bg-pink-500', 'glow' => 'rgba(236, 72, 153, 0.55)'],
+            '#3b82f6' => ['hex' => '#3b82f6', 'name' => 'Elektrisch Blauw', 'class' => 'bg-blue-500', 'glow' => 'rgba(59, 130, 246, 0.55)'],
+            '#e2e8f0' => ['hex' => '#e2e8f0', 'name' => 'Platina Wit', 'class' => 'bg-slate-200', 'glow' => 'rgba(226, 232, 240, 0.55)'],
+            '#84cc16' => ['hex' => '#84cc16', 'name' => 'Gifgroen', 'class' => 'bg-lime-500', 'glow' => 'rgba(132, 204, 22, 0.55)'],
+            '#f97316' => ['hex' => '#f97316', 'name' => 'Vuur Oranje', 'class' => 'bg-orange-500', 'glow' => 'rgba(249, 115, 22, 0.55)'],
+            '#d946ef' => ['hex' => '#d946ef', 'name' => 'Fuchsia Magie', 'class' => 'bg-fuchsia-500', 'glow' => 'rgba(217, 70, 239, 0.55)'],
+            '#14b8a6' => ['hex' => '#14b8a6', 'name' => 'Turkoois', 'class' => 'bg-teal-500', 'glow' => 'rgba(20, 184, 166, 0.55)'],
+        ];
     }
 
     /**
-     * Can the character toggle glitter sparkle effect (Tier 3+ or explicit perk).
+     * Catalog of multi-stop name gradients (Kleuroverlopen).
+     *
+     * @return array<string, array{id: string, name: string, css: string, glow: string, badge: string}>
+     */
+    public static function nameGradientCatalog(): array
+    {
+        return [
+            'none' => [
+                'id' => 'none',
+                'name' => 'Geen Overloop (Effen Kleur)',
+                'css' => '',
+                'glow' => 'rgba(168, 85, 247, 0.45)',
+                'badge' => 'Effen',
+            ],
+            'syndicate' => [
+                'id' => 'syndicate',
+                'name' => 'TBS Syndicaat (Paars • Roze • Goud)',
+                'css' => 'linear-gradient(90deg, #c084fc, #f472b6, #fbbf24, #f472b6, #c084fc)',
+                'glow' => 'rgba(192, 132, 252, 0.6)',
+                'badge' => 'Populair',
+            ],
+            'gold_king' => [
+                'id' => 'gold_king',
+                'name' => 'Gouden Koning (Goud • Diamant • Amber)',
+                'css' => 'linear-gradient(90deg, #f59e0b, #fef08a, #d97706, #fef08a, #f59e0b)',
+                'glow' => 'rgba(245, 158, 11, 0.6)',
+                'badge' => 'Luxe',
+            ],
+            'cyber_neon' => [
+                'id' => 'cyber_neon',
+                'name' => 'Cyber Neon (Cyaan • Blauw • Paars)',
+                'css' => 'linear-gradient(90deg, #22d3ee, #3b82f6, #a855f7, #3b82f6, #22d3ee)',
+                'glow' => 'rgba(34, 211, 238, 0.6)',
+                'badge' => 'Neon',
+            ],
+            'blood_fire' => [
+                'id' => 'blood_fire',
+                'name' => 'Bloed & Vuur (Rood • Oranje • Goud)',
+                'css' => 'linear-gradient(90deg, #ef4444, #f97316, #facc15, #f97316, #ef4444)',
+                'glow' => 'rgba(239, 68, 68, 0.6)',
+                'badge' => 'Agressief',
+            ],
+            'emerald_matrix' => [
+                'id' => 'emerald_matrix',
+                'name' => 'Smaragd Gif (Smaragd • Lime • Cyaan)',
+                'css' => 'linear-gradient(90deg, #10b981, #84cc16, #06b6d4, #84cc16, #10b981)',
+                'glow' => 'rgba(16, 185, 129, 0.6)',
+                'badge' => 'Matrix',
+            ],
+            'royal_amethyst' => [
+                'id' => 'royal_amethyst',
+                'name' => 'Royal Amethist (Indigo • Paars • Fuchsia)',
+                'css' => 'linear-gradient(90deg, #818cf8, #c084fc, #e879f9, #c084fc, #818cf8)',
+                'glow' => 'rgba(168, 85, 247, 0.6)',
+                'badge' => 'Kliniek',
+            ],
+            'ice_frost' => [
+                'id' => 'ice_frost',
+                'name' => 'IJs & Kristal (Cyaan • IJswit • Blauw)',
+                'css' => 'linear-gradient(90deg, #38bdf8, #e0f2fe, #0284c7, #e0f2fe, #38bdf8)',
+                'glow' => 'rgba(56, 189, 248, 0.6)',
+                'badge' => 'Koel',
+            ],
+            'rainbow_prism' => [
+                'id' => 'rainbow_prism',
+                'name' => 'Kliniek Prisma (Volledig Regenboog)',
+                'css' => 'linear-gradient(90deg, #ff66b2, #a855f7, #38bdf8, #10b981, #f59e0b, #ff66b2)',
+                'glow' => 'rgba(236, 72, 153, 0.6)',
+                'badge' => 'Exclusief',
+            ],
+        ];
+    }
+
+    /**
+     * Catalog of name glow intensities/styles.
+     *
+     * @return array<string, array{id: string, name: string, desc: string}>
+     */
+    public static function nameGlowCatalog(): array
+    {
+        return [
+            'none' => ['id' => 'none', 'name' => 'Geen Gloed (Strak)', 'desc' => 'Scherpe letters zonder lichthalo'],
+            'subtle' => ['id' => 'subtle', 'name' => 'Subtiele Gloed', 'desc' => 'Zachte elegante gloed om de letters'],
+            'neon' => ['id' => 'neon', 'name' => 'Sterke Neon Glow', 'desc' => 'Heldere opvallende neon uitstraling'],
+            'pulse' => ['id' => 'pulse', 'name' => 'Ademende Pulse Glow', 'desc' => 'Dynamisch pulserend lichteffect'],
+        ];
+    }
+
+    /**
+     * Can the character customize their name color (Tier 2+ or explicit perk or Staff).
+     */
+    public function canCustomizeNameColor(): bool
+    {
+        return ($this->isVip() && ($this->getSupporterTier() >= 2 || ! empty($this->perks['has_custom_name_color'])))
+            || (bool) ($this->user?->isStaff());
+    }
+
+    /**
+     * Can the character toggle glitter sparkle effect (Tier 3+ or explicit perk or Staff).
      */
     public function canUseSparkleEffect(): bool
     {
-        return $this->isVip() && ($this->getSupporterTier() >= 3 || ! empty($this->perks['has_sparkle_effect']));
+        return ($this->isVip() && ($this->getSupporterTier() >= 3 || ! empty($this->perks['has_sparkle_effect'])))
+            || (bool) ($this->user?->isStaff());
     }
 
     /**
@@ -938,6 +1052,121 @@ class Character extends Model
         }
 
         return (bool) ($this->perks['sparkle_enabled'] ?? false);
+    }
+
+    /**
+     * Get active custom name gradient key ('none' or a catalog key).
+     */
+    public function getCustomNameGradient(): string
+    {
+        if (! $this->canCustomizeNameColor() && ! $this->canUseSparkleEffect()) {
+            return 'none';
+        }
+
+        $gradient = $this->perks['custom_name_gradient'] ?? null;
+        $catalog = self::nameGradientCatalog();
+
+        if (is_string($gradient) && isset($catalog[$gradient])) {
+            return $gradient;
+        }
+
+        if ($this->isSparkleActive()) {
+            return 'syndicate';
+        }
+
+        return 'none';
+    }
+
+    /**
+     * Get active custom name glow key ('none', 'subtle', 'neon', 'pulse').
+     */
+    public function getCustomNameGlow(): string
+    {
+        if (! $this->canCustomizeNameColor() && ! $this->canUseSparkleEffect()) {
+            return 'none';
+        }
+
+        $glow = $this->perks['custom_name_glow'] ?? null;
+        $catalog = self::nameGlowCatalog();
+
+        if (is_string($glow) && isset($catalog[$glow])) {
+            return $glow;
+        }
+
+        if ($this->isSparkleActive()) {
+            return 'subtle';
+        }
+
+        return 'none';
+    }
+
+    /**
+     * Compute the CSS classes to apply to this character's rendered name.
+     */
+    public function getNameCssClasses(string $defaultColorClass = 'text-slate-900 dark:text-white'): string
+    {
+        $gradient = $this->getCustomNameGradient();
+        $sparkle = $this->isSparkleActive();
+        $glow = $this->getCustomNameGlow();
+        $color = $this->getCustomNameColor();
+
+        $classes = [];
+
+        if ($gradient !== 'none' || $sparkle) {
+            $classes[] = 'tbs-name-gradient';
+            $classes[] = 'tbs-name-shimmer';
+            if ($sparkle) {
+                $classes[] = 'vip-sparkle-name';
+            }
+        } elseif (! $color && $defaultColorClass !== '') {
+            $classes[] = $defaultColorClass;
+        }
+
+        if ($glow === 'subtle') {
+            $classes[] = 'tbs-name-glow-subtle';
+        } elseif ($glow === 'neon') {
+            $classes[] = 'tbs-name-glow-neon';
+        } elseif ($glow === 'pulse') {
+            $classes[] = 'tbs-name-glow-pulse';
+        }
+
+        return implode(' ', $classes);
+    }
+
+    /**
+     * Compute the inline CSS style string to apply to this character's rendered name.
+     */
+    public function getNameInlineStyle(): string
+    {
+        $gradient = $this->getCustomNameGradient();
+        $sparkle = $this->isSparkleActive();
+        $glow = $this->getCustomNameGlow();
+        $color = $this->getCustomNameColor();
+
+        $styles = [];
+        $gradientCatalog = self::nameGradientCatalog();
+        $colorCatalog = self::nameColorCatalog();
+
+        if ($gradient !== 'none' && isset($gradientCatalog[$gradient])) {
+            $gradInfo = $gradientCatalog[$gradient];
+            $styles[] = '--tbs-name-gradient: '.$gradInfo['css'];
+            $styles[] = '--tbs-glow-color: '.$gradInfo['glow'];
+        } elseif ($sparkle) {
+            $baseHex = $color ?: '#c084fc';
+            $glowRgba = $colorCatalog[$baseHex]['glow'] ?? 'rgba(192, 132, 252, 0.6)';
+            $styles[] = "--tbs-name-gradient: linear-gradient(90deg, {$baseHex}, #fef08a, #f472b6, {$baseHex})";
+            $styles[] = "--tbs-glow-color: {$glowRgba}";
+        } elseif ($color) {
+            $glowRgba = $colorCatalog[$color]['glow'] ?? 'rgba(168, 85, 247, 0.55)';
+            $styles[] = "color: {$color} !important";
+            if ($glow !== 'none') {
+                $styles[] = "--tbs-glow-color: {$glowRgba}";
+            }
+        } elseif ($glow !== 'none') {
+            $styles[] = '--tbs-glow-color: rgba(168, 85, 247, 0.55)';
+        }
+
+        return implode('; ', $styles);
     }
 
     /**

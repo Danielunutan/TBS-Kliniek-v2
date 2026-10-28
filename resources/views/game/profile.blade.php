@@ -1,12 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $nameColorCatalog = \App\Models\Character::nameColorCatalog();
+    $nameGradientCatalog = \App\Models\Character::nameGradientCatalog();
+    $nameGlowCatalog = \App\Models\Character::nameGlowCatalog();
+@endphp
 <div class="space-y-6" x-data="{ 
     avatarModalOpen: false, 
     bioModalOpen: false, 
     titleModalOpen: false,
     customizeModalOpen: false,
-    activeCustomTab: 'sticker',
+    activeCustomTab: '{{ request('custom_tab', 'sticker') }}',
     staffWarnModalOpen: false,
     staffBanModalOpen: false,
     activeTab: '{{ session('profile_tab', request('tab', 'overzicht')) }}',
@@ -15,6 +20,12 @@
     selectedColor: '{{ $profileCharacter->profile_color ?: 'purple' }}',
     selectedTitle: '{{ $profileCharacter->title ?? 'Modelpatiënt' }}',
     selectedBorder: '{{ $profileCharacter->equipped_border ?? 'none' }}',
+    selectedNameColor: '{{ $profileCharacter->getCustomNameColor() ?? '' }}',
+    selectedNameGradient: '{{ $profileCharacter->getCustomNameGradient() ?? 'none' }}',
+    selectedNameGlow: '{{ $profileCharacter->getCustomNameGlow() ?? 'none' }}',
+    selectedSparkle: {{ $profileCharacter->isSparkleActive() ? 'true' : 'false' }},
+    gradientMap: {{ Js::from(collect($nameGradientCatalog)->map(fn($g) => ['css' => $g['css'], 'glow' => $g['glow']])) }},
+    colorGlowMap: {{ Js::from(collect($nameColorCatalog)->map(fn($c) => $c['glow'])) }},
     init() {
         if (!'{{ session('profile_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_profile_tab')) {
             this.activeTab = sessionStorage.getItem('tbs_profile_tab');
@@ -23,6 +34,41 @@
     setActiveTab(tab) {
         this.activeTab = tab;
         sessionStorage.setItem('tbs_profile_tab', tab);
+    },
+    getPreviewNameClass() {
+        let cls = [];
+        if (this.selectedNameGradient !== 'none' || this.selectedSparkle) {
+            cls.push('tbs-name-gradient', 'tbs-name-shimmer');
+            if (this.selectedSparkle) cls.push('vip-sparkle-name');
+        } else if (!this.selectedNameColor) {
+            cls.push('text-white');
+        }
+        if (this.selectedNameGlow === 'subtle') cls.push('tbs-name-glow-subtle');
+        if (this.selectedNameGlow === 'neon') cls.push('tbs-name-glow-neon');
+        if (this.selectedNameGlow === 'pulse') cls.push('tbs-name-glow-pulse');
+        return cls.join(' ');
+    },
+    getPreviewNameStyle() {
+        let styles = [];
+        if (this.selectedNameGradient !== 'none' && this.gradientMap[this.selectedNameGradient]) {
+            const g = this.gradientMap[this.selectedNameGradient];
+            styles.push('--tbs-name-gradient: ' + g.css);
+            styles.push('--tbs-glow-color: ' + g.glow);
+        } else if (this.selectedSparkle) {
+            const baseHex = this.selectedNameColor || '#c084fc';
+            const glowRgba = this.colorGlowMap[baseHex] || 'rgba(192, 132, 252, 0.6)';
+            styles.push(`--tbs-name-gradient: linear-gradient(90deg, ${baseHex}, #fef08a, #f472b6, ${baseHex})`);
+            styles.push('--tbs-glow-color: ' + glowRgba);
+        } else if (this.selectedNameColor) {
+            const glowRgba = this.colorGlowMap[this.selectedNameColor] || 'rgba(168, 85, 247, 0.55)';
+            styles.push('color: ' + this.selectedNameColor + ' !important');
+            if (this.selectedNameGlow !== 'none') {
+                styles.push('--tbs-glow-color: ' + glowRgba);
+            }
+        } else if (this.selectedNameGlow !== 'none') {
+            styles.push('--tbs-glow-color: rgba(168, 85, 247, 0.55)');
+        }
+        return styles.join('; ');
     }
 }">
 
@@ -205,13 +251,13 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-3">
                     <div>
                         <div class="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-                            <h1 class="text-2xl font-black tracking-tight flex items-center gap-1.5 text-slate-900 dark:text-white"
-                                @if($profileCharacter->getCustomNameColor()) style="color: {{ $profileCharacter->getCustomNameColor() }};" @endif>
-                                <span class="{{ $profileCharacter->isSparkleActive() ? 'animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]' : '' }}">
+                            <h1 class="text-2xl font-black tracking-tight flex items-center gap-1.5">
+                                <span class="px-1 -mx-1 {{ $profileCharacter->getNameCssClasses('text-slate-900 dark:text-white') }}"
+                                      style="{{ $profileCharacter->getNameInlineStyle() }}">
                                     {{ $profileCharacter->name }}
                                 </span>
                                 @if($profileCharacter->isSparkleActive())
-                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm"></i>
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm animate-pulse" title="VIP Glitter Shimmer"></i>
                                 @endif
                             </h1>
                             <span class="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
@@ -294,6 +340,10 @@
                     @if(Auth::user()->character->id === $profileCharacter->id)
                     <!-- Edit Actions: Prominent Personalisatie Knopje Rechtsboven -->
                     <div class="flex flex-wrap gap-2 justify-center md:justify-end items-center">
+                        <button @click="activeCustomTab = 'name_style'; customizeModalOpen = true" type="button" class="px-3.5 py-2.5 text-xs font-black bg-purple-100 hover:bg-purple-200 dark:bg-purple-950/70 dark:hover:bg-purple-900/80 text-purple-800 dark:text-purple-200 border border-purple-300 dark:border-purple-700/60 rounded-xl transition shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95">
+                            <i class="fa-solid fa-sparkles text-pink-500"></i>
+                            <span>Naamkleur & Glow</span>
+                        </button>
                         <button @click="customizeModalOpen = true" type="button" class="px-4 py-2.5 text-xs font-black bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer active:scale-95">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
                             <span>Profiel Personaliseren</span>
@@ -1666,6 +1716,12 @@
 
             <!-- Tab Navigation Inside Modal -->
             <div class="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-850 px-6 gap-2 text-xs font-bold overflow-x-auto">
+                <button type="button" @click="activeCustomTab = 'name_style'" 
+                        :class="activeCustomTab === 'name_style' ? 'border-pink-500 text-pink-600 dark:text-pink-400 border-b-2 font-black' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 font-bold'"
+                        class="py-3 px-3 transition cursor-pointer shrink-0 flex items-center gap-1.5">
+                    <i class="fa-solid fa-sparkles text-pink-500"></i>
+                    <span>Naamkleur & Glow</span>
+                </button>
                 <button type="button" @click="activeCustomTab = 'sticker'" 
                         :class="activeCustomTab === 'sticker' ? 'border-purple-600 text-purple-600 dark:text-purple-400 border-b-2' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'"
                         class="py-3 px-3 transition cursor-pointer shrink-0 flex items-center gap-1.5">
@@ -1701,6 +1757,168 @@
             <!-- Form -->
             <form action="{{ route('profile.customize') }}" method="POST" class="p-6 space-y-5">
                 @csrf
+                <input type="hidden" name="name_style_submitted" value="1">
+
+                <!-- TAB 0: NAAMKLEUR, KLEUROVERLOOP & GLOW -->
+                <div x-show="activeCustomTab === 'name_style'" class="space-y-4 max-h-[68vh] overflow-y-auto pr-1 custom-scrollbar">
+                    <!-- Live Name Preview Card -->
+                    <div class="p-5 rounded-2xl border-2 border-purple-500/60 shadow-xl text-center space-y-2 relative overflow-hidden"
+                         style="background: radial-gradient(circle at 50% 40%, #250b4a 0%, #0b0416 100%);">
+                        <div class="text-[10px] uppercase tracking-widest font-black text-purple-300 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-eye text-pink-400"></i>
+                            <span>Live Voorbeeld (Balk, Profiel & Chat)</span>
+                        </div>
+                        <div class="py-2 flex items-center justify-center gap-2 flex-wrap">
+                            <span class="text-2xl sm:text-3xl font-black px-1"
+                                  :class="getPreviewNameClass()"
+                                  :style="getPreviewNameStyle()">
+                                {{ $profileCharacter->name }}
+                            </span>
+                            <template x-if="selectedSparkle">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm animate-pulse"></i>
+                            </template>
+                            @if($profileCharacter->vip_badge)
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase border inline-flex items-center gap-1 {{ $profileCharacter->vip_badge['class'] }}">
+                                    <i class="fa-solid {{ $profileCharacter->vip_badge['icon'] }}"></i>
+                                    <span>{{ $profileCharacter->vip_badge['short_label'] }}</span>
+                                </span>
+                            @endif
+                        </div>
+                        <p class="text-[11px] text-purple-200/75 font-medium">
+                            Zo zien medepatiënten jouw naam en VIP-badge in de chat, op het plein en in de bovenbalk.
+                        </p>
+                    </div>
+
+                    @if($profileCharacter->canCustomizeNameColor() || $profileCharacter->canUseSparkleEffect())
+                        <!-- 1. KLEUROVERLOOP (GRADIENTS) -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-sliders text-purple-500"></i>
+                                    <span>1. Kleuroverloop (Gradient Stijl)</span>
+                                </label>
+                                <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400">Bewegend kleureffect</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                @foreach($nameGradientCatalog as $gKey => $grad)
+                                    <label @click="selectedNameGradient = '{{ $gKey }}'"
+                                           class="p-2.5 rounded-xl border-2 cursor-pointer transition flex items-center justify-between gap-2.5"
+                                           :class="selectedNameGradient === '{{ $gKey }}' ? 'border-purple-600 bg-purple-50/70 dark:bg-purple-950/60 shadow-2xs' : 'border-slate-200 dark:border-slate-800 hover:border-purple-400'">
+                                        <input type="radio" name="custom_name_gradient" value="{{ $gKey }}" x-model="selectedNameGradient" class="sr-only">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            @if($gKey === 'none')
+                                                <span class="w-7 h-7 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-xs shrink-0">
+                                                    <i class="fa-solid fa-droplet"></i>
+                                                </span>
+                                            @else
+                                                <span class="w-7 h-7 rounded-lg shrink-0 shadow-xs border border-white/20" style="background: {{ $grad['css'] }}; background-size: 200% auto;"></span>
+                                            @endif
+                                            <div class="min-w-0">
+                                                <span class="text-xs font-extrabold text-slate-900 dark:text-white block truncate">{{ $grad['name'] }}</span>
+                                                <span class="text-[10px] text-slate-400 font-bold uppercase">{{ $grad['badge'] }}</span>
+                                            </div>
+                                        </div>
+                                        <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-xs shrink-0" x-show="selectedNameGradient === '{{ $gKey }}'"></i>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- 2. EFFEN NAAMKLEUR -->
+                        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-palette text-amber-500"></i>
+                                    <span>2. Basis / Effen Naamkleur</span>
+                                </label>
+                                <button type="button" @click="selectedNameColor = ''; selectedNameGradient = 'none';" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 cursor-pointer">
+                                    Reset naar standaard
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                @foreach($nameColorCatalog as $hex => $cInfo)
+                                    <label @click="selectedNameColor = '{{ $hex }}'"
+                                           class="p-2.5 rounded-xl border-2 cursor-pointer flex items-center gap-2 transition"
+                                           :class="selectedNameColor === '{{ $hex }}' ? 'border-purple-600 bg-purple-50/70 dark:bg-purple-950/60 shadow-2xs' : 'border-slate-200 dark:border-slate-800 hover:border-purple-400'">
+                                        <input type="radio" name="custom_name_color" value="{{ $hex }}" x-model="selectedNameColor" class="sr-only">
+                                        <span class="w-4 h-4 rounded-full {{ $cInfo['class'] }} ring-1 ring-black/20 shrink-0"></span>
+                                        <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 truncate">{{ $cInfo['name'] }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- 3. NAAM GLOW (GLOED INTENSITEIT) -->
+                        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <label class="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-sun text-cyan-400"></i>
+                                <span>3. Naam Glow & Lichteffect</span>
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                @foreach($nameGlowCatalog as $glowKey => $glowInfo)
+                                    <label @click="selectedNameGlow = '{{ $glowKey }}'"
+                                           class="p-2.5 rounded-xl border-2 cursor-pointer transition flex items-center justify-between gap-2"
+                                           :class="selectedNameGlow === '{{ $glowKey }}' ? 'border-purple-600 bg-purple-50/70 dark:bg-purple-950/60 shadow-2xs' : 'border-slate-200 dark:border-slate-800 hover:border-purple-400'">
+                                        <input type="radio" name="custom_name_glow" value="{{ $glowKey }}" x-model="selectedNameGlow" class="sr-only">
+                                        <div class="min-w-0">
+                                            <span class="text-xs font-extrabold text-slate-900 dark:text-white block">{{ $glowInfo['name'] }}</span>
+                                            <span class="text-[10px] text-slate-400 block truncate">{{ $glowInfo['desc'] }}</span>
+                                        </div>
+                                        <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-xs shrink-0" x-show="selectedNameGlow === '{{ $glowKey }}'"></i>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- 4. GLITTER & SHIMMER SPARKLE BOOST -->
+                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                            @if($profileCharacter->canUseSparkleEffect())
+                                <div class="p-3.5 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 flex items-center justify-between gap-4">
+                                    <div class="space-y-0.5">
+                                        <div class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-pink-500"></i>
+                                            <span>Glitter Shimmer & Sparkle Icoon</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                            Voegt een vloeiende glans-animatie en glitter-icoon toe aan je naam.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input type="checkbox" name="sparkle_enabled" value="1" x-model="selectedSparkle" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                                    </label>
+                                </div>
+                            @else
+                                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <i class="fa-solid fa-lock text-amber-500"></i>
+                                        <span>Sparkle Shimmer is beschikbaar vanaf <strong>VIP Tier 3 (Kliniek Baas)</strong> & <strong>Lifetime</strong>.</span>
+                                    </div>
+                                    <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black text-[10px] shrink-0">
+                                        Upgrade &raquo;
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <!-- Locked Callout for Non-VIP / Tier 1 -->
+                        <div class="p-5 rounded-2xl bg-slate-50 dark:bg-purple-950/30 border border-slate-200 dark:border-purple-800/50 text-center space-y-3">
+                            <div class="w-11 h-11 mx-auto rounded-2xl bg-purple-100 dark:bg-purple-900/60 text-purple-600 dark:text-purple-300 flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-crown text-amber-400"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <h4 class="text-sm font-black text-slate-900 dark:text-white">Ontgrendel Naamkleuren, Kleuroverlopen & Glow</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                                    Met <strong>VIP Tier 2 (Gangster Elite)</strong> of hoger kies je uit 12 exclusieve neonkleuren, 8 kleuroverlopen en neon glows in de chat en op je profiel!
+                                </p>
+                            </div>
+                            <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md transition">
+                                <i class="fa-solid fa-crown"></i>
+                                <span>Bekijk VIP Lidmaatschap Winkel</span>
+                            </a>
+                        </div>
+                    @endif
+                </div>
 
                 <!-- TAB: PROFIEL RANDEN / FRAMES -->
                 <div x-show="activeCustomTab === 'frame'" class="space-y-4">

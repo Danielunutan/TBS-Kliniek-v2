@@ -54,7 +54,7 @@
                     @endif
                 </div>
                 <div class="min-w-0">
-                    <div class="font-black text-sm leading-tight text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-purple-400 transition">{{ $character->name }}</div>
+                    <div class="font-black text-sm leading-tight truncate px-1 -mx-1 {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</div>
                     <div class="flex items-center gap-1.5 mt-0.5">
                         <span class="text-[10px] bg-indigo-50 dark:bg-purple-950 text-indigo-700 dark:text-purple-300 font-extrabold px-1.5 py-0.2 rounded border border-indigo-200/60 dark:border-purple-800/40 uppercase">LVL {{ $character->level }}</span>
                         <span class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $character->title ?? 'Patiënt' }}</span>

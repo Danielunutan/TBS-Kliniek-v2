@@ -402,6 +402,10 @@ class ProfileController extends Controller
             'status_message' => ['nullable', 'string', 'max:120'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'equipped_border' => ['nullable', 'string', 'max:50'],
+            'custom_name_color' => ['nullable', 'string', 'max:30'],
+            'custom_name_gradient' => ['nullable', 'string', 'max:40'],
+            'custom_name_glow' => ['nullable', 'string', 'max:30'],
+            'sparkle_enabled' => ['nullable', 'boolean'],
         ]);
 
         $updates = [];
@@ -459,6 +463,42 @@ class ProfileController extends Controller
                     $updates['equipped_border'] = $borderKey;
                 }
             }
+        }
+
+        // 7. Name Color, Kleuroverloop (Gradient), Glow & Sparkle Shimmer
+        $perks = $character->perks ?? [];
+        $perksChanged = false;
+
+        if ($character->canCustomizeNameColor()) {
+            if ($request->has('custom_name_color')) {
+                $allowedColors = array_keys(Character::nameColorCatalog());
+                $chosenColor = $validated['custom_name_color'] ?? null;
+                $perks['custom_name_color'] = ($chosenColor && in_array($chosenColor, $allowedColors, true)) ? $chosenColor : null;
+                $perksChanged = true;
+            }
+
+            if ($request->has('custom_name_gradient')) {
+                $allowedGradients = array_keys(Character::nameGradientCatalog());
+                $chosenGradient = $validated['custom_name_gradient'] ?? 'none';
+                $perks['custom_name_gradient'] = in_array($chosenGradient, $allowedGradients, true) ? $chosenGradient : 'none';
+                $perksChanged = true;
+            }
+
+            if ($request->has('custom_name_glow')) {
+                $allowedGlows = array_keys(Character::nameGlowCatalog());
+                $chosenGlow = $validated['custom_name_glow'] ?? 'none';
+                $perks['custom_name_glow'] = in_array($chosenGlow, $allowedGlows, true) ? $chosenGlow : 'none';
+                $perksChanged = true;
+            }
+        }
+
+        if ($character->canUseSparkleEffect() && $request->has('name_style_submitted')) {
+            $perks['sparkle_enabled'] = (bool) $request->input('sparkle_enabled', false);
+            $perksChanged = true;
+        }
+
+        if ($perksChanged) {
+            $updates['perks'] = $perks;
         }
 
         if (! empty($updates)) {

@@ -156,6 +156,7 @@ class ChatController extends Controller
 
             $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
             $staffBadgeColor = $isOwner ? 'amber' : ($isAdmin ? 'purple' : ($isMod ? 'blue' : null));
+            $vipBadge = $char?->vip_badge;
 
             return [
                 'id' => $msg->id,
@@ -172,8 +173,16 @@ class ChatController extends Controller
                 'staff_badge_color' => $staffBadgeColor,
                 'is_vip' => (bool) ($char?->isVip()),
                 'vip_tier' => (int) ($char?->getSupporterTier() ?? 0),
+                'vip_badge_label' => $vipBadge['short_label'] ?? null,
+                'vip_badge_full' => $vipBadge['label'] ?? null,
+                'vip_badge_icon' => $vipBadge['icon'] ?? 'fa-crown',
+                'vip_badge_class' => $vipBadge['class'] ?? null,
                 'name_color' => $char?->getCustomNameColor(),
+                'name_gradient' => $char?->getCustomNameGradient() ?? 'none',
+                'name_glow' => $char?->getCustomNameGlow() ?? 'none',
                 'has_sparkle' => (bool) ($char?->isSparkleActive()),
+                'name_classes' => $char ? $char->getNameCssClasses('') : '',
+                'name_style' => $char ? $char->getNameInlineStyle() : '',
                 'gang_tag' => $gang?->tag ?? null,
                 'gang_color' => $gang?->color ?? 'purple',
                 'message' => $msg->message,
@@ -375,6 +384,7 @@ class ChatController extends Controller
 
         $staffRole = $isOwner ? 'Eigenaar' : ($isAdmin ? 'Directie' : ($isMod ? 'Moderator' : null));
         $staffBadgeColor = $isOwner ? 'amber' : ($isAdmin ? 'purple' : ($isMod ? 'blue' : null));
+        $vipBadge = $character->vip_badge;
 
         return response()->json([
             'success' => true,
@@ -393,8 +403,16 @@ class ChatController extends Controller
                 'staff_badge_color' => $staffBadgeColor,
                 'is_vip' => (bool) ($character->isVip()),
                 'vip_tier' => (int) ($character->getSupporterTier()),
+                'vip_badge_label' => $vipBadge['short_label'] ?? null,
+                'vip_badge_full' => $vipBadge['label'] ?? null,
+                'vip_badge_icon' => $vipBadge['icon'] ?? 'fa-crown',
+                'vip_badge_class' => $vipBadge['class'] ?? null,
                 'name_color' => $character->getCustomNameColor(),
+                'name_gradient' => $character->getCustomNameGradient(),
+                'name_glow' => $character->getCustomNameGlow(),
                 'has_sparkle' => (bool) ($character->isSparkleActive()),
+                'name_classes' => $character->getNameCssClasses(''),
+                'name_style' => $character->getNameInlineStyle(),
                 'gang_tag' => $gang?->tag ?? null,
                 'gang_color' => $gang?->color ?? 'purple',
                 'message' => $chatMsg->message,

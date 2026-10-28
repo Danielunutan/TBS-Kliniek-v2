@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\GameNotification;
 use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
@@ -163,41 +164,36 @@ class VipController extends Controller
     }
 
     /**
-     * Update VIP custom styling (name color and glitter sparkle effect).
+     * Update VIP custom styling (name color, gradient, glow, and glitter sparkle effect).
      */
     public function updateStyling(Request $request): RedirectResponse
     {
         $character = Auth::user()->character;
-        if (! $character->isVip()) {
+        if (! $character->isVip() && ! Auth::user()->isStaff()) {
             return back()->with('error', 'Je hebt een actief VIP lidmaatschap nodig om je VIP styling aan te passen.');
         }
 
         $validated = $request->validate([
             'custom_name_color' => 'nullable|string|max:30',
+            'custom_name_gradient' => 'nullable|string|max:40',
+            'custom_name_glow' => 'nullable|string|max:30',
             'sparkle_enabled' => 'nullable|boolean',
         ]);
 
         $perks = $character->perks ?? [];
 
-        // Check eligibility
         if ($character->canCustomizeNameColor()) {
-            $allowedColors = [
-                '#f59e0b', // Goudgeel / Amber
-                '#a855f7', // TBS Paars Neon
-                '#10b981', // Smaragd Neon
-                '#ef4444', // Bloedrood
-                '#06b6d4', // Cyber Cyaan
-                '#ec4899', // Hot Pink
-                '#3b82f6', // Elektrisch Blauw
-                '#e2e8f0', // Platina Wit
-            ];
-
+            $allowedColors = array_keys(Character::nameColorCatalog());
             $chosenColor = $validated['custom_name_color'] ?? null;
-            if ($chosenColor && in_array($chosenColor, $allowedColors, true)) {
-                $perks['custom_name_color'] = $chosenColor;
-            } else {
-                $perks['custom_name_color'] = null; // Reset to default
-            }
+            $perks['custom_name_color'] = ($chosenColor && in_array($chosenColor, $allowedColors, true)) ? $chosenColor : null;
+
+            $allowedGradients = array_keys(Character::nameGradientCatalog());
+            $chosenGradient = $validated['custom_name_gradient'] ?? 'none';
+            $perks['custom_name_gradient'] = in_array($chosenGradient, $allowedGradients, true) ? $chosenGradient : 'none';
+
+            $allowedGlows = array_keys(Character::nameGlowCatalog());
+            $chosenGlow = $validated['custom_name_glow'] ?? 'none';
+            $perks['custom_name_glow'] = in_array($chosenGlow, $allowedGlows, true) ? $chosenGlow : 'none';
         }
 
         if ($character->canUseSparkleEffect()) {
@@ -207,6 +203,6 @@ class VipController extends Controller
         $character->perks = $perks;
         $character->save();
 
-        return back()->with('success', 'Jouw VIP styling instellingen zijn direct opgeslagen!');
+        return back()->with('success', '✨ Jouw naamkleur, kleuroverloop & glow instellingen zijn direct opgeslagen!');
     }
 }

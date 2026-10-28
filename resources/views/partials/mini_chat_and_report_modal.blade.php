@@ -346,38 +346,59 @@
                             <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
                                 <!-- EIGENAAR -->
                                 <template x-if="msg.is_owner">
-                                    <span class="text-amber-500 dark:text-amber-400 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
+                                    <span class="font-black inline-flex items-center gap-1 hover:underline cursor-pointer"
                                           @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
                                         <i class="fa-solid fa-crown text-[9px] text-amber-500"></i>
-                                        <span x-text="msg.name"></span>
+                                        <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
+                                              :style="msg.name_style || ''"
+                                              x-text="msg.name"></span>
+                                        <span class="px-1 py-0.2 rounded bg-amber-500 text-slate-950 text-[7px] font-black uppercase">Eigenaar</span>
                                     </span>
                                 </template>
                                 <!-- ADMIN / DIRECTIE -->
                                 <template x-if="msg.is_admin && !msg.is_owner">
-                                    <span class="text-purple-600 dark:text-purple-300 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
+                                    <span class="font-black inline-flex items-center gap-1 hover:underline cursor-pointer"
                                           @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
-                                        <i class="fa-solid fa-shield-halved text-[9px]"></i>
-                                        <span x-text="msg.name"></span>
+                                        <i class="fa-solid fa-shield-halved text-[9px] text-purple-500"></i>
+                                        <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
+                                              :style="msg.name_style || ''"
+                                              x-text="msg.name"></span>
+                                        <span class="px-1 py-0.2 rounded bg-purple-600 text-white text-[7px] font-black uppercase">Directie</span>
                                     </span>
                                 </template>
                                 <!-- MODERATOR -->
                                 <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
-                                    <span class="text-cyan-600 dark:text-cyan-400 font-black flex items-center gap-0.5 hover:underline cursor-pointer"
+                                    <span class="font-black inline-flex items-center gap-1 hover:underline cursor-pointer"
                                           @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
-                                        <i class="fa-solid fa-gavel text-[9px]"></i>
-                                        <span x-text="msg.name"></span>
+                                        <i class="fa-solid fa-gavel text-[9px] text-cyan-500"></i>
+                                        <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
+                                              :style="msg.name_style || ''"
+                                              x-text="msg.name"></span>
+                                        <span class="px-1 py-0.2 rounded bg-cyan-600 text-white text-[7px] font-black uppercase">Mod</span>
                                     </span>
                                 </template>
                                 <!-- REGULAR / VIP -->
                                 <template x-if="!msg.is_owner && !msg.is_admin && !msg.is_moderator">
                                     <span class="font-extrabold hover:underline cursor-pointer inline-flex items-center gap-1"
-                                          :class="msg.has_sparkle ? 'vip-sparkle-name' : (msg.is_vip ? 'text-amber-500 dark:text-amber-400' : 'text-slate-900 dark:text-white')"
-                                          :style="msg.name_color && !msg.has_sparkle ? 'color: ' + msg.name_color : ''"
                                           @click="tagPlayer(msg.name)" title="Klik om te taggen in chat">
-                                        <template x-if="msg.is_vip">
-                                            <i class="fa-solid fa-crown text-[8px] text-amber-500" title="VIP Lid"></i>
-                                        </template>
-                                        <span x-text="msg.name"></span>
+                                        <span :class="msg.name_classes ? msg.name_classes : (msg.is_vip ? 'text-amber-500 dark:text-amber-400' : 'text-slate-900 dark:text-white')"
+                                              :style="msg.name_style || (msg.name_color && !msg.has_sparkle ? 'color: ' + msg.name_color : '')"
+                                              x-text="msg.name"></span>
+                                    </span>
+                                </template>
+
+                                <!-- SPARKLE ICON -->
+                                <template x-if="msg.has_sparkle">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-[8px] text-amber-400 animate-pulse" title="VIP Glitter Shimmer"></i>
+                                </template>
+
+                                <!-- VIP BADGE PILL -->
+                                <template x-if="msg.is_vip && msg.vip_badge_label">
+                                    <span class="px-1.5 py-0.2 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
+                                          :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
+                                          :title="msg.vip_badge_full || 'VIP Lid'">
+                                        <i class="fa-solid text-[7px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
+                                        <span x-text="msg.vip_badge_label"></span>
                                     </span>
                                 </template>
 
@@ -670,9 +691,24 @@
                                 <div class="max-w-[84%] min-w-0 space-y-0.5" :class="msg.is_me ? 'text-right' : 'text-left'">
                                     <!-- Sender Meta -->
                                     <div class="flex items-center gap-1 text-[10px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
-                                        <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
+                                        <span class="font-extrabold hover:underline cursor-pointer"
+                                              :class="msg.name_classes ? msg.name_classes : (msg.is_vip ? 'text-amber-500 dark:text-amber-400' : 'text-slate-900 dark:text-white')"
+                                              :style="msg.name_style || (msg.name_color && !msg.has_sparkle ? 'color: ' + msg.name_color : '')"
                                               @click="tagPlayer(msg.name)" title="Klik om te taggen"
                                               x-text="msg.name"></span>
+
+                                        <template x-if="msg.has_sparkle">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-[8px] text-amber-400 animate-pulse" title="VIP Glitter Shimmer"></i>
+                                        </template>
+
+                                        <template x-if="msg.is_vip && msg.vip_badge_label">
+                                            <span class="px-1.5 py-0.2 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
+                                                  :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
+                                                  :title="msg.vip_badge_full || 'VIP Lid'">
+                                                <i class="fa-solid text-[7px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
+                                                <span x-text="msg.vip_badge_label"></span>
+                                            </span>
+                                        </template>
 
                                         <span class="px-1 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[8px] font-black">
                                             L<span x-text="msg.level"></span>

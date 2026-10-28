@@ -1223,39 +1223,62 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                     <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
                                         <!-- EIGENAAR STYLING -->
                                         <template x-if="msg.is_owner">
-                                            <span class="text-amber-500 dark:text-amber-400 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                            <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
                                                   @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                 <i class="fa-solid fa-crown text-[10px] text-amber-500"></i>
-                                                <span x-text="msg.name"></span>
+                                                <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
+                                                      :style="msg.name_style || ''"
+                                                      x-text="msg.name"></span>
                                                 <span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
                                             </span>
                                         </template>
 
                                         <!-- DIRECTIE / ADMIN STYLING -->
                                         <template x-if="msg.is_admin && !msg.is_owner">
-                                            <span class="text-purple-600 dark:text-purple-300 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                            <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
                                                   @click="tagPlayer(msg.name)" title="Klik om te taggen">
-                                                <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                                                <span x-text="msg.name"></span>
+                                                <i class="fa-solid fa-shield-halved text-[10px] text-purple-500"></i>
+                                                <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
+                                                      :style="msg.name_style || ''"
+                                                      x-text="msg.name"></span>
                                                 <span class="px-1.5 py-0.2 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
                                             </span>
                                         </template>
 
                                         <!-- MODERATOR STYLING -->
                                         <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
-                                            <span class="text-cyan-600 dark:text-cyan-400 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                            <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
                                                   @click="tagPlayer(msg.name)" title="Klik om te taggen">
-                                                <i class="fa-solid fa-gavel text-[10px]"></i>
-                                                <span x-text="msg.name"></span>
+                                                <i class="fa-solid fa-gavel text-[10px] text-cyan-500"></i>
+                                                <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
+                                                      :style="msg.name_style || ''"
+                                                      x-text="msg.name"></span>
                                                 <span class="px-1.5 py-0.2 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
                                             </span>
                                         </template>
 
-                                        <!-- REGULAR INMATE -->
+                                        <!-- REGULAR INMATE / VIP -->
                                         <template x-if="!msg.is_owner && !msg.is_admin && !msg.is_moderator">
-                                            <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
+                                            <span class="font-extrabold hover:underline cursor-pointer"
+                                                  :class="msg.name_classes ? msg.name_classes : (msg.is_vip ? 'text-amber-500 dark:text-amber-400' : 'text-slate-900 dark:text-white')"
+                                                  :style="msg.name_style || (msg.name_color && !msg.has_sparkle ? 'color: ' + msg.name_color : '')"
                                                   @click="tagPlayer(msg.name)" title="Klik om te taggen"
                                                   x-text="msg.name"></span>
+                                        </template>
+
+                                        <!-- SPARKLE ICON -->
+                                        <template x-if="msg.has_sparkle">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-[9px] text-amber-400 animate-pulse" title="VIP Glitter Shimmer"></i>
+                                        </template>
+
+                                        <!-- VIP BADGE PILL -->
+                                        <template x-if="msg.is_vip && msg.vip_badge_label">
+                                            <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
+                                                  :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
+                                                  :title="msg.vip_badge_full || 'VIP Lid'">
+                                                <i class="fa-solid text-[8px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
+                                                <span x-text="msg.vip_badge_label"></span>
+                                            </span>
                                         </template>
 
                                         <!-- LEVEL PILL -->
@@ -1432,39 +1455,62 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                             <div class="flex items-center gap-1.5 text-[11px] font-bold flex-wrap min-w-0 max-w-full" :class="msg.is_me ? 'justify-end' : ''">
                                                 <!-- EIGENAAR STYLING -->
                                                 <template x-if="msg.is_owner">
-                                                    <span class="text-amber-500 dark:text-amber-400 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                    <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
                                                           @click="tagPlayer(msg.name)" title="Klik om te taggen">
                                                         <i class="fa-solid fa-crown text-[10px] text-amber-500"></i>
-                                                        <span x-text="msg.name"></span>
+                                                        <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
+                                                              :style="msg.name_style || ''"
+                                                              x-text="msg.name"></span>
                                                         <span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
                                                     </span>
                                                 </template>
 
                                                 <!-- DIRECTIE / ADMIN STYLING -->
                                                 <template x-if="msg.is_admin && !msg.is_owner">
-                                                    <span class="text-purple-600 dark:text-purple-300 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                    <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
                                                           @click="tagPlayer(msg.name)" title="Klik om te taggen">
-                                                        <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                                                        <span x-text="msg.name"></span>
+                                                        <i class="fa-solid fa-shield-halved text-[10px] text-purple-500"></i>
+                                                        <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
+                                                              :style="msg.name_style || ''"
+                                                              x-text="msg.name"></span>
                                                         <span class="px-1.5 py-0.2 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
                                                     </span>
                                                 </template>
 
                                                 <!-- MODERATOR STYLING -->
                                                 <template x-if="msg.is_moderator && !msg.is_admin && !msg.is_owner">
-                                                    <span class="text-cyan-600 dark:text-cyan-400 font-black hover:underline cursor-pointer flex items-center gap-1"
+                                                    <span class="font-black hover:underline cursor-pointer flex items-center gap-1"
                                                           @click="tagPlayer(msg.name)" title="Klik om te taggen">
-                                                        <i class="fa-solid fa-gavel text-[10px]"></i>
-                                                        <span x-text="msg.name"></span>
+                                                        <i class="fa-solid fa-gavel text-[10px] text-cyan-500"></i>
+                                                        <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
+                                                              :style="msg.name_style || ''"
+                                                              x-text="msg.name"></span>
                                                         <span class="px-1.5 py-0.2 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
                                                     </span>
                                                 </template>
 
-                                                <!-- REGULAR MEMBER -->
+                                                <!-- REGULAR MEMBER / VIP -->
                                                 <template x-if="!msg.is_owner && !msg.is_admin && !msg.is_moderator">
-                                                    <span class="text-slate-900 dark:text-white font-extrabold hover:underline cursor-pointer"
+                                                    <span class="font-extrabold hover:underline cursor-pointer"
+                                                          :class="msg.name_classes ? msg.name_classes : (msg.is_vip ? 'text-amber-500 dark:text-amber-400' : 'text-slate-900 dark:text-white')"
+                                                          :style="msg.name_style || (msg.name_color && !msg.has_sparkle ? 'color: ' + msg.name_color : '')"
                                                           @click="tagPlayer(msg.name)" title="Klik om te taggen"
                                                           x-text="msg.name"></span>
+                                                </template>
+
+                                                <!-- SPARKLE ICON -->
+                                                <template x-if="msg.has_sparkle">
+                                                    <i class="fa-solid fa-wand-magic-sparkles text-[9px] text-amber-400 animate-pulse" title="VIP Glitter Shimmer"></i>
+                                                </template>
+
+                                                <!-- VIP BADGE PILL -->
+                                                <template x-if="msg.is_vip && msg.vip_badge_label">
+                                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
+                                                          :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
+                                                          :title="msg.vip_badge_full || 'VIP Lid'">
+                                                        <i class="fa-solid text-[8px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
+                                                        <span x-text="msg.vip_badge_label"></span>
+                                                    </span>
                                                 </template>
 
                                                 <!-- LEVEL PILL -->

@@ -1,10 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $vipColorCatalog = \App\Models\Character::nameColorCatalog();
+    $vipGradientCatalog = \App\Models\Character::nameGradientCatalog();
+    $vipGlowCatalog = \App\Models\Character::nameGlowCatalog();
+@endphp
 <div class="space-y-6" x-data="{ 
     activeTab: '{{ session('vip_tab', request('tab', 'pakketten')) }}',
-    selectedColor: '{{ old('custom_name_color', $character->getCustomNameColor() ?: '#f59e0b') }}',
+    selectedColor: '{{ old('custom_name_color', $character->getCustomNameColor() ?: '') }}',
+    selectedGradient: '{{ old('custom_name_gradient', $character->getCustomNameGradient() ?: 'none') }}',
+    selectedGlow: '{{ old('custom_name_glow', $character->getCustomNameGlow() ?: 'none') }}',
     sparkleEnabled: {{ $character->isSparkleActive() ? 'true' : 'false' }},
+    gradientMap: {{ Js::from(collect($vipGradientCatalog)->map(fn($g) => ['css' => $g['css'], 'glow' => $g['glow']])) }},
+    colorGlowMap: {{ Js::from(collect($vipColorCatalog)->map(fn($c) => $c['glow'])) }},
     showDonateModal: false,
     donateUrl: 'https://buymeacoffee.com/tbskliniek/membership',
     donateTierTitle: 'TBS V.I.P. Lid (€6/mnd)',
@@ -27,6 +36,41 @@
             url.searchParams.set('tab', tab);
             window.history.replaceState({}, '', url.toString());
         } catch(e) {}
+    },
+    getPreviewNameClass() {
+        let cls = [];
+        if (this.selectedGradient !== 'none' || this.sparkleEnabled) {
+            cls.push('tbs-name-gradient', 'tbs-name-shimmer');
+            if (this.sparkleEnabled) cls.push('vip-sparkle-name');
+        } else if (!this.selectedColor) {
+            cls.push('text-white');
+        }
+        if (this.selectedGlow === 'subtle') cls.push('tbs-name-glow-subtle');
+        if (this.selectedGlow === 'neon') cls.push('tbs-name-glow-neon');
+        if (this.selectedGlow === 'pulse') cls.push('tbs-name-glow-pulse');
+        return cls.join(' ');
+    },
+    getPreviewNameStyle() {
+        let styles = [];
+        if (this.selectedGradient !== 'none' && this.gradientMap[this.selectedGradient]) {
+            const g = this.gradientMap[this.selectedGradient];
+            styles.push('--tbs-name-gradient: ' + g.css);
+            styles.push('--tbs-glow-color: ' + g.glow);
+        } else if (this.sparkleEnabled) {
+            const baseHex = this.selectedColor || '#c084fc';
+            const glowRgba = this.colorGlowMap[baseHex] || 'rgba(192, 132, 252, 0.6)';
+            styles.push(`--tbs-name-gradient: linear-gradient(90deg, ${baseHex}, #fef08a, #f472b6, ${baseHex})`);
+            styles.push('--tbs-glow-color: ' + glowRgba);
+        } else if (this.selectedColor) {
+            const glowRgba = this.colorGlowMap[this.selectedColor] || 'rgba(168, 85, 247, 0.55)';
+            styles.push('color: ' + this.selectedColor + ' !important');
+            if (this.selectedGlow !== 'none') {
+                styles.push('--tbs-glow-color: ' + glowRgba);
+            }
+        } else if (this.selectedGlow !== 'none') {
+            styles.push('--tbs-glow-color: rgba(168, 85, 247, 0.55)');
+        }
+        return styles.join('; ');
     }
 }">
 
@@ -487,7 +531,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: VIP STYLING (NAAMKLEUR & GLITTER) -->
+            <!-- TAB 3: VIP STYLING (NAAMKLEUR, KLEUROVERLOOP & GLOW) -->
             <div x-show="activeTab === 'styling'" class="space-y-6">
                 <div class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
                     <div class="border-b border-slate-100 dark:border-purple-900/60 pb-5">
@@ -495,51 +539,86 @@
                             <i class="fa-solid fa-wand-magic-sparkles text-pink-500"></i>
                             <span>V.I.P. Karakter Personalisatie</span>
                         </div>
-                        <h2 class="text-2xl font-black text-slate-900 dark:text-white">Naamkleur & Glitter Sparkle</h2>
+                        <h2 class="text-2xl font-black text-slate-900 dark:text-white">Naamkleur, Kleuroverloop & Glow</h2>
                         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                            Val direct op in de chat, op het plein, in de bende en op de ranglijst met je eigen unieke naamkleur of glittereffect!
+                            Val direct op in de chat, op het plein, in de bende en op de ranglijst met je eigen unieke naamkleur, kleuroverloop, neon glow en glitter shimmer!
                         </p>
                     </div>
 
-                    <!-- Live Name Preview Box (Clean solid dark luxury background - no awkward white fade) -->
+                    <!-- Live Name Preview Box -->
                     <div class="p-6 sm:p-8 rounded-2xl border-2 border-purple-500/60 shadow-2xl text-center space-y-2 relative overflow-hidden" 
                          style="background-color: #0f0728; background-image: radial-gradient(circle at 50% 50%, #250b4a 0%, #0c0418 100%);">
-                        <div class="text-[10px] uppercase tracking-widest font-black text-purple-300">Live Voorbeeld van Jouw Naam</div>
-                        <div class="text-2xl sm:text-4xl font-black py-2">
-                            <span :class="sparkleEnabled ? 'vip-sparkle-name' : ''" 
-                                  :style="!sparkleEnabled && selectedColor ? 'color: ' + selectedColor : ''">
+                        <div class="text-[10px] uppercase tracking-widest font-black text-purple-300">Live Voorbeeld van Jouw Naam & Badge</div>
+                        <div class="py-2 flex items-center justify-center gap-2.5 flex-wrap">
+                            <span class="text-2xl sm:text-4xl font-black px-1"
+                                  :class="getPreviewNameClass()" 
+                                  :style="getPreviewNameStyle()">
                                 {{ $character->name }}
                             </span>
+                            <template x-if="sparkleEnabled">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-lg animate-pulse"></i>
+                            </template>
+                            @if($character->vip_badge)
+                                <span class="px-2.5 py-0.5 rounded-md text-xs font-black uppercase border inline-flex items-center gap-1 {{ $character->vip_badge['class'] }}">
+                                    <i class="fa-solid {{ $character->vip_badge['icon'] }}"></i>
+                                    <span>{{ $character->vip_badge['short_label'] }}</span>
+                                </span>
+                            @endif
                         </div>
-                        <div class="text-[11px] text-purple-200/70 font-medium">Zo wordt je naam getoond in de chat en door de hele game.</div>
+                        <div class="text-[11px] text-purple-200/70 font-medium">Zo wordt je naam getoond in de chat, op het plein en door de hele kliniek.</div>
                     </div>
 
                     @if($character->canCustomizeNameColor() || $character->canUseSparkleEffect())
                         <form method="POST" action="{{ route('vip.styling') }}" class="space-y-6">
                             @csrf
 
-                            <!-- Color Chooser (Tier 2+) -->
+                            <!-- 1. Kleuroverloop (Gradients) -->
                             <div class="space-y-3">
-                                <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                                    1. Kies Jouw Exclusieve Naamkleur
-                                </label>
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                        1. Kies Jouw Kleuroverloop (Gradient)
+                                    </label>
+                                    <span class="text-[10px] font-bold text-purple-600 dark:text-purple-400">Vloeiend bewegend kleureffect</span>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    @foreach($vipGradientCatalog as $gKey => $grad)
+                                        <label class="p-3 rounded-xl border-2 cursor-pointer flex items-center justify-between gap-2.5 transition"
+                                               :class="selectedGradient === '{{ $gKey }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-sm' : 'border-slate-200 dark:border-purple-900/60 hover:bg-slate-50 dark:hover:bg-purple-950/30'">
+                                            <input type="radio" name="custom_name_gradient" value="{{ $gKey }}" x-model="selectedGradient" class="sr-only">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                @if($gKey === 'none')
+                                                    <span class="w-7 h-7 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-500 flex items-center justify-center text-xs shrink-0">
+                                                        <i class="fa-solid fa-droplet"></i>
+                                                    </span>
+                                                @else
+                                                    <span class="w-7 h-7 rounded-lg shrink-0 shadow-xs border border-white/20" style="background: {{ $grad['css'] }}; background-size: 200% auto;"></span>
+                                                @endif
+                                                <div class="min-w-0">
+                                                    <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block truncate">{{ $grad['name'] }}</span>
+                                                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ $grad['badge'] }}</span>
+                                                </div>
+                                            </div>
+                                            <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-xs shrink-0" x-show="selectedGradient === '{{ $gKey }}'"></i>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- 2. Effen Kleur (Tier 2+) -->
+                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-purple-900/60">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                        2. Kies Jouw Exclusieve Effen Naamkleur
+                                    </label>
+                                    <button type="button" @click="selectedColor = ''; selectedGradient = 'none';" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 cursor-pointer">
+                                        Reset kleur
+                                    </button>
+                                </div>
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    @php
-                                        $colors = [
-                                            ['hex' => '#f59e0b', 'name' => 'Goudgeel', 'class' => 'bg-amber-500'],
-                                            ['hex' => '#a855f7', 'name' => 'TBS Neon Paars', 'class' => 'bg-purple-500'],
-                                            ['hex' => '#10b981', 'name' => 'Smaragd Groen', 'class' => 'bg-emerald-500'],
-                                            ['hex' => '#ef4444', 'name' => 'Bloedrood', 'class' => 'bg-rose-500'],
-                                            ['hex' => '#06b6d4', 'name' => 'Cyber Cyaan', 'class' => 'bg-cyan-500'],
-                                            ['hex' => '#ec4899', 'name' => 'Neon Roze', 'class' => 'bg-pink-500'],
-                                            ['hex' => '#3b82f6', 'name' => 'Elektrisch Blauw', 'class' => 'bg-blue-500'],
-                                            ['hex' => '#e2e8f0', 'name' => 'Platina Wit', 'class' => 'bg-slate-200'],
-                                        ];
-                                    @endphp
-                                    @foreach($colors as $color)
+                                    @foreach($vipColorCatalog as $hex => $color)
                                         <label class="p-3 rounded-xl border-2 cursor-pointer flex items-center gap-2.5 transition"
-                                               :class="selectedColor === '{{ $color['hex'] }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-sm' : 'border-slate-200 dark:border-purple-900/60 hover:bg-slate-50 dark:hover:bg-purple-950/30'">
-                                            <input type="radio" name="custom_name_color" value="{{ $color['hex'] }}" x-model="selectedColor" class="sr-only">
+                                               :class="selectedColor === '{{ $hex }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-sm' : 'border-slate-200 dark:border-purple-900/60 hover:bg-slate-50 dark:hover:bg-purple-950/30'">
+                                            <input type="radio" name="custom_name_color" value="{{ $hex }}" x-model="selectedColor" class="sr-only">
                                             <span class="w-4 h-4 rounded-full {{ $color['class'] }} ring-1 ring-black/20 shrink-0"></span>
                                             <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 truncate">{{ $color['name'] }}</span>
                                         </label>
@@ -547,17 +626,37 @@
                                 </div>
                             </div>
 
-                            <!-- Sparkle Toggle (Tier 3+) -->
+                            <!-- 3. Naam Glow & Lichteffect -->
                             <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-purple-900/60">
                                 <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                                    2. Glitter Sparkle Shimmer Effect
+                                    3. Kies Naam Glow & Lichteffect
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach($vipGlowCatalog as $glowKey => $glowInfo)
+                                        <label class="p-3 rounded-xl border-2 cursor-pointer flex items-center justify-between gap-2.5 transition"
+                                               :class="selectedGlow === '{{ $glowKey }}' ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/60 shadow-sm' : 'border-slate-200 dark:border-purple-900/60 hover:bg-slate-50 dark:hover:bg-purple-950/30'">
+                                            <input type="radio" name="custom_name_glow" value="{{ $glowKey }}" x-model="selectedGlow" class="sr-only">
+                                            <div class="min-w-0">
+                                                <span class="text-xs font-extrabold text-slate-800 dark:text-slate-200 block">{{ $glowInfo['name'] }}</span>
+                                                <span class="text-[10px] text-slate-400 block truncate">{{ $glowInfo['desc'] }}</span>
+                                            </div>
+                                            <i class="fa-solid fa-circle-check text-purple-600 dark:text-purple-400 text-xs shrink-0" x-show="selectedGlow === '{{ $glowKey }}'"></i>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- 4. Sparkle Toggle (Tier 3+) -->
+                            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-purple-900/60">
+                                <label class="block text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                    4. Glitter Sparkle Shimmer Effect
                                 </label>
                                 @if($character->canUseSparkleEffect())
                                     <div class="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 flex items-center justify-between gap-4">
                                         <div class="space-y-1">
                                             <div class="text-xs font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                                                 <i class="fa-solid fa-sparkles text-pink-500"></i>
-                                                <span>Geanimeerde Regenboog & Glitter Gloed</span>
+                                                <span>Geanimeerde Glitter Shimmer & Sparkle Icoon</span>
                                             </div>
                                             <p class="text-[11px] text-slate-500 dark:text-slate-400">
                                                 Activeer een levendig bewegend glans- en glittereffect op je naam (exclusief voor Tier 3 en Lifetime).
@@ -577,7 +676,7 @@
                             </div>
 
                             <button type="submit" 
-                                    class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md">
+                                    class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider transition shadow-md cursor-pointer">
                                 Instellingen Opslaan
                             </button>
                         </form>
