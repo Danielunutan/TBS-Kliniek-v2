@@ -162,7 +162,7 @@
                             </div>
                             <div class="min-w-0">
                                 <span class="font-black text-amber-500 dark:text-amber-300 block text-xs uppercase tracking-wide">🎉 OOHPA Arjan Actie Geactiveerd!</span>
-                                <span class="text-[11px] font-semibold text-slate-700 dark:text-zinc-200 block">Maak nu je account aan en ontvang direct <strong class="text-amber-400 underline">1 Maand Gratis VIP</strong> status cadeau!</span>
+                                <span class="text-[11px] font-semibold text-slate-700 dark:text-zinc-200 block">Maak nu je account aan en ontvang direct <strong class="text-amber-400 underline">3 Dagen Gratis VIP</strong> status cadeau!</span>
                             </div>
                         </div>
                         @else
@@ -346,7 +346,7 @@
             </h3>
             
             <p class="text-xs text-slate-600 dark:text-purple-200/90 leading-relaxed">
-                Neem je vrienden of clan mee en meld je aan via ons ticket-systeem. Ontvang direct een <strong class="text-purple-700 dark:text-amber-300 font-black">Gratis Bende</strong>, <strong class="text-purple-700 dark:text-amber-300 font-black">€ 5.000.000 startkapitaal</strong> in jullie gangpot én <strong class="text-purple-700 dark:text-amber-300 font-black">31 dagen gratis VIP</strong> voor al je leden!
+                Neem je vrienden of clan mee en meld je aan via ons ticket-systeem. Ontvang direct een <strong class="text-purple-700 dark:text-amber-300 font-black">Gratis Bende</strong>, <strong class="text-purple-700 dark:text-amber-300 font-black">€ 5.000.000 startkapitaal</strong> in jullie gangpot én <strong class="text-purple-700 dark:text-amber-300 font-black">3 dagen gratis VIP</strong> voor al je leden!
             </p>
 
             <!-- 3 Quick Spotlight Badges -->
@@ -358,7 +358,7 @@
                     <i class="fa-solid fa-vault text-emerald-500 text-xs"></i> € 5.000.000 Kluisgeld
                 </span>
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/90 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/60 text-[11px] font-bold text-slate-800 dark:text-purple-200 shadow-2xs">
-                    <i class="fa-solid fa-star text-purple-500 dark:text-purple-400 text-xs"></i> 31 Dagen Gratis VIP
+                    <i class="fa-solid fa-star text-purple-500 dark:text-purple-400 text-xs"></i> 3 Dagen Gratis VIP
                 </span>
             </div>
         </div>

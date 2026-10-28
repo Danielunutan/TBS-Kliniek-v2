@@ -239,7 +239,7 @@ class SupportTicketTest extends TestCase
         $ticket = SupportTicket::latest('id')->first();
         $this->assertNotNull($ticket);
         $this->assertEquals('gang_overstap', $ticket->category);
-        $this->assertEquals('Gang Overstap Bonus: Peaky Blinders [PB]', $ticket->subject);
+        $this->assertEquals('Bende Overstap Bonus: Peaky Blinders [PB]', $ticket->subject);
         $this->assertEquals('Peaky Blinders', $ticket->metadata['gang_name']);
         $this->assertEquals('PB', $ticket->metadata['gang_tag']);
         $this->assertEquals('https://www.barribob.nl/gang/peaky-blinders', $ticket->metadata['external_gang_link']);

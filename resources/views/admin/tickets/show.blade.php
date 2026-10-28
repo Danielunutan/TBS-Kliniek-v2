@@ -84,7 +84,7 @@
                                 </span>
                                 @endif
                             </div>
-                            <p class="text-xs text-slate-600">Automatische bende-aanmaak, kluisstorting en 31 dagen VIP activatie.</p>
+                            <p class="text-xs text-slate-600">Automatische bende-aanmaak, kluisstorting en 3 dagen VIP activatie.</p>
                         </div>
                     </div>
 
@@ -159,14 +159,14 @@
                     </div>
 
                     <button type="submit" 
-                            data-confirm="Weet je zeker dat je deze Gang Overstap Bonus wilt goedkeuren? Bende wordt direct opgericht met €5.000.000 kluisgeld en 31 dagen VIP voor de bende!"
+                            data-confirm="Weet je zeker dat je deze Gang Overstap Bonus wilt goedkeuren? Bende wordt direct opgericht met €5.000.000 kluisgeld en 3 dagen VIP voor de bende!"
                             data-confirm-title="Gang Overstap Goedkeuren"
                             data-confirm-btn="Ja, Goedkeuren & Oprichten"
                             data-confirm-type="warning"
                             data-confirm-icon="fa-crown"
                             class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 active:scale-[0.99] text-white font-black text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-pointer transition">
                         <i class="fa-solid fa-crown text-amber-200 text-base"></i>
-                        <span>Gang Overstap Goedkeuren & Bende Direct Oprichten (€ 5.000.000 + 31 Dagen VIP)</span>
+                        <span>Gang Overstap Goedkeuren & Bende Direct Oprichten (€ 5.000.000 + 3 Dagen VIP)</span>
                     </button>
                 </form>
                 @else

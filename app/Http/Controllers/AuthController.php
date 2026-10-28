@@ -392,7 +392,7 @@ class AuthController extends Controller
         event(new Registered($user));
 
         $welcomeMsg = $isOohpaPromo
-            ? 'Welkom in TBS Kliniek, '.$validated['username'].'! 🎉 Jouw 1 Maand Gratis VIP via OOHPA Arjan is direct geactiveerd! Bevestig nog even je e-mailadres om direct te spelen.'
+            ? 'Welkom in TBS Kliniek, '.$validated['username'].'! 🎉 Jouw 3 Dagen Gratis VIP via OOHPA Arjan is direct geactiveerd! Bevestig nog even je e-mailadres om direct te spelen.'
             : ($verifiedDiscordId
                 ? 'Welkom in TBS Kliniek, '.$validated['username'].'! Je Discord is direct gekoppeld: je hebt €2.500 startbonus + 3 dagen gratis VIP ontvangen! Bevestig nog even je e-mailadres.'
                 : 'Welkom in TBS Kliniek, '.$validated['username'].'! Bevestig je e-mailadres via de verzonden e-mail om te kunnen spelen.');

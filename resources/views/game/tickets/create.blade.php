@@ -69,7 +69,7 @@
                                 <i class="fa-solid fa-users-between-lines"></i>
                             </div>
                             <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black uppercase tracking-wider shadow-2xs animate-pulse">
-                                🔥 €5M + 31D VIP
+                                🔥 €5M + 3D VIP
                             </span>
                         </div>
                         <div>
@@ -210,7 +210,7 @@
                             <i class="fa-solid fa-star text-purple-500 text-base"></i>
                             <div>
                                 <span class="block text-[10px] font-bold text-slate-400 uppercase">VIP Voor Iedereen</span>
-                                <strong class="text-purple-700 dark:text-purple-300 font-black">31 Dagen Gratis VIP</strong>
+                                <strong class="text-purple-700 dark:text-purple-300 font-black">3 Dagen Gratis VIP</strong>
                             </div>
                         </div>
                     </div>

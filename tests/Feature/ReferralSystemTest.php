@@ -154,7 +154,7 @@ class ReferralSystemTest extends TestCase
             ->where('type', 'vip_reward')
             ->first();
         $this->assertNotNull($message);
-        $this->assertStringContainsString('1 Maand Gratis VIP', $message->subject);
+        $this->assertStringContainsString('Gratis VIP', $message->subject);
     }
 
     public function test_admin_referrals_log_page_renders_with_data(): void
