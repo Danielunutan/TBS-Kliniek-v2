@@ -604,7 +604,7 @@
                         if (document.visibilityState === 'visible' && !window.location.pathname.startsWith('/onboarding')) {
                             this.refresh();
                         }
-                    }, 25000);
+                    }, 10000);
 
                     if (window._tbsStatsRefreshListener) {
                         window.removeEventListener('stats:refresh', window._tbsStatsRefreshListener);
@@ -693,12 +693,24 @@
                     if (data.onlineCount !== undefined) {
                         this.stats.onlineCount = data.onlineCount;
                     }
+
+                    // Real-time live alert toast (e.g. attacked/robbed on Luchtplaats)
+                    if (data.alert && typeof window.tbsToast === 'function') {
+                        const alertId = data.alert.id;
+                        if (!window._tbsSeenAlerts) {
+                            window._tbsSeenAlerts = new Set();
+                        }
+                        if (!window._tbsSeenAlerts.has(alertId)) {
+                            window._tbsSeenAlerts.add(alertId);
+                            window.tbsToast(data.alert.message, data.alert.type || 'danger', 8000);
+                        }
+                    }
                 },
                 async refresh(force = false) {
                     if (window.location.pathname.startsWith('/onboarding')) return;
                     const now = Date.now();
                     const lastGlobal = window._tbsLastStatsFetchAt || 0;
-                    if (!force && (now - Math.max(this.lastRefreshTime, lastGlobal) < 10000)) return;
+                    if (!force && (now - Math.max(this.lastRefreshTime, lastGlobal) < 8000)) return;
                     if (force && (now - lastGlobal < 1200)) return;
                     if (this.isRefreshing || window._tbsStatsFetchInFlight) return;
                     this.isRefreshing = true;

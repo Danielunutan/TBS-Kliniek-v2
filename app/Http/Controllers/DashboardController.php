@@ -541,6 +541,30 @@ class DashboardController extends Controller
             ];
         });
 
+        // Check for urgent unread notifications (e.g. attacked/robbed on Luchtplaats, prison, hitman) within the last 120 seconds
+        $latestAlert = GameNotification::where('character_id', $character->id)
+            ->where('is_read', false)
+            ->whereIn('type', ['theft', 'bounty_claimed', 'prison', 'hitman_hit', 'attack'])
+            ->where('created_at', '>=', now()->subSeconds(120))
+            ->latest('id')
+            ->first();
+
+        if ($latestAlert) {
+            $data['alert'] = [
+                'id' => (int) $latestAlert->id,
+                'title' => (string) $latestAlert->title,
+                'message' => (string) $latestAlert->message,
+                'icon' => (string) $latestAlert->icon,
+                'type' => match ($latestAlert->type) {
+                    'theft', 'hitman_hit', 'attack' => 'danger',
+                    'prison' => 'warning',
+                    'bounty_claimed' => 'warning',
+                    default => 'info',
+                },
+            ];
+            $latestAlert->update(['is_read' => true]);
+        }
+
         return response()->json($data);
     }
 

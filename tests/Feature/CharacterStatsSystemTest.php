@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Character;
 use App\Models\CharacterItem;
+use App\Models\GameNotification;
 use App\Models\Item;
 use App\Models\Mission;
 use App\Models\User;
@@ -157,5 +158,38 @@ class CharacterStatsSystemTest extends TestCase
         $response->assertRedirect();
         // Energy consumed
         $this->assertLessThan(100, $character->fresh()->energy);
+    }
+
+    public function test_realtime_stats_returns_urgent_alert_and_marks_it_read(): void
+    {
+        /** @var User $user */
+        $user = User::first();
+        $character = $user->character;
+
+        GameNotification::create([
+            'character_id' => $character->id,
+            'type' => 'theft',
+            'icon' => 'fa-sack-dollar',
+            'title' => 'Bestolen op de luchtplaats!',
+            'message' => 'OOHPA Arjan heeft je overmeesterd op de luchtplaats en €50.000 contant uit je zakken geroofd!',
+            'is_read' => false,
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->getJson(route('character.realtime-stats'));
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'cash',
+            'bank',
+            'energy',
+            'health',
+            'alert' => ['id', 'title', 'message', 'type'],
+        ]);
+        $response->assertJsonPath('alert.type', 'danger');
+        $this->assertStringContainsString('OOHPA Arjan', $response->json('alert.message'));
+
+        // Notification is marked read so subsequent poll won't re-trigger
+        $this->assertTrue((bool) GameNotification::where('character_id', $character->id)->latest('id')->first()->is_read);
     }
 }
