@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\GameNotification;
 use App\Services\EnergyService;
 use App\Services\LevelService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,11 @@ class BattlePassController extends Controller
 {
     public const MAX_PASS_LEVEL = 150;
 
+    /**
+     * @var array<int, array{level: int, req_level: int, req_respect: int, tracks: array<string, array{title: string, icon: string, rewards: array<string, int>, summary: string}>}>|null
+     */
+    protected static ?array $cachedConfig = null;
+
     public function __construct(
         protected EnergyService $energyService,
         protected LevelService $levelService,
@@ -22,12 +28,16 @@ class BattlePassController extends Controller
 
     /**
      * Get the full configuration of the Season Battle Pass (150 Levels, 4 Tracks: FREE, TBS V.I.P. Lid, Gangster Elite V.I.P., Kliniek Baas V.I.P.).
-     * Rewards feature scarce Stars, minimal Masks, Vault Codes (Kluiscodex), XP, Respect, Cash/Bank, and Strength (Kracht).
+     * Rewards feature scarce Stars, minimal Masks, Vault Codes (Codes), XP, Respect, Cash/Bank, and Strength (Kracht).
      *
      * @return array<int, array{level: int, req_level: int, req_respect: int, tracks: array<string, array{title: string, icon: string, rewards: array<string, int>, summary: string}>}>
      */
     public static function getPassConfig(): array
     {
+        if (self::$cachedConfig !== null) {
+            return self::$cachedConfig;
+        }
+
         $levels = [];
 
         $freeTitles = [
@@ -432,7 +442,9 @@ class BattlePassController extends Controller
             ];
         }
 
-        return $levels;
+        self::$cachedConfig = $levels;
+
+        return self::$cachedConfig;
     }
 
     /**
@@ -490,7 +502,7 @@ class BattlePassController extends Controller
     /**
      * Claim an individual Battle Pass reward.
      */
-    public function claim(Request $request): RedirectResponse
+    public function claim(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'level' => 'required|integer|between:1,'.self::MAX_PASS_LEVEL,
@@ -504,7 +516,7 @@ class BattlePassController extends Controller
 
         $config = self::getPassConfig();
         if (! isset($config[$lvl]['tracks'][$track])) {
-            return back()->with('error', 'Ongeldig Battle Pass niveau of spoor.');
+            return $this->respondBp($request, false, 'Ongeldig Battle Pass niveau of spoor.');
         }
 
         $levelData = $config[$lvl];
@@ -512,7 +524,7 @@ class BattlePassController extends Controller
 
         // Check level requirement
         if ($character->level < $levelData['req_level']) {
-            return back()->with('error', "Je moet minimaal Level {$levelData['req_level']} hebben bereikt om dit niveau te ontgrendelen.");
+            return $this->respondBp($request, false, "Je moet minimaal Level {$levelData['req_level']} hebben bereikt om dit niveau te ontgrendelen.");
         }
 
         // Check VIP tier requirement
@@ -520,15 +532,15 @@ class BattlePassController extends Controller
         $isVip = $character->isVip();
 
         if ($track === 'vip1' && (! $isVip || $supporterTier < 1)) {
-            return back()->with('error', 'Voor deze pas heb je minimaal TBS V.I.P. Lid (VIP 1) status nodig.');
+            return $this->respondBp($request, false, 'Voor deze pas heb je minimaal TBS V.I.P. Lid (VIP 1) status nodig.');
         }
 
         if ($track === 'vip2' && (! $isVip || $supporterTier < 2)) {
-            return back()->with('error', 'Voor deze pas heb je minimaal Gangster Elite V.I.P. (VIP 2) status nodig.');
+            return $this->respondBp($request, false, 'Voor deze pas heb je minimaal Gangster Elite V.I.P. (VIP 2) status nodig.');
         }
 
         if ($track === 'vip3' && (! $isVip || $supporterTier < 3)) {
-            return back()->with('error', 'Voor deze pas heb je minimaal Kliniek Baas V.I.P. (VIP 3) status nodig.');
+            return $this->respondBp($request, false, 'Voor deze pas heb je minimaal Kliniek Baas V.I.P. (VIP 3) status nodig.');
         }
 
         $perks = $character->perks ?? [];
@@ -536,7 +548,7 @@ class BattlePassController extends Controller
         $claimKey = "lvl_{$lvl}_{$track}";
 
         if (in_array($claimKey, $claims, true)) {
-            return back()->with('info', 'Je hebt deze beloning al geclaimd.');
+            return $this->respondBp($request, false, 'Je hebt deze beloning al geclaimd.', 'info', $claims);
         }
 
         // Record claim first, then grant rewards (including XP level-ups)
@@ -556,13 +568,13 @@ class BattlePassController extends Controller
             'is_read' => false,
         ]);
 
-        return back()->with('success', "🎉 Battle Pass Level {$lvl} ({$trackData['title']}) geclaimd: {$trackData['summary']}!");
+        return $this->respondBp($request, true, "🎉 Battle Pass Level {$lvl} ({$trackData['title']}) geclaimd: {$trackData['summary']}!", 'success', $claims);
     }
 
     /**
      * Claim all available unlocked rewards in one click.
      */
-    public function claimAll(Request $request): RedirectResponse
+    public function claimAll(Request $request): RedirectResponse|JsonResponse
     {
         /** @var Character $character */
         $character = Auth::user()->character;
@@ -570,6 +582,7 @@ class BattlePassController extends Controller
 
         $perks = $character->perks ?? [];
         $claims = $perks['battle_pass_claims'] ?? [];
+        $claimLookup = array_flip($claims);
         $supporterTier = $character->getSupporterTier();
         $isVip = $character->isVip();
 
@@ -594,20 +607,21 @@ class BattlePassController extends Controller
 
             foreach ($tracksToCheck as $track) {
                 $claimKey = "lvl_{$lvlNum}_{$track}";
-                if (! in_array($claimKey, $claims, true)) {
+                if (! isset($claimLookup[$claimKey])) {
                     $rewards = $data['tracks'][$track]['rewards'];
                     foreach ($rewards as $key => $amount) {
                         $aggregatedRewards[$key] = ($aggregatedRewards[$key] ?? 0) + $amount;
                     }
 
                     $claims[] = $claimKey;
+                    $claimLookup[$claimKey] = true;
                     $claimedCount++;
                 }
             }
         }
 
         if ($claimedCount === 0) {
-            return back()->with('info', 'Er zijn op dit moment geen ongeclaimde beloningen die voor jou ontgrendeld zijn.');
+            return $this->respondBp($request, false, 'Er zijn op dit moment geen ongeclaimde beloningen die voor jou ontgrendeld zijn.', 'info', $claims);
         }
 
         $perks['battle_pass_claims'] = $claims;
@@ -625,7 +639,45 @@ class BattlePassController extends Controller
             'is_read' => false,
         ]);
 
-        return back()->with('success', "🎉 Gefeliciteerd! Je hebt in één klik {$claimedCount} Battle Pass beloningen geclaimd (".self::formatSummary($aggregatedRewards).')!');
+        return $this->respondBp($request, true, "🎉 Gefeliciteerd! Je hebt in één klik {$claimedCount} Battle Pass beloningen geclaimd (".self::formatSummary($aggregatedRewards).')!', 'success', $claims);
+    }
+
+    /**
+     * Return instant JSON for Alpine fetch or standard RedirectResponse fallback.
+     *
+     * @param  array<int, string>  $claims
+     */
+    protected function respondBp(Request $request, bool $success, string $message, string $type = 'error', array $claims = []): RedirectResponse|JsonResponse
+    {
+        /** @var Character $character */
+        $character = Auth::user()->character->fresh();
+
+        if ($request->hasHeader('X-BP-Fast')) {
+            return response()->json([
+                'success' => $success,
+                'type' => $type,
+                'message' => $message,
+                'claims' => array_values($claims ?: ($character->perks['battle_pass_claims'] ?? [])),
+                'claimableCount' => $character->getUnclaimedBattlePassCount(),
+                'character' => [
+                    'level' => $character->level,
+                    'xp' => $character->xp,
+                    'cash' => $character->cash,
+                    'bank' => $character->bank,
+                    'respect' => $character->respect,
+                    'strength' => $character->strength,
+                    'stars' => $character->stars,
+                    'vault_tokens' => $character->vault_tokens,
+                    'masks' => $character->masks,
+                    'energy' => $character->energy,
+                    'max_energy' => $character->max_energy,
+                    'health' => $character->health,
+                    'max_health' => $character->max_health,
+                ],
+            ]);
+        }
+
+        return back()->with($type, $message);
     }
 
     /**

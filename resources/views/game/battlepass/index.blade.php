@@ -3,46 +3,53 @@
 @section('content')
 @php
     $maxPassLevel = count($config);
-    $unlockedCount = 0;
+    $unlockedCount = min($maxPassLevel, max(0, (int) $character->level));
+    $highestUnlockedLevel = max(1, $unlockedCount);
+    $claimLookup = array_flip($claims);
+
     $firstClaimableLevel = null;
-    $highestUnlockedLevel = 1;
+    for ($lvlNum = 1; $lvlNum <= $unlockedCount; $lvlNum++) {
+        $freeUnclaimed = !isset($claimLookup["lvl_{$lvlNum}_free"]);
+        $vip1Unclaimed = ($isVip && $supporterTier >= 1) && !isset($claimLookup["lvl_{$lvlNum}_vip1"]);
+        $vip2Unclaimed = ($isVip && $supporterTier >= 2) && !isset($claimLookup["lvl_{$lvlNum}_vip2"]);
+        $vip3Unclaimed = ($isVip && $supporterTier >= 3) && !isset($claimLookup["lvl_{$lvlNum}_vip3"]);
 
-    foreach ($config as $lvlNum => $lvlData) {
-        $unlocked = $character->level >= $lvlData['req_level'];
-        if ($unlocked) {
-            $unlockedCount++;
-            $highestUnlockedLevel = $lvlNum;
-
-            $freeUnclaimed = !in_array("lvl_{$lvlNum}_free", $claims, true);
-            $vip1Unclaimed = ($isVip && $supporterTier >= 1) && !in_array("lvl_{$lvlNum}_vip1", $claims, true);
-            $vip2Unclaimed = ($isVip && $supporterTier >= 2) && !in_array("lvl_{$lvlNum}_vip2", $claims, true);
-            $vip3Unclaimed = ($isVip && $supporterTier >= 3) && !in_array("lvl_{$lvlNum}_vip3", $claims, true);
-
-            if ($firstClaimableLevel === null && ($freeUnclaimed || $vip1Unclaimed || $vip2Unclaimed || $vip3Unclaimed)) {
-                $firstClaimableLevel = $lvlNum;
-            }
+        if ($freeUnclaimed || $vip1Unclaimed || $vip2Unclaimed || $vip3Unclaimed) {
+            $firstClaimableLevel = $lvlNum;
+            break;
         }
     }
 
     $initialTargetLevel = $firstClaimableLevel ?? $highestUnlockedLevel;
 
-    // Reward chip helper for visual badges (Cash, Bank, XP, Kracht, Respect, Codes, Sterren, Maskers, etc.)
-    $rewardMeta = [
-        'cash'          => ['icon' => 'fa-sack-dollar',      'label' => 'Cash',       'prefix' => '€', 'color' => 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'],
-        'bank'          => ['icon' => 'fa-building-columns', 'label' => 'Bank',       'prefix' => '€', 'color' => 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30'],
-        'xp'            => ['icon' => 'fa-bolt-lightning',   'label' => 'XP',         'prefix' => '+', 'color' => 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/35'],
-        'strength'      => ['icon' => 'fa-dumbbell',         'label' => 'Kracht',     'prefix' => '+', 'color' => 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/35'],
-        'respect'       => ['icon' => 'fa-handshake-simple', 'label' => 'Respect',    'prefix' => '+', 'color' => 'bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/30'],
-        'vault_tokens'  => ['icon' => 'fa-key',              'label' => 'Codes',      'prefix' => '',  'color' => 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/35'],
-        'stars'         => ['icon' => 'fa-star',             'label' => 'Sterren',    'prefix' => '',  'color' => 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/35'],
-        'masks'         => ['icon' => 'fa-mask',             'label' => 'Masker',     'prefix' => '',  'color' => 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30'],
-        'unopened_bags' => ['icon' => 'fa-briefcase',        'label' => 'Koffer',     'prefix' => '',  'color' => 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'],
-        'xxl_cases'     => ['icon' => 'fa-box-open',         'label' => 'XXL Kist',   'prefix' => '',  'color' => 'bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-400/50'],
-        'bullets'       => ['icon' => 'fa-crosshairs',       'label' => 'Kogels',     'prefix' => '',  'color' => 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30'],
-        'vip_points'    => ['icon' => 'fa-crown',            'label' => 'VIP Pnt',    'prefix' => '+', 'color' => 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30'],
-        'energy'        => ['icon' => 'fa-bolt',             'label' => 'Energie',    'prefix' => '+', 'color' => 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30'],
-        'health'        => ['icon' => 'fa-heart-pulse',      'label' => 'HP',         'prefix' => '+', 'color' => 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30'],
-    ];
+    // Compact JSON payload for ultra-fast client-side Alpine rendering (only 1 active card in DOM!)
+    $levelsPayload = [];
+    foreach ($config as $lvlNum => $lvlData) {
+        $tracksPayload = [];
+        foreach (['free', 'vip1', 'vip2', 'vip3'] as $tKey) {
+            $t = $lvlData['tracks'][$tKey];
+            $chips = [];
+            foreach ($t['rewards'] as $rKey => $rVal) {
+                $chips[] = [
+                    'key' => $rKey,
+                    'val' => number_format($rVal, 0, ',', '.'),
+                    'raw' => $rVal,
+                ];
+            }
+            $tracksPayload[$tKey] = [
+                'title' => $t['title'],
+                'icon' => $t['icon'],
+                'chips' => $chips,
+            ];
+        }
+        $levelsPayload[$lvlNum] = [
+            'level' => $lvlNum,
+            'req_level' => $lvlData['req_level'],
+            'req_respect' => number_format($lvlData['req_respect'], 0, ',', '.'),
+            'has_respect' => $lvlData['req_respect'] > 0,
+            'tracks' => $tracksPayload,
+        ];
+    }
 
     $tracksMeta = [
         'free' => [
@@ -110,79 +117,210 @@
             'icon'        => 'fa-crown',
         ],
     ];
+    $bpFrontendPayload = [
+        'levels' => $levelsPayload,
+        'claims' => array_values($claims),
+        'playerLevel' => (int) $character->level,
+        'playerRespect' => number_format($character->respect, 0, ',', '.'),
+        'playerStrength' => number_format($character->strength, 0, ',', '.'),
+        'isVip' => (bool) $isVip,
+        'supporterTier' => (int) $supporterTier,
+        'claimableCount' => (int) $claimableCount,
+        'initialLevel' => (int) $initialTargetLevel,
+        'maxLevel' => (int) $maxPassLevel,
+        'claimUrl' => route('battlepass.claim'),
+        'claimAllUrl' => route('battlepass.claim_all'),
+        'vipShopUrl' => route('vip.index', ['tab' => 'pakketten']),
+    ];
 @endphp
+
+<script>
+    window.__TBS_BP_DATA__ = @json($bpFrontendPayload);
+</script>
 
 <div class="space-y-5"
      x-data="{
-        activeLevel: {{ $initialTargetLevel }},
-        totalLevels: {{ $maxPassLevel }},
-        scrollToLevel(lvl, smooth = true) {
-            const target = Math.max(1, Math.min(this.totalLevels, lvl));
-            this.activeLevel = target;
-            const slider = this.$refs.levelCarousel;
-            const slide = document.getElementById('bp-slide-' + target);
-            if (slider && slide) {
-                const scrollLeft = slide.offsetLeft - slider.offsetLeft - (slider.clientWidth / 2) + (slide.clientWidth / 2);
-                slider.scrollTo({ left: Math.max(0, scrollLeft), behavior: smooth ? 'smooth' : 'instant' });
+        activeLevel: window.__TBS_BP_DATA__.initialLevel,
+        totalLevels: window.__TBS_BP_DATA__.maxLevel,
+        levels: window.__TBS_BP_DATA__.levels,
+        claimedMap: Object.fromEntries((window.__TBS_BP_DATA__.claims || []).map(k => [k, true])),
+        playerLevel: window.__TBS_BP_DATA__.playerLevel,
+        playerRespect: window.__TBS_BP_DATA__.playerRespect,
+        playerStrength: window.__TBS_BP_DATA__.playerStrength,
+        isVip: window.__TBS_BP_DATA__.isVip,
+        supporterTier: window.__TBS_BP_DATA__.supporterTier,
+        claimableCount: window.__TBS_BP_DATA__.claimableCount,
+        busyKey: null,
+        touchStartX: 0,
+
+        get currentItem() {
+            return this.levels[this.activeLevel] || this.levels[1];
+        },
+        get isCurrentUnlocked() {
+            return this.playerLevel >= this.currentItem.req_level;
+        },
+        get rangeStart() {
+            return Math.floor((this.activeLevel - 1) / 30) * 30 + 1;
+        },
+        get visiblePills() {
+            const start = this.rangeStart;
+            const arr = [];
+            for (let i = start; i <= Math.min(this.totalLevels, start + 29); i++) {
+                arr.push(i);
             }
-            const pillStrip = this.$refs.pillStrip;
-            const pill = document.getElementById('bp-pill-' + target);
-            if (pillStrip && pill) {
-                const pillLeft = pill.offsetLeft - pillStrip.offsetLeft - (pillStrip.clientWidth / 2) + (pill.clientWidth / 2);
-                pillStrip.scrollTo({ left: Math.max(0, pillLeft), behavior: smooth ? 'smooth' : 'instant' });
+            return arr;
+        },
+        isClaimed(lvl, track) {
+            return !!this.claimedMap['lvl_' + lvl + '_' + track];
+        },
+        isTrackUnlocked(track) {
+            if (track === 'free') return true;
+            if (track === 'vip1') return this.isVip && this.supporterTier >= 1;
+            if (track === 'vip2') return this.isVip && this.supporterTier >= 2;
+            if (track === 'vip3') return this.isVip && this.supporterTier >= 3;
+            return false;
+        },
+        canClaim(lvl, track) {
+            return (this.playerLevel >= lvl) && this.isTrackUnlocked(track) && !this.isClaimed(lvl, track);
+        },
+        hasUnclaimedOnLevel(lvl) {
+            if (this.playerLevel < lvl) return false;
+            if (!this.isClaimed(lvl, 'free')) return true;
+            if (this.isVip && this.supporterTier >= 1 && !this.isClaimed(lvl, 'vip1')) return true;
+            if (this.isVip && this.supporterTier >= 2 && !this.isClaimed(lvl, 'vip2')) return true;
+            if (this.isVip && this.supporterTier >= 3 && !this.isClaimed(lvl, 'vip3')) return true;
+            return false;
+        },
+        firstClaimableLvl() {
+            const max = Math.min(this.totalLevels, this.playerLevel);
+            for (let i = 1; i <= max; i++) {
+                if (this.hasUnclaimedOnLevel(i)) return i;
             }
+            return null;
+        },
+        goToLevel(lvl) {
+            this.activeLevel = Math.max(1, Math.min(this.totalLevels, Number(lvl) || 1));
         },
         prevSlide() {
-            if (this.activeLevel > 1) {
-                this.scrollToLevel(this.activeLevel - 1);
-            } else {
-                this.scrollToLevel(this.totalLevels);
-            }
+            this.activeLevel = this.activeLevel > 1 ? this.activeLevel - 1 : this.totalLevels;
         },
         nextSlide() {
-            if (this.activeLevel < this.totalLevels) {
-                this.scrollToLevel(this.activeLevel + 1);
-            } else {
-                this.scrollToLevel(1);
-            }
+            this.activeLevel = this.activeLevel < this.totalLevels ? this.activeLevel + 1 : 1;
         },
-        onCarouselScroll() {
-            const slider = this.$refs.levelCarousel;
-            if (!slider) return;
-            const center = slider.scrollLeft + (slider.clientWidth / 2);
-            let closest = this.activeLevel;
-            let minDiff = Infinity;
-            for (let i = 1; i <= this.totalLevels; i++) {
-                const el = document.getElementById('bp-slide-' + i);
-                if (el) {
-                    const elCenter = (el.offsetLeft - slider.offsetLeft) + (el.clientWidth / 2);
-                    const diff = Math.abs(center - elCenter);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closest = i;
-                    }
-                }
-            }
-            if (closest !== this.activeLevel) {
-                this.activeLevel = closest;
-            }
+        chipMeta(key, rawVal) {
+            const map = {
+                cash:          { icon: 'fa-sack-dollar',      label: 'Cash',       prefix: '€', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' },
+                bank:          { icon: 'fa-building-columns', label: 'Bank',       prefix: '€', cls: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30' },
+                xp:            { icon: 'fa-bolt-lightning',   label: 'XP',         prefix: '+', cls: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/35' },
+                strength:      { icon: 'fa-dumbbell',         label: 'Kracht',     prefix: '+', cls: 'bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/35' },
+                respect:       { icon: 'fa-handshake-simple', label: 'Respect',    prefix: '+', cls: 'bg-fuchsia-500/15 text-fuchsia-700 dark:text-fuchsia-300 border-fuchsia-500/30' },
+                vault_tokens:  { icon: 'fa-key',              label: rawVal === 1 ? 'Code' : 'Codes', prefix: '', cls: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300 border-yellow-500/35' },
+                stars:         { icon: 'fa-star',             label: rawVal === 1 ? 'Ster' : 'Sterren', prefix: '', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/35' },
+                masks:         { icon: 'fa-mask',             label: rawVal === 1 ? 'Masker' : 'Maskers', prefix: '', cls: 'bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30' },
+                unopened_bags: { icon: 'fa-briefcase',        label: 'Koffer',     prefix: '',  cls: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30' },
+                xxl_cases:     { icon: 'fa-box-open',         label: 'XXL Kist',   prefix: '',  cls: 'bg-amber-500/20 text-amber-800 dark:text-amber-200 border-amber-400/50' },
+                bullets:       { icon: 'fa-crosshairs',       label: 'Kogels',     prefix: '',  cls: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30' },
+                vip_points:    { icon: 'fa-crown',            label: 'VIP Pnt',    prefix: '+', cls: 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30' },
+                energy:        { icon: 'fa-bolt',             label: 'Energie',    prefix: '+', cls: 'bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30' },
+                health:        { icon: 'fa-heart-pulse',      label: 'HP',         prefix: '+', cls: 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30' },
+            };
+            return map[key] || { icon: 'fa-gift', label: key, prefix: '', cls: 'bg-purple-500/15 text-purple-300 border-purple-500/30' };
         },
         fireConfetti(mode = 'normal') {
             if (typeof window.tbsFireConfetti === 'function') {
                 window.tbsFireConfetti(mode);
             }
+        },
+        async claimReward(lvl, track) {
+            if (this.busyKey) return;
+            const key = 'lvl_' + lvl + '_' + track;
+            this.busyKey = key;
+            // Optimistic UI update + instant confetti!
+            this.claimedMap[key] = true;
+            if (this.claimableCount > 0) this.claimableCount--;
+            this.fireConfetti('normal');
+            if (window.tbsVibrate) window.tbsVibrate(20);
+
+            try {
+                const token = document.querySelector('meta[name=\'csrf-token\']')?.getAttribute('content');
+                const fd = new FormData();
+                fd.append('_token', token);
+                fd.append('level', lvl);
+                fd.append('track', track);
+
+                const res = await fetch(window.__TBS_BP_DATA__.claimUrl, {
+                    method: 'POST',
+                    body: fd,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-BP-Fast': '1',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                this.applyServerResponse(data);
+            } catch (e) {
+                delete this.claimedMap[key];
+                if (window.tbsToast) window.tbsToast('Netwerkfout bij claimen.', 'error');
+            } finally {
+                this.busyKey = null;
+            }
+        },
+        async claimAllRewards() {
+            if (this.busyKey || this.claimableCount <= 0) return;
+            this.busyKey = 'all';
+            this.fireConfetti('mega');
+            if (window.tbsVibrate) window.tbsVibrate([25, 40, 25]);
+
+            try {
+                const token = document.querySelector('meta[name=\'csrf-token\']')?.getAttribute('content');
+                const fd = new FormData();
+                fd.append('_token', token);
+
+                const res = await fetch(window.__TBS_BP_DATA__.claimAllUrl, {
+                    method: 'POST',
+                    body: fd,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-BP-Fast': '1',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                this.applyServerResponse(data);
+            } catch (e) {
+                if (window.tbsToast) window.tbsToast('Netwerkfout bij alles claimen.', 'error');
+            } finally {
+                this.busyKey = null;
+            }
+        },
+        applyServerResponse(data) {
+            if (!data) return;
+            if (Array.isArray(data.claims)) {
+                this.claimedMap = Object.fromEntries(data.claims.map(k => [k, true]));
+            }
+            if (typeof data.claimableCount === 'number') {
+                this.claimableCount = data.claimableCount;
+            }
+            if (data.character) {
+                this.playerLevel = data.character.level || this.playerLevel;
+                this.playerRespect = Number(data.character.respect || 0).toLocaleString('nl-NL');
+                this.playerStrength = Number(data.character.strength || 0).toLocaleString('nl-NL');
+                if (window.tbsApplyStats) window.tbsApplyStats(data.character);
+            }
+            if (data.message && window.tbsToast) {
+                window.tbsToast(data.message, data.type || (data.success ? 'success' : 'error'));
+            }
         }
      }"
-     x-init="setTimeout(() => scrollToLevel(activeLevel, false), 60)">
+     @keydown.window.arrow-left="prevSlide()"
+     @keydown.window.arrow-right="nextSlide()">
 
     <!-- PAARSE TBS KLINIEK HERO BANNER -->
     <div class="relative overflow-hidden rounded-3xl bg-slate-950 text-white border-2 border-purple-500/40 shadow-xl">
-        <!-- TBS Purple Artwork Background -->
-        <div class="absolute inset-0 bg-cover bg-center opacity-35 mix-blend-luminosity"
+        <div class="absolute inset-0 bg-cover bg-center opacity-35"
              style="background-image: url('{{ asset('assets/illustrations/tbs_purple_hero.jpg') }}');"></div>
         <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-purple-950/90 to-slate-950/85"></div>
-        <div class="absolute -right-20 -top-20 w-72 h-72 bg-purple-600/25 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div class="space-y-3 max-w-2xl">
@@ -199,24 +337,25 @@
 
                 <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3 flex-wrap">
                     <span>TBS Kliniek Battle Pass</span>
-                    <span class="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-purple-600/50 border border-purple-400/50 text-purple-100">
+                    <span class="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-purple-600/50 border border-purple-400/50 text-purple-100"
+                          x-text="Math.min(totalLevels, playerLevel) + ' / ' + totalLevels + ' Levels Ontgrendeld'">
                         {{ $unlockedCount }} / {{ $maxPassLevel }} Levels Ontgrendeld
                     </span>
                 </h1>
 
                 <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                    Blader met de paarse pijlen door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong> en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Codes, Sterren en schaarse Maskers</strong>! Speel extra rangen vrij met <strong class="text-white">TBS V.I.P. Lid (VIP 1), Gangster Elite V.I.P. (VIP 2) &amp; Kliniek Baas V.I.P. (VIP 3)</strong>.
+                    Blader razendsnel met de paarse pijlen (of je pijltjestoetsen) door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong> en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Codes, Sterren en schaarse Maskers</strong>! Speel extra rangen vrij met <strong class="text-white">TBS V.I.P. Lid (VIP 1), Gangster Elite V.I.P. (VIP 2) &amp; Kliniek Baas V.I.P. (VIP 3)</strong>.
                 </p>
 
                 <!-- Speler Status & Directe Link naar VIP Lidmaatschap Winkel -->
                 <div class="pt-1 flex flex-wrap items-center gap-2.5">
                     <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/40 text-xs font-bold text-purple-100">
                         <i class="fa-solid fa-user-shield text-purple-400"></i>
-                        <span>Jouw Level: <strong class="text-white">{{ $character->level }}</strong></span>
+                        <span>Jouw Level: <strong class="text-white" x-text="playerLevel">{{ $character->level }}</strong></span>
                         <span class="text-purple-400">&bull;</span>
-                        <span>{{ number_format($character->respect, 0, ',', '.') }} Respect</span>
+                        <span x-text="playerRespect + ' Respect'">{{ number_format($character->respect, 0, ',', '.') }} Respect</span>
                         <span class="text-purple-400">&bull;</span>
-                        <span>{{ number_format($character->strength, 0, ',', '.') }} Kracht</span>
+                        <span x-text="playerStrength + ' Kracht'">{{ number_format($character->strength, 0, ',', '.') }} Kracht</span>
                     </div>
 
                     @if($isVip && $character->vip_badge)
@@ -241,15 +380,13 @@
             </div>
 
             <!-- Rechts: Claim Alles + Confetti Box -->
-            <div class="bg-purple-950/75 backdrop-blur-md border-2 border-purple-400/40 rounded-2xl p-4 sm:p-5 shrink-0 flex flex-col justify-between space-y-3 min-w-[265px] shadow-lg">
+            <div class="bg-purple-950/85 border-2 border-purple-400/40 rounded-2xl p-4 sm:p-5 shrink-0 flex flex-col justify-between space-y-3 min-w-[265px] shadow-lg">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-purple-300 block">Klaar in je Kluis</span>
                         <div class="text-2xl font-black text-white mt-0.5 flex items-center gap-2">
-                            <span>{{ $claimableCount }} {{ $claimableCount === 1 ? 'Beloning' : 'Beloningen' }}</span>
-                            @if($claimableCount > 0)
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                            @endif
+                            <span x-text="claimableCount + (claimableCount === 1 ? ' Beloning' : ' Beloningen')">{{ $claimableCount }} Beloningen</span>
+                            <span x-show="claimableCount > 0" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                         </div>
                     </div>
                     <button type="button"
@@ -263,31 +400,32 @@
                 <!-- Battle Pass Progressie Balk (150 Levels) -->
                 <div class="space-y-1">
                     <div class="flex justify-between text-[10px] font-bold text-purple-200">
-                        <span>Battle Pass Voortgang ({{ $unlockedCount }}/{{ $maxPassLevel }})</span>
-                        <span>{{ round(($unlockedCount / $maxPassLevel) * 100) }}%</span>
+                        <span x-text="'Battle Pass Voortgang (' + Math.min(totalLevels, playerLevel) + '/' + totalLevels + ')'"></span>
+                        <span x-text="Math.round((Math.min(totalLevels, playerLevel) / totalLevels) * 100) + '%'"></span>
                     </div>
                     <div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden p-0.5 border border-purple-500/30">
-                        <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-amber-400 transition-all duration-500"
-                             style="width: {{ min(100, round(($unlockedCount / $maxPassLevel) * 100)) }}%"></div>
+                        <div class="h-full rounded-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-amber-400 transition-all duration-300"
+                             :style="'width: ' + Math.min(100, Math.round((Math.min(totalLevels, playerLevel) / totalLevels) * 100)) + '%'"></div>
                     </div>
                 </div>
 
-                @if($claimableCount > 0)
-                    <form action="{{ route('battlepass.claim_all') }}" method="POST" @submit="fireConfetti('mega')">
-                        @csrf
-                        <button type="submit" class="btn-star-gold w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer active:scale-95">
-                            <i class="fa-solid fa-gifts"></i>
-                            <span>Claim Alle {{ $claimableCount }} Prijzen!</span>
-                        </button>
-                    </form>
-                @else
+                <template x-if="claimableCount > 0">
                     <button type="button"
-                            @click="scrollToLevel({{ min($maxPassLevel, $highestUnlockedLevel + 1) }})"
+                            @click="claimAllRewards()"
+                            :disabled="busyKey !== null"
+                            class="btn-star-gold w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-gifts"></i>
+                        <span x-text="busyKey === 'all' ? 'Bezig met Claimen...' : ('Claim Alle ' + claimableCount + ' Prijzen!')"></span>
+                    </button>
+                </template>
+                <template x-if="claimableCount === 0">
+                    <button type="button"
+                            @click="goToLevel(Math.min(totalLevels, playerLevel + 1))"
                             class="w-full py-2.5 px-4 rounded-xl bg-purple-900/50 hover:bg-purple-800/60 border border-purple-500/40 text-purple-200 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-crosshairs text-purple-300"></i>
-                        <span>Bekijk Volgend Doel (Lvl {{ min($maxPassLevel, $highestUnlockedLevel + 1) }})</span>
+                        <span x-text="'Bekijk Volgend Doel (Lvl ' + Math.min(totalLevels, playerLevel + 1) + ')'"></span>
                     </button>
-                @endif
+                </template>
             </div>
         </div>
     </div>
@@ -295,8 +433,8 @@
     <!-- DE 4 BATTLE PASSEN OVERZICHT (FREE • TBS V.I.P. LID • GANGSTER ELITE V.I.P. • KLINIEK BAAS V.I.P.) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         @foreach($tracksMeta as $trackKey => $tMeta)
-            <div class="relative overflow-hidden rounded-2xl border {{ $tMeta['border'] }} bg-slate-950 text-white p-3.5 sm:p-4 shadow-md group">
-                <div class="absolute inset-0 bg-cover bg-center opacity-40 group-hover:scale-105 transition duration-500"
+            <div class="relative overflow-hidden rounded-2xl border {{ $tMeta['border'] }} bg-slate-950 text-white p-3.5 sm:p-4 shadow-md">
+                <div class="absolute inset-0 bg-cover bg-center opacity-40"
                      style="background-image: url('{{ $tMeta['image'] }}'), url('{{ $tMeta['fallback_bg'] }}');"></div>
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-purple-950/50"></div>
 
@@ -311,13 +449,13 @@
                             </span>
                         @else
                             <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/50 text-amber-200 text-[10px] font-black transition">
-                                <i class="fa-solid fa-crown text-[9px] text-amber-400"></i> VIP Winkel
+                                <i class="fa-solid fa-crown text-[9px] text-amber-400"></i> VIP Lidmaatschap Winkel
                             </a>
                         @endif
                     </div>
 
                     <div class="flex items-center gap-2.5 pt-1">
-                        <div class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-purple-200 shrink-0 shadow-inner">
+                        <div class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-purple-200 shrink-0">
                             <i class="fa-solid {{ $tMeta['icon'] }} text-base {{ $trackKey === 'vip3' ? 'text-amber-300' : '' }}"></i>
                         </div>
                         <div class="min-w-0">
@@ -330,7 +468,7 @@
         @endforeach
     </div>
 
-    <!-- INTERACTIEVE NIVEAU BALK (150 LEVELS) + PIJLEN VOOR & ACHTER -->
+    <!-- RAZENDSNELLE NIVEAU BALK (30 LEVELS PER REEKS) + PIJLEN VOOR & ACHTER -->
     <div class="bg-white dark:bg-slate-900 border border-purple-200/80 dark:border-purple-900/60 rounded-2xl p-3 sm:p-4 shadow-sm space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center gap-2">
@@ -342,28 +480,28 @@
                         Niveau Kiezer &bull; <span class="text-purple-600 dark:text-purple-400" x-text="'Level ' + activeLevel + ' van ' + totalLevels"></span>
                     </h2>
                     <p class="text-[11px] text-slate-500 dark:text-slate-400">
-                        Spring direct naar een level-reeks of blader met de grote paarse pijlen voor &amp; achter
+                        Kies een level-reeks of klik op de grote paarse pijlen voor &amp; achter om direct te wisselen
                     </p>
                 </div>
             </div>
 
-            <!-- Snelle Level-Reeks Sprong Knoppen (voor 150 Levels, niet op maanden gebaseerd) -->
+            <!-- Snelle Level-Reeks Sprong Knoppen (voor 150 Levels) -->
             <div class="flex flex-wrap items-center gap-1.5">
-                @if($firstClaimableLevel)
+                <template x-if="firstClaimableLvl() !== null">
                     <button type="button"
-                            @click="scrollToLevel({{ $firstClaimableLevel }})"
+                            @click="goToLevel(firstClaimableLvl())"
                             class="px-2.5 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-black transition cursor-pointer flex items-center gap-1">
-                        <i class="fa-solid fa-gift animate-bounce"></i>
-                        <span>Claimbaar (Lvl {{ $firstClaimableLevel }})</span>
+                        <i class="fa-solid fa-gift"></i>
+                        <span x-text="'Claimbaar (Lvl ' + firstClaimableLvl() + ')'"></span>
                     </button>
-                @endif
+                </template>
                 <button type="button"
-                        @click="scrollToLevel({{ $highestUnlockedLevel }})"
-                        class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-[11px] font-bold transition cursor-pointer">
-                    Huidig (Lvl {{ $highestUnlockedLevel }})
+                        @click="goToLevel(Math.min(totalLevels, Math.max(1, playerLevel)))"
+                        class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-[11px] font-bold transition cursor-pointer"
+                        x-text="'Huidig (Lvl ' + Math.min(totalLevels, Math.max(1, playerLevel)) + ')'">
                 </button>
                 @foreach([[1, 30], [31, 60], [61, 90], [91, 120], [121, 150]] as [$startLvl, $endLvl])
-                    <button type="button" @click="scrollToLevel({{ $startLvl }})"
+                    <button type="button" @click="goToLevel({{ $startLvl }})"
                             :class="activeLevel >= {{ $startLvl }} && activeLevel <= {{ $endLvl }} ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-purple-500/20'"
                             class="px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition cursor-pointer">
                         Lvl {{ $startLvl }}–{{ $endLvl }}
@@ -372,7 +510,7 @@
             </div>
         </div>
 
-        <!-- Level 1..150 Mini Pills met Voor/Achter Pijlen -->
+        <!-- 30 Zichtbare Level Knoppen per Reeks (Geen 150-elementen lag!) -->
         <div class="flex items-center gap-2">
             <button type="button"
                     @click="prevSlide()"
@@ -381,34 +519,22 @@
                 <i class="fa-solid fa-chevron-left text-xs"></i>
             </button>
 
-            <div x-ref="pillStrip" class="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1 px-0.5 scroll-smooth flex-1">
-                @foreach($config as $lvlNum => $lvlItem)
-                    @php
-                        $lvlUnlocked = $character->level >= $lvlItem['req_level'];
-                        $hasUnclaimedOnLvl = $lvlUnlocked && (
-                            !in_array("lvl_{$lvlNum}_free", $claims, true) ||
-                            ($isVip && $supporterTier >= 1 && !in_array("lvl_{$lvlNum}_vip1", $claims, true)) ||
-                            ($isVip && $supporterTier >= 2 && !in_array("lvl_{$lvlNum}_vip2", $claims, true)) ||
-                            ($isVip && $supporterTier >= 3 && !in_array("lvl_{$lvlNum}_vip3", $claims, true))
-                        );
-                    @endphp
+            <div class="grid grid-cols-10 sm:grid-cols-15 gap-1.5 flex-1">
+                <template x-for="lvlNum in visiblePills" :key="lvlNum">
                     <button type="button"
-                            id="bp-pill-{{ $lvlNum }}"
-                            @click="scrollToLevel({{ $lvlNum }})"
-                            :class="activeLevel === {{ $lvlNum }}
-                                ? 'bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white border-purple-300 scale-105 shadow-md ring-2 ring-purple-400/50'
-                                : '{{ $lvlUnlocked ? 'bg-purple-50 dark:bg-slate-800 text-purple-900 dark:text-purple-200 border-purple-300 dark:border-purple-800/80 hover:bg-purple-100' : 'bg-slate-100 dark:bg-slate-800/50 text-slate-400 border-slate-200 dark:border-slate-800' }}'"
-                            class="relative w-10 h-10 rounded-xl border font-black text-xs shrink-0 flex flex-col items-center justify-center transition cursor-pointer">
-                        <span>{{ $lvlNum }}</span>
-                        @if($hasUnclaimedOnLvl)
-                            <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 border-2 border-white dark:border-slate-900"></span>
-                        @elseif($lvlUnlocked)
-                            <i class="fa-solid fa-check text-[8px] text-emerald-400"></i>
-                        @else
-                            <i class="fa-solid fa-lock text-[8px] opacity-50"></i>
-                        @endif
+                            @click="goToLevel(lvlNum)"
+                            :class="activeLevel === lvlNum
+                                ? 'bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white border-purple-300 shadow-sm ring-2 ring-purple-400/50'
+                                : (playerLevel >= lvlNum
+                                    ? 'bg-purple-50 dark:bg-slate-800 text-purple-900 dark:text-purple-200 border-purple-300 dark:border-purple-800/80 hover:bg-purple-100'
+                                    : 'bg-slate-100 dark:bg-slate-800/50 text-slate-400 border-slate-200 dark:border-slate-800')"
+                            class="relative h-9 rounded-xl border font-black text-xs flex flex-col items-center justify-center transition cursor-pointer">
+                        <span x-text="lvlNum"></span>
+                        <template x-if="hasUnclaimedOnLevel(lvlNum)">
+                            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 border border-white dark:border-slate-900"></span>
+                        </template>
                     </button>
-                @endforeach
+                </template>
             </div>
 
             <button type="button"
@@ -420,14 +546,16 @@
         </div>
     </div>
 
-    <!-- HOOFD SLIDER MET 2 MOOIE GROTE PIJLEN (VOOR & ACHTERKANT) -->
-    <div class="relative group/slider">
+    <!-- ULTRA-SNELLE INTERACTIEVE SLIDER KAART MET 2 GROTE PAARSE PIJLEN (VOOR & ACHTERKANT) -->
+    <div class="relative flex items-center justify-center sm:px-14"
+         @touchstart.passive="touchStartX = $event.changedTouches[0].screenX"
+         @touchend.passive="const diff = $event.changedTouches[0].screenX - touchStartX; if (Math.abs(diff) > 45) { diff < 0 ? nextSlide() : prevSlide(); }">
 
         <!-- Grote Pijl VOORKANT (Links) -->
         <button type="button"
                 @click="prevSlide()"
                 aria-label="Vorig Battle Pass Niveau"
-                class="hidden sm:flex items-center justify-center w-12 h-24 rounded-2xl bg-gradient-to-b from-purple-600 via-purple-700 to-indigo-900 hover:from-purple-500 hover:to-indigo-700 text-white border-2 border-purple-300/60 shadow-xl shadow-purple-950/60 absolute -left-3 top-1/2 -translate-y-1/2 z-30 transition cursor-pointer active:scale-90">
+                class="hidden sm:flex items-center justify-center w-12 h-28 rounded-2xl bg-gradient-to-b from-purple-600 via-purple-700 to-indigo-900 hover:from-purple-500 hover:to-indigo-700 text-white border-2 border-purple-300/60 shadow-xl absolute left-0 top-1/2 -translate-y-1/2 z-20 transition cursor-pointer active:scale-90">
             <i class="fa-solid fa-chevron-left text-xl"></i>
         </button>
 
@@ -435,217 +563,197 @@
         <button type="button"
                 @click="nextSlide()"
                 aria-label="Volgend Battle Pass Niveau"
-                class="hidden sm:flex items-center justify-center w-12 h-24 rounded-2xl bg-gradient-to-b from-purple-600 via-purple-700 to-indigo-900 hover:from-purple-500 hover:to-indigo-700 text-white border-2 border-purple-300/60 shadow-xl shadow-purple-950/60 absolute -right-3 top-1/2 -translate-y-1/2 z-30 transition cursor-pointer active:scale-90">
+                class="hidden sm:flex items-center justify-center w-12 h-28 rounded-2xl bg-gradient-to-b from-purple-600 via-purple-700 to-indigo-900 hover:from-purple-500 hover:to-indigo-700 text-white border-2 border-purple-300/60 shadow-xl absolute right-0 top-1/2 -translate-y-1/2 z-20 transition cursor-pointer active:scale-90">
             <i class="fa-solid fa-chevron-right text-xl"></i>
         </button>
 
-        <!-- Horizontale Snap Carousel voor de 150 Niveaus -->
-        <div x-ref="levelCarousel"
-             @scroll.debounce.40ms="onCarouselScroll()"
-             class="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-3 pt-1 px-1 sm:px-8 scrollbar-none">
+        <!-- Enkele Actieve Niveau Kaart (Directe 0ms Weergave) -->
+        <div class="w-full rounded-3xl border-2 overflow-hidden transition-colors duration-150 bg-white dark:bg-slate-900 shadow-lg"
+             :class="isCurrentUnlocked ? 'border-purple-400/80 dark:border-purple-600/80' : 'border-slate-200 dark:border-slate-800'">
 
-            @foreach($config as $lvlNum => $item)
-                @php
-                    $isLevelUnlocked = $character->level >= $item['req_level'];
-                    $isMilestone25 = ($lvlNum % 25 === 0);
-                    $isMilestone10 = ($lvlNum % 10 === 0);
-                    $isMilestone5 = ($lvlNum % 5 === 0);
-                @endphp
+            <!-- Niveau Slide Top Banner (Paarse TBS Stijl) -->
+            <div class="relative overflow-hidden bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-950 text-white px-4 sm:px-6 py-4 border-b border-purple-500/30">
+                <div class="absolute inset-0 bg-cover bg-center opacity-20"
+                     style="background-image: url('{{ asset('assets/illustrations/tbs_purple_hero_boss.jpg') }}');"></div>
 
-                <!-- Niveau Slide Kaart -->
-                <div id="bp-slide-{{ $lvlNum }}"
-                     class="snap-center shrink-0 w-[92%] sm:w-[86%] lg:w-[78%] xl:w-[72%] rounded-3xl border-2 transition-all duration-300 overflow-hidden
-                        {{ $isLevelUnlocked
-                            ? 'bg-white dark:bg-slate-900 border-purple-400/80 dark:border-purple-600/80 shadow-lg'
-                            : 'bg-white/90 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800' }}"
-                     :class="activeLevel === {{ $lvlNum }} ? 'ring-2 ring-purple-500/50 scale-[1.005]' : 'opacity-85 hover:opacity-100'">
+                <div class="relative z-10 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-black shrink-0"
+                             :class="isCurrentUnlocked ? 'bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white border-2 border-purple-200/60 shadow-md' : 'bg-slate-800 text-slate-400 border border-slate-700'">
+                            <span class="text-[9px] uppercase tracking-widest opacity-80 leading-none">LVL</span>
+                            <span class="text-lg leading-tight" x-text="activeLevel"></span>
+                        </div>
 
-                    <!-- Niveau Slide Top Banner (Paarse TBS Stijl) -->
-                    <div class="relative overflow-hidden bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-950 text-white px-4 sm:px-6 py-4 border-b border-purple-500/30">
-                        <div class="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-luminosity"
-                             style="background-image: url('{{ asset('assets/illustrations/tbs_purple_hero_boss.jpg') }}');"></div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-base sm:text-lg font-black text-white tracking-tight"
+                                    x-text="'TBS Dossier Niveau ' + activeLevel"></h3>
 
-                        <div class="relative z-10 flex flex-wrap items-center justify-between gap-3">
-                            <div class="flex items-center gap-3.5">
-                                <div class="w-12 h-12 rounded-2xl {{ $isLevelUnlocked ? 'bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white border-2 border-purple-200/60 shadow-lg shadow-purple-600/40' : 'bg-slate-800 text-slate-400 border border-slate-700' }} flex flex-col items-center justify-center font-black shrink-0">
-                                    <span class="text-[9px] uppercase tracking-widest opacity-80 leading-none">LVL</span>
-                                    <span class="text-lg leading-tight">{{ $lvlNum }}</span>
-                                </div>
-
-                                <div>
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <h3 class="text-base sm:text-lg font-black text-white tracking-tight">
-                                            TBS Dossier Niveau {{ $lvlNum }}
-                                        </h3>
-                                        @if($lvlNum === $maxPassLevel)
-                                            <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
-                                                👑 Level {{ $maxPassLevel }} Ultieme Finale
-                                            </span>
-                                        @elseif($isMilestone25)
-                                            <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase">
-                                                💎 Mega Mijlpaal
-                                            </span>
-                                        @elseif($isMilestone10)
-                                            <span class="px-2.5 py-0.5 rounded-full bg-amber-400/25 border border-amber-400/60 text-amber-200 text-[10px] font-black uppercase">
-                                                🏆 Hoofdmijlpaal
-                                            </span>
-                                        @elseif($isMilestone5)
-                                            <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-300/50 text-purple-200 text-[10px] font-black uppercase">
-                                                ⭐ Kluis Mijlpaal
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <p class="text-xs text-purple-200/80 font-medium mt-0.5">
-                                        Vereist Speler Level {{ $item['req_level'] }}
-                                        @if($item['req_respect'] > 0)
-                                            &bull; Aanbevolen: {{ number_format($item['req_respect'], 0, ',', '.') }} Respect
-                                        @endif
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2">
-                                @if($isLevelUnlocked)
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 text-xs font-black uppercase tracking-wider">
-                                        <i class="fa-solid fa-lock-open"></i> Ontgrendeld
+                                <template x-if="activeLevel === totalLevels">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+                                        👑 Level 150 Ultieme Finale
                                     </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-300 text-xs font-bold">
-                                        <i class="fa-solid fa-lock text-amber-400"></i> Nog {{ max(1, $item['req_level'] - $character->level) }} {{ ($item['req_level'] - $character->level) === 1 ? 'level' : 'levels' }} nodig
+                                </template>
+                                <template x-if="activeLevel !== totalLevels && activeLevel % 25 === 0">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase">
+                                        💎 Mega Mijlpaal
                                     </span>
-                                @endif
+                                </template>
+                                <template x-if="activeLevel !== totalLevels && activeLevel % 25 !== 0 && activeLevel % 10 === 0">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400/25 border border-amber-400/60 text-amber-200 text-[10px] font-black uppercase">
+                                        🏆 Hoofdmijlpaal
+                                    </span>
+                                </template>
+                                <template x-if="activeLevel % 10 !== 0 && activeLevel % 5 === 0">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/30 border border-purple-300/50 text-purple-200 text-[10px] font-black uppercase">
+                                        ⭐ Kluis Mijlpaal
+                                    </span>
+                                </template>
                             </div>
+                            <p class="text-xs text-purple-200/80 font-medium mt-0.5">
+                                <span x-text="'Vereist Speler Level ' + currentItem.req_level"></span>
+                                <template x-if="currentItem.has_respect">
+                                    <span x-text="' • Aanbevolen: ' + currentItem.req_respect + ' Respect'"></span>
+                                </template>
+                            </p>
                         </div>
                     </div>
 
-                    <!-- De 4 Passen Rijen / Kolommen (FREE, TBS V.I.P. Lid, Gangster Elite V.I.P., Kliniek Baas V.I.P.) -->
-                    <div class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                        @foreach(['free', 'vip1', 'vip2', 'vip3'] as $tKey)
-                            @php
-                                $tData = $item['tracks'][$tKey];
-                                $tInfo = $tracksMeta[$tKey];
-                                $isClaimed = in_array("lvl_{$lvlNum}_{$tKey}", $claims, true);
-                                $canClaim = $isLevelUnlocked && $tInfo['unlocked'] && !$isClaimed;
-                            @endphp
-
-                            <div class="rounded-2xl border-2 flex flex-col justify-between overflow-hidden transition-all duration-200
-                                {{ $isClaimed
-                                    ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-75'
-                                    : ($canClaim
-                                        ? 'bg-purple-50/60 dark:bg-purple-950/35 border-purple-400 dark:border-purple-500 shadow-md ring-1 ring-purple-400/40'
-                                        : 'bg-slate-50/50 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800') }}">
-
-                                <!-- Pas Mini Artwork Header -->
-                                <div class="relative h-20 overflow-hidden bg-slate-950 p-3 flex flex-col justify-between">
-                                    <div class="absolute inset-0 bg-cover bg-center opacity-50"
-                                         style="background-image: url('{{ $tInfo['image'] }}'), url('{{ $tInfo['fallback_bg'] }}');"></div>
-                                    <div class="absolute inset-0 bg-gradient-to-r {{ $tInfo['header_grad'] }} opacity-80"></div>
-
-                                    <div class="relative z-10 flex items-center justify-between gap-1">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border {{ $tInfo['badge_cls'] }} truncate">
-                                            {{ $tInfo['rank_title'] }}
-                                        </span>
-
-                                        @if($isClaimed)
-                                            <span class="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-black shadow shrink-0">
-                                                <i class="fa-solid fa-check"></i>
-                                            </span>
-                                        @elseif($canClaim)
-                                            <span class="px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[9px] font-black uppercase animate-pulse shrink-0">
-                                                Klaar!
-                                            </span>
-                                        @else
-                                            <span class="w-6 h-6 rounded-full bg-slate-900/80 border border-white/15 text-slate-300 flex items-center justify-center text-[10px] shrink-0">
-                                                <i class="fa-solid fa-lock"></i>
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <div class="relative z-10 flex items-center gap-2">
-                                        <div class="w-7 h-7 rounded-lg bg-white/15 backdrop-blur-xs border border-white/20 flex items-center justify-center text-white text-xs shrink-0">
-                                            <i class="fa-solid {{ $tData['icon'] }}"></i>
-                                        </div>
-                                        <h4 class="font-black text-xs text-white truncate drop-shadow">
-                                            {{ $tData['title'] }}
-                                        </h4>
-                                    </div>
-                                </div>
-
-                                <!-- Visuele Beloning Chips -->
-                                <div class="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
-                                    <div class="flex flex-wrap gap-1.5">
-                                        @foreach($tData['rewards'] as $rKey => $rVal)
-                                            @php
-                                                $meta = $rewardMeta[$rKey] ?? ['icon' => 'fa-gift', 'label' => ucfirst($rKey), 'prefix' => '', 'color' => 'bg-purple-500/15 text-purple-300 border-purple-500/30'];
-                                                $formattedVal = number_format($rVal, 0, ',', '.');
-                                                $chipLabel = ($rKey === 'masks' && $rVal > 1) ? 'Maskers' : $meta['label'];
-                                                $chipLabel = ($rKey === 'stars' && $rVal === 1) ? 'Ster' : $chipLabel;
-                                                $chipLabel = ($rKey === 'vault_tokens' && $rVal === 1) ? 'Code' : $chipLabel;
-                                            @endphp
-                                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-extrabold {{ $meta['color'] }}">
-                                                <i class="fa-solid {{ $meta['icon'] }} text-[10px]"></i>
-                                                <span>{{ $meta['prefix'] }}{{ $formattedVal }} {{ $chipLabel }}</span>
-                                            </span>
-                                        @endforeach
-                                    </div>
-
-                                    <!-- Actieknop onderaan elk pas-vak -->
-                                    <div class="pt-1">
-                                        @if($isClaimed)
-                                            <div class="w-full py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5">
-                                                <i class="fa-solid fa-circle-check"></i>
-                                                <span>Geclaimd</span>
-                                            </div>
-                                        @elseif($canClaim)
-                                            <form action="{{ route('battlepass.claim') }}" method="POST" @submit="fireConfetti('normal')">
-                                                @csrf
-                                                <input type="hidden" name="level" value="{{ $lvlNum }}">
-                                                <input type="hidden" name="track" value="{{ $tKey }}">
-                                                <button type="submit" class="w-full py-2 rounded-xl {{ $tInfo['btn_cls'] }} text-[11px] font-black uppercase tracking-wider transition shadow-md cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
-                                                    <i class="fa-solid fa-gift"></i>
-                                                    <span>Claim Beloning</span>
-                                                </button>
-                                            </form>
-                                        @elseif(!$tInfo['unlocked'])
-                                            <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold w-full py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer text-center">
-                                                <i class="fa-solid fa-crown text-[10px]"></i>
-                                                <span>VIP Lidmaatschap Winkel</span>
-                                            </a>
-                                        @else
-                                            <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-bold flex items-center justify-center gap-1.5">
-                                                <i class="fa-solid fa-lock text-[9px]"></i>
-                                                <span>Vereist Level {{ $item['req_level'] }}</span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <!-- Onder-Navigatie Pijlen (Voor en Achter) binnen de kaart -->
-                    <div class="px-4 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
-                        <button type="button"
-                                @click="prevSlide()"
-                                class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95">
-                            <i class="fa-solid fa-arrow-left"></i>
-                            <span>Vorig Niveau</span>
-                        </button>
-
-                        <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
-                            Niveau {{ $lvlNum }} / {{ $maxPassLevel }}
-                        </span>
-
-                        <button type="button"
-                                @click="nextSlide()"
-                                class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95">
-                            <span>Volgend Niveau</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </button>
+                    <div class="flex items-center gap-2">
+                        <template x-if="isCurrentUnlocked">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 text-xs font-black uppercase tracking-wider">
+                                <i class="fa-solid fa-lock-open"></i> Ontgrendeld
+                            </span>
+                        </template>
+                        <template x-if="!isCurrentUnlocked">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-300 text-xs font-bold">
+                                <i class="fa-solid fa-lock text-amber-400"></i>
+                                <span x-text="'Nog ' + Math.max(1, currentItem.req_level - playerLevel) + ((currentItem.req_level - playerLevel) === 1 ? ' level nodig' : ' levels nodig')"></span>
+                            </span>
+                        </template>
                     </div>
                 </div>
-            @endforeach
+            </div>
 
+            <!-- De 4 Passen Kolommen (FREE, TBS V.I.P. Lid, Gangster Elite V.I.P., Kliniek Baas V.I.P.) -->
+            <div class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                @foreach(['free', 'vip1', 'vip2', 'vip3'] as $tKey)
+                    @php $tInfo = $tracksMeta[$tKey]; @endphp
+
+                    <div class="rounded-2xl border-2 flex flex-col justify-between overflow-hidden"
+                         :class="isClaimed(activeLevel, '{{ $tKey }}')
+                            ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 opacity-75'
+                            : (canClaim(activeLevel, '{{ $tKey }}')
+                                ? 'bg-purple-50/60 dark:bg-purple-950/35 border-purple-400 dark:border-purple-500 shadow-md ring-1 ring-purple-400/40'
+                                : 'bg-slate-50/50 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800')">
+
+                        <!-- Pas Mini Artwork Header -->
+                        <div class="relative h-20 overflow-hidden bg-slate-950 p-3 flex flex-col justify-between">
+                            <div class="absolute inset-0 bg-cover bg-center opacity-50"
+                                 style="background-image: url('{{ $tInfo['image'] }}'), url('{{ $tInfo['fallback_bg'] }}');"></div>
+                            <div class="absolute inset-0 bg-gradient-to-r {{ $tInfo['header_grad'] }} opacity-80"></div>
+
+                            <div class="relative z-10 flex items-center justify-between gap-1">
+                                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border {{ $tInfo['badge_cls'] }} truncate">
+                                    {{ $tInfo['rank_title'] }}
+                                </span>
+
+                                <template x-if="isClaimed(activeLevel, '{{ $tKey }}')">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-black shadow shrink-0">
+                                        <i class="fa-solid fa-check"></i>
+                                    </span>
+                                </template>
+                                <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && canClaim(activeLevel, '{{ $tKey }}')">
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950 text-[9px] font-black uppercase shrink-0">
+                                        Klaar!
+                                    </span>
+                                </template>
+                                <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && !canClaim(activeLevel, '{{ $tKey }}')">
+                                    <span class="w-6 h-6 rounded-full bg-slate-900/80 border border-white/15 text-slate-300 flex items-center justify-center text-[10px] shrink-0">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </span>
+                                </template>
+                            </div>
+
+                            <div class="relative z-10 flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center text-white text-xs shrink-0">
+                                    <i class="fa-solid" :class="currentItem.tracks['{{ $tKey }}'].icon"></i>
+                                </div>
+                                <h4 class="font-black text-xs text-white truncate drop-shadow"
+                                    x-text="currentItem.tracks['{{ $tKey }}'].title"></h4>
+                            </div>
+                        </div>
+
+                        <!-- Visuele Beloning Chips -->
+                        <div class="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="chip in currentItem.tracks['{{ $tKey }}'].chips" :key="chip.key">
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-extrabold"
+                                          :class="chipMeta(chip.key, chip.raw).cls">
+                                        <i class="fa-solid text-[10px]" :class="chipMeta(chip.key, chip.raw).icon"></i>
+                                        <span x-text="chipMeta(chip.key, chip.raw).prefix + chip.val + ' ' + chipMeta(chip.key, chip.raw).label"></span>
+                                    </span>
+                                </template>
+                            </div>
+
+                            <!-- Actieknop onderaan elk pas-vak -->
+                            <div class="pt-1">
+                                <template x-if="isClaimed(activeLevel, '{{ $tKey }}')">
+                                    <div class="w-full py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Geclaimd</span>
+                                    </div>
+                                </template>
+
+                                <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && canClaim(activeLevel, '{{ $tKey }}')">
+                                    <button type="button"
+                                            @click="claimReward(activeLevel, '{{ $tKey }}')"
+                                            :disabled="busyKey !== null"
+                                            class="w-full py-2 rounded-xl {{ $tInfo['btn_cls'] }} text-[11px] font-black uppercase tracking-wider transition shadow-md cursor-pointer active:scale-95 flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-gift"></i>
+                                        <span>Claim Beloning</span>
+                                    </button>
+                                </template>
+
+                                <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && !isTrackUnlocked('{{ $tKey }}')">
+                                    <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold w-full py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition cursor-pointer text-center">
+                                        <i class="fa-solid fa-crown text-[10px]"></i>
+                                        <span>VIP Lidmaatschap Winkel</span>
+                                    </a>
+                                </template>
+
+                                <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && isTrackUnlocked('{{ $tKey }}') && !isCurrentUnlocked">
+                                    <div class="w-full py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-bold flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-lock text-[9px]"></i>
+                                        <span x-text="'Vereist Level ' + currentItem.req_level"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Onder-Navigatie Pijlen (Voor en Achter) binnen de kaart -->
+            <div class="px-4 py-3 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
+                <button type="button"
+                        @click="prevSlide()"
+                        class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Vorig Niveau</span>
+                </button>
+
+                <span class="text-[11px] font-extrabold text-slate-500 dark:text-slate-400"
+                      x-text="'Niveau ' + activeLevel + ' / ' + totalLevels">
+                </span>
+
+                <button type="button"
+                        @click="nextSlide()"
+                        class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95">
+                    <span>Volgend Niveau</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
         </div>
     </div>
 

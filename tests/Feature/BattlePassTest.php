@@ -81,11 +81,14 @@ class BattlePassTest extends TestCase
         $this->assertGreaterThan(100, $character->cash);
         $this->assertContains('lvl_2_free', $character->perks['battle_pass_claims'] ?? []);
 
-        // Claim Level 3 Free (gives vault_tokens / Kluiscodex)
-        $this->actingAs($user)->post(route('battlepass.claim'), [
-            'level' => 3,
-            'track' => 'free',
-        ]);
+        // Claim Level 3 Free via fast AJAX JSON header (gives vault_tokens / Codes)
+        $fastRes = $this->actingAs($user)
+            ->withHeader('X-BP-Fast', '1')
+            ->postJson(route('battlepass.claim'), [
+                'level' => 3,
+                'track' => 'free',
+            ]);
+        $fastRes->assertOk()->assertJsonPath('success', true);
         $character->refresh();
         $this->assertGreaterThanOrEqual(1, $character->vault_tokens);
     }
