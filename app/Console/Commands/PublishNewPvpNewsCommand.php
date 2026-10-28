@@ -124,6 +124,20 @@ Ga nu naar **Liquidatie** in het menu, bekijk je Dossier-Graad en beheers de kli
 
         $this->info("Nieuw Liquidatie 2.0 artikel succesvol geplaatst! ID {$article->id}, Slug {$article->slug}");
 
+        // 3. Clean em-dashes, semicolons and colons from all existing news articles
+        foreach (NewsArticle::all() as $existing) {
+            $cleanTitle = str_replace([' — ', ' – ', '—', '–', ';', ':'], [' - ', ' - ', '-', '-', '', ''], (string) $existing->title);
+            $cleanContent = str_replace([' — ', ' – ', '—', '–', ';'], [' - ', ' - ', '-', '-', ','], (string) $existing->content);
+            $cleanContent = (string) preg_replace('/(?<!https|http):/', '', $cleanContent);
+
+            if ($cleanTitle !== $existing->title || $cleanContent !== $existing->content) {
+                $existing->update([
+                    'title' => $cleanTitle,
+                    'content' => $cleanContent,
+                ]);
+            }
+        }
+
         return self::SUCCESS;
     }
 }
