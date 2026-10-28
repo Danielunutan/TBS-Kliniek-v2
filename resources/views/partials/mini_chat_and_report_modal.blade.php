@@ -1525,27 +1525,74 @@
                 return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
             },
 
-            init() {
-                this.loadPublicMessages(true);
-                if (this.hasGang && this.gangHasChat) {
-                    this.loadGangMessages(true);
-                }
-                this.loadConversations();
+            syncToGlobalCache() {
+                window.__tbsMiniChatCache = {
+                    myId: this.myId,
+                    publicMessages: this.publicMessages,
+                    lastPublicId: this.lastPublicId,
+                    gangMessages: this.gangMessages,
+                    lastGangId: this.lastGangId,
+                    directConversations: this.directConversations,
+                    unreadDmsCount: this.unreadDmsCount,
+                    lastDirectDmId: this.lastDirectDmId,
+                    loadedChatAt: window.__tbsMiniChatCache?.loadedChatAt || 0,
+                };
+            },
 
-                // Pre-seed lastDirectDmId so already-existing unread messages don't chime on page load
-                fetch('{{ route('chat.poll-incoming') }}', { headers: { 'Accept': 'application/json' } })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.success && data.new_dm && data.new_dm.id) {
-                            this.lastDirectDmId = data.new_dm.id;
-                        }
-                    })
-                    .catch(() => {});
+            ensureChatLoaded() {
+                const now = Date.now();
+                const lastLoaded = window.__tbsMiniChatCache?.loadedChatAt || 0;
+                if (this.publicMessages.length === 0 || (now - lastLoaded > 15000)) {
+                    if (window.__tbsMiniChatCache) {
+                        window.__tbsMiniChatCache.loadedChatAt = now;
+                    }
+                    this.loadPublicMessages(true);
+                    if (this.hasGang && this.gangHasChat) {
+                        this.loadGangMessages(true);
+                    }
+                    this.loadConversations();
+                }
+            },
+
+            init() {
+                if (window.location.pathname.startsWith('/onboarding')) {
+                    return;
+                }
+
+                // Reuse cached chat state across Turbo page navigations (eliminates 4 HTTP calls per page click!)
+                const cache = window.__tbsMiniChatCache;
+                if (cache && cache.myId === this.myId) {
+                    this.publicMessages = cache.publicMessages || [];
+                    this.lastPublicId = cache.lastPublicId || 0;
+                    this.gangMessages = cache.gangMessages || [];
+                    this.lastGangId = cache.lastGangId || 0;
+                    this.directConversations = cache.directConversations || [];
+                    this.unreadDmsCount = cache.unreadDmsCount || 0;
+                    this.lastDirectDmId = cache.lastDirectDmId || 0;
+                } else {
+                    this.syncToGlobalCache();
+                    // Pre-seed lastDirectDmId once per session so existing unread messages don't chime on load
+                    fetch('{{ route('chat.poll-incoming') }}', { headers: { 'Accept': 'application/json' } })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data && data.success) {
+                                if (data.unread_dms !== undefined) {
+                                    this.unreadDmsCount = data.unread_dms;
+                                }
+                                if (data.new_dm && data.new_dm.id) {
+                                    this.lastDirectDmId = data.new_dm.id;
+                                }
+                                this.syncToGlobalCache();
+                            }
+                        })
+                        .catch(() => {});
+                }
 
                 this.pollLoop();
 
                 this.$watch('isOpen', (open) => {
                     if (open) {
+                        this.ensureChatLoaded();
                         if (this.activeTab === 'direct' && this.activeDirectPartner) {
                             this.scrollDirectBottom();
                         } else if (this.activeTab === 'gang') {
@@ -1570,19 +1617,27 @@
                     this.scrollDirectBottom();
                 });
 
-                window.addEventListener('tbs-open-direct-chat', (e) => {
+                if (window._tbsOpenDirectChatListener) {
+                    window.removeEventListener('tbs-open-direct-chat', window._tbsOpenDirectChatListener);
+                }
+                window._tbsOpenDirectChatListener = (e) => {
                     if (e.detail && e.detail.id !== undefined) {
                         this.openDirectChatWithPlayer(e.detail.id, e.detail.name || 'Inmate', e.detail.avatar || '/characters/avatar-default.png');
                     }
-                });
+                };
+                window.addEventListener('tbs-open-direct-chat', window._tbsOpenDirectChatListener);
 
                 window.openTBSDirectChat = (id, name, avatar) => {
                     this.openDirectChatWithPlayer(id, name || 'Inmate', avatar || '/characters/avatar-default.png');
                 };
 
-                // Mobile Visual Viewport & Virtual Keyboard Handler
+                // Mobile Visual Viewport & Virtual Keyboard Handler (deduplicated across Turbo navigations)
                 if (window.visualViewport) {
-                    const handleViewport = () => {
+                    if (window._tbsViewportHandler) {
+                        window.visualViewport.removeEventListener('resize', window._tbsViewportHandler);
+                        window.visualViewport.removeEventListener('scroll', window._tbsViewportHandler);
+                    }
+                    window._tbsViewportHandler = () => {
                         const vv = window.visualViewport;
                         const kh = Math.max(0, window.innerHeight - vv.height - (vv.offsetTop || 0));
                         document.documentElement.style.setProperty('--tbs-keyboard-offset', `${kh}px`);
@@ -1598,8 +1653,8 @@
                             document.body.classList.remove('tbs-keyboard-open');
                         }
                     };
-                    window.visualViewport.addEventListener('resize', handleViewport);
-                    window.visualViewport.addEventListener('scroll', handleViewport);
+                    window.visualViewport.addEventListener('resize', window._tbsViewportHandler);
+                    window.visualViewport.addEventListener('scroll', window._tbsViewportHandler);
                 }
             },
 
@@ -2064,6 +2119,7 @@
                 } catch (e) {
                 } finally {
                     this.isLoadingPublic = false;
+                    this.syncToGlobalCache();
                 }
             },
 
@@ -2143,6 +2199,7 @@
                 } catch(e) {
                 } finally {
                     this.isLoadingGang = false;
+                    this.syncToGlobalCache();
                 }
             },
 
@@ -2253,6 +2310,7 @@
                     }
                 } catch(e) {} finally {
                     this.isLoadingConversations = false;
+                    this.syncToGlobalCache();
                 }
             },
 

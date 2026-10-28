@@ -79,7 +79,7 @@ class Gang extends Model
             return asset($this->banner);
         }
 
-        return asset('assets/locations/binnenplaats.jpg');
+        return asset('assets/illustrations/banner_gangs.jpg');
     }
 
     /**

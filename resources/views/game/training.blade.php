@@ -298,8 +298,13 @@ function trainingManager(config) {
                     trainer: 'Jouw Trainer'
                 });
 
-                // Update site topbar realtime tracker
-                window.dispatchEvent(new CustomEvent('stats:refresh'));
+                // Update site topbar realtime tracker directly without an extra HTTP request
+                if (typeof window.tbsApplyStats === 'function') {
+                    window.tbsApplyStats({
+                        cash: data.cash,
+                        energy: data.energy
+                    });
+                }
 
                 // Show success feedback
                 this.showToast(data.message);

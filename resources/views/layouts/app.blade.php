@@ -568,19 +568,32 @@
                     window.tbsApplyStats = (newStats) => this.applyStats(newStats);
                     window.tbsRefreshStats = (force = false) => this.refresh(force);
 
+                    // Mark fresh server-rendered stats timestamp so turbo:load does not immediately double-fetch
+                    this.lastRefreshTime = Date.now();
+                    window._tbsLastStatsFetchAt = Date.now();
+
                     if (window.tbsStatsTrackerInterval) {
                         clearInterval(window.tbsStatsTrackerInterval);
                         window.tbsStatsTrackerInterval = null;
                     }
 
                     window.tbsStatsTrackerInterval = setInterval(() => {
-                        if (document.visibilityState === 'visible') {
+                        if (document.visibilityState === 'visible' && !window.location.pathname.startsWith('/onboarding')) {
                             this.refresh();
                         }
-                    }, 20000);
-                    window.addEventListener('stats:refresh', () => this.refresh(true));
+                    }, 25000);
+
+                    if (window._tbsStatsRefreshListener) {
+                        window.removeEventListener('stats:refresh', window._tbsStatsRefreshListener);
+                    }
+                    window._tbsStatsRefreshListener = () => {
+                        if (window.tbsStatsTrackerInstance) {
+                            window.tbsStatsTrackerInstance.refresh(true);
+                        }
+                    };
+                    window.addEventListener('stats:refresh', window._tbsStatsRefreshListener);
                 },
-                lastRefreshTime: 0,
+                lastRefreshTime: Date.now(),
                 isRefreshing: false,
                 applyStats(data) {
                     if (!data) return;
@@ -659,11 +672,16 @@
                     }
                 },
                 async refresh(force = false) {
+                    if (window.location.pathname.startsWith('/onboarding')) return;
                     const now = Date.now();
-                    if (!force && (now - this.lastRefreshTime < 8000)) return;
-                    if (this.isRefreshing) return;
+                    const lastGlobal = window._tbsLastStatsFetchAt || 0;
+                    if (!force && (now - Math.max(this.lastRefreshTime, lastGlobal) < 10000)) return;
+                    if (force && (now - lastGlobal < 1200)) return;
+                    if (this.isRefreshing || window._tbsStatsFetchInFlight) return;
                     this.isRefreshing = true;
+                    window._tbsStatsFetchInFlight = true;
                     this.lastRefreshTime = now;
+                    window._tbsLastStatsFetchAt = now;
                     try {
                         const res = await fetch('{{ route('character.realtime-stats') }}', {
                             credentials: 'same-origin',
@@ -679,6 +697,7 @@
                     } catch (e) {
                     } finally {
                         this.isRefreshing = false;
+                        window._tbsStatsFetchInFlight = false;
                     }
                 }
             };
@@ -3545,6 +3564,9 @@
                 isIosNonStandalone: false,
 
                 async init() {
+                    if (window.location.pathname.startsWith('/onboarding')) {
+                        return;
+                    }
                     const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
                     const isStandalone = ('standalone' in navigator && navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
                     this.isIosNonStandalone = isIos && !isStandalone;
