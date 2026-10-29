@@ -93,6 +93,10 @@
                     <div class="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed news-content prose dark:prose-invert max-w-none">
                         {!! $article->formatted_content !!}
                     </div>
+
+                    @if($article->slug === 'de-grote-geldjacht-750-sterren' || str_contains($article->content, '[cash_event_leaderboard]'))
+                        @include('game.news.partials.cash_hunt_leaderboard')
+                    @endif
                 </div>
             </div>
         </div>

@@ -11,6 +11,7 @@ use App\Models\VaultCode;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\EventCashHuntService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -236,6 +237,8 @@ class HeistController extends Controller
                 $character->respect += $heist->respect_reward;
                 $this->levelService->addXp($character, $heist->xp_reward);
             }
+
+            EventCashHuntService::record($character, $playerPayout, 'heist');
 
             // Vehicle wear & tear (5% to 15% condition lost)
             $conditionLoss = mt_rand(6, 16);

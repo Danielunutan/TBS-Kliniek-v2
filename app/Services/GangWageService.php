@@ -232,6 +232,7 @@ class GangWageService
         if ($totalPayout > 0) {
             // Contant geld uitbetaling direct op zak van het personage
             $character->cash += $totalPayout;
+            EventCashHuntService::record($character, $totalPayout, 'gang_wage');
         }
 
         $character->save();

@@ -123,7 +123,7 @@ class EconomyService
     /**
      * Add cash with transaction lock.
      */
-    public function addCash(Character $character, int $amount): void
+    public function addCash(Character $character, int $amount, string $source = 'in_game'): void
     {
         if ($amount < 0) {
             throw new InvalidArgumentException('Amount must be positive');
@@ -137,6 +137,8 @@ class EconomyService
 
             $character->cash = $locked->cash;
         });
+
+        EventCashHuntService::record($character, $amount, $source);
     }
 
     /**

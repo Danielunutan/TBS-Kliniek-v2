@@ -30,6 +30,7 @@ use App\Http\Controllers\DepotController;
 use App\Http\Controllers\DiscordShieldAdminController;
 use App\Http\Controllers\DiscordShieldController;
 use App\Http\Controllers\DroppingController;
+use App\Http\Controllers\EventController;
 use App\Http\Controllers\ExtortController;
 use App\Http\Controllers\FaqController;
 use App\Http\Controllers\FightController;
@@ -418,6 +419,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Realtime Character Stats API
     Route::get('/api/character/realtime-stats', [DashboardController::class, 'realtimeStats'])->name('character.realtime-stats');
+    Route::get('/api/event/cash-hunt/leaderboard', [EventController::class, 'cashHuntLeaderboard'])->name('api.event.cash_hunt_leaderboard');
 
     // Travel (Reizen / Verplaatsen)
     Route::get('/essentials/verplaatsen', [TravelController::class, 'index'])->name('travel.index');

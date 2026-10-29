@@ -12,6 +12,7 @@ use App\Services\ChatBotService;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\EventCashHuntService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
 use Illuminate\Http\JsonResponse;
@@ -801,6 +802,7 @@ class HitmanController extends Controller
             }
             if ($totalStolen > 0) {
                 $attacker->cash = (int) $attacker->cash + $totalStolen;
+                EventCashHuntService::record($attacker, $totalStolen, 'hitman_loot');
             }
 
             $lostRespect = max(15, (int) round($defender->respect * 0.08));
@@ -841,6 +843,7 @@ class HitmanController extends Controller
                 }
                 if ($bountyReward > 0) {
                     $attacker->cash += $bountyReward;
+                    EventCashHuntService::record($attacker, $bountyReward, 'hitman_bounty');
                 }
             }
 

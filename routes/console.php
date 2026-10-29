@@ -59,4 +59,5 @@ Schedule::command('gang:pay-wages')->everyMinute();
 Schedule::command('battle:settle')->everyMinute();
 Schedule::command('patients:pay-allowances')->everyFifteenMinutes();
 Schedule::command('vault:evening-drop')->dailyAt('22:00')->timezone('Europe/Amsterdam');
+Schedule::command('event:resolve-cash-hunt')->dailyAt('00:00')->timezone('Europe/Amsterdam');
 Schedule::command('lottery:draw')->everyMinute();
