@@ -788,9 +788,9 @@ class HitmanController extends Controller
                 return back()->with('info', "🛡️ PANTSEBREUK! Je schot op {$defender->name} heeft zijn {$vestInfo['name']} volledig aan flarden geschoten (-{$dmg} HP)! Het doelwit heeft nu géén pantser meer.");
             }
 
-            // Plunder 45% Cash + 7% Bank!
-            $stolenCash = (int) floor(max(0, (int) $defender->cash) * 0.45);
-            $stolenBank = (int) floor(max(0, (int) $defender->bank) * 0.07);
+            // Plunder 45% Cash + 7% Bank (tenzij doelwit 24u Cash Bescherming heeft)
+            $stolenCash = $defender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $defender->cash) * 0.45);
+            $stolenBank = $defender->hasCashProtection() ? 0 : (int) floor(max(0, (int) $defender->bank) * 0.07);
             $totalStolen = $stolenCash + $stolenBank;
 
             if ($stolenCash > 0) {

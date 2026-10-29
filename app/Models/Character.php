@@ -55,6 +55,7 @@ use Illuminate\Support\Facades\Hash;
  * @property int|null $gang_id
  * @property string $gang_role
  * @property Carbon|null $protection_until
+ * @property Carbon|null $cash_protection_until
  * @property Carbon|null $last_active_at
  * @property Carbon|null $last_gang_wage_at
  * @property float $today_respect
@@ -92,6 +93,7 @@ class Character extends Model
         'last_allowance_at' => 'datetime',
         'prison_until' => 'datetime',
         'protection_until' => 'datetime',
+        'cash_protection_until' => 'datetime',
         'last_active_at' => 'datetime',
         'is_in_prison' => 'boolean',
         'level' => 'integer',
@@ -1601,11 +1603,19 @@ class Character extends Model
     }
 
     /**
-     * Check if currently under voluntary isolation protection.
+     * Check if currently under 24h VIP cash protection.
+     */
+    public function hasCashProtection(): bool
+    {
+        return (bool) ($this->cash_protection_until && now()->lt($this->cash_protection_until));
+    }
+
+    /**
+     * Check if currently under voluntary isolation protection or cash protection.
      */
     public function isProtected(): bool
     {
-        return $this->protection_until && now()->lt($this->protection_until);
+        return ($this->protection_until && now()->lt($this->protection_until)) || $this->hasCashProtection();
     }
 
     /**
@@ -1638,10 +1648,11 @@ class Character extends Model
 
     /**
      * Cancel voluntary or recovery protection when the character initiates an attack.
+     * Note: Paid 24h VIP Cash Protection is preserved and NEVER breaks when attacking!
      */
     public function breakProtection(): void
     {
-        if ($this->isProtected()) {
+        if ($this->protection_until && now()->lt($this->protection_until)) {
             $this->protection_until = null;
             $this->save();
         }

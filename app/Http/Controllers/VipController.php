@@ -132,7 +132,10 @@ class VipController extends Controller
 
         switch ($validated['reward_type']) {
             case 'cash_protection':
-                $character->protection_until = now()->addHours(24);
+                $curCashProt = ($character->cash_protection_until && $character->cash_protection_until->isFuture())
+                    ? $character->cash_protection_until
+                    : now();
+                $character->cash_protection_until = $curCashProt->copy()->addHours(24);
                 break;
             case 'energy_restore':
                 $character->energy = $character->max_energy;
@@ -159,6 +162,10 @@ class VipController extends Controller
         $character->save();
 
         $currencyLabel = $currency === 'stars' ? 'Gouden Sterren ⭐' : 'VIP Punten';
+
+        if ($validated['reward_type'] === 'cash_protection') {
+            return back()->with('success', "🛡️ 24 Uur Cash Bescherming actief! Je contante geld is tot {$character->cash_protection_until->format('d-m-Y H:i')} 100% beschermd tegen diefstal bij aanvallen.");
+        }
 
         return back()->with('success', "🎉 Gefeliciteerd! Je hebt succesvol '{$reward['name']}' geclaimd voor {$cost} {$currencyLabel}!");
     }

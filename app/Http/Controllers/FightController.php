@@ -183,8 +183,14 @@ class FightController extends Controller
             return back()->with('error', "{$defender->name} ligt in Intensive Care Coma en kan niet worden bestolen.");
         }
 
+        if ($defender->hasCashProtection()) {
+            $remaining = $defender->cash_protection_until->diffForHumans(null, true);
+
+            return back()->with('error', "🛡️ {$defender->name} heeft actieve 24u Cash Bescherming (nog {$remaining}) en kan niet worden bestolen!");
+        }
+
         if ($defender->isProtected()) {
-            return back()->with('error', "{$defender->name} zit in isolatie of heeft cashbescherming en kan niet worden bestolen!");
+            return back()->with('error', "{$defender->name} zit in isolatie en kan niet worden bestolen!");
         }
 
         if (! $this->energy->consume($attacker, 20)) {
@@ -224,7 +230,9 @@ class FightController extends Controller
             $defenderCash = max(0, (int) $defender->cash);
             $stolenCash = 0;
 
-            if ($defenderCash > 0) {
+            if ($defender->hasCashProtection()) {
+                $stolenCash = 0;
+            } elseif ($defenderCash > 0) {
                 $stolenRatio = random_int(10, 25) / 100;
                 $stolenCash = max(15, (int) round($defenderCash * $stolenRatio));
                 if ($stolenCash > $defenderCash) {

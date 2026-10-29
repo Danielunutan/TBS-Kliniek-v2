@@ -789,7 +789,14 @@
                                         <i class="fa-solid {{ $opt['icon'] }}"></i>
                                     </div>
                                     <div class="space-y-1">
-                                        <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">{{ $opt['name'] }}</h4>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">{{ $opt['name'] }}</h4>
+                                            @if($opt['type'] === 'cash_protection' && $character->hasCashProtection())
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                                                    <i class="fa-solid fa-shield"></i> Actief (tot {{ $character->cash_protection_until->format('d-m H:i') }})
+                                                </span>
+                                            @endif
+                                        </div>
                                         <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{{ $opt['desc'] }}</p>
                                     </div>
                                 </div>
@@ -803,7 +810,7 @@
                                         <button type="submit" 
                                                 {{ ! $canAfford ? 'disabled' : '' }}
                                                 class="px-4 py-1.5 rounded-lg text-xs font-black transition {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-xs cursor-pointer' : 'bg-slate-200 dark:bg-purple-950/80 text-slate-400 cursor-not-allowed' }}">
-                                            Inwisselen
+                                            {{ ($opt['type'] === 'cash_protection' && $character->hasCashProtection()) ? 'Verlengen (+24u)' : 'Inwisselen' }}
                                         </button>
                                     </form>
                                 </div>

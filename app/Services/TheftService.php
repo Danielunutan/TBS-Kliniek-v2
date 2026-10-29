@@ -152,12 +152,25 @@ class TheftService
                 ];
             }
 
-            if ($victim->isProtected()) {
-                $remaining = $victim->protection_until->diffForHumans(null, true);
+            if ($victim->hasCashProtection()) {
+                $remaining = $victim->cash_protection_until->diffForHumans(null, true);
 
                 return [
                     'success' => false,
-                    'message' => "{$victim->name} heeft actieve cash-bescherming (nog {$remaining}) en kan momenteel niet worden bestolen!",
+                    'message' => "🛡️ {$victim->name} heeft actieve 24u Cash Bescherming (nog {$remaining}) en kan momenteel niet worden bestolen!",
+                    'cash_stolen' => 0,
+                    'xp_gained' => 0,
+                    'jailed' => false,
+                    'jail_minutes' => 0,
+                ];
+            }
+
+            if ($victim->isProtected()) {
+                $remaining = $victim->protection_until ? $victim->protection_until->diffForHumans(null, true) : 'even';
+
+                return [
+                    'success' => false,
+                    'message' => "{$victim->name} zit in isolatie of heeft herstelbescherming (nog {$remaining}) en kan momenteel niet worden bestolen!",
                     'cash_stolen' => 0,
                     'xp_gained' => 0,
                     'jailed' => false,
@@ -322,6 +335,10 @@ class TheftService
      */
     private function finishPvpSuccess(Character $character, Character $victim, array $tier, string $tierKey, int $cashStolen, string $haulType): array
     {
+        if ($victim->hasCashProtection()) {
+            $cashStolen = 0;
+        }
+
         if ($cashStolen > 0) {
             $victim->cash -= $cashStolen;
             $victim->save();
