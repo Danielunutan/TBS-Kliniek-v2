@@ -251,6 +251,9 @@ class DailyRewardsAndBountiesTest extends TestCase
             'opponent_id' => $target->id,
         ]);
 
+        // Resolve arena battle (countdown completion)
+        $this->post(route('fight.arena.resolve', $target));
+
         $bounty->refresh();
         $hunter->refresh();
 

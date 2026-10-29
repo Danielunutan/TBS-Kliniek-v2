@@ -3,21 +3,62 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6"
      x-data="{
-         countdown: 2,
-         resolved: false,
+         countdown: {{ (!empty($arenaBattle['resolved'])) ? 0 : 2 }},
+         resolved: {{ (!empty($arenaBattle['resolved'])) ? 'true' : 'false' }},
+         resolving: false,
          won: {{ $arenaBattle['won'] ? 'true' : 'false' }},
+         stolenCash: {{ (int)($arenaBattle['stolen_cash'] ?? 0) }},
+         claimedBounty: {{ (int)($arenaBattle['claimed_bounty'] ?? 0) }},
+         damage: {{ (int)($arenaBattle['damage'] ?? 0) }},
+         xp: {{ (int)($arenaBattle['xp'] ?? 0) }},
+         respect: {{ (int)($arenaBattle['respect'] ?? 0) }},
          init() {
+             if (this.resolved) return;
              const timer = setInterval(() => {
                  this.countdown--;
                  if (this.countdown <= 0) {
                      clearInterval(timer);
-                     this.resolved = true;
+                     this.resolveBattle();
                  }
              }, 1000);
          },
          skip() {
+             if (this.resolved || this.resolving) return;
              this.countdown = 0;
-             this.resolved = true;
+             this.resolveBattle();
+         },
+         async resolveBattle() {
+             if (this.resolved || this.resolving) return;
+             this.resolving = true;
+             try {
+                 const res = await fetch('{{ route('fight.arena.resolve', $defender) }}', {
+                     method: 'POST',
+                     headers: {
+                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                         'Accept': 'application/json',
+                         'Content-Type': 'application/json'
+                     }
+                 });
+                 const data = await res.json();
+                 if (data && data.success) {
+                     this.won = data.won;
+                     this.stolenCash = data.stolen_cash;
+                     this.claimedBounty = data.claimed_bounty;
+                     this.damage = data.damage;
+                     this.xp = data.xp;
+                     this.respect = data.respect;
+                     this.resolved = true;
+                     if (window.tbsApplyStats && data.stats) {
+                         window.tbsApplyStats(data.stats);
+                     }
+                 } else {
+                     this.resolved = true;
+                 }
+             } catch (e) {
+                 this.resolved = true;
+             } finally {
+                 this.resolving = false;
+             }
          }
      }">
 
@@ -72,18 +113,16 @@
                             <i class="fa-solid fa-sack-dollar text-amber-500"></i> BEROVING GESLAAGD!
                         </div>
                         <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-emerald-600">
-                            @if(($arenaBattle['stolen_cash'] ?? 0) > 0)
-                                GELD GESTEELD!
-                            @else
-                                OVERMEESTERD!
-                            @endif
+                            <span x-show="stolenCash > 0">GELD GESTEELD!</span>
+                            <span x-show="stolenCash <= 0">OVERMEESTERD!</span>
                         </h2>
                         <p class="text-slate-600 text-xs sm:text-sm max-w-md mx-auto">
-                            @if(($arenaBattle['stolen_cash'] ?? 0) > 0)
-                                Je hebt <strong class="text-emerald-700 font-mono">€{{ number_format($arenaBattle['stolen_cash'], 0, ',', '.') }}</strong> contant uit de zakken van <strong class="text-slate-900">{{ $defender->name }}</strong> geroofd!
-                            @else
+                            <span x-show="stolenCash > 0">
+                                Je hebt <strong class="text-emerald-700 font-mono" x-text="'€' + new Intl.NumberFormat('nl-NL').format(stolenCash)">€{{ number_format($arenaBattle['stolen_cash'] ?? 0, 0, ',', '.') }}</strong> contant uit de zakken van <strong class="text-slate-900">{{ $defender->name }}</strong> geroofd!
+                            </span>
+                            <span x-show="stolenCash <= 0">
                                 Je hebt <strong class="text-slate-900">{{ $defender->name }}</strong> overmeesterd, maar die had helaas geen contanten op zak!
-                            @endif
+                            </span>
                         </p>
                     </div>
                 </template>
@@ -188,25 +227,25 @@
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                     <div class="bg-white rounded-xl p-3 border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Buit Gesteeld</span>
-                        <span class="text-base font-black text-emerald-700 font-mono">
+                        <span class="text-base font-black text-emerald-700 font-mono" x-text="'+€' + new Intl.NumberFormat('nl-NL').format(stolenCash)">
                             +€{{ number_format($arenaBattle['stolen_cash'] ?? 0, 0, ',', '.') }}
                         </span>
                     </div>
                     <div class="bg-white rounded-xl p-3 border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">XP Verdiend</span>
-                        <span class="text-base font-black text-purple-700 font-mono">
+                        <span class="text-base font-black text-purple-700 font-mono" x-text="'+' + xp + ' XP'">
                             +{{ $arenaBattle['xp'] ?? 0 }} XP
                         </span>
                     </div>
                     <div class="bg-white rounded-xl p-3 border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Respect</span>
-                        <span class="text-base font-black text-amber-700 font-mono">
+                        <span class="text-base font-black text-amber-700 font-mono" x-text="'+' + respect">
                             +{{ $arenaBattle['respect'] ?? 0 }}
                         </span>
                     </div>
                     <div class="bg-white rounded-xl p-3 border border-slate-200">
                         <span class="text-[10px] font-extrabold uppercase text-slate-400 block mb-1">Schade Opgelopen</span>
-                        <span class="text-base font-black text-rose-600 font-mono">
+                        <span class="text-base font-black text-rose-600 font-mono" x-text="'-' + damage + ' HP'">
                             -{{ $arenaBattle['damage'] ?? 0 }} HP
                         </span>
                     </div>

@@ -138,7 +138,7 @@ class FightAttackLimitTest extends TestCase
             'cf-turnstile-response' => 'invalid_token',
         ]);
         $failResponse->assertSessionHas('error');
-        $this->assertStringContainsString('Beveiligingscontrole mislukt', session('error'));
+        $this->assertStringContainsString('Zaalwacht controle vereist', session('error'));
 
         // 2. Successful Turnstile verification succeeds
         session(['fight_captcha_required' => true]);
@@ -188,6 +188,17 @@ class FightAttackLimitTest extends TestCase
         $this->assertTrue($arenaBattle['won']);
         $this->assertGreaterThanOrEqual(100, $arenaBattle['stolen_cash']); // between 10% and 25% of 1000 = 100..250
         $this->assertLessThanOrEqual(250, $arenaBattle['stolen_cash']);
+
+        // BEFORE resolving (during timer): cash has NOT been transferred yet!
+        $defender->refresh();
+        $attacker->refresh();
+        $this->assertEquals(1000, $defender->cash);
+        $this->assertEquals(100, $attacker->cash);
+
+        // AFTER timer (resolve endpoint called): cash is transferred!
+        $resolveResponse = $this->post(route('fight.arena.resolve', $defender));
+        $resolveResponse->assertOk();
+        $resolveResponse->assertJson(['success' => true, 'won' => true]);
 
         $defender->refresh();
         $attacker->refresh();

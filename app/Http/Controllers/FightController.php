@@ -13,6 +13,7 @@ use App\Services\EnergyService;
 use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\TurnstileService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,12 @@ class FightController extends Controller
     public function index(Request $request): View
     {
         $character = Auth::user()->character;
+
+        if (session()->has('pending_arena_battle')) {
+            $this->commitPendingBattle($character);
+            $character->refresh();
+        }
+
         $this->energy->refresh($character);
         $character->isImprisoned(); // auto-release if expired
 
@@ -96,7 +103,7 @@ class FightController extends Controller
     public function arena(Character $defender): View|RedirectResponse
     {
         $attacker = Auth::user()->character;
-        $arenaBattle = session('arena_battle');
+        $arenaBattle = session('pending_arena_battle') ?? session('arena_battle');
 
         if (! $arenaBattle || $arenaBattle['defender_id'] !== $defender->id) {
             return redirect()->route('fight.index');
@@ -105,9 +112,218 @@ class FightController extends Controller
         return view('game.fight.arena', compact('attacker', 'defender', 'arenaBattle'));
     }
 
+    /**
+     * Resolve pending arena theft upon countdown completion or skip.
+     */
+    public function resolveArena(Character $defender): JsonResponse
+    {
+        $attacker = Auth::user()->character;
+        $battle = session('pending_arena_battle') ?? session('arena_battle');
+
+        if (! $battle || $battle['defender_id'] !== $defender->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Geen actieve beroving gevonden.',
+            ], 404);
+        }
+
+        if (empty($battle['resolved'])) {
+            $battle = $this->commitPendingBattle($attacker);
+        }
+
+        $attacker->refresh();
+
+        $stats = [
+            'cash' => (int) $attacker->cash,
+            'cashFormatted' => '€'.number_format($attacker->cash, 0, ',', '.'),
+            'cash_formatted' => '€'.number_format($attacker->cash, 0, ',', '.'),
+            'bank' => (int) $attacker->bank,
+            'bankFormatted' => '€'.number_format($attacker->bank, 0, ',', '.'),
+            'bank_formatted' => '€'.number_format($attacker->bank, 0, ',', '.'),
+            'total' => (int) ($attacker->cash + $attacker->bank),
+            'totalFormatted' => '€'.number_format($attacker->cash + $attacker->bank, 0, ',', '.'),
+            'total_formatted' => '€'.number_format($attacker->cash + $attacker->bank, 0, ',', '.'),
+            'energy' => (int) $attacker->energy,
+            'max_energy' => (int) $attacker->max_energy,
+            'energy_pct' => min(100, max(0, round(($attacker->energy / max(1, $attacker->max_energy)) * 100))),
+            'health' => (int) $attacker->health,
+            'max_health' => (int) $attacker->max_health,
+            'health_pct' => min(100, max(0, round(($attacker->health / max(1, $attacker->max_health)) * 100))),
+            'xp' => (int) $attacker->xp,
+            'respect' => $attacker->formatted_respect,
+            'formatted_respect' => $attacker->formatted_respect,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'won' => (bool) ($battle['won'] ?? false),
+            'stolen_cash' => (int) ($battle['stolen_cash'] ?? 0),
+            'claimed_bounty' => (int) ($battle['claimed_bounty'] ?? 0),
+            'xp' => (int) ($battle['xp'] ?? 0),
+            'respect' => (int) ($battle['respect'] ?? 0),
+            'damage' => (int) ($battle['damage'] ?? 0),
+            'gained_strength' => (bool) ($battle['gained_strength'] ?? false),
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
+     * Atomically finalize and execute database changes for an arena battle.
+     */
+    public function commitPendingBattle(Character $attacker): ?array
+    {
+        $battle = session('pending_arena_battle') ?? session('arena_battle');
+        if (! $battle || ! empty($battle['resolved'])) {
+            return $battle;
+        }
+
+        $defender = Character::find($battle['defender_id']);
+        if (! $defender) {
+            session()->forget(['pending_arena_battle', 'arena_battle']);
+
+            return null;
+        }
+
+        if ($battle['won']) {
+            $defenderCash = max(0, (int) $defender->cash);
+            $stolenCash = (int) ($battle['stolen_cash'] ?? 0);
+            if ($defender->hasCashProtection()) {
+                $stolenCash = 0;
+            } elseif ($stolenCash > $defenderCash) {
+                $stolenCash = $defenderCash;
+            }
+
+            if ($stolenCash > 0) {
+                $this->economy->deductCash($defender, $stolenCash);
+                $this->economy->addCash($attacker, $stolenCash);
+            }
+
+            $attacker->thefts_succeeded = ($attacker->thefts_succeeded ?? 0) + 1;
+            $attacker->fights_won += 1;
+            $defender->fights_lost += 1;
+
+            $damageTaken = (int) ($battle['damage_taken'] ?? 10);
+            $defender->health = max(0, $defender->health - $damageTaken);
+            $defender->save();
+
+            $this->level->addXp($attacker, (int) ($battle['xp'] ?? 25));
+            $attacker->respect += (int) ($battle['respect'] ?? 2);
+
+            if (! empty($battle['gained_strength'])) {
+                $maxStrength = $attacker->getMaxStatForLevel();
+                if (($attacker->strength ?? 10) < $maxStrength) {
+                    $attacker->strength = ($attacker->strength ?? 10) + 1;
+                }
+            }
+            $attacker->save();
+
+            // Record in 24 Hour Battle & events
+            $this->battleService->record($attacker, 'kills', 1);
+            $this->battleService->record($attacker, 'slay', 2);
+            HalloweenService::record($attacker, 'brawl', 1);
+            HalloweenService::record($attacker, 'brawl_win', 1);
+            if ($stolenCash > 0) {
+                HalloweenService::record($attacker, 'cash_earned', $stolenCash);
+            }
+
+            // Check for and claim any active bounties on defender atomically
+            $claimedBountyCash = 0;
+            DB::transaction(function () use ($defender, $attacker, &$claimedBountyCash) {
+                $bountiesToClaim = Bounty::where('target_character_id', $defender->id)
+                    ->where('is_claimed', false)
+                    ->lockForUpdate()
+                    ->get();
+
+                if ($bountiesToClaim->isNotEmpty()) {
+                    $claimedBountyCash = (int) $bountiesToClaim->sum('amount');
+                    $this->economy->addCash($attacker, $claimedBountyCash);
+                    foreach ($bountiesToClaim as $bounty) {
+                        $bounty->update([
+                            'is_claimed' => true,
+                            'claimed_by_character_id' => $attacker->id,
+                            'claimed_at' => now(),
+                        ]);
+
+                        GameNotification::create([
+                            'character_id' => $bounty->placed_by_character_id,
+                            'type' => 'bounty_claimed',
+                            'icon' => 'fa-crosshairs',
+                            'title' => 'Kopgeld Geïncasseerd!',
+                            'message' => 'Het kopgeld van €'.number_format($bounty->amount, 0, ',', '.')." dat je op {$defender->name} had gezet is zojuist geclaimd door {$attacker->name}!",
+                            'is_read' => false,
+                        ]);
+                    }
+                }
+            });
+
+            $notificationMessage = $stolenCash > 0
+                ? "{$attacker->name} heeft je overmeesterd op de luchtplaats en €".number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'
+                : "{$attacker->name} heeft je overmeesterd op de luchtplaats om je te beroven, maar je had gelukkig geen contanten op zak!";
+
+            if ($claimedBountyCash > 0) {
+                $notificationMessage .= ' Tevens is het openstaande kopgeld van €'.number_format($claimedBountyCash, 0, ',', '.').' op jouw hoofd geïncasseerd!';
+            }
+
+            GameNotification::create([
+                'character_id' => $defender->id,
+                'type' => 'theft',
+                'icon' => 'fa-sack-dollar',
+                'title' => 'Bestolen op de luchtplaats!',
+                'message' => $notificationMessage,
+            ]);
+
+            if ($stolenCash > 0) {
+                GameMessage::create([
+                    'recipient_id' => $defender->id,
+                    'sender_id' => $attacker->id,
+                    'sender_name' => 'Kliniek Beveiliging Alert',
+                    'subject' => '🚨 ALARM: Bestolen op de Luchtplaats!',
+                    'content' => "Patiënt {$defender->name},\n\nTerwijl je op de Luchtplaats stond, heeft {$attacker->name} je zojuist overmeesterd en €"
+                        .number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'.($claimedBountyCash > 0 ? "\n\nTevens is het openstaande kopgeld van €".number_format($claimedBountyCash, 0, ',', '.').' op jouw hoofd geïncasseerd!' : '')."\n\nTip: Breng je geld regelmatig in veiligheid bij de Geldmaat.",
+                    'type' => 'theft',
+                ]);
+            }
+
+            $battle['stolen_cash'] = $stolenCash;
+            $battle['claimed_bounty'] = $claimedBountyCash;
+        } else {
+            $attacker->fights_lost += 1;
+            $defender->fights_won += 1;
+            $damage = (int) ($battle['damage'] ?? 10);
+            $attacker->health = max(0, $attacker->health - $damage);
+            $attacker->save();
+
+            $maxDefense = $defender->getMaxStatForLevel();
+            if (($defender->defense ?? 10) < $maxDefense && rand(1, 100) <= 35) {
+                $defender->defense = ($defender->defense ?? 10) + 1;
+            }
+            $defender->save();
+
+            GameNotification::create([
+                'character_id' => $defender->id,
+                'type' => 'theft',
+                'icon' => 'fa-shield-halved',
+                'title' => 'Berovingspoging afgeslagen!',
+                'message' => "{$attacker->name} probeerde je contanten te stelen op de luchtplaats, maar jij hebt hem hard teruggeslagen!",
+            ]);
+        }
+
+        $battle['resolved'] = true;
+        session(['arena_battle' => $battle]);
+        session()->forget('pending_arena_battle');
+
+        return $battle;
+    }
+
     public function attack(Request $request): RedirectResponse
     {
         $attacker = Auth::user()->character;
+
+        if (session()->has('pending_arena_battle')) {
+            $this->commitPendingBattle($attacker);
+            $attacker->refresh();
+        }
+
         $this->energy->refresh($attacker);
 
         if ($attacker->isImprisoned()) {
@@ -226,7 +442,6 @@ class FightController extends Controller
         $defenderPower = $defender->getEffectiveDefense() + rand(5, 15);
 
         if ($attackerPower >= $defenderPower) {
-            // Attacker succeeds: Steal between 10% and 25% of cash on hand (just like diefstal / zakkenrollen)
             $defenderCash = max(0, (int) $defender->cash);
             $stolenCash = 0;
 
@@ -238,102 +453,13 @@ class FightController extends Controller
                 if ($stolenCash > $defenderCash) {
                     $stolenCash = $defenderCash;
                 }
-
-                $this->economy->deductCash($defender, $stolenCash);
-                $this->economy->addCash($attacker, $stolenCash);
             }
 
-            $attacker->thefts_succeeded = ($attacker->thefts_succeeded ?? 0) + 1;
-            $attacker->fights_won += 1;
-            $defender->fights_lost += 1;
-
-            // Damage mitigated by defender's defense
             $damageTaken = max(5, rand(12, 25) - (int) floor($defender->getEffectiveDefense() / 15));
-            $defender->health = max(0, $defender->health - $damageTaken);
-            $defender->save();
-
-            $this->level->addXp($attacker, 25);
-            $attacker->respect += 2;
-
-            // 35% chance to gain +1 permanent Kracht from winning a real brawl (up to level cap)
             $maxStrength = $attacker->getMaxStatForLevel();
-            $gainedStrength = false;
-            if (($attacker->strength ?? 10) < $maxStrength && rand(1, 100) <= 35) {
-                $attacker->strength = ($attacker->strength ?? 10) + 1;
-                $gainedStrength = true;
-            }
-            $attacker->save();
+            $gainedStrength = (($attacker->strength ?? 10) < $maxStrength && rand(1, 100) <= 35);
 
-            // Record in 24 Hour Battle
-            $this->battleService->record($attacker, 'kills', 1);
-            $this->battleService->record($attacker, 'slay', 2);
-            HalloweenService::record($attacker, 'brawl', 1);
-            HalloweenService::record($attacker, 'brawl_win', 1);
-            if ($stolenCash > 0) {
-                HalloweenService::record($attacker, 'cash_earned', $stolenCash);
-            }
-
-            // Check for and claim any active bounties on defender atomically
-            $claimedBountyCash = 0;
-            $claimedBounties = DB::transaction(function () use ($defender, $attacker, &$claimedBountyCash) {
-                $bountiesToClaim = Bounty::where('target_character_id', $defender->id)
-                    ->where('is_claimed', false)
-                    ->lockForUpdate()
-                    ->get();
-
-                if ($bountiesToClaim->isNotEmpty()) {
-                    $claimedBountyCash = (int) $bountiesToClaim->sum('amount');
-                    $this->economy->addCash($attacker, $claimedBountyCash);
-                    foreach ($bountiesToClaim as $bounty) {
-                        $bounty->update([
-                            'is_claimed' => true,
-                            'claimed_by_character_id' => $attacker->id,
-                            'claimed_at' => now(),
-                        ]);
-
-                        GameNotification::create([
-                            'character_id' => $bounty->placed_by_character_id,
-                            'type' => 'bounty_claimed',
-                            'icon' => 'fa-crosshairs',
-                            'title' => 'Kopgeld Geïncasseerd!',
-                            'message' => 'Het kopgeld van €'.number_format($bounty->amount, 0, ',', '.')." dat je op {$defender->name} had gezet is zojuist geclaimd door {$attacker->name}!",
-                            'is_read' => false,
-                        ]);
-                    }
-                }
-
-                return $bountiesToClaim;
-            });
-
-            $notificationMessage = $stolenCash > 0
-                ? "{$attacker->name} heeft je overmeesterd op de luchtplaats en €".number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'
-                : "{$attacker->name} heeft je overmeesterd op de luchtplaats om je te beroven, maar je had gelukkig geen contanten op zak!";
-
-            if ($claimedBountyCash > 0) {
-                $notificationMessage .= ' Tevens is het openstaande kopgeld van €'.number_format($claimedBountyCash, 0, ',', '.').' op jouw hoofd geïncasseerd!';
-            }
-
-            GameNotification::create([
-                'character_id' => $defender->id,
-                'type' => 'theft',
-                'icon' => 'fa-sack-dollar',
-                'title' => 'Bestolen op de luchtplaats!',
-                'message' => $notificationMessage,
-            ]);
-
-            if ($stolenCash > 0) {
-                GameMessage::create([
-                    'recipient_id' => $defender->id,
-                    'sender_id' => $attacker->id,
-                    'sender_name' => 'Kliniek Beveiliging Alert',
-                    'subject' => '🚨 ALARM: Bestolen op de Luchtplaats!',
-                    'content' => "Patiënt {$defender->name},\n\nTerwijl je op de Luchtplaats stond, heeft {$attacker->name} je zojuist overmeesterd en €"
-                        .number_format($stolenCash, 0, ',', '.').' contant uit je zakken geroofd!'.($claimedBountyCash > 0 ? "\n\nTevens is het openstaande kopgeld van €".number_format($claimedBountyCash, 0, ',', '.').' op jouw hoofd geïncasseerd!' : '')."\n\nTip: Breng je geld regelmatig in veiligheid bij de Geldmaat.",
-                    'type' => 'theft',
-                ]);
-            }
-
-            session()->flash('arena_battle', [
+            $battleData = [
                 'attacker_id' => $attacker->id,
                 'defender_id' => $defender->id,
                 'defender_name' => $defender->name,
@@ -341,41 +467,20 @@ class FightController extends Controller
                 'defender_level' => $defender->level,
                 'won' => true,
                 'stolen_cash' => $stolenCash,
-                'claimed_bounty' => $claimedBountyCash,
+                'claimed_bounty' => 0,
                 'defender_had_no_cash' => ($defenderCash <= 0),
+                'damage_taken' => $damageTaken,
                 'damage' => 0,
                 'xp' => 25,
                 'respect' => 2,
                 'gained_strength' => $gainedStrength,
                 'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
                 'from_profile' => $request->boolean('from_profile'),
-            ]);
-
-            return redirect()->route('fight.arena', $defender);
+                'resolved' => false,
+            ];
         } else {
-            // Attacker fails: Defender repels theft attempt
-            $attacker->fights_lost += 1;
-            $defender->fights_won += 1;
             $damage = rand(10, 20);
-            $attacker->health = max(0, $attacker->health - $damage);
-            $attacker->save();
-
-            // 35% chance for defender to gain +1 defense from defending their ground (up to level cap)
-            $maxDefense = $defender->getMaxStatForLevel();
-            if (($defender->defense ?? 10) < $maxDefense && rand(1, 100) <= 35) {
-                $defender->defense = ($defender->defense ?? 10) + 1;
-            }
-            $defender->save();
-
-            GameNotification::create([
-                'character_id' => $defender->id,
-                'type' => 'theft',
-                'icon' => 'fa-shield-halved',
-                'title' => 'Berovingspoging afgeslagen!',
-                'message' => "{$attacker->name} probeerde je contanten te stelen op de luchtplaats, maar jij hebt hem hard teruggeslagen!",
-            ]);
-
-            session()->flash('arena_battle', [
+            $battleData = [
                 'attacker_id' => $attacker->id,
                 'defender_id' => $defender->id,
                 'defender_name' => $defender->name,
@@ -383,15 +488,24 @@ class FightController extends Controller
                 'defender_level' => $defender->level,
                 'won' => false,
                 'stolen_cash' => 0,
+                'claimed_bounty' => 0,
                 'defender_had_no_cash' => false,
                 'damage' => $damage,
                 'xp' => 0,
                 'respect' => 0,
                 'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
                 'from_profile' => $request->boolean('from_profile'),
-            ]);
-
-            return redirect()->route('fight.arena', $defender);
+                'resolved' => false,
+            ];
         }
+
+        session(['pending_arena_battle' => $battleData]);
+        session(['arena_battle' => $battleData]);
+
+        if ($request->boolean('auto_resolve')) {
+            $this->commitPendingBattle($attacker);
+        }
+
+        return redirect()->route('fight.arena', $defender);
     }
 }
