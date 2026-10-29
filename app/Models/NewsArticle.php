@@ -109,15 +109,20 @@ class NewsArticle extends Model
         // Center alignment [center]...[/center]
         $text = preg_replace('/\[center\](.*?)\[\/center\]/is', '<div class="text-center my-2">$1</div>', $text);
 
+        // Strip special embed shortcodes from prose
+        $text = str_ireplace('[cash_event_leaderboard]', '', $text);
+
         // Headers
-        $text = preg_replace('/^###\s+(.*?)$/m', '<h3 class="text-base font-black text-slate-900 mt-4 mb-2 tracking-tight">$1</h3>', $text);
-        $text = preg_replace('/^##\s+(.*?)$/m', '<h2 class="text-lg font-black text-slate-900 mt-5 mb-2.5 tracking-tight">$1</h2>', $text);
-        $text = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2 class="text-lg font-black text-slate-900 mt-5 mb-2.5 tracking-tight">$1</h2>', $text);
-        $text = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3 class="text-base font-black text-slate-900 mt-4 mb-2 tracking-tight">$1</h3>', $text);
+        $text = preg_replace('/^####\s+(.*?)$/m', '<h4 class="text-sm font-extrabold text-slate-900 dark:text-white mt-4 mb-2 tracking-tight">$1</h4>', $text);
+        $text = preg_replace('/^###\s+(.*?)$/m', '<h3 class="text-base font-black text-slate-900 dark:text-white mt-5 mb-2.5 tracking-tight">$1</h3>', $text);
+        $text = preg_replace('/^##\s+(.*?)$/m', '<h2 class="text-lg font-black text-slate-900 dark:text-white mt-6 mb-3 tracking-tight">$1</h2>', $text);
+        $text = preg_replace('/\[h2\](.*?)\[\/h2\]/i', '<h2 class="text-lg font-black text-slate-900 dark:text-white mt-6 mb-3 tracking-tight">$1</h2>', $text);
+        $text = preg_replace('/\[h3\](.*?)\[\/h3\]/i', '<h3 class="text-base font-black text-slate-900 dark:text-white mt-5 mb-2.5 tracking-tight">$1</h3>', $text);
+        $text = preg_replace('/\[h4\](.*?)\[\/h4\]/i', '<h4 class="text-sm font-extrabold text-slate-900 dark:text-white mt-4 mb-2 tracking-tight">$1</h4>', $text);
 
         // Bold, italic, underline, strikethrough
-        $text = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong class="font-extrabold text-slate-900">$1</strong>', $text);
-        $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong class="font-extrabold text-slate-900">$1</strong>', $text);
+        $text = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
+        $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
         $text = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em class="italic text-slate-700">$1</em>', $text);
         $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/s', '<em class="italic text-slate-700">$1</em>', $text);
         $text = preg_replace('/\[u\](.*?)\[\/u\]/i', '<span class="underline decoration-slate-400">$1</span>', $text);
