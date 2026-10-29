@@ -8,6 +8,7 @@ use App\Models\GameMessage;
 use App\Models\User;
 use App\Services\DiscordShieldService;
 use App\Services\ReferralService;
+use App\Services\VpnDetectionService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
@@ -15,6 +16,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -175,15 +178,53 @@ class AuthController extends Controller
 
                             $isNew = ! User::where('email', $email)->exists();
 
+                            if ($isNew) {
+                                $clientIp = $request->ip();
+
+                                $vpnCheck = app(VpnDetectionService::class)->check($clientIp);
+                                if ($vpnCheck['is_vpn']) {
+                                    return redirect()->route('login')->withErrors(['email' => 'Het gebruik van een VPN of proxy is niet toegestaan tijdens registratie. Schakel je VPN uit en probeer het opnieuw.']);
+                                }
+
+                                $registeredCount = User::where('registration_ip', $clientIp)
+                                    ->where('ip_limit_exempt', false)
+                                    ->count();
+
+                                if ($registeredCount < 2) {
+                                    $legacyUserIds = DB::table('sessions')
+                                        ->where('ip_address', $clientIp)
+                                        ->whereNotNull('user_id')
+                                        ->pluck('user_id')
+                                        ->unique();
+
+                                    if ($legacyUserIds->isNotEmpty()) {
+                                        $registeredCount += User::whereIn('id', $legacyUserIds)
+                                            ->where('ip_limit_exempt', false)
+                                            ->whereNull('registration_ip')
+                                            ->count();
+                                    }
+                                }
+
+                                if ($registeredCount >= 2) {
+                                    return redirect()->route('login')->withErrors(['email' => 'Er zijn al maximaal 2 accounts geregistreerd vanaf dit IP-adres (toegestaan voor bijv. gezinsleden). Wil je een uitzondering aanvragen voor een extra gezinslid? Maak dan een ticket aan via support.']);
+                                }
+                            }
+
                             $user = User::firstOrCreate(
                                 ['email' => $email],
                                 [
                                     'name' => $cleanUsername,
                                     'password' => Hash::make(Str::random(32)),
+                                    'registration_ip' => $request->ip(),
+                                    'last_login_ip' => $request->ip(),
                                     'email_verified_at' => now(),
                                     'is_onboarded' => false,
                                 ]
                             );
+
+                            if (! $isNew) {
+                                $user->forceFill(['last_login_ip' => $request->ip()])->saveQuietly();
+                            }
 
                             if (! $user->character) {
                                 $candidateUsername = $cleanUsername;
@@ -256,6 +297,12 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember', true))) {
             $request->session()->regenerate();
 
+            /** @var User|null $loggedUser */
+            $loggedUser = Auth::user();
+            if ($loggedUser) {
+                $loggedUser->forceFill(['last_login_ip' => $request->ip()])->saveQuietly();
+            }
+
             return redirect()->intended(route('dashboard'));
         }
 
@@ -269,6 +316,43 @@ class AuthController extends Controller
      */
     public function register(Request $request): RedirectResponse
     {
+        $clientIp = $request->ip();
+
+        // 1. VPN / Proxy Blocker
+        $vpnService = app(VpnDetectionService::class);
+        $vpnCheck = $vpnService->check($clientIp);
+        if ($vpnCheck['is_vpn']) {
+            return back()->withErrors([
+                'username' => 'Het gebruik van een VPN of proxy is niet toegestaan tijdens registratie. Schakel je VPN even helemaal uit op je computer of telefoon en probeer het daarna opnieuw.',
+            ])->withInput($request->except('password', 'password_confirmation'));
+        }
+
+        // 2. Max 2 accounts per IP limit
+        $registeredCount = User::where('registration_ip', $clientIp)
+            ->where('ip_limit_exempt', false)
+            ->count();
+
+        if ($registeredCount < 2) {
+            $legacyUserIds = DB::table('sessions')
+                ->where('ip_address', $clientIp)
+                ->whereNotNull('user_id')
+                ->pluck('user_id')
+                ->unique();
+
+            if ($legacyUserIds->isNotEmpty()) {
+                $registeredCount += User::whereIn('id', $legacyUserIds)
+                    ->where('ip_limit_exempt', false)
+                    ->whereNull('registration_ip')
+                    ->count();
+            }
+        }
+
+        if ($registeredCount >= 2) {
+            return back()->withErrors([
+                'username' => 'Er zijn al maximaal 2 accounts geregistreerd vanaf dit IP-adres (toegestaan voor bijv. gezinsleden). Wil je een uitzondering aanvragen voor een extra gezinslid? Maak dan een ticket aan via support.',
+            ])->withInput($request->except('password', 'password_confirmation'));
+        }
+
         $username = $request->input('username') ?? $request->input('character_name') ?? $request->input('name');
         $request->merge(['username' => $username, 'name' => $username]);
 
@@ -316,6 +400,8 @@ class AuthController extends Controller
             'name' => $validated['username'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'registration_ip' => $clientIp,
+            'last_login_ip' => $clientIp,
         ]);
 
         $character = Character::create([

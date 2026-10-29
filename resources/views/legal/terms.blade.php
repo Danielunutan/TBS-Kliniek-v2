@@ -94,10 +94,19 @@
                 3.1. Gebruikers dienen minimaal <strong>16 jaar</strong> oud te zijn om een account aan te maken, conform de Algemene Verordening Gegevensbescherming (AVG). Spelers jonger dan 16 jaar mogen uitsluitend spelen met toestemming van een ouder of wettelijke voogd.
             </p>
             <p>
-                3.2. Iedere natuurlijke persoon is gerechtigd tot het aanmaken van <strong>maximaal één (1) actief account</strong>. Het gelijktijdig bezitten, bedienen of overdragen van meerdere accounts (multi-accounting) met het oogmerk oneerlijk voordeel te behalen is niet toegestaan en leidt tot schorsing of verwijdering van de betrokken accounts.
+                3.2. <strong>Accountlimiet per persoon (Strikt verbod op dubbele accounts / AKA's):</strong> Iedere natuurlijke persoon is gerechtigd tot het aanmaken en beheren van <strong>maximaal één (1) actief account</strong>. Het bezitten, aanmaken of bedienen van meerdere accounts door dezelfde persoon (zogenaamde "multi-accounts", dubbele accounts of aka's) is ten strengste verboden. Overtreding leidt tot een permanente verbanning van alle secundaire accounts en een schorsing (minimaal 31 dagen tot permanent) van het hoofdaccount.
             </p>
             <p>
-                3.3. De gebruiker is te allen tijde zelf verantwoordelijk voor de geheimhouding van de inloggegevens. Het delen van accounts met derden is niet toegestaan.
+                3.3. <strong>Huishoudens & Maximaal 2 Accounts per IP-adres:</strong> Om eerlijk spel te waarborgen geldt een technisch en reglementair maximum van <strong>maximaal twee (2) accounts per IP-adres</strong>. Dit is uitsluitend bedoeld om gezinsleden of huisgenoten op hetzelfde netwerk samen te laten spelen. Het is verboden om accounts binnen hetzelfde huishouden te gebruiken om elkaar oneerlijk te bevoordelen (zoals geld of spullen doorsluizen, georganiseerde bende-overnames of schijnaanvallen).
+            </p>
+            <p>
+                3.4. <strong>Uitzondering aanvragen voor grotere huishoudens:</strong> Heeft jouw huishouden meer dan twee gezinsleden die het spel willen spelen? Dan kan er <strong>vooraf een officiële uitzonderingsaanvraag</strong> worden ingediend via ons interne <a href="{{ url('/help/tickets') }}" class="text-purple-600 dark:text-purple-400 font-bold underline">Ticket Support Systeem</a>. Na verificatie door de leiding kan er een IP-ontheffing worden verleend.
+            </p>
+            <p>
+                3.5. <strong>Verbod op VPN's en Anonieme Proxies:</strong> Het gebruik van VPN-verbindingen (Virtual Private Networks), datacenter proxies of geanonimiseerde tunnels om IP-limieten, geolocatie of sancties te omzeilen is niet toegestaan. Registraties via actieve VPN- of proxy-verbindingen worden automatisch door ons beveiligingssysteem geweigerd.
+            </p>
+            <p>
+                3.6. De gebruiker is te allen tijde zelf verantwoordelijk voor de geheimhouding van de inloggegevens. Het delen van accounts met derden of accountoverdracht is niet toegestaan.
             </p>
         </section>
 

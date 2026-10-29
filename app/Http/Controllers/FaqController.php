@@ -402,6 +402,10 @@ class FaqController extends Controller
                         'a' => 'Onder Account Instellingen zie je alle telefoons, tablets en computers waar jouw account momenteel op is ingelogd. Met 1 klik log je alle andere apparaten op afstand uit voor maximale veiligheid.',
                     ],
                     [
+                        'q' => 'Mag ik meerdere accounts hebben of met familieleden spelen?',
+                        'a' => "Nee, iedere speler mag maximaal 1 actief account hebben (geen dubbele accounts of aka's). Er geldt een technisch maximum van maximaal 2 accounts per IP-adres, uitsluitend bedoeld voor gezinsleden op hetzelfde netwerk. Heb je meer dan 2 gezinsleden die willen spelen? Maak dan vooraf een support ticket aan om een officiële uitzondering aan te vragen. VPN's en proxies zijn verboden en worden automatisch geblokkeerd tijdens registratie.",
+                    ],
+                    [
                         'q' => 'Hoe neem ik contact op met de beheerders of moderators?',
                         'a' => "Heb je een vraag, bug of probleem? Klik in het menu op 'Nieuw Ticket Aanmaken' of 'Support Tickets'. Je ticket komt direct binnen bij het beheerdersteam en je krijgt snel antwoord in je notificaties!",
                     ],

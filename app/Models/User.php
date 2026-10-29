@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Mail;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_id', 'banned_at', 'email_verification_code', 'email_verification_code_expires_at'])]
+#[Fillable(['name', 'email', 'registration_ip', 'last_login_ip', 'ip_limit_exempt', 'password', 'google_id', 'discord_id', 'is_staff', 'role', 'two_factor_secret', 'two_factor_enabled', 'birthdate', 'is_onboarded', 'is_banned', 'banned_until', 'ban_reason', 'banned_by_id', 'banned_at', 'email_verification_code', 'email_verification_code_expires_at'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'email_verification_code'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -282,6 +282,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'two_factor_enabled' => 'boolean',
             'is_onboarded' => 'boolean',
             'birthdate' => 'date',
+            'ip_limit_exempt' => 'boolean',
             'is_banned' => 'boolean',
             'banned_until' => 'datetime',
             'banned_at' => 'datetime',
