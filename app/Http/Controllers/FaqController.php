@@ -14,12 +14,12 @@ class FaqController extends Controller
     {
         return [
             'beginners' => [
-                'title' => ' Beginnersgids: Eerste Stappen & Overleven',
+                'title' => ' Beginnersgids - Eerste Stappen & Overleven',
                 'icon' => 'fa-graduation-cap',
                 'questions' => [
                     [
                         'q' => 'Ik ben nieuw in de TBS Kliniek! Wat moet ik als eerste doen op dag 1?',
-                        'a' => "Welkom in de kliniek, patiënt! Volg dit stappenplan om direct een vliegende start te maken zonder risico:\n\n1.  Ga naar 'Voortgang > Missies & Opdrachten'. Voltooi de eerste missies voor makkelijk contant geld en veel ervaringspunten (XP).\n2.  Ga naar 'Voortgang > Ziekenboeg'. Laat je behandelen door Zuster Brenda om je Gezondheid (HP) direct gratis naar 100% te brengen.\n3. ️ Ga naar 'Voortgang > Dagbesteding'. Werk veilig in de wasserette of werkplaats met Werkmeester Henk. Dit levert gegarandeerd eerlijk geld op en je loopt 0% risico op de isoleercel!\n4.  Ga naar 'Bonus & Kluizen > Rad van Fortuin'. Draai 1x gratis aan het rad voor extra contant geld, sterren of energie.\n5.  HEEL BELANGRIJK: Ga direct naar 'Economie > De Bank' en stort al je contante geld op je rekening! Als je contant geld op zak houdt, kunnen andere spelers je beroven op de Respectlijst of via zakkenrollen.",
+                        'a' => "Welkom in de kliniek, patiënt! Volg dit stappenplan om direct een vliegende start te maken zonder risico:\n\n1.  Ga naar 'Voortgang > Missies & Opdrachten'. Voltooi de eerste missies voor makkelijk contant geld en veel ervaringspunten (XP).\n2.  Ga naar 'Voortgang > Ziekenboeg'. Laat je behandelen door Zuster Brenda om je Gezondheid (HP) direct gratis naar 100% te brengen.\n3. ️ Ga naar 'Voortgang > Dagbesteding'. Werk veilig in de wasserette of werkplaats met Werkmeester Henk. Dit levert gegarandeerd eerlijk geld op en je loopt 0% risico op de isoleercel!\n4.  Ga naar 'Bonus & Kluizen > Rad van Fortuin'. Draai 1x gratis aan het rad voor extra contant geld, sterren of energie.\n5.  HEEL BELANGRIJK - Ga direct naar 'Economie > De Bank' en stort al je contante geld op je rekening! Als je contant geld op zak houdt, kunnen andere spelers je beroven op de Respectlijst of via zakkenrollen.",
                     ],
                     [
                         'q' => 'Wat is het doel van TBS Kliniek?',
@@ -27,7 +27,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Wat betekenen de balken bovenin mijn scherm (Energie, Gezondheid, Vermogen, Sterren, Respect)?',
-                        'a' => "Bovenin je scherm zie je altijd jouw status:\n•  ENERGIE: Dit heb je nodig om acties, misdaden en gevechten uit te voeren. Energie herstelt automatisch elke 3 minuten.\n• ️ GEZONDHEID (HP): Jouw levensbalk. Als je verliest in een gevecht daalt deze. Herstel je HP in de Ziekenboeg of met EHBO-kits uit de winkel.\n•  TOTAAL VERMOGEN: Het gecombineerde saldo van jouw contante geld en je veilige bankrekening.\n• ⭐ STERREN: Exclusieve valuta waarmee je jezelf direct uit de isoleercel kunt kopen of zeldzame voordelen kunt ontgrendelen.\n•  RESPECT: Jouw reputatie en rang in de kliniek. Hoe hoger je respect, hoe hoger je positie op de ranglijst!",
+                        'a' => "Bovenin je scherm zie je altijd jouw status:\n•  ENERGIE - Dit heb je nodig om acties, misdaden en gevechten uit te voeren. Energie herstelt automatisch elke 3 minuten.\n• ️ GEZONDHEID (HP) - Jouw levensbalk. Als je verliest in een gevecht daalt deze. Herstel je HP in de Ziekenboeg of met EHBO-kits uit de winkel.\n•  TOTAAL VERMOGEN - Het gecombineerde saldo van jouw contante geld en je veilige bankrekening.\n• ⭐ STERREN - Exclusieve valuta waarmee je jezelf direct uit de isoleercel kunt kopen of zeldzame voordelen kunt ontgrendelen.\n•  RESPECT - Jouw reputatie en rang in de kliniek. Hoe hoger je respect, hoe hoger je positie op de ranglijst!",
                     ],
                     [
                         'q' => 'Hoe verdien ik Experience Points (XP) om in Level te stijgen?',
@@ -45,11 +45,11 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Wat moet ik doen als mijn Gezondheid (HP) bijna 0 is?',
-                        'a' => "Als je HP laag is, loop je groot gevaar op de Respectlijst. Je kunt direct genezen via:\n1.  De Ziekenboeg ('Voortgang > Ziekenboeg'): Zuster Brenda lapt je gratis op!\n2.  EHBO-Verbanddozen: Koop verbanddozen of pijnstillers in de Kliniek Winkel en gebruik ze via 'Winkel > Mijn Inventaris'.\n3. ⏱️ Automatisch herstel: Je gezondheid tikt elke paar minuten langzaam vanzelf weer omhoog.",
+                        'a' => "Als je HP laag is, loop je groot gevaar op de Respectlijst. Je kunt direct genezen via:\n1.  De Ziekenboeg ('Voortgang > Ziekenboeg') - Zuster Brenda lapt je gratis op!\n2.  EHBO-Verbanddozen - Koop verbanddozen of pijnstillers in de Kliniek Winkel en gebruik ze via 'Winkel > Mijn Inventaris'.\n3. ⏱️ Automatisch herstel - Je gezondheid tikt elke paar minuten langzaam vanzelf weer omhoog.",
                     ],
                     [
                         'q' => 'Wat doen Kracht, Verdediging en Snelheid en hoe train ik ze?',
-                        'a' => "Onder 'Voortgang > Krachttraining' gebruik je energie om te trainen in de fitnessruimte:\n•  KRACHT (Push-ups): Bepaalt hoeveel schade jij toebrengt aan tegenstanders in gevechten.\n• ️ VERDEDIGING (Bankdrukken): Bepaalt hoeveel inkomende schade jij blokkeert als iemand jou aanvalt.\n•  SNELHEID (Hardlopen): Bepaalt jouw ontwijkkans en geeft je vaker de eerste klap in de gevechtsarena!",
+                        'a' => "Onder 'Voortgang > Krachttraining' gebruik je energie om te trainen in de fitnessruimte:\n•  KRACHT (Push-ups) - Bepaalt hoeveel schade jij toebrengt aan tegenstanders in gevechten.\n• ️ VERDEDIGING (Bankdrukken) - Bepaalt hoeveel inkomende schade jij blokkeert als iemand jou aanvalt.\n•  SNELHEID (Hardlopen) - Bepaalt jouw ontwijkkans en geeft je vaker de eerste klap in de gevechtsarena!",
                     ],
                 ],
             ],
@@ -71,15 +71,15 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Wat als ik steeds word aangevallen door sterkere spelers?',
-                        'a' => "Geen zorgen! Je hebt meerdere manieren om jezelf te beschermen:\n• ️ Vrijwillige Isolatie ('Geweld & Strijd > Vrijwillige Isolatie'): Sluit jezelf tijdelijk vrijwillig op. Niemand op de hele Respectlijst kan jou dan aanvallen!\n•  Bank: Zet al je geld op de bank, zodat aanvallers niks van je kunnen stelen als je verliest.\n•  Kopgeld: Plaats een bounty op de speler die jou lastigvalt, zodat andere sterke patiënten hem voor jou in elkaar slaan!",
+                        'a' => "Geen zorgen! Je hebt meerdere manieren om jezelf te beschermen:\n• ️ Vrijwillige Isolatie ('Geweld & Strijd > Vrijwillige Isolatie') - Sluit jezelf tijdelijk vrijwillig op. Niemand op de hele Respectlijst kan jou dan aanvallen!\n•  Bank - Zet al je geld op de bank, zodat aanvallers niks van je kunnen stelen als je verliest.\n•  Kopgeld - Plaats een bounty op de speler die jou lastigvalt, zodat andere sterke patiënten hem voor jou in elkaar slaan!",
                     ],
                     [
                         'q' => 'Hoe werken Kopgeld (Bounties) en Liquidatie (Hitman)?',
-                        'a' => "•  KOPGELD: Plaats een geldbeloning op het hoofd van een rivaal. De eerste patiënt die dat doelwit knock-out slaat op de luchtplaats int automatisch de volledige premie!\n•  LIQUIDATIE (Hitman): Onder 'Geweld & Strijd > Liquidatie' vuur je kogels af op rivalen om ze in Coma te schieten en contant geld te plunderen. Zie het speciale Liquidatie hoofdstuk voor alle regels!",
+                        'a' => "•  KOPGELD - Plaats een geldbeloning op het hoofd van een rivaal. De eerste patiënt die dat doelwit knock-out slaat op de luchtplaats int automatisch de volledige premie!\n•  LIQUIDATIE (Hitman) - Onder 'Geweld & Strijd > Liquidatie' vuur je kogels af op rivalen om ze in Coma te schieten en contant geld te plunderen. Zie het speciale Liquidatie hoofdstuk voor alle regels!",
                     ],
                     [
                         'q' => 'Wat doen Informanten en Vechtoefening?',
-                        'a' => "• ️ INFORMANTEN: Koop vertrouwelijke inlichtingen over vermogende patiënten, actuele bewakingsroutes en geheime geldstromen.\n•  VECHTOEFENING: Spar met trainingspoppen en medepatiënten om je gevechtstechniek te perfectioneren zonder het risico op respectverlies.",
+                        'a' => "• ️ INFORMANTEN - Koop vertrouwelijke inlichtingen over vermogende patiënten, actuele bewakingsroutes en geheime geldstromen.\n•  VECHTOEFENING - Spar met trainingspoppen en medepatiënten om je gevechtstechniek te perfectioneren zonder het risico op respectverlies.",
                     ],
                 ],
             ],
@@ -89,23 +89,23 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Wat is Liquidatie 2.0 & Wapenarsenaal en hoe werkt het?',
-                        'a' => "Onder 'Geweld & Strijd > Liquidatie' betreed je het vernieuwde Liquidatie 2.0 systeem.\n\n• 🕵️ Zelfde Kliniek-Afdeling & 15m Schaduw-Inlichtingen: Om iemand te beschieten moet je op exact dezelfde kliniek-afdeling staan als je doelwit. Via Camera- & Gangpad Schaduwing (€350.000, 15 minuten zoektijd) spoor je de exacte vleugel van je doelwit op!\n• 🎯 30 Dossier-Gradaties & Koudbloedigheid (%): Vanaf Dossier-Graad 25 (Forensisch Scherpschutter) met minimaal 30% Koudbloedigheid schiet je met een dodelijk 1-Patroon Genadeschot. Onder Graad 25 (of onder 30% Koudbloedigheid) vuur je een salvo af dat hoort bij jouw graad.\n• 💰 Buit: Bij een dodelijke voltreffer roof je direct 45% van het contante geld én 7% van de bankrekening van het slachtoffer!",
+                        'a' => "Onder 'Geweld & Strijd > Liquidatie' betreed je het vernieuwde Liquidatie 2.0 systeem.\n\n• 🕵️ Zelfde Kliniek-Afdeling & 15m Schaduw-Inlichtingen - Om iemand te beschieten moet je op exact dezelfde kliniek-afdeling staan als je doelwit. Via Camera- & Gangpad Schaduwing (€350.000, 15 minuten zoektijd) spoor je de exacte vleugel van je doelwit op!\n• 🎯 30 Dossier-Gradaties & Koudbloedigheid (%) - Vanaf Dossier-Graad 25 (Forensisch Scherpschutter) met minimaal 30% Koudbloedigheid schiet je met een dodelijk 1-Patroon Genadeschot. Onder Graad 25 (of onder 30% Koudbloedigheid) vuur je een salvo af dat hoort bij jouw graad.\n• 💰 Buit - Bij een dodelijke voltreffer roof je direct 45% van het contante geld én 7% van de bankrekening van het slachtoffer!",
                     ],
                     [
                         'q' => 'Wat gebeurt er als ik word geliquideerd (Brancard-Evacuatie & 10/10 Code Blauw)?',
-                        'a' => "1. 🚑 Liquidatie 1 t/m 9 (Geen Coma, direct healen!): Je zit niet vast op een comascherm! Je overleeft op 20 HP, kunt direct eten om te healen, en wordt per brancard geëvacueerd naar een willekeurige andere kliniek-afdeling met 15 minuten Medisch Infuus-Schild.\n2. 💉 10x Geliquideerd = Code Blauw (Hartstilstand): Zodra je teller 10/10 liquidaties bereikt, treedt Code Blauw in. Om direct weer tot leven te komen met 100% HP en je teller te resetten naar 0/10, koop je het Forensisch Reanimatie-Serum (Epinefrine-Ampul) voor €1.500.000 of 75 Sterren ⭐.",
+                        'a' => "1. 🚑 Liquidatie 1 t/m 9 (Geen Coma, direct healen!) - Je zit niet vast op een comascherm! Je overleeft op 20 HP, kunt direct eten om te healen, en wordt per brancard geëvacueerd naar een willekeurige andere kliniek-afdeling met 15 minuten Medisch Infuus-Schild.\n2. 💉 10x Geliquideerd = Code Blauw (Hartstilstand) - Zodra je teller 10/10 liquidaties bereikt, treedt Code Blauw in. Om direct weer tot leven te komen met 100% HP en je teller te resetten naar 0/10, koop je het Forensisch Reanimatie-Serum (Epinefrine-Ampul) voor €1.500.000 of 75 Sterren ⭐.",
                     ],
                     [
                         'q' => 'Hoe werken de Backfire-Vesten (zoals het 3-uurs Backfire-Vest voor geld)?',
-                        'a' => "In het Wapenarsenaal kies je uit 4 pantserklassen die met Geld (Contant/Bank) of Sterren te koop zijn:\n• Licht Kevlar Ondervest (1u): €500.000 of 35 ⭐ (30% Backfire)\n• Zwaar Tactisch Backfire-Vest (3u): €1.250.000 of 65 ⭐ (55% Backfire)\n• Syndicaat Keramisch Pantser (6u): €2.400.000 of 110 ⭐ (65% Backfire)\n• Directie Titanium Exosuit (12u): €4.500.000 of 150 ⭐ (75% Backfire)\n\n⚠️ BACKFIRE EFFECT: Als een rivaal met te weinig vuurkracht op je schiet terwijl je een vest draagt, ketst het schot terug en raakt de schutter zélf zwaargewond!",
+                        'a' => "In het Wapenarsenaal kies je uit 4 pantserklassen die met Geld (Contant/Bank) of Sterren te koop zijn:\n• Licht Kevlar Ondervest (1u) - €500.000 of 35 ⭐ (30% Backfire)\n• Zwaar Tactisch Backfire-Vest (3u) - €1.250.000 of 65 ⭐ (55% Backfire)\n• Syndicaat Keramisch Pantser (6u) - €2.400.000 of 110 ⭐ (65% Backfire)\n• Directie Titanium Exosuit (12u) - €4.500.000 of 150 ⭐ (75% Backfire)\n\n⚠️ BACKFIRE EFFECT - Als een rivaal met te weinig vuurkracht op je schiet terwijl je een vest draagt, ketst het schot terug en raakt de schutter zélf zwaargewond!",
                     ],
                     [
                         'q' => 'Wat is Bloedwraak (Blood Feuds) en hoe neem je wraak met je Bende?',
-                        'a' => "Als jij of een lid van jouw bende wordt neergeschoten door een rivaal, ontstaat er automatisch een officiële Bloedwraak Vete die 24 uur actief blijft!\n\n🔥 DE VOORDELEN VAN BLOEDWRAAK:\n• Levelrestricties vervallen: De dader mag direct worden neergeschoten, zelfs als het levelverschil groter is dan 15 levels!\n• Cooldowns vervallen: De 3-uur wachttijd geldt niet tegen de dader.\n• Enorme Wraakbonussen: De speler of het bendelid dat de dader terugslaat verdient +50 extra Respect, een contante bonus van €10.000 én +150 Bende Respect voor de hele club!\nActieve vetes verschijnen direct bovenaan in een speciale rode Bloedwraak banner op de Liquidatie pagina.",
+                        'a' => "Als jij of een lid van jouw bende wordt neergeschoten door een rivaal, ontstaat er automatisch een officiële Bloedwraak Vete die 24 uur actief blijft!\n\n🔥 DE VOORDELEN VAN BLOEDWRAAK:\n• Levelrestricties vervallen - De dader mag direct worden neergeschoten, zelfs als het levelverschil groter is dan 15 levels!\n• Cooldowns vervallen - De 3-uur wachttijd geldt niet tegen de dader.\n• Enorme Wraakbonussen - De speler of het bendelid dat de dader terugslaat verdient +50 extra Respect, een contante bonus van €10.000 én +150 Bende Respect voor de hele club!\nActieve vetes verschijnen direct bovenaan in een speciale rode Bloedwraak banner op de Liquidatie pagina.",
                     ],
                     [
                         'q' => 'Wat gebeurt er als ik in Coma (Intensive Care) lig?',
-                        'a' => "Wanneer je bent neergeschoten lig je 1 uur op de Intensive Care van de TBS Kliniek. Tijdens coma kun je tijdelijk geen misdaden plegen of vechten.\n\nOntwaken kan op 2 manieren:\n1. ⏱️ Rustig uitzitten: Wacht tot de 60 minuten timer afloopt.\n2. ⭐ Direct Ontwaken met Sterren: Druk op de gouden knop 'Direct Uit Coma Ontwaken' voor 15 Gouden Sterren om binnen 1 seconde weer rond te lopen!\nNa ontwaken treedt direct jouw 30 minuten beschermende herstelschild in werking.",
+                        'a' => "Wanneer je bent neergeschoten lig je 1 uur op de Intensive Care van de TBS Kliniek. Tijdens coma kun je tijdelijk geen misdaden plegen of vechten.\n\nOntwaken kan op 2 manieren:\n1. ⏱️ Rustig uitzitten - Wacht tot de 60 minuten timer afloopt.\n2. ⭐ Direct Ontwaken met Sterren - Druk op de gouden knop 'Direct Uit Coma Ontwaken' voor 15 Gouden Sterren om binnen 1 seconde weer rond te lopen!\nNa ontwaken treedt direct jouw 30 minuten beschermende herstelschild in werking.",
                     ],
                     [
                         'q' => 'Hoe bescherm ik als beginner mijn geld tegen Liquidatie?',
@@ -123,7 +123,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Hoe kom ik sneller vrij uit de Isoleercel?',
-                        'a' => "Je hebt 3 opties om weer op vrije voeten te komen:\n1. ⏱️ Uitzitten: Wacht rustig tot de straftimer afloopt.\n2. 🚪 Celdeur forceren: Vraag een vriend of ganggenoot om jouw celdeur open te breken vanaf de gevangenispagina.\n3. ⭐ Vrijkopen met Sterren: Gebruik 10 Gouden Sterren in de isoleercel om Zaalwacht Arjan om te kopen en per direct vrijgelaten te worden.",
+                        'a' => "Je hebt 3 opties om weer op vrije voeten te komen:\n1. ⏱️ Uitzitten - Wacht rustig tot de straftimer afloopt.\n2. 🚪 Celdeur forceren - Vraag een vriend of ganggenoot om jouw celdeur open te breken vanaf de gevangenispagina.\n3. ⭐ Vrijkopen met Sterren - Gebruik 10 Gouden Sterren in de isoleercel om Zaalwacht Arjan om te kopen en per direct vrijgelaten te worden.",
                     ],
                     [
                         'q' => 'Wat is de Uitbraaktunnel onder mijn cel?',
@@ -137,7 +137,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Waarom is Dagbesteding & Werkplaats 100% veilig voor beginners?',
-                        'a' => "In de Werkplaats ('Voortgang > Dagbesteding') werk je onder toezicht van Werkmeester Henk. In tegenstelling tot misdrijven is dit 100% legaal: er is absoluut GÉÉN risico op de isoleercel! Je verdient gegarandeerd eerlijk dagloon, bouwt Discipline op en hebt zelfs kans om geheime kluiscodes te vinden.",
+                        'a' => "In de Werkplaats ('Voortgang > Dagbesteding') werk je onder toezicht van Werkmeester Henk. In tegenstelling tot misdrijven is dit 100% legaal - er is absoluut GÉÉN risico op de isoleercel! Je verdient gegarandeerd eerlijk dagloon, bouwt Discipline op en hebt zelfs kans om geheime kluiscodes te vinden.",
                     ],
                     [
                         'q' => 'Wat is het dagelijkse Behandelaarsgesprek en hoe verdien ik Verlof?',
@@ -159,7 +159,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Wat is het verschil tussen Hosselen en Dealen & Smokkelen?',
-                        'a' => "•  HOSSELEN: Korte, directe dealtjes op de gang (shag rollen, aanstekers verkopen, telefoons doorsluizen) met directe contante buit en XP.\n•  DEALEN & SMOKKEL: Een uitgebreid productiesysteem. Je koopt grondstoffen (zoals wietzaadjes of chemische stoffen) in, laat ze rijpen in je cel, en verkoopt de partij vervolgens met enorme winstmarge aan dealers op de afdelingen.",
+                        'a' => "•  HOSSELEN - Korte, directe dealtjes op de gang (shag rollen, aanstekers verkopen, telefoons doorsluizen) met directe contante buit en XP.\n•  DEALEN & SMOKKEL - Een uitgebreid productiesysteem. Je koopt grondstoffen (zoals wietzaadjes of chemische stoffen) in, laat ze rijpen in je cel, en verkoopt de partij vervolgens met enorme winstmarge aan dealers op de afdelingen.",
                     ],
                     [
                         'q' => 'Hoe werkt Afpersen?',
@@ -185,7 +185,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Hoe kraak ik de Centrale Medicijnkluis?',
-                        'a' => "Onder 'Bonus & Kluizen > MedicijnKluis' staat de grote kluis met een geheime 4-cijferige code. Bij elke gok krijg je tips (bijv. 'de code is hoger' of 'de code is lager'). Let op: na een aantal foute pogingen gaat het alarm af tenzij je vooraf een Alarm Jammer hebt geactiveerd!",
+                        'a' => "Onder 'Bonus & Kluizen > MedicijnKluis' staat de grote kluis met een geheime 4-cijferige code. Bij elke gok krijg je tips (bijv. 'de code is hoger' of 'de code is lager'). Let op - na een aantal foute pogingen gaat het alarm af tenzij je vooraf een Alarm Jammer hebt geactiveerd!",
                     ],
                     [
                         'q' => 'Waar vind ik geheime Kluiscodes en vouchers?',
@@ -219,7 +219,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Wat is de TBS Afdelingsloterij en hoe wordt de jackpot uitbetaald?',
-                        'a' => "De Afdelingsloterij is de officiële megatrekking van de TBS Kliniek! Iedere cent bank-opnamebelasting en leningrente stroomt rechtstreeks in deze gigantische Jackpot.\n\n👑 Belangrijke Loterij Regels:\n• 💰 Uitbetaling Jackpot: De winnaar ontvangt de volledige pot automatisch uitbetaald: 30% veilig op de Bank en 70% direct contant als zakgeld!\n• ⚡ Laatste Kwartier Korting: In de laatste 15 minuten voor de trekking geldt een spectaculaire 50% korting op alle loten (€5.000 i.p.v. €10.000 per lot)!\n• 🔄 Automatische Nieuwe Ronde: Zodra een ronde getrokken is, start per direct een nieuwe ronde en verschijnt er een officieel nieuwsbericht met de winnaar in het Afdelingsnieuws.",
+                        'a' => "De Afdelingsloterij is de officiële megatrekking van de TBS Kliniek! Iedere cent bank-opnamebelasting en leningrente stroomt rechtstreeks in deze gigantische Jackpot.\n\n👑 Belangrijke Loterij Regels:\n• 💰 Uitbetaling Jackpot - De winnaar ontvangt de volledige pot automatisch uitbetaald: 30% veilig op de Bank en 70% direct contant als zakgeld!\n• ⚡ Laatste Kwartier Korting - In de laatste 15 minuten voor de trekking geldt een spectaculaire 50% korting op alle loten (€5.000 i.p.v. €10.000 per lot)!\n• 🔄 Automatische Nieuwe Ronde - Zodra een ronde getrokken is, start per direct een nieuwe ronde en verschijnt er een officieel nieuwsbericht met de winnaar in het Afdelingsnieuws.",
                     ],
                 ],
             ],
@@ -229,7 +229,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Welke gokspellen kan ik spelen in het Casino?',
-                        'a' => "In het Casino vind je 5 complete spellen om je vermogen te vermenigvuldigen:\n•  ROULETTE: Zet in op Rood, Zwart, Even, Oneven of specifieke getallen (tot 36x uitbetaling).\n• 🃏 HOGER / LAGER: Raad of de volgende speelkaart hoger of lager is dan de huidige kaart.\n•  NUMMERSPEL: Raad het geheime getal tussen 1 en 10 voor een snelle winst.\n• ️ STEEN-PAPIER-SCHAAR: Speel tegen het huis voor dubbele inleg.\n•  FRUITHAL / SLOTS: Draai aan de rollen en probeer 3 dezelfde symbolen of jokers op één lijn te krijgen voor de jackpot!",
+                        'a' => "In het Casino vind je 5 complete spellen om je vermogen te vermenigvuldigen:\n•  ROULETTE - Zet in op Rood, Zwart, Even, Oneven of specifieke getallen (tot 36x uitbetaling).\n• 🃏 HOGER / LAGER - Raad of de volgende speelkaart hoger of lager is dan de huidige kaart.\n•  NUMMERSPEL - Raad het geheime getal tussen 1 en 10 voor een snelle winst.\n• ️ STEEN-PAPIER-SCHAAR - Speel tegen het huis voor dubbele inleg.\n•  FRUITHAL / SLOTS - Draai aan de rollen en probeer 3 dezelfde symbolen of jokers op één lijn te krijgen voor de jackpot!",
                     ],
                 ],
             ],
@@ -345,7 +345,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Wat doet het Kogelwerend Vest en wat is Ricochet / Backfire?',
-                        'a' => 'Een Kogelwerend Vest beschermt je 12 uur lang tegen aanslagen. Het vest verhoogt je verdediging met +150% én heeft een gevaarlijk 45% ricochet-effect: als een vijand jou beschiet terwijl je een vest draagt, kan de kogel afketsen en de schutter zélf neerschieten (Backfire)! De aanvaller belandt dan zelf direct in een 6-uurs coma! Je activeert een 12-uurs vest door 3 sponsor ads te kijken in de Sponsorkamer.',
+                        'a' => 'Een Kogelwerend Vest beschermt je 12 uur lang tegen aanslagen. Het vest verhoogt je verdediging met +150% én heeft een gevaarlijk 45% ricochet-effect - als een vijand jou beschiet terwijl je een vest draagt, kan de kogel afketsen en de schutter zélf neerschieten (Backfire)! De aanvaller belandt dan zelf direct in een 6-uurs coma! Je activeert een 12-uurs vest door 3 sponsor ads te kijken in de Sponsorkamer.',
                     ],
                     [
                         'q' => 'Wat gebeurt er als ik in Coma lig (IC) en hoe ontwaak ik?',
@@ -359,7 +359,7 @@ class FaqController extends Controller
                 'questions' => [
                     [
                         'q' => 'Wat is het hoofddoel van TBS Kliniek en waar strijd je voor?',
-                        'a' => "In TBS Kliniek strijd je om de absolute heerschappij van de forensische instelling! Je hoofddoelen zijn:\n1. 👑 De Respectlijst & Rangorde: Klim op van nieuwkomer naar de top door gevechten te winnen en bendes te leiden.\n2. ⚔️ De Dagelijkse 24u Kliniek Battle: Strijd elke 24 uur in diverse klassementen om de gigantische dagjackpot en zeldzame sterren.\n3. 👹 Clan Bazen Verslaan: Werk samen met je bendeleden om oppermachtige kliniekbazen (zoals de Hoofdbeveiliging en Corrupte Doktoren) neer te halen voor massieve gedeelde buit!\n4. 📦 XXL Koffers Verzamelen & Kraken: Verzamel en open de meest zeldzame buitkisten voor exclusieve wagens en privileges.",
+                        'a' => "In TBS Kliniek strijd je om de absolute heerschappij van de forensische instelling! Je hoofddoelen zijn:\n1. 👑 De Respectlijst & Rangorde - Klim op van nieuwkomer naar de top door gevechten te winnen en bendes te leiden.\n2. ⚔️ De Dagelijkse 24u Kliniek Battle - Strijd elke 24 uur in diverse klassementen om de gigantische dagjackpot en zeldzame sterren.\n3. 👹 Clan Bazen Verslaan - Werk samen met je bendeleden om oppermachtige kliniekbazen (zoals de Hoofdbeveiliging en Corrupte Doktoren) neer te halen voor massieve gedeelde buit!\n4. 📦 XXL Koffers Verzamelen & Kraken - Verzamel en open de meest zeldzame buitkisten voor exclusieve wagens en privileges.",
                     ],
                     [
                         'q' => 'Hoe werken Zaalwacht Bazen & Clan Gevechten?',
@@ -377,7 +377,7 @@ class FaqController extends Controller
                     ],
                     [
                         'q' => 'Wat zijn XXL Koffers en wat zit erin?',
-                        'a' => 'XXL Koffers zijn de meest exclusieve, zwaarbewaakte koffers in het spel. Ze bevatten gegarandeerd topbeloningen: tot wel €250.000 contant geld, gratis Sterren ⭐, scherpe munitie, zeldzame bivakmutsen en unieke profielstickers die nergens anders verkrijgbaar zijn!',
+                        'a' => 'XXL Koffers zijn de meest exclusieve, zwaarbewaakte koffers in het spel. Ze bevatten gegarandeerd topbeloningen - tot wel €250.000 contant geld, gratis Sterren ⭐, scherpe munitie, zeldzame bivakmutsen en unieke profielstickers die nergens anders verkrijgbaar zijn!',
                     ],
                 ],
             ],
@@ -424,7 +424,7 @@ class FaqController extends Controller
             [
                 'title' => ' Eerste Stappen & Beginnersgids',
                 'keywords' => ['beginnen', 'nieuw', 'start', 'begin', 'starten', 'uitleg', 'hoe werkt', 'eerste stappen', 'wat moet ik doen', 'tips', 'beginner', 'overleven'],
-                'answer' => "Welkom in de TBS Kliniek! Hier zijn de 5 belangrijkste stappen voor beginners:\n1. Doe eerst veilige missies onder 'Voortgang > Missies' voor gratis geld en XP.\n2. Ga naar de Ziekenboeg om je Gezondheid (HP) direct gratis naar 100% te brengen.\n3. Doe veilige Dagbesteding in de werkplaats (100% legaal, 0% pakkans!).\n4. Draai gratis aan het Rad van Fortuin voor een mooie bonus.\n5. BELANGRIJKSTE REGEL: Stort al je contant geld altijd meteen op de Bank, anders word je beroofd!",
+                'answer' => "Welkom in de TBS Kliniek! Hier zijn de 5 belangrijkste stappen voor beginners:\n1. Doe eerst veilige missies onder 'Voortgang > Missies' voor gratis geld en XP.\n2. Ga naar de Ziekenboeg om je Gezondheid (HP) direct gratis naar 100% te brengen.\n3. Doe veilige Dagbesteding in de werkplaats (100% legaal, 0% pakkans!).\n4. Draai gratis aan het Rad van Fortuin voor een mooie bonus.\n5. BELANGRIJKSTE REGEL - Stort al je contant geld altijd meteen op de Bank, anders word je beroofd!",
                 'links' => [
                     ['text' => 'Naar Missies', 'url' => route('missions.index')],
                     ['text' => 'Naar de Bank', 'url' => route('bank.index')],
@@ -501,7 +501,7 @@ class FaqController extends Controller
             [
                 'title' => ' Illegale Acties: Hosselen, Smokkel & Diefstal',
                 'keywords' => ['hosselen', 'smokkelen', 'dealen', 'wiet', 'drugs', 'diefstal', 'klusjes', 'afpersen', 'misdaad', 'misdrijf'],
-                'answer' => "• Hosselen: Korte deals op de gang (shag rollen, telefoons) voor snelle buit.\n• Smokkelen: Kweek wiet of brouw chemicaliën in je cel en verkoop de voorraad met flinke winst.\n• Afpersen: Zet zwakke patiënten en bewakers onder druk voor wekelijks zwijggeld.\n• Klusjes & Diefstal: Klassieke misdaden met vaste kansen op succes.",
+                'answer' => "• Hosselen - Korte deals op de gang (shag rollen, telefoons) voor snelle buit.\n• Smokkelen - Kweek wiet of brouw chemicaliën in je cel en verkoop de voorraad met flinke winst.\n• Afpersen - Zet zwakke patiënten en bewakers onder druk voor wekelijks zwijggeld.\n• Klusjes & Diefstal - Klassieke misdaden met vaste kansen op succes.",
                 'links' => [
                     ['text' => 'Hosselen', 'url' => route('hustle.index')],
                     ['text' => 'Smokkelen & Dealen', 'url' => route('smuggle.index')],
@@ -619,7 +619,7 @@ class FaqController extends Controller
             [
                 'title' => '🏎️ Smokkel Garage & Voertuigen',
                 'keywords' => ['garage', 'voertuig', 'auto', 'wagen', 'vluchtwagen', 'scooter', 'motor', 'bmw', 'gti', 'vliegtuig', 'helikopter', 'speedboot', 'repareren', 'conditie', 'snelheid', 'wagenpark'],
-                'answer' => 'In de Smokkel Garage koop je snelle vluchtvoertuigen zoals de Golf GTI, BMW M5, Speedboot of Helikopter. Elk voertuig heeft topsnelheid en conditie. Let op: heists veroorzaken schade! Repareer je wagen in de garage om maximale snelheid en slaagkansen te behouden.',
+                'answer' => 'In de Smokkel Garage koop je snelle vluchtvoertuigen zoals de Golf GTI, BMW M5, Speedboot of Helikopter. Elk voertuig heeft topsnelheid en conditie. Let op - heists veroorzaken schade! Repareer je wagen in de garage om maximale snelheid en slaagkansen te behouden.',
                 'links' => [
                     ['text' => 'Naar Smokkel Garage', 'url' => route('garage.index')],
                     ['text' => 'Naar Grote Heists', 'url' => route('heists.index')],

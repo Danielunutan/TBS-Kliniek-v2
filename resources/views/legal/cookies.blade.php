@@ -12,7 +12,7 @@
         </div>
         <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Cookiebeleid</h1>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">
-            Conform artikel 11.7a van de Nederlandse Telecommunicatiewet & AVG • Laatst bijgewerkt: {{ date('d F Y') }}
+            Conform artikel 11.7a van de Nederlandse Telecommunicatiewet & AVG • Laatst bijgewerkt {{ date('d F Y') }}
         </p>
     </div>
 
@@ -138,7 +138,7 @@
                 Hoe kun je jouw Cookie-instellingen Wijzigen?
             </h2>
             <p>
-                Je kunt jouw toestemming op elk moment herzien of intrekken. Klik op de knop hieronder om het voorkeurenvenster direct opnieuw te openen:
+                Je kunt jouw toestemming op elk moment herzien of intrekken. Klik op de knop hieronder om het voorkeurenvenster direct opnieuw te openen
             </p>
             <div>
                 <button type="button" onclick="window.tbsOpenCookieSettings()"

@@ -132,9 +132,9 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'energie'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>Wachten:</strong> Je energie herstelt automatisch elke 3 minuten.</p>
-                    <p>• <strong>Sterren Shop:</strong> Koop direct 100% Energie herstel met Sterren ⭐.</p>
-                    <p>• <strong>Kantine:</strong> Koop snacks in de kliniekwinkel.</p>
+                    <p>• <strong>Wachten</strong> Je energie herstelt automatisch elke 3 minuten.</p>
+                    <p>• <strong>Sterren Shop</strong> Koop direct 100% Energie herstel met Sterren ⭐.</p>
+                    <p>• <strong>Kantine</strong> Koop snacks in de kliniekwinkel.</p>
                     <a href="{{ route('shop.index') }}" class="inline-block mt-1 px-3 py-1 bg-amber-500 text-slate-950 rounded-lg font-bold text-[10px]">Naar Sterren Shop &raquo;</a>
                 </div>
             </div>
@@ -153,8 +153,8 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'bank'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>De Bank:</strong> Stort al je contanten altijd op de bank. Bankgeld kan <em>nooit</em> worden gestolen.</p>
-                    <p>• <strong>Rente:</strong> Je ontvangt elke dag om 00:00 uur rente over je banksaldo.</p>
+                    <p>• <strong>De Bank</strong> Stort al je contanten altijd op de bank. Bankgeld kan <em>nooit</em> worden gestolen.</p>
+                    <p>• <strong>Rente</strong> Je ontvangt elke dag om 00:00 uur rente over je banksaldo.</p>
                     <a href="{{ route('bank.index') }}" class="inline-block mt-1 px-3 py-1 bg-blue-600 text-white rounded-lg font-bold text-[10px]">Naar de Bank &raquo;</a>
                 </div>
             </div>
@@ -173,9 +173,9 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'gevangenis'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>IJzerzaagje:</strong> Zaag tralies door met een zaagje uit je inventaris of de kantine.</p>
-                    <p>• <strong>Vrienden:</strong> Vraag een mede-gedetineerde om je celdeur te forceren.</p>
-                    <p>• <strong>Borgtocht:</strong> Betaal 10 Sterren in de winkel voor een directe celuitbraak.</p>
+                    <p>• <strong>IJzerzaagje</strong> Zaag tralies door met een zaagje uit je inventaris of de kantine.</p>
+                    <p>• <strong>Vrienden</strong> Vraag een mede-gedetineerde om je celdeur te forceren.</p>
+                    <p>• <strong>Borgtocht</strong> Betaal 10 Sterren in de winkel voor een directe celuitbraak.</p>
                     <a href="{{ route('prison') }}" class="inline-block mt-1 px-3 py-1 bg-amber-500 text-slate-950 rounded-lg font-black text-[10px]">Naar Isoleercel &raquo;</a>
                 </div>
             </div>
@@ -194,9 +194,9 @@
                     </div>
                 </div>
                 <div x-show="activeSolver === 'doel'" x-collapse class="pt-2 text-xs text-slate-600 dark:text-slate-300 space-y-1.5 border-t border-slate-100 dark:border-slate-800">
-                    <p>• <strong>Respectlijst:</strong> Strijd om de #1 positie van de kliniek.</p>
-                    <p>• <strong>24-Uurs Battle:</strong> Doe dagelijks mee aan de grote afdelingsslag.</p>
-                    <p>• <strong>Bendes:</strong> Richt je eigen clan op, hef bende-uurloon en domineer territoria.</p>
+                    <p>• <strong>Respectlijst</strong> Strijd om de #1 positie van de kliniek.</p>
+                    <p>• <strong>24-Uurs Battle</strong> Doe dagelijks mee aan de grote afdelingsslag.</p>
+                    <p>• <strong>Bendes</strong> Richt je eigen clan op, hef bende-uurloon en domineer territoria.</p>
                     <a href="{{ route('leaderboard') }}" class="inline-block mt-1 px-3 py-1 bg-purple-600 text-white rounded-lg font-bold text-[10px]">Respectlijst Bekijken &raquo;</a>
                 </div>
             </div>
@@ -223,7 +223,7 @@
             <div class="flex items-center gap-2">
                 <span class="text-xs font-black px-2.5 py-1 rounded-full border hidden sm:inline-block"
                       :class="winChance >= 60 ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-300' : (winChance >= 40 ? 'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-300' : 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-300')">
-                    Winstkans: <span x-text="winChance + '%'"></span>
+                    Winstkans <span x-text="winChance + '%'"></span>
                 </span>
                 <button type="button" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 flex items-center justify-center text-xs transition">
                     <i class="fa-solid" :class="showSimulator ? 'fa-chevron-up' : 'fa-chevron-down'"></i>

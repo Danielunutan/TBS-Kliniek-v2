@@ -12,7 +12,7 @@
         </div>
         <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Privacybeleid</h1>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">
-            Conform de Europese Algemene Verordening Gegevensbescherming (AVG / GDPR) • Laatst bijgewerkt: {{ date('d F Y') }}
+            Conform de Europese Algemene Verordening Gegevensbescherming (AVG / GDPR) • Laatst bijgewerkt {{ date('d F Y') }}
         </p>
     </div>
 
@@ -39,12 +39,12 @@
                 <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">2</span>
                 Welke Persoonsgegevens Verwerken Wij?
             </h2>
-            <p>Wij verzamelen uitsluitend gegevens die strikt noodzakelijk zijn voor het functioneren van het spel en de beveiliging van jouw account:</p>
+            <p>Wij verzamelen uitsluitend gegevens die strikt noodzakelijk zijn voor het functioneren van het spel en de beveiliging van jouw account</p>
             <ul class="list-disc pl-5 space-y-1 text-slate-600">
-                <li><strong>Accountgegevens:</strong> Gebruikersnaam, e-mailadres en een cryptografisch gehasht wachtwoord (via moderne algoritmes, wij kunnen jouw wachtwoord nooit in platte tekst zien).</li>
-                <li><strong>Spelstatistieken:</strong> Virtuele karakternaam, level, spelvoortgang, inventaris, in-game berichten en tijdsstempels van acties.</li>
-                <li><strong>Technische & Loggegevens:</strong> IP-adres, browser user-agent, tijdstip van inloggen en sessie-identificatoren (gebruikt voor accountbeveiliging en botpreventie).</li>
-                <li><strong>Cookie-voorkeuren:</strong> De status van jouw toestemming voor het plaatsen van functionele en advertentiecookies.</li>
+                <li><strong>Accountgegevens</strong> Gebruikersnaam, e-mailadres en een cryptografisch gehasht wachtwoord (via moderne algoritmes, wij kunnen jouw wachtwoord nooit in platte tekst zien).</li>
+                <li><strong>Spelstatistieken</strong> Virtuele karakternaam, level, spelvoortgang, inventaris, in-game berichten en tijdsstempels van acties.</li>
+                <li><strong>Technische & Loggegevens</strong> IP-adres, browser user-agent, tijdstip van inloggen en sessie-identificatoren (gebruikt voor accountbeveiliging en botpreventie).</li>
+                <li><strong>Cookie-voorkeuren</strong> De status van jouw toestemming voor het plaatsen van functionele en advertentiecookies.</li>
             </ul>
         </section>
 
@@ -88,12 +88,12 @@
                 Delen van Gegevens met Derden
             </h2>
             <p>
-                Wij verkopen jouw persoonsgegevens <strong>nooit</strong> aan derden. Wij delen uitsluitend gegevens met verwerkers die noodzakelijk zijn voor de technische werking van onze dienst:
+                Wij verkopen jouw persoonsgegevens <strong>nooit</strong> aan derden. Wij delen uitsluitend gegevens met verwerkers die noodzakelijk zijn voor de technische werking van onze dienst
             </p>
             <ul class="list-disc pl-5 space-y-1 text-slate-600">
-                <li><strong>Hosting & Serverinfrastructuur:</strong> Beveiligde servers in de Europese Unie (o.a. OVHcloud).</li>
-                <li><strong>DDoS & Botbescherming:</strong> Cloudflare (voor verificatie via Turnstile en netwerkbeveiliging).</li>
-                <li><strong>Advertentiepartners:</strong> Wanneer je advertenties bekijkt in de Sponsorkamer, kunnen externe advertentienetwerken cookies of identificatoren verwerken conform hun eigen privacybeleid en mits jij hiervoor toestemming hebt gegeven.</li>
+                <li><strong>Hosting & Serverinfrastructuur</strong> Beveiligde servers in de Europese Unie (o.a. OVHcloud).</li>
+                <li><strong>DDoS & Botbescherming</strong> Cloudflare (voor verificatie via Turnstile en netwerkbeveiliging).</li>
+                <li><strong>Advertentiepartners</strong> Wanneer je advertenties bekijkt in de Sponsorkamer, kunnen externe advertentienetwerken cookies of identificatoren verwerken conform hun eigen privacybeleid en mits jij hiervoor toestemming hebt gegeven.</li>
             </ul>
         </section>
 
@@ -104,14 +104,14 @@
                 Google AdSense & Advertentiecookies
             </h2>
             <p>
-                Wij maken op onze website gebruik van <strong>Google AdSense</strong> (aangeboden door Google LLC / Google Ireland Limited) om advertenties weer te geven. Om te voldoen aan de strenge richtlijnen van Google en de Europese privacywetgeving (AVG) informeren wij je over het volgende:
+                Wij maken op onze website gebruik van <strong>Google AdSense</strong> (aangeboden door Google LLC / Google Ireland Limited) om advertenties weer te geven. Om te voldoen aan de strenge richtlijnen van Google en de Europese privacywetgeving (AVG) informeren wij je over het volgende
             </p>
             <ul class="list-disc pl-5 space-y-1.5 text-slate-600">
                 <li>Externe leveranciers, waaronder <strong>Google</strong>, gebruiken cookies om advertenties weer te geven op basis van eerdere bezoeken van gebruikers aan onze website of aan andere websites op het internet.</li>
                 <li>Door het gebruik van advertentiecookies kunnen Google en zijn partners advertenties weergeven aan onze gebruikers op basis van hun bezoek aan onze website en/of andere websites op het internet.</li>
                 <li>Gebruikers kunnen zich afmelden voor gepersonaliseerde advertenties door naar <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" class="text-purple-600 font-bold hover:underline">Google Advertentie-instellingen</a> te gaan.</li>
                 <li>Als alternatief kunnen gebruikers zich afmelden voor cookies van externe leveranciers voor gepersonaliseerde reclame door naar <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" class="text-purple-600 font-bold hover:underline">www.aboutads.info</a> of <a href="https://www.youronlinechoices.eu/" target="_blank" rel="noopener noreferrer" class="text-purple-600 font-bold hover:underline">Your Online Choices (EU)</a> te gaan.</li>
-                <li>Meer informatie over hoe Google gegevens gebruikt wanneer je onze partnersites gebruikt, vind je op: <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer" class="text-purple-600 font-bold hover:underline">Hoe Google gegevens gebruikt op sites van partners</a>.</li>
+                <li>Meer informatie over hoe Google gegevens gebruikt wanneer je onze partnersites gebruikt, vind je op <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer" class="text-purple-600 font-bold hover:underline">Hoe Google gegevens gebruikt op sites van partners</a>.</li>
             </ul>
         </section>
 
@@ -121,13 +121,13 @@
                 <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-bold">7</span>
                 Jouw Rechten (Inzage, Verwijdering & Bezwaar)
             </h2>
-            <p>Onder de AVG beschik je over de volgende rechten:</p>
+            <p>Onder de AVG beschik je over de volgende rechten</p>
             <ul class="list-disc pl-5 space-y-1 text-slate-600">
-                <li><strong>Recht op inzage:</strong> Je mag te allen tijde opvragen welke gegevens wij over jou bewaren.</li>
-                <li><strong>Recht op rectificatie:</strong> Je kunt onjuiste gegevens (zoals je wachtwoord of e-mail) laten corrigeren.</li>
-                <li><strong>Recht op gegevenswissing ("Recht op Vergetelheid"):</strong> Je kunt te allen tijde verzoeken om volledige verwijdering van je account en gegevens via een Support Ticket.</li>
-                <li><strong>Recht van bezwaar & intrekken toestemming:</strong> Je kunt je toestemming voor advertentiecookies op elk gewenst moment intrekken via de cookie-instellingen in de footer.</li>
-                <li><strong>Klacht indienen:</strong> Je hebt het recht om een klacht in te dienen bij de <em>Autoriteit Persoonsgegevens (AP)</em> indien je meent dat wij jouw gegevens onrechtmatig verwerken.</li>
+                <li><strong>Recht op inzage</strong> Je mag te allen tijde opvragen welke gegevens wij over jou bewaren.</li>
+                <li><strong>Recht op rectificatie</strong> Je kunt onjuiste gegevens (zoals je wachtwoord of e-mail) laten corrigeren.</li>
+                <li><strong>Recht op gegevenswissing ("Recht op Vergetelheid")</strong> Je kunt te allen tijde verzoeken om volledige verwijdering van je account en gegevens via een Support Ticket.</li>
+                <li><strong>Recht van bezwaar & intrekken toestemming</strong> Je kunt je toestemming voor advertentiecookies op elk gewenst moment intrekken via de cookie-instellingen in de footer.</li>
+                <li><strong>Klacht indienen</strong> Je hebt het recht om een klacht in te dienen bij de <em>Autoriteit Persoonsgegevens (AP)</em> indien je meent dat wij jouw gegevens onrechtmatig verwerken.</li>
             </ul>
         </section>
 
