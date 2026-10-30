@@ -22,6 +22,12 @@ class EnergyService
      */
     public function refresh(Character $character): Character
     {
+        if ((int) ($character->max_energy ?? 100) !== 100 || (int) ($character->energy ?? 0) > 100) {
+            $character->max_energy = 100;
+            $character->energy = max(0, min(100, (int) ($character->energy ?? 0)));
+            $character->save();
+        }
+
         $tier = (int) ($character->perks['supporter_tier'] ?? 0);
         if ($character->is_vip && $tier >= 1 && $character->vip_expires_at && $character->vip_expires_at->isPast()) {
             if ($tier === 4) {

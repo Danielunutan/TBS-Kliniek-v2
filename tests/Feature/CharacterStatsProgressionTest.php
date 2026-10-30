@@ -248,5 +248,18 @@ class CharacterStatsProgressionTest extends TestCase
         $this->assertDatabaseHas('migrations', [
             'migration' => '2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers',
         ]);
+
+        // Verify that an active VIP character keeps max_energy = 100 (and not 200) after normalization
+        $exceededChar->update([
+            'is_vip' => true,
+            'vip_expires_at' => now()->addDays(7),
+            'max_energy' => 200,
+            'energy' => 180,
+        ]);
+        $exceededChar->normalizeCharacterState();
+        $exceededChar->refresh();
+        $this->assertTrue($exceededChar->is_vip);
+        $this->assertEquals(100, $exceededChar->max_energy);
+        $this->assertEquals(100, $exceededChar->energy);
     }
 }

@@ -1548,24 +1548,23 @@ class Character extends Model
             $dirty = true;
         }
 
-        $expectedMaxEnergy = $hasActiveVip ? max(200, (int) ($this->max_energy ?? 200)) : 100;
-        if ((int) ($this->max_energy ?? 100) !== $expectedMaxEnergy) {
-            $this->max_energy = $expectedMaxEnergy;
+        if ((int) ($this->max_energy ?? 100) !== 100) {
+            $this->max_energy = 100;
             $dirty = true;
         }
 
-        $clampedEnergy = max(0, min((int) $this->max_energy, (int) ($this->energy ?? 0)));
+        $clampedEnergy = max(0, min(100, (int) ($this->energy ?? 0)));
         if ((int) ($this->energy ?? 0) !== $clampedEnergy) {
             $this->energy = $clampedEnergy;
             $dirty = true;
         }
 
-        if ((int) ($this->max_health ?? 100) < 100) {
+        if ((int) ($this->max_health ?? 100) !== 100) {
             $this->max_health = 100;
             $dirty = true;
         }
 
-        $clampedHealth = max(0, min((int) $this->max_health, (int) ($this->health ?? 100)));
+        $clampedHealth = max(0, min(100, (int) ($this->health ?? 100)));
         if ((int) ($this->health ?? 100) !== $clampedHealth) {
             $this->health = $clampedHealth;
             $dirty = true;

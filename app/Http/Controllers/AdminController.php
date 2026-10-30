@@ -33,14 +33,7 @@ class AdminController extends Controller
         $totalCash = Character::sum('cash') + Character::sum('bank');
         $inmatesInPrison = Character::where('is_in_prison', true)->count();
 
-        $exceededStatsCount = Character::query()
-            ->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
-            ->count();
+        $exceededStatsCount = $this->countExceededCharacters();
 
         $migrationStatus = $this->getMigrationStatusSummary();
 
@@ -549,6 +542,8 @@ class AdminController extends Controller
             ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
             ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
             ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
+            ->orWhere('max_energy', '>', 100)
+            ->orWhere('energy', '>', 100)
             ->count();
     }
 
@@ -588,6 +583,7 @@ class AdminController extends Controller
             '2026_10_30_220000_align_item_prices_and_categories',
             '2026_10_30_223000_cap_exceeded_character_stats_to_level_max',
             '2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers',
+            '2026_10_30_231000_restore_max_energy_to_100',
         ];
 
         $nextBatch = Schema::hasTable('migrations')
