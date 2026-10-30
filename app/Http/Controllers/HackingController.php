@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HackingController extends Controller
@@ -203,70 +204,86 @@ class HackingController extends Controller
         $sectorIndex = mt_rand(0, 9);
         $sector = $this->wheelSectors[$sectorIndex];
 
-        // Award main reward
-        $rewardLabel = $sector['label'];
+        return DB::transaction(function () use ($character, $sectorIndex, $sector): JsonResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        match ($sector['type']) {
-            'cash' => $character->cash += $sector['value'],
-            'koffer' => $character->unopened_bags = ($character->unopened_bags ?? 0) + $sector['value'],
-            'xxl_koffer' => $character->xxl_cases = ($character->xxl_cases ?? 0) + $sector['value'],
-            'stars' => $character->vip_points = ($character->vip_points ?? 0) + $sector['value'],
-            'masks' => $character->masks = ($character->masks ?? 0) + $sector['value'],
-            'vault_code' => VaultCode::create([
-                'character_id' => $character->id,
-                'code' => strtoupper(substr(md5(uniqid()), 0, 8)),
-                'is_used' => false,
-            ]),
-            'item' => $this->awardItem($character->id, $sector['slug'], $sector['value']),
-            default => null,
-        };
+            if (! $lockedCharacter->canDailyHack()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt je dagelijkse hack reward voor vandaag al geclaimd!',
+                ], 400);
+            }
 
-        // Check VIP extra bonus
-        $isVip = $character->isVip();
-        $vipBonusApplied = false;
-        $vipBonusLabel = null;
+            // Award main reward
+            $rewardLabel = $sector['label'];
 
-        if ($isVip) {
-            $vipBonusApplied = true;
-            // VIPs receive additional cash + stars + XXL koffer + masks on top of what they get
-            $bonusCash = 25000;
-            $bonusStars = 3;
-            $bonusCases = 1;
-            $bonusMasks = 4;
+            match ($sector['type']) {
+                'cash' => $lockedCharacter->cash += $sector['value'],
+                'koffer' => $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + $sector['value'],
+                'xxl_koffer' => $lockedCharacter->xxl_cases = ($lockedCharacter->xxl_cases ?? 0) + $sector['value'],
+                'stars' => $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $sector['value'],
+                'masks' => $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $sector['value'],
+                'vault_code' => VaultCode::create([
+                    'character_id' => $lockedCharacter->id,
+                    'code' => VaultCode::generateUniqueCode('HACK'),
+                    'source' => 'hack_spinner',
+                    'reward_cash' => 2500,
+                    'reward_stars' => 1,
+                    'reward_tokens' => 3,
+                    'is_redeemed' => false,
+                ]),
+                'item' => $this->awardItem($lockedCharacter->id, $sector['slug'], $sector['value']),
+                default => null,
+            };
 
-            $character->cash += $bonusCash;
-            $character->vip_points = ($character->vip_points ?? 0) + $bonusStars;
-            $character->xxl_cases = ($character->xxl_cases ?? 0) + $bonusCases;
-            $character->masks = ($character->masks ?? 0) + $bonusMasks;
+            // Check VIP extra bonus
+            $isVip = $lockedCharacter->isVip();
+            $vipBonusApplied = false;
+            $vipBonusLabel = null;
 
-            $vipBonusLabel = '👑 VIP BONUS: +€25.000 Cash, +3 Sterren ⭐, +1 XXL Koffer 🧳 & +4 Maskers 🎭!';
-        }
+            if ($isVip) {
+                $vipBonusApplied = true;
+                // VIPs receive additional cash + stars + XXL koffer + masks on top of what they get
+                $bonusCash = 25000;
+                $bonusStars = 3;
+                $bonusCases = 1;
+                $bonusMasks = 4;
 
-        // Mark completed today
-        $character->last_hack_at = now();
-        $character->hacks_completed_total = ($character->hacks_completed_total ?? 0) + 1;
-        $character->save();
+                $lockedCharacter->cash += $bonusCash;
+                $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $bonusStars;
+                $lockedCharacter->xxl_cases = ($lockedCharacter->xxl_cases ?? 0) + $bonusCases;
+                $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $bonusMasks;
 
-        session(['hacking_stage' => 'done']);
+                $vipBonusLabel = '👑 VIP BONUS: +€25.000 Cash, +3 Sterren ⭐, +1 XXL Koffer 🧳 & +4 Maskers 🎭!';
+            }
 
-        // Record Log
-        HackingLog::create([
-            'character_id' => $character->id,
-            'reward_id' => $sector['id'],
-            'reward_label' => $rewardLabel,
-            'vip_bonus_applied' => $vipBonusApplied,
-            'vip_bonus_label' => $vipBonusLabel,
-        ]);
+            // Mark completed today
+            $lockedCharacter->last_hack_at = now();
+            $lockedCharacter->hacks_completed_total = ($lockedCharacter->hacks_completed_total ?? 0) + 1;
+            $lockedCharacter->save();
 
-        return response()->json([
-            'success' => true,
-            'sector_index' => $sectorIndex,
-            'reward' => $sector,
-            'is_vip' => $isVip,
-            'vip_bonus_applied' => $vipBonusApplied,
-            'vip_bonus_label' => $vipBonusLabel,
-            'message' => "Gefeliciteerd! Je hebt '{$rewardLabel}' gewonnen!".($vipBonusApplied ? " {$vipBonusLabel}" : ''),
-        ]);
+            session(['hacking_stage' => 'done']);
+
+            // Record Log
+            HackingLog::create([
+                'character_id' => $lockedCharacter->id,
+                'reward_id' => $sector['id'],
+                'reward_label' => $rewardLabel,
+                'vip_bonus_applied' => $vipBonusApplied,
+                'vip_bonus_label' => $vipBonusLabel,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'sector_index' => $sectorIndex,
+                'reward' => $sector,
+                'is_vip' => $isVip,
+                'vip_bonus_applied' => $vipBonusApplied,
+                'vip_bonus_label' => $vipBonusLabel,
+                'message' => "Gefeliciteerd! Je hebt '{$rewardLabel}' gewonnen!".($vipBonusApplied ? " {$vipBonusLabel}" : ''),
+            ]);
+        });
     }
 
     /**

@@ -66,12 +66,16 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+                    @php
+                        $canAffordIntelCash = $totalWealth >= $intel['cost_cash'] && !$character->isImprisoned();
+                        $canAffordIntelStars = (int) ($character->stars ?? 0) >= $intel['cost_stars'] && !$character->isImprisoned();
+                    @endphp
                     <form action="{{ route('hitman.intel') }}" method="POST">
                         @csrf
                         <input type="hidden" name="target_name" :value="targetName">
                         <input type="hidden" name="intel_type" value="{{ $intel['id'] }}">
                         <input type="hidden" name="currency" value="cash">
-                        <button type="submit" class="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition cursor-pointer">
+                        <button type="submit" {{ !$canAffordIntelCash ? 'disabled' : '' }} class="w-full py-2 px-3 rounded-xl {{ $canAffordIntelCash ? 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }} text-xs font-black transition">
                             €{{ number_format($intel['cost_cash'] / 1000, 0, ',', '.') }}k
                         </button>
                     </form>
@@ -80,7 +84,7 @@
                         <input type="hidden" name="target_name" :value="targetName">
                         <input type="hidden" name="intel_type" value="{{ $intel['id'] }}">
                         <input type="hidden" name="currency" value="stars">
-                        <button type="submit" class="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black transition cursor-pointer">
+                        <button type="submit" {{ !$canAffordIntelStars ? 'disabled' : '' }} class="w-full py-2 px-3 rounded-xl {{ $canAffordIntelStars ? 'bg-amber-500 hover:bg-amber-600 text-white cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }} text-xs font-black transition">
                             {{ $intel['cost_stars'] }} ⭐
                         </button>
                     </form>

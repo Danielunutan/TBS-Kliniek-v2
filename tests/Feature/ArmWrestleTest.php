@@ -40,7 +40,7 @@ class ArmWrestleTest extends TestCase
         ], $attrs));
     }
 
-    public function test_player_can_play_arm_wrestling_with_zero_cash_and_bank_balance(): void
+    public function test_player_cannot_play_arm_wrestling_without_sufficient_cash(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
@@ -52,9 +52,9 @@ class ArmWrestleTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('armwrestling.index'));
         $response->assertStatus(200);
-        $response->assertSee('Tafelduel Aangaan');
+        $response->assertSee('Onvoldoende Contant Geld');
 
-        // Play against Sjonnie (bet: 1500)
+        // Attempt to play against Sjonnie (bet: 1500) with 0 cash
         $finishResponse = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
             'npc_key' => 'sjonnie',
             'won' => true,
@@ -62,18 +62,16 @@ class ArmWrestleTest extends TestCase
             'duration_seconds' => 5,
         ]);
 
-        $finishResponse->assertStatus(200);
-        $finishResponse->assertJson(['success' => true]);
+        $finishResponse->assertStatus(422);
+        $finishResponse->assertJson(['success' => false]);
 
         $character->refresh();
-        // Started with 0 cash and 50000 bank.
-        // Bet was 1500 deducted from bank (bank -> 48500), payout was 3000 to cash (cash -> 3000).
-        $this->assertEquals(48500, $character->bank);
-        $this->assertEquals(3000, $character->cash);
-        $this->assertEquals(95, $character->energy);
+        $this->assertEquals(50000, $character->bank);
+        $this->assertEquals(0, $character->cash);
+        $this->assertEquals(100, $character->energy);
     }
 
-    public function test_player_can_create_challenge_with_bank_balance(): void
+    public function test_player_cannot_create_challenge_without_sufficient_cash(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
@@ -87,12 +85,31 @@ class ArmWrestleTest extends TestCase
             'bet_amount' => 10000,
         ]);
 
-        $response->assertSessionHas('success');
+        $response->assertSessionHas('error');
         $character->refresh();
 
-        // 500 cash wiped, remaining 9500 taken from bank (20000 - 9500 = 10500)
-        $this->assertEquals(0, $character->cash);
-        $this->assertEquals(10500, $character->bank);
+        $this->assertEquals(500, $character->cash);
+        $this->assertEquals(20000, $character->bank);
+    }
+
+    public function test_player_with_sufficient_cash_can_create_and_cancel_challenge(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'cash' => 15000,
+            'bank' => 20000,
+            'strength' => 30,
+        ]);
+
+        $response = $this->actingAs($user)->post(route('armwrestling.challenge.create'), [
+            'bet_amount' => 10000,
+        ]);
+
+        $response->assertSessionHas('success');
+        $character->refresh();
+        $this->assertEquals(5000, $character->cash);
+        $this->assertEquals(20000, $character->bank);
     }
 
     public function test_arm_wrestling_page_renders_cleanly_when_attributes_are_null(): void
@@ -100,7 +117,7 @@ class ArmWrestleTest extends TestCase
         /** @var User $user */
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
-            'cash' => 0,
+            'cash' => 25000,
             'bank' => 25000,
             'strength' => 50,
         ]);

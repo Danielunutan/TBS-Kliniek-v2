@@ -92,16 +92,20 @@ class InformantController extends Controller
 
         $info = $config[$validated['informant_id']];
 
-        if ($character->cash < $info['cost']) {
+        $this->energy->refresh($character);
+        if ($character->energy < $info['energy']) {
+            return back()->with('error', "Je hebt minimaal {$info['energy']} energie nodig voor deze informant!");
+        }
+
+        if (! $this->economy->deductCash($character, $info['cost'])) {
             return back()->with('error', 'Je hebt €'.number_format($info['cost'], 0, ',', '.')." nodig om de {$info['label']} in te huren.");
         }
 
         if (! $this->energy->consume($character, $info['energy'])) {
+            $this->economy->addCash($character, $info['cost']);
+
             return back()->with('error', "Je hebt minimaal {$info['energy']} energie nodig voor deze informant!");
         }
-
-        $character->cash -= $info['cost'];
-        $character->save();
 
         // 80% success rate for informants (intel always comes through eventually)
         $roll = rand(1, 100);

@@ -12,6 +12,7 @@ use App\Services\AuditLogService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\LevelService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -97,6 +98,7 @@ class ShopController extends Controller
     public function __construct(
         protected EconomyService $economyService,
         protected EnergyService $energyService,
+        protected LevelService $levelService,
     ) {}
 
     /**
@@ -559,7 +561,7 @@ class ShopController extends Controller
             } elseif ($item->slug === 'strip-ritalin') {
                 $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 45) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
-                $lockedCharacter->xp += (25 * $consumeQty);
+                $this->levelService->addXp($lockedCharacter, 25 * $consumeQty);
                 $customFeedback[] = "Laserfocus en adrenalinekick (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
             } elseif ($item->slug === 'haloperidol-forte') {
                 $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 20) * $consumeQty;
@@ -1172,6 +1174,15 @@ class ShopController extends Controller
                 }
                 if ($perHealth > 0) {
                     $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + ($perHealth * $useQty));
+                }
+                if ($item->slug === 'strip-oxazepam') {
+                    $maxStat = $lockedCharacter->getMaxStatForLevel();
+                    $curDis = (int) ($lockedCharacter->discipline ?? 10);
+                    if ($curDis < $maxStat) {
+                        $lockedCharacter->discipline = min($maxStat, $curDis + $useQty);
+                    }
+                } elseif ($item->slug === 'strip-ritalin') {
+                    $this->levelService->addXp($lockedCharacter, 25 * $useQty);
                 }
 
                 $ci->quantity -= $useQty;

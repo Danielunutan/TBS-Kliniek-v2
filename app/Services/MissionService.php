@@ -225,10 +225,12 @@ class MissionService
             $this->levelService->addXp($character, $xpEarned);
             $character->addRespect($respectEarned);
 
-            // 30% chance for a permanent stat upgrade in the primary skill through hands-on experience
+            // 30% chance for a permanent stat upgrade in the primary skill through hands-on experience (capped by level)
             $statBonusMsg = '';
-            if (random_int(1, 100) <= 30) {
-                $character->{$primaryStat} = ($character->{$primaryStat} ?? 10) + 1;
+            $maxStat = $character->getMaxStatForLevel();
+            $currentPrimaryStat = (int) ($character->{$primaryStat} ?? 10);
+            if ($currentPrimaryStat < $maxStat && random_int(1, 100) <= 30) {
+                $character->{$primaryStat} = min($maxStat, $currentPrimaryStat + 1);
                 $statLabels = [
                     'strength' => 'Kracht 💪',
                     'defense' => 'Verdediging 🛡️',

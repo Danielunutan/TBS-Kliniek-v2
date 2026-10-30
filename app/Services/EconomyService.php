@@ -203,8 +203,14 @@ class EconomyService
             throw new InvalidArgumentException('Stars must be positive');
         }
 
-        $character->stars = ($character->stars ?? 0) + $stars;
-        $character->save();
+        DB::transaction(function () use ($character, $stars): void {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            $locked->stars = ($locked->stars ?? 0) + $stars;
+            $locked->save();
+
+            $character->stars = $locked->stars;
+        });
     }
 
     /**
@@ -212,13 +218,24 @@ class EconomyService
      */
     public function deductStars(Character $character, int $stars): bool
     {
-        if ($stars < 0 || ($character->stars ?? 0) < $stars) {
+        if ($stars < 0) {
             return false;
         }
 
-        $character->stars -= $stars;
-        $character->save();
+        return DB::transaction(function () use ($character, $stars): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        return true;
+            if (($locked->stars ?? 0) < $stars) {
+                return false;
+            }
+
+            $locked->stars -= $stars;
+            $locked->save();
+
+            $character->stars = $locked->stars;
+
+            return true;
+        });
     }
 }

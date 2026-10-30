@@ -251,6 +251,13 @@ class MemoryController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
+        if ($character->isImprisoned()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vanuit de isoleercel kun je geen Memory spelen!',
+            ], 422);
+        }
+
         /** @var CharacterMemoryStat $stat */
         $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $character->id]);
 
@@ -274,8 +281,19 @@ class MemoryController extends Controller
         $livesLeft = (int) $validated['lives_left'];
         $moves = (int) $validated['moves'];
 
-        return DB::transaction(function () use ($character, $stat, $won, $timeTaken, $livesLeft, $moves) {
+        return DB::transaction(function () use ($character, $won, $timeTaken, $livesLeft, $moves) {
+            /** @var Character $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var CharacterMemoryStat $stat */
+            $stat = CharacterMemoryStat::where('character_id', $lockedChar->id)->lockForUpdate()->firstOrFail();
+
+            if ($stat->isOnCooldown()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je brein moet nog even bijkomen. Wacht de cooldown af of bekijk een ad!',
+                    'cooldown' => $stat->getCooldownSecondsRemaining(),
+                ], 422);
+            }
 
             $rewardCash = 0;
             $rewardXp = 0;
@@ -356,22 +374,31 @@ class MemoryController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
-        if (($character->stars ?? 0) < 10) {
-            return back()->with('error', 'Je hebt minimaal 10 Sterren nodig om de wachttijd over te slaan!');
-        }
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var CharacterMemoryStat $stat */
+            $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $lockedChar->id]);
 
-        $character->stars = ($character->stars ?? 0) - 10;
-        $character->save();
+            if (! $stat->isOnCooldown()) {
+                return redirect()->route('memory.index')
+                    ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+            }
 
-        /** @var CharacterMemoryStat $stat */
-        $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $character->id]);
+            if (($lockedChar->stars ?? 0) < 10) {
+                return back()->with('error', 'Je hebt minimaal 10 Sterren nodig om de wachttijd over te slaan!');
+            }
 
-        $stat->update([
-            'cooldown_until' => null,
-        ]);
+            $lockedChar->stars = ($lockedChar->stars ?? 0) - 10;
+            $lockedChar->save();
 
-        return redirect()->route('memory.index')
-            ->with('success', '⭐ Wachttijd overgeslagen voor 10 Sterren! Je kunt direct weer een nieuwe Memory sessie starten!');
+            $stat->update([
+                'cooldown_until' => null,
+            ]);
+
+            return redirect()->route('memory.index')
+                ->with('success', '⭐ Wachttijd overgeslagen voor 10 Sterren! Je kunt direct weer een nieuwe Memory sessie starten!');
+        });
     }
 
     /**

@@ -75,7 +75,7 @@ class RouletteController extends Controller
         };
 
         $multipliers = [
-            'rood' => 2, 'zwart' => 2, 'groen' => 14,
+            'rood' => 2, 'zwart' => 2, 'groen' => 35,
             'even' => 2, 'oneven' => 2,
             'eerste_helft' => 2, 'tweede_helft' => 2,
         ];

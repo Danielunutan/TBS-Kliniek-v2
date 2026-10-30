@@ -212,23 +212,27 @@ class TrueCrimeController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
-        if (($character->stars ?? 0) < 15) {
-            return back()->with('error', 'Je hebt minimaal 15 Sterren nodig om Caroline\'s wachttijd over te slaan!');
-        }
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var CharacterTrueCrimeState $state */
+            $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $lockedCharacter->id]);
 
-        /** @var CharacterTrueCrimeState $state */
-        $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $character->id]);
+            if (($lockedCharacter->stars ?? 0) < 15) {
+                return back()->with('error', 'Je hebt minimaal 15 Sterren nodig om Caroline\'s wachttijd over te slaan!');
+            }
 
-        $character->stars = ($character->stars ?? 0) - 15;
-        $character->save();
+            $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) - 15;
+            $lockedCharacter->save();
 
-        $state->update([
-            'cooldown_until' => null,
-            'cooldown_ads_watched' => 0,
-            'current_case_id' => null,
-        ]);
+            $state->update([
+                'cooldown_until' => null,
+                'cooldown_ads_watched' => 0,
+                'current_case_id' => null,
+            ]);
 
-        return redirect()->route('true_crime.index')->with('success', '⭐ Wachttijd succesvol overgeslagen voor 15 Sterren! Caroline heeft direct een nieuw dossier voor je klaarstaan.');
+            return redirect()->route('true_crime.index')->with('success', '⭐ Wachttijd succesvol overgeslagen voor 15 Sterren! Caroline heeft direct een nieuw dossier voor je klaarstaan.');
+        });
     }
 
     /**

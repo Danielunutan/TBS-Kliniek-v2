@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\LotteryRound;
 use App\Models\LotteryTicket;
 use Illuminate\Http\RedirectResponse;
@@ -65,6 +66,11 @@ class LotteryController extends Controller
         ]);
 
         $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen loten kopen!');
+        }
+
         $quantity = (int) $validated['quantity'];
         $currency = $validated['currency'];
 
@@ -75,12 +81,15 @@ class LotteryController extends Controller
             $pricePerTicket = $round->getCashPricePerTicket();
             $totalCost = $pricePerTicket * $quantity;
 
-            if ($character->cash < $totalCost) {
-                return back()->with('error', 'Niet genoeg contant geld! Je hebt €'.number_format($totalCost, 0, ',', '.')." nodig voor {$quantity} lot(en).");
-            }
+            return DB::transaction(function () use ($character, $round, $totalCost, $quantity, $pricePerTicket, $isDiscounted): RedirectResponse {
+                /** @var Character $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            DB::transaction(function () use ($character, $round, $totalCost, $quantity, $pricePerTicket): void {
-                $character->decrement('cash', $totalCost);
+                if ($lockedCharacter->cash < $totalCost) {
+                    return back()->with('error', 'Niet genoeg contant geld! Je hebt €'.number_format($totalCost, 0, ',', '.')." nodig voor {$quantity} lot(en).");
+                }
+
+                $lockedCharacter->decrement('cash', $totalCost);
 
                 // 80% of ticket sales go straight to the jackpot
                 $jackpotContribution = (int) round($totalCost * 0.80);
@@ -91,7 +100,7 @@ class LotteryController extends Controller
                 for ($i = 0; $i < $quantity; $i++) {
                     $tickets[] = [
                         'lottery_round_id' => $round->id,
-                        'character_id' => $character->id,
+                        'character_id' => $lockedCharacter->id,
                         'ticket_number' => 'TBS-'.str_pad((string) rand(10000, 99999), 5, '0', STR_PAD_LEFT),
                         'currency' => 'cash',
                         'price_paid' => $pricePerTicket,
@@ -101,23 +110,26 @@ class LotteryController extends Controller
                 }
 
                 LotteryTicket::insert($tickets);
+
+                $discountMsg = $isDiscounted ? ' (met 50% laatste kwartier korting!)' : '';
+
+                return back()->with('success', "Succes! Je hebt {$quantity} lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
             });
-
-            $discountMsg = $isDiscounted ? ' (met 50% laatste kwartier korting!)' : '';
-
-            return back()->with('success', "Succes! Je hebt {$quantity} lot(en) gekocht voor €".number_format($totalCost, 0, ',', '.').$discountMsg.'. Veel geluk bij de trekking!');
         }
 
         // Currency is stars (contributes €25.000 bonus cash to the jackpot per ticket)
         $starsPerTicket = $round->getStarsPricePerTicket();
         $totalStarsCost = $starsPerTicket * $quantity;
 
-        if (($character->stars ?? 0) < $totalStarsCost) {
-            return back()->with('error', "Niet genoeg sterren! Je hebt {$totalStarsCost} sterren nodig voor {$quantity} VIP lot(en).");
-        }
+        return DB::transaction(function () use ($character, $round, $totalStarsCost, $quantity, $starsPerTicket, $isDiscounted): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        DB::transaction(function () use ($character, $round, $totalStarsCost, $quantity, $starsPerTicket): void {
-            $character->decrement('stars', $totalStarsCost);
+            if (($lockedCharacter->stars ?? 0) < $totalStarsCost) {
+                return back()->with('error', "Niet genoeg sterren! Je hebt {$totalStarsCost} sterren nodig voor {$quantity} VIP lot(en).");
+            }
+
+            $lockedCharacter->decrement('stars', $totalStarsCost);
 
             // Stars boost the jackpot by €25.000 per ticket!
             $jackpotBonus = 25000 * $quantity;
@@ -128,7 +140,7 @@ class LotteryController extends Controller
             for ($i = 0; $i < $quantity; $i++) {
                 $tickets[] = [
                     'lottery_round_id' => $round->id,
-                    'character_id' => $character->id,
+                    'character_id' => $lockedCharacter->id,
                     'ticket_number' => 'VIP-'.str_pad((string) rand(10000, 99999), 5, '0', STR_PAD_LEFT),
                     'currency' => 'stars',
                     'price_paid' => $starsPerTicket,
@@ -138,11 +150,11 @@ class LotteryController extends Controller
             }
 
             LotteryTicket::insert($tickets);
+
+            $discountMsg = $isDiscounted ? ' (met 50% korting!)' : '';
+
+            return back()->with('success', "Geweldig! Je hebt {$quantity} VIP lot(en) gekocht met {$totalStarsCost} sterren{$discountMsg}. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
         });
-
-        $discountMsg = $isDiscounted ? ' (met 50% korting!)' : '';
-
-        return back()->with('success', "Geweldig! Je hebt {$quantity} VIP lot(en) gekocht met {$totalStarsCost} sterren{$discountMsg}. De jackpot is met €".number_format(25000 * $quantity, 0, ',', '.').' verhoogd!');
     }
 
     /**

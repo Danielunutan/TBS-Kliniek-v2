@@ -3,7 +3,9 @@
 @section('title', 'Illegale Armpjedruk Arena - TBS Kliniek')
 
 @section('content')
-<div class="space-y-6" x-data="tbsArmWrestleArena({{ (int) ($cooldownRemaining ?? 0) }})">
+<div class="space-y-6"
+     x-data="tbsArmWrestleArena({{ (int) ($cooldownRemaining ?? 0) }})"
+     @stats-updated.window="if ($event.detail) { if ($event.detail.cash !== undefined) playerCash = $event.detail.cash; if ($event.detail.energy !== undefined) playerEnergy = $event.detail.energy; }">
 
     
 
@@ -62,15 +64,14 @@
                     <i class="fa-solid fa-dumbbell text-purple-600 dark:text-purple-400"></i>
                     <h2 class="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white">Afdelingskampioenen Uitdagen</h2>
                 </div>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Kosten: 5 Energie &bull; Inzet via contant of bank</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Kosten: 5 Energie &bull; Inzet via contant geld</span>
             </div>
 
             <!-- NPC Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @foreach($npcs as $npcKey => $npc)
                 @php
-                    $totalFunds = (int) ($character->cash + $character->bank);
-                    $canAfford = $totalFunds >= $npc['bet'];
+                    $canAfford = (int) ($character->cash ?? 0) >= $npc['bet'];
                     $effectiveStrength = $character->getEffectiveStrength();
                     $meetsStrength = $effectiveStrength >= $npc['min_strength'];
                     $hasEnergy = (int) ($character->energy ?? 0) >= 5;
@@ -112,7 +113,7 @@
                                 <span class="text-[9px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Beloning & Eis</span>
                                 <span class="font-extrabold text-purple-700 dark:text-purple-400">+{{ $npc['xp'] }} XP &bull; +{{ $npc['respect'] }} Respect</span>
                                 <span class="text-[10px] font-bold block {{ $meetsStrength ? 'text-slate-500 dark:text-slate-400' : 'text-rose-600 dark:text-rose-400' }}">
-                                    Min. {{ $npc['min_strength'] }} Kracht (Jij: {{ $effectiveStrength }})
+                                    Min. {{ $npc['min_strength'] }} Kracht (Jij: <span x-text="playerStrength">{{ $effectiveStrength }}</span>)
                                 </span>
                             </div>
                         </div>
@@ -126,7 +127,7 @@
                             </button>
                         @elseif(!$canAfford)
                             <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
-                                Onvoldoende Saldo (€ {{ number_format($npc['bet'], 0, ',', '.') }})
+                                Onvoldoende Contant Geld (€ {{ number_format($npc['bet'], 0, ',', '.') }})
                             </button>
                         @elseif(!$hasEnergy)
                             <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
@@ -134,14 +135,29 @@
                             </button>
                         @else
                             <button type="button" 
-                                    x-show="cooldownSeconds <= 0"
+                                    x-show="cooldownSeconds <= 0 && playerCash >= {{ $npc['bet'] }} && playerEnergy >= 5 && playerStrength >= {{ $npc['min_strength'] }}"
                                     @click="startMatch('{{ $npcKey }}')" 
                                     class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition cursor-pointer shadow-xs flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-hand-back-fist text-amber-300"></i>
                                 <span>Tafelduel Aangaan (€ {{ number_format($npc['bet'], 0, ',', '.') }})</span>
                             </button>
+                            <button type="button"
+                                    x-show="cooldownSeconds <= 0 && playerCash < {{ $npc['bet'] }}"
+                                    x-cloak
+                                    disabled
+                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
+                                Onvoldoende Contant Geld (€ {{ number_format($npc['bet'], 0, ',', '.') }})
+                            </button>
+                            <button type="button"
+                                    x-show="cooldownSeconds <= 0 && playerCash >= {{ $npc['bet'] }} && playerEnergy < 5"
+                                    x-cloak
+                                    disabled
+                                    class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 text-xs font-bold cursor-not-allowed">
+                                Onvoldoende Energie (5 vereist)
+                            </button>
                             <button type="button" 
                                     x-show="cooldownSeconds > 0"
+                                    x-cloak
                                     disabled 
                                     class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed">
                                 <i class="fa-solid fa-hourglass-half text-amber-500"></i>
@@ -187,23 +203,26 @@
                 </div>
                 @else
                 <!-- Create Challenge Form -->
+                @php
+                    $cashOnHand = (int) ($character->cash ?? 0);
+                    $canCreateAnyChallenge = $cashOnHand >= 2500 && !$character->isImprisoned();
+                @endphp
                 <form action="{{ route('armwrestling.challenge.create') }}" method="POST" class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     @csrf
                     <div>
                         <h4 class="text-xs font-black text-slate-900 dark:text-white">Zet Jouw Geld op de Tafel</h4>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Kies een inzetbedrag (automatisch verrekend via contant of bank) en wacht tot een tegenstander de handschoen oppakt.</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Kies een inzetbedrag (betaald met contant geld op zak) en wacht tot een tegenstander de handschoen oppakt.</p>
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto">
-                        <select name="bet_amount" class="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500">
-                            <option value="2500">€ 2.500</option>
-                            <option value="5000">€ 5.000</option>
-                            <option value="10000" selected>€ 10.000</option>
-                            <option value="25000">€ 25.000</option>
-                            <option value="50000">€ 50.000</option>
-                            <option value="100000">€ 100.000</option>
+                        <select name="bet_amount" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                            @foreach([2500, 5000, 10000, 25000, 50000, 100000] as $betOption)
+                                <option value="{{ $betOption }}" {{ $cashOnHand < $betOption ? 'disabled' : '' }} {{ ($betOption === 10000 && $cashOnHand >= 10000) || ($betOption === 2500 && $cashOnHand < 10000) ? 'selected' : '' }}>
+                                    € {{ number_format($betOption, 0, ',', '.') }}{{ $cashOnHand < $betOption ? ' (Te weinig contant)' : '' }}
+                                </option>
+                            @endforeach
                         </select>
-                        <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition cursor-pointer shadow-xs shrink-0">
-                            Plaats Uitdaging
+                        <button type="submit" {{ !$canCreateAnyChallenge ? 'disabled' : '' }} class="px-4 py-2 rounded-xl {{ $canCreateAnyChallenge ? 'bg-purple-600 hover:bg-purple-700 active:scale-95 text-white cursor-pointer' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' }} text-xs font-black transition shadow-xs shrink-0">
+                            {{ $canCreateAnyChallenge ? 'Plaats Uitdaging' : 'Onvoldoende Contant' }}
                         </button>
                     </div>
                 </form>
@@ -213,6 +232,11 @@
                 <div class="space-y-2">
                     <span class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider block">Beschikbare Uitdagingen op Tafel:</span>
                     @forelse($openChallenges as $open)
+                    @php
+                        $canAffordChallenge = (int) ($character->cash ?? 0) >= $open->bet_amount;
+                        $hasEnergyForChallenge = (int) ($character->energy ?? 0) >= 5;
+                        $canAcceptChallenge = $canAffordChallenge && $hasEnergyForChallenge && !$character->isImprisoned();
+                    @endphp
                     <div class="p-3 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <img src="{{ $open->challenger->avatar_url }}" alt="Avatar" class="w-9 h-9 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0">
@@ -225,9 +249,17 @@
                             <span class="text-xs font-black text-purple-700 dark:text-purple-400">Pot: € {{ number_format($open->bet_amount * 2, 0, ',', '.') }}</span>
                             <form action="{{ route('armwrestling.challenge.accept', $open->id) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-xs font-black transition cursor-pointer shadow-xs flex items-center gap-1.5">
-                                    <i class="fa-solid fa-hand-fist text-amber-300 text-[10px]"></i>
-                                    <span>Aannemen (€ {{ number_format($open->bet_amount, 0, ',', '.') }})</span>
+                                <button type="submit" {{ !$canAcceptChallenge ? 'disabled' : '' }} class="px-3.5 py-1.5 rounded-xl {{ $canAcceptChallenge ? 'bg-purple-600 hover:bg-purple-700 active:scale-95 text-white cursor-pointer' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' }} text-xs font-black transition shadow-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-hand-fist {{ $canAcceptChallenge ? 'text-amber-300' : 'text-slate-400' }} text-[10px]"></i>
+                                    <span>
+                                        @if(!$canAffordChallenge)
+                                            Onvoldoende Contant (€ {{ number_format($open->bet_amount, 0, ',', '.') }})
+                                        @elseif(!$hasEnergyForChallenge)
+                                            Onvoldoende Energie (5 EP)
+                                        @else
+                                            Aannemen (€ {{ number_format($open->bet_amount, 0, ',', '.') }})
+                                        @endif
+                                    </span>
                                 </button>
                             </form>
                         </div>
@@ -333,7 +365,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800" x-text="timeLeft + 's resterend'"></span>
-                    <button type="button" tabindex="-1" @click="cancelMatch()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-1 ml-1 cursor-pointer" title="Sluiten / Opgeven">
+                    <button type="button" tabindex="-1" x-show="isMatchActive && !isSubmitting && !matchResult" @click="cancelMatch()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-1 ml-1 cursor-pointer" title="Sluiten / Opgeven">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -469,6 +501,8 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         matchStartTime: 0,
         matchResult: null,
         npcsData: @json($npcs),
+        playerCash: {{ (int) ($character->cash ?? 0) }},
+        playerEnergy: {{ (int) ($character->energy ?? 0) }},
         playerStrength: {{ $character->getEffectiveStrength() }},
         playerSpeed: {{ (int) ($character->speed ?? 10) }},
         playerStamina: {{ $character->getEffectiveStamina() }},
@@ -545,13 +579,22 @@ function tbsArmWrestleArena(initialCooldown = 0) {
                 return;
             }
 
+            const npc = this.npcsData[npcKey];
+            if (!npc) {
+                return;
+            }
+
+            if (this.playerStrength < npc.min_strength || this.playerCash < npc.bet || this.playerEnergy < 5) {
+                return;
+            }
+
             if (document.activeElement && typeof document.activeElement.blur === 'function') {
                 document.activeElement.blur();
             }
 
             this.clearGameIntervals();
             this.activeNpcKey = npcKey;
-            this.activeNpc = this.npcsData[npcKey];
+            this.activeNpc = npc;
             this.armPosition = 50;
             this.sweetSpotPos = 20;
             this.sweetSpotDir = 1;
@@ -567,7 +610,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         },
 
         cancelMatch() {
-            if (this.isSubmitting) return;
+            if (this.isSubmitting || this.matchResult !== null) return;
             this.clearGameIntervals();
             this.isMatchActive = false;
             this.isSubmitting = false;
@@ -691,6 +734,15 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             })
             .then(data => {
                 this.isSubmitting = false;
+                if (data.cash !== undefined) {
+                    this.playerCash = data.cash;
+                }
+                if (data.energy !== undefined) {
+                    this.playerEnergy = data.energy;
+                }
+                if (data.strength !== undefined) {
+                    this.playerStrength = data.strength;
+                }
                 if (data.cooldown) {
                     this.cooldownSeconds = data.cooldown;
                     this.startCooldownTimer();

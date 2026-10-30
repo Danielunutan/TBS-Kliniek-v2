@@ -241,14 +241,6 @@ class ArmWrestleController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            $totalAvailable = (int) ($lockedCharacter->cash + $lockedCharacter->bank);
-            if ($totalAvailable < $bet) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Je hebt onvoldoende saldo (contant + bank) op zak voor deze inzet (€'.number_format($bet, 0, ',', '.').')!',
-                ], 422);
-            }
-
             if ($lockedCharacter->energy < 5) {
                 // Check if this was caused by a duplicate request after energy was already deducted
                 $recentMatch = ArmWrestleMatch::where('challenger_id', $lockedCharacter->id)
@@ -277,16 +269,16 @@ class ArmWrestleController extends Controller
                 ], 422);
             }
 
-            // Deduct energy & inzet (pay from cash first, cover remaining from bank)
-            $lockedCharacter->decrement('energy', 5);
-            if ($lockedCharacter->cash >= $bet) {
-                $lockedCharacter->decrement('cash', $bet);
-            } else {
-                $diff = $bet - $lockedCharacter->cash;
-                $lockedCharacter->cash = 0;
-                $lockedCharacter->save();
-                $lockedCharacter->decrement('bank', $diff);
+            if ($lockedCharacter->cash < $bet) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt onvoldoende contant geld op zak voor deze inzet (€'.number_format($bet, 0, ',', '.').')!',
+                ], 422);
             }
+
+            // Deduct energy and cash wager
+            $lockedCharacter->decrement('energy', 5);
+            $lockedCharacter->decrement('cash', $bet);
 
             // Set cooldown immediately upon match resolution (20 seconds)
             $this->cooldownService->setCooldown($lockedCharacter, 'arm_wrestling', 20);
@@ -339,13 +331,16 @@ class ArmWrestleController extends Controller
                     'match_duration_ms' => $durationMs,
                 ]);
 
+                $freshCharacter = $lockedCharacter->fresh();
+
                 return response()->json([
                     'success' => true,
                     'won' => true,
                     'title' => 'KNAL! Tafelwinst!',
                     'message' => "Je hebt de arm van {$npc['name']} met brute kracht op het hout geslagen! +€".number_format($profit, 0, ',', '.')." winst, +{$npc['xp']} XP en +{$npc['respect']} Respect!{$strMessage}",
-                    'cash' => $lockedCharacter->fresh()->cash,
-                    'energy' => $lockedCharacter->fresh()->energy,
+                    'cash' => $freshCharacter->cash,
+                    'energy' => $freshCharacter->energy,
+                    'strength' => $freshCharacter->getEffectiveStrength(),
                     'wins' => $stat->wins,
                     'streak' => $stat->current_streak,
                     'cooldown' => 20,
@@ -378,13 +373,16 @@ class ArmWrestleController extends Controller
                 ? "{$npc['name']} pareerde je aanval op het allerlaatste moment met zijn stalen pols! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'.'
                 : "{$npc['name']} bleek te sterk en heeft jouw arm tegen het hout gedrukt! Je verliest je inzet van €".number_format($npc['bet'], 0, ',', '.').'. Wel +5 troost-XP.';
 
+            $freshCharacter = $lockedCharacter->fresh();
+
             return response()->json([
                 'success' => true,
                 'won' => false,
                 'title' => 'Verloren aan de Tafel...',
                 'message' => $reason,
-                'cash' => $lockedCharacter->fresh()->cash,
-                'energy' => $lockedCharacter->fresh()->energy,
+                'cash' => $freshCharacter->cash,
+                'energy' => $freshCharacter->energy,
+                'strength' => $freshCharacter->getEffectiveStrength(),
                 'losses' => $stat->losses,
                 'streak' => 0,
                 'cooldown' => 20,
@@ -404,16 +402,6 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen plaatsen!');
         }
 
-        // Limit to 1 open challenge at a time per character
-        $existing = ArmWrestleMatch::where('challenger_id', $character->id)
-            ->where('type', 'pvp')
-            ->where('status', 'open')
-            ->first();
-
-        if ($existing) {
-            return back()->with('error', 'Je hebt al een open uitdaging op de tafel liggen! Annuleer deze eerst als je een ander bedrag wilt inzetten.');
-        }
-
         $validated = $request->validate([
             'bet_amount' => ['required', 'integer', 'in:2500,5000,10000,25000,50000,100000'],
         ]);
@@ -424,19 +412,22 @@ class ArmWrestleController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            $totalAvailable = (int) ($lockedCharacter->cash + $lockedCharacter->bank);
-            if ($totalAvailable < $bet) {
-                return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging op tafel te leggen (€'.number_format($bet, 0, ',', '.').').');
+            // Limit to 1 open challenge at a time per character under lock
+            $existing = ArmWrestleMatch::where('challenger_id', $lockedCharacter->id)
+                ->where('type', 'pvp')
+                ->where('status', 'open')
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing) {
+                return back()->with('error', 'Je hebt al een open uitdaging op de tafel liggen! Annuleer deze eerst als je een ander bedrag wilt inzetten.');
             }
 
-            if ($lockedCharacter->cash >= $bet) {
-                $lockedCharacter->decrement('cash', $bet);
-            } else {
-                $diff = $bet - $lockedCharacter->cash;
-                $lockedCharacter->cash = 0;
-                $lockedCharacter->save();
-                $lockedCharacter->decrement('bank', $diff);
+            if ($lockedCharacter->cash < $bet) {
+                return back()->with('error', 'Je hebt onvoldoende contant geld op zak om deze uitdaging op tafel te leggen (€'.number_format($bet, 0, ',', '.').').');
             }
+
+            $lockedCharacter->decrement('cash', $bet);
 
             ArmWrestleMatch::create([
                 'challenger_id' => $lockedCharacter->id,
@@ -458,9 +449,12 @@ class ArmWrestleController extends Controller
         $character = Auth::user()->character;
 
         return DB::transaction(function () use ($character, $id) {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
             /** @var ArmWrestleMatch|null $match */
             $match = ArmWrestleMatch::where('id', $id)
-                ->where('challenger_id', $character->id)
+                ->where('challenger_id', $lockedCharacter->id)
                 ->where('status', 'open')
                 ->lockForUpdate()
                 ->first();
@@ -472,7 +466,7 @@ class ArmWrestleController extends Controller
             $match->status = 'cancelled';
             $match->save();
 
-            $character->increment('cash', $match->bet_amount);
+            $lockedCharacter->increment('cash', $match->bet_amount);
 
             return back()->with('success', 'Je uitdaging is geannuleerd en je inzet van €'.number_format($match->bet_amount, 0, ',', '.').' is teruggestort op zak.');
         });
@@ -490,6 +484,7 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen aannemen!');
         }
 
+        $opponent->cooldownsMap = null;
         $remaining = $this->cooldownService->getRemainingSeconds($opponent, 'arm_wrestling');
         if ($remaining > 0) {
             return back()->with('error', "Je armen moeten nog even bijkomen van de vorige partij! Wacht nog {$remaining} seconden.");
@@ -520,10 +515,13 @@ class ArmWrestleController extends Controller
 
             /** @var Character $lockedOpponent */
             $lockedOpponent = Character::where('id', $opponent->id)->lockForUpdate()->first();
-            $totalAvailable = (int) ($lockedOpponent->cash + $lockedOpponent->bank);
 
-            if ($totalAvailable < $bet) {
-                return back()->with('error', 'Je hebt onvoldoende geld (contant + bank) om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
+            if ($lockedOpponent->energy < 5) {
+                return back()->with('error', 'Je hebt minimaal 5 Energie nodig om deze uitdaging aan te gaan!');
+            }
+
+            if ($lockedOpponent->cash < $bet) {
+                return back()->with('error', 'Je hebt onvoldoende contant geld op zak om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
             }
 
             /** @var Character $challenger */
@@ -536,14 +534,7 @@ class ArmWrestleController extends Controller
             $match->save();
 
             $lockedOpponent->decrement('energy', 5);
-            if ($lockedOpponent->cash >= $bet) {
-                $lockedOpponent->decrement('cash', $bet);
-            } else {
-                $diff = $bet - $lockedOpponent->cash;
-                $lockedOpponent->cash = 0;
-                $lockedOpponent->save();
-                $lockedOpponent->decrement('bank', $diff);
-            }
+            $lockedOpponent->decrement('cash', $bet);
 
             // Set cooldown for opponent
             $this->cooldownService->setCooldown($lockedOpponent, 'arm_wrestling', 20);

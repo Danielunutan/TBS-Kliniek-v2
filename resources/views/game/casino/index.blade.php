@@ -27,7 +27,12 @@
         isWin: false,
         cash: {{ $character->cash }},
         async playCoinflip() {
-            if (this.flipping || this.cash < this.bet) return;
+            if (this.flipping) return;
+            if (this.bet < 10 || this.cash < this.bet) {
+                this.resultMsg = 'Je hebt onvoldoende contant geld voor deze inzet!';
+                this.isWin = false;
+                return;
+            }
             this.flipping = true;
             this.resultMsg = '';
             
@@ -82,7 +87,7 @@
                            placeholder="Inzet...">
                 </div>
             </div>
-            <button type="submit" :disabled="cash < 10 || flipping" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
+            <button type="submit" :disabled="cash < 10 || cash < bet || bet < 10 || flipping" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-play text-[10px]" :class="flipping ? 'animate-spin' : ''"></i>
                 <span x-text="flipping ? 'Munt draait...' : 'Gooi Munt Op (50% Win Kans)'"></span>
             </button>
@@ -159,7 +164,7 @@
                 </div>
                 <div>
                     <h4 class="font-bold text-slate-900 text-xs group-hover:text-indigo-600 transition">Nummerspel</h4>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Kies het juiste cijfer en win 10x je inzet.</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Kies het juiste cijfer en win 15x je inzet.</p>
                 </div>
             </a>
 

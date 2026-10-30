@@ -110,12 +110,7 @@ class HeistController extends Controller
             }
         }
 
-        // Energy requirement
-        if (! $this->energyService->consume($character, $heist->energy_cost)) {
-            return back()->with('error', "Niet genoeg energie! Deze operatie kost {$heist->energy_cost} Energie.");
-        }
-
-        // Requirements handling: Bende Heists vs Solo Heists
+        // Validate requirements BEFORE consuming energy: Bende Heists vs Solo Heists
         if ($heist->is_gang_heist) {
             $gang = $character->gang;
             // 1. Mask requirement strictly from Gang Depot
@@ -144,6 +139,11 @@ class HeistController extends Controller
 
             $charVehicle = $qualifyingVehicles->sortByDesc('effective_speed')->first();
 
+            // Energy requirement checked after all gang prerequisites pass
+            if (! $this->energyService->consume($character, $heist->energy_cost)) {
+                return back()->with('error', "Niet genoeg energie! Deze operatie kost {$heist->energy_cost} Energie.");
+            }
+
             // Deduct masks directly from Gang Depot
             $gang->decrement('masks', $heist->required_mask_count);
         } else {
@@ -169,6 +169,11 @@ class HeistController extends Controller
 
             if ($charVehicle->current_condition < $heist->min_condition_required) {
                 return back()->with('error', "De conditie van je {$charVehicle->vehicle->name} is te laag ({$charVehicle->current_condition}%). Deze heist vereist minimaal {$heist->min_condition_required}% conditie. Laat je wagen eerst reviseren in de Garage!");
+            }
+
+            // Energy requirement checked after all solo prerequisites pass
+            if (! $this->energyService->consume($character, $heist->energy_cost)) {
+                return back()->with('error', "Niet genoeg energie! Deze operatie kost {$heist->energy_cost} Energie.");
             }
 
             // Deduct personal masks

@@ -249,25 +249,34 @@ class ConnectFourController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
-        if (($character->stars ?? 0) < 10) {
-            return back()->with('error', 'Je hebt minimaal 10 Sterren nodig om de wachttijd over te slaan!');
-        }
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var CharacterConnectFourStat $stat */
+            $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $lockedCharacter->id]);
 
-        $character->stars = ($character->stars ?? 0) - 10;
-        $character->save();
+            if (! $stat->isOnCooldown()) {
+                return redirect()->route('connect_four.index')
+                    ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+            }
 
-        /** @var CharacterConnectFourStat $stat */
-        $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $character->id]);
+            if (($lockedCharacter->stars ?? 0) < 10) {
+                return back()->with('error', 'Je hebt minimaal 10 Sterren nodig om de wachttijd over te slaan!');
+            }
 
-        $stat->update([
-            'cooldown_until' => null,
-            'matches_played' => 0,
-            'current_player_wins' => 0,
-            'current_arjan_wins' => 0,
-            'current_draws' => 0,
-        ]);
+            $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) - 10;
+            $lockedCharacter->save();
 
-        return redirect()->route('connect_four.index')->with('success', '⭐ Wachttijd overgeslagen voor 10 Sterren! OOHPA Arjan staat direct klaar voor een nieuw 5-potjes toernooi!');
+            $stat->update([
+                'cooldown_until' => null,
+                'matches_played' => 0,
+                'current_player_wins' => 0,
+                'current_arjan_wins' => 0,
+                'current_draws' => 0,
+            ]);
+
+            return redirect()->route('connect_four.index')->with('success', '⭐ Wachttijd overgeslagen voor 10 Sterren! OOHPA Arjan staat direct klaar voor een nieuw 5-potjes toernooi!');
+        });
     }
 
     /**
