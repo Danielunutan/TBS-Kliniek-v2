@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('registration_ip', 45)->nullable()->index()->after('email');
-            $table->string('last_login_ip', 45)->nullable()->index()->after('registration_ip');
-            $table->boolean('ip_limit_exempt')->default(false)->after('last_login_ip');
+            if (! Schema::hasColumn('users', 'registration_ip')) {
+                $table->string('registration_ip', 45)->nullable()->index()->after('email');
+            }
+            if (! Schema::hasColumn('users', 'last_login_ip')) {
+                $table->string('last_login_ip', 45)->nullable()->index()->after('registration_ip');
+            }
+            if (! Schema::hasColumn('users', 'ip_limit_exempt')) {
+                $table->boolean('ip_limit_exempt')->default(false)->after('last_login_ip');
+            }
         });
     }
 

@@ -12,9 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('characters', function (Blueprint $table) {
-            $table->unsignedInteger('daily_deaths_count')->default(0)->after('deaths_count');
-            $table->string('daily_deaths_date', 10)->nullable()->after('daily_deaths_count');
+            if (! Schema::hasColumn('characters', 'daily_deaths_count')) {
+                $table->unsignedInteger('daily_deaths_count')->default(0)->after('deaths_count');
+            }
+            if (! Schema::hasColumn('characters', 'daily_deaths_date')) {
+                $table->string('daily_deaths_date', 10)->nullable()->after('daily_deaths_count');
+            }
         });
+
+        if (Schema::hasTable('blood_feuds')) {
+            return;
+        }
 
         Schema::create('blood_feuds', function (Blueprint $table) {
             $table->id();

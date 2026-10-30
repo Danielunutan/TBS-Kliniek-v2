@@ -32,10 +32,13 @@ return new class extends Migration
 
         $hasSellPrice = Schema::hasColumn('items', 'sell_price_kc');
 
-        // Guarantee Oude Sleutel has the unified shop buy price (€800) and depot sell price (€480).
+        // Guarantee Oude Sleutel has the unified shop buy price (€800), equipment category (+10 Intelligence), and depot sell price (€480).
         $oudeSleutelUpdate = [
             'price_kc' => 800,
-            'category' => 'consumable',
+            'category' => 'equipment',
+            'intelligence_bonus' => 10,
+            'icon' => 'fa-key',
+            'description' => 'Een roestige sleutel gevonden bij de wasserij (+10 Intelligentie).',
             'is_buyable' => true,
         ];
         if ($hasSellPrice) {
@@ -43,6 +46,29 @@ return new class extends Migration
         }
 
         Item::query()->where('slug', 'oude-sleutel')->update($oudeSleutelUpdate);
+
+        // Align Sleutel van Paviljoen 13, Gouden Frikandel, Bivakmuts Masker, Smokkelpakketje, and Free icons.
+        Item::query()->where('slug', 'sleutel-paviljoen-13')->update([
+            'category' => 'equipment',
+            'price_kc' => 5000,
+            'intelligence_bonus' => 12,
+            'icon' => 'fa-key',
+        ]);
+        Item::query()->where('slug', 'gouden-frikandel')->update([
+            'category' => 'consumable',
+            'price_kc' => 1500,
+            'health_restore' => 50,
+            'description' => 'Het legendarische statussymbool van de kantine. Herstelt direct +50 HP.',
+        ]);
+        Item::query()->where('slug', 'bivakmuts-masker')->update([
+            'price_kc' => 2500,
+        ]);
+        Item::query()->where('slug', 'smokkelpakketje')->update([
+            'is_buyable' => false,
+        ]);
+        Item::query()->where('icon', 'fa-key-skeleton')->update(['icon' => 'fa-key']);
+        Item::query()->where('icon', 'fa-mitten')->update(['icon' => 'fa-hand-fist']);
+        Item::query()->where('icon', 'fa-vest')->update(['icon' => 'fa-shirt']);
 
         if (! $hasSellPrice) {
             return;

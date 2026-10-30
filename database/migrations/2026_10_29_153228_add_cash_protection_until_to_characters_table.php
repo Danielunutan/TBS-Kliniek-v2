@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->timestamp('cash_protection_until')->nullable()->index()->after('protection_until');
-        });
+        if (! Schema::hasColumn('characters', 'cash_protection_until')) {
+            Schema::table('characters', function (Blueprint $table) {
+                $table->timestamp('cash_protection_until')->nullable()->index()->after('protection_until');
+            });
+        }
     }
 
     /**

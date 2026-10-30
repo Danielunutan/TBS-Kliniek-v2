@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -41,6 +42,8 @@ class AdminController extends Controller
             ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
             ->count();
 
+        $migrationStatus = $this->getMigrationStatusSummary();
+
         $recentPlayers = Character::with(['user', 'gang'])
             ->latest()
             ->take(8)
@@ -54,6 +57,7 @@ class AdminController extends Controller
             'totalCash',
             'inmatesInPrison',
             'exceededStatsCount',
+            'migrationStatus',
             'recentPlayers'
         ));
     }
@@ -474,9 +478,21 @@ class AdminController extends Controller
         }
 
         try {
+            $exceededBefore = $this->countExceededCharacters();
+            $pendingBefore = $this->getMigrationStatusSummary()['pending_count'];
+
             Artisan::call('migrate', ['--force' => true]);
             $output = trim(Artisan::output());
-            $summary = $this->executeNormalizationMigration();
+            $summary = $this->executeNormalizationMigration($exceededBefore);
+
+            AuditLogService::log(
+                action: 'admin_run_migrations',
+                category: 'system',
+                description: "Database migraties ({$pendingBefore} openstaand) en spelbalanscontrole uitgevoerd vanuit /admin",
+                character: $user->character,
+                user: $user,
+                details: ['pending_before' => $pendingBefore, 'exceeded_before' => $exceededBefore]
+            );
 
             return back()->with('success', "Database migraties en balancering succesvol uitgevoerd ({$summary}). ".($output !== '' ? "Output: {$output}" : ''));
         } catch (\Throwable $e) {
@@ -496,7 +512,20 @@ class AdminController extends Controller
         }
 
         try {
-            $summary = $this->executeNormalizationMigration();
+            $exceededBefore = $this->countExceededCharacters();
+            $pendingBefore = $this->getMigrationStatusSummary()['pending_count'];
+
+            Artisan::call('migrate', ['--force' => true]);
+            $summary = $this->executeNormalizationMigration($exceededBefore);
+
+            AuditLogService::log(
+                action: 'admin_run_normalization',
+                category: 'system',
+                description: "Systeem- en spelbalans herstelmigratie uitgevoerd vanuit /admin ({$summary})",
+                character: $user->character,
+                user: $user,
+                details: ['pending_before' => $pendingBefore, 'exceeded_before' => $exceededBefore]
+            );
 
             return back()->with('success', "Systeem- en spelbalanscontrole voltooid! {$summary}");
         } catch (\Throwable $e) {
@@ -505,11 +534,15 @@ class AdminController extends Controller
     }
 
     /**
-     * Execute the normalization migration and return a human-readable summary of inspected and repaired records.
+     * Count characters that currently have any stat above their level ceiling.
      */
-    private function executeNormalizationMigration(): string
+    private function countExceededCharacters(): int
     {
-        $exceededBefore = Character::query()
+        if (! Schema::hasTable('characters')) {
+            return 0;
+        }
+
+        return Character::query()
             ->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
             ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
             ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
@@ -517,16 +550,68 @@ class AdminController extends Controller
             ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
             ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
             ->count();
+    }
 
-        $migrationPath = database_path('migrations/2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers.php');
-        if (is_file($migrationPath)) {
-            $migration = require $migrationPath;
-            $migration->up();
+    /**
+     * Inspect database/migrations files against the migrations table.
+     *
+     * @return array{total: int, executed: int, pending_count: int, pending_files: array<int, string>}
+     */
+    private function getMigrationStatusSummary(): array
+    {
+        $files = glob(database_path('migrations/*.php')) ?: [];
+        $fileNames = array_map(static fn (string $path): string => pathinfo($path, PATHINFO_FILENAME), $files);
+        sort($fileNames);
+
+        $ranMigrations = Schema::hasTable('migrations')
+            ? DB::table('migrations')->pluck('migration')->all()
+            : [];
+
+        $pendingFiles = array_values(array_diff($fileNames, $ranMigrations));
+
+        return [
+            'total' => count($fileNames),
+            'executed' => count($fileNames) - count($pendingFiles),
+            'pending_count' => count($pendingFiles),
+            'pending_files' => $pendingFiles,
+        ];
+    }
+
+    /**
+     * Execute the normalization migration and return a human-readable summary of inspected and repaired records.
+     */
+    private function executeNormalizationMigration(?int $exceededBefore = null): string
+    {
+        $exceededCount = $exceededBefore ?? $this->countExceededCharacters();
+
+        $idempotentMigrations = [
+            '2026_10_30_220000_align_item_prices_and_categories',
+            '2026_10_30_223000_cap_exceeded_character_stats_to_level_max',
+            '2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers',
+        ];
+
+        $nextBatch = Schema::hasTable('migrations')
+            ? ((int) DB::table('migrations')->max('batch') + 1)
+            : 1;
+
+        foreach ($idempotentMigrations as $migrationName) {
+            $migrationPath = database_path("migrations/{$migrationName}.php");
+            if (is_file($migrationPath)) {
+                $migration = require $migrationPath;
+                $migration->up();
+
+                if (Schema::hasTable('migrations') && ! DB::table('migrations')->where('migration', $migrationName)->exists()) {
+                    DB::table('migrations')->insert([
+                        'migration' => $migrationName,
+                        'batch' => max(1, $nextBatch),
+                    ]);
+                }
+            }
         }
 
-        $totalCharacters = Character::count();
+        $totalCharacters = Schema::hasTable('characters') ? Character::count() : 0;
 
-        return "{$totalCharacters} spelers gecontroleerd, {$exceededBefore} spelers met overschreden stats hersteld & omgezet naar XP, winkel/depot prijzen en timers gesynchroniseerd";
+        return "{$totalCharacters} spelers gecontroleerd, {$exceededCount} spelers met overschreden stats hersteld & omgezet naar XP, winkel/depot prijzen en timers gesynchroniseerd";
     }
 
     /**

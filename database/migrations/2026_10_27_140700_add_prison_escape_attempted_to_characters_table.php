@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('characters', function (Blueprint $table) {
-            $table->boolean('prison_escape_attempted')->default(false)->after('ad_prison_progress');
-        });
+        if (! Schema::hasColumn('characters', 'prison_escape_attempted')) {
+            Schema::table('characters', function (Blueprint $table) {
+                $table->boolean('prison_escape_attempted')->default(false)->after('ad_prison_progress');
+            });
+        }
     }
 
     /**

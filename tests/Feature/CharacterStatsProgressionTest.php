@@ -7,6 +7,7 @@ use App\Models\CharacterItem;
 use App\Models\Item;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CharacterStatsProgressionTest extends TestCase
@@ -229,5 +230,23 @@ class CharacterStatsProgressionTest extends TestCase
         $exceededChar->refresh();
         $this->assertEquals(150, $exceededChar->strength);
         $this->assertEquals(2, $exceededChar->level); // 10 * 45 = 450 XP -> Level 2!
+
+        // Simulate a pending migration by deleting the normalization entry from the migrations table
+        DB::table('migrations')
+            ->where('migration', '2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers')
+            ->delete();
+
+        $pendingDashboard = $this->actingAs($adminUser)->get(route('admin.dashboard'));
+        $pendingDashboard->assertOk();
+        $pendingDashboard->assertSee('1 openstaande migratie(s)');
+        $pendingDashboard->assertSee('2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers');
+
+        // Run migrations via admin.system.migrate
+        $migrateResponse = $this->actingAs($adminUser)->post(route('admin.system.migrate'));
+        $migrateResponse->assertSessionHas('success');
+
+        $this->assertDatabaseHas('migrations', [
+            'migration' => '2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers',
+        ]);
     }
 }

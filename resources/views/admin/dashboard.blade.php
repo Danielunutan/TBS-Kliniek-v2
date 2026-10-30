@@ -100,9 +100,9 @@
     </div>
 
     <!-- Systeem & Spelbalans Herstelmigratie Card -->
-    <div class="bg-white rounded-2xl p-6 text-slate-900 border {{ ($exceededStatsCount ?? 0) > 0 ? 'border-amber-300 bg-amber-50/30' : 'border-emerald-200' }} shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div class="bg-white rounded-2xl p-6 text-slate-900 border {{ (($exceededStatsCount ?? 0) > 0 || ($migrationStatus['pending_count'] ?? 0) > 0) ? 'border-amber-300 bg-amber-50/30' : 'border-emerald-200' }} shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div class="flex items-start gap-4">
-            <div class="w-12 h-12 rounded-xl {{ ($exceededStatsCount ?? 0) > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }} border flex items-center justify-center text-xl shrink-0">
+            <div class="w-12 h-12 rounded-xl {{ (($exceededStatsCount ?? 0) > 0 || ($migrationStatus['pending_count'] ?? 0) > 0) ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }} border flex items-center justify-center text-xl shrink-0">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
             </div>
             <div>
@@ -110,6 +110,15 @@
                     <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
                         Systeem &amp; Spelbalans Herstelmigratie
                     </h3>
+                    @if(($migrationStatus['pending_count'] ?? 0) > 0)
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                            {{ $migrationStatus['pending_count'] }} openstaande migratie(s)
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            Alle {{ $migrationStatus['total'] ?? 0 }} migraties uitgevoerd
+                        </span>
+                    @endif
                     @if(($exceededStatsCount ?? 0) > 0)
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-300">
                             {{ $exceededStatsCount }} speler(s) boven level-plafond
@@ -121,11 +130,27 @@
                     @endif
                 </div>
                 <p class="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
-                    Controleert alle spelers en zet overschreden eigenschappen (boven <code>100 + level &times; 50</code>) automatisch om naar <strong>+45 XP per punt</strong>, synchroniseert Winkel/Depot prijzen (zoals de Oude Sleutel), stort dubbele uitrusting terug op de bank en ruimt verlopen timers, isoleercelstraffen en rad-draaien op.
+                    Voert openstaande database-migraties uit, controleert alle spelers en zet overschreden eigenschappen (boven <code>100 + level &times; 50</code>) automatisch om naar <strong>+45 XP per punt</strong>, synchroniseert Winkel/Depot prijzen (zoals de Oude Sleutel), stort dubbele uitrusting terug op de bank en ruimt verlopen timers, isoleercelstraffen en rad-draaien op.
                 </p>
+                @if(!empty($migrationStatus['pending_files']))
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                        @foreach($migrationStatus['pending_files'] as $pendingFile)
+                            <span class="px-2 py-0.5 rounded bg-amber-100/80 text-amber-900 font-mono text-[10px] border border-amber-200">
+                                {{ $pendingFile }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
-        <div class="shrink-0">
+        <div class="shrink-0 flex flex-wrap items-center gap-2">
+            <form action="{{ route('admin.system.migrate') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black uppercase tracking-wider transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                    <i class="fa-solid fa-database text-[11px] text-amber-600"></i>
+                    <span>Migraties Uitvoeren</span>
+                </button>
+            </form>
             <form action="{{ route('admin.system.normalize') }}" method="POST">
                 @csrf
                 <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
