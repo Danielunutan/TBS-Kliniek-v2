@@ -656,6 +656,7 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/buymeacoffee/{order}/cancel', [AdminController::class, 'cancelBuyMeACoffee'])->name('buymeacoffee.cancel');
         Route::post('/buymeacoffee/handmatig', [AdminController::class, 'createBuyMeACoffeeManual'])->name('buymeacoffee.manual');
         Route::post('/systeem/migreren', [AdminController::class, 'runMigrations'])->name('system.migrate');
+        Route::post('/systeem/normaliseren', [AdminController::class, 'runNormalization'])->name('system.normalize');
         Route::get('/tickets', [AdminTicketController::class, 'index'])->name('tickets.index');
         Route::get('/tickets/{ticket}', [AdminTicketController::class, 'show'])->name('tickets.show');
         Route::post('/tickets/{ticket}/reactie', [AdminTicketController::class, 'reply'])->name('tickets.reply');

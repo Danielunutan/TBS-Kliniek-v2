@@ -32,6 +32,15 @@ class AdminController extends Controller
         $totalCash = Character::sum('cash') + Character::sum('bank');
         $inmatesInPrison = Character::where('is_in_prison', true)->count();
 
+        $exceededStatsCount = Character::query()
+            ->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
+            ->count();
+
         $recentPlayers = Character::with(['user', 'gang'])
             ->latest()
             ->take(8)
@@ -44,6 +53,7 @@ class AdminController extends Controller
             'totalGangs',
             'totalCash',
             'inmatesInPrison',
+            'exceededStatsCount',
             'recentPlayers'
         ));
     }
@@ -453,24 +463,70 @@ class AdminController extends Controller
     }
 
     /**
-     * Run database migrations safely from admin panel (owner/admin only).
+     * Run database migrations and data normalization safely from the admin panel.
      */
     public function runMigrations(): RedirectResponse
     {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->role !== 'owner' && $user->role !== 'admin') {
+        if (! $user->isOwner() && $user->role !== 'admin' && ! $user->is_staff) {
             return back()->with('error', 'Geen bevoegdheid.');
         }
 
         try {
             Artisan::call('migrate', ['--force' => true]);
-            $output = Artisan::output();
+            $output = trim(Artisan::output());
+            $summary = $this->executeNormalizationMigration();
 
-            return back()->with('success', 'Database migraties succesvol uitgevoerd: '.trim($output));
+            return back()->with('success', "Database migraties en balancering succesvol uitgevoerd ({$summary}). ".($output !== '' ? "Output: {$output}" : ''));
         } catch (\Throwable $e) {
             return back()->with('error', 'Migratie fout: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Run the comprehensive stat, item, inventory, and timer normalization migration on demand from /admin.
+     */
+    public function runNormalization(): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (! $user->isOwner() && $user->role !== 'admin' && ! $user->is_staff) {
+            return back()->with('error', 'Geen bevoegdheid.');
+        }
+
+        try {
+            $summary = $this->executeNormalizationMigration();
+
+            return back()->with('success', "Systeem- en spelbalanscontrole voltooid! {$summary}");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Fout bij uitvoeren van herstelmigratie: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Execute the normalization migration and return a human-readable summary of inspected and repaired records.
+     */
+    private function executeNormalizationMigration(): string
+    {
+        $exceededBefore = Character::query()
+            ->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
+            ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
+            ->count();
+
+        $migrationPath = database_path('migrations/2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers.php');
+        if (is_file($migrationPath)) {
+            $migration = require $migrationPath;
+            $migration->up();
+        }
+
+        $totalCharacters = Character::count();
+
+        return "{$totalCharacters} spelers gecontroleerd, {$exceededBefore} spelers met overschreden stats hersteld & omgezet naar XP, winkel/depot prijzen en timers gesynchroniseerd";
     }
 
     /**

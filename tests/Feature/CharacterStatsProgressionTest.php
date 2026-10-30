@@ -170,4 +170,64 @@ class CharacterStatsProgressionTest extends TestCase
         $expectedRefund = 2 * $boks->fresh()->getDepotSellPrice();
         $this->assertEquals(500 + $expectedRefund, $character->bank);
     }
+
+    public function test_admin_can_run_normalization_migration_directly_from_admin_dashboard(): void
+    {
+        $adminUser = User::factory()->create([
+            'role' => 'admin',
+            'is_staff' => true,
+        ]);
+        Character::create([
+            'user_id' => $adminUser->id,
+            'name' => 'AdminBaas',
+            'level' => 5,
+            'strength' => 180,
+            'defense' => 100,
+            'stamina' => 100,
+            'intelligence' => 100,
+            'charisma' => 100,
+            'discipline' => 100,
+            'health' => 100,
+            'max_health' => 100,
+            'energy' => 100,
+            'max_energy' => 100,
+            'cash' => 1000,
+            'bank' => 0,
+        ]);
+
+        $playerUser = User::factory()->create();
+        $exceededChar = Character::create([
+            'user_id' => $playerUser->id,
+            'name' => 'OverschredenSpeler',
+            'level' => 1,
+            'xp' => 0,
+            'strength' => 160, // 10 above level 1 cap of 150
+            'defense' => 150,
+            'stamina' => 150,
+            'intelligence' => 150,
+            'charisma' => 150,
+            'discipline' => 150,
+            'health' => 100,
+            'max_health' => 100,
+            'energy' => 100,
+            'max_energy' => 100,
+            'cash' => 1000,
+            'bank' => 0,
+        ]);
+
+        // Admin dashboard shows the exceeded player count and button
+        $dashboardResponse = $this->actingAs($adminUser)->get(route('admin.dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertSee('Herstelmigratie Nu Uitvoeren');
+        $dashboardResponse->assertSee('1 speler(s) boven level-plafond');
+
+        // Run normalization from /admin
+        $normalizeResponse = $this->actingAs($adminUser)->post(route('admin.system.normalize'));
+        $normalizeResponse->assertSessionHas('success');
+        $this->assertStringContainsString('1 spelers met overschreden stats hersteld', session('success'));
+
+        $exceededChar->refresh();
+        $this->assertEquals(150, $exceededChar->strength);
+        $this->assertEquals(2, $exceededChar->level); // 10 * 45 = 450 XP -> Level 2!
+    }
 }

@@ -65,15 +65,25 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
-            @if(Auth::user()->role === 'owner' || Auth::user()->role === 'admin')
+            @if(Auth::user()->isOwner() || Auth::user()->role === 'admin' || Auth::user()->is_staff)
             <form action="{{ route('admin.system.migrate') }}" method="POST" class="inline"
-                  data-confirm="Wil je alle openstaande database migraties direct uitvoeren?"
+                  data-confirm="Wil je alle openstaande database migraties én de balanscontrole direct uitvoeren?"
                   data-confirm-btn="Migraties Uitvoeren"
                   data-confirm-type="warning"
                   data-confirm-icon="fa-database">
                 @csrf
                 <button type="submit" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-xs font-black uppercase tracking-wider transition text-amber-800 border border-amber-200 cursor-pointer">
                     <i class="fa-solid fa-database mr-1 text-amber-600"></i> Migraties Uitvoeren
+                </button>
+            </form>
+            <form action="{{ route('admin.system.normalize') }}" method="POST" class="inline"
+                  data-confirm="Wil je alle overschreden stats (omzetten naar XP + begrenzen op level-plafond), winkel/depot prijzen, dubbele uitrusting en verlopen timers nu controleren en rechtzetten?"
+                  data-confirm-btn="Alles Controleren & Rechtzetten"
+                  data-confirm-type="warning"
+                  data-confirm-icon="fa-scale-balanced">
+                @csrf
+                <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-black uppercase tracking-wider transition text-white shadow-xs cursor-pointer">
+                    <i class="fa-solid fa-scale-balanced mr-1"></i> Stats &amp; Balans Rechtzetten
                 </button>
             </form>
             @endif
@@ -86,6 +96,43 @@
             <a href="{{ route('admin.gameplay') }}" class="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-black uppercase tracking-wider transition text-slate-700 border border-slate-200">
                 <i class="fa-solid fa-sliders mr-1 text-slate-500"></i> Winkansen
             </a>
+        </div>
+    </div>
+
+    <!-- Systeem & Spelbalans Herstelmigratie Card -->
+    <div class="bg-white rounded-2xl p-6 text-slate-900 border {{ ($exceededStatsCount ?? 0) > 0 ? 'border-amber-300 bg-amber-50/30' : 'border-emerald-200' }} shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl {{ ($exceededStatsCount ?? 0) > 0 ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }} border flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+                        Systeem &amp; Spelbalans Herstelmigratie
+                    </h3>
+                    @if(($exceededStatsCount ?? 0) > 0)
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                            {{ $exceededStatsCount }} speler(s) boven level-plafond
+                        </span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            Alle stats binnen level-plafond
+                        </span>
+                    @endif
+                </div>
+                <p class="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
+                    Controleert alle spelers en zet overschreden eigenschappen (boven <code>100 + level &times; 50</code>) automatisch om naar <strong>+45 XP per punt</strong>, synchroniseert Winkel/Depot prijzen (zoals de Oude Sleutel), stort dubbele uitrusting terug op de bank en ruimt verlopen timers, isoleercelstraffen en rad-draaien op.
+                </p>
+            </div>
+        </div>
+        <div class="shrink-0">
+            <form action="{{ route('admin.system.normalize') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                    <i class="fa-solid fa-play text-[10px]"></i>
+                    <span>Herstelmigratie Nu Uitvoeren</span>
+                </button>
+            </form>
         </div>
     </div>
 
