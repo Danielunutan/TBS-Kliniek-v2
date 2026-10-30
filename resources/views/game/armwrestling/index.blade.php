@@ -317,7 +317,7 @@
     </div>
 
     <!-- INTERACTIVE SHOWDOWN MODAL (ALPINE.JS DRIVEN) -->
-    <div x-show="isMatchActive" x-cloak
+    <div x-show="isMatchActive || isSubmitting || matchResult !== null" x-cloak
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs select-none">
         
         <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden"
@@ -491,14 +491,32 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             }, 1000);
         },
 
+        clearGameIntervals() {
+            if (this.gameLoopInterval) {
+                clearInterval(this.gameLoopInterval);
+                this.gameLoopInterval = null;
+            }
+            if (this.sweetSpotInterval) {
+                clearInterval(this.sweetSpotInterval);
+                this.sweetSpotInterval = null;
+            }
+            if (this.timerInterval) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+            }
+        },
+
         startMatch(npcKey) {
             if (this.cooldownSeconds > 0 || this.isSubmitting) {
                 return;
             }
 
+            this.clearGameIntervals();
             this.activeNpcKey = npcKey;
             this.activeNpc = this.npcsData[npcKey];
             this.armPosition = 50;
+            this.sweetSpotPos = 15;
+            this.sweetSpotDir = 1;
             this.timeLeft = 12;
             this.clicks = 0;
             this.lastPushTime = 0;
@@ -512,9 +530,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
 
         cancelMatch() {
             if (this.isSubmitting) return;
-            clearInterval(this.gameLoopInterval);
-            clearInterval(this.sweetSpotInterval);
-            clearInterval(this.timerInterval);
+            this.clearGameIntervals();
             this.isMatchActive = false;
             this.isSubmitting = false;
             this.matchResult = null;
@@ -523,13 +539,18 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         startGameLoops() {
             // Main Arm Resistance Physics Loop (runs every 60ms)
             const opponentStrength = this.activeNpc ? this.activeNpc.npc_strength : 10;
-            const opponentStamina = this.activeNpc ? this.activeNpc.npc_stamina : 10;
+            const strengthRatio = Math.min(1.75, Math.max(0.45, opponentStrength / Math.max(10, this.playerStrength)));
+            const decay = 0.42 + (strengthRatio * 0.48);
             
             this.gameLoopInterval = setInterval(() => {
                 if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
 
+                // Give a brief 750ms grip grace period at match start before opponent drains below 50%
+                if (this.clicks === 0 && (Date.now() - this.matchStartTime) < 750) {
+                    return;
+                }
+
                 // Opponent pushes back towards 0
-                const decay = 0.55 + (opponentStrength * 0.04);
                 this.armPosition = Math.max(0, this.armPosition - decay);
 
                 if (this.armPosition <= 0) {
@@ -538,7 +559,6 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             }, 60);
 
             // Sweet Spot Needle Animation Loop
-            const speedFactor = Math.max(1, 3 - (this.playerStamina * 0.02));
             this.sweetSpotInterval = setInterval(() => {
                 if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
                 
@@ -572,25 +592,33 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
 
             const now = Date.now();
-            if (this.lastPushTime && (now - this.lastPushTime < 70)) {
+            if (this.lastPushTime && (now - this.lastPushTime < 45)) {
                 return; // Throttled: anti-autoclicker limit
             }
             this.lastPushTime = now;
 
             this.clicks++;
 
-            // Calculate base push power based on player strength
-            let basePush = 2.8 + (this.playerStrength * 0.08);
+            // Calculate balanced push power relative to opponent strength
+            const opponentStrength = this.activeNpc ? this.activeNpc.npc_strength : 10;
+            const playerAdvantage = Math.min(2.5, Math.max(0.65, this.playerStrength / Math.max(10, opponentStrength)));
+            let basePush = 3.4 + (playerAdvantage * 1.8);
 
-            // Check if needle is inside the sweet spot (40% - 60%)
-            const inSweetSpot = this.sweetSpotPos >= 40 && this.sweetSpotPos <= 60;
+            // Check if needle is inside the sweet spot (38% - 62%)
+            const inSweetSpot = this.sweetSpotPos >= 38 && this.sweetSpotPos <= 62;
             if (inSweetSpot) {
-                basePush *= 2.2; // Critical Hit!
+                basePush *= 1.65; // Critical Hit!
             }
 
+            basePush = Math.min(11.5, basePush);
             this.armPosition = Math.min(100, this.armPosition + basePush);
 
             if (this.armPosition >= 100) {
+                const elapsedMs = now - this.matchStartTime;
+                if (this.clicks < 4 || elapsedMs < 600) {
+                    this.armPosition = 98;
+                    return;
+                }
                 this.endMatch(true, 'KABOEM! Je hebt de arm van ' + this.activeNpc.name + ' met brute kracht tegen het hout geslamd!');
             }
         },
@@ -598,13 +626,10 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         endMatch(won, reason) {
             if (this.isSubmitting || this.matchResult) return;
             this.isSubmitting = true;
-            this.isMatchActive = false;
 
-            clearInterval(this.gameLoopInterval);
-            clearInterval(this.sweetSpotInterval);
-            clearInterval(this.timerInterval);
+            this.clearGameIntervals();
 
-            const durationMs = Math.max(250, Date.now() - this.matchStartTime);
+            const durationMs = Math.max(600, Date.now() - this.matchStartTime);
             const durationSec = Math.max(1, Math.round(durationMs / 1000));
 
             // Call Backend to register match and claim rewards

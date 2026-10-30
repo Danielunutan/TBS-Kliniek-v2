@@ -306,13 +306,13 @@ class ArmWrestleController extends Controller
             // Fair win verification:
             // Client achieved victory with reasonable clicks and duration
             $minClicks = match ($npc['key']) {
-                'mike' => 8,
-                'bennie' => 5,
-                'karel' => 3,
+                'mike' => 4,
+                'bennie' => 3,
+                'karel' => 2,
                 default => 2,
             };
             $clientWon = (bool) $validated['won'];
-            $isWon = $clientWon && $durationMs >= 1000 && ($effectiveClicks >= $minClicks || $durationMs >= 8000);
+            $isWon = $clientWon && $durationMs >= 500 && ($effectiveClicks >= $minClicks || $durationMs >= 8000);
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);

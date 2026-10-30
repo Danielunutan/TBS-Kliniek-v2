@@ -185,4 +185,37 @@ class ArmWrestleTest extends TestCase
             'won' => false, // Overruled server-side to false!
         ]);
     }
+
+    public function test_strong_player_fast_legitimate_win_against_mike_is_accepted_and_modal_stays_visible(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'cash' => 100000,
+            'bank' => 100000,
+            'strength' => 300,
+            'energy' => 100,
+        ]);
+
+        $page = $this->actingAs($user)->get(route('armwrestling.index'));
+        $page->assertStatus(200);
+        $page->assertSee('x-show="isMatchActive || isSubmitting || matchResult !== null"', false);
+
+        $winResponse = $this->actingAs($user)->postJson(route('armwrestling.npc.finish'), [
+            'npc_key' => 'mike',
+            'won' => true,
+            'clicks' => 4,
+            'duration_ms' => 750,
+            'duration_seconds' => 1,
+        ]);
+
+        $winResponse->assertStatus(200);
+        $winResponse->assertJson([
+            'success' => true,
+            'won' => true,
+        ]);
+
+        $character->refresh();
+        $this->assertEquals(175000, $character->cash);
+    }
 }
