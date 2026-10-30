@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\Item;
 use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -126,8 +127,68 @@ class DepotFeaturesTest extends TestCase
             'quantity' => 10,
         ]);
 
-        // Standard storage should be 3 (sigaretten) + 2 (masks) = 5, EXCLUDING the 10 event items!
-        $this->assertEquals(5, $character->getStorageUsed());
+        // Standard storage should be 3 (sigaretten), excluding masks and the 10 event items.
+        $this->assertEquals(3, $character->getStorageUsed());
+    }
+
+    public function test_oude_sleutel_and_shop_items_have_matching_displayed_and_actual_depot_sell_price(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$user, $character] = $this->createInmate(['cash' => 1000]);
+
+        $oudeSleutel = Item::where('slug', 'oude-sleutel')->firstOrFail();
+        $this->assertEquals(800, $oudeSleutel->price_kc);
+        $this->assertEquals(480, $oudeSleutel->getDepotSellPrice());
+
+        $charKey = CharacterItem::create([
+            'character_id' => $character->id,
+            'item_id' => $oudeSleutel->id,
+            'quantity' => 1,
+        ]);
+
+        // Verify the Depot page displays the exact €480 sell price for Oude Sleutel
+        $depotResponse = $this->actingAs($user)->get(route('depot.index'));
+        $depotResponse->assertStatus(200);
+        $depotResponse->assertSee('Oude Sleutel');
+        $depotResponse->assertSee('Verkoop: €480 / stuk');
+        $depotResponse->assertSee("sellModalItem = { id: {$charKey->id}, name: 'Oude Sleutel', qty: 1, unitPrice: 480 }", false);
+
+        // Verify Oude Sleutel cannot be accidentally consumed/destroyed
+        $consumeResponse = $this->actingAs($user)->post(route('shop.consume', $charKey));
+        $consumeResponse->assertSessionHas('info');
+        $this->assertDatabaseHas('character_items', ['id' => $charKey->id, 'quantity' => 1]);
+
+        // Verify selling Oude Sleutel pays exactly €480
+        $sellResponse = $this->actingAs($user)->post(route('depot.sell-item', $charKey), [
+            'quantity' => 1,
+        ]);
+        $sellResponse->assertRedirect();
+        $sellResponse->assertSessionHas('success');
+
+        $character->refresh();
+        $this->assertEquals(1480, $character->cash);
+        $this->assertDatabaseMissing('character_items', ['id' => $charKey->id]);
+
+        // Verify every buyable shop item has a depot sell price strictly below its minimum discounted buy price (85%)
+        $buyableItems = Item::where('is_buyable', true)->get();
+        $this->assertNotEmpty($buyableItems);
+
+        foreach ($buyableItems as $shopItem) {
+            $minBuyPriceWithMaxCharisma = max(1, (int) round($shopItem->price_kc * 0.85));
+            $depotSellPrice = $shopItem->getDepotSellPrice();
+
+            $this->assertEquals(
+                max(1, (int) round($shopItem->price_kc * 0.6)),
+                $depotSellPrice,
+                "Item {$shopItem->slug} sell price must be 60% of price_kc"
+            );
+            $this->assertLessThan(
+                $minBuyPriceWithMaxCharisma,
+                $depotSellPrice,
+                "Item {$shopItem->slug} depot sell price ({$depotSellPrice}) must be lower than discounted buy price ({$minBuyPriceWithMaxCharisma})"
+            );
+        }
     }
 
     public function test_player_can_sell_item_from_depot(): void

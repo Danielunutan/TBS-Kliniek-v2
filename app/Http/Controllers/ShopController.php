@@ -430,7 +430,7 @@ class ShopController extends Controller
                 return back()->with('shop_tab', 'inventaris')->with('error', 'Item niet gevonden.');
             }
 
-            if ($item->category === 'equipment') {
+            if ($item->category === 'equipment' || ! $item->isConsumableItem()) {
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json(['success' => false, 'message' => "{$item->name} is uitrusting en biedt automatisch passieve gevechtskracht in je rugzak!"], 422);
                 }
@@ -483,9 +483,13 @@ class ShopController extends Controller
                 } elseif ($item->slug === 'adrenaline-injectie' || $item->slug === 'ehbo-noodverbanddoos') {
                     $perEnergy = 100;
                     $perHealth = 100;
+                } elseif ($item->slug === 'strip-oxazepam') {
+                    $perHealth = $item->health_restore > 0 ? $item->health_restore : 35;
+                } elseif ($item->slug === 'strip-ritalin') {
+                    $perEnergy = $item->energy_restore > 0 ? $item->energy_restore : 45;
                 } elseif ($item->slug === 'haloperidol-forte') {
-                    $perEnergy = 20;
-                    $perHealth = 60;
+                    $perEnergy = $item->energy_restore > 0 ? $item->energy_restore : 20;
+                    $perHealth = $item->health_restore > 0 ? $item->health_restore : 60;
                 }
 
                 $neededForEnergy = ($perEnergy > 0 && $energyDeficit > 0) ? (int) ceil($energyDeficit / $perEnergy) : 0;
@@ -544,18 +548,22 @@ class ShopController extends Controller
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
                 $customFeedback[] = 'Kort contact gehad met de buitenwereld voor morele steun! 📱';
             } elseif ($item->slug === 'strip-oxazepam') {
-                $restoreHealth = 35 * $consumeQty;
+                $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 35) * $consumeQty;
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
-                $lockedCharacter->discipline = ($lockedCharacter->discipline ?? 10) + (1 * $consumeQty);
+                $maxStat = $lockedCharacter->getMaxStatForLevel();
+                $curDis = (int) ($lockedCharacter->discipline ?? 10);
+                if ($curDis < $maxStat) {
+                    $lockedCharacter->discipline = min($maxStat, $curDis + $consumeQty);
+                }
                 $customFeedback[] = "Rust keert terug in je hoofd (+{$restoreHealth} Gezondheid, +{$consumeQty} Weerbaarheid/Discipline)! 💊";
             } elseif ($item->slug === 'strip-ritalin') {
-                $restoreEnergy = 45 * $consumeQty;
+                $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 45) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->xp += (25 * $consumeQty);
                 $customFeedback[] = "Laserfocus en adrenalinekick (+{$restoreEnergy} Energie, +25 XP per strip)! ⚡";
             } elseif ($item->slug === 'haloperidol-forte') {
                 $restoreEnergy = ($item->energy_restore > 0 ? $item->energy_restore : 20) * $consumeQty;
-                $restoreHealth = 60 * $consumeQty;
+                $restoreHealth = ($item->health_restore > 0 ? $item->health_restore : 60) * $consumeQty;
                 $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $restoreEnergy);
                 $lockedCharacter->health = min($lockedCharacter->max_health, $lockedCharacter->health + $restoreHealth);
                 $customFeedback[] = "💥 BERSERK STATUS! Pijn verdoofd (+{$restoreEnergy} Energie, +{$restoreHealth} Gezondheid)!";

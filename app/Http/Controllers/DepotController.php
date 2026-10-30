@@ -46,7 +46,7 @@ class DepotController extends Controller
             ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'not like', 'halloween_%')
-                    ->whereNotIn('category', ['special', 'collectible']);
+                    ->where('category', '!=', 'special');
             })
             ->with('item')
             ->get();
@@ -56,7 +56,7 @@ class DepotController extends Controller
             ->where('quantity', '>', 0)
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'like', 'halloween_%')
-                    ->orWhereIn('category', ['special', 'collectible']);
+                    ->orWhere('category', 'special');
             })
             ->with('item')
             ->get();
@@ -94,7 +94,7 @@ class DepotController extends Controller
         $activePerks = $character->active_perks ?? [];
         $unredeemedCodes = VaultCode::where('character_id', $character->id)->where('is_redeemed', false)->get();
 
-        $activeTab = $request->input('tab', 'storage');
+        $activeTab = session('tab', $request->input('tab', 'storage'));
 
         return view('game.depot.index', compact(
             'character',
@@ -150,8 +150,8 @@ class DepotController extends Controller
             $requestedQty = max(1, (int) $request->input('quantity', 1));
             $quantity = min($requestedQty, $lockedItem->quantity);
 
-            // Sell price: approx 60% of base price, minimum €500 per unit
-            $pricePerUnit = max(500, (int) round(($item->price_kc > 0 ? $item->price_kc : 1000) * 0.6));
+            // Sell price: 60% of base price via authoritative Item helper
+            $pricePerUnit = $item->getDepotSellPrice();
             $totalEarned = $pricePerUnit * $quantity;
 
             // Deduct inventory
@@ -168,9 +168,12 @@ class DepotController extends Controller
             $lockedCharacter->save();
 
             $formattedCash = number_format($totalEarned, 0, ',', '.');
+            $returnTab = (str_starts_with((string) $item->slug, 'halloween_') || $item->category === 'special')
+                ? 'varia'
+                : 'storage';
 
             return back()
-                ->with('tab', 'storage')
+                ->with('tab', $returnTab)
                 ->with('success', "💰 Succesvol {$quantity}x {$item->name} verkocht voor €{$formattedCash}! Er is weer opbergruimte vrijgemaakt in je Depot.");
         });
     }
@@ -198,7 +201,7 @@ class DepotController extends Controller
             }
 
             $quantity = min((int) $validated['quantity'], $currentMasks);
-            $pricePerMask = 750; // Fair cash per mask
+            $pricePerMask = 1500; // 60% of €2.500 shop price, consistent across Depot and Vault
             $totalEarned = $pricePerMask * $quantity;
 
             $lockedCharacter->masks -= $quantity;

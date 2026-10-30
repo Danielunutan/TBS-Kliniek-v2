@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $defense_bonus
  * @property int $stamina_bonus
  * @property int $intelligence_bonus
+ * @property int $charisma_bonus
+ * @property int $discipline_bonus
  * @property string $icon
  * @property bool $is_buyable
  */
@@ -48,4 +50,47 @@ class Item extends Model
         'discipline_bonus' => 'integer',
         'is_buyable' => 'boolean',
     ];
+
+    /**
+     * Calculate the cash resale value per unit in the Depot (60% of the base shop price).
+     */
+    public function getDepotSellPrice(): int
+    {
+        $basePrice = $this->price_kc > 0
+            ? $this->price_kc
+            : (str_starts_with((string) $this->slug, 'halloween_') ? 2500 : 1000);
+
+        return max(1, (int) round($basePrice * 0.6));
+    }
+
+    /**
+     * Check if this item can be consumed from inventory for an active effect.
+     */
+    public function isConsumableItem(): bool
+    {
+        if (in_array($this->category, ['equipment', 'special'], true)) {
+            return false;
+        }
+
+        if (in_array($this->slug, [
+            'sigaretten',
+            'ritalin',
+            'telefoon',
+            'strip-oxazepam',
+            'strip-ritalin',
+            'haloperidol-forte',
+            'adrenaline-injectie',
+            'ehbo-noodverbanddoos',
+            'eiwitshake-bodybuilder',
+            'multivitaminen-focus',
+            'bivakmuts-masker',
+            'smokkelpakketje',
+            'ijzerzaagje',
+            'halloween_candy_bag',
+        ], true)) {
+            return true;
+        }
+
+        return ($this->energy_restore ?? 0) > 0 || ($this->health_restore ?? 0) > 0;
+    }
 }

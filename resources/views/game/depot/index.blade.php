@@ -284,7 +284,7 @@
                         <div class="flex items-center gap-2">
                             <h3 class="text-sm font-black text-slate-900 dark:text-white">Overval Maskers (Heist Gear)</h3>
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
-                                €750 / stuk helerwaarde
+                                €1.500 / stuk helerwaarde
                             </span>
                         </div>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -331,7 +331,7 @@
                     <form action="{{ route('depot.sell-masks') }}" method="POST" class="mt-4 space-y-4">
                         @csrf
                         <div class="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200">
-                            De heler biedt <strong>€750 contant per masker</strong>. Verkoop overtollige maskers om direct opbergruimte in je depot vrij te spelen!
+                            De heler biedt <strong>€1.500 contant per masker</strong>. Verkoop overtollige maskers om direct contant geld te ontvangen!
                         </div>
 
                         <div>
@@ -350,7 +350,7 @@
 
                         <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between text-xs font-bold">
                             <span class="text-slate-500 dark:text-slate-400">Verwachte Opbrengst:</span>
-                            <span class="text-emerald-600 dark:text-emerald-400 font-black text-sm" x-text="'€' + new Intl.NumberFormat('nl-NL').format(Math.max(0, sellQty * 750))"></span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-black text-sm" x-text="'€' + new Intl.NumberFormat('nl-NL').format(Math.max(0, sellQty * 1500))"></span>
                         </div>
 
                         <div class="flex items-center justify-end gap-2 pt-2">
@@ -386,7 +386,17 @@
         @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             @foreach($inventoryItems as $itemRow)
-            @php $it = $itemRow->item; @endphp
+            @php
+                $it = $itemRow->item;
+                $unitSellPrice = $it->getDepotSellPrice();
+                $depotIcon = match($it->icon ?? '') {
+                    'fa-key-skeleton' => 'fa-key',
+                    'fa-mitten' => 'fa-hand-fist',
+                    'fa-vest' => 'fa-shirt',
+                    'fa-utensils' => 'fa-bowl-food',
+                    default => ($it->icon ?: 'fa-cube'),
+                };
+            @endphp
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
                 
                 <div>
@@ -394,7 +404,7 @@
                     <div class="flex items-start justify-between gap-2 mb-3">
                         <div class="flex items-center gap-3">
                             <div class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-lg shrink-0">
-                                <i class="fa-solid {{ $it->icon ?? 'fa-cube' }}"></i>
+                                <i class="fa-solid {{ $depotIcon }}"></i>
                             </div>
                             <div>
                                 <h4 class="text-xs font-black text-slate-900 dark:text-white leading-snug">{{ $it->name }}</h4>
@@ -432,13 +442,36 @@
                             +{{ $it->defense_bonus }} Verdediging
                         </span>
                         @endif
+                        @if(($it->stamina_bonus ?? 0) > 0)
+                        <span class="px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                            +{{ $it->stamina_bonus }} Conditie
+                        </span>
+                        @endif
+                        @if(($it->intelligence_bonus ?? 0) > 0)
+                        <span class="px-2 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                            +{{ $it->intelligence_bonus }} Intelligentie
+                        </span>
+                        @endif
+                        @if(($it->charisma_bonus ?? 0) > 0)
+                        <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                            +{{ $it->charisma_bonus }} Charisma
+                        </span>
+                        @endif
+                        @if(($it->discipline_bonus ?? 0) > 0)
+                        <span class="px-2 py-0.5 rounded bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300">
+                            +{{ $it->discipline_bonus }} Discipline
+                        </span>
+                        @endif
+                        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-mono">
+                            Verkoop: €{{ number_format($unitSellPrice, 0, ',', '.') }} / stuk
+                        </span>
                     </div>
                 </div>
 
                 <!-- ACTIONS -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
                     @php
-                        $isConsumable = ($it->category === 'consumable' || $it->energy_restore > 0 || $it->health_restore > 0 || in_array($it->slug, ['sigaretten', 'ritalin', 'telefoon', 'eiwitshake-bodybuilder', 'multivitaminen-focus', 'bivakmuts-masker', 'smokkelpakketje', 'ijzerzaagje', 'halloween_candy_bag'], true));
+                        $isConsumable = $it->isConsumableItem();
                     @endphp
 
                     @if($isConsumable)
@@ -459,7 +492,7 @@
 
                     <!-- SELL BUTTON -->
                     <button type="button" 
-                            @click="sellModalItem = { id: {{ $itemRow->id }}, name: '{{ addslashes($it->name) }}', qty: {{ $itemRow->quantity }}, unitPrice: {{ max(500, (int)round(($it->price_kc > 0 ? $it->price_kc : 1000) * 0.6)) }} }; sellQty = 1;"
+                            @click="sellModalItem = { id: {{ $itemRow->id }}, name: '{{ addslashes($it->name) }}', qty: {{ $itemRow->quantity }}, unitPrice: {{ $unitSellPrice }} }; sellQty = 1;"
                             class="py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition cursor-pointer flex items-center justify-center gap-1">
                         <i class="fa-solid fa-coins text-amber-500"></i>
                         <span>Verkopen</span>
@@ -665,7 +698,10 @@
             @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 @foreach($eventItems as $eRow)
-                @php $eItem = $eRow->item; @endphp
+                @php
+                    $eItem = $eRow->item;
+                    $eventSellPrice = $eItem->getDepotSellPrice();
+                @endphp
                 <div class="bg-white dark:bg-slate-900 border border-orange-500/30 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
                     <div>
                         <!-- ITEM HEADER -->
@@ -698,12 +734,15 @@
                             <span class="px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
                                 Zeldzaamheid: Legendarisch
                             </span>
+                            <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-mono">
+                                Verkoop: €{{ number_format($eventSellPrice, 0, ',', '.') }} / stuk
+                            </span>
                         </div>
                     </div>
 
                     <!-- ACTIONS -->
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                        @if($eItem->energy_restore > 0 || $eItem->category === 'consumable')
+                        @if($eItem->isConsumableItem())
                         <form action="{{ route('shop.consume', $eRow->id) }}" method="POST" class="flex-1">
                             @csrf
                             <input type="hidden" name="quantity" value="1">
@@ -715,13 +754,13 @@
                         @endif
 
                         <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" 
-                           class="py-2 px-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] transition flex items-center justify-center gap-1 {{ $eItem->energy_restore > 0 ? '' : 'flex-1' }}">
+                           class="py-2 px-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-extrabold text-[11px] transition flex items-center justify-center gap-1 {{ $eItem->isConsumableItem() ? '' : 'flex-1' }}">
                             <i class="fa-solid fa-shop text-[10px]"></i>
                             <span>Marktplaats</span>
                         </a>
 
                         <button type="button" 
-                                @click="sellModalItem = { id: {{ $eRow->id }}, name: '{{ addslashes($eItem->name) }}', qty: {{ $eRow->quantity }}, unitPrice: {{ max(1500, (int)round(($eItem->price_kc > 0 ? $eItem->price_kc : 2500) * 0.6)) }} }; sellQty = 1;"
+                                @click="sellModalItem = { id: {{ $eRow->id }}, name: '{{ addslashes($eItem->name) }}', qty: {{ $eRow->quantity }}, unitPrice: {{ $eventSellPrice }} }; sellQty = 1;"
                                 class="py-2 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-extrabold text-[11px] transition cursor-pointer flex items-center justify-center gap-1">
                             <i class="fa-solid fa-coins text-amber-500"></i>
                             <span>Verkopen</span>

@@ -117,13 +117,13 @@ class DatabaseSeeder extends Seeder
                 'price_kc' => 450,
                 'energy_restore' => 75,
                 'health_restore' => 50,
-                'icon' => 'fa-utensils',
+                'icon' => 'fa-bowl-food',
             ],
             [
                 'name' => 'Gouden Frikandel',
                 'slug' => 'gouden-frikandel',
-                'description' => 'Het legendarische statussymbool van de kantine.',
-                'category' => 'collectible',
+                'description' => 'Het legendarische statussymbool van de kantine. Herstelt direct +50 HP.',
+                'category' => 'consumable',
                 'rarity' => 'legendary',
                 'price_kc' => 1500,
                 'energy_restore' => 0,
@@ -138,7 +138,7 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Verbergt je identiteit bij diefstal, hosselen en overvallen. Voegt +1 Masker 🎭 toe aan je voorraad.',
                 'category' => 'consumable',
                 'rarity' => 'uncommon',
-                'price_kc' => 650,
+                'price_kc' => 2500,
                 'energy_restore' => 0,
                 'health_restore' => 0,
                 'icon' => 'fa-mask',
@@ -289,7 +289,7 @@ class DatabaseSeeder extends Seeder
                 'rarity' => 'common',
                 'price_kc' => 250,
                 'strength_bonus' => 3,
-                'icon' => 'fa-mitten',
+                'icon' => 'fa-hand-fist',
             ],
             [
                 'name' => 'Paarse Trainingsjas',
@@ -299,13 +299,23 @@ class DatabaseSeeder extends Seeder
                 'rarity' => 'rare',
                 'price_kc' => 600,
                 'charisma_bonus' => 5,
-                'icon' => 'fa-vest',
+                'icon' => 'fa-shirt',
+            ],
+            [
+                'name' => 'Oude Sleutel',
+                'slug' => 'oude-sleutel',
+                'description' => 'Een roestige sleutel gevonden bij de wasserij (+10 Intelligentie).',
+                'category' => 'equipment',
+                'rarity' => 'uncommon',
+                'price_kc' => 800,
+                'intelligence_bonus' => 10,
+                'icon' => 'fa-key',
             ],
             [
                 'name' => 'De Sleutel van Paviljoen 13',
                 'slug' => 'sleutel-paviljoen-13',
                 'description' => 'Speciaal item dat de deuren van de oude vleugel opent (+12 Intelligentie).',
-                'category' => 'collectible',
+                'category' => 'equipment',
                 'rarity' => 'epic',
                 'price_kc' => 5000,
                 'intelligence_bonus' => 12,
@@ -324,7 +334,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($items as $itemData) {
-            Item::firstOrCreate(['slug' => $itemData['slug']], $itemData);
+            Item::updateOrCreate(['slug' => $itemData['slug']], $itemData);
         }
 
         // 3. Base News Articles (matching screenshots)

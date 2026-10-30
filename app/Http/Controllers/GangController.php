@@ -1664,7 +1664,7 @@ class GangController extends Controller
             }
 
             $quantity = min($requestedQty, $currentMasks);
-            $pricePerMask = 750;
+            $pricePerMask = 1500;
             $totalEarned = $pricePerMask * $quantity;
 
             $lockedGang->masks -= $quantity;
@@ -1716,7 +1716,7 @@ class GangController extends Controller
             }
 
             $quantity = min($requestedQty, $lockedGangItem->quantity);
-            $pricePerUnit = max(500, (int) round(($item->price_kc > 0 ? $item->price_kc : 1000) * 0.6));
+            $pricePerUnit = $item->getDepotSellPrice();
             $totalEarned = $pricePerUnit * $quantity;
 
             $lockedGangItem->quantity -= $quantity;

@@ -3289,7 +3289,7 @@ class Character extends Model
             ->whereHas('item', function ($q) {
                 $q->where('slug', 'not like', 'halloween_%')
                     ->where('slug', '!=', 'bivakmuts-masker')
-                    ->whereNotIn('category', ['special', 'collectible']);
+                    ->where('category', '!=', 'special');
             })
             ->sum('quantity');
     }

@@ -1385,12 +1385,27 @@
                                             <i class="fa-solid fa-person-running text-amber-600 dark:text-amber-400"></i> +{{ $inv->item->stamina_bonus }} Conditie
                                         </span>
                                         @endif
+                                        @if(($inv->item->intelligence_bonus ?? 0) > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-cyan-100 dark:bg-cyan-950/70 text-cyan-800 dark:text-cyan-300 border border-cyan-200/50 dark:border-cyan-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-brain text-cyan-600 dark:text-cyan-400"></i> +{{ $inv->item->intelligence_bonus }} Intelligentie
+                                        </span>
+                                        @endif
+                                        @if(($inv->item->charisma_bonus ?? 0) > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-pink-100 dark:bg-pink-950/70 text-pink-800 dark:text-pink-300 border border-pink-200/50 dark:border-pink-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-comments text-pink-600 dark:text-pink-400"></i> +{{ $inv->item->charisma_bonus }} Charisma
+                                        </span>
+                                        @endif
+                                        @if(($inv->item->discipline_bonus ?? 0) > 0)
+                                        <span class="px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 border border-teal-200/50 dark:border-teal-800/60 text-[10px] font-black flex items-center gap-1">
+                                            <i class="fa-solid fa-scale-balanced text-teal-600 dark:text-teal-400"></i> +{{ $inv->item->discipline_bonus }} Discipline
+                                        </span>
+                                        @endif
                                     </div>
                                 </div>
 
                                 <!-- Action Button -->
                                 <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
-                                    @if($inv->item->category === 'equipment')
+                                    @if($inv->item->category === 'equipment' || ! $inv->item->isConsumableItem())
                                         <div class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700">
                                             <i class="fa-solid fa-shield-halved text-purple-600 dark:text-purple-400 text-xs"></i>
                                             <span>Actieve Uitrusting</span>

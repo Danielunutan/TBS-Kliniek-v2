@@ -2650,12 +2650,12 @@
                             </span>
 
                             @if($myGang->isOfficer($character) && (int)($myGang->masks ?? 0) > 0)
-                            <form action="{{ route('gangs.sell-masks') }}" method="POST" onsubmit="return confirm('Weet je zeker dat je bende maskers wilt verkopen aan de heler? De opbrengst van €750 per stuk wordt direct gestort in de Bende Kas.');" class="flex items-center gap-1.5">
+                            <form action="{{ route('gangs.sell-masks') }}" method="POST" onsubmit="return confirm('Weet je zeker dat je bende maskers wilt verkopen aan de heler? De opbrengst van €1.500 per stuk wordt direct gestort in de Bende Kas.');" class="flex items-center gap-1.5">
                                 @csrf
                                 <input type="number" name="quantity" value="{{ min(10, (int)($myGang->masks ?? 0)) }}" min="1" max="{{ (int)($myGang->masks ?? 0) }}" class="w-16 px-2 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-bold text-center" title="Aantal te verkopen">
                                 <button type="submit" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition flex items-center gap-1 shadow-xs cursor-pointer" title="Verkoop voor bende kas">
                                     <i class="fa-solid fa-coins"></i>
-                                    <span>Verkopen (€750 p/s)</span>
+                                    <span>Verkopen (€1.500 p/s)</span>
                                 </button>
                             </form>
                             @endif
@@ -2683,6 +2683,9 @@
                         @else
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             @foreach($myGang->items as $gItem)
+                            @php
+                                $gangItemSellPrice = $gItem->item ? $gItem->item->getDepotSellPrice() : 600;
+                            @endphp
                             <div class="p-4 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-2xs flex items-center justify-between gap-3">
                                 <div class="flex items-center gap-3">
                                     <div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-base shrink-0">
@@ -2690,15 +2693,15 @@
                                     </div>
                                     <div>
                                         <h4 class="text-xs font-black text-slate-900 dark:text-white">{{ $gItem->item?->name ?? 'Voorwerp' }}</h4>
-                                        <span class="text-[10px] text-slate-500 dark:text-slate-400">Voorraad: <strong class="text-amber-600 dark:text-amber-400">{{ $gItem->quantity }}x</strong></span>
+                                        <span class="text-[10px] text-slate-500 dark:text-slate-400 block">Voorraad: <strong class="text-amber-600 dark:text-amber-400">{{ $gItem->quantity }}x</strong> · <strong class="text-emerald-600 dark:text-emerald-400">€{{ number_format($gangItemSellPrice, 0, ',', '.') }} p/s</strong></span>
                                     </div>
                                 </div>
 
                                 @if($myGang->isOfficer($character))
-                                <form action="{{ route('gangs.sell-item', $gItem->id) }}" method="POST" onsubmit="return confirm('Item verkopen en opbrengst storten in de bende kas?');" class="flex items-center gap-1">
+                                <form action="{{ route('gangs.sell-item', $gItem->id) }}" method="POST" onsubmit="return confirm('Item verkopen (€{{ number_format($gangItemSellPrice, 0, ',', '.') }} p/s) en opbrengst storten in de bende kas?');" class="flex items-center gap-1">
                                     @csrf
                                     <input type="number" name="quantity" value="1" min="1" max="{{ $gItem->quantity }}" class="w-12 px-1 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-xs text-center">
-                                    <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition" title="Verkopen voor bende kas">
+                                    <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition" title="Verkopen voor €{{ number_format($gangItemSellPrice, 0, ',', '.') }} per stuk">
                                         <i class="fa-solid fa-coins"></i>
                                     </button>
                                 </form>
