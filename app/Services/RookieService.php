@@ -172,9 +172,10 @@ class RookieService
                     break;
 
                 case 'training':
-                    $character->strength = (int) $character->strength + 1;
-                    $character->defense = (int) $character->defense + 1;
                     $levelService->addXp($character, 15);
+                    $maxStat = $character->getMaxStatForLevel();
+                    $character->strength = min($maxStat, (int) $character->strength + 1);
+                    $character->defense = min($maxStat, (int) $character->defense + 1);
                     $rewardDesc = '+1 Kracht, +1 Verdediging en 15 XP';
                     break;
 

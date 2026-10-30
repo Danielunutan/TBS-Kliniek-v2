@@ -71,7 +71,8 @@
                 @php
                     $totalFunds = (int) ($character->cash + $character->bank);
                     $canAfford = $totalFunds >= $npc['bet'];
-                    $meetsStrength = (int) ($character->strength ?? 10) >= $npc['min_strength'];
+                    $effectiveStrength = $character->getEffectiveStrength();
+                    $meetsStrength = $effectiveStrength >= $npc['min_strength'];
                     $hasEnergy = (int) ($character->energy ?? 0) >= 5;
                     $canPlay = $canAfford && $meetsStrength && $hasEnergy;
                 @endphp
@@ -111,7 +112,7 @@
                                 <span class="text-[9px] font-bold uppercase text-slate-400 dark:text-slate-500 block">Beloning & Eis</span>
                                 <span class="font-extrabold text-purple-700 dark:text-purple-400">+{{ $npc['xp'] }} XP &bull; +{{ $npc['respect'] }} Respect</span>
                                 <span class="text-[10px] font-bold block {{ $meetsStrength ? 'text-slate-500 dark:text-slate-400' : 'text-rose-600 dark:text-rose-400' }}">
-                                    Min. {{ $npc['min_strength'] }} Kracht (Jij: {{ (int) ($character->strength ?? 10) }})
+                                    Min. {{ $npc['min_strength'] }} Kracht (Jij: {{ $effectiveStrength }})
                                 </span>
                             </div>
                         </div>
@@ -305,7 +306,7 @@
                     <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">Kliniek Kracht Tip</h4>
                 </div>
                 <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Jouw <strong>Kracht</strong> bepaalt hoeveel druk jij per slag uitoefent op de arm van je tegenstander. Jouw <strong>Snelheid</strong> vergroot de sweet-spot van je timingbalk en je <strong>Stamina</strong> voorkomt uitputting.
+                    Jouw <strong>Kracht</strong> bepaalt hoeveel druk jij per slag uitoefent op de arm van je tegenstander. Jouw <strong>Discipline</strong> houdt je timing scherp op de sweet-spot en je <strong>Conditie</strong> voorkomt uitputting.
                 </p>
                 <a href="{{ route('combat_training.index') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition">
                     <span>Naar de Vechtoefening om te trainen</span> &raquo;
@@ -318,10 +319,11 @@
 
     <!-- INTERACTIVE SHOWDOWN MODAL (ALPINE.JS DRIVEN) -->
     <div x-show="isMatchActive || isSubmitting || matchResult !== null" x-cloak
+         @keydown.window="handleKeydown($event)"
+         @keyup.window="handleKeyup($event)"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs select-none">
         
-        <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden"
-             @keydown.space.window="if (isMatchActive && !isSubmitting && !matchResult && !['INPUT', 'TEXTAREA'].includes($event.target.tagName)) { $event.preventDefault(); pushArm(); }">
+        <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 text-slate-800 dark:text-slate-100 relative overflow-hidden">
             
             <!-- Top Match Status Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
@@ -331,7 +333,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800" x-text="timeLeft + 's resterend'"></span>
-                    <button type="button" @click="cancelMatch()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-1 ml-1 cursor-pointer" title="Sluiten / Opgeven">
+                    <button type="button" tabindex="-1" @click="cancelMatch()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm p-1 ml-1 cursor-pointer" title="Sluiten / Opgeven">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -345,7 +347,7 @@
                         Jij
                     </div>
                     <span class="text-xs font-black text-slate-900 dark:text-white block truncate max-w-[100px]">{{ $character->name }}</span>
-                    <span class="text-[10px] font-bold text-purple-700 dark:text-purple-400 block">Kracht: {{ (int) ($character->strength ?? 10) }}</span>
+                    <span class="text-[10px] font-bold text-purple-700 dark:text-purple-400 block">Kracht: {{ $character->getEffectiveStrength() }}</span>
                 </div>
 
                 <!-- VS Badge -->
@@ -393,10 +395,10 @@
 
             <!-- Sweet-Spot Timing Oscillating Bar -->
             <div class="space-y-1.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center">
-                <span class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider block">Timing Sweet-Spot (Kans op 2.5x Critical Slam):</span>
+                <span class="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider block">Timing Sweet-Spot (Groene Zone = 1.45x Krachtboost):</span>
                 <div class="h-3 w-full bg-slate-200 dark:bg-slate-700 rounded-full relative overflow-hidden">
                     <!-- Green Sweet Spot in Center -->
-                    <div class="absolute inset-y-0 left-[42%] right-[42%] bg-emerald-400 rounded"></div>
+                    <div class="absolute inset-y-0 left-[35%] right-[35%] bg-emerald-400 rounded"></div>
                     <!-- Moving Needle -->
                     <div class="absolute inset-y-0 w-2.5 bg-purple-700 dark:bg-purple-400 rounded-full shadow-xs transition-none"
                          :style="'left: ' + sweetSpotPos + '%'"></div>
@@ -405,12 +407,12 @@
 
             <!-- Big Slam Power Button -->
             <div class="space-y-2">
-                <button type="button" @click="pushArm()"
+                <button type="button" tabindex="-1" @click="pushArm(false)"
                         class="w-full py-4 rounded-2xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-base transition cursor-pointer shadow-lg flex items-center justify-center gap-2">
                     <i class="fa-solid fa-hand-fist text-xl text-amber-300"></i>
                     <span>SLAM DE ARM! (OF SPATIEBALK)</span>
                 </button>
-                <p class="text-[10px] text-slate-400 dark:text-slate-500 text-center">Tip: Klik snel achter elkaar én raak de groene zone voor maximale doordruk!</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500 text-center">Tip: Druk op de spatiebalk of klik op de knop om je tegenstander naar 100% te drukken!</p>
             </div>
 
             <!-- Loading Indicator while submitting -->
@@ -467,9 +469,8 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         matchStartTime: 0,
         matchResult: null,
         npcsData: @json($npcs),
-        playerStrength: {{ (int) ($character->strength ?? 10) }},
-        playerSpeed: {{ (int) ($character->speed ?? 10) }},
-        playerStamina: {{ (int) ($character->stamina ?? 10) }},
+        playerStrength: {{ $character->getEffectiveStrength() }},
+        playerStamina: {{ $character->getEffectiveStamina() }},
         gameLoopInterval: null,
         sweetSpotInterval: null,
         timerInterval: null,
@@ -477,6 +478,38 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         init() {
             if (this.cooldownSeconds > 0) {
                 this.startCooldownTimer();
+            }
+        },
+
+        handleKeydown(e) {
+            if (!this.isMatchActive && !this.isSubmitting && !this.matchResult) return;
+            if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+            const isSpace = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32;
+            const isEnter = e.code === 'Enter' || e.key === 'Enter' || e.keyCode === 13;
+
+            if (isSpace || isEnter) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                    document.activeElement.blur();
+                }
+                if (this.isMatchActive && !this.isSubmitting && !this.matchResult) {
+                    this.pushArm(Boolean(e.repeat));
+                }
+            }
+        },
+
+        handleKeyup(e) {
+            if (!this.isMatchActive && !this.isSubmitting && !this.matchResult) return;
+            if (e.target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+            const isSpace = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32;
+            const isEnter = e.code === 'Enter' || e.key === 'Enter' || e.keyCode === 13;
+
+            if (isSpace || isEnter) {
+                e.preventDefault();
+                e.stopPropagation();
             }
         },
 
@@ -507,15 +540,19 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         },
 
         startMatch(npcKey) {
-            if (this.cooldownSeconds > 0 || this.isSubmitting) {
+            if (this.isMatchActive || this.cooldownSeconds > 0 || this.isSubmitting) {
                 return;
+            }
+
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
             }
 
             this.clearGameIntervals();
             this.activeNpcKey = npcKey;
             this.activeNpc = this.npcsData[npcKey];
             this.armPosition = 50;
-            this.sweetSpotPos = 15;
+            this.sweetSpotPos = 20;
             this.sweetSpotDir = 1;
             this.timeLeft = 12;
             this.clicks = 0;
@@ -539,14 +576,14 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         startGameLoops() {
             // Main Arm Resistance Physics Loop (runs every 60ms)
             const opponentStrength = this.activeNpc ? this.activeNpc.npc_strength : 10;
-            const strengthRatio = Math.min(1.75, Math.max(0.45, opponentStrength / Math.max(10, this.playerStrength)));
-            const decay = 0.42 + (strengthRatio * 0.48);
+            const strengthRatio = Math.min(1.35, Math.max(0.45, opponentStrength / Math.max(10, this.playerStrength)));
+            const decay = 0.24 + (strengthRatio * 0.28);
             
             this.gameLoopInterval = setInterval(() => {
                 if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
 
-                // Give a brief 750ms grip grace period at match start before opponent drains below 50%
-                if (this.clicks === 0 && (Date.now() - this.matchStartTime) < 750) {
+                // Wait until player makes their first push (up to 2500ms ready window) before opponent drains below 50%
+                if (this.clicks === 0 && (Date.now() - this.matchStartTime) < 2500) {
                     return;
                 }
 
@@ -562,12 +599,12 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             this.sweetSpotInterval = setInterval(() => {
                 if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
                 
-                this.sweetSpotPos += (this.sweetSpotDir * 2.8);
-                if (this.sweetSpotPos >= 96) {
-                    this.sweetSpotPos = 96;
+                this.sweetSpotPos += (this.sweetSpotDir * 2.5);
+                if (this.sweetSpotPos >= 95) {
+                    this.sweetSpotPos = 95;
                     this.sweetSpotDir = -1;
-                } else if (this.sweetSpotPos <= 4) {
-                    this.sweetSpotPos = 4;
+                } else if (this.sweetSpotPos <= 5) {
+                    this.sweetSpotPos = 5;
                     this.sweetSpotDir = 1;
                 }
             }, 25);
@@ -575,6 +612,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             // Countdown Timer Loop
             this.timerInterval = setInterval(() => {
                 if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
+                if (this.clicks === 0 && (Date.now() - this.matchStartTime) < 1500) return;
 
                 this.timeLeft--;
                 if (this.timeLeft <= 0) {
@@ -588,12 +626,13 @@ function tbsArmWrestleArena(initialCooldown = 0) {
             }, 1000);
         },
 
-        pushArm() {
+        pushArm(isRepeat = false) {
             if (!this.isMatchActive || this.matchResult || this.isSubmitting) return;
 
             const now = Date.now();
-            if (this.lastPushTime && (now - this.lastPushTime < 45)) {
-                return; // Throttled: anti-autoclicker limit
+            const minInterval = isRepeat ? 140 : 40;
+            if (this.lastPushTime && (now - this.lastPushTime < minInterval)) {
+                return;
             }
             this.lastPushTime = now;
 
@@ -601,24 +640,19 @@ function tbsArmWrestleArena(initialCooldown = 0) {
 
             // Calculate balanced push power relative to opponent strength
             const opponentStrength = this.activeNpc ? this.activeNpc.npc_strength : 10;
-            const playerAdvantage = Math.min(2.5, Math.max(0.65, this.playerStrength / Math.max(10, opponentStrength)));
-            let basePush = 3.4 + (playerAdvantage * 1.8);
+            const playerAdvantage = Math.min(2.0, Math.max(0.75, this.playerStrength / Math.max(10, opponentStrength)));
+            let basePush = 3.2 + (playerAdvantage * 1.6);
 
-            // Check if needle is inside the sweet spot (38% - 62%)
-            const inSweetSpot = this.sweetSpotPos >= 38 && this.sweetSpotPos <= 62;
+            // Check if needle is inside the sweet spot (35% - 65%)
+            const inSweetSpot = this.sweetSpotPos >= 35 && this.sweetSpotPos <= 65;
             if (inSweetSpot) {
-                basePush *= 1.65; // Critical Hit!
+                basePush *= 1.45; // Critical Hit!
             }
 
-            basePush = Math.min(11.5, basePush);
+            basePush = Math.min(9.0, basePush);
             this.armPosition = Math.min(100, this.armPosition + basePush);
 
             if (this.armPosition >= 100) {
-                const elapsedMs = now - this.matchStartTime;
-                if (this.clicks < 4 || elapsedMs < 600) {
-                    this.armPosition = 98;
-                    return;
-                }
                 this.endMatch(true, 'KABOEM! Je hebt de arm van ' + this.activeNpc.name + ' met brute kracht tegen het hout geslamd!');
             }
         },

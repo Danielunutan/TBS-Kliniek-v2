@@ -703,7 +703,7 @@ class BattlePassController extends Controller
             $character->respect = ($character->respect ?? 0) + $rewards['respect'];
         }
         if (isset($rewards['strength'])) {
-            $character->strength = ($character->strength ?? 0) + $rewards['strength'];
+            $character->strength = min($character->getMaxStatForLevel(), ($character->strength ?? 0) + $rewards['strength']);
         }
         if (isset($rewards['bullets'])) {
             $character->bullets = ($character->bullets ?? 0) + $rewards['bullets'];

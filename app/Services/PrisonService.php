@@ -97,9 +97,9 @@ class PrisonService
         $roll = random_int(1, 100);
 
         if ($roll <= $chance) {
-            $newStamina = $character->stamina;
+            $newStamina = (int) $character->stamina;
             if (random_int(1, 100) <= 25) {
-                $newStamina += 1;
+                $newStamina = min($character->getMaxStatForLevel(), $newStamina + 1);
             }
 
             $character->update([

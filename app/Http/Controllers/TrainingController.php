@@ -29,6 +29,7 @@ class TrainingController extends Controller
         $user = Auth::user();
         $character = $user->character;
         $this->energyService->refresh($character);
+        $character->syncStatsWithLevelCap();
 
         $stats = TrainingService::STATS;
         $recentLogs = TrainingLog::where('character_id', $character->id)->latest()->take(8)->get();
@@ -44,18 +45,23 @@ class TrainingController extends Controller
         $validated = $request->validate([
             'stat' => ['required', 'string', 'in:strength,defense,stamina,intelligence,charisma,discipline'],
             'times' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'mode' => ['nullable', 'string', 'in:stat,level'],
         ]);
 
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+        $character->syncStatsWithLevelCap();
 
         $times = (int) ($validated['times'] ?? 1);
+        $mode = $validated['mode'] ?? 'stat';
         $totalGain = 0;
+        $totalXpGain = 0;
+        $sessionsCompleted = 0;
         $lastResult = null;
 
         for ($i = 0; $i < $times; $i++) {
-            $result = $this->trainingService->train($character, $validated['stat']);
+            $result = $this->trainingService->train($character, $validated['stat'], $mode);
             if (! $result['success']) {
                 if ($i === 0) {
                     if ($request->expectsJson() || $request->ajax()) {
@@ -71,6 +77,8 @@ class TrainingController extends Controller
             }
 
             $totalGain += $result['stat_gain'];
+            $totalXpGain += (int) ($result['xp_gain'] ?? 12);
+            $sessionsCompleted++;
             $lastResult = $result;
             HalloweenService::record($character, 'training', 1);
         }
@@ -78,21 +86,31 @@ class TrainingController extends Controller
         $character->refresh();
         $statKey = $validated['stat'];
         $currentVal = (int) $character->{$statKey};
+        $maxStat = $character->getMaxStatForLevel();
         $nextCost = (int) max(20, round(15 + ($currentVal * 3.5)));
         $statName = TrainingService::STATS[$statKey]['name'];
 
-        $message = $times > 1
-            ? "Top workout! Je hebt {$statName} {$totalGain}x getraind naar level {$currentVal}!"
-            : $lastResult['message'];
+        if ($sessionsCompleted > 1) {
+            $message = $mode === 'level'
+                ? "Top workout (Level Focus)! Je hebt {$sessionsCompleted}x getraind voor +{$totalXpGain} XP (Level {$character->level})!"
+                : "Top workout! Je hebt {$statName} {$totalGain}x getraind naar {$currentVal}/{$maxStat}! (+{$totalXpGain} XP)";
+        } else {
+            $message = $lastResult['message'];
+        }
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => $message,
+                'mode' => $mode,
                 'stat' => $statKey,
                 'stat_name' => $statName,
                 'stat_gain' => $totalGain,
+                'xp_gain' => $totalXpGain,
                 'new_value' => $currentVal,
+                'max_stat' => $maxStat,
+                'level' => $character->level,
+                'xp_next' => $character->xpForNextLevel(),
                 'next_cost' => $nextCost,
                 'cash' => $character->cash,
                 'cash_formatted' => '€'.number_format($character->cash, 0, ',', '.'),

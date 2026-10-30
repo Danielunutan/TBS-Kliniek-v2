@@ -53,11 +53,11 @@ class TrainingService
     ) {}
 
     /**
-     * Train an attribute.
+     * Train an attribute or focus on level progression.
      *
-     * @return array{success: bool, message: string, stat_gain: int, new_value: int}
+     * @return array{success: bool, message: string, stat_gain: int, new_value: int, xp_gain?: int, leveled_up?: bool}
      */
-    public function train(Character $character, string $stat): array
+    public function train(Character $character, string $stat, string $mode = 'stat'): array
     {
         if (! array_key_exists($stat, self::STATS)) {
             throw new InvalidArgumentException("Ongeldige eigenschap: {$stat}");
@@ -68,16 +68,21 @@ class TrainingService
                 'success' => false,
                 'message' => 'Je zit in de isoleercel en kunt nu niet trainen!',
                 'stat_gain' => 0,
-                'new_value' => $character->{$stat},
+                'new_value' => (int) $character->{$stat},
             ];
         }
 
+        $character->syncStatsWithLevelCap();
+
         $currentValue = (int) $character->{$stat};
         $maxStat = $character->getMaxStatForLevel();
-        if ($currentValue >= $maxStat) {
+        $statName = self::STATS[$stat]['name'];
+        $trainer = self::STATS[$stat]['trainer'];
+
+        if ($mode === 'stat' && $currentValue >= $maxStat) {
             return [
                 'success' => false,
-                'message' => "Je hebt het maximum voor {$stat} bereikt voor jouw huidige level ({$maxStat})! Stijg eerst in level om verder te kunnen trainen.",
+                'message' => "Je hebt het maximum voor {$statName} bereikt voor jouw huidige level ({$maxStat})! Kies 'Level Focus (+50 XP)' of stijg eerst in level om verder te trainen.",
                 'stat_gain' => 0,
                 'new_value' => $currentValue,
             ];
@@ -89,7 +94,7 @@ class TrainingService
         if ($character->cash < $cashCost) {
             return [
                 'success' => false,
-                'message' => "Je hebt €{$cashCost} nodig om {$stat} te trainen, maar je hebt slechts €{$character->cash} contant.",
+                'message' => "Je hebt €{$cashCost} nodig om {$statName} te trainen, maar je hebt slechts €{$character->cash} contant.",
                 'stat_gain' => 0,
                 'new_value' => $currentValue,
             ];
@@ -106,13 +111,42 @@ class TrainingService
 
         $this->economyService->deductCash($character, $cashCost);
 
-        // Stat gain
-        $gain = 1;
-        $character->{$stat} = $currentValue + $gain;
+        if ($mode === 'level') {
+            $gain = 0;
+            $xpReward = 50;
+            $levelResult = $this->levelService->addXp($character, $xpReward);
+
+            TrainingLog::create([
+                'character_id' => $character->id,
+                'stat' => $stat,
+                'stat_gain' => 0,
+                'energy_cost' => $energyCost,
+                'cash_cost' => $cashCost,
+                'trainer' => $trainer,
+            ]);
+
+            $levelUpSuffix = $levelResult['leveled_up']
+                ? " 🎉 Je bent gestegen naar Level {$character->level} (nieuw plafond: {$character->getMaxStatForLevel()})!"
+                : '';
+
+            return [
+                'success' => true,
+                'message' => "Top workout (Level Focus)! Samen met {$trainer} getraind voor +{$xpReward} XP!{$levelUpSuffix}",
+                'stat_gain' => 0,
+                'xp_gain' => $xpReward,
+                'leveled_up' => $levelResult['leveled_up'],
+                'new_value' => (int) $character->{$stat},
+            ];
+        }
+
+        // Stat gain strictly clamped to the level maximum
+        $gain = min(1, max(0, $maxStat - $currentValue));
+        $character->{$stat} = min($maxStat, $currentValue + $gain);
         $character->save();
 
         // Training also rewards a little XP
-        $this->levelService->addXp($character, 12);
+        $xpReward = 12;
+        $levelResult = $this->levelService->addXp($character, $xpReward);
 
         TrainingLog::create([
             'character_id' => $character->id,
@@ -120,16 +154,15 @@ class TrainingService
             'stat_gain' => $gain,
             'energy_cost' => $energyCost,
             'cash_cost' => $cashCost,
-            'trainer' => self::STATS[$stat]['trainer'],
+            'trainer' => $trainer,
         ]);
-
-        $statName = self::STATS[$stat]['name'];
-        $trainer = self::STATS[$stat]['trainer'];
 
         return [
             'success' => true,
-            'message' => "Top workout! Samen met {$trainer} getraind. Je {$statName} is gestegen naar {$character->{$stat}}! (+12 XP)",
+            'message' => "Top workout! Samen met {$trainer} getraind. Je {$statName} is gestegen naar {$character->{$stat}}/{$character->getMaxStatForLevel()}! (+{$xpReward} XP)",
             'stat_gain' => $gain,
+            'xp_gain' => $xpReward,
+            'leveled_up' => $levelResult['leveled_up'],
             'new_value' => (int) $character->{$stat},
         ];
     }

@@ -217,10 +217,11 @@ class HustleController extends Controller
             $this->level->addXp($character, $hustle['xp']);
             $character->addRespect($hustle['respect']);
 
-            // 25% chance to gain +1 permanent Charisma from smooth hustling
+            // 25% chance to gain +1 permanent Charisma from smooth hustling (capped at level maximum)
             $statGainMsg = '';
-            if (rand(1, 100) <= 25) {
-                $character->charisma = ($character->charisma ?? 10) + 1;
+            $maxStatForLevel = $character->getMaxStatForLevel();
+            if (rand(1, 100) <= 25 && (int) ($character->charisma ?? 10) < $maxStatForLevel) {
+                $character->charisma = min($maxStatForLevel, ($character->charisma ?? 10) + 1);
                 $statGainMsg = ' 😎 Gladde babbel beloond: +1 Charisma!';
             }
             // 20% chance to drop illegal bullets from a successful hustle

@@ -174,4 +174,118 @@ class TrainingAjaxTest extends TestCase
         $this->assertEquals(100, $character->energy); // Energy not deducted!
         $this->assertEquals(5000, $character->cash); // Cash not deducted!
     }
+
+    public function test_combat_training_level_focus_mode_awards_double_xp_when_stat_is_at_cap(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'level' => 1,
+            'xp' => 270, // 350 XP total needed for level 2, so +80 XP levels up to level 2!
+            'cash' => 5000,
+            'energy' => 100,
+            'strength' => 150, // Max cap for level 1
+            'perks' => ['cold_blooded_pct' => 100],
+        ]);
+
+        $response = $this->actingAs($user)
+            ->post(route('combat_training.train'), [
+                'session_id' => 1,
+                'mode' => 'level',
+            ]);
+
+        $response->assertSessionHas('success');
+        $this->assertStringContainsString('Focus op Level', session('success'));
+
+        $character->refresh();
+        $this->assertEquals(150, $character->strength);
+        $this->assertEquals(2, $character->level);
+        $this->assertEquals(200, $character->getMaxStatForLevel());
+        $this->assertEquals(100, $character->energy); // Refilled on level up!
+        $this->assertEquals(5000 - 150 + 300, $character->cash); // -150 cost + 300 level 2 cash bonus
+    }
+
+    public function test_sync_stats_with_level_cap_converts_exceeded_stats_to_xp_and_clamps_to_max(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'level' => 1,
+            'xp' => 0,
+            'strength' => 152, // 2 above cap of 150
+            'defense' => 151,  // 1 above cap of 150
+            'stamina' => 140,
+            'discipline' => 150,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('combat_training.index'));
+        $response->assertOk();
+
+        $character->refresh();
+        $maxCap = $character->getMaxStatForLevel();
+        $this->assertLessThanOrEqual($maxCap, $character->strength);
+        $this->assertLessThanOrEqual($maxCap, $character->defense);
+        $this->assertEquals(150, $character->strength);
+        $this->assertEquals(150, $character->defense);
+        $this->assertEquals(3 * 45, $character->xp);
+    }
+
+    public function test_training_level_focus_mode_via_ajax_awards_xp_without_exceeding_stat_cap(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'level' => 1,
+            'xp' => 10,
+            'cash' => 5000,
+            'energy' => 100,
+            'strength' => 150,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('training.train'), [
+                'stat' => 'strength',
+                'times' => 1,
+                'mode' => 'level',
+            ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'mode' => 'level',
+            'stat' => 'strength',
+            'stat_gain' => 0,
+            'xp_gain' => 50,
+            'new_value' => 150,
+        ]);
+
+        $character->refresh();
+        $this->assertEquals(150, $character->strength);
+        $this->assertEquals(60, $character->xp);
+    }
+
+    public function test_arm_wrestle_npc_win_is_never_overturned_into_loss(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'cash' => 5000,
+            'energy' => 100,
+            'strength' => 60,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson(route('armwrestling.npc.finish'), [
+                'npc_key' => 'sjonnie',
+                'won' => true,
+                'clicks' => 8,
+                'duration_ms' => 2400,
+            ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'won' => true,
+        ]);
+
+        $character->refresh();
+        $this->assertEquals(5000 + 1500, $character->cash);
+        $this->assertEquals(95, $character->energy);
+    }
 }

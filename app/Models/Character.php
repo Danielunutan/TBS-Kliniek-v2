@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\DailyBattleService;
 use App\Services\HalloweenService;
+use App\Services\LevelService;
 use App\Support\ProfileStickerCatalog;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -1456,6 +1457,49 @@ class Character extends Model
     public function getMaxStatForLevel(): int
     {
         return 100 + ((int) ($this->level ?? 1) * 50);
+    }
+
+    /**
+     * Return the XP required to reach the next level for this character.
+     */
+    public function xpForNextLevel(): int
+    {
+        return app(LevelService::class)->getXpRequiredForNextLevel((int) ($this->level ?? 1));
+    }
+
+    /**
+     * Synchronize all six core attributes so none exceed the current level ceiling.
+     * Converts any historical stat overflow into XP first so players retain their effort as level progression.
+     */
+    public function syncStatsWithLevelCap(): bool
+    {
+        $stats = ['strength', 'defense', 'stamina', 'intelligence', 'charisma', 'discipline'];
+        $maxStat = $this->getMaxStatForLevel();
+        $overflowPoints = 0;
+
+        foreach ($stats as $stat) {
+            $val = (int) ($this->{$stat} ?? 10);
+            if ($val > $maxStat) {
+                $overflowPoints += ($val - $maxStat);
+            }
+        }
+
+        if ($overflowPoints <= 0) {
+            return false;
+        }
+
+        app(LevelService::class)->addXp($this, $overflowPoints * 45);
+        $newMaxStat = $this->getMaxStatForLevel();
+
+        foreach ($stats as $stat) {
+            if ((int) ($this->{$stat} ?? 10) > $newMaxStat) {
+                $this->{$stat} = $newMaxStat;
+            }
+        }
+
+        $this->save();
+
+        return true;
     }
 
     /**

@@ -251,9 +251,9 @@ class PrisonController extends Controller
             $character->respect += 2;
             $this->levelService->addXp($character, 140);
 
-            // 25% chance of +1 strength from forcing security locks/bars
+            // 25% chance of +1 strength from forcing security locks/bars (capped at level maximum)
             if (rand(1, 100) <= 25) {
-                $character->strength = ($character->strength ?? 10) + 1;
+                $character->strength = min($character->getMaxStatForLevel(), ($character->strength ?? 10) + 1);
             }
             $character->save();
 

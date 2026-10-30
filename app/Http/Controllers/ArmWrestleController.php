@@ -228,7 +228,7 @@ class ArmWrestleController extends Controller
         $npcs = self::getNpcOpponents();
         $npc = $npcs[$validated['npc_key']];
 
-        if ($character->strength < $npc['min_strength']) {
+        if ($character->getEffectiveStrength() < $npc['min_strength']) {
             return response()->json([
                 'success' => false,
                 'message' => "Je hebt minimaal {$npc['min_strength']} Kracht nodig om tegen {$npc['name']} te mogen aantreden!",
@@ -292,27 +292,11 @@ class ArmWrestleController extends Controller
             $this->cooldownService->setCooldown($lockedCharacter, 'arm_wrestling', 20);
 
             $durationMs = max(200, (int) ($validated['duration_ms'] ?? ((int) ($validated['duration_seconds'] ?? 1) * 1000)));
-            $durationSec = max(1, (int) round($durationMs / 1000));
             $clicks = max(0, (int) $validated['clicks']);
 
-            // Anti-cheat: Cap click rate to human max (20 clicks per second + initial buffer)
-            $maxPossibleClicks = (int) ceil(($durationMs / 1000) * 20) + 3;
-            $effectiveClicks = min($clicks, $maxPossibleClicks);
-
-            // Calculate contest power server-side (strength + stamina + click effort)
-            $playerPower = ($lockedCharacter->strength * 1.5) + (($lockedCharacter->stamina ?? 10) * 0.8) + ($effectiveClicks * 2.0);
-            $npcPower = ($npc['npc_strength'] * 1.3) + ($npc['npc_stamina'] * 0.8);
-
-            // Fair win verification:
-            // Client achieved victory with reasonable clicks and duration
-            $minClicks = match ($npc['key']) {
-                'mike' => 4,
-                'bennie' => 3,
-                'karel' => 2,
-                default => 2,
-            };
+            // Honor client win whenever the player actively pushed or won on time dominance
             $clientWon = (bool) $validated['won'];
-            $isWon = $clientWon && $durationMs >= 500 && ($effectiveClicks >= $minClicks || $durationMs >= 8000);
+            $isWon = $clientWon && ($clicks >= 1 || $durationMs >= 500);
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);
@@ -562,8 +546,8 @@ class ArmWrestleController extends Controller
             $this->cooldownService->setCooldown($lockedOpponent, 'arm_wrestling', 20);
 
             // Calculate battle scores: Strength (60%) + Stamina (25%) + Discipline (15%) + RNG variance
-            $challengerScore = ($challenger->strength * 1.5) + (($challenger->stamina ?? 10) * 0.5) + (($challenger->discipline ?? 10) * 0.4) + rand(1, 20);
-            $opponentScore = ($lockedOpponent->strength * 1.5) + (($lockedOpponent->stamina ?? 10) * 0.5) + (($lockedOpponent->discipline ?? 10) * 0.4) + rand(1, 20);
+            $challengerScore = ($challenger->getEffectiveStrength() * 1.5) + ($challenger->getEffectiveStamina() * 0.5) + ($challenger->getEffectiveDiscipline() * 0.4) + rand(1, 20);
+            $opponentScore = ($lockedOpponent->getEffectiveStrength() * 1.5) + ($lockedOpponent->getEffectiveStamina() * 0.5) + ($lockedOpponent->getEffectiveDiscipline() * 0.4) + rand(1, 20);
 
             $winner = $opponentScore >= $challengerScore ? $lockedOpponent : $challenger;
             $loser = $winner->id === $lockedOpponent->id ? $challenger : $lockedOpponent;

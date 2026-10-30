@@ -4,10 +4,11 @@
 
 @section('content')
 @php
+    $maxStatCap = $character->getMaxStatForLevel();
     $initialStats = [];
     $initialCosts = [];
     foreach($stats as $k => $info) {
-        $val = (int) $character->{$k};
+        $val = min($maxStatCap, (int) $character->{$k});
         $initialStats[$k] = $val;
         $initialCosts[$k] = (int) max(20, round(15 + ($val * 3.5)));
     }
@@ -16,6 +17,10 @@
 <div class="space-y-6" x-data="trainingManager({
     stats: {{ json_encode($initialStats) }},
     costs: {{ json_encode($initialCosts) }},
+    maxStat: {{ (int) $maxStatCap }},
+    level: {{ (int) $character->level }},
+    xp: {{ (int) $character->xp }},
+    xpNext: {{ max(1, (int) $character->xpForNextLevel()) }},
     cash: {{ (int)$character->cash }},
     energy: {{ (int)$character->energy }},
     isImprisoned: {{ $character->isImprisoned() ? 'true' : 'false' }},
@@ -93,6 +98,29 @@
         </a>
     </div>
 
+    <!-- Level Plafond & Focus Keuze Banner -->
+    <div class="bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800/60 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base shrink-0">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+                <div>
+                    <h2 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                        Kies je focus: Oefening (+1 Stat) of Level Verhogen (+50 XP)
+                    </h2>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                        Op <strong class="text-slate-800 dark:text-slate-200" x-text="'Level ' + level">Level {{ $character->level }}</strong> is het stat-plafond <strong class="text-slate-800 dark:text-slate-200" x-text="maxStat">{{ $maxStatCap }}</strong> per eigenschap (+50 per level). Kies tussen <strong class="text-purple-600 dark:text-purple-400">Oefening (+1 Stat &amp; +12 XP)</strong> of <strong class="text-amber-600 dark:text-amber-400">Level Focus (+50 XP)</strong> om in level te stijgen.
+                    </p>
+                </div>
+            </div>
+            <div class="shrink-0 bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-xl px-3.5 py-2 text-right">
+                <div class="text-[10px] font-black uppercase tracking-wider text-slate-400" x-text="'Level ' + level + ' Plafond: ' + maxStat">Level {{ $character->level }} Plafond: {{ $maxStatCap }}</div>
+                <div class="text-xs font-black font-mono text-amber-600 dark:text-amber-400" x-text="formatNumber(xp) + ' / ' + formatNumber(xpNext) + ' XP'">{{ number_format($character->xp, 0, ',', '.') }} / {{ number_format($character->xpForNextLevel(), 0, ',', '.') }} XP</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Training Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         @foreach($stats as $key => $info)
@@ -108,10 +136,13 @@
             };
         @endphp
         <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col justify-between transition-all duration-300"
-             :class="{ 'ring-2 ring-purple-500 shadow-lg scale-[1.01] bg-purple-50/10': flashingStat === '{{ $key }}' }">
+             :class="{
+                'ring-2 ring-purple-500 shadow-lg scale-[1.01] bg-purple-50/10': flashingStat === '{{ $key }}',
+                'border-amber-300/80 dark:border-amber-700/60': stats['{{ $key }}'] >= maxStat
+             }">
             
             <div class="p-5 space-y-3">
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-2">
                     <div>
                         <h2 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                             <i class="fa-solid {{ $icon }} text-sm"></i>
@@ -121,10 +152,17 @@
                             <i class="fa-solid fa-user-ninja mr-1"></i>Trainer: {{ $info['trainer'] }}
                         </span>
                     </div>
-                    <!-- Live Stat Counter Badge with Pop Animation -->
-                    <div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 font-black text-lg flex items-center justify-center shadow-xs transition-transform duration-300"
-                         :class="{ 'scale-125 bg-purple-600 text-white dark:bg-purple-500': flashingStat === '{{ $key }}' }">
-                        <span x-text="stats['{{ $key }}']">{{ $character->{$key} }}</span>
+                    <!-- Live Stat Counter Badge with Level Cap -->
+                    <div class="px-3 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 font-black text-sm font-mono flex flex-col items-end justify-center shadow-xs transition-transform duration-300"
+                         :class="{
+                            'scale-110 bg-purple-600 text-white dark:bg-purple-500': flashingStat === '{{ $key }}',
+                            'bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800': stats['{{ $key }}'] >= maxStat && flashingStat !== '{{ $key }}'
+                         }">
+                        <div>
+                            <span x-text="stats['{{ $key }}']">{{ min($maxStatCap, (int) $character->{$key}) }}</span>
+                            <span class="text-[10px] opacity-70" x-text="'/ ' + maxStat">/ {{ $maxStatCap }}</span>
+                        </div>
+                        <span x-show="stats['{{ $key }}'] >= maxStat" x-cloak class="text-[9px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-black">Level Max</span>
                     </div>
                 </div>
 
@@ -139,30 +177,42 @@
                     </span>
                     <span class="text-amber-700 dark:text-amber-400 font-mono flex items-center gap-1">
                         <i class="fa-solid fa-coins text-amber-500 text-[10px]"></i>
-                        <span x-text="'€' + formatNumber(costs['{{ $key }}'])">€{{ (int) max(20, round(15 + ($character->{$key} * 3.5))) }}</span>
+                        <span x-text="'€' + formatNumber(costs['{{ $key }}'])">€{{ (int) max(20, round(15 + (min($maxStatCap, (int) $character->{$key}) * 3.5))) }}</span>
                     </span>
-                    <span class="text-purple-700 dark:text-purple-300 font-bold">+1 {{ $info['name'] }}</span>
+                    <span class="text-purple-700 dark:text-purple-300 font-bold" x-text="stats['{{ $key }}'] >= maxStat ? '+50 XP (Focus)' : '+1 {{ $info['name'] }} / +50 XP'">+1 {{ $info['name'] }}</span>
                 </div>
             </div>
 
             <!-- Action Buttons Bar (In-Place Async, No jumping!) -->
-            <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                <!-- Standard +1 Train Button -->
-                <button type="button" 
-                        @click="train('{{ $key }}', 1)" 
-                        :disabled="isTraining || isImprisoned || cash < costs['{{ $key }}'] || energy < 10" 
-                        class="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
-                    <i class="fa-solid fa-dumbbell" :class="{ 'animate-spin': isTraining && activeStat === '{{ $key }}' }"></i>
-                    <span>Trainen (+1)</span>
-                </button>
+            <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 space-y-2">
+                <div class="flex items-center gap-2">
+                    <!-- Standard +1 Train Button -->
+                    <button type="button" 
+                            @click="train('{{ $key }}', 1, 'stat')" 
+                            :disabled="isTraining || isImprisoned || stats['{{ $key }}'] >= maxStat || cash < costs['{{ $key }}'] || energy < 10" 
+                            class="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-3 rounded-xl text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                        <i class="fa-solid" :class="stats['{{ $key }}'] >= maxStat ? 'fa-lock text-amber-300' : (isTraining && activeStat === '{{ $key }}' ? 'fa-dumbbell animate-spin' : 'fa-dumbbell')"></i>
+                        <span x-text="stats['{{ $key }}'] >= maxStat ? 'Max (Lvl ' + level + ')' : 'Oefening (+1)'">Oefening (+1)</span>
+                    </button>
 
-                <!-- Batch +5 Train Quick Upgrade -->
-                <button type="button" 
-                        @click="train('{{ $key }}', 5)" 
-                        :disabled="isTraining || isImprisoned || cash < (costs['{{ $key }}'] * 5) || energy < 50" 
-                        title="Train 5x in 1 klik zonder schermverspringing!"
-                        class="px-3 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-black text-xs transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-95">
-                    +5x
+                    <!-- Batch +5 Train Quick Upgrade -->
+                    <button type="button" 
+                            @click="train('{{ $key }}', 5, 'stat')" 
+                            :disabled="isTraining || isImprisoned || stats['{{ $key }}'] >= maxStat || cash < (costs['{{ $key }}'] * 5) || energy < 50" 
+                            title="Train tot 5x in 1 klik zonder schermverspringing!"
+                            class="px-3 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-black text-xs transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-95">
+                        +5x
+                    </button>
+                </div>
+
+                <!-- Level Focus Button (+50 XP) -->
+                <button type="button"
+                        @click="train('{{ $key }}', 1, 'level')"
+                        :disabled="isTraining || isImprisoned || cash < costs['{{ $key }}'] || energy < 10"
+                        class="w-full py-2 px-3 rounded-xl text-xs font-black transition shadow-2xs flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95"
+                        :class="stats['{{ $key }}'] >= maxStat ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 ring-2 ring-amber-400/50' : 'bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30'">
+                    <i class="fa-solid fa-angles-up text-[11px]"></i>
+                    <span>Level Focus (+50 XP)</span>
                 </button>
             </div>
         </div>
@@ -179,9 +229,18 @@
             <template x-for="log in liveLogs" :key="log.id">
                 <div class="py-2.5 flex items-center justify-between animate-fade-in">
                     <div>
-                        <span class="font-bold text-slate-800 dark:text-slate-200" x-text="log.stat_name"></span> verhoogd met 
-                        <span class="font-bold text-purple-600 dark:text-purple-400" x-text="'+' + log.stat_gain"></span> door workout met 
-                        <span class="italic text-slate-600 dark:text-slate-400" x-text="log.trainer"></span>.
+                        <span class="font-bold text-slate-800 dark:text-slate-200" x-text="log.stat_name"></span>
+                        <template x-if="log.stat_gain > 0">
+                            <span>
+                                verhoogd met <span class="font-bold text-purple-600 dark:text-purple-400" x-text="'+' + log.stat_gain"></span>
+                            </span>
+                        </template>
+                        <template x-if="log.stat_gain === 0">
+                            <span>
+                                getraind op <span class="font-bold text-amber-600 dark:text-amber-400" x-text="'+' + log.xp_gain + ' XP (Level Focus)'"></span>
+                            </span>
+                        </template>
+                        door workout met <span class="italic text-slate-600 dark:text-slate-400" x-text="log.trainer"></span>.
                     </div>
                     <div class="text-[11px] text-slate-400 font-mono">Zojuist</div>
                 </div>
@@ -190,9 +249,13 @@
             @forelse($recentLogs as $log)
             <div class="py-2.5 flex items-center justify-between">
                 <div>
-                    <span class="font-bold text-slate-800 dark:text-slate-200">{{ $stats[$log->stat]['name'] ?? $log->stat }}</span> verhoogd met 
-                    <span class="font-bold text-purple-600 dark:text-purple-400">+{{ $log->stat_gain }}</span> door workout met 
-                    <span class="italic text-slate-600 dark:text-slate-400">{{ $log->trainer }}</span>.
+                    <span class="font-bold text-slate-800 dark:text-slate-200">{{ $stats[$log->stat]['name'] ?? $log->stat }}</span>
+                    @if($log->stat_gain > 0)
+                        verhoogd met <span class="font-bold text-purple-600 dark:text-purple-400">+{{ $log->stat_gain }}</span>
+                    @else
+                        getraind op <span class="font-bold text-amber-600 dark:text-amber-400">Level Focus (XP)</span>
+                    @endif
+                    door workout met <span class="italic text-slate-600 dark:text-slate-400">{{ $log->trainer }}</span>.
                 </div>
                 <div class="text-[11px] text-slate-400">
                     {{ $log->created_at->diffForHumans() }}
@@ -210,6 +273,10 @@ function trainingManager(config) {
     return {
         stats: config.stats,
         costs: config.costs,
+        maxStat: config.maxStat,
+        level: config.level,
+        xp: config.xp,
+        xpNext: config.xpNext,
         cash: config.cash,
         energy: config.energy,
         isImprisoned: config.isImprisoned,
@@ -233,10 +300,15 @@ function trainingManager(config) {
                 this.toast.visible = false;
             }, 3500);
         },
-        async train(statKey, times = 1) {
+        async train(statKey, times = 1, mode = 'stat') {
             if (this.isTraining) return;
             if (this.isImprisoned) {
                 this.showToast('Je zit in de isoleercel en kunt nu niet trainen!', true);
+                return;
+            }
+
+            if (mode === 'stat' && this.stats[statKey] >= this.maxStat) {
+                this.showToast('Maximum voor dit level bereikt! Kies Level Focus (+50 XP) om in level te stijgen.', true);
                 return;
             }
 
@@ -267,7 +339,8 @@ function trainingManager(config) {
                     },
                     body: JSON.stringify({
                         stat: statKey,
-                        times: times
+                        times: times,
+                        mode: mode
                     })
                 });
 
@@ -281,6 +354,10 @@ function trainingManager(config) {
                 // Smooth in-place updates!
                 this.stats[statKey] = data.new_value;
                 this.costs[statKey] = data.next_cost;
+                if (data.max_stat) this.maxStat = data.max_stat;
+                if (data.level) this.level = data.level;
+                if (typeof data.xp === 'number') this.xp = data.xp;
+                if (data.xp_next) this.xpNext = data.xp_next;
                 this.cash = data.cash;
                 this.energy = data.energy;
 
@@ -295,6 +372,7 @@ function trainingManager(config) {
                     id: Date.now() + Math.random(),
                     stat_name: data.stat_name,
                     stat_gain: data.stat_gain,
+                    xp_gain: data.xp_gain || 12,
                     trainer: 'Jouw Trainer'
                 });
 
@@ -302,7 +380,9 @@ function trainingManager(config) {
                 if (typeof window.tbsApplyStats === 'function') {
                     window.tbsApplyStats({
                         cash: data.cash,
-                        energy: data.energy
+                        energy: data.energy,
+                        level: data.level,
+                        xp: data.xp
                     });
                 }
 

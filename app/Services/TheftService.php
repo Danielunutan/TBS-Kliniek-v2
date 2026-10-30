@@ -429,14 +429,15 @@ class TheftService
                 $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
             }
 
-            // 25% chance of +1 Conditie or +1 Intelligentie from nimble theft
+            // 25% chance of +1 Conditie or +1 Intelligentie from nimble theft (capped at level maximum)
             $statGain = '';
+            $maxStatForLevel = $character->getMaxStatForLevel();
             if (random_int(1, 100) <= 25) {
-                if (random_int(0, 1) === 0) {
-                    $character->stamina = ($character->stamina ?? 10) + 1;
+                if (random_int(0, 1) === 0 && (int) ($character->stamina ?? 10) < $maxStatForLevel) {
+                    $character->stamina = min($maxStatForLevel, ($character->stamina ?? 10) + 1);
                     $statGain = ' 🏃 Ervaring: +1 Conditie!';
-                } else {
-                    $character->intelligence = ($character->intelligence ?? 10) + 1;
+                } elseif ((int) ($character->intelligence ?? 10) < $maxStatForLevel) {
+                    $character->intelligence = min($maxStatForLevel, ($character->intelligence ?? 10) + 1);
                     $statGain = ' 🧠 Ervaring: +1 Intelligentie!';
                 }
             }

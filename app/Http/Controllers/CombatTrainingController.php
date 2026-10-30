@@ -24,12 +24,13 @@ class CombatTrainingController extends Controller
     {
         $character = Auth::user()->character;
         $this->energy->refresh($character);
+        $character->syncStatsWithLevelCap();
 
         $sessions = [
-            ['id' => 1, 'name' => 'Schaduwboksen',        'desc' => 'Basis boksoefening om je reflexen te trainen.', 'energy' => 10, 'cost' => 150,  'stat' => 'strength',  'gain' => 1, 'xp' => 40, 'icon' => 'fa-hand-fist'],
-            ['id' => 2, 'name' => 'Schietstandoefening',  'desc' => 'Train je scherpschuttervaardigheden op een dummy.', 'energy' => 12, 'cost' => 250,  'stat' => 'defense',   'gain' => 1, 'xp' => 55, 'icon' => 'fa-bullseye'],
-            ['id' => 3, 'name' => 'Uithoudingsvermogen',  'desc' => 'Intensieve duurloop en conditie-training.', 'energy' => 15, 'cost' => 400,  'stat' => 'stamina',   'gain' => 1, 'xp' => 70, 'icon' => 'fa-person-running'],
-            ['id' => 4, 'name' => 'Tactiek & Discipline', 'desc' => 'Mentale training van militaire tactieken.', 'energy' => 18, 'cost' => 600,  'stat' => 'discipline', 'gain' => 1, 'xp' => 90, 'icon' => 'fa-chess'],
+            ['id' => 1, 'name' => 'Schaduwboksen',        'desc' => 'Basis boksoefening om je reflexen en slagkracht te trainen.', 'energy' => 10, 'cost' => 150,  'stat' => 'strength',   'label' => 'Kracht',       'gain' => 1, 'xp' => 40, 'level_xp' => 80,  'icon' => 'fa-hand-fist'],
+            ['id' => 2, 'name' => 'Schietstandoefening',  'desc' => 'Train je dekking en scherpschuttervaardigheden op een dummy.', 'energy' => 12, 'cost' => 250,  'stat' => 'defense',    'label' => 'Verdediging',  'gain' => 1, 'xp' => 55, 'level_xp' => 110, 'icon' => 'fa-bullseye'],
+            ['id' => 3, 'name' => 'Uithoudingsvermogen',  'desc' => 'Intensieve duurloop en conditie-training.',                   'energy' => 15, 'cost' => 400,  'stat' => 'stamina',    'label' => 'Conditie',     'gain' => 1, 'xp' => 70, 'level_xp' => 140, 'icon' => 'fa-person-running'],
+            ['id' => 4, 'name' => 'Tactiek & Discipline', 'desc' => 'Mentale training van militaire tactieken en zelfbeheersing.', 'energy' => 18, 'cost' => 600,  'stat' => 'discipline', 'label' => 'Discipline',   'gain' => 1, 'xp' => 90, 'level_xp' => 180, 'icon' => 'fa-chess'],
         ];
 
         return view('game.combat_training.index', compact('character', 'sessions'));
@@ -45,22 +46,26 @@ class CombatTrainingController extends Controller
 
         $validated = $request->validate([
             'session_id' => ['required', 'integer', 'in:1,2,3,4'],
+            'mode' => ['nullable', 'string', 'in:stat,level'],
         ]);
 
+        $character->syncStatsWithLevelCap();
+
         $config = [
-            1 => ['energy' => 10, 'cost' => 150, 'stat' => 'strength',  'gain' => 1, 'xp' => 40, 'label' => 'Kracht'],
-            2 => ['energy' => 12, 'cost' => 250, 'stat' => 'defense',   'gain' => 1, 'xp' => 55, 'label' => 'Verdediging'],
-            3 => ['energy' => 15, 'cost' => 400, 'stat' => 'stamina',   'gain' => 1, 'xp' => 70, 'label' => 'Uithoudingsvermogen'],
-            4 => ['energy' => 18, 'cost' => 600, 'stat' => 'discipline', 'gain' => 1, 'xp' => 90, 'label' => 'Discipline'],
+            1 => ['energy' => 10, 'cost' => 150, 'stat' => 'strength',   'gain' => 1, 'xp' => 40, 'level_xp' => 80,  'label' => 'Kracht'],
+            2 => ['energy' => 12, 'cost' => 250, 'stat' => 'defense',    'gain' => 1, 'xp' => 55, 'level_xp' => 110, 'label' => 'Verdediging'],
+            3 => ['energy' => 15, 'cost' => 400, 'stat' => 'stamina',    'gain' => 1, 'xp' => 70, 'level_xp' => 140, 'label' => 'Uithoudingsvermogen'],
+            4 => ['energy' => 18, 'cost' => 600, 'stat' => 'discipline', 'gain' => 1, 'xp' => 90, 'level_xp' => 180, 'label' => 'Discipline'],
         ];
 
         $session = $config[$validated['session_id']];
+        $mode = $validated['mode'] ?? 'stat';
         $statKey = $session['stat'];
         $maxStat = $character->getMaxStatForLevel();
         $currentStat = (int) $character->{$statKey};
 
-        if ($currentStat >= $maxStat) {
-            return back()->with('error', "🔒 LEVEL-PLAFOND BEREIKT! Je hebt het maximum van {$maxStat} {$session['label']} bereikt voor Level {$character->level}. Stijg eerst naar Level ".($character->level + 1)." om je {$session['label']} verder te kunnen trainen!");
+        if ($mode === 'stat' && $currentStat >= $maxStat) {
+            return back()->with('error', "🔒 LEVEL-PLAFOND BEREIKT! Je hebt het maximum van {$maxStat} {$session['label']} bereikt voor Level {$character->level}. Kies 'Focus op Level (+{$session['level_xp']} XP)' om te stijgen naar Level ".($character->level + 1).' en je plafond met +50 te verhogen!');
         }
 
         if ($character->cash < $session['cost']) {
@@ -71,9 +76,17 @@ class CombatTrainingController extends Controller
             return back()->with('error', "Je hebt minimaal {$session['energy']} energie nodig voor deze trainingssessie!");
         }
 
-        $gain = (int) $session['gain'];
         $character->cash -= $session['cost'];
-        $character->{$statKey} += $gain;
+
+        if ($mode === 'level') {
+            $gain = 0;
+            $xpEarned = (int) $session['level_xp'];
+        } else {
+            $gain = min((int) $session['gain'], max(0, $maxStat - $currentStat));
+            $character->{$statKey} = min($maxStat, $currentStat + $gain);
+            $xpEarned = (int) $session['xp'];
+        }
+
         $character->save();
 
         TrainingLog::create([
@@ -85,13 +98,22 @@ class CombatTrainingController extends Controller
             'trainer' => 'Barry Biceps',
         ]);
 
-        $this->level->addXp($character, $session['xp']);
+        $levelResult = $this->level->addXp($character, $xpEarned);
         $newFocus = $character->adjustColdBloodedPct(4);
 
         HalloweenService::record($character, 'training', 1);
 
         $coldText = $newFocus < 100 ? " én +4% Koudbloedigheid (nu {$newFocus}%)" : '';
+        $updatedMaxStat = $character->getMaxStatForLevel();
 
-        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} ({$character->{$statKey}}/{$maxStat}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$session['xp']} XP.");
+        if ($mode === 'level') {
+            $levelUpNotice = $levelResult['leveled_up']
+                ? " 🎉 Je bent gestegen naar Level {$character->level} (nieuw stat-plafond: {$updatedMaxStat})!"
+                : '';
+
+            return back()->with('success', "Training voltooid (Focus op Level)! +{$xpEarned} XP verdiend{$coldText}! -€".number_format($session['cost'], 0, ',', '.').".{$levelUpNotice}");
+        }
+
+        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} ({$character->{$statKey}}/{$updatedMaxStat}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$xpEarned} XP.");
     }
 }
