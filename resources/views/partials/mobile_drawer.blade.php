@@ -536,9 +536,31 @@
                         <i class="fa-solid fa-user-secret w-4 text-center text-slate-500 dark:text-slate-400"></i>
                         <span>Informanten</span>
                     </a>
-                    <a href="{{ route('isolation.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('isolation.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-ghost w-4 text-center text-purple-500 dark:text-purple-400"></i>
-                        <span>Vrijwillige Isolatie</span>
+                    <a href="{{ route('isolation.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition {{ request()->routeIs('isolation.*') ? 'nav-item-active bg-indigo-50/90 dark:bg-purple-950/60 text-indigo-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <span class="flex items-center gap-3 min-w-0">
+                            <i class="fa-solid fa-ghost w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                            <span class="truncate">Vrijwillige Isolatie</span>
+                        </span>
+                        @if(isset($character) && $character && $character->isProtected())
+                            <span x-data="{
+                                    left: {{ (int) $character->getProtectionRemainingSeconds() }},
+                                    format(s) {
+                                        if (s <= 0) return '0m';
+                                        const h = Math.floor(s / 3600);
+                                        const m = Math.floor((s % 3600) / 60);
+                                        const sec = Math.floor(s % 60);
+                                        return h > 0 ? `${h}u ${m}m` : `${m}m ${sec}s`;
+                                    },
+                                    init() {
+                                        setInterval(() => { if (this.left > 0) this.left--; }, 1000);
+                                    }
+                                }"
+                                class="px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 text-[9px] font-black font-mono tabular-nums shrink-0 flex items-center gap-1"
+                                title="Beveiliging actief">
+                                <i class="fa-solid fa-shield-halved text-[8px]"></i>
+                                <span x-text="format(left)">{{ gmdate('H:i', $character->getProtectionRemainingSeconds()) }}</span>
+                            </span>
+                        @endif
                     </a>
                 </div>
             </div>

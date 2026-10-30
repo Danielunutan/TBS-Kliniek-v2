@@ -1611,11 +1611,69 @@ class Character extends Model
     }
 
     /**
+     * Check whether the character has active isolation or shield protection.
+     */
+    public function hasIsolationProtection(): bool
+    {
+        return (bool) ($this->protection_until && now()->lt($this->protection_until));
+    }
+
+    /**
+     * Get the remaining isolation or shield protection time in seconds.
+     */
+    public function getIsolationProtectionRemainingSeconds(): int
+    {
+        if (! $this->hasIsolationProtection()) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($this->protection_until, false));
+    }
+
+    /**
+     * Get the remaining cash protection time in seconds.
+     */
+    public function getCashProtectionRemainingSeconds(): int
+    {
+        if (! $this->hasCashProtection()) {
+            return 0;
+        }
+
+        return max(0, (int) now()->diffInSeconds($this->cash_protection_until, false));
+    }
+
+    /**
+     * Get the maximum remaining protection time in seconds across isolation and cash protection.
+     */
+    public function getProtectionRemainingSeconds(): int
+    {
+        return max(
+            $this->getIsolationProtectionRemainingSeconds(),
+            $this->getCashProtectionRemainingSeconds()
+        );
+    }
+
+    /**
+     * Get the latest active protection expiration timestamp.
+     */
+    public function getProtectionExpiresAt(): ?Carbon
+    {
+        $iso = $this->hasIsolationProtection() ? $this->protection_until : null;
+        $cash = $this->hasCashProtection() ? $this->cash_protection_until : null;
+
+        if ($iso && $cash) {
+            return $iso->gt($cash) ? $iso : $cash;
+        }
+
+        return $iso ?? $cash;
+    }
+
+    /**
      * Check if currently under voluntary isolation protection or cash protection.
      */
     public function isProtected(): bool
     {
-        return ($this->protection_until && now()->lt($this->protection_until)) || $this->hasCashProtection();
+        return $this->hasIsolationProtection() || $this->hasCashProtection();
     }
 
     /**

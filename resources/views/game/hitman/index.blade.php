@@ -230,8 +230,23 @@
                         <i class="fa-solid fa-shield-halved shrink-0"></i>
                         <span class="truncate">{{ $activeVest['name'] }}</span>
                     </div>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        Nog {{ $vestHours }}u {{ $vestMins }}m • +{{ $activeVest['defense_bonus'] }} Def • {{ $activeVest['backfire_chance'] }}% Backfire
+                    <p x-data="{
+                            left: {{ (int) $character->getVestRemainingSeconds() }},
+                            format(s) {
+                                if (s <= 0) return 'Verlopen';
+                                const h = Math.floor(s / 3600);
+                                const m = Math.floor((s % 3600) / 60);
+                                const sec = Math.floor(s % 60);
+                                const pad = (n) => String(n).padStart(2, '0');
+                                return `${pad(h)}:${pad(m)}:${pad(sec)} (${h}u ${m}m)`;
+                            },
+                            init() {
+                                setInterval(() => { if (this.left > 0) this.left--; }, 1000);
+                            }
+                        }"
+                        data-testid="hitman-vest-countdown"
+                        class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                        Nog <span class="font-mono font-bold text-emerald-700 dark:text-emerald-300 tabular-nums" x-text="format(left)">{{ $vestHours }}u {{ $vestMins }}m</span> • +{{ $activeVest['defense_bonus'] }} Def • {{ $activeVest['backfire_chance'] }}% Backfire
                     </p>
                 @else
                     <div class="text-sm font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
@@ -887,6 +902,40 @@
                 </div>
                 <span class="text-xs text-slate-400 font-medium">Betaal met Geld (Contant/Bank) of Sterren</span>
             </div>
+
+            @if($activeVest)
+                <div x-data="{
+                        left: {{ (int) $character->getVestRemainingSeconds() }},
+                        format(s) {
+                            if (s <= 0) return 'Verlopen';
+                            const h = Math.floor(s / 3600);
+                            const m = Math.floor((s % 3600) / 60);
+                            const sec = Math.floor(s % 60);
+                            const pad = (n) => String(n).padStart(2, '0');
+                            return `${pad(h)}:${pad(m)}:${pad(sec)} (${h}u ${m}m ${sec}s)`;
+                        },
+                        init() {
+                            setInterval(() => { if (this.left > 0) this.left--; }, 1000);
+                        }
+                    }"
+                    class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </span>
+                        <div>
+                            <div class="text-xs font-black text-emerald-900 uppercase tracking-wider">Actief Pantser: {{ $activeVest['name'] }}</div>
+                            <div class="text-[11px] text-emerald-700">Verloopt om {{ $character->vest_until->format('d-m-Y H:i:s') }} uur • Nieuwe aankoop verlengt direct!</div>
+                        </div>
+                    </div>
+                    <div class="px-3.5 py-2 rounded-lg bg-white border border-emerald-200 text-right shrink-0">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Resterende Vest-Tijd</div>
+                        <div class="text-sm font-black font-mono text-emerald-700 tabular-nums" x-text="format(left)">
+                            {{ gmdate('H:i:s', $character->getVestRemainingSeconds()) }}
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 @foreach($vestCatalog as $vKey => $vest)

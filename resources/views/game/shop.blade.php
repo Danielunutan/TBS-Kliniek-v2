@@ -1640,12 +1640,38 @@
                                     12 uur zware bepantsering tegen vijandige kogels met 45% ricochet-kans waardoor aanvallers zichzelf neerschieten.
                                 </p>
                             </div>
+                            @if($character->hasVest())
+                                <div x-data="{
+                                        left: {{ (int) $character->getVestRemainingSeconds() }},
+                                        format(s) {
+                                            if (s <= 0) return 'Verlopen';
+                                            const h = Math.floor(s / 3600);
+                                            const m = Math.floor((s % 3600) / 60);
+                                            const sec = Math.floor(s % 60);
+                                            const pad = (n) => String(n).padStart(2, '0');
+                                            return `${pad(h)}:${pad(m)}:${pad(sec)} (${h}u ${m}m)`;
+                                        },
+                                        init() {
+                                            setInterval(() => { if (this.left > 0) this.left--; }, 1000);
+                                        }
+                                    }"
+                                    data-testid="shop-vest-countdown"
+                                    class="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/80 text-[11px] space-y-0.5">
+                                    <div class="flex items-center justify-between font-black text-purple-800 dark:text-purple-300">
+                                        <span><i class="fa-solid fa-clock mr-1"></i> Vest Actief:</span>
+                                        <span class="font-mono tabular-nums" x-text="format(left)">{{ gmdate('H:i:s', $character->getVestRemainingSeconds()) }}</span>
+                                    </div>
+                                    <div class="text-[10px] text-purple-600 dark:text-purple-400">
+                                        Verloopt om {{ $character->vest_until->format('d-m H:i') }} uur
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="bulletproof_vest">
                             <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs">
-                                <i class="fa-solid fa-shield-halved"></i> Vest Kopen (150 Sterren)
+                                <i class="fa-solid fa-shield-halved"></i> {{ $character->hasVest() ? 'Vest Verlengen (+12u) (150 Sterren)' : 'Vest Kopen (150 Sterren)' }}
                             </button>
                         </form>
                     </div>
@@ -1694,12 +1720,38 @@
                                     Volledige 24-uurs bescherming tegen alle aanvallen, gevechten en liquidaties. Slaap met een gerust hart!
                                 </p>
                             </div>
+                            @if($character->hasIsolationProtection())
+                                <div x-data="{
+                                        left: {{ (int) $character->getIsolationProtectionRemainingSeconds() }},
+                                        format(s) {
+                                            if (s <= 0) return 'Verlopen';
+                                            const h = Math.floor(s / 3600);
+                                            const m = Math.floor((s % 3600) / 60);
+                                            const sec = Math.floor(s % 60);
+                                            const pad = (n) => String(n).padStart(2, '0');
+                                            return `${pad(h)}:${pad(m)}:${pad(sec)} (${h}u ${m}m)`;
+                                        },
+                                        init() {
+                                            setInterval(() => { if (this.left > 0) this.left--; }, 1000);
+                                        }
+                                    }"
+                                    data-testid="shop-protection-countdown"
+                                    class="p-2.5 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200 dark:border-cyan-800/80 text-[11px] space-y-0.5">
+                                    <div class="flex items-center justify-between font-black text-cyan-800 dark:text-cyan-300">
+                                        <span><i class="fa-solid fa-clock mr-1"></i> Beveiliging Actief:</span>
+                                        <span class="font-mono tabular-nums" x-text="format(left)">{{ gmdate('H:i:s', $character->getIsolationProtectionRemainingSeconds()) }}</span>
+                                    </div>
+                                    <div class="text-[10px] text-cyan-700 dark:text-cyan-400">
+                                        Verloopt om {{ $character->protection_until->format('d-m H:i') }} uur
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                         <form action="{{ route('shop.buy-star-item') }}" method="POST" class="mt-4">
                             @csrf
                             <input type="hidden" name="item_type" value="protection_24h">
                             <button type="submit" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-shield"></i> Beschermen (30 Sterren)
+                                <i class="fa-solid fa-shield"></i> {{ $character->hasIsolationProtection() ? 'Bijkoop (+24u) (30 Sterren)' : 'Beschermen (30 Sterren)' }}
                             </button>
                         </form>
                     </div>

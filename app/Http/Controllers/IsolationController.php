@@ -33,16 +33,27 @@ class IsolationController extends Controller
             ['hours' => 24, 'cost_cash' => 1200000, 'cost_stars' => 600, 'label' => '24 uur isolatie (1 dag)'],
         ];
 
-        $isProtected = $character->protection_until && Carbon::now()->lt($character->protection_until);
-        $remainingMinutes = $isProtected ? Carbon::now()->diffInMinutes($character->protection_until) : 0;
+        $isProtected = $character->hasIsolationProtection();
+        $remainingSeconds = $character->getIsolationProtectionRemainingSeconds();
+        $remainingMinutes = $isProtected ? (int) Carbon::now()->diffInMinutes($character->protection_until) : 0;
         $remainingHours = $isProtected ? round($remainingMinutes / 60, 1) : 0;
+
+        $hasCashProtection = $character->hasCashProtection();
+        $cashProtectionSeconds = $character->getCashProtectionRemainingSeconds();
+        $hasVest = $character->hasVest();
+        $vestSeconds = $character->getVestRemainingSeconds();
 
         return view('game.isolation.index', compact(
             'character',
             'packages',
             'isProtected',
+            'remainingSeconds',
             'remainingMinutes',
-            'remainingHours'
+            'remainingHours',
+            'hasCashProtection',
+            'cashProtectionSeconds',
+            'hasVest',
+            'vestSeconds'
         ));
     }
 

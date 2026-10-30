@@ -146,4 +146,70 @@ class IsolationProtectionAndPackagePrisonTest extends TestCase
 
         $this->assertTrue($caught, 'Failed package interception should send player to prison');
     }
+
+    public function test_character_protection_remaining_seconds_helpers_handle_active_and_expired_states(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+
+        // Edge case: null and expired timestamps return 0 seconds
+        $char->update([
+            'protection_until' => Carbon::now()->subMinutes(10),
+            'cash_protection_until' => null,
+        ]);
+        $char->refresh();
+
+        $this->assertFalse($char->hasIsolationProtection());
+        $this->assertSame(0, $char->getIsolationProtectionRemainingSeconds());
+        $this->assertSame(0, $char->getCashProtectionRemainingSeconds());
+        $this->assertSame(0, $char->getProtectionRemainingSeconds());
+        $this->assertNull($char->getProtectionExpiresAt());
+
+        // Active 4h isolation and 8h cash protection
+        $char->update([
+            'protection_until' => Carbon::now()->addHours(4),
+            'cash_protection_until' => Carbon::now()->addHours(8),
+        ]);
+        $char->refresh();
+
+        $this->assertTrue($char->hasIsolationProtection());
+        $this->assertGreaterThan(14300, $char->getIsolationProtectionRemainingSeconds());
+        $this->assertGreaterThan(28700, $char->getCashProtectionRemainingSeconds());
+        $this->assertSame($char->getCashProtectionRemainingSeconds(), $char->getProtectionRemainingSeconds());
+        $this->assertNotNull($char->getProtectionExpiresAt());
+    }
+
+    public function test_active_protection_displays_live_countdown_timer_on_isolation_shop_and_vip_pages(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'cash' => 500000,
+            'protection_until' => Carbon::now()->addHours(8),
+            'cash_protection_until' => Carbon::now()->addHours(24),
+            'vest_until' => Carbon::now()->addHours(4),
+            'vest_type' => 'tactical_3h',
+            'is_in_prison' => false,
+        ]);
+
+        $this->actingAs($user);
+
+        $isolationRes = $this->get(route('isolation.index'));
+        $isolationRes->assertStatus(200);
+        $isolationRes->assertSee('data-testid="isolation-countdown-timer"', false);
+        $isolationRes->assertSee('Resterende beveiligingstijd', false);
+
+        $shopRes = $this->get(route('shop.index'));
+        $shopRes->assertStatus(200);
+        $shopRes->assertSee('data-testid="shop-protection-countdown"', false);
+        $shopRes->assertSee('data-testid="shop-vest-countdown"', false);
+
+        $vipRes = $this->get(route('vip.index'));
+        $vipRes->assertStatus(200);
+        $vipRes->assertSee('data-testid="vip-cash-protection-countdown"', false);
+
+        $hitmanRes = $this->get(route('hitman.index'));
+        $hitmanRes->assertStatus(200);
+        $hitmanRes->assertSee('data-testid="hitman-vest-countdown"', false);
+    }
 }

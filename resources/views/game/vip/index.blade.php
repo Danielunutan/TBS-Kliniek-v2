@@ -788,12 +788,30 @@
                                     <div class="w-10 h-10 rounded-xl {{ $opt['iconColor'] }} flex items-center justify-center text-lg shrink-0">
                                         <i class="fa-solid {{ $opt['icon'] }}"></i>
                                     </div>
-                                    <div class="space-y-1">
+                                    <div class="space-y-1.5 flex-1">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <h4 class="font-extrabold text-sm text-slate-900 dark:text-white">{{ $opt['name'] }}</h4>
                                             @if($opt['type'] === 'cash_protection' && $character->hasCashProtection())
-                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
-                                                    <i class="fa-solid fa-shield"></i> Actief (tot {{ $character->cash_protection_until->format('d-m H:i') }})
+                                                <span x-data="{
+                                                        left: {{ (int) $character->getCashProtectionRemainingSeconds() }},
+                                                        format(s) {
+                                                            if (s <= 0) return 'Verlopen';
+                                                            const h = Math.floor(s / 3600);
+                                                            const m = Math.floor((s % 3600) / 60);
+                                                            const sec = Math.floor(s % 60);
+                                                            const pad = (n) => String(n).padStart(2, '0');
+                                                            return `${pad(h)}:${pad(m)}:${pad(sec)} (${h}u ${m}m)`;
+                                                        },
+                                                        init() {
+                                                            setInterval(() => { if (this.left > 0) this.left--; }, 1000);
+                                                        }
+                                                    }"
+                                                    data-testid="vip-cash-protection-countdown"
+                                                    class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1.5">
+                                                    <i class="fa-solid fa-clock animate-pulse"></i>
+                                                    <span>Actief:</span>
+                                                    <span class="font-mono tabular-nums" x-text="format(left)">{{ gmdate('H:i:s', $character->getCashProtectionRemainingSeconds()) }}</span>
+                                                    <span class="opacity-75">(tot {{ $character->cash_protection_until->format('d-m H:i') }})</span>
                                                 </span>
                                             @endif
                                         </div>
