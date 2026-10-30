@@ -891,12 +891,11 @@ class ShopController extends Controller
             }
 
             if ($validated['item_type'] === 'vip_week') {
-                if ($lockedCharacter->isVip()) {
-                    $lockedCharacter->vip_expires_at = $lockedCharacter->vip_expires_at->addDays(7);
-                } else {
-                    $lockedCharacter->is_vip = true;
-                    $lockedCharacter->vip_expires_at = now()->addDays(7);
-                }
+                $lockedCharacter->is_vip = true;
+                $currentExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                    ? $lockedCharacter->vip_expires_at
+                    : now();
+                $lockedCharacter->vip_expires_at = $currentExpiry->copy()->addDays(7);
                 $lockedCharacter->save();
 
                 return back()

@@ -106,7 +106,7 @@
                             <i class="fa-solid fa-gem text-purple-500 text-xs"></i> {{ number_format($player->vip_points ?? 0, 0, ',', '.') }}
                         </td>
                         <td class="py-3.5 px-3 text-center">
-                            @if($player->is_vip)
+                            @if($player->isVip())
                                 @php $vipBadge = $player->vip_badge; @endphp
                                 @if($vipBadge)
                                     <span class="{{ $vipBadge['class'] }} text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full inline-flex items-center gap-1 border">
@@ -222,7 +222,7 @@
                                                 <i class="fa-solid fa-crown text-amber-500"></i> VIP Tier &amp; Handmatig Toekennen
                                             </label>
                                             <label class="flex items-center gap-1.5 cursor-pointer text-[11px] font-bold text-purple-800">
-                                                <input type="checkbox" name="is_vip" value="1" {{ $player->is_vip ? 'checked' : '' }} class="rounded text-purple-600">
+                                                <input type="checkbox" name="is_vip" value="1" {{ $player->isVip() ? 'checked' : '' }} class="rounded text-purple-600">
                                                 <span>VIP Actief</span>
                                             </label>
                                         </div>

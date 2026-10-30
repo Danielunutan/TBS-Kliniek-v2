@@ -426,6 +426,15 @@
                         visibleLimit: 8,
                         requestingId: null,
                         feedback: null,
+                        radioPlaying: !!(window.tbsRadio && window.tbsRadio.isPlaying),
+                        radioLoading: !!(window.tbsRadio && window.tbsRadio.isLoading),
+                        nowPlaying: (window.tbsRadio && window.tbsRadio.nowPlaying) ? window.tbsRadio.nowPlaying : { title: 'Live Audio Stream', artist: 'MIXXR Radio Non-Stop', cover: 'https://mixxr.nl/album-art.png' },
+                        syncRadioState(detail) {
+                            if (!detail) return;
+                            if (detail.isPlaying !== undefined) this.radioPlaying = detail.isPlaying;
+                            if (detail.isLoading !== undefined) this.radioLoading = detail.isLoading;
+                            if (detail.nowPlaying) this.nowPlaying = detail.nowPlaying;
+                        },
                         getTracks() {
                             const list = window.tbsRadio ? window.tbsRadio.autoDjList : [];
                             if (!this.searchQuery || this.searchQuery.trim() === '') return list;
@@ -467,21 +476,23 @@
                                 setTimeout(() => { this.feedback = null; }, 8000);
                             });
                         }
-                    }" class="space-y-3 pt-4">
+                    }"
+                    @tbs-radio-state-changed.window="syncRadioState($event.detail)"
+                    class="space-y-3 pt-4">
 
                         <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 bg-purple-50/70 dark:bg-purple-950/30 p-3.5 sm:p-4 rounded-2xl border border-purple-200/80 dark:border-purple-900/40 overflow-hidden">
                             <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                                 <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden bg-slate-900 shadow-md border border-purple-300 dark:border-purple-700 shrink-0 relative">
-                                    <img :src="(window.tbsRadio && window.tbsRadio.nowPlaying && window.tbsRadio.nowPlaying.cover) ? window.tbsRadio.nowPlaying.cover : 'https://mixxr.nl/album-art.png'" 
+                                    <img :src="(nowPlaying && nowPlaying.cover) ? nowPlaying.cover : 'https://mixxr.nl/album-art.png'" 
                                          alt="MIXXR" 
                                          class="w-full h-full object-cover"
                                          x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block truncate"
-                                          x-text="(window.tbsRadio && window.tbsRadio.nowPlaying && window.tbsRadio.nowPlaying.artist) ? window.tbsRadio.nowPlaying.artist : 'MIXXR Radio Non-Stop'"></span>
+                                          x-text="(nowPlaying && nowPlaying.artist) ? nowPlaying.artist : 'MIXXR Radio Non-Stop'"></span>
                                     <h4 class="text-xs font-black text-slate-900 dark:text-white truncate" 
-                                        x-text="(window.tbsRadio && window.tbsRadio.nowPlaying && window.tbsRadio.nowPlaying.title) ? window.tbsRadio.nowPlaying.title : 'Live Audio Stream'"></h4>
+                                        x-text="(nowPlaying && nowPlaying.title) ? nowPlaying.title : 'Live Audio Stream'"></h4>
                                     <span class="text-[11px] text-slate-500 dark:text-slate-400 block truncate">24/7 Pop, R&amp;B &amp; House • Vraag tracks aan via AutoDJ!</span>
                                 </div>
                             </div>
@@ -489,15 +500,16 @@
                             <div class="flex flex-wrap items-center gap-2 shrink-0">
                                 <button type="button" 
                                         @click="if (window.tbsRadio) { window.tbsRadio.togglePlay(); }" 
-                                        style="background-color: #7c3aed; color: #ffffff;"
-                                        class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/30 shrink-0">
-                                    <template x-if="window.tbsRadio && window.tbsRadio.isLoading">
+                                        :style="(radioPlaying || radioLoading) ? 'background-color: #e11d48; color: #ffffff;' : 'background-color: #7c3aed; color: #ffffff;'"
+                                        class="px-3.5 py-2 rounded-xl active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shrink-0"
+                                        :class="(radioPlaying || radioLoading) ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/30' : 'bg-purple-600 hover:bg-purple-700 shadow-purple-600/30'">
+                                    <template x-if="radioLoading">
                                         <i class="fa-solid fa-spinner fa-spin text-xs"></i>
                                     </template>
-                                    <template x-if="!window.tbsRadio || !window.tbsRadio.isLoading">
-                                        <i class="fa-solid text-xs" :class="(window.tbsRadio && window.tbsRadio.isPlaying) ? 'fa-pause' : 'fa-play'"></i>
+                                    <template x-if="!radioLoading">
+                                        <i class="fa-solid text-xs" :class="radioPlaying ? 'fa-power-off' : 'fa-play'"></i>
                                     </template>
-                                    <span x-text="(window.tbsRadio && window.tbsRadio.isPlaying) ? 'Pauzeren' : 'Luister Live'"></span>
+                                    <span x-text="(radioPlaying || radioLoading) ? 'Radio Uitzetten' : 'Luister Live'"></span>
                                 </button>
                                 <button type="button" 
                                         @click="autoDjOpen = !autoDjOpen; if (autoDjOpen && window.tbsRadio) { window.tbsRadio.loadAutoDj(); }" 

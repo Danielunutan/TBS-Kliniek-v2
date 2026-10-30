@@ -348,6 +348,12 @@ class BuyMeACoffeeWebhookController extends Controller
     {
         $titleLower = strtolower($title);
 
+        if (str_contains($titleLower, 'lifetime') || str_contains($titleLower, 'vip') || str_contains($titleLower, 'v.i.p')) {
+            $this->grantMembershipTier($character, $title, $data);
+
+            return;
+        }
+
         if (str_contains($titleLower, '50 ster') || str_contains($titleLower, 'starter')) {
             $character->stars = ($character->stars ?? 0) + 50;
             $character->masks = ($character->masks ?? 0) + 2;

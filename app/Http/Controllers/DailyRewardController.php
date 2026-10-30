@@ -97,7 +97,9 @@ class DailyRewardController extends Controller
         $prize = $this->wheelSectors[$winningIndex];
         $rewardDescription = $prize['label'];
 
-        $spinSuccess = DB::transaction(function () use ($character, $prize): bool {
+        $availableSpins = 0;
+
+        $spinSuccess = DB::transaction(function () use ($character, $prize, &$availableSpins): bool {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
             if (! $locked->canDailySpin()) {
@@ -131,10 +133,12 @@ class DailyRewardController extends Controller
             if (! $locked->last_daily_spin_at || ! $locked->last_daily_spin_at->isToday()) {
                 $locked->daily_spins_today = 1;
             } else {
-                $locked->daily_spins_today = min($maxSpins, $locked->daily_spins_today + 1);
+                $locked->daily_spins_today = min($maxSpins, (int) $locked->daily_spins_today + 1);
             }
             $locked->last_daily_spin_at = Carbon::now();
             $locked->save();
+
+            $availableSpins = $locked->availableSpinsCount();
 
             // Sync original model instance
             $character->cash = $locked->cash;
@@ -169,8 +173,6 @@ class DailyRewardController extends Controller
             'message' => "Je draaide aan het Rad van Fortuin en won: {$rewardDescription}!",
             'is_read' => false,
         ]);
-
-        $availableSpins = $character->availableSpinsCount();
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

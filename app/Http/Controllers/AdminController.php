@@ -187,7 +187,7 @@ class AdminController extends Controller
         $perks = $character->perks ?? [];
         $wasVip = $character->isVip();
 
-        if ($vipAction === 'revoke' || (! $request->boolean('is_vip') && in_array($vipAction, ['no_change', 'revoke'], true) && ! $request->has('vip_tier'))) {
+        if ($vipAction === 'revoke' || (! $request->boolean('is_vip') && in_array($vipAction, ['no_change', 'revoke'], true))) {
             $character->is_vip = false;
             $character->vip_expires_at = null;
             $perks['supporter_tier'] = 0;
@@ -201,7 +201,7 @@ class AdminController extends Controller
 
             $daysToAdd = (int) ($request->input('custom_vip_days') ?: ($request->input('vip_days') ?: 30));
 
-            if ($vipAction === 'lifetime') {
+            if ($vipAction === 'lifetime' || $vipTier === 4) {
                 $character->vip_expires_at = now()->addYears(99);
                 if ($vipTier < 4) {
                     $vipTier = 4;
@@ -210,7 +210,7 @@ class AdminController extends Controller
                 $character->vip_expires_at = $currentExpiry->copy()->addDays($daysToAdd);
             } elseif ($vipAction === 'set_days') {
                 $character->vip_expires_at = now()->addDays($daysToAdd);
-            } elseif ($request->boolean('is_vip') && ! $character->vip_expires_at) {
+            } elseif (! $character->vip_expires_at || $character->vip_expires_at->isPast()) {
                 $character->vip_expires_at = now()->addDays($daysToAdd > 0 ? $daysToAdd : 30);
             }
 
@@ -683,6 +683,8 @@ class AdminController extends Controller
         $isMembership = (bool) $validated['is_membership'];
         if (str_contains($tierLower, 'koffie') || str_contains($tierLower, 'bakkie')) {
             $isMembership = false;
+        } elseif (str_contains($tierLower, 'vip') || str_contains($tierLower, 'v.i.p') || str_contains($tierLower, 'elite') || str_contains($tierLower, 'baas') || str_contains($tierLower, 'lifetime')) {
+            $isMembership = true;
         }
 
         $coffees = 1;

@@ -22,6 +22,17 @@ class EnergyService
      */
     public function refresh(Character $character): Character
     {
+        $tier = (int) ($character->perks['supporter_tier'] ?? 0);
+        if ($character->is_vip && $tier >= 1 && $character->vip_expires_at && $character->vip_expires_at->isPast()) {
+            if ($tier === 4) {
+                $character->vip_expires_at = now()->addYears(99);
+                $character->save();
+            } elseif ($character->vip_expires_at->lt(now()->setDate(2026, 11, 1)->startOfDay())) {
+                $character->vip_expires_at = now()->addDays(30);
+                $character->save();
+            }
+        }
+
         $this->allowanceService->payoutPendingAllowance($character);
 
         $now = now();

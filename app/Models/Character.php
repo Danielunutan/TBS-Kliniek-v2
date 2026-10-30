@@ -789,7 +789,18 @@ class Character extends Model
      */
     public function isVip(): bool
     {
+        $tier = (int) ($this->perks['supporter_tier'] ?? 0);
+
+        if ($this->is_vip && $tier === 4) {
+            return true;
+        }
+
         if ($this->is_vip && (! $this->vip_expires_at || $this->vip_expires_at->isFuture())) {
+            return true;
+        }
+
+        // Heal characters whose paid/admin-granted supporter tier was saved while a stale pre-tier trial timestamp remained in vip_expires_at.
+        if ($this->is_vip && $tier >= 1 && $this->vip_expires_at && $this->vip_expires_at->lt(Carbon::create(2026, 11, 1, 0, 0, 0))) {
             return true;
         }
 

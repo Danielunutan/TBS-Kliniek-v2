@@ -83,11 +83,13 @@ class DailyRewardsAndBountiesTest extends TestCase
         $res1 = $this->actingAs($character->user)->postJson(route('daily.spin'));
         $res1->assertStatus(200);
         $res1->assertJsonPath('success', true);
+        $res1->assertJsonPath('available_spins', 1);
 
         // Second spin succeeds for VIP
         $res2 = $this->actingAs($character->user)->postJson(route('daily.spin'));
         $res2->assertStatus(200);
         $res2->assertJsonPath('success', true);
+        $res2->assertJsonPath('available_spins', 0);
 
         $character->refresh();
         $this->assertEquals(2, $character->daily_spins_today);
@@ -96,6 +98,67 @@ class DailyRewardsAndBountiesTest extends TestCase
         $res3 = $this->actingAs($character->user)->postJson(route('daily.spin'));
         $res3->assertStatus(422);
         $res3->assertJsonPath('success', false);
+    }
+
+    public function test_vip_user_with_previously_expired_trial_can_spin_twice_after_admin_or_tier_activation(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_staff' => true]);
+        $this->createCharacter('AdminBoss', ['user_id' => $admin->id]);
+
+        $character = $this->createCharacter('ReactivatedVip', [
+            'is_vip' => true,
+            'vip_expires_at' => Carbon::create(2026, 10, 15, 12, 0, 0),
+            'perks' => ['supporter_tier' => 1],
+        ]);
+
+        // Even before admin re-save, a character with active supporter_tier and stale pre-tier trial timestamp is recognized as VIP and healed on refresh
+        $this->assertTrue($character->isVip());
+        $this->assertEquals(2, $character->availableSpinsCount());
+
+        // Also verify Admin updatePlayer with default vip_action=no_change refreshes expired vip_expires_at when is_vip is checked
+        $expiredTrialChar = $this->createCharacter('ExpiredTrialPlayer', [
+            'is_vip' => false,
+            'vip_expires_at' => now()->subDays(5),
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.player.update', $expiredTrialChar), [
+            'cash' => 5000,
+            'bank' => 0,
+            'stars' => 0,
+            'respect' => 0,
+            'vip_points' => 0,
+            'health' => 100,
+            'energy' => 100,
+            'is_vip' => 1,
+            'vip_tier' => 2,
+            'vip_action' => 'no_change',
+            'custom_vip_days' => 30,
+        ])->assertRedirect();
+
+        $expiredTrialChar->refresh();
+        $this->assertTrue($expiredTrialChar->isVip());
+        $this->assertTrue($expiredTrialChar->vip_expires_at->isFuture());
+        $this->assertEquals(2, $expiredTrialChar->availableSpinsCount());
+
+        // Both spins succeed for the reactivated VIP
+        $this->actingAs($expiredTrialChar->user)->postJson(route('daily.spin'))
+            ->assertStatus(200)
+            ->assertJsonPath('available_spins', 1);
+
+        $this->actingAs($expiredTrialChar->user)->postJson(route('daily.spin'))
+            ->assertStatus(200)
+            ->assertJsonPath('available_spins', 0);
+    }
+
+    public function test_radio_player_renders_stop_controls_without_autoplay_gesture_trap(): void
+    {
+        $character = $this->createCharacter('RadioListener');
+
+        $response = $this->actingAs($character->user)->get(route('dashboard'));
+        $response->assertStatus(200);
+        $response->assertSee('stopRadio()', false);
+        $response->assertSee('Radio Uitzetten', false);
+        $response->assertDontSee('resumeOnGesture', false);
     }
 
     public function test_streak_claim_advances_day_and_gives_reward(): void

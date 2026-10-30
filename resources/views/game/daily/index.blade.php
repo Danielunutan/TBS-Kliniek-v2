@@ -103,7 +103,8 @@
                             class="w-full py-3.5 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white shadow-xs transition active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             :class="availableSpins > 0 ? 'bg-purple-700 hover:bg-purple-800' : 'bg-slate-400 dark:bg-slate-700'">
                         <span x-show="!spinning && availableSpins > 0">
-                            <i class="fa-solid fa-play mr-1"></i> Gratis Draaien!
+                            <i class="fa-solid fa-play mr-1"></i>
+                            <span x-text="availableSpins > 1 ? ('Gratis Draaien! (' + availableSpins + 'x over)') : (lastPrizeMessage ? 'Nogmaals Gratis Draaien! (1x over)' : 'Gratis Draaien!')"></span>
                         </span>
                         <span x-show="spinning">
                             <i class="fa-solid fa-spinner animate-spin mr-1"></i> Het rad draait...
@@ -112,7 +113,11 @@
                             <i class="fa-solid fa-clock mr-1"></i> Morgen weer beschikbaar
                         </span>
                     </button>
-                    @if(!$character->isVip())
+                    @if($character->isVip())
+                    <p class="text-[11px] text-center text-amber-600 dark:text-amber-400 font-bold mt-1">
+                        <i class="fa-solid fa-crown text-amber-500"></i> VIP-voordeel actief: <strong>2x gratis draaien per dag</strong> (<span x-text="availableSpins">{{ $availableSpins }}</span> over vandaag)
+                    </p>
+                    @else
                     <p class="text-[11px] text-center text-slate-400 font-semibold mt-1">
                         <i class="fa-solid fa-crown text-amber-500"></i> VIP-leden krijgen <strong>2x draaien per dag</strong>! 
                         <a href="{{ route('vip.index') }}" class="text-purple-600 dark:text-purple-400 font-bold hover:underline">Word VIP</a>
@@ -453,10 +458,9 @@ function tbsDailyRewards() {
                         this.spinning = false;
                         this.availableSpins = data.available_spins;
                         this.lastPrizeMessage = data.message;
-                        
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1200);
+                        if (data.character) {
+                            window.dispatchEvent(new CustomEvent('character-updated', { detail: data.character }));
+                        }
                     }
                 };
 

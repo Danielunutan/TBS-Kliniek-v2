@@ -42,7 +42,7 @@
         <button type="button" 
                 @click.stop="togglePlay()" 
                 class="w-6 h-6 rounded-lg bg-purple-600 hover:bg-purple-700 active:scale-95 text-white flex items-center justify-center text-[10px] shadow-2xs transition cursor-pointer"
-                :title="isPlaying ? 'Pauzeren' : 'Afspelen'">
+                :title="(isPlaying || isLoading) ? 'Radio uitzetten' : 'Radio aanzetten'">
             <template x-if="isLoading">
                 <i class="fa-solid fa-circle-notch fa-spin text-[9px]"></i>
             </template>
@@ -50,6 +50,16 @@
                 <i class="fa-solid text-[9px]" :class="isPlaying ? 'fa-pause' : 'fa-play ml-0.5'"></i>
             </template>
         </button>
+
+        <!-- Direct Stop / Turn Off Button when Radio is Active -->
+        <template x-if="isPlaying || isLoading">
+            <button type="button"
+                    @click.stop="stopRadio()"
+                    class="w-6 h-6 rounded-lg bg-rose-600 hover:bg-rose-700 active:scale-95 text-white flex items-center justify-center text-[10px] shadow-2xs transition cursor-pointer"
+                    title="Radio helemaal uitzetten">
+                <i class="fa-solid fa-power-off text-[9px]"></i>
+            </button>
+        </template>
 
         <!-- Dropdown Arrow -->
         <button type="button" 
@@ -114,17 +124,29 @@
                 </div>
             </div>
 
-            <!-- Big Play / Pause Button -->
-            <button type="button" 
-                    @click="togglePlay()" 
-                    class="w-10 h-10 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white flex items-center justify-center text-sm shadow-md shadow-purple-500/20 transition cursor-pointer shrink-0">
-                <template x-if="isLoading">
-                    <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+            <!-- Big Play / Pause & Stop Buttons -->
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" 
+                        @click.stop="togglePlay()" 
+                        class="w-10 h-10 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white flex items-center justify-center text-sm shadow-md shadow-purple-500/20 transition cursor-pointer shrink-0"
+                        :title="(isPlaying || isLoading) ? 'Pauzeren / Uitzetten' : 'Radio starten'">
+                    <template x-if="isLoading">
+                        <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                    </template>
+                    <template x-if="!isLoading">
+                        <i class="fa-solid" :class="isPlaying ? 'fa-pause' : 'fa-play ml-0.5'"></i>
+                    </template>
+                </button>
+                <template x-if="isPlaying || isLoading">
+                    <button type="button"
+                            @click.stop="stopRadio()"
+                            class="px-2.5 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-wider shadow-md shadow-rose-500/20 transition cursor-pointer shrink-0"
+                            title="Radio helemaal uitzetten">
+                        <i class="fa-solid fa-power-off text-xs"></i>
+                        <span>Uit</span>
+                    </button>
                 </template>
-                <template x-if="!isLoading">
-                    <i class="fa-solid" :class="isPlaying ? 'fa-pause' : 'fa-play ml-0.5'"></i>
-                </template>
-            </button>
+            </div>
         </div>
 
         <!-- Volume Slider -->
@@ -293,6 +315,7 @@ function tbsRadioPlayer() {
         isMuted: false,
         volume: 0.7,
         previousVolume: 0.7,
+        playRequestId: 0,
         
         // Single Primary Station: MIXXR Radio
         currentStation: {
@@ -341,35 +364,26 @@ function tbsRadioPlayer() {
             }
 
             audio.volume = this.volume;
-            if (!audio.src || !audio.src.includes('stream.mixxr.nl')) {
-                audio.src = this.currentStation.stream;
-            }
 
             const wasPlaying = localStorage.getItem('tbs_radio_playing') === 'true';
             if (wasPlaying && audio.paused) {
+                const reqId = ++this.playRequestId;
                 this.isLoading = true;
+                if (!audio.src || !audio.src.includes('stream.mixxr.nl')) {
+                    audio.src = this.currentStation.stream;
+                }
                 audio.play().then(() => {
+                    if (reqId !== this.playRequestId || localStorage.getItem('tbs_radio_playing') !== 'true') {
+                        audio.pause();
+                        return;
+                    }
                     this.isPlaying = true;
                     this.isLoading = false;
                     this.broadcastState();
                 }).catch(() => {
                     this.isLoading = false;
                     this.isPlaying = false;
-                    const resumeOnGesture = () => {
-                        if (localStorage.getItem('tbs_radio_playing') === 'true' && audio.paused) {
-                            audio.play().then(() => {
-                                this.isPlaying = true;
-                                this.isLoading = false;
-                                this.broadcastState();
-                            }).catch(() => {});
-                        }
-                        window.removeEventListener('click', resumeOnGesture);
-                        window.removeEventListener('keydown', resumeOnGesture);
-                        window.removeEventListener('touchstart', resumeOnGesture);
-                    };
-                    window.addEventListener('click', resumeOnGesture, { once: true });
-                    window.addEventListener('keydown', resumeOnGesture, { once: true });
-                    window.addEventListener('touchstart', resumeOnGesture, { once: true });
+                    this.broadcastState();
                 });
             }
 
@@ -413,7 +427,10 @@ function tbsRadioPlayer() {
                     ]
                 });
                 navigator.mediaSession.setActionHandler('play', () => this.togglePlay());
-                navigator.mediaSession.setActionHandler('pause', () => this.togglePlay());
+                navigator.mediaSession.setActionHandler('pause', () => this.stopRadio());
+                try {
+                    navigator.mediaSession.setActionHandler('stop', () => this.stopRadio());
+                } catch (e) {}
             }
         },
 
@@ -521,29 +538,53 @@ function tbsRadioPlayer() {
             }
         },
 
+        stopRadio() {
+            this.playRequestId++;
+            this.isPlaying = false;
+            this.isLoading = false;
+            localStorage.setItem('tbs_radio_playing', 'false');
+            localStorage.removeItem('tbs_radio_playing');
+
+            const audio = getGlobalRadioAudio();
+            if (audio) {
+                try {
+                    audio.pause();
+                    audio.removeAttribute('src');
+                    audio.load();
+                } catch (e) {}
+            }
+
+            this.broadcastState();
+        },
+
         togglePlay() {
             const audio = getGlobalRadioAudio();
             if (!audio) return;
 
-            if (this.isPlaying) {
-                audio.pause();
-                this.isPlaying = false;
-                localStorage.setItem('tbs_radio_playing', 'false');
-                this.broadcastState();
+            if (this.isPlaying || this.isLoading || !audio.paused) {
+                this.stopRadio();
             } else {
+                const reqId = ++this.playRequestId;
                 this.isLoading = true;
+                localStorage.setItem('tbs_radio_playing', 'true');
                 if (!audio.src || !audio.src.includes('stream.mixxr.nl')) {
                     audio.src = this.currentStation.stream;
                 }
+                this.broadcastState();
                 audio.play().then(() => {
+                    if (reqId !== this.playRequestId || localStorage.getItem('tbs_radio_playing') !== 'true') {
+                        audio.pause();
+                        return;
+                    }
                     this.isPlaying = true;
                     this.isLoading = false;
-                    localStorage.setItem('tbs_radio_playing', 'true');
                     this.broadcastState();
                 }).catch(() => {
-                    this.isPlaying = false;
-                    this.isLoading = false;
-                    this.broadcastState();
+                    if (reqId === this.playRequestId) {
+                        this.isPlaying = false;
+                        this.isLoading = false;
+                        this.broadcastState();
+                    }
                 });
             }
         },

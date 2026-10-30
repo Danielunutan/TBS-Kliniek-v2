@@ -38,7 +38,7 @@ class MembersController extends Controller
         $gangCount = Character::whereNotNull('gang_id')->count();
         $soloCount = Character::whereNull('gang_id')->count();
         $prisonCount = Character::where('prison_until', '>', now())->count();
-        $vipCount = Character::where('is_vip', true)->count();
+        $vipCount = $allCharacters->filter(fn (Character $c): bool => $c->isVip())->count();
 
         $membersData = $allCharacters->map(function (Character $c) use ($character) {
             $isOnline = $c->isOnline();
@@ -52,7 +52,7 @@ class MembersController extends Controller
                 'respect' => (float) $c->respect,
                 'respect_formatted' => number_format($c->respect, 0, ',', '.'),
                 'title' => $c->title ?? 'Patiënt',
-                'is_vip' => (bool) $c->is_vip,
+                'is_vip' => $c->isVip(),
                 'is_self' => $c->id === $character->id,
                 'is_online' => $isOnline,
                 'online_label' => $c->online_status_label,
