@@ -374,9 +374,9 @@
                         <i class="fa-solid fa-radio"></i>
                     </div>
                     <div>
-                        <h4 class="text-sm font-black text-slate-900 dark:text-white">Radio Kliniek FM Deck</h4>
+                        <h4 class="text-sm font-black text-slate-900 dark:text-white">MIXXR Radio Deck</h4>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                            Ontgrendel de ingebouwde zenderselector (FunX, SLAM!, 538, Sky & NPO) direct op jouw persoonlijke dashboard.
+                            Ontgrendel het officiële MIXXR Radio Deck direct op jouw persoonlijke dashboard. Luister live non-stop en vraag je eigen tracks aan via AutoDJ!
                         </p>
                     </div>
                     <div class="pt-2">
@@ -419,49 +419,197 @@
                         </a>
                     </div>
 
-                    <!-- Station Quick Pick Buttons -->
-                    <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                        <button type="button" @click="playStation('funx')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-rose-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                            <span class="w-5 h-5 rounded-md bg-rose-500 text-white text-[9px] font-black flex items-center justify-center mb-1">FX</span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">FunX</span>
-                            <span class="text-[9px] text-slate-400 block truncate">Hip Hop & Urban</span>
-                        </button>
+                    <!-- MIXXR Showcase & AutoDJ Quick Actions -->
+                    <div x-data="{
+                        autoDjOpen: false,
+                        searchQuery: '',
+                        visibleLimit: 8,
+                        requestingId: null,
+                        feedback: null,
+                        getTracks() {
+                            const list = window.tbsRadio ? window.tbsRadio.autoDjList : [];
+                            if (!this.searchQuery || this.searchQuery.trim() === '') return list;
+                            const q = this.searchQuery.toLowerCase().trim();
+                            return list.filter(t => 
+                                (t.title && t.title.toLowerCase().includes(q)) || 
+                                (t.artist && t.artist.toLowerCase().includes(q)) ||
+                                (t.genre && t.genre.toLowerCase().includes(q))
+                            );
+                        },
+                        getVisibleTracks() {
+                            return this.getTracks().slice(0, this.visibleLimit);
+                        },
+                        hasMore() {
+                            return this.getTracks().length > this.visibleLimit;
+                        },
+                        requestSong(track) {
+                            const tid = track.requestId || track.id;
+                            this.requestingId = tid;
+                            this.feedback = null;
+                            fetch('https://mixxr.nl/api/station/request', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ requestId: track.requestId, requestUrl: track.requestUrl })
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                this.requestingId = null;
+                                if (data.success) {
+                                    this.feedback = { isError: false, message: data.message || 'Verzoeknummer ingepland op MIXXR Radio!' };
+                                } else {
+                                    this.feedback = { isError: true, message: data.message || 'Kan nummer nu niet aanvragen.' };
+                                }
+                                setTimeout(() => { this.feedback = null; }, 8000);
+                            })
+                            .catch(() => {
+                                this.requestingId = null;
+                                this.feedback = { isError: true, message: 'Verbinding met radio mislukt.' };
+                                setTimeout(() => { this.feedback = null; }, 8000);
+                            });
+                        }
+                    }" class="space-y-3 pt-4">
 
-                        <button type="button" @click="playStation('slam')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-orange-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                            <span class="w-5 h-5 rounded-md bg-orange-500 text-white text-[9px] font-black flex items-center justify-center mb-1">SL</span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">SLAM!</span>
-                            <span class="text-[9px] text-slate-400 block truncate">Club & Beats</span>
-                        </button>
+                        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 bg-purple-50/70 dark:bg-purple-950/30 p-3.5 sm:p-4 rounded-2xl border border-purple-200/80 dark:border-purple-900/40 overflow-hidden">
+                            <div class="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                                <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden bg-slate-900 shadow-md border border-purple-300 dark:border-purple-700 shrink-0 relative">
+                                    <img :src="(window.tbsRadio && window.tbsRadio.nowPlaying && window.tbsRadio.nowPlaying.cover) ? window.tbsRadio.nowPlaying.cover : 'https://mixxr.nl/album-art.png'" 
+                                         alt="MIXXR" 
+                                         class="w-full h-full object-cover"
+                                         x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 block truncate"
+                                          x-text="(window.tbsRadio && window.tbsRadio.nowPlaying && window.tbsRadio.nowPlaying.artist) ? window.tbsRadio.nowPlaying.artist : 'MIXXR Radio Non-Stop'"></span>
+                                    <h4 class="text-xs font-black text-slate-900 dark:text-white truncate" 
+                                        x-text="(window.tbsRadio && window.tbsRadio.nowPlaying && window.tbsRadio.nowPlaying.title) ? window.tbsRadio.nowPlaying.title : 'Live Audio Stream'"></h4>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400 block truncate">24/7 Pop, R&amp;B &amp; House • Vraag tracks aan via AutoDJ!</span>
+                                </div>
+                            </div>
 
-                        <button type="button" @click="playStation('slam00s')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-amber-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                            <span class="w-5 h-5 rounded-md bg-amber-500 text-white text-[9px] font-black flex items-center justify-center mb-1">00s</span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">SLAM! 00s</span>
-                            <span class="text-[9px] text-slate-400 block truncate">Throwbacks</span>
-                        </button>
+                            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                <button type="button" 
+                                        @click="if (window.tbsRadio) { window.tbsRadio.togglePlay(); }" 
+                                        style="background-color: #7c3aed; color: #ffffff;"
+                                        class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5 shadow-md shadow-purple-600/30 shrink-0">
+                                    <template x-if="window.tbsRadio && window.tbsRadio.isLoading">
+                                        <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                                    </template>
+                                    <template x-if="!window.tbsRadio || !window.tbsRadio.isLoading">
+                                        <i class="fa-solid text-xs" :class="(window.tbsRadio && window.tbsRadio.isPlaying) ? 'fa-pause' : 'fa-play'"></i>
+                                    </template>
+                                    <span x-text="(window.tbsRadio && window.tbsRadio.isPlaying) ? 'Pauzeren' : 'Luister Live'"></span>
+                                </button>
+                                <button type="button" 
+                                        @click="autoDjOpen = !autoDjOpen; if (autoDjOpen && window.tbsRadio) { window.tbsRadio.loadAutoDj(); }" 
+                                        class="px-3 py-2 rounded-xl bg-white dark:bg-purple-950/70 hover:bg-purple-50 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-200 font-bold text-xs uppercase tracking-wider border border-purple-200 dark:border-purple-800 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs shrink-0">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500 text-xs"></i>
+                                    <span x-text="autoDjOpen ? 'Sluit AutoDJ' : 'AutoDJ Verzoekje'"></span>
+                                </button>
+                                <a href="https://mixxr.nl" target="_blank" rel="noopener noreferrer" class="px-2.5 py-2 rounded-xl bg-purple-100 dark:bg-purple-900/40 hover:bg-purple-200 text-purple-800 dark:text-purple-200 font-bold text-xs uppercase tracking-wider border border-purple-200 dark:border-purple-800 transition flex items-center justify-center gap-1 shrink-0" title="Open officiële website">
+                                    <span>MIXXR.nl</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                </a>
+                            </div>
+                        </div>
 
-                        <button type="button" @click="playStation('radio2')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-red-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                            <span class="w-5 h-5 rounded-md bg-red-600 text-white text-[9px] font-black flex items-center justify-center mb-1">R2</span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Radio 2</span>
-                            <span class="text-[9px] text-slate-400 block truncate">Pop & Rock</span>
-                        </button>
+                        <!-- Expandable AutoDJ Search & Track List Panel -->
+                        <div x-show="autoDjOpen" 
+                             x-cloak
+                             x-transition
+                             class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0d071d] border border-purple-200/90 dark:border-purple-900/60 shadow-lg space-y-3.5">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 dark:border-purple-900/40 pb-3">
+                                <div>
+                                    <h4 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                                        <span>AutoDJ Muziekdatabase</span>
+                                    </h4>
+                                    <p class="text-xs text-slate-500 dark:text-purple-300/70 mt-0.5">
+                                        Zoek een track en vraag hem direct aan. De radio draait hem binnen enkele minuten live!
+                                    </p>
+                                </div>
+                                <span class="text-xs font-mono font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800/60 self-start sm:self-auto"
+                                      x-text="getTracks().length + ' nummers beschikbaar'"></span>
+                            </div>
 
-                        <button type="button" @click="playStation('3fm')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                            <span class="w-5 h-5 rounded-md bg-emerald-600 text-white text-[9px] font-black flex items-center justify-center mb-1">3FM</span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">3FM</span>
-                            <span class="text-[9px] text-slate-400 block truncate">Hits & Nieuw</span>
-                        </button>
+                            <!-- Zoekbalk -->
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-500 text-xs pointer-events-none"></i>
+                                <input type="text" 
+                                       x-model="searchQuery" 
+                                       placeholder="Zoek artiest, titel of genre (bijv. Dua Lipa, Drake, Techno, R&amp;B)..." 
+                                       class="w-full pl-9 pr-9 py-2.5 rounded-xl bg-slate-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-hidden focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition">
+                                <template x-if="searchQuery.length > 0">
+                                    <button type="button" @click="searchQuery = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-purple-200 text-xs cursor-pointer">
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                    </button>
+                                </template>
+                            </div>
 
-                        <button type="button" @click="playStation('skyradio')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-sky-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                            <span class="w-5 h-5 rounded-md bg-sky-500 text-white text-[9px] font-black flex items-center justify-center mb-1">SKY</span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Sky Radio</span>
-                            <span class="text-[9px] text-slate-400 block truncate">Non-stop</span>
-                        </button>
+                            <!-- Feedback melding -->
+                            <template x-if="feedback">
+                                <div class="p-3 rounded-xl text-xs flex items-center gap-2.5"
+                                     :class="feedback.isError ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'">
+                                    <i class="fa-solid text-sm" :class="feedback.isError ? 'fa-circle-exclamation text-rose-500' : 'fa-circle-check text-emerald-500'"></i>
+                                    <span class="font-medium" x-text="feedback.message"></span>
+                                </div>
+                            </template>
 
-                        <button type="button" @click="playStation('radio538')" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-emerald-400 bg-slate-50 dark:bg-slate-800/80 text-left transition cursor-pointer group">
-                            <span class="w-5 h-5 rounded-md bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center mb-1">538</span>
-                            <span class="text-xs font-black text-slate-900 dark:text-white block truncate">Radio 538</span>
-                            <span class="text-[9px] text-slate-400 block truncate">Top 40</span>
-                        </button>
+                            <!-- Track Resultaten Grid -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto custom-scrollbar pr-1">
+                                <template x-if="!window.tbsRadio || (window.tbsRadio.autoDjList.length === 0 && window.tbsRadio.autoDjLoading)">
+                                    <div class="col-span-full p-8 text-center text-xs text-slate-400 dark:text-purple-300/60 flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-spinner fa-spin text-purple-500 text-base"></i>
+                                        <span>AutoDJ bibliotheek synchroniseren...</span>
+                                    </div>
+                                </template>
+
+                                <template x-for="track in getVisibleTracks()" :key="track.requestId || track.id">
+                                    <div class="p-2.5 rounded-xl bg-slate-50/80 dark:bg-purple-950/30 hover:bg-purple-50/80 dark:hover:bg-purple-950/60 border border-slate-200/80 dark:border-purple-900/40 flex items-center justify-between gap-3 transition">
+                                        <div class="flex items-center gap-2.5 min-w-0">
+                                            <img :src="track.cover || 'https://mixxr.nl/album-art.png'" 
+                                                 alt="Cover" 
+                                                 class="w-10 h-10 rounded-lg object-cover bg-slate-900 border border-purple-200 dark:border-purple-800 shrink-0"
+                                                 x-on:error="$event.target.src = 'https://mixxr.nl/album-art.png'">
+                                            <div class="min-w-0 truncate">
+                                                <h5 class="text-xs font-bold text-slate-900 dark:text-white truncate" x-text="track.title"></h5>
+                                                <span class="text-[11px] text-slate-500 dark:text-purple-300/70 block truncate" x-text="track.artist"></span>
+                                                <span class="text-[9px] font-semibold text-purple-600 dark:text-purple-400 block truncate" x-text="track.genre || 'Pop & R&B'"></span>
+                                            </div>
+                                        </div>
+
+                                        <button type="button" 
+                                                @click="requestSong(track)"
+                                                :disabled="requestingId === (track.requestId || track.id)"
+                                                class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs shrink-0 transition cursor-pointer flex items-center gap-1.5 shadow-xs disabled:opacity-50">
+                                            <template x-if="requestingId === (track.requestId || track.id)">
+                                                <i class="fa-solid fa-spinner fa-spin text-[10px]"></i>
+                                            </template>
+                                            <template x-if="requestingId !== (track.requestId || track.id)">
+                                                <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                                            </template>
+                                            <span>Vraag aan</span>
+                                        </button>
+                                    </div>
+                                </template>
+
+                                <template x-if="window.tbsRadio && window.tbsRadio.autoDjList.length > 0 && getTracks().length === 0">
+                                    <div class="col-span-full p-8 text-center text-xs text-slate-400 dark:text-purple-300/60">
+                                        Geen nummers gevonden voor '<span class="font-bold text-slate-600 dark:text-purple-200" x-text="searchQuery"></span>'. Probeer een andere artiest of titel.
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Laad Meer Knop -->
+                            <template x-if="hasMore()">
+                                <button type="button" 
+                                        @click="visibleLimit += 8" 
+                                        class="w-full py-2.5 rounded-xl bg-purple-100 dark:bg-purple-950/70 hover:bg-purple-200 dark:hover:bg-purple-900/70 text-purple-700 dark:text-purple-200 text-xs font-bold border border-purple-200 dark:border-purple-800 transition cursor-pointer flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                    <span>Laad meer nummers</span>
+                                    <span class="text-[10px] opacity-75 font-mono" x-text="'(' + (getTracks().length - visibleLimit) + ' overig)'"></span>
+                                </button>
+                            </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1794,7 +1942,7 @@ function tbsDashboardCustomizer() {
             { key: 'quickToolbar', title: 'Snelle Bajes Actiebalk', desc: 'Directe snelknoppen naar jouw favoriete locaties', icon: 'fa-bolt', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
             { key: 'weather', title: 'Kliniek Weerstation & Buienradar', desc: 'Actueel GPS weer en neerslag buienradar', icon: 'fa-cloud-sun-rain', bg: 'bg-sky-100 text-sky-700', isPremium: true, cost: 15 },
             { key: 'nunl', title: 'Algemeen Buitenwereld Nieuws', desc: 'Actuele krantenkoppen en Teletekst updates', icon: 'fa-newspaper', bg: 'bg-indigo-100 text-indigo-700', isPremium: true, cost: 15 },
-            { key: 'radio', title: 'Radio Kliniek FM Deck', desc: 'In-dashboard speler voor FunX, SLAM!, 538, Sky & NPO', icon: 'fa-radio', bg: 'bg-rose-100 text-rose-700', isPremium: true, cost: 20 },
+            { key: 'radio', title: 'MIXXR Radio Deck', desc: 'In-dashboard speler voor MIXXR Radio & live AutoDJ verzoekjes', icon: 'fa-radio', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
             { key: 'tunnel', title: 'Geheime Ontsnappingstunnel', desc: 'Graafvoortgang, zandsokken legen en uitbraakroute', icon: 'fa-person-digging', bg: 'bg-amber-100 text-amber-700', isPremium: true, cost: 20 },
             { key: 'treatment', title: 'Behandeling & Verloftraject', desc: 'Dossier van Dr. Van Beek, behandelscore en verlof', icon: 'fa-user-doctor', bg: 'bg-teal-100 text-teal-700', isPremium: true, cost: 20 },
             { key: 'packages', title: 'Smokkelkoffers & Postkamer', desc: 'Onderschepte tassen, XXL koffers en kluistokens', icon: 'fa-box-open', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
