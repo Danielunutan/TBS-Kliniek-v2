@@ -1468,38 +1468,180 @@ class Character extends Model
     }
 
     /**
-     * Synchronize all six core attributes so none exceed the current level ceiling.
-     * Converts any historical stat overflow into XP first so players retain their effort as level progression.
+     * Synchronize all six core attributes so none exceed the current level ceiling or drop below the base minimum.
+     * Converts any historical stat overflow into XP so players retain their training effort as level progression.
      */
     public function syncStatsWithLevelCap(): bool
     {
+        $dirty = false;
+
+        if ((int) ($this->level ?? 1) < 1) {
+            $this->level = 1;
+            $dirty = true;
+        }
+
+        if ((int) ($this->xp ?? 0) < 0) {
+            $this->xp = 0;
+            $dirty = true;
+        }
+
+        // Process any pending XP level-ups first so the character's true level cap is active.
+        if ((int) $this->xp >= $this->xpForNextLevel()) {
+            app(LevelService::class)->addXp($this, 0);
+            $dirty = true;
+        }
+
         $stats = ['strength', 'defense', 'stamina', 'intelligence', 'charisma', 'discipline'];
         $maxStat = $this->getMaxStatForLevel();
         $overflowPoints = 0;
 
         foreach ($stats as $stat) {
             $val = (int) ($this->{$stat} ?? 10);
-            if ($val > $maxStat) {
+            if ($val < 10) {
+                $this->{$stat} = 10;
+                $dirty = true;
+            } elseif ($val > $maxStat) {
                 $overflowPoints += ($val - $maxStat);
+                $this->{$stat} = $maxStat;
+                $dirty = true;
             }
         }
 
-        if ($overflowPoints <= 0) {
+        if (! $dirty && $overflowPoints <= 0) {
             return false;
-        }
-
-        app(LevelService::class)->addXp($this, $overflowPoints * 45);
-        $newMaxStat = $this->getMaxStatForLevel();
-
-        foreach ($stats as $stat) {
-            if ((int) ($this->{$stat} ?? 10) > $newMaxStat) {
-                $this->{$stat} = $newMaxStat;
-            }
         }
 
         $this->save();
 
+        if ($overflowPoints > 0) {
+            app(LevelService::class)->addXp($this, $overflowPoints * 45);
+            $newMaxStat = $this->getMaxStatForLevel();
+
+            foreach ($stats as $stat) {
+                if ((int) ($this->{$stat} ?? 10) > $newMaxStat) {
+                    $this->{$stat} = $newMaxStat;
+                }
+            }
+
+            $this->save();
+        }
+
         return true;
+    }
+
+    /**
+     * Normalize all character stats, caps, balances, timers, VIP status, and daily wheel counters.
+     */
+    public function normalizeCharacterState(): bool
+    {
+        $changed = $this->syncStatsWithLevelCap();
+        $dirty = false;
+
+        if ((int) ($this->total_xp ?? 0) < (int) ($this->xp ?? 0)) {
+            $this->total_xp = (int) $this->xp;
+            $dirty = true;
+        }
+
+        $hasActiveVip = $this->vip_expires_at !== null && $this->vip_expires_at->isFuture();
+        if ((bool) $this->is_vip !== $hasActiveVip) {
+            $this->is_vip = $hasActiveVip;
+            $dirty = true;
+        }
+
+        $expectedMaxEnergy = $hasActiveVip ? max(200, (int) ($this->max_energy ?? 200)) : 100;
+        if ((int) ($this->max_energy ?? 100) !== $expectedMaxEnergy) {
+            $this->max_energy = $expectedMaxEnergy;
+            $dirty = true;
+        }
+
+        $clampedEnergy = max(0, min((int) $this->max_energy, (int) ($this->energy ?? 0)));
+        if ((int) ($this->energy ?? 0) !== $clampedEnergy) {
+            $this->energy = $clampedEnergy;
+            $dirty = true;
+        }
+
+        if ((int) ($this->max_health ?? 100) < 100) {
+            $this->max_health = 100;
+            $dirty = true;
+        }
+
+        $clampedHealth = max(0, min((int) $this->max_health, (int) ($this->health ?? 100)));
+        if ((int) ($this->health ?? 100) !== $clampedHealth) {
+            $this->health = $clampedHealth;
+            $dirty = true;
+        }
+
+        $nonNegativeFields = [
+            'cash',
+            'bank',
+            'respect',
+            'stars',
+            'vip_points',
+            'bullets',
+            'vault_tokens',
+            'masks',
+            'unopened_bags',
+            'xxl_cases',
+            'pumpkin_seeds',
+        ];
+
+        foreach ($nonNegativeFields as $field) {
+            if (array_key_exists($field, $this->attributes) && (int) ($this->{$field} ?? 0) < 0) {
+                $this->{$field} = 0;
+                $dirty = true;
+            }
+        }
+
+        $perks = is_array($this->perks) ? $this->perks : [];
+        if (isset($perks['cold_blooded_pct'])) {
+            $clampedCold = max(0, min(100, (int) $perks['cold_blooded_pct']));
+            if ((int) $perks['cold_blooded_pct'] !== $clampedCold) {
+                $perks['cold_blooded_pct'] = $clampedCold;
+                $this->perks = $perks;
+                $dirty = true;
+            }
+        }
+
+        $timerFields = [
+            'protection_until',
+            'cash_protection_until',
+            'vest_until',
+            'coma_until',
+            'leave_until',
+            'sedated_until',
+        ];
+
+        foreach ($timerFields as $timerField) {
+            if ($this->{$timerField} !== null && ! $this->{$timerField}->isFuture()) {
+                $this->{$timerField} = null;
+                $dirty = true;
+            }
+        }
+
+        $activePrison = $this->prison_until !== null && $this->prison_until->isFuture();
+        if (! $activePrison && ($this->is_in_prison || $this->prison_until !== null || $this->prison_reason !== null || (int) ($this->ad_prison_progress ?? 0) > 0 || $this->prison_escape_attempted)) {
+            $this->is_in_prison = false;
+            $this->prison_until = null;
+            $this->prison_reason = null;
+            $this->ad_prison_progress = 0;
+            $this->prison_escape_attempted = false;
+            $dirty = true;
+        }
+
+        $maxDailySpins = $hasActiveVip ? 2 : 1;
+        $spunToday = $this->last_daily_spin_at !== null && $this->last_daily_spin_at->isToday();
+        $expectedSpins = $spunToday ? max(0, min($maxDailySpins, (int) ($this->daily_spins_today ?? 0))) : 0;
+        if ((int) ($this->daily_spins_today ?? 0) !== $expectedSpins) {
+            $this->daily_spins_today = $expectedSpins;
+            $dirty = true;
+        }
+
+        if ($dirty) {
+            $this->save();
+            $changed = true;
+        }
+
+        return $changed;
     }
 
     /**

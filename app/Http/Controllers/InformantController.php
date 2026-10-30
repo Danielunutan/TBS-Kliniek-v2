@@ -109,7 +109,10 @@ class InformantController extends Controller
             $reward = rand($info['reward_min'], $info['reward_max']);
             $this->economy->addCash($character, $reward);
             $this->level->addXp($character, $info['xp']);
-            $character->intelligence += 1;
+            $maxStat = $character->getMaxStatForLevel();
+            if ((int) ($character->intelligence ?? 10) < $maxStat) {
+                $character->intelligence = min($maxStat, (int) ($character->intelligence ?? 10) + 1);
+            }
             $character->respect += 1;
             $character->save();
 

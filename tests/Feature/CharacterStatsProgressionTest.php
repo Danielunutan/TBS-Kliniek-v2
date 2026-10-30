@@ -90,4 +90,84 @@ class CharacterStatsProgressionTest extends TestCase
         // Max stat for level 10: 100 + 10 * 50 = 600
         $this->assertEquals(600, $character->getMaxStatForLevel());
     }
+
+    public function test_normalize_character_state_and_migration_fixes_exceeded_stats_timers_and_equipment(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'HerstelTest',
+            'level' => 1,
+            'xp' => 340, // 10 XP away from level 2 (350 XP required)
+            'total_xp' => 100,
+            'strength' => 152, // 2 points above level 1 cap (150) -> 90 XP -> levels up to level 2!
+            'defense' => 5,    // Below minimum of 10 -> normalized to 10
+            'stamina' => 150,
+            'intelligence' => 150,
+            'charisma' => 150,
+            'discipline' => 155, // 5 points above level 1 cap (150) -> 225 XP
+            'health' => 180,
+            'max_health' => 100,
+            'energy' => 250,
+            'max_energy' => 200,
+            'is_vip' => true,
+            'vip_expires_at' => now()->subDay(), // Expired VIP!
+            'protection_until' => now()->subHour(), // Expired protection!
+            'cash_protection_until' => now()->subMinutes(10), // Expired cash protection!
+            'vest_until' => now()->subMinutes(5), // Expired vest!
+            'is_in_prison' => true,
+            'prison_until' => now()->subMinute(), // Expired prison!
+            'daily_spins_today' => 5,
+            'last_daily_spin_at' => now()->subDay(),
+            'perks' => ['cold_blooded_pct' => 145],
+            'cash' => 1000,
+            'bank' => 500,
+        ]);
+
+        $boks = Item::where('slug', 'boksbeugel')->first();
+        $this->assertNotNull($boks);
+
+        // Give duplicate equipment (quantity 3 instead of 1)
+        CharacterItem::create([
+            'character_id' => $character->id,
+            'item_id' => $boks->id,
+            'quantity' => 3,
+        ]);
+
+        // Run the normalization migration
+        $migration = require database_path('migrations/2026_10_30_224500_normalize_all_exceeded_stats_items_and_timers.php');
+        $migration->up();
+
+        $character->refresh();
+
+        // 7 overflow points * 45 XP = 315 XP -> 340 + 315 = 655 XP -> Level 2 (350 XP subtracted -> 305 XP left)
+        $this->assertEquals(2, $character->level);
+        $this->assertEquals(305, $character->xp);
+        $this->assertGreaterThanOrEqual($character->xp, $character->total_xp);
+
+        // Exceeded stats were clamped to 150 (not double-counted as both stat + XP), and defense raised to minimum 10
+        $this->assertEquals(150, $character->strength);
+        $this->assertEquals(10, $character->defense);
+        $this->assertEquals(150, $character->discipline);
+
+        // Expired VIP & timers cleaned up, max_energy restored to 100, health & energy clamped
+        $this->assertFalse($character->is_vip);
+        $this->assertEquals(100, $character->max_energy);
+        $this->assertEquals(100, $character->energy);
+        $this->assertEquals(100, $character->health);
+        $this->assertNull($character->protection_until);
+        $this->assertNull($character->cash_protection_until);
+        $this->assertNull($character->vest_until);
+        $this->assertFalse($character->is_in_prison);
+        $this->assertNull($character->prison_until);
+        $this->assertEquals(0, $character->daily_spins_today);
+        $this->assertEquals(100, $character->perks['cold_blooded_pct']);
+
+        // Duplicate equipment capped at 1 and 2 extra copies refunded to bank at depot sell price
+        $inv = CharacterItem::where('character_id', $character->id)->where('item_id', $boks->id)->first();
+        $this->assertNotNull($inv);
+        $this->assertEquals(1, $inv->quantity);
+        $expectedRefund = 2 * $boks->fresh()->getDepotSellPrice();
+        $this->assertEquals(500 + $expectedRefund, $character->bank);
+    }
 }
