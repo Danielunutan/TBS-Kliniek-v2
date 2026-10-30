@@ -291,12 +291,15 @@ class ArmWrestleController extends Controller
             // Set cooldown immediately upon match resolution (20 seconds)
             $this->cooldownService->setCooldown($lockedCharacter, 'arm_wrestling', 20);
 
-            $durationMs = max(200, (int) ($validated['duration_ms'] ?? ((int) ($validated['duration_seconds'] ?? 1) * 1000)));
+            $rawDurationMs = array_key_exists('duration_ms', $validated) && $validated['duration_ms'] !== null
+                ? (int) $validated['duration_ms']
+                : ((int) ($validated['duration_seconds'] ?? 1) * 1000);
+            $durationMs = max(200, $rawDurationMs);
             $clicks = max(0, (int) $validated['clicks']);
 
-            // Honor client win whenever the player actively pushed or won on time dominance
+            // Honor client win whenever the player actively pushed for a valid duel duration
             $clientWon = (bool) $validated['won'];
-            $isWon = $clientWon && ($clicks >= 1 || $durationMs >= 500);
+            $isWon = $clientWon && $rawDurationMs >= 500 && $clicks >= 3;
 
             /** @var CharacterArmWrestleStat $stat */
             $stat = CharacterArmWrestleStat::firstOrCreate(['character_id' => $lockedCharacter->id]);

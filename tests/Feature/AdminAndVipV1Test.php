@@ -24,7 +24,7 @@ class AdminAndVipV1Test extends TestCase
 
         $response = $this->get(route('vip.index'));
         $response->assertStatus(200);
-        $response->assertSee('VIP Punten Shop');
+        $response->assertSee('VIP Punten Inwisselen');
         $response->assertSee('discord.gg/tbs');
         $response->assertSee('100% Gratis');
         $response->assertSee('5 VIP Punten');

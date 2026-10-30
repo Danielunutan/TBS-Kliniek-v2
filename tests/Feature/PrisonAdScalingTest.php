@@ -15,6 +15,7 @@ class PrisonAdScalingTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+        config(['services.robinads.enabled' => true]);
     }
 
     public function test_prison_ad_scaling_and_progressive_release(): void

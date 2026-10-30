@@ -47,10 +47,7 @@ class MessageBulkActionTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get(route('messages.index'));
-        $response->assertStatus(200);
-        $response->assertSee('Officiële Waarschuwing');
-        $response->assertSee('Alles Gelezen');
-        $response->assertSee('Alles Verwijderen');
+        $response->assertRedirect(route('chat.index', ['tab' => 'direct']));
 
         // Message should still be unread until explicitly marked!
         $this->assertDatabaseHas('game_messages', [

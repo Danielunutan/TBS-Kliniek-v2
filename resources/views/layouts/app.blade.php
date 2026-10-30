@@ -56,8 +56,8 @@
     <!-- STRUCTURED DATA (SCHEMA.ORG JSON-LD) -->
     <script type="application/ld+json">
     {!! json_encode([
-        '@context' => 'https://schema.org',
-        '@graph' => [
+        chr(64).'context' => 'https://schema.org',
+        chr(64).'graph' => [
             [
                 '@type' => 'WebSite',
                 '@id' => url('/') . '#website',

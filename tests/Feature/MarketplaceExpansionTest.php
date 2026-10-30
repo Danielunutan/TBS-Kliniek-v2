@@ -253,4 +253,88 @@ class MarketplaceExpansionTest extends TestCase
         $this->assertNotNull($restoredItem);
         $this->assertEquals(1, $restoredItem->quantity);
     }
+
+    public function test_player_cannot_list_same_vehicle_twice_or_stack_unique_equipment_via_marketplace(): void
+    {
+        [$sellerUser, $seller] = $this->createInmate();
+        [$buyerUser, $buyer] = $this->createInmate(['cash' => 50000]);
+
+        $vehicle = Vehicle::create([
+            'name' => 'Audi RS6 Avant',
+            'slug' => 'audi-rs6-avant',
+            'category' => 'car',
+            'speed_pct' => 160,
+            'max_condition' => 100,
+            'price_cash' => 45000,
+        ]);
+
+        $charVehicle = CharacterVehicle::create([
+            'character_id' => $seller->id,
+            'vehicle_id' => $vehicle->id,
+            'current_condition' => 95,
+            'is_active' => true,
+        ]);
+
+        // First listing succeeds
+        $this->actingAs($sellerUser)->post(route('marketplace.store'), [
+            'item_type' => 'vehicle',
+            'character_vehicle_id' => $charVehicle->id,
+            'amount' => 1,
+            'price' => 20000,
+            'currency' => 'cash',
+        ])->assertSessionHas('success');
+
+        // Second listing for the same vehicle must fail because it is already for sale
+        $this->actingAs($sellerUser)->post(route('marketplace.store'), [
+            'item_type' => 'vehicle',
+            'character_vehicle_id' => $charVehicle->id,
+            'amount' => 1,
+            'price' => 20000,
+            'currency' => 'cash',
+        ])->assertSessionHas('error');
+
+        $this->assertEquals(1, MarketplaceListing::where('seller_id', $seller->id)->where('item_type', 'vehicle')->count());
+
+        // Unique equipment cannot be bought if buyer already owns 1 copy
+        $equipItem = Item::create([
+            'name' => 'Boksbeugel Staal',
+            'slug' => 'boksbeugel-staal',
+            'category' => 'equipment',
+            'description' => 'Unieke uitrusting',
+            'price_kc' => 5000,
+            'rarity' => 'rare',
+        ]);
+
+        $sellerEquip = CharacterItem::create([
+            'character_id' => $seller->id,
+            'item_id' => $equipItem->id,
+            'quantity' => 1,
+            'is_equipped' => false,
+        ]);
+
+        CharacterItem::create([
+            'character_id' => $buyer->id,
+            'item_id' => $equipItem->id,
+            'quantity' => 1,
+            'is_equipped' => true,
+        ]);
+
+        $this->actingAs($sellerUser)->post(route('marketplace.store'), [
+            'item_type' => 'depot_item',
+            'character_item_id' => $sellerEquip->id,
+            'amount' => 1,
+            'price' => 4000,
+            'currency' => 'cash',
+        ])->assertSessionHas('success');
+
+        $equipListing = MarketplaceListing::where('seller_id', $seller->id)->where('item_type', 'depot_item')->first();
+        $this->assertNotNull($equipListing);
+
+        $this->actingAs($buyerUser)
+            ->post(route('marketplace.buy', $equipListing->id))
+            ->assertSessionHas('error');
+
+        $this->assertFalse((bool) $equipListing->fresh()->is_sold);
+        $this->assertEquals(1, CharacterItem::where('character_id', $buyer->id)->where('item_id', $equipItem->id)->value('quantity'));
+    }
 }

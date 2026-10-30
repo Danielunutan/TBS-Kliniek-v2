@@ -14,14 +14,15 @@ class CpaleadPostbackTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+        config(['services.cpalead.password' => 'test_cpalead_secret']);
     }
 
     public function test_postback_rejects_missing_lead_id_or_subid(): void
     {
-        $response = $this->get('/api/cpalead/postback');
+        $response = $this->get('/api/cpalead/postback?password=test_cpalead_secret');
         $response->assertStatus(400);
 
-        $response2 = $this->get('/api/cpalead/postback?lead_id=123');
+        $response2 = $this->get('/api/cpalead/postback?password=test_cpalead_secret&lead_id=123');
         $response2->assertStatus(400);
     }
 
@@ -32,6 +33,7 @@ class CpaleadPostbackTest extends TestCase
         $initialTotalAds = $character->ads_watched_total ?? 0;
 
         $response = $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
             'subid' => $character->id,
             'subid2' => 'cash',
             'lead_id' => 'cpalead_lead_test_001',
@@ -62,6 +64,7 @@ class CpaleadPostbackTest extends TestCase
 
         // First call
         $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
             'subid' => $character->id,
             'lead_id' => 'cpalead_lead_duplicate_test',
             'payout' => '1.00',
@@ -73,6 +76,7 @@ class CpaleadPostbackTest extends TestCase
 
         // Second call with same lead_id
         $res2 = $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
             'subid' => $character->id,
             'lead_id' => 'cpalead_lead_duplicate_test',
             'payout' => '1.00',

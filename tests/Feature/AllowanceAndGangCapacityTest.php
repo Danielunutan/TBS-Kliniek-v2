@@ -130,7 +130,7 @@ class AllowanceAndGangCapacityTest extends TestCase
         // Visiting bank also shows uitkering overview
         $bankResponse = $this->get(route('bank.index'));
         $bankResponse->assertStatus(200);
-        $bankResponse->assertSee('TBS Patiënten Uitkering');
+        $bankResponse->assertSee('Kwartierloon');
         $bankResponse->assertSee('Actief');
     }
 

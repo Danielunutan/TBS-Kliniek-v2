@@ -22,6 +22,7 @@ class SponsorRewardsTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+        config(['services.robinads.enabled' => true]);
     }
 
     protected function createTestUser(): array
@@ -151,13 +152,13 @@ class SponsorRewardsTest extends TestCase
         [$user, $character] = $this->createTestUser();
         $character->update([
             'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(30),
+            'prison_until' => now()->addSeconds(60),
             'prison_reason' => 'Vast in isolatie',
         ]);
 
         $this->assertTrue($character->isImprisoned());
 
-        // First ad releases character
+        // First ad releases character (<= 90s requires 1 ad)
         $res = $this->simulateAdWatch($user, $character, 'prison');
         $res->assertStatus(200);
         $character->refresh();
@@ -166,7 +167,7 @@ class SponsorRewardsTest extends TestCase
         // Subsequent ad on the same day also succeeds (unlimited per player request)
         $character->update([
             'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(30),
+            'prison_until' => now()->addSeconds(60),
         ]);
         $user->unsetRelation('character');
 
@@ -322,7 +323,7 @@ class SponsorRewardsTest extends TestCase
 
         // If ads are disabled globally, start returns 403; otherwise 200
         $startRes = $this->actingAs($user)->postJson(route('sponsor.start'), ['reward_type' => 'lottery_ticket']);
-        $expectedStatus = SponsorAdController::ADS_ENABLED ? 200 : 403;
+        $expectedStatus = SponsorAdController::areAdsEnabled() ? 200 : 403;
         $startRes->assertStatus($expectedStatus);
     }
 

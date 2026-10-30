@@ -13,6 +13,12 @@ class SponsorAdAndLegalTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['services.robinads.enabled' => true]);
+    }
+
     protected function createCharacter(User $user, array $attrs = []): Character
     {
         return Character::create(array_merge([
@@ -156,9 +162,9 @@ class SponsorAdAndLegalTest extends TestCase
         $response->assertStatus(200);
         $character->refresh();
 
-        // Player is directly freed from prison by watching ad
-        $this->assertFalse($character->is_in_prison);
-        $this->assertNull($character->prison_until);
+        // 30-minute sentence requires 5 ads; 1 ad reduces sentence by 3 minutes and records progress = 1
+        $this->assertTrue((bool) $character->is_in_prison);
+        $this->assertEquals(1, $character->ad_prison_progress);
     }
 
     public function test_claim_ad_frees_prisoner_if_under_15_minutes(): void
@@ -166,7 +172,7 @@ class SponsorAdAndLegalTest extends TestCase
         $user = User::factory()->create();
         $character = $this->createCharacter($user, [
             'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(10),
+            'prison_until' => now()->addSeconds(60),
             'prison_reason' => 'Korte isoleercel straf',
         ]);
 

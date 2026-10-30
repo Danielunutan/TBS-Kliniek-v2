@@ -470,6 +470,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         matchResult: null,
         npcsData: @json($npcs),
         playerStrength: {{ $character->getEffectiveStrength() }},
+        playerSpeed: {{ (int) ($character->speed ?? 10) }},
         playerStamina: {{ $character->getEffectiveStamina() }},
         gameLoopInterval: null,
         sweetSpotInterval: null,

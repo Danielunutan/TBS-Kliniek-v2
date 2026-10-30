@@ -187,19 +187,20 @@ class PerksAndStarVehiclesTest extends TestCase
         $response = $this->actingAs($user)
             ->post(route('cooldown.skip'), ['type' => 'hustle']);
 
-        $response->assertSessionHas('info');
+        $response->assertSessionHas('error');
         $character->refresh();
         $this->assertEquals(10, $character->stars);
     }
 
     public function test_prison_release_via_sponsor_ad_is_unlimited(): void
     {
+        config(['services.robinads.enabled' => true]);
         [$user, $character] = $this->createInmate();
 
-        // 1st time in prison
+        // 1st time in prison (<= 90s requires 1 ad)
         $character->update([
             'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(10),
+            'prison_until' => now()->addSeconds(60),
             'prison_reason' => 'First violation',
         ]);
 
@@ -223,7 +224,7 @@ class PerksAndStarVehiclesTest extends TestCase
         // 2nd time in prison on the same day!
         $character->update([
             'is_in_prison' => true,
-            'prison_until' => now()->addMinutes(15),
+            'prison_until' => now()->addSeconds(60),
             'prison_reason' => 'Second violation',
         ]);
         $user->refresh();

@@ -26,6 +26,11 @@ class SponsorAdController extends Controller
 {
     public const ADS_ENABLED = false;
 
+    public static function areAdsEnabled(): bool
+    {
+        return (bool) config('services.robinads.enabled', self::ADS_ENABLED);
+    }
+
     public const DEFAULT_SMARTLINK = null;
 
     public const DAILY_LIMIT = 500;
@@ -86,7 +91,7 @@ class SponsorAdController extends Controller
      */
     public function index(): View|RedirectResponse
     {
-        if (! self::ADS_ENABLED) {
+        if (! self::areAdsEnabled()) {
             return redirect()->route('shop.index')->with('info', 'De sponsorkamer en advertenties zijn vervangen door de nieuwe TBS Donaties & VIP Winkel!');
         }
 
@@ -122,7 +127,7 @@ class SponsorAdController extends Controller
      */
     public function start(Request $request): JsonResponse
     {
-        if (! self::ADS_ENABLED) {
+        if (! self::areAdsEnabled()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Advertenties zijn momenteel tijdelijk uitgeschakeld.',
@@ -243,7 +248,7 @@ class SponsorAdController extends Controller
      */
     public function redirect(Request $request): RedirectResponse
     {
-        if (! self::ADS_ENABLED) {
+        if (! self::areAdsEnabled()) {
             return redirect()->route('dashboard')->with('info', 'Sponsor-advertenties zijn momenteel tijdelijk uitgeschakeld.');
         }
 
@@ -263,7 +268,7 @@ class SponsorAdController extends Controller
 
         return response()->json([
             'success' => true,
-            'ads_enabled' => self::ADS_ENABLED,
+            'ads_enabled' => self::areAdsEnabled(),
             'ads_today' => $character->getEffectiveAdsWatchedToday(),
             'ads_left_today' => $character->getRemainingAdsToday(),
             'ads_total' => $character->ads_watched_total,

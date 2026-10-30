@@ -100,7 +100,7 @@ class RespectAndEconomyRebalanceTest extends TestCase
         $response = $this->get(route('hustle.index'));
         $response->assertStatus(200);
         $response->assertSee('Bewaker afleiden');
-        $response->assertSee('€350');
+        $response->assertSee('€400');
     }
 
     public function test_smokkelkiosk_costs_50k_and_upgrades_gang_wage(): void

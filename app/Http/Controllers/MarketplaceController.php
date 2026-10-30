@@ -113,185 +113,202 @@ class MarketplaceController extends Controller
         $amount = (int) $validated['amount'];
         $price = (int) $validated['price'];
         $currency = $validated['currency'];
-        $relatedId = null;
-        $metadata = null;
+        $title = '';
 
-        // 1. DEPOT ITEMS
-        if ($itemType === 'depot_item') {
-            $charItem = CharacterItem::where('id', $request->input('character_item_id'))
-                ->where('character_id', $character->id)
-                ->with('item')
-                ->first();
+        try {
+            DB::transaction(function () use ($request, $character, $itemType, &$amount, $price, $currency, &$title): void {
+                /** @var Character $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+                $relatedId = null;
+                $metadata = null;
 
-            if (! $charItem || ! $charItem->item) {
-                return back()->with('error', 'Selecteer een geldig item uit je depot.');
-            }
+                // 1. DEPOT ITEMS
+                if ($itemType === 'depot_item') {
+                    $charItem = CharacterItem::where('id', $request->input('character_item_id'))
+                        ->where('character_id', $lockedCharacter->id)
+                        ->with('item')
+                        ->lockForUpdate()
+                        ->first();
 
-            if ($charItem->quantity < $amount) {
-                return back()->with('error', "Je hebt slechts {$charItem->quantity}x {$charItem->item->name} in je depot.");
-            }
+                    if (! $charItem || ! $charItem->item) {
+                        throw new \RuntimeException('Selecteer een geldig item uit je depot.');
+                    }
 
-            $charItem->quantity -= $amount;
-            if ($charItem->quantity <= 0) {
-                $charItem->delete();
-            } else {
-                $charItem->save();
-            }
+                    if ($charItem->quantity < $amount) {
+                        throw new \RuntimeException("Je hebt slechts {$charItem->quantity}x {$charItem->item->name} in je depot.");
+                    }
 
-            $title = "{$amount}x {$charItem->item->name}";
-            $relatedId = $charItem->item_id;
-            $metadata = [
-                'item_id' => $charItem->item_id,
-                'item_name' => $charItem->item->name,
-                'rarity' => $charItem->item->rarity ?? 'common',
-                'category' => $charItem->item->category ?? 'item',
-                'image' => $charItem->item->image_path,
-            ];
+                    $charItem->quantity -= $amount;
+                    if ($charItem->quantity <= 0) {
+                        $charItem->delete();
+                    } else {
+                        $charItem->save();
+                    }
+
+                    $title = "{$amount}x {$charItem->item->name}";
+                    $relatedId = $charItem->item_id;
+                    $metadata = [
+                        'item_id' => $charItem->item_id,
+                        'item_name' => $charItem->item->name,
+                        'rarity' => $charItem->item->rarity ?? 'common',
+                        'category' => $charItem->item->category ?? 'item',
+                        'image' => $charItem->item->image_path,
+                    ];
+                }
+
+                // 2. GARAGE VEHICLES
+                elseif ($itemType === 'vehicle') {
+                    $charVehicle = CharacterVehicle::where('id', $request->input('character_vehicle_id'))
+                        ->where('character_id', $lockedCharacter->id)
+                        ->where('is_for_sale', false)
+                        ->with('vehicle')
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $charVehicle || ! $charVehicle->vehicle) {
+                        throw new \RuntimeException('Selecteer een geldig voertuig uit je garage dat nog niet te koop staat.');
+                    }
+
+                    // Put vehicle into escrow (is_for_sale true, deactivated)
+                    $charVehicle->is_for_sale = true;
+                    $charVehicle->is_active = false;
+                    $charVehicle->save();
+
+                    $title = "{$charVehicle->vehicle->name} (Conditie: {$charVehicle->current_condition}%)";
+                    $amount = 1;
+                    $relatedId = $charVehicle->id;
+                    $metadata = [
+                        'vehicle_id' => $charVehicle->vehicle_id,
+                        'vehicle_name' => $charVehicle->vehicle->name,
+                        'condition' => $charVehicle->current_condition,
+                        'speed' => $charVehicle->effective_speed,
+                        'image' => $charVehicle->vehicle->image_path,
+                    ];
+                }
+
+                // 3. BENDE PANDEN
+                elseif ($itemType === 'property') {
+                    if (! $lockedCharacter->gang || ! $lockedCharacter->gang->isOfficer($lockedCharacter)) {
+                        throw new \RuntimeException('Alleen de bendeleider of beheerders kunnen panden verkopen op de marktplaats!');
+                    }
+
+                    $gangProperty = GangProperty::where('id', $request->input('gang_property_id'))
+                        ->where('gang_id', $lockedCharacter->gang_id)
+                        ->where('is_for_sale', false)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $gangProperty) {
+                        throw new \RuntimeException('Selecteer een geldig bende pand in bezit van jouw bende dat nog niet te koop staat.');
+                    }
+
+                    // Put property into escrow (is_for_sale true, idle)
+                    $oldGangId = $lockedCharacter->gang_id;
+                    $gangName = $lockedCharacter->gang->name;
+                    $gangProperty->is_for_sale = true;
+                    $gangProperty->production_status = 'idle';
+                    $gangProperty->save();
+
+                    $title = "Bende Pand: {$gangProperty->name}";
+                    $amount = 1;
+                    $relatedId = $gangProperty->id;
+                    $metadata = [
+                        'property_id' => $gangProperty->id,
+                        'property_key' => $gangProperty->property_key,
+                        'property_name' => $gangProperty->name,
+                        'seller_gang_id' => $oldGangId,
+                        'seller_gang_name' => $gangName,
+                        'category' => $gangProperty->type,
+                    ];
+                }
+
+                // 4. STARS
+                elseif ($itemType === 'stars') {
+                    if (($lockedCharacter->stars ?? 0) < $amount) {
+                        throw new \RuntimeException("Je hebt niet genoeg Sterren ⭐ (je hebt er {$lockedCharacter->stars}).");
+                    }
+                    $lockedCharacter->stars -= $amount;
+                    $lockedCharacter->save();
+                    $title = "{$amount}x Exclusieve Sterren ⭐";
+                }
+
+                // 5. PACKAGES
+                elseif ($itemType === 'packages') {
+                    if (($lockedCharacter->unopened_bags ?? 0) < $amount) {
+                        throw new \RuntimeException("Je hebt niet genoeg ongeopende smokkeltassen/koffers (je hebt er {$lockedCharacter->unopened_bags}).");
+                    }
+                    $lockedCharacter->unopened_bags -= $amount;
+                    $lockedCharacter->save();
+                    $title = "{$amount}x Smokkelkoffer 🧳";
+                }
+
+                // 6. MASKS
+                elseif ($itemType === 'masks') {
+                    if (($lockedCharacter->masks ?? 0) < $amount) {
+                        throw new \RuntimeException("Je hebt niet genoeg Maskers 🎭 (je hebt er {$lockedCharacter->masks}).");
+                    }
+                    $lockedCharacter->masks -= $amount;
+                    $lockedCharacter->save();
+                    $title = "{$amount}x Masker 🎭";
+                }
+
+                // 7. PUMPKIN SEEDS
+                elseif ($itemType === 'pumpkin_seeds') {
+                    if (($lockedCharacter->pumpkin_seeds ?? 0) < $amount) {
+                        throw new \RuntimeException("Je hebt niet genoeg Pompoenpitten 🎃 (je hebt er {$lockedCharacter->pumpkin_seeds}).");
+                    }
+                    $lockedCharacter->pumpkin_seeds -= $amount;
+                    $lockedCharacter->save();
+                    $title = "{$amount}x Halloween Pompoenpitten 🎃";
+                }
+
+                // 8. CASH
+                elseif ($itemType === 'cash') {
+                    if ($lockedCharacter->cash < $amount) {
+                        throw new \RuntimeException('Je hebt niet genoeg contant geld om aan te bieden.');
+                    }
+                    $lockedCharacter->cash -= $amount;
+                    $lockedCharacter->save();
+                    $title = '€'.number_format($amount, 0, ',', '.').' Contant Geld';
+                }
+
+                // 9. VAULT CODES
+                elseif ($itemType === 'vault_codes') {
+                    $vaultCode = VaultCode::where('id', $request->input('vault_code_id'))
+                        ->where('character_id', $lockedCharacter->id)
+                        ->where('is_redeemed', false)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $vaultCode) {
+                        throw new \RuntimeException('Selecteer een geldige kluiscode uit jouw bezit.');
+                    }
+
+                    // Transfer code ownership to escrow
+                    $vaultCode->character_id = null;
+                    $vaultCode->save();
+                    $title = "Geheime Kluiscode Voucher ({$vaultCode->code})";
+                    $amount = 1;
+                    $relatedId = $vaultCode->id;
+                } else {
+                    throw new \RuntimeException('Ongeldig item type.');
+                }
+
+                MarketplaceListing::create([
+                    'seller_id' => $lockedCharacter->id,
+                    'item_type' => $itemType,
+                    'related_id' => $relatedId,
+                    'title' => $title,
+                    'amount' => $amount,
+                    'price' => $price,
+                    'currency' => $currency,
+                    'metadata' => $metadata,
+                    'is_sold' => false,
+                ]);
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // 2. GARAGE VEHICLES
-        elseif ($itemType === 'vehicle') {
-            $charVehicle = CharacterVehicle::where('id', $request->input('character_vehicle_id'))
-                ->where('character_id', $character->id)
-                ->with('vehicle')
-                ->first();
-
-            if (! $charVehicle || ! $charVehicle->vehicle) {
-                return back()->with('error', 'Selecteer een geldig voertuig uit je garage.');
-            }
-
-            // Put vehicle into escrow (is_for_sale true, deactivated)
-            $charVehicle->is_for_sale = true;
-            $charVehicle->is_active = false;
-            $charVehicle->save();
-
-            $title = "{$charVehicle->vehicle->name} (Conditie: {$charVehicle->current_condition}%)";
-            $amount = 1;
-            $relatedId = $charVehicle->id;
-            $metadata = [
-                'vehicle_id' => $charVehicle->vehicle_id,
-                'vehicle_name' => $charVehicle->vehicle->name,
-                'condition' => $charVehicle->current_condition,
-                'speed' => $charVehicle->effective_speed,
-                'image' => $charVehicle->vehicle->image_path,
-            ];
-        }
-
-        // 3. BANDE PANDEN
-        elseif ($itemType === 'property') {
-            if (! $character->gang || ! $character->gang->isOfficer($character)) {
-                return back()->with('error', 'Alleen de bendeleider of beheerders kunnen panden verkopen op de marktplaats!');
-            }
-
-            $gangProperty = GangProperty::where('id', $request->input('gang_property_id'))
-                ->where('gang_id', $character->gang_id)
-                ->first();
-
-            if (! $gangProperty) {
-                return back()->with('error', 'Selecteer een geldig bende pand in bezit van jouw bende.');
-            }
-
-            // Put property into escrow (is_for_sale true, idle)
-            $oldGangId = $character->gang_id;
-            $gangName = $character->gang->name;
-            $gangProperty->is_for_sale = true;
-            $gangProperty->production_status = 'idle';
-            $gangProperty->save();
-
-            $title = "Bende Pand: {$gangProperty->name}";
-            $amount = 1;
-            $relatedId = $gangProperty->id;
-            $metadata = [
-                'property_id' => $gangProperty->id,
-                'property_key' => $gangProperty->property_key,
-                'property_name' => $gangProperty->name,
-                'seller_gang_id' => $oldGangId,
-                'seller_gang_name' => $gangName,
-                'category' => $gangProperty->type,
-            ];
-        }
-
-        // 4. STARS
-        elseif ($itemType === 'stars') {
-            if (($character->stars ?? 0) < $amount) {
-                return back()->with('error', "Je hebt niet genoeg Sterren ⭐ (je hebt er {$character->stars}).");
-            }
-            $character->stars -= $amount;
-            $character->save();
-            $title = "{$amount}x Exclusieve Sterren ⭐";
-        }
-
-        // 5. PACKAGES
-        elseif ($itemType === 'packages') {
-            if (($character->unopened_bags ?? 0) < $amount) {
-                return back()->with('error', "Je hebt niet genoeg ongeopende smokkeltassen/koffers (je hebt er {$character->unopened_bags}).");
-            }
-            $character->unopened_bags -= $amount;
-            $character->save();
-            $title = "{$amount}x Smokkelkoffer 🧳";
-        }
-
-        // 6. MASKS
-        elseif ($itemType === 'masks') {
-            if (($character->masks ?? 0) < $amount) {
-                return back()->with('error', "Je hebt niet genoeg Maskers 🎭 (je hebt er {$character->masks}).");
-            }
-            $character->masks -= $amount;
-            $character->save();
-            $title = "{$amount}x Masker 🎭";
-        }
-
-        // 7. PUMPKIN SEEDS
-        elseif ($itemType === 'pumpkin_seeds') {
-            if (($character->pumpkin_seeds ?? 0) < $amount) {
-                return back()->with('error', "Je hebt niet genoeg Pompoenpitten 🎃 (je hebt er {$character->pumpkin_seeds}).");
-            }
-            $character->pumpkin_seeds -= $amount;
-            $character->save();
-            $title = "{$amount}x Halloween Pompoenpitten 🎃";
-        }
-
-        // 8. CASH
-        elseif ($itemType === 'cash') {
-            if ($character->cash < $amount) {
-                return back()->with('error', 'Je hebt niet genoeg contant geld om aan te bieden.');
-            }
-            $character->cash -= $amount;
-            $character->save();
-            $title = '€'.number_format($amount, 0, ',', '.').' Contant Geld';
-        }
-
-        // 9. VAULT CODES
-        elseif ($itemType === 'vault_codes') {
-            $vaultCode = VaultCode::where('id', $request->input('vault_code_id'))
-                ->where('character_id', $character->id)
-                ->where('is_redeemed', false)
-                ->first();
-
-            if (! $vaultCode) {
-                return back()->with('error', 'Selecteer een geldige kluiscode uit jouw bezit.');
-            }
-
-            // Transfer code ownership to escrow
-            $vaultCode->character_id = null;
-            $vaultCode->save();
-            $title = "Geheime Kluiscode Voucher ({$vaultCode->code})";
-            $amount = 1;
-        } else {
-            return back()->with('error', 'Ongeldig item type.');
-        }
-
-        MarketplaceListing::create([
-            'seller_id' => $character->id,
-            'item_type' => $itemType,
-            'related_id' => $relatedId,
-            'title' => $title,
-            'amount' => $amount,
-            'price' => $price,
-            'currency' => $currency,
-            'metadata' => $metadata,
-            'is_sold' => false,
-        ]);
 
         return back()->with('success', "Jouw aanbod '{$title}' staat nu online op de Marktplaats!");
     }
@@ -343,6 +360,21 @@ class MarketplaceController extends Controller
                 /** @var Character $lockedBuyer */
                 $lockedBuyer = Character::where('id', $buyer->id)->lockForUpdate()->first();
 
+                if ($lockedListing->item_type === 'depot_item') {
+                    $listedItem = Item::find($lockedListing->related_id);
+                    if ($listedItem && $listedItem->category === 'equipment') {
+                        $alreadyOwnsEquipment = CharacterItem::where('character_id', $lockedBuyer->id)
+                            ->where('item_id', $listedItem->id)
+                            ->where('quantity', '>=', 1)
+                            ->lockForUpdate()
+                            ->exists();
+
+                        if ($alreadyOwnsEquipment) {
+                            throw new \RuntimeException("Je bezit deze unieke uitrusting ({$listedItem->name}) al in je rugzak (maximaal 1 per soort)!");
+                        }
+                    }
+                }
+
                 // Payment check & deduction
                 if ($lockedListing->currency === 'cash') {
                     if ($lockedBuyer->cash < $lockedListing->price) {
@@ -383,6 +415,7 @@ class MarketplaceController extends Controller
 
                 // Deliver purchased item to buyer
                 if ($lockedListing->item_type === 'depot_item') {
+                    $listedItem = Item::find($lockedListing->related_id);
                     $charItem = CharacterItem::firstOrCreate([
                         'character_id' => $lockedBuyer->id,
                         'item_id' => $lockedListing->related_id,
@@ -390,10 +423,14 @@ class MarketplaceController extends Controller
                         'quantity' => 0,
                         'is_equipped' => false,
                     ]);
-                    $charItem->quantity += $lockedListing->amount;
+                    if ($listedItem && $listedItem->category === 'equipment') {
+                        $charItem->quantity = 1;
+                    } else {
+                        $charItem->quantity += $lockedListing->amount;
+                    }
                     $charItem->save();
                 } elseif ($lockedListing->item_type === 'vehicle') {
-                    $charVehicle = CharacterVehicle::where('id', $lockedListing->related_id)->first();
+                    $charVehicle = CharacterVehicle::where('id', $lockedListing->related_id)->lockForUpdate()->first();
                     if ($charVehicle) {
                         $charVehicle->character_id = $lockedBuyer->id;
                         $charVehicle->is_for_sale = false;
@@ -401,7 +438,7 @@ class MarketplaceController extends Controller
                         $charVehicle->save();
                     }
                 } elseif ($lockedListing->item_type === 'property') {
-                    $gangProperty = GangProperty::where('id', $lockedListing->related_id)->first();
+                    $gangProperty = GangProperty::where('id', $lockedListing->related_id)->lockForUpdate()->first();
                     if ($gangProperty && $lockedBuyer->gang_id) {
                         $gangProperty->gang_id = $lockedBuyer->gang_id;
                         $gangProperty->is_for_sale = false;
@@ -419,7 +456,19 @@ class MarketplaceController extends Controller
                 } elseif ($lockedListing->item_type === 'cash') {
                     $lockedBuyer->cash += $lockedListing->amount;
                 } elseif ($lockedListing->item_type === 'vault_codes') {
-                    $code = VaultCode::whereNull('character_id')->where('is_redeemed', false)->first();
+                    $code = null;
+                    if ($lockedListing->related_id) {
+                        $code = VaultCode::where('id', $lockedListing->related_id)
+                            ->where('is_redeemed', false)
+                            ->lockForUpdate()
+                            ->first();
+                    }
+                    if (! $code) {
+                        $code = VaultCode::whereNull('character_id')
+                            ->where('is_redeemed', false)
+                            ->lockForUpdate()
+                            ->first();
+                    }
                     if ($code) {
                         $code->character_id = $lockedBuyer->id;
                         $code->save();
@@ -479,53 +528,92 @@ class MarketplaceController extends Controller
             return back()->with('error', 'Dit artikel is reeds verkocht.');
         }
 
-        // Refund escrowed assets
-        if ($listing->item_type === 'depot_item') {
-            $charItem = CharacterItem::firstOrCreate([
-                'character_id' => $character->id,
-                'item_id' => $listing->related_id,
-            ], [
-                'quantity' => 0,
-                'is_equipped' => false,
-            ]);
-            $charItem->quantity += $listing->amount;
-            $charItem->save();
-        } elseif ($listing->item_type === 'vehicle') {
-            $charVehicle = CharacterVehicle::where('id', $listing->related_id)->first();
-            if ($charVehicle) {
-                $charVehicle->is_for_sale = false;
-                $charVehicle->save();
-            }
-        } elseif ($listing->item_type === 'property') {
-            $gangProperty = GangProperty::where('id', $listing->related_id)->first();
-            if ($gangProperty) {
-                $gangProperty->is_for_sale = false;
-                $gangProperty->save();
-            }
-        } elseif ($listing->item_type === 'stars') {
-            $character->stars = ($character->stars ?? 0) + $listing->amount;
-            $character->save();
-        } elseif ($listing->item_type === 'packages') {
-            $character->unopened_bags = ($character->unopened_bags ?? 0) + $listing->amount;
-            $character->save();
-        } elseif ($listing->item_type === 'masks') {
-            $character->masks = ($character->masks ?? 0) + $listing->amount;
-            $character->save();
-        } elseif ($listing->item_type === 'pumpkin_seeds') {
-            $character->pumpkin_seeds = ($character->pumpkin_seeds ?? 0) + $listing->amount;
-            $character->save();
-        } elseif ($listing->item_type === 'cash') {
-            $character->cash += $listing->amount;
-            $character->save();
-        } elseif ($listing->item_type === 'vault_codes') {
-            $code = VaultCode::whereNull('character_id')->where('is_redeemed', false)->first();
-            if ($code) {
-                $code->character_id = $character->id;
-                $code->save();
-            }
-        }
+        try {
+            DB::transaction(function () use ($listing, $character): void {
+                /** @var MarketplaceListing|null $lockedListing */
+                $lockedListing = MarketplaceListing::where('id', $listing->id)->lockForUpdate()->first();
+                if (! $lockedListing || $lockedListing->is_sold) {
+                    throw new \RuntimeException('Dit artikel is reeds verkocht of ingetrokken.');
+                }
 
-        $listing->delete();
+                /** @var Character $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+                // Refund escrowed assets
+                if ($lockedListing->item_type === 'depot_item') {
+                    $listedItem = Item::find($lockedListing->related_id);
+                    $charItem = CharacterItem::firstOrCreate([
+                        'character_id' => $lockedCharacter->id,
+                        'item_id' => $lockedListing->related_id,
+                    ], [
+                        'quantity' => 0,
+                        'is_equipped' => false,
+                    ]);
+
+                    if ($listedItem && $listedItem->category === 'equipment') {
+                        $totalQty = $charItem->quantity + $lockedListing->amount;
+                        if ($totalQty > 1) {
+                            $excessQty = $totalQty - 1;
+                            $lockedCharacter->bank += $excessQty * $listedItem->getDepotSellPrice();
+                            $lockedCharacter->save();
+                        }
+                        $charItem->quantity = 1;
+                    } else {
+                        $charItem->quantity += $lockedListing->amount;
+                    }
+                    $charItem->save();
+                } elseif ($lockedListing->item_type === 'vehicle') {
+                    $charVehicle = CharacterVehicle::where('id', $lockedListing->related_id)->lockForUpdate()->first();
+                    if ($charVehicle) {
+                        $charVehicle->is_for_sale = false;
+                        $charVehicle->save();
+                    }
+                } elseif ($lockedListing->item_type === 'property') {
+                    $gangProperty = GangProperty::where('id', $lockedListing->related_id)->lockForUpdate()->first();
+                    if ($gangProperty) {
+                        $gangProperty->is_for_sale = false;
+                        $gangProperty->save();
+                    }
+                } elseif ($lockedListing->item_type === 'stars') {
+                    $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $lockedListing->amount;
+                    $lockedCharacter->save();
+                } elseif ($lockedListing->item_type === 'packages') {
+                    $lockedCharacter->unopened_bags = ($lockedCharacter->unopened_bags ?? 0) + $lockedListing->amount;
+                    $lockedCharacter->save();
+                } elseif ($lockedListing->item_type === 'masks') {
+                    $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $lockedListing->amount;
+                    $lockedCharacter->save();
+                } elseif ($lockedListing->item_type === 'pumpkin_seeds') {
+                    $lockedCharacter->pumpkin_seeds = ($lockedCharacter->pumpkin_seeds ?? 0) + $lockedListing->amount;
+                    $lockedCharacter->save();
+                } elseif ($lockedListing->item_type === 'cash') {
+                    $lockedCharacter->cash += $lockedListing->amount;
+                    $lockedCharacter->save();
+                } elseif ($lockedListing->item_type === 'vault_codes') {
+                    $code = null;
+                    if ($lockedListing->related_id) {
+                        $code = VaultCode::where('id', $lockedListing->related_id)
+                            ->where('is_redeemed', false)
+                            ->lockForUpdate()
+                            ->first();
+                    }
+                    if (! $code) {
+                        $code = VaultCode::whereNull('character_id')
+                            ->where('is_redeemed', false)
+                            ->lockForUpdate()
+                            ->first();
+                    }
+                    if ($code) {
+                        $code->character_id = $lockedCharacter->id;
+                        $code->save();
+                    }
+                }
+
+                $lockedListing->delete();
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', 'Aanbieding ingetrokken. Je items/bezittingen zijn teruggeplaatst in je bezit.');
     }

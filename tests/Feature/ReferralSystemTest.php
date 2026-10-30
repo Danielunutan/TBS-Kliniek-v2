@@ -89,7 +89,7 @@ class ReferralSystemTest extends TestCase
         $referralService = app(ReferralService::class);
 
         // 1. First friend registers
-        $res1 = $this->post(route('register.post'), [
+        $res1 = $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.1'])->post(route('register.post'), [
             'username' => 'VriendEen',
             'email' => 'vriend1@example.com',
             'password' => 'secret123',
@@ -114,7 +114,7 @@ class ReferralSystemTest extends TestCase
         Auth::logout();
 
         // 2. Second friend registers
-        $this->post(route('register.post'), [
+        $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.2'])->post(route('register.post'), [
             'username' => 'VriendTwee',
             'email' => 'vriend2@example.com',
             'password' => 'secret123',
@@ -130,7 +130,7 @@ class ReferralSystemTest extends TestCase
         Auth::logout();
 
         // 3. Third friend registers -> triggers 1 month VIP!
-        $this->post(route('register.post'), [
+        $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.3'])->post(route('register.post'), [
             'username' => 'VriendDrie',
             'email' => 'vriend3@example.com',
             'password' => 'secret123',

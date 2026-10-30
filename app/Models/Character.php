@@ -1734,7 +1734,8 @@ class Character extends Model
             return 1;
         }
 
-        $sec = max(0, (int) now()->diffInSeconds($this->prison_until, false));
+        $sec = max(0, (int) now()->diffInSeconds($this->prison_until, false))
+            + ((int) ($this->ad_prison_progress ?? 0) * 180);
 
         if ($sec <= 90) {
             return 1;
@@ -1936,10 +1937,7 @@ class Character extends Model
         if ($this->relationLoaded('cooldowns')) {
             $cd = $this->cooldowns->firstWhere('action', $action);
         } else {
-            if ($this->cooldownsMap === null) {
-                $this->cooldownsMap = $this->cooldowns()->get()->keyBy('action');
-            }
-            $cd = $this->cooldownsMap->get($action);
+            $cd = $this->cooldowns()->where('action', $action)->first();
         }
 
         if (! $cd || ! $cd->cooldown_until) {
