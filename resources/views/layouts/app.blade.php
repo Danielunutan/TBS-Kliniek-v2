@@ -1531,7 +1531,7 @@
                 <a href="{{ route('vip.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('vip.*') ? 'nav-item-active bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : 'text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' }}">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-crown w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                        <span class="font-extrabold">VIP Shop & Punten</span>
+                        <span class="font-extrabold">VIP Donaties & Punten</span>
                     </div>
                 </a>
                 <a href="{{ route('shop.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">
@@ -1717,7 +1717,7 @@
                 <!-- 4. Stars Pill -->
                 <a href="{{ route('vip.index') }}" 
                    class="min-w-0 flex flex-col justify-center bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition text-left"
-                   title="Sterren & VIP Shop">
+                   title="Sterren & VIP Donaties">
                     <span class="text-[8px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 leading-none">Sterren</span>
                     <div class="flex items-center gap-1 mt-0.5 min-w-0">
                         <i class="fa-solid fa-star text-[9px] text-amber-500 shrink-0"></i>
@@ -2559,9 +2559,9 @@
                                 <i class="fa-solid fa-gift text-amber-500 text-[10px]"></i> Community Beloningen
                             </a></li>
                             <li><a href="{{ route('shop.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
-                                <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i> VIP & Donatie Winkel
+                                <i class="fa-solid fa-crown text-amber-500 text-[10px]"></i> VIP & Donaties
                             </a></li>
-                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">VIP Lidmaatschappen & Voordelen</a></li>
+                            <li><a href="{{ route('vip.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">VIP Donaties & Voordelen</a></li>
                             <li><a href="{{ route('roadmap.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Roadmap & Updates</a></li>
                         </ul>
                     </div>

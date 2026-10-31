@@ -121,7 +121,7 @@
                         <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}"
                            class="flex-1 py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/50 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs transition-all duration-150 active:scale-95 cursor-pointer text-center">
                             <i class="fa-solid fa-crown text-amber-500"></i>
-                            <span>VIP Lidmaatschap Winkel</span>
+                            <span>VIP Donaties & Perks</span>
                         </a>
                     @endif
                     <button type="button"

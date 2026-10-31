@@ -152,13 +152,13 @@
                     <span>Hoe kom je aan Sterren ⭐?</span>
                 </h4>
                 <p class="text-xs text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
-                    Sterren ⭐ zijn de premium valuta in TBS Kliniek! Gebruik Sterren om wachttijden over te slaan, kogels en kogelwerende vesten te kopen, direct uit coma te ontwaken, of zeldzame koffers en maskers te bemachtigen in de Sterren Shop.
+                    Sterren ⭐ zijn de premium in-game valuta in TBS Kliniek. Je verdient ze gratis via dagelijkse beloningen en mijlpalen, of je ontvangt ze als bedankbeloning bij een vrijwillige supportersdonatie via Buy Me a Coffee om server- en hostingkosten te dekken. Gebruik Sterren voor privileges zoals wachttijden overslaan, kogelwerende vesten of zeldzame koffers.
                 </p>
             </div>
             <a href="{{ route('shop.index') }}" 
                class="btn-star-gold px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 text-slate-900 dark:text-white shadow-xs flex items-center gap-2 shrink-0 cursor-pointer">
                 <i class="fa-solid fa-star"></i>
-                <span>Naar Sterren Shop</span>
+                <span>Naar Sterren &amp; Donaties</span>
             </a>
         </div>
     </div>

@@ -67,7 +67,7 @@ class BattlePassTest extends TestCase
         $response->assertSee('TBS V.I.P. Lid (VIP 1)');
         $response->assertSee('Gangster Elite V.I.P. (VIP 2)');
         $response->assertSee('Kliniek Baas V.I.P. (VIP 3)');
-        $response->assertSee('VIP Lidmaatschap Winkel');
+        $response->assertSee('VIP Donaties &amp; Perks', false);
 
         // Claim Level 2 Free (gives cash + strength + xp)
         $claimRes = $this->actingAs($user)->post(route('battlepass.claim'), [

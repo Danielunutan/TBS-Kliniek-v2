@@ -35,14 +35,14 @@ class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-8
             <div class="flex items-center gap-2">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[10px] font-black uppercase tracking-wider">
                     <i class="fa-solid fa-circle-info text-amber-600 dark:text-amber-400"></i>
-                    Belangrijke Instructie voor Donaties &amp; Sterren
+                    Belangrijke Instructie voor Vrijwillige Donaties, VIP &amp; Sterren
                 </span>
             </div>
             <h3 class="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
-                Hoe voeg je jouw spelersnaam toe op Buy Me a Coffee?
+                Hoe koppel je jouw vrijwillige donatie op Buy Me a Coffee?
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium max-w-2xl leading-relaxed">
-                Volg deze 3 stappen zodat onze automatische koppeling direct weet naar welk account jouw Sterren, Koffers en VIP verstuurd moeten worden. Zo maak je nooit een vergissing!
+                Alle in-game privileges zoals VIP-status, Sterren en Koffers vallen onder een vrijwillige donatie ter ondersteuning van de server- en hostingkosten. Volg deze 3 stappen zodat onze automatische koppeling direct weet naar welk account jouw in-game bedankjes verstuurd moeten worden. Zo maak je nooit een vergissing!
             </p>
         </div>
         <div class="shrink-0">
@@ -161,7 +161,7 @@ class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-8
                 <i class="fa-solid fa-bolt"></i>
             </span>
             <span class="leading-relaxed">
-                <strong>Stap 3: Directe Activatie!</strong> Reken veilig af via iDEAL of creditcard. Ons systeem herkent jouw betaling automatisch en voegt jouw Sterren en VIP direct toe aan jouw account.
+                <strong>Stap 3: Directe Activatie!</strong> Voltooi jouw vrijwillige donatie veilig via iDEAL of creditcard. Ons systeem herkent jouw donatie automatisch en kent als bedankje jouw Sterren en VIP privileges direct toe aan jouw account.
             </span>
         </div>
         <a href="https://buymeacoffee.com/tbskliniek" 
@@ -170,6 +170,14 @@ class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-8
            class="font-black text-purple-600 dark:text-purple-400 underline shrink-0 hover:text-purple-700 dark:hover:text-purple-300 transition">
             Ga direct naar Buy Me a Coffee &rarr;
         </a>
+    </div>
+
+    <!-- Juridische & Non-profit Verduidelijking -->
+    <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-[11px] text-slate-600 dark:text-slate-400 flex items-start gap-2.5">
+        <i class="fa-solid fa-circle-info text-amber-500 text-xs mt-0.5 shrink-0"></i>
+        <span>
+            <strong>Belangrijk:</strong> TBS Kliniek is een 100% non-profit hobbyproject. Alle dingen zoals VIP-lidmaatschappen, Gouden Sterren en Koffers die je via Buy Me a Coffee verkrijgt, vallen uitdrukkelijk onder een vrijwillige donatie ter dekking van server- en hostingkosten. Het betreft géén commerciële aankoop van goederen of diensten.
+        </span>
     </div>
 
 </div>

@@ -230,11 +230,11 @@
             </div>
             <div>
                 <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase tracking-wider mb-1">
-                    100% Reclamevrij • Steun TBS Kliniek
+                    Vrijwillige Donatie • 100% Reclamevrij
                 </div>
-                <h3 class="font-black text-sm sm:text-base text-slate-900 dark:text-white">Trakteer op Koffie of word VIP Lid</h3>
+                <h3 class="font-black text-sm sm:text-base text-slate-900 dark:text-white">Trakteer op Koffie of Steun als VIP Lid</h3>
                 <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    Geen advertenties meer in de game! Vanaf 1 bakkie koffie (€3) scoor je direct <strong>+25 Sterren</strong>, <strong>+1 Masker</strong> en <strong>+50 Kogels</strong>!
+                    TBS Kliniek is een non-profit game. Dingen zoals VIP en Sterren vallen onder een vrijwillige donatie ter dekking van onze hostingkosten! Als dank ontvang je direct <strong>+25 Sterren</strong>, <strong>+1 Masker</strong> en <strong>+50 Kogels</strong>!
                 </p>
             </div>
         </div>
@@ -245,7 +245,7 @@
             </button>
             <a href="{{ route('vip.index') }}" 
                class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 text-center cursor-pointer">
-                <i class="fa-solid fa-crown mr-1"></i> VIP Pakketten
+                <i class="fa-solid fa-crown mr-1"></i> VIP Donaties
             </a>
         </div>
     </div>
@@ -399,16 +399,16 @@
                     <div class="border-b border-slate-100 dark:border-slate-800 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[10px] font-black uppercase tracking-wider mb-2">
-                                Directe Server Steun • Geen Reclame Meer
+                                Vrijwillige Server Donaties • Geen Reclame Meer
                             </span>
                             <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Trakteer op Koffie of Steun TBS Kliniek</h2>
                             <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-                                Help de ontwikkelaars om TBS Kliniek advertentievrij, supersnel en wekelijks geüpdatet te houden. Elke donatie beloont direct in-game!
+                                Alle bijdragen voor VIP-lidmaatschappen, Sterren en koffies vallen onder een vrijwillige donatie ter dekking van server- en hostingkosten. Als dank voor jouw steun aan dit non-profit project beloont het systeem je direct met virtuele in-game perks!
                             </p>
                         </div>
                         <a href="{{ route('vip.index') }}" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white text-xs font-black shrink-0 transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                             <i class="fa-solid fa-crown text-amber-400"></i>
-                            <span>Alle VIP Lidmaatschappen</span>
+                            <span>Alle VIP Donaties</span>
                         </a>
                     </div>
 
@@ -428,7 +428,7 @@
                             </div>
                             <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
                                class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
-                                Doneer €3
+                                Doneer €3 (Vrijwillig)
                             </a>
                         </div>
 
@@ -449,7 +449,7 @@
                             </div>
                             <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
                                class="btn-star-gold block w-full py-2.5 rounded-xl font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
-                                Doneer €9
+                                Doneer €9 (Vrijwillig)
                             </a>
                         </div>
 
@@ -467,7 +467,7 @@
                             </div>
                             <a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer"
                                class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer">
-                                Doneer €15
+                                Doneer €15 (Vrijwillig)
                             </a>
                         </div>
                     </div>
@@ -1493,7 +1493,7 @@
                             </span>
                             <h2 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Krachtige Voordelen &amp; Schaarste</h2>
                             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-xl leading-relaxed">
-                                Sterren zijn zeldzaam en geven enorme privileges zoals direct herstel, celontsnappingen, kogelmagazijnen en kluiscodes. Verdien ze gratis via het Rad van Fortuin, de 7-Dagen Inlogstreak en Level Mijlpalen, of scoor ze direct via Buy Me a Coffee!
+                                Sterren zijn zeldzaam en geven enorme privileges zoals direct herstel, celontsnappingen, kogelmagazijnen en kluiscodes. Verdien ze gratis via het Rad van Fortuin, de 7-Dagen Inlogstreak en Level Mijlpalen, of ontvang ze als bedankje bij een vrijwillige donatie via Buy Me a Coffee!
                             </p>
                         </div>
                         <div class="flex flex-col sm:flex-row items-center gap-2 shrink-0">
@@ -1501,7 +1501,7 @@
                                 <i class="fa-solid fa-star text-amber-500"></i> {{ $character->stars ?? 0 }} Saldo
                             </span>
                             <button type="button" @click="setShopTab('donaties')" class="btn-star-gold w-full sm:w-auto px-4 py-2 rounded-xl active:scale-95 text-slate-900 dark:text-white font-black text-xs transition shadow-md cursor-pointer flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-plus-circle"></i> Sterren Kopen
+                                <i class="fa-solid fa-heart"></i> Sterren via Donatie
                             </button>
                         </div>
                     </div>

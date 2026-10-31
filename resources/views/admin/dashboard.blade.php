@@ -61,7 +61,7 @@
         <div>
             <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Snelle Medewerkers Handelingen</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-                Ken direct VIP-lidmaatschap toe aan een Discord koper of pas de winkansen en kistbeloningen aan voor de hele kliniek.
+                Ken direct VIP-lidmaatschap toe aan een Discord donateur of pas de winkansen en kistbeloningen aan voor de hele kliniek.
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">

@@ -285,6 +285,10 @@ class FaqController extends Controller
                         'q' => 'Wat kan ik doen met VIP Punten in de VIP Shop?',
                         'a' => "In de VIP Shop ('/vip-shop') kun je jouw verdiende VIP Punten inwisselen voor krachtige bonussen: 24 uur volledige cash bescherming tegen plunderingen, direct 100% herstel van Energie & Gezondheid, +50 kliniek respect, een VIP Buitpakket (2x XXL Cases + €500.000 contant), 100 Sterren of +24 uur VIP status verlenging!",
                     ],
+                    [
+                        'q' => 'Vallen VIP en supporterpakketten onder een aankoop of een donatie?',
+                        'a' => 'TBS Kliniek is een 100% hobbymatig non-profit project zonder winstoogmerk. Alle opties met echt geld zoals VIP-lidmaatschappen (Tier 1 t/m Lifetime), Gouden Sterren en XXL Koffers via Buy Me a Coffee vallen uitdrukkelijk onder een vrijwillige donatie. De donaties worden uitsluitend gebruikt om de lopende hosting-, server- en licentiekosten te dekken. Als dank voor je steun ontvang je automatisch de bijbehorende virtuele VIP- en spelvoordelen.',
+                    ],
                 ],
             ],
             'navigatie' => [
@@ -563,6 +567,15 @@ class FaqController extends Controller
                 'links' => [
                     ['text' => 'VIP Shop & Status', 'url' => route('vip.index')],
                     ['text' => 'Sponsorkamer', 'url' => route('sponsor.index')],
+                ],
+            ],
+            [
+                'title' => '☕ Donaties, VIP & Serversteun',
+                'keywords' => ['donatie', 'doneren', 'buymeacoffee', 'koffie', 'kopen', 'aankoop', 'betalen', 'vip kopen', 'sterren kopen', 'echt geld'],
+                'answer' => 'TBS Kliniek is een non-profit hobbyproject. Alle dingen zoals VIP-lidmaatschappen, Gouden Sterren en Koffers via Buy Me a Coffee vallen onder een vrijwillige donatie ter dekking van server- en hostingkosten. Als dank voor jouw steun ontvang je de bijbehorende virtuele VIP privileges.',
+                'links' => [
+                    ['text' => 'VIP & Donaties', 'url' => route('vip.index')],
+                    ['text' => 'Buy Me a Coffee', 'url' => 'https://buymeacoffee.com/tbskliniek'],
                 ],
             ],
             [

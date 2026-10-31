@@ -162,7 +162,7 @@
 
             <!-- VIP Shop Feature Banner -->
             <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-200/80 dark:border-amber-800/70 font-bold transition-all duration-150 hover:bg-amber-100/60 active:scale-95">
-                <span class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> VIP Shop & Punten</span>
+                <span class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> VIP Donaties & Punten</span>
                 <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-200/80 dark:bg-amber-900/60 px-2 py-0.5 rounded-md border border-amber-300/80 dark:border-amber-700/60">Exclusief</span>
             </a>
 
@@ -739,7 +739,7 @@
                     <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('vip.*') ? 'nav-item-active bg-amber-50/90 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold' : 'text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-300 hover:bg-amber-50/60 dark:hover:bg-amber-950/30' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-crown w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                            <span class="font-extrabold">VIP Shop & Punten</span>
+                            <span class="font-extrabold">VIP Donaties & Punten</span>
                         </div>
                     </a>
                     <a href="{{ route('shop.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('shop.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 font-bold' : 'text-purple-700 dark:text-purple-300 hover:text-purple-900 dark:hover:text-purple-200 hover:bg-purple-50/60 dark:hover:bg-purple-950/30' }}">

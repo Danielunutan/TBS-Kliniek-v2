@@ -348,7 +348,7 @@
                     Blader razendsnel met de paarse pijlen (of je pijltjestoetsen) door alle <strong class="text-white">{{ $maxPassLevel }} kliniek-niveaus</strong> en claim <strong class="text-purple-200">Geld, XP, Kracht, Respect, Codes, Sterren en schaarse Maskers</strong>! Speel extra rangen vrij met <strong class="text-white">TBS V.I.P. Lid (VIP 1), Gangster Elite V.I.P. (VIP 2) &amp; Kliniek Baas V.I.P. (VIP 3)</strong>.
                 </p>
 
-                <!-- Speler Status & Directe Link naar VIP Lidmaatschap Winkel -->
+                <!-- Speler Status & Directe Link naar VIP Donaties & Perks -->
                 <div class="pt-1 flex flex-wrap items-center gap-2.5">
                     <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-950/80 border border-purple-500/40 text-xs font-bold text-purple-100">
                         <i class="fa-solid fa-user-shield text-purple-400"></i>
@@ -374,7 +374,7 @@
                     @if(!$isVip || $supporterTier < 3)
                         <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold px-3.5 py-1.5 rounded-xl text-xs uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-crown"></i>
-                            <span>Naar VIP Lidmaatschap Winkel</span>
+                            <span>VIP Donaties &amp; Perks</span>
                         </a>
                     @endif
                 </div>
@@ -450,7 +450,7 @@
                             </span>
                         @else
                             <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/50 text-amber-200 text-[10px] font-black transition">
-                                <i class="fa-solid fa-crown text-[9px] text-amber-400"></i> VIP Lidmaatschap Winkel
+                                <i class="fa-solid fa-crown text-[9px] text-amber-400"></i> VIP Donaties &amp; Perks
                             </a>
                         @endif
                     </div>
@@ -719,7 +719,7 @@
                                 <template x-if="!isClaimed(activeLevel, '{{ $tKey }}') && !isTrackUnlocked('{{ $tKey }}')">
                                     <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="btn-star-gold w-full py-2 px-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all duration-150 active:scale-95 cursor-pointer text-center">
                                         <i class="fa-solid fa-crown text-[10px]"></i>
-                                        <span>VIP Lidmaatschap Winkel</span>
+                                        <span>VIP Donaties &amp; Perks</span>
                                     </a>
                                 </template>
 

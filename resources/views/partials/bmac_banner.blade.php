@@ -37,14 +37,14 @@ class="bg-white dark:bg-slate-900 border border-amber-400/80 dark:border-amber-5
         <div class="space-y-1">
             <div class="flex flex-wrap items-center gap-2">
                 <span class="px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[10px] font-black uppercase tracking-wider">
-                    Sterren of VIP Nodig?
+                    Vrijwillige Donatie • VIP &amp; Sterren
                 </span>
                 <span class="text-xs font-black text-slate-900 dark:text-white">
-                    Zet jouw naam of koppelcode altijd in het BERICHT-veld (Say something nice)!
+                    VIP &amp; Sterren via Buy Me a Coffee vallen onder een vrijwillige donatie!
                 </span>
             </div>
             <p class="text-xs text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                Vul bij het afrekenen jouw spelersnaam <strong class="text-purple-700 dark:text-purple-300 font-mono">{{ $character->name }}</strong> of code <strong class="text-amber-600 dark:text-amber-400 font-mono">TBS-{{ $character->id }}</strong> in het <strong>BERICHT-veld</strong> in (en niet als naam), zodat onze webhook dit direct automatisch herkent.
+                Vul bij jouw donatie jouw spelersnaam <strong class="text-purple-700 dark:text-purple-300 font-mono">{{ $character->name }}</strong> of code <strong class="text-amber-600 dark:text-amber-400 font-mono">TBS-{{ $character->id }}</strong> in het <strong>BERICHT-veld</strong> in (en niet als naam), zodat onze webhook jouw in-game bedankjes direct automatisch toekent.
             </p>
         </div>
     </div>
@@ -70,8 +70,8 @@ class="bg-white dark:bg-slate-900 border border-amber-400/80 dark:border-amber-5
         <button type="button" 
                 @click="setShopTab('donaties')" 
                 class="btn-star-gold px-3.5 py-2 rounded-xl text-slate-900 dark:text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0">
-            <i class="fa-solid fa-star text-xs"></i>
-            <span>Bekijk Instructies &amp; Pakketten</span>
+            <i class="fa-solid fa-hand-holding-heart text-xs"></i>
+            <span>Bekijk Vrijwillige Donaties</span>
         </button>
     </div>
 

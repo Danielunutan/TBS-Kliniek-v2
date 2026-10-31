@@ -140,6 +140,31 @@
         </div>
     </div>
 
+    <!-- Belangrijke Mededeling: Vrijwillige Donaties & Non-profit Verantwoording -->
+    <div class="rounded-2xl p-4 sm:p-5 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-400 text-purple-950 flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+                <i class="fa-solid fa-hand-holding-heart"></i>
+            </div>
+            <div class="space-y-0.5">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 text-[10px] font-black uppercase tracking-wider border border-amber-300/80 dark:border-amber-700/60">
+                        Vrijwillige Donaties
+                    </span>
+                    <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                        Alle VIP-lidmaatschappen &amp; extra's vallen onder een vrijwillige donatie
+                    </h3>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                    TBS Kliniek is een 100% hobbymatig non-profit project. VIP-statussen, Gouden Sterren en Koffers zijn virtuele bedankbeloningen (perks) voor spelers die vrijwillig bijdragen aan de server- en hostingkosten. Het betreft géén commerciële aankoop van goederen of diensten.
+                </p>
+            </div>
+        </div>
+        <a href="{{ route('legal.terms') }}" class="text-[11px] font-black text-amber-800 dark:text-amber-300 underline shrink-0 hover:text-amber-900 dark:hover:text-amber-200">
+            Voorwaarden &amp; Beleid &rarr;
+        </a>
+    </div>
+
     <!-- Main Grid: Navigation & Content -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
@@ -152,7 +177,10 @@
                         class="w-full flex items-center justify-between p-3.5 rounded-xl transition cursor-pointer">
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-crown text-amber-400 text-sm"></i>
-                        <span>VIP Lidmaatschappen</span>
+                        <span class="flex items-center gap-1.5">
+                            <span>VIP Lidmaatschappen</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">Donatie</span>
+                        </span>
                     </span>
                     <i class="fa-solid fa-chevron-right text-[10px] opacity-70"></i>
                 </button>
@@ -239,7 +267,7 @@
                         <div>
                             <h3 class="font-black text-sm">Automatische In-Game Verwerking</h3>
                             <p class="text-xs text-purple-200 leading-relaxed">
-                                Betalingen verlopen veilig via Buy Me a Coffee. Vermeld je in-game naam (<strong>{{ $character->name }}</strong>) of code <strong>TBS-{{ $character->id }}</strong> bij het afrekenen.
+                                Donaties verlopen veilig via Buy Me a Coffee. Vermeld je in-game naam (<strong>{{ $character->name }}</strong>) of code <strong>TBS-{{ $character->id }}</strong> in het donatiebericht. Als dank worden jouw VIP privileges en extra's direct toegekend!
                             </p>
                         </div>
                     </div>
@@ -287,7 +315,7 @@
                                 <img src="/images/tiers/tier1_vip.jpg" alt="TBS V.I.P. Lid" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                                 <div class="absolute top-3 left-3 bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md">
-                                    Tier 1 • Starter VIP
+                                    Tier 1 • Starter VIP • Vrijwillige Donatie
                                 </div>
                                 <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
                                     <div>
@@ -296,7 +324,7 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="text-xl font-black text-amber-400">€6</div>
-                                        <div class="text-[10px] text-slate-300">per maand</div>
+                                        <div class="text-[10px] text-slate-300">vrijwillige donatie / mnd</div>
                                     </div>
                                 </div>
                             </div>
@@ -313,9 +341,9 @@
                             </div>
                         </div>
                         <div class="p-5 pt-0">
-                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS V.I.P. Lid (€6/mnd)')"
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS V.I.P. Lid (€6/mnd Donatie)')"
                                class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                                Word V.I.P. Lid (€6/mnd)
+                                Doneer &amp; Word V.I.P. Lid (€6/mnd)
                             </button>
                         </div>
                     </div>
@@ -330,7 +358,7 @@
                                 <img src="/images/tiers/tier2_elite.jpg" alt="TBS Gangster Elite" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                                 <div class="absolute top-3 left-3 bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md">
-                                    Tier 2 • Gangster Elite
+                                    Tier 2 • Gangster Elite • Vrijwillige Donatie
                                 </div>
                                 <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
                                     <div>
@@ -339,7 +367,7 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="text-xl font-black text-amber-400">€14</div>
-                                        <div class="text-[10px] text-slate-300">per maand</div>
+                                        <div class="text-[10px] text-slate-300">vrijwillige donatie / mnd</div>
                                     </div>
                                 </div>
                             </div>
@@ -355,9 +383,9 @@
                             </div>
                         </div>
                         <div class="p-5 pt-0">
-                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Gangster Elite (€14/mnd)')"
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Gangster Elite (€14/mnd Donatie)')"
                                class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                                Kies Gangster Elite (€14/mnd)
+                                Doneer &amp; Kies Gangster Elite (€14/mnd)
                             </button>
                         </div>
                     </div>
@@ -369,7 +397,7 @@
                                 <img src="/images/tiers/tier3_baas.jpg" alt="TBS Kliniek Baas" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                                 <div class="absolute top-3 left-3 bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-md">
-                                    Tier 3 • Kliniek Baas
+                                    Tier 3 • Kliniek Baas • Vrijwillige Donatie
                                 </div>
                                 <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
                                     <div>
@@ -378,7 +406,7 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="text-xl font-black text-amber-400">€24</div>
-                                        <div class="text-[10px] text-slate-300">per maand</div>
+                                        <div class="text-[10px] text-slate-300">vrijwillige donatie / mnd</div>
                                     </div>
                                 </div>
                             </div>
@@ -394,9 +422,9 @@
                             </div>
                         </div>
                         <div class="p-5 pt-0">
-                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Kliniek Baas (€24/mnd)')"
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'TBS Kliniek Baas (€24/mnd Donatie)')"
                                class="w-full block text-center py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                                Word Kliniek Baas (€24/mnd)
+                                Doneer &amp; Word Kliniek Baas (€24/mnd)
                             </button>
                         </div>
                     </div>
@@ -407,15 +435,15 @@
                             <div class="p-6 pb-4 border-b border-amber-400/20">
                                 <div class="flex items-center justify-between">
                                     <span class="px-3 py-1 rounded-full bg-amber-400 text-purple-950 font-black text-[10px] uppercase tracking-wider shadow-xs">
-                                        Levenslang & Nooit Verlengen
+                                        Levenslang VIP Perk • Vrijwillige Donatie
                                     </span>
                                     <i class="fa-solid fa-gem text-amber-400 text-2xl"></i>
                                 </div>
                                 <h3 class="font-black text-2xl text-slate-900 dark:text-white mt-3">VIP LIFETIME</h3>
-                                <p class="text-xs text-amber-600 dark:text-amber-300 font-bold mt-0.5">Eén keer betalen, voor altijd VIP</p>
+                                <p class="text-xs text-amber-600 dark:text-amber-300 font-bold mt-0.5">Eenmalige donatie, voor altijd VIP perks</p>
                                 <div class="mt-4 flex items-baseline gap-2">
                                     <span class="text-3xl font-black text-slate-900 dark:text-white">€125</span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">eenmalig</span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-bold">eenmalige donatie</span>
                                 </div>
                             </div>
                             <div class="p-6 space-y-3 text-xs">
@@ -431,9 +459,9 @@
                             </div>
                         </div>
                         <div class="p-6 pt-0">
-                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'VIP LIFETIME (€125 eenmalig)')"
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek/membership', 'VIP LIFETIME (€125 Eenmalige Donatie)')"
                                class="btn-star-gold w-full block text-center py-3.5 rounded-xl text-slate-900 dark:text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                                Neem Lifetime VIP (€125)
+                                Doneer Eenmalig voor Lifetime VIP (€125)
                             </button>
                         </div>
                     </div>
@@ -447,11 +475,11 @@
                     <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
                         <div class="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 text-xs font-black px-3 py-1 rounded-full border border-amber-200/80 dark:border-amber-800/70 mb-2">
                             <i class="fa-solid fa-mug-hot text-amber-500"></i>
-                            <span>Vrijwillige Donaties & Server Support</span>
+                            <span>Vrijwillige Donaties &amp; Server Support</span>
                         </div>
-                        <h2 class="text-2xl font-black text-slate-900 dark:text-white">Trakteer op een Bakkie Koffie</h2>
+                        <h2 class="text-2xl font-black text-slate-900 dark:text-white">Trakteer op een Bakkie Koffie (Vrijwillige Donatie)</h2>
                         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                            Wil je geen maandelijks abonnement maar wel de server steunen en direct extra Sterren, Maskers en Kogels ontvangen? Trakteer het ontwikkelteam op een bakkie koffie via Buy Me a Coffee!
+                            Wil je geen doorlopend supporterschap maar wel de server steunen en direct als dank extra Sterren, Maskers en Kogels ontvangen? Trakteer het ontwikkelteam op een bakkie koffie via Buy Me a Coffee! Alle bijdragen vallen onder een vrijwillige donatie om onze hosting draaiende te houden.
                         </p>
                     </div>
 
@@ -470,9 +498,9 @@
                                     <li class="flex items-center gap-1.5"><i class="fa-solid fa-heart text-pink-500 text-[10px]"></i> Donateur Badge</li>
                                 </ul>
                             </div>
-                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '1x Bakkie Koffie (€3)')"
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '1x Bakkie Koffie (€3 Vrijwillige Donatie)')"
                                class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                                Doneer 1 Koffie (€3)
+                                Doneer 1 Koffie (€3 vrijwillig)
                             </button>
                         </div>
 
@@ -492,9 +520,9 @@
                                     <li class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> <strong>+200 Kogels</strong></li>
                                 </ul>
                             </div>
-                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '3x Bakkie Koffie (€9)')"
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '3x Bakkie Koffie (€9 Vrijwillige Donatie)')"
                                class="btn-star-gold block w-full py-2.5 rounded-xl text-slate-900 dark:text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                                Doneer 3 Koffies (€9)
+                                Doneer 3 Koffies (€9 vrijwillig)
                             </button>
                         </div>
 
@@ -511,9 +539,9 @@
                                     <li class="flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500 text-[10px]"></i> <strong>+500 Kogels</strong></li>
                                 </ul>
                             </div>
-                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '5x Bakkie Koffie (€15)')"
+                            <button type="button" @click="openDonate('https://buymeacoffee.com/tbskliniek', '5x Bakkie Koffie (€15 Vrijwillige Donatie)')"
                                class="block w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                                Doneer 5 Koffies (€15)
+                                Doneer 5 Koffies (€15 vrijwillig)
                             </button>
                         </div>
                     </div>
@@ -772,7 +800,7 @@
                                     'name' => '100 Exclusieve Sterren',
                                     'cost' => 30,
                                     'currency' => 'vip_points',
-                                    'desc' => 'Direct +100 sterren voor winkelaankopen en upgrades.',
+                                    'desc' => 'Direct +100 sterren voor in-game items en upgrades.',
                                     'icon' => 'fa-star',
                                     'iconColor' => 'text-amber-500 bg-amber-50 dark:bg-amber-950/60',
                                 ],
@@ -865,7 +893,7 @@
                         </div>
                         <div>
                             <h3 class="text-base sm:text-lg font-black text-slate-900 dark:text-white" x-text="donateTierTitle"></h3>
-                            <p class="text-xs text-purple-600 dark:text-purple-300 font-bold">Voltooi je steun in 2 eenvoudige stappen</p>
+                            <p class="text-xs text-purple-600 dark:text-purple-300 font-bold">Voltooi je vrijwillige donatie in 2 eenvoudige stappen</p>
                         </div>
                     </div>
                     <button type="button" @click="showDonateModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white transition p-1 cursor-pointer">
@@ -882,7 +910,7 @@
                         <span class="text-xs font-black text-amber-700 dark:text-amber-400">Automatische Koppeling</span>
                     </div>
                     <p class="text-xs text-slate-700 dark:text-slate-200 font-medium leading-relaxed">
-                        Vul bij Buy Me a Coffee in het <strong>BERICHT-veld ("Say something nice")</strong> en <strong>NIET als naam</strong> exact jouw spelersnaam of koppelcode in:
+                        Let op: VIP-privileges en in-game extra's vallen onder een vrijwillige donatie ter ondersteuning van server- en hostingkosten. Vul bij Buy Me a Coffee in het <strong>BERICHT-veld ("Say something nice")</strong> en <strong>NIET als naam</strong> exact jouw spelersnaam of koppelcode in:
                     </p>
                     
                     <div class="flex items-center gap-2 bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-amber-300 dark:border-amber-600/60 shadow-inner">
@@ -903,14 +931,17 @@
                 <!-- STAP 2: GA NAAR BUY ME A COFFEE -->
                 <div class="space-y-3">
                     <div class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                        Stap 2 • Veilig Betalen
+                        Stap 2 • Veilige Vrijwillige Donatie
                     </div>
                     <a :href="donateUrl" target="_blank" rel="noopener noreferrer"
                        @click="showDonateModal = false"
                        class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-sm text-center flex items-center justify-center gap-2 shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
-                        <span>Ga Verder naar Buy Me a Coffee</span>
+                        <span>Ga Verder naar Buy Me a Coffee om te Doneren</span>
                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     </a>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 text-center leading-relaxed">
+                        Bijdragen zijn vrijwillige donaties ter ondersteuning van server- en hostingkosten. VIP-voordelen zijn virtuele bedankjes en geven geen commerciële consumentenrechten of herroepingsrecht.
+                    </p>
                 </div>
 
                 <div class="text-center pt-1">

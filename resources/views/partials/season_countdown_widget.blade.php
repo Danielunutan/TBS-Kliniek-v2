@@ -101,7 +101,7 @@ class="relative overflow-hidden rounded-2xl p-5 sm:p-6 bg-white dark:bg-slate-90
             </a>
             <a href="{{ route('vip.index') }}" class="btn-star-gold px-3.5 py-1.5 rounded-xl text-slate-900 dark:text-white font-black text-[11px] transition-all duration-150 active:scale-95 inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
                 <i class="fa-solid fa-crown text-[10px]"></i>
-                <span>VIP &amp; Shop</span>
+                <span>VIP &amp; Donaties</span>
             </a>
         </div>
     </div>

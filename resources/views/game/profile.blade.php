@@ -1942,7 +1942,7 @@
                             </div>
                             <a href="{{ route('vip.index', ['tab' => 'pakketten']) }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs shadow-md transition">
                                 <i class="fa-solid fa-crown"></i>
-                                <span>Bekijk VIP Lidmaatschap Winkel</span>
+                                <span>Bekijk VIP Donaties & Perks</span>
                             </a>
                         </div>
                     @endif
