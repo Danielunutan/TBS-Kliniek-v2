@@ -1593,105 +1593,141 @@
     <!-- MAIN APP WRAPPER -->
     <div class="flex-1 flex flex-col min-w-0">
         @if(isset($character))
-        <!-- NATIVE MOBILE TOP-HUD (Compact Single-Line, Max Gaming Screen Space) -->
-        <header class="lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-800 dark:text-slate-100 px-2 py-2 flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800 sticky top-0 z-40 shadow-xs select-none" style="padding-top: max(0.5rem, env(safe-area-inset-top));">
+        @php
+            $mobileTopBorder = $character ? $character->getEquippedBorderInfo() : null;
+            $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
+            $foodTotalQty = $quickFoodItems->sum('quantity');
+        @endphp
+        <!-- NATIVE MOBILE TOP-HUD (Two-Row Zero-Overflow Responsive HUD) -->
+        <header class="lg:hidden w-full max-w-full overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-800 dark:text-slate-100 border-b border-slate-200/90 dark:border-slate-800 sticky top-0 z-40 shadow-xs select-none" style="padding-top: env(safe-area-inset-top);">
             
-            <!-- 1. Left: Back, Avatar, & Level/Name -->
-            <div class="flex items-center gap-1.5 shrink-0 min-w-0">
-                <!-- WebApp Terug Knop -->
-                <button type="button" 
-                        onclick="window.tbsGoBack()" 
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" 
-                        title="Vorige pagina (Terug)"
-                        aria-label="Terug">
-                    <i class="fa-solid fa-arrow-left text-[11px]"></i>
-                </button>
+            <!-- ROW 1: Back, Player Identity + Level/XP, Quick Actions & Prominent Menu Button -->
+            <div class="px-2.5 py-2 flex items-center justify-between gap-2 min-w-0">
+                <!-- 1. Left: Back, Avatar, Name & Level/XP -->
+                <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                    <button type="button" 
+                            onclick="window.tbsGoBack()" 
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" 
+                            title="Vorige pagina (Terug)"
+                            aria-label="Terug">
+                        <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                    </button>
 
-                <!-- Avatar + Level & Naam (Tap = Profiel) -->
-                @php
-                    $mobileTopBorder = $character ? $character->getEquippedBorderInfo() : null;
-                @endphp
-                <a href="{{ route('profile.me') }}" class="flex items-center gap-1.5 min-w-0 group" title="Bekijk profiel">
-                    <div class="relative shrink-0 flex items-center justify-center">
-                        <div class="w-7 h-7 rounded-full p-[1px] flex items-center justify-center overflow-hidden {{ $mobileTopBorder ? str_replace('ring-4', 'ring-2', $mobileTopBorder['ring']) : 'ring-1 ring-purple-300 dark:ring-purple-700' }}">
-                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+                    <a href="{{ route('profile.me') }}" class="flex items-center gap-2 min-w-0 flex-1 group" title="Bekijk profiel">
+                        <div class="relative shrink-0 flex items-center justify-center">
+                            <div class="w-8 h-8 rounded-full p-[1.5px] flex items-center justify-center overflow-hidden {{ $mobileTopBorder ? str_replace('ring-4', 'ring-2', $mobileTopBorder['ring']) : 'ring-1 ring-purple-300 dark:ring-purple-700' }}">
+                                <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+                            </div>
+                            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
                         </div>
-                        <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
-                    </div>
-                    <div class="flex flex-col min-w-0 max-w-[54px] xs:max-w-[74px]">
-                        <span class="text-[11px] font-black truncate leading-tight py-0.5 {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</span>
-                        <span class="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 leading-none">LVL {{ $character->level }}</span>
-                    </div>
-                </a>
+                        <div class="flex flex-col min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="text-xs font-black truncate leading-tight {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</span>
+                                <span class="shrink-0 text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 leading-none">LVL {{ $character->level }}</span>
+                            </div>
+                            <div class="w-16 bg-slate-200/90 dark:bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
+                                <div class="bg-purple-600 dark:bg-purple-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.xp_pct)) + '%'" style="width: {{ $pctXp }}%"></div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- 2. Right: Quick Eat Rugzak, Refresh, Theme Toggle & Prominent Menu Trigger -->
+                <div class="flex items-center gap-1 shrink-0">
+                    <!-- Quick Eat / Rugzak Button -->
+                    <button type="button"
+                            @click="mobileQuickSheetOpen = true"
+                            class="h-8 px-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 flex items-center gap-1 text-[11px] font-black transition cursor-pointer shrink-0 active:scale-90"
+                            title="Rugzak & Snel Eten">
+                        <i class="fa-solid fa-utensils text-[10px] text-emerald-600 dark:text-emerald-400"></i>
+                        <span id="mobile-quick-eat-top-badge" class="text-[10px] font-black leading-none">{{ $foodTotalQty }}</span>
+                    </button>
+
+                    <!-- Direct Soft Reload Button -->
+                    <button type="button" 
+                            onclick="window.tbsReloadPage(this)" 
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" 
+                            title="Pagina vernieuwen" 
+                            aria-label="Vernieuwen">
+                        <i class="fa-solid fa-rotate-right text-[11px]"></i>
+                    </button>
+
+                    <!-- Theme Switch Button -->
+                    <button type="button" 
+                            onclick="window.tbsToggleTheme()" 
+                            class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" 
+                            title="Wissel Thema (Licht / Donker)" 
+                            aria-label="Wissel Thema">
+                        <i class="fa-solid fa-circle-half-stroke text-[11px] text-purple-600 dark:text-purple-400"></i>
+                    </button>
+
+                    <!-- Prominent Hamburger Drawer Trigger ("Het Grote Menu") -->
+                    <button type="button"
+                            @click="mobileMenuOpen = true" 
+                            class="h-8 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 active:scale-95 shadow-xs" 
+                            aria-label="Open volledig menu">
+                        <i class="fa-solid fa-bars text-xs"></i>
+                        <span>Menu</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- 2. Center: Core Vitals (⚡ Energy, ❤️ Health, 💰 Cash) -->
-            <div class="flex items-center gap-1 shrink-0">
-                <!-- Energy Pill (Tap = Quick sheet of boost) -->
+            <!-- ROW 2: 4-Column Core Vitals Strip (⚡ Energy, ❤️ Health, 💵 Cash, ⭐ Stars) -->
+            <div class="grid grid-cols-4 gap-1 px-2 py-1.5 bg-slate-50/95 dark:bg-slate-950/60 border-t border-slate-200/80 dark:border-slate-800/80">
+                <!-- 1. Energy Pill -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
-                        title="Energie (klik voor acties)">
-                    <div class="flex items-center gap-1 text-[10px] leading-none font-extrabold text-emerald-600 dark:text-emerald-400">
-                        <i class="fa-solid fa-bolt text-[9px] text-emerald-500"></i>
-                        <span class="font-mono text-[10px]" x-text="stats.energy">{{ $character->energy }}</span><span class="text-[8px] text-slate-400 dark:text-slate-500 font-mono">/<span x-text="stats.max_energy">{{ $character->max_energy }}</span></span>
+                        class="min-w-0 flex flex-col justify-center bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition text-left"
+                        title="Energie (klik voor aanvullen)">
+                    <div class="flex items-center justify-between gap-0.5 text-[10px] leading-none font-extrabold text-emerald-600 dark:text-emerald-400 min-w-0">
+                        <span class="flex items-center gap-1 truncate">
+                            <i class="fa-solid fa-bolt text-[9px] text-emerald-500 shrink-0"></i>
+                            <span class="font-mono text-[10px]" x-text="stats.energy">{{ $character->energy }}</span><span class="text-[8px] text-slate-400 dark:text-slate-500 font-mono">/<span x-text="stats.max_energy">{{ $character->max_energy }}</span></span>
+                        </span>
                     </div>
-                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-slate-700 rounded-full h-1 mt-1 overflow-hidden">
+                    <div class="w-full bg-slate-200/80 dark:bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
                         <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.energy_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->energy / max(1, $character->max_energy)) * 100))) }}%"></div>
                     </div>
                 </button>
 
-                <!-- Health Pill (Tap = Quick sheet of ziekenhuis) -->
+                <!-- 2. Health Pill -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="flex flex-col justify-center bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-1 rounded-xl cursor-pointer active:scale-95 transition"
+                        class="min-w-0 flex flex-col justify-center bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition text-left"
                         title="Gezondheid (klik voor genezen)">
-                    <div class="flex items-center gap-1 text-[10px] leading-none font-extrabold text-rose-600 dark:text-rose-400">
-                        <i class="fa-solid fa-heart text-[9px] text-rose-500"></i>
-                        <span class="font-mono text-[10px]" x-text="stats.health">{{ $character->health }}</span><span class="text-[8px] text-slate-400 dark:text-slate-500 font-mono">/<span x-text="stats.max_health">{{ $character->max_health }}</span></span>
+                    <div class="flex items-center justify-between gap-0.5 text-[10px] leading-none font-extrabold text-rose-600 dark:text-rose-400 min-w-0">
+                        <span class="flex items-center gap-1 truncate">
+                            <i class="fa-solid fa-heart text-[9px] text-rose-500 shrink-0"></i>
+                            <span class="font-mono text-[10px]" x-text="stats.health">{{ $character->health }}</span><span class="text-[8px] text-slate-400 dark:text-slate-500 font-mono">/<span x-text="stats.max_health">{{ $character->max_health }}</span></span>
+                        </span>
                     </div>
-                    <div class="w-10 xs:w-12 bg-slate-200/80 dark:bg-slate-700 rounded-full h-1 mt-1 overflow-hidden">
+                    <div class="w-full bg-slate-200/80 dark:bg-slate-800 rounded-full h-1 mt-1 overflow-hidden">
                         <div class="bg-rose-500 h-full rounded-full transition-all duration-300" :style="'width: ' + Math.max(0, Math.min(100, stats.health_pct)) + '%'" style="width: {{ min(100, max(0, round(($character->health / max(1, $character->max_health)) * 100))) }}%"></div>
                     </div>
                 </button>
 
-                <!-- Cash Pill (Tap = Quick sheet of bank storten) -->
+                <!-- 3. Cash Pill -->
                 <button type="button" 
                         @click="mobileQuickSheetOpen = true"
-                        class="hidden xs:flex items-center gap-1 bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-1.5 rounded-xl cursor-pointer active:scale-95 transition"
+                        class="min-w-0 flex flex-col justify-center bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition text-left"
                         title="Contant geld (klik om te storten)">
-                    <i class="fa-solid fa-money-bill-wave text-[10px] text-emerald-500"></i>
-                    <span class="font-black text-slate-900 dark:text-white text-[10px] font-mono leading-none tracking-tight" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
-                </button>
-            </div>
-
-            <!-- 3. Right: Refresh, Live Chat & Menu Toggle -->
-            <div class="flex items-center gap-1 shrink-0">
-                <!-- Direct Soft Reload Button -->
-                <button type="button" 
-                        onclick="window.tbsReloadPage(this)" 
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" 
-                        title="Pagina vernieuwen" 
-                        aria-label="Vernieuwen">
-                    <i class="fa-solid fa-rotate-right text-[11px]"></i>
+                    <span class="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 leading-none">Contant</span>
+                    <div class="flex items-center gap-1 mt-0.5 min-w-0">
+                        <i class="fa-solid fa-money-bill-wave text-[9px] text-emerald-500 shrink-0"></i>
+                        <span class="font-black text-slate-900 dark:text-white text-[10px] font-mono leading-none truncate" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                    </div>
                 </button>
 
-                <!-- Chat Button with Notification Ping -->
-                @php
-                    $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
-                @endphp
-                <a href="{{ route('chat.index') }}" class="relative w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" title="Live Chat & DMs" aria-label="Live Chat">
-                    <i class="fa-solid fa-comments text-xs"></i>
-                    @if($unreadChatCount > 0)
-                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 animate-ping"></span>
-                        <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
-                    @endif
+                <!-- 4. Stars Pill -->
+                <a href="{{ route('vip.index') }}" 
+                   class="min-w-0 flex flex-col justify-center bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-2 py-1 rounded-xl cursor-pointer active:scale-95 transition text-left"
+                   title="Sterren & VIP Shop">
+                    <span class="text-[8px] font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400 leading-none">Sterren</span>
+                    <div class="flex items-center gap-1 mt-0.5 min-w-0">
+                        <i class="fa-solid fa-star text-[9px] text-amber-500 shrink-0"></i>
+                        <span class="font-black text-slate-900 dark:text-white text-[10px] font-mono leading-none truncate" x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span>
+                    </div>
                 </a>
-
-                <!-- Hamburger Drawer Trigger -->
-                <button @click="mobileMenuOpen = true" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center text-xs transition cursor-pointer shrink-0 active:scale-90 border border-slate-200/80 dark:border-slate-700" aria-label="Open menu">
-                    <i class="fa-solid fa-bars text-sm"></i>
-                </button>
             </div>
         </header>
 
@@ -2281,16 +2317,16 @@
                     }
                  }" 
                  class="mb-6 bg-white dark:bg-slate-900 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 relative z-20">
-                <div class="flex items-center gap-3.5">
+                <div class="flex items-start sm:items-center gap-3.5">
                     <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0 animate-pulse">
                         <i class="fa-solid fa-syringe"></i>
                     </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-600 text-white">Code Blauw • 10/10 Geliquideerd</span>
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-600 text-white shrink-0">Code Blauw • 10/10 Geliquideerd</span>
                             <h3 class="text-sm sm:text-base font-black tracking-tight text-slate-900 dark:text-white">{{ \App\Models\Character::REVIVE_SERUM_NAME }} Vereist!</h3>
                         </div>
-                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">
                             Je bent 10x geliquideerd en verkeert in hartstilstand. Dien een <strong>{{ \App\Models\Character::REVIVE_SERUM_NAME }}</strong> toe om direct weer tot leven te komen (100% HP & teller naar 0/10).
                         </p>
                     </div>
