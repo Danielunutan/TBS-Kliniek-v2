@@ -104,10 +104,15 @@ class NewsController extends Controller
             'content' => ['required', 'string', 'min:2', 'max:500'],
         ]);
 
+        $cleanedContent = trim(strip_tags((string) $validated['content']));
+        if (mb_strlen($cleanedContent) < 2) {
+            return back()->with('error', 'Voer een geldige reactie van minimaal 2 tekens in.');
+        }
+
         NewsComment::create([
             'news_article_id' => $article->id,
             'character_id' => $character->id,
-            'content' => strip_tags($validated['content']),
+            'content' => $cleanedContent,
         ]);
 
         return back()->with('success', 'Je reactie is succesvol geplaatst onder dit nieuwsbericht!');

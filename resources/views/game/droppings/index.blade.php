@@ -159,7 +159,7 @@
 
     <!-- Buit Geschiedenis -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
             <div class="flex items-center gap-2.5">
                 <i class="fa-solid fa-boxes-stacked text-emerald-500"></i>
                 <h3 class="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-white">Jouw Smokkelrapportage</h3>

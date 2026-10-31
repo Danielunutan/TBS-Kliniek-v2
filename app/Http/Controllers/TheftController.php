@@ -56,6 +56,10 @@ class TheftController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet zakkenrollen!');
+        }
+
         if ($character->isComatose()) {
             $mins = ceil($character->getComaRemainingSeconds() / 60);
 

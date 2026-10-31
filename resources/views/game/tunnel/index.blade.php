@@ -122,7 +122,15 @@
             </div>
 
             <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                @if($tunnel->is_completed)
+                @if($character->isComatose())
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-heart-pulse"></i> Coma (Code Blauw)
+                    </button>
+                @elseif($character->isImprisoned())
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-lock"></i> In Isoleercel
+                    </button>
+                @elseif($tunnel->is_completed)
                     <button disabled class="w-full py-3 px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-trophy"></i> Tunnel Voltooid & Ontsnapt!
                     </button>
@@ -183,7 +191,15 @@
             </div>
 
             <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
-                @if($dumpCooldown > 0)
+                @if($character->isComatose())
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-heart-pulse"></i> Coma (Code Blauw)
+                    </button>
+                @elseif($character->isImprisoned())
+                    <button disabled class="w-full py-3 px-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                        <i class="fa-solid fa-lock"></i> In Isoleercel
+                    </button>
+                @elseif($dumpCooldown > 0)
                     <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-clock"></i> Bewaker Kijkt (Nog {{ ceil($dumpCooldown / 60) }} min)
                     </button>

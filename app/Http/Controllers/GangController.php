@@ -1446,6 +1446,14 @@ class GangController extends Controller
             return back()->with('error', 'Je bent geen lid van een bende.');
         }
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen aankopen doen in de bendewinkel!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'item_type' => ['required', 'string', 'in:bling_shops,protection,power,max_members,gang_chat'],
             'quantity' => ['required', 'integer', 'min:1', 'max:1000000'],
@@ -1587,6 +1595,14 @@ class GangController extends Controller
             return back()->with('error', 'Je bent geen lid van een bende.');
         }
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen sterren doneren aan de bende!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'stars' => ['required', 'integer', 'min:1', 'max:10000'],
         ]);
@@ -1604,7 +1620,7 @@ class GangController extends Controller
             }
 
             $lockedCharacter->stars -= $stars;
-            $lockedCharacter->respect += $stars * 5;
+            $lockedCharacter->addRespect($stars * 5);
             $lockedCharacter->save();
 
             $lockedGang->gang_stars = ($lockedGang->gang_stars ?? 0) + $stars;
@@ -1668,7 +1684,7 @@ class GangController extends Controller
             }
 
             $lockedCharacter->masks -= $quantity;
-            $lockedCharacter->respect += max(1, (int) round($quantity * 0.5));
+            $lockedCharacter->addRespect(max(1, (int) round($quantity * 0.5)));
             $lockedCharacter->save();
 
             $lockedGang->masks = ($lockedGang->masks ?? 0) + $quantity;
@@ -1764,7 +1780,7 @@ class GangController extends Controller
 
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
-            $lockedCharacter->respect += max(1, $quantity);
+            $lockedCharacter->addRespect(max(1, $quantity));
             $lockedCharacter->save();
 
             return back()
@@ -1998,7 +2014,7 @@ class GangController extends Controller
                 /** @var Character|null $lockedCharacter */
                 $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
                 if ($lockedCharacter) {
-                    $lockedCharacter->respect += $respectGain;
+                    $lockedCharacter->addRespect($respectGain);
                     $lockedCharacter->save();
                 }
 
@@ -2057,7 +2073,7 @@ class GangController extends Controller
             ]);
 
             if ($targetGang->leader) {
-                $targetGang->leader->respect += 2.0;
+                $targetGang->leader->addRespect(2.0);
                 $targetGang->leader->save();
 
                 GameMessage::create([
@@ -2108,6 +2124,14 @@ class GangController extends Controller
         $character = Auth::user()->character;
         if (! $character->gang_id) {
             return back()->with('error', 'Je zit momenteel niet in een bende.');
+        }
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen bende-uurloon opeisen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $payout = $this->wageService->payoutPendingWages($character);

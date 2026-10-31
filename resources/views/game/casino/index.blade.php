@@ -28,8 +28,8 @@
         cash: {{ (int) ($character?->cash ?? 0) }},
         async playCoinflip() {
             if (this.flipping) return;
-            if (this.bet < 10 || this.cash < this.bet) {
-                this.resultMsg = 'Je hebt onvoldoende contant geld voor deze inzet!';
+            if (this.bet < 10 || this.bet > 10000000 || this.cash < this.bet) {
+                this.resultMsg = (this.bet > 10000000) ? 'Maximale inzet is € 10.000.000!' : 'Je hebt onvoldoende contant geld voor deze inzet!';
                 this.isWin = false;
                 return;
             }
@@ -86,8 +86,18 @@
                            class="block w-full pl-8 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-500 text-xs font-bold bg-slate-50 dark:bg-slate-800/90 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition" 
                            placeholder="Inzet...">
                 </div>
+                <div class="flex items-center gap-1.5 mt-2">
+                    <button type="button" @click="bet = Math.min(cash, 100)" class="flex-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer">€100</button>
+                    <button type="button" @click="bet = Math.min(cash, 500)" class="flex-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer">€500</button>
+                    <button type="button" @click="bet = Math.min(cash, 1000)" class="flex-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer">€1k</button>
+                    <button type="button" @click="bet = Math.min(cash, 5000)" class="flex-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[10px] font-bold text-slate-700 dark:text-slate-300 transition cursor-pointer">€5k</button>
+                    <button type="button" @click="bet = Math.min(10000000, cash)" class="flex-1 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[10px] font-black transition cursor-pointer">MAX</button>
+                </div>
             </div>
-            <button type="submit" :disabled="cash < 10 || cash < bet || bet < 10 || bet > 10000000 || flipping || @js((bool) ($character?->isImprisoned() || $character?->isComatose()))" class="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-white rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+            <button type="submit" 
+                    :disabled="cash < 10 || cash < bet || bet < 10 || bet > 10000000 || flipping || @js((bool) ($character?->isImprisoned() || $character?->isComatose()))" 
+                    :title="@js((bool) $character?->isImprisoned()) ? 'Je zit in de isoleercel' : (@js((bool) $character?->isComatose()) ? 'Je ligt in coma' : '')"
+                    class="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 text-white rounded-xl font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                 <i class="fa-solid fa-play text-[10px]" :class="flipping ? 'animate-spin' : ''"></i>
                 <span x-text="flipping ? 'Munt draait...' : 'Gooi Munt Op (50% Win Kans)'"></span>
             </button>

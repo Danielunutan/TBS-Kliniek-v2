@@ -95,6 +95,7 @@ class PushSubscriptionController extends Controller
                     $lockedCharacter->cash += $cashBonus;
                     $lockedCharacter->energy = min($lockedCharacter->max_energy, $lockedCharacter->energy + $energyBonus);
                     $lockedCharacter->addRespect($respectBonus);
+                    $lockedCharacter->save();
 
                     SocialRewardClaim::create([
                         'user_id' => $user->id,

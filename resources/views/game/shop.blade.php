@@ -277,7 +277,7 @@
                     class="px-3 py-2 rounded-xl text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                 <i class="fa-solid fa-box-archive text-xs"></i>
                 <span>Rugzak</span>
-                <span class="px-1.5 py-0.2 rounded-full bg-purple-200 dark:bg-purple-950 text-purple-800 dark:text-purple-300 font-black text-[10px]" x-text="totalInvCount"></span>
+                <span class="px-1.5 py-0.5 rounded-full bg-purple-200 dark:bg-purple-950 text-purple-800 dark:text-purple-300 font-black text-[10px]" x-text="totalInvCount"></span>
             </button>
             <button type="button" @click="setShopTab('donaties')" 
                     :class="shopTab === 'donaties' ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-purple-950 shadow-xs font-black' : 'text-amber-700 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60'" 
@@ -721,7 +721,7 @@
                                  :class="storageRemaining <= 0 ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300' : 'bg-slate-50/90 dark:bg-slate-800/60 border-slate-200/80 dark:border-slate-700/70 text-slate-700 dark:text-slate-300'">
                                 <i class="fa-solid fa-warehouse text-purple-600 dark:text-purple-400"></i>
                                 <span>Opslagruimte: <span class="font-mono font-black" x-text="storageUsed + '/' + storageCapacity"></span></span>
-                                <span class="text-[10px] px-1.5 py-0.2 rounded-full font-bold font-mono"
+                                <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold font-mono"
                                       :class="storageRemaining <= 0 ? 'bg-rose-600 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300'"
                                       x-text="storageRemaining > 0 ? storageRemaining + ' vrij' : 'VOL'"></span>
                             </div>
@@ -758,7 +758,7 @@
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-border-all text-[11px]"></i>
                             <span>Alle Items</span>
-                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
                                   :class="itemFilter === 'all' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ count($items) }}
                             </span>
@@ -771,7 +771,7 @@
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-burger text-[11px]" :class="itemFilter === 'eten' ? 'text-white' : 'text-amber-500'"></i>
                             <span>Eten & Snacks</span>
-                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
                                   :class="itemFilter === 'eten' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['eten'] ?? 0 }}
                             </span>
@@ -784,7 +784,7 @@
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-bolt text-[11px]" :class="itemFilter === 'drank' ? 'text-white' : 'text-cyan-500'"></i>
                             <span>Drank & Energie</span>
-                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
                                   :class="itemFilter === 'drank' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['drank'] ?? 0 }}
                             </span>
@@ -797,7 +797,7 @@
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-kit-medical text-[11px]" :class="itemFilter === 'medisch' ? 'text-white' : 'text-rose-500'"></i>
                             <span>Medisch & Herstel</span>
-                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
                                   :class="itemFilter === 'medisch' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['medisch'] ?? 0 }}
                             </span>
@@ -810,7 +810,7 @@
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-dumbbell text-[11px]" :class="itemFilter === 'kracht' ? 'text-white' : 'text-indigo-500'"></i>
                             <span>Kracht & Uitrusting</span>
-                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
                                   :class="itemFilter === 'kracht' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['kracht'] ?? 0 }}
                             </span>
@@ -823,7 +823,7 @@
                                 class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-mask text-[11px]" :class="itemFilter === 'smokkel' ? 'text-white' : 'text-slate-600'"></i>
                             <span>Smokkel & Sleutels</span>
-                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-mono" 
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-mono" 
                                   :class="itemFilter === 'smokkel' ? 'bg-purple-700 text-purple-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'">
                                 {{ $categoryCounts['smokkel'] ?? 0 }}
                             </span>
@@ -1040,7 +1040,8 @@
                                         <button type="button" @click="setQty(5)" :class="buyQty === 5 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">5x</button>
                                         <button type="button" @click="setQty(10)" :class="buyQty === 10 ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer">10x</button>
                                         <button type="button" @click="buyQty = Math.max(1, maxBuyable)" :class="buyQty > 10 || (maxBuyable > 0 && buyQty === maxBuyable) ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-2xs font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-bold'" class="flex-1 py-1 rounded-lg text-[10px] sm:text-[11px] transition cursor-pointer" :title="'Max berekend op je saldo (' + maxBuyable + 'x)'">
-                                            <span x-text="maxBuyable > 0 ? 'Max (' + maxBuyable + ')' : 'Max'">Max</span>
+                                            <span class="hidden sm:inline" x-text="maxBuyable > 0 ? ('Max (' + maxBuyable + ')') : 'Max'">Max</span>
+                                            <span class="sm:hidden">Max</span>
                                         </button>
                                     </div>
                                 </template>
@@ -1256,7 +1257,7 @@
                                         <div class="min-w-0">
                                             <div class="text-xs font-black text-slate-900 dark:text-white truncate flex items-center gap-1.5">
                                                 <span>{{ $quickInv->item->name }}</span>
-                                                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold border border-slate-200/50 dark:border-slate-700">{{ $quickInv->quantity }}x</span>
+                                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold border border-slate-200/50 dark:border-slate-700">{{ $quickInv->quantity }}x</span>
                                             </div>
                                             <div class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2 pt-0.5">
                                                 @if($quickInv->item->energy_restore > 0)

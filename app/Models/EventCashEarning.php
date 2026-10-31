@@ -29,4 +29,3 @@ class EventCashEarning extends Model
         return $this->belongsTo(Character::class);
     }
 }
-

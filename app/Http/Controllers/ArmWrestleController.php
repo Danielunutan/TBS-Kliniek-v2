@@ -8,6 +8,7 @@ use App\Models\CharacterArmWrestleStat;
 use App\Models\GameNotification;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
+use App\Services\EnergyService;
 use App\Services\LevelService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +23,7 @@ class ArmWrestleController extends Controller
         protected EconomyService $economy,
         protected LevelService $level,
         protected CooldownService $cooldownService,
+        protected EnergyService $energyService,
     ) {}
 
     /**
@@ -248,7 +250,14 @@ class ArmWrestleController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if ($lockedCharacter->energy < 5) {
+            if ($lockedCharacter->cash < $bet) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Je hebt onvoldoende contant geld op zak voor deze inzet (€'.number_format($bet, 0, ',', '.').')!',
+                ], 422);
+            }
+
+            if (! $this->energyService->consume($lockedCharacter, 5)) {
                 // Check if this was caused by a duplicate request after energy was already deducted
                 $recentMatch = ArmWrestleMatch::where('challenger_id', $lockedCharacter->id)
                     ->where('type', 'npc')
@@ -276,15 +285,7 @@ class ArmWrestleController extends Controller
                 ], 422);
             }
 
-            if ($lockedCharacter->cash < $bet) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Je hebt onvoldoende contant geld op zak voor deze inzet (€'.number_format($bet, 0, ',', '.').')!',
-                ], 422);
-            }
-
-            // Deduct energy and cash wager
-            $lockedCharacter->decrement('energy', 5);
+            // Deduct cash wager
             $lockedCharacter->decrement('cash', $bet);
 
             // Set cooldown immediately upon match resolution (20 seconds)
@@ -325,7 +326,7 @@ class ArmWrestleController extends Controller
                 // Calculate rewards
                 $profit = $npc['win_payout'] - $npc['bet'];
                 $lockedCharacter->increment('cash', $npc['win_payout']);
-                $lockedCharacter->increment('respect', $npc['respect']);
+                $lockedCharacter->addRespect($npc['respect']);
                 $this->level->addXp($lockedCharacter, $npc['xp']);
 
                 $maxStrength = $lockedCharacter->getMaxStatForLevel();
@@ -559,7 +560,7 @@ class ArmWrestleController extends Controller
                 return back()->with('error', 'Uitdager niet gevonden.');
             }
 
-            if ($lockedOpponent->energy < 5) {
+            if (! $this->energyService->consume($lockedOpponent, 5)) {
                 return back()->with('error', 'Je hebt minimaal 5 Energie nodig om deze uitdaging aan te gaan!');
             }
 
@@ -570,7 +571,6 @@ class ArmWrestleController extends Controller
             $match->status = 'completed';
             $match->save();
 
-            $lockedOpponent->decrement('energy', 5);
             $lockedOpponent->decrement('cash', $bet);
 
             // Set cooldown for opponent
@@ -585,7 +585,7 @@ class ArmWrestleController extends Controller
 
             // Payout winner
             $winner->increment('cash', $pot);
-            $winner->increment('respect', 15);
+            $winner->addRespect(15);
             $this->level->addXp($winner, 50);
 
             $maxStrength = $winner->getMaxStatForLevel();

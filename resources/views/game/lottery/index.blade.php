@@ -153,12 +153,16 @@
                     </span>
                 </div>
 
+                @php
+                    $isLotteryBlocked = $character->isImprisoned() || $character->isComatose();
+                @endphp
                 <form action="{{ route('lottery.buy') }}" method="POST" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
                     @csrf
                     <input type="hidden" name="currency" value="cash">
 
                     <button type="submit" name="quantity" value="1" 
-                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 1) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 1) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">1 Lot</span>
                         <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
                             € {{ number_format($cashPricePerTicket * 1, 0, ',', '.') }}
@@ -169,7 +173,8 @@
                     </button>
 
                     <button type="submit" name="quantity" value="5" 
-                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 5) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 5) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">5 Loten</span>
                         <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
                             € {{ number_format($cashPricePerTicket * 5, 0, ',', '.') }}
@@ -180,7 +185,8 @@
                     </button>
 
                     <button type="submit" name="quantity" value="10" 
-                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 10) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 10) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">10 Loten</span>
                         <span class="block text-[11px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
                             € {{ number_format($cashPricePerTicket * 10, 0, ',', '.') }}
@@ -191,7 +197,8 @@
                     </button>
 
                     <button type="submit" name="quantity" value="25" 
-                            class="p-3 rounded-xl border border-purple-500/80 dark:border-purple-500 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 25) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-purple-500/80 dark:border-purple-500 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || $character->cash < ($cashPricePerTicket * 25) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-purple-950 dark:text-purple-100">25 Loten</span>
                         <span class="block text-[11px] text-purple-700 dark:text-purple-300 font-bold mt-0.5">
                             € {{ number_format($cashPricePerTicket * 25, 0, ',', '.') }}
@@ -226,7 +233,8 @@
                     <input type="hidden" name="currency" value="stars">
 
                     <button type="submit" name="quantity" value="1" 
-                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 1) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 1) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">1 VIP Lot</span>
                         <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
                             {{ $starsPricePerTicket * 1 }} Sterren
@@ -237,7 +245,8 @@
                     </button>
 
                     <button type="submit" name="quantity" value="5" 
-                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 5) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 5) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">5 VIP Loten</span>
                         <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
                             {{ $starsPricePerTicket * 5 }} Sterren
@@ -248,7 +257,8 @@
                     </button>
 
                     <button type="submit" name="quantity" value="10" 
-                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 10) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-amber-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 10) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-slate-900 dark:text-slate-100">10 VIP Loten</span>
                         <span class="block text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">
                             {{ $starsPricePerTicket * 10 }} Sterren
@@ -259,7 +269,8 @@
                     </button>
 
                     <button type="submit" name="quantity" value="25" 
-                            class="p-3 rounded-xl border border-amber-400 bg-amber-100/80 dark:bg-amber-950/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/50 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs">
+                            {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 25) ? 'disabled' : '' }}
+                            class="p-3 rounded-xl border border-amber-400 bg-amber-100/80 dark:bg-amber-950/50 hover:bg-amber-200/80 dark:hover:bg-amber-900/50 transition-all duration-150 active:scale-95 text-center group cursor-pointer shadow-xs {{ $isLotteryBlocked || ($character->stars ?? 0) < ($starsPricePerTicket * 25) ? 'opacity-40 cursor-not-allowed' : '' }}">
                         <span class="block text-xs font-black text-amber-950 dark:text-amber-100">25 VIP Loten</span>
                         <span class="block text-[11px] text-amber-800 dark:text-amber-300 font-bold mt-0.5">
                             {{ $starsPricePerTicket * 25 }} Sterren

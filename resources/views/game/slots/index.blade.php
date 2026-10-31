@@ -194,13 +194,13 @@
                 </div>
 
                 <!-- Bottom Payout Summary Ribbon -->
-                <div class="mt-3.5 pt-3 border-t border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-1">
+                <div class="mt-3.5 pt-3 border-t border-slate-200/80 dark:border-slate-700/70 flex flex-wrap items-center justify-between text-[11px] font-bold text-slate-600 dark:text-slate-400 px-1 gap-1">
                     <span class="flex items-center gap-1 text-slate-900 dark:text-slate-200">
                         <i class="fa-solid fa-star text-amber-500"></i> 3x 7️⃣ = 50x Jackpot
                     </span>
-                    <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                    <span class="text-slate-300 dark:text-slate-600 hidden sm:inline">&bull;</span>
                     <span class="text-purple-700 dark:text-purple-300">3x 💎 = 25x</span>
-                    <span class="text-slate-300 dark:text-slate-600">&bull;</span>
+                    <span class="text-slate-300 dark:text-slate-600 hidden sm:inline">&bull;</span>
                     <span class="text-emerald-700 dark:text-emerald-300">2 Gelijke = 1.5x</span>
                 </div>
 
@@ -240,6 +240,7 @@
             <!-- Big Spin Button in TBS Purple Brand Theme -->
             <button type="button" @click="spin()"
                     :disabled="isSpinning || cash < bet || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }}"
+                    :title="{{ $character->isImprisoned() ? '\'Je zit in de isoleercel\'' : ($character->isComatose() ? '\'Je ligt in coma\'' : 'cash < bet ? \'Onvoldoende contant geld\' : \'Draai de rollen\'') }}"
                     class="w-full py-3.5 px-6 rounded-xl font-black text-base transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-95"
                     :class="isSpinning || cash < bet || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }} ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none active:scale-100' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white shadow-xs'">
                 <i class="fa-solid fa-rotate-right text-base" :class="isSpinning ? 'animate-spin' : ''"></i>

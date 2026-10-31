@@ -6,7 +6,7 @@
          countdown: {{ (!empty($arenaBattle['resolved'])) ? 0 : 2 }},
          resolved: {{ (!empty($arenaBattle['resolved'])) ? 'true' : 'false' }},
          resolving: false,
-         won: {{ $arenaBattle['won'] ? 'true' : 'false' }},
+         won: {{ (!empty($arenaBattle['won'])) ? 'true' : 'false' }},
          stolenCash: {{ (int)($arenaBattle['stolen_cash'] ?? 0) }},
          claimedBounty: {{ (int)($arenaBattle['claimed_bounty'] ?? 0) }},
          damage: {{ (int)($arenaBattle['damage'] ?? 0) }},

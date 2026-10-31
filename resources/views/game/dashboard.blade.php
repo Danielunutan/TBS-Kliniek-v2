@@ -1326,10 +1326,10 @@ function tbsDashboardCustomizer() {
                             <div class="flex items-center gap-1.5 mb-1">
                                 <span class="text-[10px] font-black uppercase tracking-wider text-amber-400">Live Weerstation</span>
                                 <template x-if="weather.is_gps">
-                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-sky-500/30 text-sky-300 border border-sky-400/30">GPS Locatie</span>
+                                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-sky-500/30 text-sky-300 border border-sky-400/30">GPS Locatie</span>
                                 </template>
                                 <template x-if="!weather.is_gps">
-                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-slate-700/60 text-slate-300 border border-slate-600/40">Kliniek Vught</span>
+                                    <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-slate-700/60 text-slate-300 border border-slate-600/40">Kliniek Vught</span>
                                 </template>
                             </div>
                             <div class="flex items-center gap-1.5 text-slate-100 font-extrabold text-sm sm:text-base">
@@ -1590,6 +1590,14 @@ function tbsDashboardCustomizer() {
                                     <i class="fa-solid fa-person-running"></i>
                                     <span>Tunnel Voltooid &bull; Uitbreken!</span>
                                 </a>
+                            @elseif($character->isImprisoned())
+                                <div class="col-span-1 sm:col-span-2 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 font-bold text-[11px] text-center border border-rose-200 dark:border-rose-800">
+                                    <i class="fa-solid fa-lock mr-1"></i> In isoleercel &bull; Graven geblokkeerd
+                                </div>
+                            @elseif($character->isComatose())
+                                <div class="col-span-1 sm:col-span-2 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 font-bold text-[11px] text-center border border-rose-200 dark:border-rose-800">
+                                    <i class="fa-solid fa-bed mr-1"></i> In coma &bull; Graven geblokkeerd
+                                </div>
                             @else
                                 <!-- Knop 1: Graven -->
                                 @if($tunnelDigCooldown > 0)
@@ -1863,7 +1871,15 @@ function tbsDashboardCustomizer() {
 
                         <!-- Directe Acties -->
                         <div class="space-y-2">
-                            @if(($activeVaultCodes ?? 0) > 0)
+                            @if($character->isImprisoned())
+                                <div class="py-2.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 font-bold text-xs text-center border border-rose-200 dark:border-rose-800">
+                                    <i class="fa-solid fa-lock mr-1"></i> In isoleercel &bull; Postkamer geblokkeerd
+                                </div>
+                            @elseif($character->isComatose())
+                                <div class="py-2.5 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 font-bold text-xs text-center border border-rose-200 dark:border-rose-800">
+                                    <i class="fa-solid fa-bed mr-1"></i> In coma &bull; Postkamer geblokkeerd
+                                </div>
+                            @elseif(($activeVaultCodes ?? 0) > 0)
                                 <a href="{{ route('vault.index') }}" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-black text-xs transition shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 cursor-pointer">
                                     <i class="fa-solid fa-key"></i>
                                     <span>Verzilver {{ $activeVaultCodes }} Kluiscode(s) Direct &rarr;</span>
@@ -2000,6 +2016,7 @@ function tbsDashboardCustomizer() {
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
+         @keydown.escape.window="showCustomizer = false"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none"
          style="display: none;">
         
@@ -2018,7 +2035,7 @@ function tbsDashboardCustomizer() {
                     </div>
                 </div>
 
-                <button type="button" @click="showCustomizer = false" class="w-8 h-8 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 flex items-center justify-center transition cursor-pointer">
+                <button type="button" @click="showCustomizer = false" class="w-8 h-8 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition cursor-pointer" aria-label="Sluiten">
                     <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
@@ -2157,12 +2174,12 @@ function tbsDashboardCustomizer() {
                                     <div class="flex items-center gap-1.5">
                                         <span class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate" x-text="item.title"></span>
                                         <template x-if="item.isPremium && !isUnlocked(item.key)">
-                                            <span class="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shrink-0">
+                                            <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shrink-0">
                                                 <i class="fa-solid fa-star text-[8px]"></i> <span x-text="item.cost"></span>
                                             </span>
                                         </template>
                                         <template x-if="item.isPremium && isUnlocked(item.key)">
-                                            <span class="text-[8px] font-black px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 shrink-0">
+                                            <span class="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 shrink-0">
                                                 ✓ Vrij
                                             </span>
                                         </template>
@@ -2257,8 +2274,8 @@ function tbsDashboardCustomizer() {
                     </span>
                     <h3 class="text-sm font-black text-slate-900 dark:text-white">Kies jouw Woonplaats / Regio</h3>
                 </div>
-                <button type="button" @click="showCityModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" @click="showCityModal = false" class="w-8 h-8 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-white flex items-center justify-center transition cursor-pointer" aria-label="Sluiten">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 

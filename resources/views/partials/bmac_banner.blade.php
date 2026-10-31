@@ -1,3 +1,7 @@
+@php
+    $character = $character ?? (Auth::check() ? Auth::user()->character : null);
+@endphp
+@if($character)
 <!-- BUY ME A COFFEE SNELBANNER VOOR WINKEL ITEMS (Licht & Donker Modus) -->
 <div x-data="{
     copiedType: null,
@@ -72,3 +76,4 @@ class="bg-white dark:bg-slate-900 border border-amber-400/80 dark:border-amber-5
     </div>
 
 </div>
+@endif

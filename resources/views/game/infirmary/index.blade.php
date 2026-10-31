@@ -106,8 +106,8 @@
             <form action="{{ route('infirmary.take') }}" method="POST">
                 @csrf
                 <button type="submit" 
-                        {{ $takeCooldown > 0 || $character->health >= $character->max_health ? 'disabled' : '' }}
-                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $takeCooldown > 0 || $character->health >= $character->max_health ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }}">
+                        {{ $takeCooldown > 0 || $character->health >= $character->max_health || $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $takeCooldown > 0 || $character->health >= $character->max_health || $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }}">
                     <i class="fa-solid fa-pills"></i>
                     <span>{{ $character->health >= $character->max_health ? 'Gezondheid al Maximaal' : 'Neem Medicijn In (+45 HP)' }}</span>
                 </button>
@@ -178,8 +178,8 @@
             <form action="{{ route('infirmary.palm') }}" method="POST">
                 @csrf
                 <button type="submit" 
-                        {{ $palmCooldown > 0 || $character->energy < 10 ? 'disabled' : '' }}
-                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $palmCooldown > 0 || $character->energy < 10 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
+                        {{ $palmCooldown > 0 || $character->energy < 10 || $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                        class="w-full py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 text-center shadow-xs flex items-center justify-center gap-2 {{ $palmCooldown > 0 || $character->energy < 10 || $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200/80 dark:border-slate-700/60' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }}">
                     <i class="fa-solid fa-hand-holding-hand"></i>
                     <span>Pil Stiekem Palmen (-10 Energie)</span>
                 </button>

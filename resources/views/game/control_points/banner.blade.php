@@ -104,6 +104,11 @@
                     <i class="fa-solid fa-bolt text-amber-500"></i>
                     <span>{{ $cpPoint->energy_cost }} Energie Nodig</span>
                 </span>
+            @elseif(! $cpCharacter)
+                <span class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 text-xs font-bold border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-1.5 cursor-not-allowed">
+                    <i class="fa-solid fa-user-xmark text-slate-400"></i>
+                    <span>Geen Karakter</span>
+                </span>
             @else
                 <form method="POST" action="{{ route('control-points.capture', $cpPoint) }}" class="inline m-0">
                     @csrf

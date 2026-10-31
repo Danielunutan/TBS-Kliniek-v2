@@ -13,7 +13,19 @@
         this.open = false;
     },
     copyCode(code) {
-        navigator.clipboard.writeText(code);
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code);
+        } else {
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
         this.copiedCode = code;
         setTimeout(() => {
             if (this.copiedCode === code) this.copiedCode = null;

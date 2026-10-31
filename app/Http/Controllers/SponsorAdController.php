@@ -485,7 +485,7 @@ class SponsorAdController extends Controller
                     break;
 
                 case 'respect':
-                    $character->respect = ($character->respect ?? 0) + 1;
+                    $character->addRespect(1);
                     $rewardDetails = '🔥 +1 Respect verdiend! Je respect score is direct verhoogd!';
                     break;
 
@@ -505,7 +505,7 @@ class SponsorAdController extends Controller
                             $character->ad_prison_progress = $current;
                             // Reduce remaining prison time by 3 minutes (180s) per ad watched
                             if ($character->prison_until && now()->lt($character->prison_until)) {
-                                $remainingSec = max(0, (int) now()->diffInSeconds($character->prison_until, false));
+                                $remainingSec = max(0, (int) ceil(now()->diffInSeconds($character->prison_until, false)));
                                 $newSec = max(10, $remainingSec - 180);
                                 $character->prison_until = now()->addSeconds($newSec);
                             }

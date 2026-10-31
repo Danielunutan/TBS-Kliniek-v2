@@ -374,11 +374,11 @@
                     </div>
                     <h3 class="text-base font-black text-slate-900 dark:text-white">Buy Me a Coffee Koppelen</h3>
                 </div>
-                <button type="button" @click="linkModalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg">&times;</button>
+                <button type="button" @click="linkModalOpen = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg cursor-pointer transition-colors" aria-label="Sluiten">&times;</button>
             </div>
 
             <template x-if="selectedOrder">
-                <form :action="'/admin/buymeacoffee/' + selectedOrder.id + '/link'" method="POST" class="space-y-4 text-xs">
+                <form :action="'{{ url('/admin/buymeacoffee') }}/' + selectedOrder.id + '/link'" method="POST" class="space-y-4 text-xs">
                     @csrf
 
                     <!-- Order samenvatting -->

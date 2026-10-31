@@ -306,8 +306,12 @@
                             </div>
                             @endif
 
+                            @php
+                                $cantExecuteMission = $character->isImprisoned() || $character->isComatose() || $character->energy < $m->energy_cost;
+                            @endphp
                             <button type="submit"
-                                class="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs py-2.5 px-3 rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                                {{ $cantExecuteMission ? 'disabled' : '' }}
+                                class="w-full {{ $cantExecuteMission ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' }} font-black text-xs py-2.5 px-3 rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                                 <span>Missie Uitvoeren (⚡ {{ $m->energy_cost }})</span>
                                 <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </button>

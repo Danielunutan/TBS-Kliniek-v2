@@ -340,6 +340,9 @@
                     window.tbsApplyStats = (newStats) => this.applyStats(newStats);
                     window.tbsRefreshStats = (force = false) => this.refresh(force);
 
+                    this.$watch('mobileMenuOpen', val => document.body.classList.toggle('overflow-hidden', !!(val || this.mobileQuickSheetOpen)));
+                    this.$watch('mobileQuickSheetOpen', val => document.body.classList.toggle('overflow-hidden', !!(val || this.mobileMenuOpen)));
+
                     // Mark fresh server-rendered stats timestamp so turbo:load does not immediately double-fetch
                     this.lastRefreshTime = Date.now();
                     window._tbsLastStatsFetchAt = Date.now();
@@ -704,7 +707,7 @@
             return {
                 openCategories: [],
                 favorites: [],
-                allCats: ['algemeen', 'bende', 'event', 'voortgang', 'misdaad', 'bonus', 'specials', 'geweld', 'economie', 'account'],
+                allCats: ['algemeen', 'bende', 'event', 'voortgang', 'misdaad', 'bonus', 'specials', 'geweld', 'economie'],
                 init() {
                     try {
                         const savedCats = JSON.parse(localStorage.getItem(storageKey) || 'null');
@@ -2522,7 +2525,7 @@
         @include('partials.season_welcome_modal')
 
         <!-- SITE-WIDE JURIDISCHE & COMPLIANCE FOOTER (Nederland & Europa AVG/GDPR) -->
-        <footer class="mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 pt-10 pb-20 lg:pb-10 text-xs text-slate-500 dark:text-slate-400">
+        <footer class="mt-auto border-t border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 pt-10 pb-28 lg:pb-10 text-xs text-slate-500 dark:text-slate-400">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
                 
                 <!-- Main Footer Grid (4 Perfectly Balanced Columns) -->
@@ -3741,7 +3744,7 @@
                     <button type="button" @click="enablePush()" :disabled="loading"
                             class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-extrabold text-xs transition flex items-center justify-center gap-1.5 shadow-md cursor-pointer disabled:opacity-50">
                         <i class="fa-solid" :class="loading ? 'fa-spinner animate-spin' : 'fa-bell'"></i>
-                        <span x-text="loading ? 'Bezig...' : 'Nu Inschakelen &amp; Bonus Pakken'"></span>
+                        <span x-text="loading ? 'Bezig...' : 'Nu Inschakelen & Bonus Pakken'"></span>
                     </button>
                     <button type="button" @click="dismiss()"
                             class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition cursor-pointer">
@@ -3867,7 +3870,7 @@
         (function() {
             function fireToast() {
                 if (typeof window.tbsToast === 'function') {
-                    window.tbsToast(@json($flashSuccess), 'success');
+                    window.tbsToast(@js($flashSuccess), 'success');
                 } else {
                     setTimeout(fireToast, 50);
                 }
@@ -3886,7 +3889,7 @@
         (function() {
             function fireToast() {
                 if (typeof window.tbsToast === 'function') {
-                    window.tbsToast(@json($flashError), 'error');
+                    window.tbsToast(@js($flashError), 'error');
                 } else {
                     setTimeout(fireToast, 50);
                 }

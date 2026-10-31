@@ -334,7 +334,7 @@
                                 
                                 <!-- Daily Respect Button with Captcha Modal Trigger -->
                                 @php
-                                    $canRespect = ! $f->last_respected_at || $f->last_respected_at->diffInHours(now()) >= 24;
+                                    $canRespect = ! $f->last_respected_at || $f->last_respected_at->copy()->addHours(24)->isPast();
                                 @endphp
                                 @if($canRespect)
                                 <button type="button" 
@@ -439,8 +439,8 @@
                             <div class="px-4 py-2 bg-purple-900 dark:bg-purple-950 text-white font-mono font-black text-base rounded-xl border border-purple-700 dark:border-purple-800 tracking-wider select-none shadow-xs shrink-0">
                                 {{ $numA }} + {{ $numB }} = ?
                             </div>
-                            <input type="number" name="captcha_answer" required autofocus placeholder="Antwoord"
-                                   class="flex-1 min-w-0 text-sm font-black bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition">
+                            <input type="number" inputmode="numeric" pattern="[0-9]*" name="captcha_answer" required autofocus placeholder="Antwoord"
+                                   class="flex-1 min-w-0 text-base sm:text-sm font-black bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3.5 py-2 focus:border-purple-600 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition">
                         </div>
                     </div>
 
@@ -477,7 +477,7 @@
                     search: '',
                     selectedName: '',
                     openDropdown: false,
-                    patients: {{ $availablePatients->map(fn($p) => ['name' => $p->name, 'level' => $p->level, 'avatar' => $p->avatar_url])->toJson() }},
+                    patients: @js($availablePatients->map(fn($p) => ['name' => $p->name, 'level' => $p->level, 'avatar' => $p->avatar_url])),
                     get filtered() {
                         if (!this.search.trim()) return this.patients.slice(0, 20);
                         return this.patients.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 20);
@@ -502,7 +502,7 @@
                                @click.outside="openDropdown = false"
                                autocomplete="off"
                                placeholder="Typ om een speler te zoeken..."
-                               class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl py-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition tbs-search-input"
+                               class="w-full text-base sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl py-2.5 focus:bg-white dark:focus:bg-slate-900 focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition tbs-search-input"
                                style="padding-left: 2.75rem !important; padding-right: 2.25rem !important;">
                         <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 text-xs z-10">
                             <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>

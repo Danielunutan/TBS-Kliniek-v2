@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Character;
+use App\Models\GameSetting;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use Illuminate\Http\Request;
@@ -78,15 +79,19 @@ class CasinoController extends Controller
 
         $this->cooldownService->setCooldown($character, 'casino_dice', 5);
 
-        // Simple Coin Flip (50/50)
-        $win = rand(0, 1) === 1;
+        // Configured win rate check
+        $winRate = (int) GameSetting::get('win_rate_casino', 45);
+        $win = rand(1, 100) <= $winRate;
+        $isDice = $validated['game'] === 'dice';
 
         if ($win) {
             $winnings = $bet * 2;
             $this->economy->addCash($character, $winnings);
             $character->refresh();
 
-            $msg = 'Gefeliciteerd! De munt landde goed en je won €'.number_format($winnings, 0, ',', '.').'!';
+            $msg = $isDice
+                ? 'Gefeliciteerd! De dobbelstenen rolden in jouw voordeel en je won €'.number_format($winnings, 0, ',', '.').'!'
+                : 'Gefeliciteerd! De munt landde goed en je won €'.number_format($winnings, 0, ',', '.').'!';
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -101,7 +106,9 @@ class CasinoController extends Controller
             return back()->with('success', $msg);
         } else {
             $character->refresh();
-            $msg = 'Helaas, de munt viel verkeerd. Mo pakt je inzet van €'.number_format($bet, 0, ',', '.').'.';
+            $msg = $isDice
+                ? 'Helaas, de worp viel verkeerd. Mo pakt je inzet van €'.number_format($bet, 0, ',', '.').'.'
+                : 'Helaas, de munt viel verkeerd. Mo pakt je inzet van €'.number_format($bet, 0, ',', '.').'.';
 
             if ($request->expectsJson()) {
                 return response()->json([

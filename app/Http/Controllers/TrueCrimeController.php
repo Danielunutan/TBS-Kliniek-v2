@@ -176,7 +176,8 @@ class TrueCrimeController extends Controller
                 }
 
                 $lockedCharacter->increment('cash', $rewardCash);
-                $lockedCharacter->increment('respect', $rewardRespect);
+                $lockedCharacter->addRespect($rewardRespect);
+                $lockedCharacter->save();
                 $this->level->addXp($lockedCharacter, $rewardXp);
 
                 $title = 'ZAAK OPGELOST! GEWELDIG RECHERCHEWERK!';

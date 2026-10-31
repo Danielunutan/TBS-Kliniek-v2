@@ -10,7 +10,7 @@
          filter: '{{ in_array($initialFilter, ['all', 'online', 'offline', 'gang', 'solo', 'vip', 'prison']) ? $initialFilter : 'all' }}',
          sortBy: '{{ $initialFilter === 'online' ? 'online_first' : 'respect_desc' }}',
          viewMode: 'grid',
-         members: {{ Js::from($membersData) }},
+         members: @js($membersData),
          get filteredList() {
              let q = this.search.toLowerCase().trim();
              return this.members.filter(m => {
@@ -94,7 +94,7 @@
         <button type="button" @click="filter = 'all'" 
                 :class="filter === 'all' ? 'ring-2 ring-purple-600 bg-purple-50/60 dark:bg-purple-950/40 border-purple-300 dark:border-purple-700' : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80'"
                 class="border rounded-2xl p-4 text-left transition cursor-pointer shadow-xs space-y-1 group">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block flex items-center justify-between">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
                 <span>Totaal Leden</span>
                 <i class="fa-solid fa-users text-purple-500 group-hover:scale-110 transition-transform"></i>
             </span>
@@ -105,7 +105,7 @@
         <button type="button" @click="filter = 'online'" 
                 :class="filter === 'online' ? 'ring-2 ring-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700' : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/80'"
                 class="border rounded-2xl p-4 text-left transition cursor-pointer shadow-xs space-y-1 group">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block flex items-center justify-between">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
                 <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Nu Online</span>
                 <i class="fa-solid fa-wifi text-emerald-500 group-hover:scale-110 transition-transform"></i>
             </span>
@@ -116,7 +116,7 @@
         <button type="button" @click="filter = 'gang'" 
                 :class="filter === 'gang' ? 'ring-2 ring-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/40 border-indigo-300 dark:border-indigo-700' : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700/80'"
                 class="border rounded-2xl p-4 text-left transition cursor-pointer shadow-xs space-y-1 group">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block flex items-center justify-between">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
                 <span>In een Bende</span>
                 <i class="fa-solid fa-shield-halved text-indigo-500 group-hover:scale-110 transition-transform"></i>
             </span>
@@ -127,7 +127,7 @@
         <button type="button" @click="filter = 'solo'" 
                 :class="filter === 'solo' ? 'ring-2 ring-amber-600 bg-amber-50/60 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700' : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700/80'"
                 class="border rounded-2xl p-4 text-left transition cursor-pointer shadow-xs space-y-1 group">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 block flex items-center justify-between">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
                 <span>Solitair / Vrij</span>
                 <i class="fa-solid fa-user text-amber-500 group-hover:scale-110 transition-transform"></i>
             </span>
@@ -137,8 +137,8 @@
 
         <button type="button" @click="filter = 'prison'" 
                 :class="filter === 'prison' ? 'ring-2 ring-rose-600 bg-rose-50/60 dark:bg-rose-950/40 border-rose-300 dark:border-rose-700' : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-700/80'"
-                class="border rounded-2xl p-4 text-left transition cursor-pointer shadow-xs space-y-1 group">
-            <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-500 block flex items-center justify-between">
+                class="col-span-2 sm:col-span-1 border rounded-2xl p-4 text-left transition cursor-pointer shadow-xs space-y-1 group">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-rose-500 flex items-center justify-between">
                 <span>Isoleercel</span>
                 <i class="fa-solid fa-lock text-rose-500 group-hover:scale-110 transition-transform"></i>
             </span>
@@ -177,7 +177,7 @@
                         :class="filter === 'all' ? 'bg-purple-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700'"
                         class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
                     <span>Alle Patiënten</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="filter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="members.length"></span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="filter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="members.length"></span>
                 </button>
 
                 <button type="button"
@@ -187,7 +187,7 @@
                         class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full" :class="filter === 'online' ? 'bg-white' : 'bg-emerald-500 animate-pulse'"></span>
                     <span>Nu Online</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="filter === 'online' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'" x-text="currentOnlineCount"></span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="filter === 'online' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'" x-text="currentOnlineCount"></span>
                 </button>
 
                 <button type="button"
@@ -195,7 +195,7 @@
                         :class="filter === 'offline' ? 'bg-slate-700 dark:bg-slate-700 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700'"
                         class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
                     <span>Offline</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="filter === 'offline' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="currentOfflineCount"></span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="filter === 'offline' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="currentOfflineCount"></span>
                 </button>
 
                 <button type="button"
@@ -204,7 +204,7 @@
                         class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-users text-[10px]"></i>
                     <span>Met Bende</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="filter === 'gang' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="currentGangCount"></span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="filter === 'gang' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="currentGangCount"></span>
                 </button>
 
                 <button type="button"
@@ -213,7 +213,7 @@
                         class="px-3 py-1.5 rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5">
                     <i class="fa-solid fa-user-plus text-[10px]"></i>
                     <span>Zonder Bende</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="filter === 'solo' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="currentSoloCount"></span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="filter === 'solo' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="currentSoloCount"></span>
                 </button>
 
                 <button type="button"
@@ -302,7 +302,7 @@
                                     <span title="VIP Lid" class="text-amber-500 text-xs"><i class="fa-solid fa-crown"></i></span>
                                 </template>
                                 <template x-if="m.is_self">
-                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">Jij</span>
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70">Jij</span>
                                 </template>
                             </div>
                             <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate" x-text="m.title"></div>
@@ -421,7 +421,7 @@
                                                 <i class="fa-solid fa-crown text-[10px] text-amber-500" title="VIP Lid"></i>
                                             </template>
                                             <template x-if="m.is_self">
-                                                <span class="text-[9px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 px-1.5 py-0.2 rounded">Jij</span>
+                                                <span class="text-[9px] font-black uppercase tracking-wider bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 px-1.5 py-0.5 rounded">Jij</span>
                                             </template>
                                         </div>
                                         <span class="text-[10px] text-slate-400 dark:text-slate-500 block" x-text="m.title"></span>

@@ -65,7 +65,8 @@ class NumberGameController extends Controller
             $payout = $bet * 15;
             $this->economy->addCash($character, $payout);
             $this->level->addXp($character, 50);
-            $character->increment('respect', 5);
+            $character->addRespect(5);
+            $character->save();
 
             return back()->with('success', "🎯 JACKPOT! Getrokken nummer: {$drawn}! Je raadde het precies! Je wint €".number_format($payout, 0, ',', '.').' (15x)! +50 XP, +5 Respect!');
         }

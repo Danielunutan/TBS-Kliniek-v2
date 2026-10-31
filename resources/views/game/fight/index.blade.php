@@ -55,6 +55,16 @@
             Naar Isoleercel &raquo;
         </a>
     </div>
+    @elseif($character->isComatose())
+    <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-bed-pulse text-rose-500 text-base"></i>
+            <span>Je ligt momenteel in coma in de ziekenboeg! Vanuit het ziekenhuis kun je niemand beroven op de luchtplaats.</span>
+        </div>
+        <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shrink-0 transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
+            Naar Dashboard &raquo;
+        </a>
+    </div>
     @elseif($character->energy < 20)
     <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-2.5">
@@ -384,7 +394,7 @@
                             <button type="submit"
                                     :disabled="globalCd > 0 || {{ ($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) ? 'true' : 'false' }}"
                                     @if($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) disabled @endif
-                                    class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-1.5">
+                                    class="px-3.5 py-2 min-h-[38px] rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-1.5">
                                 <template x-if="globalCd <= 0">
                                     <span class="inline-flex items-center gap-1">
                                         <i class="fa-solid fa-sack-dollar text-[11px]"></i>

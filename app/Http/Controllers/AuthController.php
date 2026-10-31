@@ -87,6 +87,10 @@ class AuthController extends Controller
             return redirect()->away($url);
         }
 
+        if (app()->environment('production')) {
+            return redirect()->route('login')->with('error', 'Discord login is momenteel niet geconfigureerd.');
+        }
+
         // Seamless instant demo login for local development
         $user = User::firstOrCreate(
             ['email' => 'discord_inmate@tbskliniek.nl'],

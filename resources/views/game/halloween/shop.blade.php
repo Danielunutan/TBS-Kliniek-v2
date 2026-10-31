@@ -158,7 +158,9 @@
                             <form action="{{ route('halloween.equip-border') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="border_key" value="{{ $border['key'] }}">
-                                <button type="submit" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
+                                <button type="submit" 
+                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-paintbrush text-xs"></i>
                                     <span>Instellen op Profiel</span>
                                 </button>
@@ -168,8 +170,8 @@
                                 @csrf
                                 <input type="hidden" name="item_key" value="{{ $border['key'] }}">
                                 <button type="submit" 
-                                        @if(!$canAfford) disabled @endif
-                                        class="w-full py-2 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
+                                        @if(!$canAfford || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ ($canAfford && !$character->isImprisoned() && !$character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                     <span>Koop voor</span>
                                     <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-300' : 'text-slate-400 dark:text-slate-500' }}">{{ $border['price_seeds'] }}</span>
                                     <span>🎃</span>
@@ -234,8 +236,8 @@
                             @csrf
                             <input type="hidden" name="item_key" value="{{ $item['key'] }}">
                             <button type="submit" 
-                                    @if(!$canAfford) disabled @endif
-                                    class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
+                                    @if(!$canAfford || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ ($canAfford && !$character->isImprisoned() && !$character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <span>Koop Item voor</span>
                                 <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-300' : 'text-slate-400 dark:text-slate-500' }}">{{ $item['price_seeds'] }}</span>
                                 <span>🎃</span>
@@ -300,8 +302,8 @@
                             @csrf
                             <input type="hidden" name="item_key" value="{{ $boost['key'] }}">
                             <button type="submit" 
-                                    @if(!$canAfford) disabled @endif
-                                    class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
+                                    @if(!$canAfford || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    class="w-full py-2.5 rounded-xl font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5 {{ ($canAfford && !$character->isImprisoned() && !$character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }}">
                                 <span>Koop Boost voor</span>
                                 <span class="font-mono font-black text-xs {{ $canAfford ? 'text-amber-300' : 'text-slate-400 dark:text-slate-500' }}">{{ $boost['price_seeds'] }}</span>
                                 <span>🎃</span>

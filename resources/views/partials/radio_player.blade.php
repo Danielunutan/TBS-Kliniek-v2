@@ -346,7 +346,10 @@ function tbsRadioPlayer() {
         initPlayer() {
             const savedVol = localStorage.getItem('tbs_radio_volume');
             if (savedVol !== null) {
-                this.volume = parseFloat(savedVol);
+                const parsed = parseFloat(savedVol);
+                if (!isNaN(parsed)) {
+                    this.volume = Math.max(0, Math.min(1, parsed));
+                }
             }
 
             const audio = getGlobalRadioAudio();

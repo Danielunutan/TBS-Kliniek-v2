@@ -699,7 +699,7 @@ body.dark .board-socket:hover,
 
     function setArjanSpeech(text) {
         const el = document.getElementById('arjan-speech');
-        if (el) el.innerHTML = '&ldquo;' + text + '&rdquo;';
+        if (el) el.textContent = '“' + text + '”';
     }
 
     function getRandomQuote(key) {

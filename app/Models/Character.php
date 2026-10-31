@@ -1957,7 +1957,7 @@ class Character extends Model
 
         $diff = now()->diffInSeconds($cd->cooldown_until, false);
 
-        return max(0, (int) $diff);
+        return max(0, (int) ceil($diff));
     }
 
     /**

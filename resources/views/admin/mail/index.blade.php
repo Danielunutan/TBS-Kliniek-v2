@@ -357,18 +357,18 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
 </script>
 
 <div x-data="window.tbsMailboxClient({
-    activeMailbox: '{{ $activeMailbox }}',
-    activeFolder: '{{ $folder }}',
+    activeMailbox: @js($activeMailbox),
+    activeFolder: @js($folder),
     initialMessages: @js($messages),
     initialStats: @js($stats),
     totalMessages: {{ (int) $totalMessages }},
     currentPage: {{ (int) $currentPage }},
     totalPages: {{ (int) $totalPages }},
     searchQuery: @js($searchQuery ?? ''),
-    feedUrl: '{{ route('admin.mail.feed') }}',
-    messageBaseUrl: '{{ url('/admin/mail/message') }}',
-    sendUrl: '{{ route('admin.mail.send') }}',
-    csrfToken: '{{ csrf_token() }}'
+    feedUrl: @js(route('admin.mail.feed')),
+    messageBaseUrl: @js(url('/admin/mail/message')),
+    sendUrl: @js(route('admin.mail.send')),
+    csrfToken: @js(csrf_token())
 })" class="space-y-4">
 
     <!-- Top Action & Mailbox Header Bar -->
@@ -788,8 +788,8 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                         <p class="text-[11px] text-slate-400 dark:text-slate-500">Wordt verzonden via geauthenticeerde Brevo relay</p>
                     </div>
                 </div>
-                <button type="button" @click="composeOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" @click="composeOpen = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" aria-label="Sluiten">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
@@ -888,8 +888,8 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                 <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-key text-amber-500"></i> Server &amp; Inloggegevens
                 </h3>
-                <button type="button" @click="setupModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" @click="setupModalOpen = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" aria-label="Sluiten">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 

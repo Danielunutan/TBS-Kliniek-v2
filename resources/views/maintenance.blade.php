@@ -156,7 +156,7 @@
             &copy; {{ date('Y') }} TBS Kliniek (FPC De Balk). Alle rechten voorbehouden.
         </div>
         <div class="mt-1 text-[11px] text-slate-600">
-            <a href="/?bypass=daniel" class="hover:text-purple-400 transition underline underline-offset-4 opacity-50 hover:opacity-100">
+            <a href="{{ route('login') }}" class="hover:text-purple-400 transition underline underline-offset-4 opacity-50 hover:opacity-100">
                 Beheerder Toegang
             </a>
         </div>
@@ -165,6 +165,11 @@
     <!-- Countdown Javascript -->
     <script>
         function updateMaintenanceCountdown() {
+            const elHours = document.getElementById('count-hours');
+            const elMinutes = document.getElementById('count-minutes');
+            const elSeconds = document.getElementById('count-seconds');
+            if (!elHours || !elMinutes || !elSeconds) return;
+
             const now = new Date();
             const target = new Date();
             target.setHours(22, 0, 0, 0);
@@ -172,9 +177,9 @@
             let diffMs = target.getTime() - now.getTime();
             if (diffMs <= 0) {
                 // Past 22:00, show 00:00:00 or auto-reload check
-                document.getElementById('count-hours').innerText = '00';
-                document.getElementById('count-minutes').innerText = '00';
-                document.getElementById('count-seconds').innerText = '00';
+                elHours.innerText = '00';
+                elMinutes.innerText = '00';
+                elSeconds.innerText = '00';
                 return;
             }
 
@@ -184,9 +189,9 @@
             diffMs %= (1000 * 60);
             const seconds = Math.floor(diffMs / 1000);
 
-            document.getElementById('count-hours').innerText = String(hours).padStart(2, '0');
-            document.getElementById('count-minutes').innerText = String(minutes).padStart(2, '0');
-            document.getElementById('count-seconds').innerText = String(seconds).padStart(2, '0');
+            elHours.innerText = String(hours).padStart(2, '0');
+            elMinutes.innerText = String(minutes).padStart(2, '0');
+            elSeconds.innerText = String(seconds).padStart(2, '0');
         }
 
         updateMaintenanceCountdown();

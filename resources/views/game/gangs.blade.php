@@ -161,7 +161,7 @@
 
     @php
         $myLeaveMultiplier = $myGang ? min(50, max(0, (int) ($myGang->leave_fee_multiplier ?? 0))) : 0;
-        $myLeaveFee = ($myGang && $character->gang_role !== 'leader') ? ($hourlyWage * $myLeaveMultiplier) : 0;
+        $myLeaveFee = ($myGang && $character->gang_role !== 'leader') ? (($hourlyWage ?? 0) * $myLeaveMultiplier) : 0;
         $hasEnoughCashToLeave = (int) $character->cash >= $myLeaveFee;
     @endphp
 
@@ -615,12 +615,12 @@
                         <span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 block">UURLOON</span>
                         <div class="flex items-center justify-center gap-1 text-amber-700 dark:text-amber-400 text-lg font-black font-mono">
                             <i class="fa-solid fa-coins text-xs text-amber-500"></i>
-                            <span>€{{ number_format($hourlyWage, 0, ',', '.') }}</span>
+                            <span>€{{ number_format($hourlyWage ?? 0, 0, ',', '.') }}</span>
                         </div>
                         @if(isset($wageDetails) && $wageDetails['pending_hours'] > 0)
                             <form action="{{ route('gangs.claim-wage') }}" method="POST" class="pt-0.5">
                                 @csrf
-                                <button type="submit" class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition shadow-2xs">
+                                <button type="submit" {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }} class="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white cursor-pointer transition shadow-2xs">
                                     Claim €{{ number_format($wageDetails['pending_amount'], 0, ',', '.') }}
                                 </button>
                             </form>
@@ -991,9 +991,9 @@
                                     </div>
                                     <div class="text-right">
                                         <div class="flex items-center justify-end gap-1.5">
-                                            <span class="font-extrabold text-amber-700 dark:text-amber-400">UURLOON €{{ number_format($hourlyWage, 0, ',', '.') }}</span>
+                                            <span class="font-extrabold text-amber-700 dark:text-amber-400">UURLOON €{{ number_format($hourlyWage ?? 0, 0, ',', '.') }}</span>
                                         </div>
-                                        <span class="text-[10px] text-slate-400 font-mono block">Dag: €{{ number_format($dailyWage, 0, ',', '.') }}</span>
+                                        <span class="text-[10px] text-slate-400 font-mono block">Dag: €{{ number_format($dailyWage ?? 0, 0, ',', '.') }}</span>
                                     </div>
                                 </div>
 
@@ -1780,7 +1780,7 @@
                                         :class="statusFilter === 'all' ? 'bg-purple-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
                                         class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
                                     <span>Alle Leden</span>
-                                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="statusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="members.length"></span>
+                                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="statusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="members.length"></span>
                                 </button>
                                 <button type="button" 
                                         @click="statusFilter = 'online'" 
@@ -1788,14 +1788,14 @@
                                         class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
                                     <span class="w-2 h-2 rounded-full" :class="statusFilter === 'online' ? 'bg-emerald-100' : 'bg-emerald-500 animate-pulse'"></span>
                                     <span>Nu Online</span>
-                                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="statusFilter === 'online' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'" x-text="onlineCount"></span>
+                                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="statusFilter === 'online' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'" x-text="onlineCount"></span>
                                 </button>
                                 <button type="button" 
                                         @click="statusFilter = 'offline'" 
                                         :class="statusFilter === 'offline' ? 'bg-slate-700 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
                                         class="px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5">
                                     <span>Offline</span>
-                                    <span class="px-1.5 py-0.2 rounded-full text-[10px]" :class="statusFilter === 'offline' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="offlineCount"></span>
+                                    <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="statusFilter === 'offline' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'" x-text="offlineCount"></span>
                                 </button>
                             </div>
 
@@ -2217,7 +2217,7 @@
                         <div class="flex items-center gap-2 shrink-0">
                             <div class="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">
                                 <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-bold">Collectief Uurloon</span>
-                                <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono">+€{{ number_format($hourlyWage, 0, ',', '.') }}/u</span>
+                                <span class="font-black text-emerald-600 dark:text-emerald-400 font-mono">+€{{ number_format($hourlyWage ?? 0, 0, ',', '.') }}/u</span>
                             </div>
                             <div class="px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800/60 text-xs text-purple-700 dark:text-purple-300 shadow-2xs">
                                 <span class="text-[10px] text-purple-400 uppercase tracking-wider block font-bold">Kiosken</span>
@@ -3016,7 +3016,7 @@
                             <i class="fa-solid fa-user-plus"></i>
                             <span>Verzoeken</span>
                             @if($myGang->requests->where('status', 'pending')->count() > 0)
-                                <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-black">
+                                <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-black">
                                     {{ $myGang->requests->where('status', 'pending')->count() }}
                                 </span>
                             @endif
@@ -3513,7 +3513,7 @@
                             <i class="fa-solid fa-door-open text-xs" :class="settingsTab === 'toelating' ? 'text-white' : 'text-emerald-500'"></i>
                             <span>Toelating & Regels</span>
                             @if(($myGang->min_respect ?? 0) > 0)
-                                <span class="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-black" :class="settingsTab === 'toelating' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'">
+                                <span class="px-1.5 py-0.5 rounded-full text-[9px] font-mono font-black" :class="settingsTab === 'toelating' ? 'bg-white/20 text-white' : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'">
                                     {{ $myGang->min_respect }}
                                 </span>
                             @endif
@@ -4329,7 +4329,7 @@
                     <i class="fa-solid fa-crown text-amber-500"></i>
                     <h3 class="text-sm font-extrabold text-slate-900 dark:text-white uppercase tracking-wide">Nieuwe Bende Oprichten</h3>
                 </div>
-                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg cursor-pointer">&times;</button>
+                <button type="button" @click="showCreateModal = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-lg cursor-pointer transition-colors" aria-label="Sluiten">&times;</button>
             </div>
             @if($myGang)
                 <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 text-xs text-amber-900 dark:text-amber-200 space-y-2">

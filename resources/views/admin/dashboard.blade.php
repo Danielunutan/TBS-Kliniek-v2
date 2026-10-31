@@ -65,7 +65,7 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
-            @if(Auth::user()->isOwner() || Auth::user()->role === 'admin' || Auth::user()->is_staff)
+            @if(Auth::user()?->isOwner() || Auth::user()?->role === 'admin' || Auth::user()?->is_staff)
             <form action="{{ route('admin.system.migrate') }}" method="POST" class="inline"
                   data-confirm="Wil je alle openstaande database migraties én de balanscontrole direct uitvoeren?"
                   data-confirm-btn="Migraties Uitvoeren"

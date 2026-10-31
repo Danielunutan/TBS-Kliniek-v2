@@ -215,7 +215,8 @@
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full py-4 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer">
+                        @disabled($character->isImprisoned() || $character->isComatose())
+                        class="w-full py-4 px-6 rounded-xl font-black text-sm uppercase tracking-wider text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-file-signature text-base"></i>
                     <span>Dossier & Antwoorden Indienen bij Behandelteam</span>
                 </button>
@@ -280,7 +281,7 @@
                                 @csrf
                                 <input type="hidden" name="action_id" value="{{ $actionId }}">
                                 <button type="submit" 
-                                        @disabled($isLeaveActionOnCooldown)
+                                        @disabled($isLeaveActionOnCooldown || $character->isImprisoned() || $character->isComatose())
                                         class="px-3 py-1.5 rounded-xl text-xs font-black text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 transition-all duration-150 shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-play text-[10px]"></i>
                                     <span>Uitvoeren</span>

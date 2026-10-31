@@ -200,6 +200,10 @@ class GarageController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
+        if (! $vehicle->is_available) {
+            return back()->with('error', "De {$vehicle->name} is momenteel niet beschikbaar in de showroom!");
+        }
+
         if ($character->level < $vehicle->min_level) {
             return back()->with('error', "Je moet minimaal Level {$vehicle->min_level} zijn om de {$vehicle->name} te besturen!");
         }

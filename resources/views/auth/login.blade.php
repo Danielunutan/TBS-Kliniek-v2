@@ -7,7 +7,7 @@
 @section('content')
 @php
     $safeGender = in_array(old('gender'), ['male', 'female'], true) ? old('gender') : 'male';
-    $safeAvatar = preg_match('~^assets/characters/avatar_(fe)?male_[1-5]\.jpg$~', (string) old('avatar')) ? old('avatar') : 'assets/characters/avatar_male_1.jpg';
+    $safeAvatar = preg_match('~^assets/characters/avatar_(fe)?male_[1-6]\.jpg$~', (string) old('avatar')) ? old('avatar') : 'assets/characters/avatar_male_1.jpg';
     $defaultTab = (request()->routeIs('register') || request('tab') === 'register' || $errors->has('username') || $errors->has('terms') || $errors->has('password_confirmation') || old('username') || request()->has('ref') || session()->has('referral_name')) ? 'register' : 'login';
 @endphp
 <div class="max-w-6xl xl:max-w-7xl mx-auto space-y-6" x-data="{ 
@@ -20,7 +20,7 @@
     <div id="auth-form-card" class="bg-white dark:bg-slate-900 rounded-2xl shadow-xs border border-slate-200/90 dark:border-slate-800 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
         
         <!-- LEFT HERO COLUMN (WIDE CLEAN TBS KLINIEK ARTWORK & CHARACTERS) -->
-        <div class="lg:col-span-7 xl:col-span-7 bg-slate-950 text-white relative p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-inner min-h-[500px] lg:min-h-[620px]">
+        <div class="lg:col-span-7 xl:col-span-7 bg-slate-950 text-white relative p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-inner min-h-[240px] sm:min-h-[360px] lg:min-h-[620px]">
             <!-- Crisp High Quality Illustration Lineup (All 5 Characters Fully Visible) -->
             <img src="{{ asset('assets/illustrations/tbs_crew_lineup.jpg') }}?v={{ file_exists(public_path('assets/illustrations/tbs_crew_lineup.jpg')) ? filemtime(public_path('assets/illustrations/tbs_crew_lineup.jpg')) : '3' }}" 
                  alt="TBS Kliniek - Het #1 Misdaad Spel van Nederland" 
@@ -259,7 +259,7 @@
                                 <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5">Kies jouw profielfoto</span>
                                 
                                 <!-- Mannelijke Avatars (6) -->
-                                <div x-show="regGender === 'male'" class="grid grid-cols-6 gap-1.5 sm:gap-2">
+                                <div x-show="regGender === 'male'" class="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                     @foreach([
                                         'assets/characters/avatar_male_1.jpg',
                                         'assets/characters/avatar_male_2.jpg',
@@ -284,7 +284,7 @@
                                 </div>
 
                                 <!-- Vrouwelijke Avatars (6) -->
-                                <div x-show="regGender === 'female'" class="grid grid-cols-6 gap-1.5 sm:gap-2">
+                                <div x-show="regGender === 'female'" class="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                     @foreach([
                                         'assets/characters/avatar_female_1.jpg',
                                         'assets/characters/avatar_female_2.jpg',

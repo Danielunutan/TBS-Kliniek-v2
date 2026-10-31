@@ -450,7 +450,7 @@
 <script>
 function accountSettings() {
     return {
-        currentAvatarUrl: '{{ $character->avatar_url }}',
+        currentAvatarUrl: @js($character->avatar_url),
         cropModalOpen: false,
         imageLoaded: false,
         uploadingCrop: false,

@@ -3,7 +3,7 @@
 @section('title', 'True Crime Dossiers met Caroline - TBS Kliniek')
 
 @section('content')
-<div class="space-y-6" x-data="tbsTrueCrime({{ (int) ($cooldownRemaining ?? 0) }})">
+<div class="space-y-6" x-data="tbsTrueCrime({{ (int) ($cooldownRemaining ?? 0) }}, {{ $character->isImprisoned() ? 'true' : 'false' }}, {{ $character->isComatose() ? 'true' : 'false' }})">
 
     
 
@@ -201,7 +201,8 @@
 
                             <button type="button" 
                                     @click.stop="submitAccusation({{ $activeCase->id }}, {{ $idx }})"
-                                    class="w-full py-2.5 rounded-xl text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
+                                    :disabled="isImprisoned || isComatose"
+                                    class="w-full py-2.5 rounded-xl text-xs font-black transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                                     :class="selectedSuspect === {{ $idx }} ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white' : 'bg-white dark:bg-slate-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700'">
                                 <i class="fa-solid fa-handcuffs text-[11px]"></i>
                                 <span>Aanklagen als Dader</span>
@@ -310,7 +311,7 @@
                 <!-- AD SKIP BUTTON (TO UNLOCK NEXT CASE IMMEDIATELY) -->
                 <form action="{{ route('true_crime.skip_cooldown_ad') }}" method="POST">
                     @csrf
-                    <button type="submit" class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-folder-open"></i>
                         <span>Direct Nieuw Dossier Openen via Sponsor-Ad</span>
                     </button>
@@ -326,12 +327,14 @@
 </div>
 
 <script>
-function tbsTrueCrime(initialCooldown) {
+function tbsTrueCrime(initialCooldown, isImprisoned = false, isComatose = false) {
     return {
         cooldownSeconds: initialCooldown,
         cdInterval: null,
         selectedSuspect: 0,
         verdictModal: null,
+        isImprisoned: isImprisoned,
+        isComatose: isComatose,
 
         init() {
             if (this.cooldownSeconds > 0) {
@@ -360,6 +363,15 @@ function tbsTrueCrime(initialCooldown) {
         },
 
         submitAccusation(caseId, suspectIdx) {
+            if (this.isImprisoned) {
+                alert('Vanuit de isoleercel kun je geen politiedossiers onderzoeken!');
+                return;
+            }
+            if (this.isComatose) {
+                alert('Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een Revive Serum toe.');
+                return;
+            }
+
             fetch('{{ route('true_crime.solve') }}', {
                 method: 'POST',
                 headers: {

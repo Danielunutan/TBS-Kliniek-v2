@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Character;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,8 +19,8 @@ class CharacterFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => \App\Models\User::factory(),
-            'name' => $this->faker->name,
+            'user_id' => User::factory(),
+            'name' => $this->faker->unique()->name,
             'cash' => 100000,
             'bank' => 100000,
             'respect' => 50,

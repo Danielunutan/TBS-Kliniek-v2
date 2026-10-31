@@ -196,7 +196,7 @@
                     @forelse($listings as $item)
                         @php
                             $isMine = $item->seller_id === $character->id;
-                            $canAfford = $item->currency === 'cash' ? ($character->cash >= $item->price) : (($character->stars ?? 0) >= $item->price);
+                            $canAfford = ($item->currency === 'cash' ? ($character->cash >= $item->price) : (($character->stars ?? 0) >= $item->price)) && ! $character->isImprisoned() && ! $character->isComatose();
                             $badge = $item->getTypeBadge();
                         @endphp
                         <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors {{ $isMine ? 'bg-purple-50/40 dark:bg-purple-950/20' : '' }}">
@@ -208,7 +208,7 @@
                                     <div class="space-y-1">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <span class="font-black text-slate-900 dark:text-white text-xs leading-tight">{{ $item->title }}</span>
-                                            <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded border {{ $badge['class'] }}">
+                                            <span class="text-[9px] font-extrabold px-1.5 py-0.5 rounded border {{ $badge['class'] }}">
                                                 {{ $badge['label'] }}
                                             </span>
                                         </div>
@@ -246,7 +246,7 @@
                                             {{ $item->seller->name }}
                                         </a>
                                         @if($isMine)
-                                            <span class="text-[9px] bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300 font-extrabold px-1.5 py-0.2 rounded">Jij</span>
+                                            <span class="text-[9px] bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-300 font-extrabold px-1.5 py-0.5 rounded">Jij</span>
                                         @endif
                                     </div>
                                 @else

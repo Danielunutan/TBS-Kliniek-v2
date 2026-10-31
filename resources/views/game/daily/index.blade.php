@@ -152,8 +152,8 @@
                  active: {{ $isLoginBonusActive ? 'true' : 'false' }},
                  claimed: {{ $hasClaimedStreakToday ? 'true' : 'false' }},
                  canClaim: {{ $canClaimStreak ? 'true' : 'false' }},
-                 secUntilStart: {{ $secondsUntilLoginBonus }},
-                 secRemaining: {{ $secondsRemainingInLoginBonus }},
+                 secUntilStart: {{ (int) ($secondsUntilLoginBonus ?? 0) }},
+                 secRemaining: {{ (int) ($secondsRemainingInLoginBonus ?? 0) }},
                  formatTimer(s) {
                      if (s <= 0) return '00:00';
                      const h = Math.floor(s / 3600);
@@ -319,9 +319,9 @@
 function tbsDailyRewards() {
     return {
         spinning: false,
-        availableSpins: {{ $availableSpins }},
+        availableSpins: {{ (int) ($availableSpins ?? 0) }},
         lastPrizeMessage: '',
-        sectors: @json($sectors),
+        sectors: @js($sectors ?? []),
         currentAngle: 0,
         
         init() {

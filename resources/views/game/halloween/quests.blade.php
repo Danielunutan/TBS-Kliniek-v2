@@ -191,7 +191,9 @@
                         @if($canClaim)
                             <form action="{{ route('halloween.claim-quest', $quest['key']) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
+                                <button type="submit" 
+                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-gift"></i>
                                     <span>Claim {{ $quest['seeds'] }} Pompoenpitten 🎃</span>
                                 </button>
@@ -330,7 +332,9 @@
                         @if($canClaim)
                             <form action="{{ route('halloween.claim-quest', $quest['key']) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
+                                <button type="submit" 
+                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs shadow-xs transition-all duration-150 flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-trophy"></i>
                                     <span>Claim Mijlpaal: +{{ $quest['seeds'] }} Pitten 🎃</span>
                                 </button>

@@ -1,3 +1,7 @@
+@php
+    $character = $character ?? (Auth::check() ? Auth::user()->character : null);
+@endphp
+@if($character)
 <!-- DUIDELIJKE BUY ME A COFFEE INSTRUCTIES (Licht & Donker Modus Geoptimaliseerd) -->
 <div x-data="{
     copiedType: null,
@@ -169,3 +173,4 @@ class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-8
     </div>
 
 </div>
+@endif

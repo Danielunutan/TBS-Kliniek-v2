@@ -93,6 +93,11 @@ class RadioController extends Controller
             'is_anonymous' => ['nullable', 'boolean'],
         ]);
 
+        $cleanedMessage = trim(strip_tags((string) $validated['message']));
+        if (mb_strlen($cleanedMessage) < 3) {
+            return back()->with('error', 'Shoutout bericht moet minimaal 3 tekens bevatten.');
+        }
+
         $cost = 150;
         if (! $this->economy->deductCash($character, $cost)) {
             return back()->with('error', 'Een shoutout uitzenden kost €'.number_format($cost, 0, ',', '.').' kleingeld voor de zendkosten!');
@@ -108,7 +113,7 @@ class RadioController extends Controller
             'gang_name' => $gangName,
             'is_anonymous' => (bool) ($validated['is_anonymous'] ?? false),
             'track_title' => $validated['track_title'],
-            'message' => strip_tags(trim($validated['message'])),
+            'message' => $cleanedMessage,
             'likes_count' => 0,
         ]);
 

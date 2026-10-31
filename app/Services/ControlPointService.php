@@ -41,6 +41,15 @@ class ControlPointService
 
         $errorResult = DB::transaction(function () use ($character, $point, $now, &$payoutData): ?array {
             $lockedPoint = ControlPoint::where('id', $point->id)->lockForUpdate()->first();
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $lockedCharacter || $lockedCharacter->isImprisoned() || $lockedCharacter->isComatose()) {
+                return [
+                    'success' => false,
+                    'message' => 'Je bent momenteel niet in staat om een controlepunt te veroveren.',
+                ];
+            }
 
             if ($lockedPoint->current_character_id === $character->id) {
                 $mins = $lockedPoint->getHeldMinutes();
@@ -51,7 +60,7 @@ class ControlPointService
                 ];
             }
 
-            if (! $this->energyService->consume($character, $lockedPoint->energy_cost)) {
+            if (! $this->energyService->consume($lockedCharacter, $lockedPoint->energy_cost)) {
                 return [
                     'success' => false,
                     'message' => "Je hebt minimaal {$lockedPoint->energy_cost} Energie nodig om een controlepunt te veroveren!",

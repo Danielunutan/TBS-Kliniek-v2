@@ -56,7 +56,7 @@
                     @endif
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Bende Panden, Garage & Vastgoed <span class="sr-only">{!! 'Bende Panden & Vastgoed' !!}</span>
+                    Bende Panden, Garage & Vastgoed <span class="sr-only">Bende Panden & Vastgoed</span>
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
                     Breid het territorium van je bende uit. Koop garage- en opslagpanden voor jullie wagenpark, start winstgevende fabrieken en vestig luxe villa's om gespecialiseerde NPC bendeleden te huisvesten!
@@ -234,14 +234,14 @@
                                 <input type="hidden" name="token" value="{{ $offer['token'] }}">
                                 <input type="hidden" name="dynamic_price" value="{{ $dynPrice }}">
                                 <button type="submit" 
-                                        @if(!$canAffordRot) disabled @endif
+                                        @if(!$canAffordRot || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                         data-confirm="Koop {{ $p['name'] }} voor €{{ number_format($dynPrice, 0, ',', '.') }} uit de bendekas?"
                                         data-confirm-title="Bendepand Kopen"
                                         data-confirm-btn="Ja, Pand Kopen"
                                         data-confirm-type="success"
                                         data-confirm-icon="fa-building-circle-check"
                                         onclick="return confirm('Koop {{ $p['name'] }} voor €{{ number_format($dynPrice, 0, ',', '.') }} uit de bendekas?')"
-                                        class="px-3 py-1.5 rounded-xl {{ $canAffordRot ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-[11px] font-black transition-all duration-150">
+                                        class="px-3 py-1.5 rounded-xl {{ ($canAffordRot && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} text-[11px] font-black transition-all duration-150">
                                     Kopen
                                 </button>
                             </form>
@@ -310,7 +310,7 @@
             $isOwned = $owned !== null;
             $canAfford = (int) $gang->treasury >= $prop['price'];
         @endphp
-        <div x-show="(activeCategory === 'all' || activeCategory === '{{ $prop['category'] }}') && matchesSearch('{{ addslashes($prop['name']) }}', '{{ addslashes($prop['tagline']) }}', '{{ addslashes($prop['perks_summary']) }}')"
+        <div x-show="(activeCategory === 'all' || activeCategory === @js($prop['category'])) && matchesSearch(@js($prop['name']), @js($prop['tagline']), @js($prop['perks_summary']))"
              class="bg-white dark:bg-slate-900 border {{ $isOwned ? 'border-emerald-400/90 dark:border-emerald-500/80 ring-2 ring-emerald-400/20' : 'border-slate-200/90 dark:border-slate-800' }} rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between gap-5 relative overflow-hidden transition-all duration-200 hover:border-purple-300 dark:hover:border-purple-700/80">
 
             @if($isOwned)
@@ -399,7 +399,9 @@
                     @if($owned->isProductionReady() && $isOfficer)
                     <form method="POST" action="{{ route('gangs.panden.claim-production', $owned) }}">
                         @csrf
-                        <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                        <button type="submit"
+                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-sack-dollar"></i>
                             <span>Claim Opbrengst (+€{{ number_format($owned->effective_reward_cash, 0, ',', '.') }})</span>
                         </button>
@@ -407,7 +409,9 @@
                     @elseif(! $owned->isProducing() && $isOfficer)
                     <form method="POST" action="{{ route('gangs.panden.start-production', $owned) }}">
                         @csrf
-                        <button type="submit" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+                        <button type="submit"
+                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-play"></i>
                             <span>Start Productiecyclus ({{ $owned->production_duration_minutes }} min)</span>
                         </button>
@@ -428,14 +432,14 @@
                     <form method="POST" action="{{ route('gangs.panden.buy', $key) }}">
                         @csrf
                         <button type="submit"
-                                @if(! $canAfford) disabled @endif
+                                @if(! $canAfford || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                 data-confirm="Weet je zeker dat je {{ $prop['name'] }} wilt kopen voor €{{ number_format($prop['price'], 0, ',', '.') }} uit de bendekas?"
                                 data-confirm-title="Bendepand Kopen"
                                 data-confirm-btn="Ja, Pand Kopen"
                                 data-confirm-type="success"
                                 data-confirm-icon="fa-building-circle-check"
                                 onclick="return confirm('Weet je zeker dat je {{ $prop['name'] }} wilt kopen voor €{{ number_format($prop['price'], 0, ',', '.') }} uit de bendekas?')"
-                                class="w-full py-3 px-4 rounded-xl {{ $canAfford ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                class="w-full py-3 px-4 rounded-xl {{ ($canAfford && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                             <i class="fa-solid fa-building-circle-check"></i>
                             @if($canAfford)
                                 <span>Kopen voor € {{ number_format($prop['price'], 0, ',', '.') }}</span>
@@ -558,14 +562,14 @@
                         <form method="POST" action="{{ route('gangs.panden.hire-npc', $npcKey) }}">
                             @csrf
                             <button type="submit"
-                                    @if(! $hasFreeSlot || ! $canAffordNpc) disabled @endif
+                                    @if(! $hasFreeSlot || ! $canAffordNpc || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                     data-confirm="Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?"
                                     data-confirm-title="NPC Specialist Aannemen"
                                     data-confirm-btn="Ja, Aannemen"
                                     data-confirm-type="success"
                                     data-confirm-icon="fa-user-plus"
                                     onclick="return confirm('Weet je zeker dat je {{ $npcDef['name'] }} wilt aannemen voor €{{ number_format($npcDef['cost'], 0, ',', '.') }} uit de bendekas?')"
-                                    class="w-full py-3 px-4 rounded-xl {{ $hasFreeSlot && $canAffordNpc ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
+                                    class="w-full py-3 px-4 rounded-xl {{ ($hasFreeSlot && $canAffordNpc && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer shadow-xs active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed font-bold' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-user-plus"></i>
                                 @if(! $hasFreeSlot)
                                     <span>Geen Villa Ruimte</span>

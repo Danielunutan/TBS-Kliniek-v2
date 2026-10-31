@@ -280,7 +280,7 @@
                                         </a>
                                         @if($comment->character->user && $comment->character->user->role !== 'user')
                                             @php $cBadge = $comment->character->user->role_badge; @endphp
-                                            <span class="text-[8px] font-black uppercase {{ $cBadge['bg'] }} {{ $cBadge['text'] }} px-1.5 py-0.2 rounded border {{ $cBadge['border'] }}">
+                                            <span class="text-[8px] font-black uppercase {{ $cBadge['bg'] }} {{ $cBadge['text'] }} px-1.5 py-0.5 rounded border {{ $cBadge['border'] }}">
                                                 {{ $cBadge['label'] }}
                                             </span>
                                         @endif

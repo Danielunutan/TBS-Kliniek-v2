@@ -6,11 +6,17 @@ use App\Models\Character;
 use App\Models\CharacterConnectFourStat;
 use App\Models\CharacterMemoryStat;
 use App\Models\CharacterTrueCrimeState;
+use App\Models\ControlPoint;
 use App\Models\Gang;
+use App\Models\NewsArticle;
 use App\Models\User;
+use App\Services\ControlPointService;
 use App\Services\CooldownService;
+use App\Services\EnergyService;
 use App\Services\LoanService;
+use App\Services\PrisonService;
 use App\Services\RookieService;
+use App\Services\TheftService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -114,5 +120,123 @@ class Pass6Bucket3AuditTest extends TestCase
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    public function test_theft_service_blocks_comatose_attacker_and_victim(): void
+    {
+        $user1 = User::factory()->create(['is_onboarded' => true]);
+        $user2 = User::factory()->create(['is_onboarded' => true]);
+        $attacker = Character::factory()->create([
+            'user_id' => $user1->id,
+            'level' => 5,
+            'health' => 0,
+            'coma_until' => now()->addMinutes(30),
+            'energy' => 100,
+        ]);
+        $victim = Character::factory()->create([
+            'user_id' => $user2->id,
+            'level' => 5,
+            'health' => 100,
+            'coma_until' => null,
+            'cash' => 500,
+        ]);
+
+        $theftService = app(TheftService::class);
+        $res = $theftService->execute($attacker, 'pocket', $victim);
+        $this->assertFalse($res['success']);
+        $this->assertStringContainsString('Code Blauw', $res['message']);
+
+        // Attacker healthy, victim comatose
+        $attacker->update(['health' => 100, 'coma_until' => null]);
+        $victim->update(['health' => 0, 'coma_until' => now()->addMinutes(30)]);
+        $res2 = $theftService->execute($attacker, 'pocket', $victim);
+        $this->assertFalse($res2['success']);
+        $this->assertStringContainsString('Code Blauw', $res2['message']);
+    }
+
+    public function test_prison_service_attempt_escape_updates_respect_via_add_respect(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(10),
+            'prison_escape_attempted' => false,
+            'energy' => 100,
+            'respect' => 10,
+            'today_respect' => 0,
+            'intelligence' => 1,
+            'stamina' => 1,
+        ]);
+
+        $prisonService = app(PrisonService::class);
+        $energyService = app(EnergyService::class);
+
+        $res = $prisonService->attemptEscape($character, $energyService);
+        $character->refresh();
+
+        if (! $res['success']) {
+            $this->assertTrue((bool) $character->prison_escape_attempted);
+            $this->assertSame(9, $character->respect);
+        } else {
+            $this->assertFalse((bool) $character->is_in_prison);
+            $this->assertSame(25, $character->respect);
+        }
+    }
+
+    public function test_energy_service_consume_and_integer_seconds_calculation(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'energy' => 15,
+            'last_energy_refill_at' => now()->subSeconds(45),
+        ]);
+
+        $energyService = app(EnergyService::class);
+
+        $consumed = $energyService->consume($character, 10);
+        $this->assertTrue($consumed);
+        $this->assertSame(5, $character->fresh()->energy);
+
+        $consumedTooMuch = $energyService->consume($character, 10);
+        $this->assertFalse($consumedTooMuch);
+        $this->assertSame(5, $character->fresh()->energy);
+    }
+
+    public function test_news_article_sanitizes_dangerous_html_attributes(): void
+    {
+        $article = new NewsArticle([
+            'content' => '<p>Hello <img src="x" onerror="alert(1)"> <a href="javascript:alert(2)">Click</a> <strong>Safe</strong></p>',
+        ]);
+
+        $formatted = $article->formatted_content;
+        $this->assertStringNotContainsString('onerror', $formatted);
+        $this->assertStringNotContainsString('javascript:', $formatted);
+        $this->assertStringContainsString('<strong>Safe</strong>', $formatted);
+    }
+
+    public function test_control_point_blocks_comatose_captures(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'health' => 0,
+            'coma_until' => now()->addMinutes(30),
+            'energy' => 100,
+        ]);
+
+        $point = ControlPoint::create([
+            'key' => 'test_punt',
+            'name' => 'Test Punt',
+            'location_name' => 'Blok A',
+            'energy_cost' => 10,
+            'cash_per_minute' => 5,
+        ]);
+
+        $service = app(ControlPointService::class);
+        $res = $service->capture($character, $point);
+        $this->assertFalse($res['success']);
+        $this->assertStringContainsString('Code Blauw', $res['message']);
     }
 }

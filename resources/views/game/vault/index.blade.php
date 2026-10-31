@@ -133,7 +133,8 @@
                             @csrf
                             <input type="hidden" name="amount" value="1">
                             <button type="submit" 
-                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                    @disabled($character->isImprisoned() || $character->isComatose())
+                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-sack-dollar text-[11px]"></i>
                                 <span>Verkoop 1 (€1.500)</span>
                             </button>
@@ -144,7 +145,8 @@
                             @csrf
                             <input type="hidden" name="amount" value="{{ $character->masks }}">
                             <button type="submit" 
-                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                    @disabled($character->isImprisoned() || $character->isComatose())
+                                    class="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-money-bill-transfer text-[11px]"></i>
                                 <span>Verkoop Alle ({{ $character->masks }})</span>
                             </button>
@@ -218,7 +220,8 @@
                         @csrf
                         <input type="hidden" name="redeem_all" value="1">
                         <button type="submit" 
-                                class="w-full py-3.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                @disabled($character->isImprisoned() || $character->isComatose())
+                                class="w-full py-3.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-bolt"></i>
                             <span>Kraak & Verzilver Alle Codes ({{ $myCodes->count() }})</span>
                         </button>
@@ -242,7 +245,8 @@
                            class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-purple-500 dark:focus:border-purple-500 rounded-xl px-4 py-2.5 text-xs font-mono font-black text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 uppercase focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition"
                            required>
                     <button type="submit" 
-                            class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 shrink-0 shadow-xs">
+                            @disabled($character->isImprisoned() || $character->isComatose())
+                            class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 shrink-0 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-check"></i>
                         <span>Verzilveren</span>
                     </button>
@@ -258,7 +262,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h4 class="text-xs font-black text-slate-900 dark:text-white">Extra Kluiscodes &amp; Tokens Aanschaffen</h4>
-                            <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.2 rounded">
+                            <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 rounded">
                                 Direct Beschikbaar
                             </span>
                         </div>
@@ -334,7 +338,8 @@
                                 @csrf
                                 <input type="hidden" name="code_id" value="{{ $c->id }}">
                                 <button type="submit" 
-                                        class="w-full py-2 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                        @disabled($character->isImprisoned() || $character->isComatose())
+                                        class="w-full py-2 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Verzilver deze kluiscode direct">
                                     <i class="fa-solid fa-unlock-keyhole text-[10px]"></i>
                                     <span>Verzilveren</span>
@@ -345,7 +350,8 @@
                                 @csrf
                                 <input type="hidden" name="code_id" value="{{ $c->id }}">
                                 <button type="submit" 
-                                        class="w-full py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1 shadow-xs cursor-pointer"
+                                        @disabled($character->isImprisoned() || $character->isComatose())
+                                        class="w-full py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white text-[11px] font-black uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-1 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Verkoop deze code aan de opkoper voor €3.500 wit bankgeld">
                                     <i class="fa-solid fa-sack-dollar text-[10px]"></i>
                                     <span>Verkoop (€3.5k)</span>

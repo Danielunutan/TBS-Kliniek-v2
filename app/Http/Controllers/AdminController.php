@@ -136,11 +136,11 @@ class AdminController extends Controller
                 return back()->with('error', 'Alleen administrators kunnen gebruikersrollen toewijzen of wijzigen.');
             }
             if (
-                $validated['cash'] !== $character->cash ||
-                $validated['bank'] !== $character->bank ||
-                $validated['stars'] !== $character->stars ||
-                $validated['respect'] !== $character->respect ||
-                $validated['vip_points'] !== $character->vip_points ||
+                (int) $validated['cash'] !== (int) $character->cash ||
+                (int) $validated['bank'] !== (int) $character->bank ||
+                (int) $validated['stars'] !== (int) $character->stars ||
+                (float) $validated['respect'] !== (float) $character->respect ||
+                (int) $validated['vip_points'] !== (int) $character->vip_points ||
                 ($request->has('vip_action') && $request->input('vip_action') !== 'no_change')
             ) {
                 return back()->with('error', 'Alleen administrators kunnen economische tegoeden en VIP status handmatig wijzigen.');

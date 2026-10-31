@@ -215,8 +215,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             @foreach($packages as $pkg)
             @php
-                $canAffordCash = ($character->cash + $character->bank) >= $pkg['cost_cash'];
-                $canAffordStars = ($character->stars ?? 0) >= $pkg['cost_stars'];
+                $canAffordCash = ($character->cash + $character->bank) >= $pkg['cost_cash'] && ! $character->isImprisoned() && ! $character->isComatose();
+                $canAffordStars = ($character->stars ?? 0) >= $pkg['cost_stars'] && ! $character->isImprisoned() && ! $character->isComatose();
                 $newExpiry = ($isProtected && $character->protection_until ? $character->protection_until->copy() : now())->addHours($pkg['hours']);
             @endphp
             <div class="p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-600 bg-slate-50/90 dark:bg-slate-800/60 flex flex-col justify-between gap-4 transition-all duration-200 shadow-xs group">
@@ -315,7 +315,9 @@
                     @csrf
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="cash">
-                    <button type="submit" class="w-full py-2.5 px-3 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                    <button type="submit" 
+                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-money-bill-wave"></i>
                         <span>Betaal Geld</span>
                     </button>
@@ -325,7 +327,9 @@
                     @csrf
                     <input type="hidden" name="hours" :value="hours">
                     <input type="hidden" name="currency" value="stars">
-                    <button type="submit" class="w-full py-2.5 px-3 btn-star-gold text-white font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                    <button type="submit" 
+                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-3 {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'btn-star-gold text-white cursor-pointer active:scale-95' }} font-black text-xs rounded-xl transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-star"></i>
                         <span>Betaal Sterren</span>
                     </button>

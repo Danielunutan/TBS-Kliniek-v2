@@ -83,7 +83,7 @@
                             <div class="flex items-center gap-3.5">
                                 <div class="relative shrink-0">
                                     <img src="{{ $bounty->target->avatar_url }}" alt="{{ $bounty->target->name }}" class="w-14 h-14 rounded-xl object-cover border-2 border-rose-200 dark:border-rose-800 shadow-xs">
-                                    <span class="absolute -bottom-1 -right-1 bg-slate-900 text-white text-[9px] font-black px-1.5 py-0.2 rounded-md">
+                                    <span class="absolute -bottom-1 -right-1 bg-slate-900 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
                                         Lvl {{ $bounty->target->level }}
                                     </span>
                                 </div>

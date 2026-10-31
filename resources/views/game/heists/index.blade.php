@@ -261,7 +261,15 @@
 
                 <!-- Action Button -->
                 <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-                    @if(! $hasVehicle)
+                    @if($character->isComatose())
+                        <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-rose-500 border border-rose-200/80 dark:border-rose-900/40 font-bold text-xs cursor-not-allowed text-center">
+                            Niet beschikbaar in Code Blauw (Coma)
+                        </button>
+                    @elseif($character->isImprisoned())
+                        <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-amber-500 border border-amber-200/80 dark:border-amber-900/40 font-bold text-xs cursor-not-allowed text-center">
+                            Niet beschikbaar in de isoleercel
+                        </button>
+                    @elseif(! $hasVehicle)
                         <a href="{{ route('garage.index') }}" 
                            class="w-full py-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-warehouse"></i>
@@ -576,7 +584,15 @@
 
                     <!-- Action Button -->
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
-                        @if(! $hasGang)
+                        @if($character->isComatose())
+                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-rose-500 border border-rose-200/80 dark:border-rose-900/40 font-bold text-xs cursor-not-allowed text-center">
+                                Niet beschikbaar in Code Blauw (Coma)
+                            </button>
+                        @elseif($character->isImprisoned())
+                            <button type="button" disabled class="w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-amber-500 border border-amber-200/80 dark:border-amber-900/40 font-bold text-xs cursor-not-allowed text-center">
+                                Niet beschikbaar in de isoleercel
+                            </button>
+                        @elseif(! $hasGang)
                             <a href="{{ route('gangs.index') }}" 
                                class="w-full py-3 rounded-xl bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-200/80 dark:border-purple-800/70 text-purple-700 dark:text-purple-300 font-black text-xs text-center transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-users"></i>

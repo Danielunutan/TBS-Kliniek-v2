@@ -19,7 +19,7 @@
         this.modalCategory = catTitle;
         this.loadingScores = true;
         this.modalScores = [];
-        fetch('{{ url('/24-uur-battle/categorie') }}/' + catKey)
+        fetch('{{ url('/24-uur-battle/categorie') }}/' + encodeURIComponent(catKey))
             .then(res => res.json())
             .then(data => {
                 this.modalScores = data.scores;
@@ -200,8 +200,8 @@
                     <i class="fa-solid fa-trophy text-amber-500"></i>
                     <span x-text="modalCategory"></span>
                 </div>
-                <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition text-lg cursor-pointer">
-                    <i class="fa-solid fa-xmark"></i>
+                <button @click="modalOpen = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer" aria-label="Sluiten">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 

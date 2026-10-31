@@ -11,6 +11,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class CombatTrainingController extends Controller
@@ -66,64 +67,64 @@ class CombatTrainingController extends Controller
         $session = $config[$validated['session_id']];
         $mode = $validated['mode'] ?? 'stat';
         $statKey = $session['stat'];
-        $maxStat = $character->getMaxStatForLevel();
-        $currentStat = (int) $character->{$statKey};
 
-        if ($mode === 'stat' && $currentStat >= $maxStat) {
-            return back()->with('error', "🔒 LEVEL-PLAFOND BEREIKT! Je hebt het maximum van {$maxStat} {$session['label']} bereikt voor Level {$character->level}. Kies 'Focus op Level (+{$session['level_xp']} XP)' om te stijgen naar Level ".($character->level + 1).' en je plafond met +50 te verhogen!');
-        }
+        return DB::transaction(function () use ($character, $session, $mode, $statKey): RedirectResponse {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            $maxStat = $locked->getMaxStatForLevel();
+            $currentStat = (int) $locked->{$statKey};
 
-        if ($character->cash < $session['cost']) {
-            return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
-        }
+            if ($mode === 'stat' && $currentStat >= $maxStat) {
+                return back()->with('error', "🔒 LEVEL-PLAFOND BEREIKT! Je hebt het maximum van {$maxStat} {$session['label']} bereikt voor Level {$locked->level}. Kies 'Focus op Level (+{$session['level_xp']} XP)' om te stijgen naar Level ".($locked->level + 1).' en je plafond met +50 te verhogen!');
+            }
 
-        // Pay atomically first so parallel requests cannot train twice for one payment.
-        if (! $this->economy->deductCash($character, $session['cost'])) {
-            return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
-        }
+            if ($locked->cash < $session['cost']) {
+                return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
+            }
 
-        if (! $this->energy->consume($character, $session['energy'])) {
-            $character->increment('cash', $session['cost']);
+            if (! $this->energy->consume($locked, $session['energy'])) {
+                return back()->with('error', "Je hebt minimaal {$session['energy']} energie nodig voor deze trainingssessie!");
+            }
 
-            return back()->with('error', "Je hebt minimaal {$session['energy']} energie nodig voor deze trainingssessie!");
-        }
+            $locked->decrement('cash', $session['cost']);
 
-        if ($mode === 'level') {
-            $gain = 0;
-            $xpEarned = (int) $session['level_xp'];
-        } else {
-            $gain = min((int) $session['gain'], max(0, $maxStat - $currentStat));
-            $character->{$statKey} = min($maxStat, $currentStat + $gain);
-            $xpEarned = (int) $session['xp'];
-        }
+            if ($mode === 'level') {
+                $gain = 0;
+                $xpEarned = (int) $session['level_xp'];
+            } else {
+                $gain = min((int) $session['gain'], max(0, $maxStat - $currentStat));
+                $locked->{$statKey} = min($maxStat, $currentStat + $gain);
+                $xpEarned = (int) $session['xp'];
+            }
 
-        $character->save();
+            $locked->save();
 
-        TrainingLog::create([
-            'character_id' => $character->id,
-            'stat' => $statKey,
-            'stat_gain' => $gain,
-            'energy_cost' => $session['energy'],
-            'cash_cost' => $session['cost'],
-            'trainer' => 'Barry Biceps',
-        ]);
+            TrainingLog::create([
+                'character_id' => $locked->id,
+                'stat' => $statKey,
+                'stat_gain' => $gain,
+                'energy_cost' => $session['energy'],
+                'cash_cost' => $session['cost'],
+                'trainer' => 'Barry Biceps',
+            ]);
 
-        $levelResult = $this->level->addXp($character, $xpEarned);
-        $newFocus = $character->adjustColdBloodedPct(4);
+            $levelResult = $this->level->addXp($locked, $xpEarned);
+            $newFocus = $locked->adjustColdBloodedPct(4);
 
-        HalloweenService::record($character, 'training', 1);
+            HalloweenService::record($locked, 'training', 1);
 
-        $coldText = $newFocus < 100 ? " én +4% Koudbloedigheid (nu {$newFocus}%)" : '';
-        $updatedMaxStat = $character->getMaxStatForLevel();
+            $coldText = $newFocus < 100 ? " én +4% Koudbloedigheid (nu {$newFocus}%)" : '';
+            $updatedMaxStat = $locked->getMaxStatForLevel();
 
-        if ($mode === 'level') {
-            $levelUpNotice = $levelResult['leveled_up']
-                ? " 🎉 Je bent gestegen naar Level {$character->level} (nieuw stat-plafond: {$updatedMaxStat})!"
-                : '';
+            if ($mode === 'level') {
+                $levelUpNotice = $levelResult['leveled_up']
+                    ? " 🎉 Je bent gestegen naar Level {$locked->level} (nieuw stat-plafond: {$updatedMaxStat})!"
+                    : '';
 
-            return back()->with('success', "Training voltooid (Focus op Level)! +{$xpEarned} XP verdiend{$coldText}! -€".number_format($session['cost'], 0, ',', '.').".{$levelUpNotice}");
-        }
+                return back()->with('success', "Training voltooid (Focus op Level)! +{$xpEarned} XP verdiend{$coldText}! -€".number_format($session['cost'], 0, ',', '.').".{$levelUpNotice}");
+            }
 
-        return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} ({$character->{$statKey}}/{$updatedMaxStat}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$xpEarned} XP.");
+            return back()->with('success', "Training voltooid! Je {$session['label']} stijgt met +{$gain} ({$locked->{$statKey}}/{$updatedMaxStat}){$coldText}! -€".number_format($session['cost'], 0, ',', '.').", +{$xpEarned} XP.");
+        });
     }
 }

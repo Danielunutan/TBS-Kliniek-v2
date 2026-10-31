@@ -13,7 +13,7 @@
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-start justify-center p-4 pb-24 sm:p-6 md:p-12 lg:pb-12 overflow-y-auto bg-slate-950/80"
+         class="fixed inset-0 z-[80] flex items-start justify-center p-4 pb-24 sm:p-6 md:p-12 lg:pb-12 overflow-y-auto bg-slate-950/80"
          @click.self="closeModal()">
 
         <!-- Spotlight Dialog Card -->

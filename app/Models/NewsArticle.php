@@ -53,16 +53,37 @@ class NewsArticle extends Model
     }
 
     /**
+     * Sanitize HTML by stripping unsafe tags, event handlers, and dangerous URL schemes.
+     */
+    public static function sanitizeHtml(?string $html): string
+    {
+        if (! $html) {
+            return '';
+        }
+
+        $stripped = strip_tags(
+            $html,
+            '<p><br><h2><h3><h4><h5><h6><strong><b><em><i><u><s><del><ul><ol><li><blockquote><code><pre><hr><a><img><div><span><table><thead><tbody><tr><th><td>'
+        );
+
+        // Strip inline event handler attributes (e.g. onload, onerror, onclick)
+        $cleaned = preg_replace('/\s+on[a-z0-9_-]+\s*=\s*(?:["\'][^"\']*["\']|[^\s>]+)/i', '', $stripped);
+
+        // Neutralize dangerous schemes (javascript:, data:, vbscript:) in href and src attributes
+        $cleaned = preg_replace('/\s+(href|src)\s*=\s*(["\'])\s*(?:javascript|vbscript|data):[^"\']*\2/i', ' $1="#"', $cleaned);
+        $cleaned = preg_replace('/\s+(href|src)\s*=\s*(?:javascript|vbscript|data):[^\s>]*/i', ' $1="#"', $cleaned);
+
+        return $cleaned;
+    }
+
+    /**
      * Convert markdown and custom BBCode tags to safe, styled HTML.
      */
     public function getFormattedContentAttribute(): string
     {
         // If content is already formatted HTML, allow safe formatting tags without double-escaping
         if (preg_match('/<(?:p|div|h[1-6]|strong|em|ul|ol|li|br|blockquote|code|table|span|hr)\b/i', $this->content)) {
-            return strip_tags(
-                $this->content,
-                '<p><br><h2><h3><h4><h5><h6><strong><b><em><i><u><s><del><ul><ol><li><blockquote><code><pre><hr><a><img><div><span><table><thead><tbody><tr><th><td>'
-            );
+            return self::sanitizeHtml($this->content);
         }
 
         $text = e($this->content);

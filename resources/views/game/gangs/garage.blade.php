@@ -3,7 +3,7 @@
 @section('title', 'Bende Garage - TBS Kliniek')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+<div class="space-y-6">
 
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs relative overflow-hidden">
@@ -231,7 +231,8 @@
                                 <form action="{{ route('garage.repair', $charVehicle->id) }}" method="POST">
                                     @csrf
                                     <button type="submit" 
-                                            class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-wrench text-[11px]"></i>
                                         <span>Direct Reviseren (€{{ number_format($charVehicle->repair_cost, 0, ',', '.') }})</span>
                                     </button>
@@ -241,7 +242,9 @@
                             @if($isOwner || $isOfficer)
                                 <form action="{{ route('gangs.garage.retrieve-vehicle', $charVehicle) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                    <button type="submit" 
+                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            class="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-xs transition-all duration-150 active:scale-95 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-key text-[11px]"></i>
                                         <span>Terughalen naar Eigen Garage</span>
                                     </button>
@@ -310,10 +313,10 @@
                         <form action="{{ route('gangs.garage.store-vehicle', $myVehicle) }}" method="POST" class="pt-2">
                             @csrf
                             <button type="submit" 
-                                    @if($freeSlots <= 0) disabled @endif
-                                    class="w-full py-2 rounded-xl {{ $freeSlots > 0 ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
+                                    @if($freeSlots <= 0 || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    class="w-full py-2 rounded-xl {{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' }} font-black text-xs transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-warehouse text-xs"></i>
-                                <span>{{ $freeSlots > 0 ? 'Stallen in Bende Garage' : 'Bende Garage Vol' }}</span>
+                                <span>{{ ($freeSlots > 0 && ! $character->isImprisoned() && ! $character->isComatose()) ? 'Stallen in Bende Garage' : ($freeSlots <= 0 ? 'Bende Garage Vol' : 'Niet Beschikbaar') }}</span>
                             </button>
                         </form>
                     </div>

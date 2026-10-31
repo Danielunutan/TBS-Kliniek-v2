@@ -223,6 +223,19 @@ class BankController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if ($this->isAtmLocked($character)) {
+            return redirect()->route('bank.index', ['tab' => 'loans'])
+                ->with('error', 'Voer eerst je 4-cijferige pincode in om toegang te krijgen tot de Geldmaat.');
+        }
+
         $result = $this->loanService->repayLoan($character, $loan, $validated['amount'], $validated['source']);
 
         if ($result['success']) {
@@ -246,6 +259,19 @@ class BankController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
+        if ($this->isAtmLocked($character)) {
+            return redirect()->route('bank.index', ['tab' => 'loans'])
+                ->with('error', 'Voer eerst je 4-cijferige pincode in om toegang te krijgen tot de Geldmaat.');
+        }
 
         $source = $validated['source'] ?? 'cash';
         $result = $this->loanService->repayLoanFull($character, $loan, $source);

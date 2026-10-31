@@ -113,6 +113,10 @@
                             <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
                                 <i class="fa-solid fa-money-bill"></i> Te weinig cash (Vereist: €150)
                             </button>
+                        @elseif($character->isImprisoned() || $character->isComatose())
+                            <button disabled class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-not-allowed">
+                                <i class="fa-solid fa-ban"></i> Niet Beschikbaar (Isoleercel / Code Blauw)
+                            </button>
                         @else
                             <button type="submit" class="w-full py-3 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider shadow-xs transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-tower-broadcast"></i> Zend Shoutout Uit (€150)
@@ -152,7 +156,7 @@
                                                 {{ $shout->is_anonymous ? 'Anonieme Patiënt' : $shout->character_name }}
                                             </span>
                                             @if($shout->gang_name && !$shout->is_anonymous)
-                                                <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50">
+                                                <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700/50">
                                                     {{ $shout->gang_name }}
                                                 </span>
                                             @endif
@@ -177,7 +181,9 @@
 
                                 <form action="{{ route('radio.like', $shout) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition cursor-pointer {{ $shout->isLikedBy($character->id) ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800' : 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700' }}">
+                                    <button type="submit" 
+                                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition {{ $character->isImprisoned() || $character->isComatose() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer' }} {{ $shout->isLikedBy($character->id) ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-800' : 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700' }}">
                                         <i class="fa-solid fa-heart {{ $shout->isLikedBy($character->id) ? 'text-rose-500' : 'text-slate-400' }}"></i>
                                         <span>{{ $shout->likes_count }} Respect</span>
                                     </button>

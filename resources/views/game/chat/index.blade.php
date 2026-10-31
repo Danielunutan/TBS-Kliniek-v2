@@ -781,7 +781,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <span>Bende</span>
                     @if($hasGang)
                         @if($gangHasChat)
-                            <span class="px-1 py-0.2 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-mono text-[8px] font-black hidden xs:inline">
+                            <span class="px-1 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 font-mono text-[8px] font-black hidden xs:inline">
                                 [{{ $gangTag }}]
                             </span>
                         @else
@@ -805,7 +805,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                     <span>Privé</span>
                     <span x-show="totalUnread > 0" 
                           x-text="totalUnread" 
-                          class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black animate-pulse">
+                          class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black animate-pulse">
                         {{ $totalUnreadDms }}
                     </span>
                 </button>
@@ -908,7 +908,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 @if(!$hasGang)
                                     <span class="text-slate-400 text-xs shrink-0" title="Geen lid"><i class="fa-solid fa-lock"></i></span>
                                 @elseif(!$gangHasChat)
-                                    <span class="px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black shrink-0 border border-amber-200/80 dark:border-amber-800/70">500 ⭐</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[9px] font-black shrink-0 border border-amber-200/80 dark:border-amber-800/70">500 ⭐</span>
                                 @else
                                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" title="Portofoon actief"></span>
                                 @endif
@@ -1071,7 +1071,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <div class="flex items-center justify-between gap-2 mt-0.5">
                                     <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="conv.last_message"></p>
                                     <template x-if="conv.unread_count > 0">
-                                        <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black shrink-0" 
+                                        <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black shrink-0" 
                                               x-text="conv.unread_count"></span>
                                     </template>
                                 </div>
@@ -1135,7 +1135,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
                                     <span x-text="gangName + ' Portofoon'"></span>
                                     <template x-if="gangTag">
-                                        <span class="px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-mono text-[9px] font-black" x-text="'[' + gangTag + ']'"></span>
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-mono text-[9px] font-black" x-text="'[' + gangTag + ']'"></span>
                                     </template>
                                 </h3>
                                 <div class="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 font-semibold truncate">
@@ -1178,7 +1178,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                 <h3 class="text-xs sm:text-sm font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5 truncate">
                                     <span x-text="activePartnerId === null ? 'Privéberichten' : activePartner.name"></span>
                                     <template x-if="activePartnerId !== null && activePartner.is_bot">
-                                        <span class="px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[9px] font-black uppercase">Systeem Bot</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[9px] font-black uppercase">Systeem Bot</span>
                                     </template>
                                 </h3>
                                 <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate" x-text="activePartnerId === null ? 'Selecteer links een gesprek' : activePartner.status_label"></div>
@@ -1239,7 +1239,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
                                                       :style="msg.name_style || ''"
                                                       x-text="msg.name"></span>
-                                                <span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
                                             </span>
                                         </template>
 
@@ -1251,7 +1251,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
                                                       :style="msg.name_style || ''"
                                                       x-text="msg.name"></span>
-                                                <span class="px-1.5 py-0.2 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
                                             </span>
                                         </template>
 
@@ -1263,7 +1263,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
                                                       :style="msg.name_style || ''"
                                                       x-text="msg.name"></span>
-                                                <span class="px-1.5 py-0.2 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
+                                                <span class="px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
                                             </span>
                                         </template>
 
@@ -1283,7 +1283,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                         <!-- VIP BADGE PILL -->
                                         <template x-if="msg.is_vip && msg.vip_badge_label">
-                                            <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
+                                            <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
                                                   :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                                   :title="msg.vip_badge_full || 'VIP Lid'">
                                                 <i class="fa-solid text-[8px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
@@ -1292,19 +1292,19 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                         </template>
 
                                         <!-- LEVEL PILL -->
-                                        <span class="px-1.5 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] font-black">
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] font-black">
                                             L<span x-text="msg.level"></span>
                                         </span>
 
                                         <!-- RESPECT PILL -->
-                                        <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] font-black flex items-center gap-0.5">
+                                        <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] font-black flex items-center gap-0.5">
                                             <i class="fa-solid fa-fire text-amber-500 text-[8px]"></i>
                                             <span x-text="msg.respect"></span>
                                         </span>
 
                                         <!-- GANG TAG -->
                                         <template x-if="msg.gang_tag">
-                                            <span class="px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[9px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                            <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[9px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
                                         </template>
 
                                         <!-- TIME -->
@@ -1471,7 +1471,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                         <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
                                                               :style="msg.name_style || ''"
                                                               x-text="msg.name"></span>
-                                                        <span class="px-1.5 py-0.2 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
+                                                        <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[8px] font-black uppercase">Eigenaar</span>
                                                     </span>
                                                 </template>
 
@@ -1483,7 +1483,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                         <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
                                                               :style="msg.name_style || ''"
                                                               x-text="msg.name"></span>
-                                                        <span class="px-1.5 py-0.2 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
+                                                        <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[8px] font-black uppercase">Directie</span>
                                                     </span>
                                                 </template>
 
@@ -1495,7 +1495,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                         <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
                                                               :style="msg.name_style || ''"
                                                               x-text="msg.name"></span>
-                                                        <span class="px-1.5 py-0.2 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
+                                                        <span class="px-1.5 py-0.5 rounded bg-cyan-600 text-white text-[8px] font-black uppercase">Moderator</span>
                                                     </span>
                                                 </template>
 
@@ -1515,7 +1515,7 @@ window.tbsLiveMessenger = tbsLiveMessenger;
 
                                                 <!-- VIP BADGE PILL -->
                                                 <template x-if="msg.is_vip && msg.vip_badge_label">
-                                                    <span class="px-1.5 py-0.2 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
+                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase border inline-flex items-center gap-1 shrink-0"
                                                           :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                                           :title="msg.vip_badge_full || 'VIP Lid'">
                                                         <i class="fa-solid text-[8px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
@@ -1524,19 +1524,19 @@ window.tbsLiveMessenger = tbsLiveMessenger;
                                                 </template>
 
                                                 <!-- LEVEL PILL -->
-                                                <span class="px-1.5 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] font-black">
+                                                <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300 text-[9px] font-black">
                                                     L<span x-text="msg.level"></span>
                                                 </span>
 
                                                 <!-- RESPECT PILL -->
-                                                <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] font-black flex items-center gap-0.5">
+                                                <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[9px] font-black flex items-center gap-0.5">
                                                     <i class="fa-solid fa-fire text-amber-500 text-[8px]"></i>
                                                     <span x-text="msg.respect"></span>
                                                 </span>
 
                                                 <!-- GANG TAG -->
                                                 <template x-if="msg.gang_tag">
-                                                    <span class="px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[9px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                                    <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[9px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
                                                 </template>
 
                                                 <!-- TIME -->

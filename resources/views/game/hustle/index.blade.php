@@ -101,7 +101,9 @@
             <form method="POST" action="{{ route('cooldown.skip') }}" class="w-full sm:w-auto">
                 @csrf
                 <input type="hidden" name="action" value="hustle">
-                <button type="submit" class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl font-black text-slate-900 dark:text-white text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                <button type="submit" 
+                        {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 10 ? 'disabled' : '' }}
+                        class="btn-star-gold w-full sm:w-auto h-9 px-4 rounded-xl font-black text-slate-900 dark:text-white text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-star text-[11px]"></i>
                     <span>Omzeilen (10 Sterren)</span>
                 </button>
@@ -193,6 +195,7 @@
                 @csrf
                 <input type="hidden" name="hustle_id" value="{{ $h['id'] }}">
                 <button type="submit" 
+                        @if($isBlocked || $hustleCooldown > 0) disabled @endif
                         :disabled="seconds > 0 || {{ $isBlocked ? 'true' : 'false' }}"
                         :class="seconds > 0 || {{ $isBlocked ? 'true' : 'false' }} ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95 shadow-xs'"
                         class="w-full py-2.5 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">

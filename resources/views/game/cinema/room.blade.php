@@ -237,8 +237,8 @@
                         <button type="button" @click="showGifPicker = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xs cursor-pointer">&times;</button>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
-                        @foreach($gifs as $gif)
-                        <div @click="sendGif('{{ $gif['url'] }}')" 
+                        @foreach(($gifs ?? []) as $gif)
+                        <div @click="sendGif(@js($gif['url']))" 
                              class="rounded-xl overflow-hidden border border-slate-200/80 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-600 transition-all duration-150 cursor-pointer aspect-video bg-slate-950 group">
                             <img src="{{ $gif['url'] }}" alt="{{ $gif['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy">
                         </div>
@@ -252,7 +252,7 @@
                     <div x-show="showMentionDropdown && mentionUsers.length > 0"
                          @click.away="showMentionDropdown = false"
                          x-cloak
-                         class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+                         class="absolute bottom-full left-0 mb-3 w-72 sm:w-80 max-w-[calc(100vw-3rem)] bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80">
                         <div class="px-3.5 py-2 bg-slate-50/90 dark:bg-slate-800/60 flex items-center justify-between text-[11px] font-extrabold text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800/80">
                             <span class="flex items-center gap-1.5">
                                 <i class="fa-solid fa-at text-purple-600 dark:text-purple-400 text-xs"></i>
@@ -292,7 +292,7 @@
                                @input="onChatInput($event)"
                                @keydown="onChatKeydown($event)"
                                placeholder="Typ je reactie of @speler..."
-                               class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                               class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-base sm:text-xs font-medium focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                         
                         <button type="button" @click="showGifPicker = !showGifPicker"
                                 class="px-3 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 font-black text-xs transition-all duration-150 cursor-pointer border border-purple-200/80 dark:border-purple-800/70 active:scale-95"
@@ -516,7 +516,7 @@ function cinemaTheater(roomId, roomSlug, initialVideoId, initialPlaybackSeconds,
         showQueueDropdown: false,
         syncStatus: 'Synchroon',
         pollStatus: 'Realtime Verbonden',
-        messages: @json($initialMessages ?? []),
+        messages: @js($initialMessages ?? []),
         queue: initialQueue || [],
         copiedLink: false,
         isPolling: false,

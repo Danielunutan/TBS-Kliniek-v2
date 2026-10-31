@@ -304,7 +304,7 @@
                                     <form :action="inmate.breakoutUrl" method="POST">
                                         @csrf
                                         <button type="submit" 
-                                                {{ $character->isImprisoned() || $character->energy < 15 ? 'disabled' : '' }}
+                                                {{ $character->isImprisoned() || $character->isComatose() || $character->energy < 15 ? 'disabled' : '' }}
                                                 class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs cursor-pointer inline-flex items-center gap-1.5">
                                             <i class="fa-solid fa-unlock text-[10px]"></i>
                                             <span>Breek uit</span>

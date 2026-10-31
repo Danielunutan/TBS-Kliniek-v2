@@ -459,7 +459,11 @@ class GangPropertyController extends Controller
             $lockedGang->save();
 
             if ($respect > 0) {
-                $character->increment('respect', $respect);
+                $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+                if ($lockedChar) {
+                    $lockedChar->addRespect($respect);
+                    $lockedChar->save();
+                }
             }
 
             $lockedProperty->update([
@@ -576,6 +580,15 @@ class GangPropertyController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen NPC bendeleden beheren!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $gang = $character->gang;
 
         if (! $gang || ! $gang->isOfficer($character) || (int) $property->gang_id !== (int) $gang->id) {

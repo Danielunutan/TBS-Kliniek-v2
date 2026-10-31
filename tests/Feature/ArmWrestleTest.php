@@ -37,6 +37,7 @@ class ArmWrestleTest extends TestCase
             'speed' => 15,
             'stamina' => 15,
             'is_in_prison' => false,
+            'last_allowance_at' => now(),
         ], $attrs));
     }
 

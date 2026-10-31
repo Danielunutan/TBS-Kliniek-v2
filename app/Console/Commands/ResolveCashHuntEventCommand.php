@@ -48,4 +48,3 @@ class ResolveCashHuntEventCommand extends Command
         return self::SUCCESS;
     }
 }
-

@@ -52,6 +52,16 @@
                 }
             });
             const data = await res.json();
+            if (!res.ok || (data && data.success === false)) {
+                const toastFn = window.tbsToast || window.tbsShowToast;
+                const errMsg = (data && data.message) ? data.message : 'Kon rondleiding niet voltooien.';
+                if (toastFn) {
+                    toastFn(errMsg, 'error');
+                } else {
+                    alert(errMsg);
+                }
+                return;
+            }
             this.isOpen = false;
             this.tourCompleted = true;
             localStorage.setItem('tbs_tour_dismissed', '1');

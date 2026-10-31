@@ -129,7 +129,8 @@
                 <form action="{{ route('garage.repair', $activeVehicle->id) }}" method="POST" class="shrink-0 flex items-center">
                     @csrf
                     <button type="submit" 
-                            class="w-full sm:w-auto px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                            @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                            class="w-full sm:w-auto px-4 py-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-screwdriver-wrench"></i>
                         <span>Reviseren (€{{ number_format($activeVehicle->repair_cost, 0, ',', '.') }})</span>
                     </button>
@@ -295,7 +296,7 @@
                                 <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
                                     €{{ number_format($priceCash, 0, ',', '.') }}
                                 </span>
-                                <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/70 px-1 py-0.2 rounded ml-1">-{{ $discountPct }}%</span>
+                                <span class="text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/70 px-1 py-0.5 rounded ml-1">-{{ $discountPct }}%</span>
                             @else
                                 <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono">
                                     €{{ number_format($priceCash, 0, ',', '.') }}
@@ -321,7 +322,8 @@
                                 @csrf
                                 <input type="hidden" name="listing_token" value="{{ $token }}">
                                 <button type="submit" 
-                                        class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2.5 px-3 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-cart-shopping text-xs"></i>
                                     <span>Koop Deze Aanbieding</span>
                                 </button>
@@ -430,8 +432,8 @@
                             @csrf
                             <input type="hidden" name="payment" value="stars">
                             <button type="submit" 
-                                    @if(! $hasEnoughStars) disabled @endif
-                                    class="w-full py-2.5 px-4 rounded-xl {{ $hasEnoughStars ? 'btn-star-gold text-slate-950 font-black cursor-pointer shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold cursor-not-allowed' }} text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center justify-center gap-2">
+                                    @if(! $hasEnoughStars || $character->isImprisoned() || $character->isComatose()) disabled @endif
+                                    class="w-full py-2.5 px-4 rounded-xl {{ ($hasEnoughStars && ! $character->isImprisoned() && ! $character->isComatose()) ? 'btn-star-gold text-slate-950 font-black cursor-pointer shadow-xs' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-bold cursor-not-allowed' }} text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-star"></i>
                                 @if($hasEnoughStars)
                                     <span>Koop voor {{ $sVeh->price_stars }} Sterren</span>
@@ -479,7 +481,9 @@
                                 @else
                                     <form action="{{ route('garage.set-active', $ov->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-bold text-[10px] transition-all duration-150 active:scale-95 cursor-pointer">
+                                        <button type="submit" 
+                                                @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                                class="px-2.5 py-1 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 cursor-pointer' }} border border-slate-200/80 dark:border-slate-700 font-bold text-[10px] transition-all duration-150 active:scale-95">
                                             Kies als Actief
                                         </button>
                                     </form>
@@ -522,7 +526,8 @@
                             <form action="{{ route('garage.repair', $ov->id) }}" method="POST">
                                 @csrf
                                 <button type="submit" 
-                                        class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+                                        @if($character->isImprisoned() || $character->isComatose()) disabled @endif
+                                        class="w-full py-2.5 rounded-xl {{ ($character->isImprisoned() || $character->isComatose()) ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-wrench text-xs"></i>
                                     <span>Reviseren (€{{ number_format($ov->repair_cost, 0, ',', '.') }})</span>
                                 </button>

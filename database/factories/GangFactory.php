@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Character;
 use App\Models\Gang;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,7 +24,7 @@ class GangFactory extends Factory
             'treasury' => 1000000,
             'specialty' => 'Agressie',
             'emblem' => 'fa-crown',
-            'leader_character_id' => \App\Models\Character::factory(),
+            'leader_character_id' => Character::factory(),
         ];
     }
 }

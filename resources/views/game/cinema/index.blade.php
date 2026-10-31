@@ -45,11 +45,25 @@
 
             <!-- ACTION BUTTON -->
             <div class="flex items-center gap-2 shrink-0">
-                <button type="button" @click="$dispatch('open-create-cinema')" 
-                        class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-2 cursor-pointer active:scale-95">
-                    <i class="fa-solid fa-plus-circle text-xs"></i>
-                    <span>Nieuwe Zaal Openen</span>
-                </button>
+                @if($character?->isComatose())
+                    <button type="button" disabled 
+                            class="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-rose-500 font-black text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 opacity-70 cursor-not-allowed" title="Niet mogelijk tijdens Code Blauw">
+                        <i class="fa-solid fa-heart-pulse text-xs text-rose-500"></i>
+                        <span>Code Blauw</span>
+                    </button>
+                @elseif($character?->isImprisoned())
+                    <button type="button" disabled 
+                            class="px-4 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-amber-500 font-black text-xs uppercase tracking-wider shadow-xs flex items-center gap-2 opacity-70 cursor-not-allowed" title="Niet mogelijk vanuit de isoleercel">
+                        <i class="fa-solid fa-lock text-xs text-amber-500"></i>
+                        <span>Isoleercel</span>
+                    </button>
+                @else
+                    <button type="button" @click="$dispatch('open-create-cinema')" 
+                            class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center gap-2 cursor-pointer active:scale-95">
+                        <i class="fa-solid fa-plus-circle text-xs"></i>
+                        <span>Nieuwe Zaal Openen</span>
+                    </button>
+                @endif
             </div>
         </div>
     </div>
@@ -501,7 +515,7 @@
                     </div>
                 </div>
 
-                @if(Auth::user()?->isStaff())
+                @if(Auth::user()?->isAdmin())
                 <div class="p-4 rounded-xl bg-amber-50/80 dark:bg-slate-800/60 border border-amber-200/80 dark:border-amber-800/60 space-y-2">
                     <label class="flex items-start gap-2.5 cursor-pointer">
                         <input type="checkbox" name="is_official" value="1" class="rounded text-amber-500 focus:ring-amber-400 mt-0.5">

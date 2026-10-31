@@ -67,8 +67,8 @@
 
                 <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/70">
                     @php
-                        $canAffordIntelCash = $totalWealth >= $intel['cost_cash'] && !$character->isImprisoned();
-                        $canAffordIntelStars = (int) ($character->stars ?? 0) >= $intel['cost_stars'] && !$character->isImprisoned();
+                        $canAffordIntelCash = $totalWealth >= $intel['cost_cash'] && !$character->isImprisoned() && !$character->isComatose();
+                        $canAffordIntelStars = (int) ($character->stars ?? 0) >= $intel['cost_stars'] && !$character->isImprisoned() && !$character->isComatose();
                     @endphp
                     <form action="{{ route('hitman.intel') }}" method="POST">
                         @csrf
@@ -115,7 +115,9 @@
                         <form action="{{ route('hitman.quick_travel') }}" method="POST">
                             @csrf
                             <input type="hidden" name="destination" value="{{ $op['revealed_location'] }}">
-                            <button type="submit" class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-black shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
+                            <button type="submit" 
+                                    {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                    class="py-2 px-3 rounded-xl {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white cursor-pointer active:scale-95' }} text-xs font-black shadow-xs transition-all duration-150">
                                 Reis naar Vleugel
                             </button>
                         </form>
@@ -171,8 +173,8 @@
                     @csrf
                     <input type="hidden" name="informant_id" value="{{ $inf['id'] }}">
                     <button type="submit"
-                            {{ $character->isImprisoned() || $character->energy < $inf['energy'] || $character->cash < $inf['cost'] ? 'disabled' : '' }}
-                            class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-150 shadow-xs {{ $character->isImprisoned() || $character->energy < $inf['energy'] || $character->cash < $inf['cost'] ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white active:scale-95 cursor-pointer' }}">
+                            {{ $character->isImprisoned() || $character->isComatose() || $character->energy < $inf['energy'] || $character->cash < $inf['cost'] ? 'disabled' : '' }}
+                            class="px-4 py-2 rounded-xl text-xs font-black transition-all duration-150 shadow-xs {{ $character->isImprisoned() || $character->isComatose() || $character->energy < $inf['energy'] || $character->cash < $inf['cost'] ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white active:scale-95 cursor-pointer' }}">
                         <i class="fa-solid fa-user-secret mr-1"></i> Inhuren
                     </button>
                 </form>

@@ -63,7 +63,7 @@ class PrisonController extends Controller
         $jailList = collect();
 
         foreach ($realPrisoners as $rp) {
-            $remSecs = max(0, (int) now()->diffInSeconds($rp->prison_until, false));
+            $remSecs = max(0, (int) ceil(now()->diffInSeconds($rp->prison_until, false)));
             if ($remSecs <= 0) {
                 $rp->update([
                     'is_in_prison' => false,
@@ -179,7 +179,7 @@ class PrisonController extends Controller
 
         if ($request->expectsJson() || $request->ajax()) {
             $character->refresh();
-            $remaining = $character->isImprisoned() ? max(0, (int) now()->diffInSeconds($character->prison_until, false)) : 0;
+            $remaining = $character->isImprisoned() ? max(0, (int) ceil(now()->diffInSeconds($character->prison_until, false))) : 0;
 
             return response()->json([
                 'success' => false,

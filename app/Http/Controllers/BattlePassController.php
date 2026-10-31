@@ -748,8 +748,8 @@ class BattlePassController extends Controller
         if (isset($rewards['vip_points'])) {
             $character->vip_points = ($character->vip_points ?? 0) + $rewards['vip_points'];
         }
-        if (isset($rewards['respect'])) {
-            $character->respect = ($character->respect ?? 0) + $rewards['respect'];
+        if (isset($rewards['respect']) && $rewards['respect'] > 0) {
+            $character->addRespect($rewards['respect']);
         }
         // Apply XP first so any level-up raises getMaxStatForLevel() before strength is clamped.
         if (isset($rewards['xp']) && $rewards['xp'] > 0) {

@@ -23,11 +23,14 @@
          class="relative w-[88vw] max-w-sm bg-white dark:bg-slate-900 border-l border-slate-200/90 dark:border-slate-800 h-full shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100">
         
         <!-- Drawer Header with Player Summary & Currencies -->
+        @php
+            $character = $character ?? (Auth::check() ? Auth::user()->character : null);
+            $drawerBorder = $character ? $character->getEquippedBorderInfo() : null;
+            $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
+            $onlineCount = $onlineCount ?? ($character ? \App\Models\Character::getOnlineCount() : 0);
+        @endphp
+        @if($character)
         <div class="p-3.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b border-slate-200/90 dark:border-slate-800 shrink-0 space-y-2.5">
-            @php
-                $drawerBorder = $character ? $character->getEquippedBorderInfo() : null;
-                $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
-            @endphp
             <div class="flex items-center justify-between gap-2">
                 <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="flex items-center gap-3 min-w-0 group">
                     <div class="relative shrink-0 flex items-center justify-center">
@@ -73,6 +76,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- Scrollable Navigation Area -->
         <div class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs font-semibold scrollbar-none">
@@ -173,7 +177,7 @@
                     </span>
                     <div class="flex items-center gap-1.5">
                         <span class="text-[9px] font-bold text-amber-500 flex items-center gap-0.5">
-                            <i class="fa-solid fa-seedling text-[9px]"></i> {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }}
+                            <i class="fa-solid fa-seedling text-[9px]"></i> {{ number_format($character?->pumpkin_seeds ?? 0, 0, ',', '.') }}
                         </span>
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('event') ? 'rotate-180' : ''"></i>
                     </div>
@@ -238,7 +242,7 @@
                         </div>
                         <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span x-text="stats.onlineCount || {{ $onlineCount }}">{{ $onlineCount }}</span>
+                            <span x-text="stats.onlineCount || {{ (int) ($onlineCount ?? 0) }}">{{ $onlineCount ?? 0 }}</span>
                         </span>
                     </a>
                     <a href="{{ route('leaderboard.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('leaderboard.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
@@ -284,7 +288,7 @@
                     </span>
                     <div class="flex items-center gap-1.5">
                         @if($character && $character->gang)
-                            <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-1.5 py-0.2 rounded border border-purple-200 dark:border-purple-800">
+                            <span class="text-[9px] font-black uppercase text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">
                                 [{{ $character->gang->tag }}]
                             </span>
                         @endif
@@ -337,7 +341,7 @@
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                             <span>Bende Ranglijst</span>
                         </a>
-                        @if($character->gang->isOfficer($character))
+                        @if($character && $character->gang && $character->gang->isOfficer($character))
                         <a href="{{ route('gangs.index', ['tab' => 'beheer']) }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && request('tab') === 'beheer' ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <i class="fa-solid fa-users-gear w-4 text-center text-purple-600 dark:text-purple-400"></i>
                             <span>Bende Beheer</span>
@@ -378,7 +382,7 @@
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 animate-pulse"></i>
                             <span class="font-bold">Seizoen 1 Battle Pass</span>
                         </div>
-                        @php $drawerBpUnclaimed = $character->getUnclaimedBattlePassCount(); @endphp
+                        @php $drawerBpUnclaimed = $character ? $character->getUnclaimedBattlePassCount() : 0; @endphp
                         @if($drawerBpUnclaimed > 0)
                             <span class="text-[9px] font-black uppercase text-slate-950 bg-amber-400 px-2 py-0.5 rounded-full shadow-2xs animate-bounce">
                                 {{ $drawerBpUnclaimed }} Klaar!

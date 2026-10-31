@@ -50,32 +50,34 @@
                     <p class="text-xs text-slate-600 dark:text-slate-400">
                         Deze cookies zijn technisch vereist om het spel te laten werken. Zonder deze cookies kun je niet inloggen, worden formulieren niet beveiligd tegen Cross-Site Request Forgery (CSRF) en functioneert de spel-engine niet.
                     </p>
-                    <table class="w-full text-xs text-left text-slate-500 dark:text-slate-400 mt-2">
-                        <thead>
-                            <tr class="border-b border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 font-bold">
-                                <th class="py-1">Cookie Naam</th>
-                                <th class="py-1">Doel</th>
-                                <th class="py-1">Bewaartermijn</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
-                            <tr>
-                                <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">tbs_session</td>
-                                <td class="py-1">Behoudt jouw ingelogde sessie en authenticatie</td>
-                                <td class="py-1">Sessie (tot sluiten browser of 7 dagen)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">XSRF-TOKEN</td>
-                                <td class="py-1">Beveiliging tegen ongeautoriseerde POST-aanvragen</td>
-                                <td class="py-1">Sessie</td>
-                            </tr>
-                            <tr>
-                                <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">tbs_cookie_consent</td>
-                                <td class="py-1">Onthoudt jouw cookievoorkeuren in de browser (localStorage)</td>
-                                <td class="py-1">12 maanden</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto -mx-1 px-1">
+                        <table class="w-full min-w-[340px] text-xs text-left text-slate-500 dark:text-slate-400 mt-2">
+                            <thead>
+                                <tr class="border-b border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 font-bold">
+                                    <th class="py-1">Cookie Naam</th>
+                                    <th class="py-1">Doel</th>
+                                    <th class="py-1">Bewaartermijn</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
+                                <tr>
+                                    <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">tbs_session</td>
+                                    <td class="py-1">Behoudt jouw ingelogde sessie en authenticatie</td>
+                                    <td class="py-1">Sessie (tot sluiten browser of 7 dagen)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">XSRF-TOKEN</td>
+                                    <td class="py-1">Beveiliging tegen ongeautoriseerde POST-aanvragen</td>
+                                    <td class="py-1">Sessie</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">tbs_cookie_consent</td>
+                                    <td class="py-1">Onthoudt jouw cookievoorkeuren in de browser (localStorage)</td>
+                                    <td class="py-1">12 maanden</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- 2. Functioneel / Voorkeuren -->
@@ -102,30 +104,32 @@
                     <p class="text-xs text-slate-600 dark:text-slate-400">
                         Wij maken gebruik van Google AdSense en geselecteerde advertentiepartners om advertenties weer te geven op onze website en in de Sponsorkamer. Deze partijen plaatsen advertentiecookies om advertenties af te stemmen op jouw interesses, advertentiefrequentie te beperken en klikfraude tegen te gaan. Deze cookies worden uitsluitend geplaatst na jouw toestemming.
                     </p>
-                    <table class="w-full text-xs text-left text-slate-500 dark:text-slate-400 mt-2">
-                        <thead>
-                            <tr class="border-b border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 font-bold">
-                                <th class="py-1">Cookie / Identifier</th>
-                                <th class="py-1">Aanbieder</th>
-                                <th class="py-1">Doel</th>
-                                <th class="py-1">Bewaartermijn</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
-                            <tr>
-                                <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">__gads, __gpi</td>
-                                <td class="py-1">Google AdSense</td>
-                                <td class="py-1">Meting van advertentieprestaties, frequentielimiet en fraudepreventie</td>
-                                <td class="py-1">13 maanden</td>
-                            </tr>
-                            <tr>
-                                <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">IDE, DSID</td>
-                                <td class="py-1">Google DoubleClick</td>
-                                <td class="py-1">Gerichte advertentieweergave op basis van eerdere bezoeken</td>
-                                <td class="py-1">12 maanden</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto -mx-1 px-1">
+                        <table class="w-full min-w-[380px] text-xs text-left text-slate-500 dark:text-slate-400 mt-2">
+                            <thead>
+                                <tr class="border-b border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 font-bold">
+                                    <th class="py-1">Cookie / Identifier</th>
+                                    <th class="py-1">Aanbieder</th>
+                                    <th class="py-1">Doel</th>
+                                    <th class="py-1">Bewaartermijn</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-700/60">
+                                <tr>
+                                    <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">__gads, __gpi</td>
+                                    <td class="py-1">Google AdSense</td>
+                                    <td class="py-1">Meting van advertentieprestaties, frequentielimiet en fraudepreventie</td>
+                                    <td class="py-1">13 maanden</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-1 font-mono font-bold text-slate-800 dark:text-slate-200">IDE, DSID</td>
+                                    <td class="py-1">Google DoubleClick</td>
+                                    <td class="py-1">Gerichte advertentieweergave op basis van eerdere bezoeken</td>
+                                    <td class="py-1">12 maanden</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
             </div>

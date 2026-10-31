@@ -87,7 +87,8 @@
                 <form action="{{ route('memory.skip_cooldown_stars') }}" method="POST">
                     @csrf
                     <button type="submit" 
-                            class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                            {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 10 ? 'disabled' : '' }}
+                            class="btn-star-gold w-full py-3.5 px-6 rounded-xl active:scale-95 text-slate-900 font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 10 ? 'opacity-50 cursor-not-allowed' : '' }}">
                         <i class="fa-solid fa-star text-[12px]"></i>
                         <span>Direct Opnieuw Spelen (10 Sterren ⭐)</span>
                     </button>
@@ -176,7 +177,8 @@
             <div x-show="gameState === 'idle' && cooldownRemaining <= 0" class="mt-4 text-center">
                 <button type="button" 
                         @click="startGame()"
-                        class="px-8 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-sm uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer inline-flex items-center gap-2.5">
+                        {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                        class="px-8 py-3.5 rounded-xl {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' }} font-black text-sm uppercase tracking-wider transition-all duration-150 shadow-xs inline-flex items-center gap-2.5">
                     <i class="fa-solid fa-play"></i>
                     <span>Start Ronde (5s Inkijkfase + 55s Speeltijd)</span>
                 </button>
@@ -199,7 +201,8 @@
                     </p>
                     <button type="button" 
                             @click="startGame()"
-                            class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer">
+                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                            class="w-full py-2.5 px-4 rounded-xl {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs">
                         Start Ronde
                     </button>
                 </div>

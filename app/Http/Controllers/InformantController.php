@@ -124,7 +124,7 @@ class InformantController extends Controller
                 if ((int) ($locked->intelligence ?? 10) < $maxStat) {
                     $locked->intelligence = min($maxStat, (int) ($locked->intelligence ?? 10) + 1);
                 }
-                $locked->respect += 1;
+                $locked->addRespect(1);
                 $locked->save();
             });
 

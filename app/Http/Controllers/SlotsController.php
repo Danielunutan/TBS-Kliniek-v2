@@ -96,7 +96,7 @@ class SlotsController extends Controller
             $payout = $bet * $multiplier;
             $this->economy->addCash($character, $payout);
             $this->level->addXp($character, 40);
-            $character->respect += 3;
+            $character->addRespect(3);
             $character->save();
             $character->refresh();
 

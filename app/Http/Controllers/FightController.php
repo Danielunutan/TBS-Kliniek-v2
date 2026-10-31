@@ -215,7 +215,7 @@ class FightController extends Controller
             $defender->save();
 
             $this->level->addXp($attacker, (int) ($battle['xp'] ?? 25));
-            $attacker->respect += (int) ($battle['respect'] ?? 2);
+            $attacker->addRespect((int) ($battle['respect'] ?? 2));
 
             if (! empty($battle['gained_strength'])) {
                 $maxStrength = $attacker->getMaxStatForLevel();

@@ -162,7 +162,8 @@
                         <span x-text="commentText.length"></span> / 500 tekens
                     </div>
                     <button type="submit" 
-                            :disabled="commentText.trim().length === 0" 
+                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                            :disabled="commentText.trim().length === 0 || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }}" 
                             class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 text-white rounded-xl transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-paper-plane text-[10px]"></i>
                         <span>Plaats Reactie</span>
@@ -199,15 +200,15 @@
                             </a>
                             @if($comment->character->user && $comment->character->user->role !== 'user')
                                 @php $cBadge = $comment->character->user->role_badge; @endphp
-                                <span class="text-[9px] font-black uppercase tracking-wider {{ $cBadge['bg'] }} {{ $cBadge['text'] }} border {{ $cBadge['border'] }} px-1.5 py-0.2 rounded inline-flex items-center gap-1">
+                                <span class="text-[9px] font-black uppercase tracking-wider {{ $cBadge['bg'] }} {{ $cBadge['text'] }} border {{ $cBadge['border'] }} px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                                     <i class="fa-solid {{ $cBadge['icon'] }} text-[8px]"></i> {{ $cBadge['label'] }}
                                 </span>
                             @endif
-                            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-1.5 py-0.5 rounded">
                                 Lvl {{ $comment->character->level }}
                             </span>
                             @if($comment->character->gang)
-                            <span class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-black text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 px-1.5 py-0.5 rounded">
                                 [{{ $comment->character->gang->tag }}]
                             </span>
                             @endif

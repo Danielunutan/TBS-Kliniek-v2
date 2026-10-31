@@ -16,8 +16,8 @@
                 }
             });
             const data = await res.json();
-            if (data.success) {
-                const toastFn = window.tbsToast || window.tbsShowToast;
+            const toastFn = window.tbsToast || window.tbsShowToast;
+            if (res.ok && data.success) {
                 if (toastFn) {
                     toastFn(data.message, 'success');
                 } else {
@@ -25,7 +25,12 @@
                 }
                 setTimeout(() => window.location.reload(), 800);
             } else {
-                alert(data.message || 'Kon beloning niet claimen.');
+                const errMsg = data.message || 'Kon beloning niet claimen.';
+                if (toastFn) {
+                    toastFn(errMsg, 'error');
+                } else {
+                    alert(errMsg);
+                }
             }
         } catch (e) {
             alert('Er is een fout opgetreden bij het claimen.');

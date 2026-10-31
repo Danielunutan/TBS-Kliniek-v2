@@ -527,7 +527,7 @@ class ChatController extends Controller
                     ->where('is_read', false)
                     ->count();
 
-                $isOnline = $partner->last_active_at && $partner->last_active_at->diffInMinutes(now()) < 5;
+                $isOnline = $partner->isOnline();
 
                 $cleanPreview = Str::limit(str_replace(['**', '__'], '', $lastMsg->message), 45);
 
@@ -626,7 +626,7 @@ class ChatController extends Controller
 
             Cache::forget("dm_unread_count_{$character->id}");
 
-            $isOnline = $partner->last_active_at && $partner->last_active_at->diffInMinutes(now()) < 5;
+            $isOnline = $partner->isOnline();
 
             $partnerData = [
                 'id' => $partner->id,

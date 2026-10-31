@@ -32,8 +32,14 @@ class ProcessTicketHeistAnnouncement extends Command
             $adminUser = User::first();
         }
 
+        if (! $adminUser) {
+            $this->error('Geen beheerder of gebruiker gevonden in het systeem.');
+
+            return 1;
+        }
+
         /** @var Character|null $adminCharacter */
-        $adminCharacter = $adminUser?->character;
+        $adminCharacter = $adminUser->character;
 
         if (! $adminCharacter) {
             $adminCharacter = Character::first();

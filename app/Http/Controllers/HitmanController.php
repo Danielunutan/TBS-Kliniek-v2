@@ -434,8 +434,10 @@ class HitmanController extends Controller
                 if (($locked->cash + $locked->bank) < $cashCost) {
                     return back()->with('error', 'Een sessie op de Ondergrondse Schietbaan kost €'.number_format($cashCost, 0, ',', '.').' (contant of bank).');
                 }
+                if (! $this->energy->consume($locked, $energyCost)) {
+                    return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor een intensieve schietbaansessie!");
+                }
                 $this->deductCashOrBank($locked, $cashCost);
-                $locked->energy = max(0, (int) $locked->energy - $energyCost);
                 $gain = 10;
             }
 

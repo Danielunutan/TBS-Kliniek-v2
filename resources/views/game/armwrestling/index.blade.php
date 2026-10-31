@@ -87,7 +87,7 @@
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-1.5 mb-0.5">
-                                        <span class="px-2 py-0.2 rounded text-[10px] font-black uppercase tracking-wider border {{ $npc['difficulty_color'] }}">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border {{ $npc['difficulty_color'] }}">
                                             {{ $npc['difficulty'] }}
                                         </span>
                                     </div>
@@ -121,7 +121,15 @@
 
                     <!-- Action Button -->
                     <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
-                        @if(!$meetsStrength)
+                        @if($character->isComatose())
+                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-rose-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
+                                Code Blauw (Geen Armworstelen)
+                            </button>
+                        @elseif($character->isImprisoned())
+                            <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-amber-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
+                                Isoleercel (Geen Toegang)
+                            </button>
+                        @elseif(!$meetsStrength)
                             <button type="button" disabled class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 text-xs font-bold cursor-not-allowed">
                                 Onvoldoende Kracht (min. {{ $npc['min_strength'] }})
                             </button>
@@ -440,7 +448,7 @@
             <!-- Big Slam Power Button -->
             <div class="space-y-2">
                 <button type="button" tabindex="-1" @click="pushArm(false)"
-                        class="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-base transition-all duration-150 cursor-pointer shadow-lg flex items-center justify-center gap-2">
+                        class="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-base transition-all duration-150 cursor-pointer shadow-lg flex items-center justify-center gap-2 touch-manipulation select-none">
                     <i class="fa-solid fa-hand-fist text-xl text-amber-300"></i>
                     <span>SLAM DE ARM! (OF SPATIEBALK)</span>
                 </button>
@@ -500,7 +508,7 @@ function tbsArmWrestleArena(initialCooldown = 0) {
         lastPushTime: 0,
         matchStartTime: 0,
         matchResult: null,
-        npcsData: @json($npcs),
+        npcsData: @js($npcs),
         playerCash: {{ (int) ($character->cash ?? 0) }},
         playerEnergy: {{ (int) ($character->energy ?? 0) }},
         playerStrength: {{ $character->getEffectiveStrength() }},

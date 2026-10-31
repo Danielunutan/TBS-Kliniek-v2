@@ -12,7 +12,7 @@
     hasPin: @js($hasPin),
     isUnlocked: @js($unlocked),
     cardInserted: @js($unlocked),
-    atmScreen: '{{ ! $hasPin ? 'setup_pin' : ($unlocked ? ($activeTab === 'loans' ? 'loans' : ($activeTab === 'transactions' ? 'transactions' : 'menu')) : 'idle') }}',
+    atmScreen: @js(! $hasPin ? 'setup_pin' : ($unlocked ? (($activeTab ?? '') === 'loans' ? 'loans' : (($activeTab ?? '') === 'transactions' ? 'transactions' : 'menu')) : 'idle')),
     pinDigits: '',
     pinConfirmDigits: '',
     pinStep: 'enter_new', // 'enter_new' | 'confirm_new'
@@ -303,7 +303,7 @@
                         <span class="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate">
                             Geldmaat TBS
                         </span>
-                        <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
+                        <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70">
                             #0884
                         </span>
                     </div>
@@ -466,11 +466,11 @@
                         <div class="max-w-[240px] mx-auto pt-1">
                             <div class="grid grid-cols-3 gap-1.5">
                                 <template x-for="n in ['1','2','3','4','5','6','7','8','9']" :key="n">
-                                    <button type="button" @click="pressKey(n)" class="py-2 rounded-lg font-bold font-mono text-base bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white dark:border-slate-700 transition cursor-pointer shadow-2xs" x-text="n"></button>
+                                    <button type="button" @click="pressKey(n)" class="py-2.5 rounded-lg font-bold font-mono text-base bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white dark:border-slate-700 transition cursor-pointer shadow-2xs" x-text="n"></button>
                                 </template>
-                                <button type="button" @click="pressClear()" class="py-2 rounded-lg font-bold font-mono text-xs uppercase bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-500 cursor-pointer shadow-2xs">CORR</button>
-                                <button type="button" @click="pressKey('0')" class="py-2 rounded-lg font-bold font-mono text-base bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white dark:border-slate-700 cursor-pointer shadow-2xs">0</button>
-                                <button type="button" @click="pressOk()" class="py-2 rounded-lg font-bold font-mono text-xs uppercase bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-700 cursor-pointer shadow-2xs">OK</button>
+                                <button type="button" @click="pressClear()" class="py-2.5 rounded-lg font-bold font-mono text-xs uppercase bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-500 cursor-pointer shadow-2xs">CORR</button>
+                                <button type="button" @click="pressKey('0')" class="py-2.5 rounded-lg font-bold font-mono text-base bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white dark:border-slate-700 cursor-pointer shadow-2xs">0</button>
+                                <button type="button" @click="pressOk()" class="py-2.5 rounded-lg font-bold font-mono text-xs uppercase bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-700 cursor-pointer shadow-2xs">OK</button>
                             </div>
                         </div>
                     </div>
@@ -700,7 +700,7 @@
                                     <form method="POST" action="{{ route('bank.loans.repay-full', $loan) }}">
                                         @csrf
                                         <input type="hidden" name="source" value="bank">
-                                        <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold font-mono transition cursor-pointer">
+                                        <button type="submit" class="px-2.5 py-1.5 min-h-[32px] rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold font-mono transition cursor-pointer">
                                             Aflossen
                                         </button>
                                     </form>
@@ -718,7 +718,7 @@
                                 @csrf
                                 <input type="number" name="amount" min="10000" max="{{ $beschikbareLening }}" step="5000"
                                        value="{{ min(25000, $beschikbareLening) }}" required
-                                       class="w-full rounded-xl px-2.5 py-1.5 font-mono text-xs font-bold border bg-slate-50 border-slate-300 dark:bg-slate-950 dark:border-slate-700">
+                                       class="flex-1 min-w-0 rounded-xl px-2.5 py-1.5 font-mono text-xs font-bold border bg-slate-50 border-slate-300 dark:bg-slate-950 dark:border-slate-700">
                                 <select name="deposit_to" class="rounded-xl px-2 py-1.5 font-mono text-xs border bg-slate-50 border-slate-300 dark:bg-slate-950 dark:border-slate-700">
                                     <option value="bank">Kluis</option>
                                     <option value="cash">Zak</option>

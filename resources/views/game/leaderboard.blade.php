@@ -159,7 +159,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                         @forelse(($leaderboard ?? $topCharacters ?? []) as $index => $player)
-                            <tr x-show="(!search || @js(strtolower($player->name)).includes(search.toLowerCase())) && (activeTab === 'all' || {{ $index }} < 10)" 
+                            <tr x-show="(!search || @js(strtolower((string) $player->name)).includes(search.toLowerCase())) && (activeTab === 'all' || {{ $index }} < 10)" 
                                 class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors {{ $player->id === $character->id ? 'bg-indigo-50/40 dark:bg-purple-950/40 font-semibold' : '' }}">
                                 
                                 <td class="p-3.5 text-center font-bold">

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
+use Illuminate\Support\Facades\DB;
 
 class PrisonService
 {
@@ -68,90 +69,101 @@ class PrisonService
      */
     public function attemptEscape(Character $character, EnergyService $energyService): array
     {
-        if (! $character->isImprisoned()) {
-            return [
-                'success' => false,
-                'message' => 'Je zit momenteel niet in de isoleercel!',
-            ];
-        }
-
-        if ($character->isComatose()) {
-            return [
-                'success' => false,
-                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
-            ];
-        }
-
-        if ($character->prison_escape_attempted) {
-            return [
-                'success' => false,
-                'message' => 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Bekijk een advertentie om direct vrijgelaten te worden.',
-            ];
-        }
-
-        $escapeCost = 20;
-        if (! $energyService->consume($character, $escapeCost)) {
-            return [
-                'success' => false,
-                'message' => "Je hebt minimaal {$escapeCost} energie nodig voor een ontsnappingspoging.",
-            ];
-        }
-
-        // Escape chance: Base 25% + (effective intelligence + stamina) / 10, capped at 65%
-        $bonus = ($character->getEffectiveIntelligence() + $character->getEffectiveStamina()) / 10;
-        $chance = min(65, (int) round(25 + $bonus));
-
-        $roll = random_int(1, 100);
-
-        if ($roll <= $chance) {
-            $newStamina = (int) $character->stamina;
-            if (random_int(1, 100) <= 25) {
-                $newStamina = min($character->getMaxStatForLevel(), $newStamina + 1);
+        return DB::transaction(function () use ($character, $energyService): array {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return [
+                    'success' => false,
+                    'message' => 'Karakter niet gevonden!',
+                ];
             }
 
-            $character->addRespect(15);
-            $character->update([
-                'is_in_prison' => false,
-                'prison_until' => null,
-                'prison_reason' => null,
-                'ad_prison_progress' => 0,
-                'prison_escape_attempted' => false,
-                'prison_escapes' => $character->prison_escapes + 1,
-                'stamina' => $newStamina,
+            if (! $locked->isImprisoned()) {
+                return [
+                    'success' => false,
+                    'message' => 'Je zit momenteel niet in de isoleercel!',
+                ];
+            }
+
+            if ($locked->isComatose()) {
+                return [
+                    'success' => false,
+                    'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+                ];
+            }
+
+            if ($locked->prison_escape_attempted) {
+                return [
+                    'success' => false,
+                    'message' => 'Je hebt je ontsnappingspoging voor deze straftijd al verbruikt! Bekijk een advertentie om direct vrijgelaten te worden.',
+                ];
+            }
+
+            $escapeCost = 20;
+            if (! $energyService->consume($locked, $escapeCost)) {
+                return [
+                    'success' => false,
+                    'message' => "Je hebt minimaal {$escapeCost} energie nodig voor een ontsnappingspoging.",
+                ];
+            }
+
+            // Escape chance: Base 25% + (effective intelligence + stamina) / 10, capped at 65%
+            $bonus = ($locked->getEffectiveIntelligence() + $locked->getEffectiveStamina()) / 10;
+            $chance = min(65, (int) round(25 + $bonus));
+
+            $roll = random_int(1, 100);
+
+            if ($roll <= $chance) {
+                $newStamina = (int) $locked->stamina;
+                if (random_int(1, 100) <= 25) {
+                    $newStamina = min($locked->getMaxStatForLevel(), $newStamina + 1);
+                }
+
+                $locked->addRespect(15);
+                $locked->update([
+                    'is_in_prison' => false,
+                    'prison_until' => null,
+                    'prison_reason' => null,
+                    'ad_prison_progress' => 0,
+                    'prison_escape_attempted' => false,
+                    'prison_escapes' => $locked->prison_escapes + 1,
+                    'stamina' => $newStamina,
+                ]);
+                $character->refresh();
+
+                GameNotification::create([
+                    'character_id' => $locked->id,
+                    'type' => 'escape',
+                    'icon' => 'fa-door-open',
+                    'title' => 'Succesvol ontsnapt!',
+                    'message' => 'Je bent via het luchtkanaal ontsnapt uit de isoleercel! Je verdiende 15 respect.',
+                ]);
+
+                return [
+                    'success' => true,
+                    'message' => 'Geweldig! Je hebt de bewakers afgeleid en bent ontsnapt via de wasruimte. Je verdient 15 respect!',
+                ];
+            }
+
+            // Failed escape -> adds 90 extra seconds of sentence
+            $currentUntil = ($locked->prison_until && now()->lt($locked->prison_until))
+                ? $locked->prison_until
+                : now();
+            $newUntil = $currentUntil->copy()->addSeconds(90);
+
+            $locked->update([
+                'is_in_prison' => true,
+                'prison_until' => $newUntil,
+                'prison_escape_attempted' => true,
+                'respect' => max(0, (int) $locked->respect - 1),
             ]);
             $character->refresh();
 
-            GameNotification::create([
-                'character_id' => $character->id,
-                'type' => 'escape',
-                'icon' => 'fa-door-open',
-                'title' => 'Succesvol ontsnapt!',
-                'message' => 'Je bent via het luchtkanaal ontsnapt uit de isoleercel! Je verdiende 15 respect.',
-            ]);
-
             return [
-                'success' => true,
-                'message' => 'Geweldig! Je hebt de bewakers afgeleid en bent ontsnapt via de wasruimte. Je verdient 15 respect!',
+                'success' => false,
+                'message' => 'Mislukt! Bewaker Barry greep je bij je lurven bij het luchtrooster. Je straftijd is met 90 seconden verlengd en je hebt je ontsnappingspoging verbruikt! Bekijk een advertentie om alsnog direct vrij te komen.',
             ];
-        }
-
-        // Failed escape -> adds 90 extra seconds of sentence
-        $currentUntil = ($character->prison_until && now()->lt($character->prison_until))
-            ? $character->prison_until
-            : now();
-        $newUntil = $currentUntil->copy()->addSeconds(90);
-
-        $character->update([
-            'is_in_prison' => true,
-            'prison_until' => $newUntil,
-            'prison_escape_attempted' => true,
-            'respect' => max(0, $character->respect - 1),
-        ]);
-        $character->refresh();
-
-        return [
-            'success' => false,
-            'message' => 'Mislukt! Bewaker Barry greep je bij je lurven bij het luchtrooster. Je straftijd is met 90 seconden verlengd en je hebt je ontsnappingspoging verbruikt! Bekijk een advertentie om alsnog direct vrij te komen.',
-        ];
+        });
     }
 }

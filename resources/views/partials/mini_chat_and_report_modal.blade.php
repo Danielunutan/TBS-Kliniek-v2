@@ -351,7 +351,7 @@
                                         <span :class="msg.name_classes ? msg.name_classes : 'text-amber-500 dark:text-amber-400'"
                                               :style="msg.name_style || ''"
                                               x-text="msg.name"></span>
-                                        <span class="px-1 py-0.2 rounded bg-amber-500 text-slate-950 text-[7px] font-black uppercase">Eigenaar</span>
+                                        <span class="px-1 py-0.5 rounded bg-amber-500 text-slate-950 text-[7px] font-black uppercase">Eigenaar</span>
                                     </span>
                                 </template>
                                 <!-- ADMIN / DIRECTIE -->
@@ -362,7 +362,7 @@
                                         <span :class="msg.name_classes ? msg.name_classes : 'text-purple-600 dark:text-purple-300'"
                                               :style="msg.name_style || ''"
                                               x-text="msg.name"></span>
-                                        <span class="px-1 py-0.2 rounded bg-purple-600 text-white text-[7px] font-black uppercase">Directie</span>
+                                        <span class="px-1 py-0.5 rounded bg-purple-600 text-white text-[7px] font-black uppercase">Directie</span>
                                     </span>
                                 </template>
                                 <!-- MODERATOR -->
@@ -373,7 +373,7 @@
                                         <span :class="msg.name_classes ? msg.name_classes : 'text-cyan-600 dark:text-cyan-400'"
                                               :style="msg.name_style || ''"
                                               x-text="msg.name"></span>
-                                        <span class="px-1 py-0.2 rounded bg-cyan-600 text-white text-[7px] font-black uppercase">Mod</span>
+                                        <span class="px-1 py-0.5 rounded bg-cyan-600 text-white text-[7px] font-black uppercase">Mod</span>
                                     </span>
                                 </template>
                                 <!-- REGULAR / VIP -->
@@ -393,7 +393,7 @@
 
                                 <!-- VIP BADGE PILL -->
                                 <template x-if="msg.is_vip && msg.vip_badge_label">
-                                    <span class="px-1.5 py-0.2 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
+                                    <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
                                           :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                           :title="msg.vip_badge_full || 'VIP Lid'">
                                         <i class="fa-solid text-[7px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
@@ -402,19 +402,19 @@
                                 </template>
 
                                 <!-- LEVEL -->
-                                <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
+                                <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
                                     L<span x-text="msg.level"></span>
                                 </span>
 
                                 <!-- RESPECT -->
-                                <span class="px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[8px] font-black flex items-center gap-0.5">
+                                <span class="px-1 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[8px] font-black flex items-center gap-0.5">
                                     <i class="fa-solid fa-fire text-amber-500 text-[7px]"></i>
                                     <span x-text="msg.respect"></span>
                                 </span>
 
                                 <!-- GANG TAG -->
                                 <template x-if="msg.gang_tag">
-                                    <span class="px-1 py-0.2 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[8px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
+                                    <span class="px-1 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 text-[8px] font-black" x-text="'[' + msg.gang_tag + ']'"></span>
                                 </template>
 
                                 <!-- TIME -->
@@ -576,7 +576,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1 shrink-0">
-                                        <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                        <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
                                         <template x-if="user.staff_role">
                                             <span class="text-[8px] font-extrabold text-amber-500" x-text="user.staff_role"></span>
                                         </template>
@@ -670,7 +670,7 @@
                             <i class="fa-solid fa-walkie-talkie text-amber-500"></i>
                             <span x-text="gangName + ' [Portofoon]'"></span>
                         </div>
-                        <span class="text-[9px] px-2 py-0.2 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold border border-emerald-200/80 dark:border-emerald-800/70">
+                        <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-extrabold border border-emerald-200/80 dark:border-emerald-800/70">
                             Besloten
                         </span>
                     </div>
@@ -701,7 +701,7 @@
                                         </template>
 
                                         <template x-if="msg.is_vip && msg.vip_badge_label">
-                                            <span class="px-1.5 py-0.2 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
+                                            <span class="px-1.5 py-0.5 rounded text-[7px] font-black uppercase border inline-flex items-center gap-0.5 shrink-0"
                                                   :class="msg.vip_badge_class || 'bg-amber-400 text-slate-950 border-amber-300'"
                                                   :title="msg.vip_badge_full || 'VIP Lid'">
                                                 <i class="fa-solid text-[7px]" :class="msg.vip_badge_icon || 'fa-crown'"></i>
@@ -709,7 +709,7 @@
                                             </span>
                                         </template>
 
-                                        <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
+                                        <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
                                             L<span x-text="msg.level"></span>
                                         </span>
 
@@ -854,7 +854,7 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-1 shrink-0">
-                                        <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                        <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
                                     </div>
                                 </div>
                             </template>
@@ -948,7 +948,7 @@
                                 </div>
                                 <div class="shrink-0 flex items-center gap-1">
                                     <template x-if="conv.unread_count > 0">
-                                        <span class="px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black" x-text="conv.unread_count"></span>
+                                        <span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-black" x-text="conv.unread_count"></span>
                                     </template>
                                     <i class="fa-solid fa-chevron-right text-[10px] text-slate-400 group-hover:text-purple-500 transition"></i>
                                 </div>
@@ -1048,7 +1048,7 @@
                                             <div class="flex items-center gap-1.5 text-[10px] font-bold flex-wrap mb-0.5 min-w-0 max-w-full" :class="dm.is_me ? 'justify-end' : ''">
                                                 <span class="text-slate-900 dark:text-white font-extrabold" x-text="dm.is_me ? myName : (activeDirectPartner?.name || 'Inmate')"></span>
                                                 <template x-if="!dm.is_me && activeDirectPartner && activeDirectPartner.level">
-                                                    <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
+                                                    <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black">
                                                         L<span x-text="activeDirectPartner.level"></span>
                                                     </span>
                                                 </template>
@@ -1225,7 +1225,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex items-center gap-1 shrink-0">
-                                                    <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
+                                                    <span class="px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[8px] font-black" x-text="'L' + user.level"></span>
                                                 </div>
                                             </div>
                                         </template>
@@ -1323,7 +1323,7 @@
         </div>
         <span class="tracking-wide" x-text="isOpen ? 'Sluit Chat' : 'Live Chat'">Live Chat</span>
         <template x-if="unreadDmsCount > 0">
-            <span class="bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full animate-bounce" x-text="unreadDmsCount"></span>
+            <span class="bg-rose-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full animate-bounce" x-text="unreadDmsCount"></span>
         </template>
     </button>
 </div>

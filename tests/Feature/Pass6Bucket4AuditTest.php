@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\TreatmentCaseCatalog;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class Pass6Bucket4AuditTest extends TestCase
@@ -84,5 +85,79 @@ class Pass6Bucket4AuditTest extends TestCase
         $response->assertOk();
         $response->assertSee('formatted_amount', false);
         $response->assertSee('display_tier', false);
+    }
+
+    public function test_character_factory_generates_unique_names(): void
+    {
+        $characters = Character::factory()->count(10)->create();
+        $this->assertCount(10, $characters);
+        $this->assertCount(10, $characters->pluck('name')->unique());
+    }
+
+    public function test_admin_players_view_handles_character_without_user(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_staff' => true,
+            'is_onboarded' => true,
+        ]);
+        Character::factory()->create([
+            'user_id' => $admin->id,
+            'name' => 'AdminPlayer',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.players'));
+        $response->assertOk();
+        $response->assertSee('AdminPlayer');
+        $response->assertSee('Inlognaam');
+
+        $orphan = Character::factory()->make([
+            'id' => 99999,
+            'user_id' => $admin->id,
+            'name' => 'OrphanPatient',
+        ]);
+        $orphan->setRelation('user', null);
+
+        $view = $this->actingAs($admin)->view('admin.players', [
+            'players' => new LengthAwarePaginator([$orphan], 1, 15),
+        ]);
+        $view->assertSee('OrphanPatient');
+        $view->assertSee('Geen account gekoppeld');
+    }
+
+    public function test_admin_mail_view_safely_encodes_active_mailbox_and_folder_with_js_directive(): void
+    {
+        $owner = User::factory()->create([
+            'role' => 'owner',
+            'email' => 'admin@tbskliniek.nl',
+            'is_staff' => true,
+            'is_onboarded' => true,
+        ]);
+        Character::factory()->create([
+            'user_id' => $owner->id,
+            'name' => 'OwnerChar',
+        ]);
+
+        $payload = "INBOX');alert('xss');//";
+        $response = $this->actingAs($owner)->get(route('admin.mail.index', ['folder' => $payload]));
+        $response->assertOk();
+        $response->assertDontSee("selectedFolder: '".$payload."'", false);
+    }
+
+    public function test_admin_dashboard_renders_for_admin_user(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'is_staff' => true,
+            'is_onboarded' => true,
+        ]);
+        Character::factory()->create([
+            'user_id' => $admin->id,
+            'name' => 'DashboardAdmin',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+        $response->assertOk();
+        $response->assertSee('Snelle Medewerkers Handelingen');
     }
 }

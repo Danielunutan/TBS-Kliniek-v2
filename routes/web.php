@@ -174,9 +174,9 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     // Helptool: Support Ticketsysteem
     Route::get('/help/tickets', [SupportTicketController::class, 'index'])->name('help.tickets.index');
     Route::get('/help/tickets/nieuw', [SupportTicketController::class, 'create'])->name('help.tickets.create');
-    Route::post('/help/tickets', [SupportTicketController::class, 'store'])->name('help.tickets.store');
+    Route::post('/help/tickets', [SupportTicketController::class, 'store'])->middleware('throttle:10,1')->name('help.tickets.store');
     Route::get('/help/tickets/{ticket}', [SupportTicketController::class, 'show'])->name('help.tickets.show');
-    Route::post('/help/tickets/{ticket}/reactie', [SupportTicketController::class, 'reply'])->name('help.tickets.reply');
+    Route::post('/help/tickets/{ticket}/reactie', [SupportTicketController::class, 'reply'])->middleware('throttle:20,1')->name('help.tickets.reply');
     Route::post('/help/tickets/{ticket}/sluiten', [SupportTicketController::class, 'close'])->name('help.tickets.close');
 
     // Dashboard & Widgets
@@ -213,11 +213,11 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/chat/poll-inkomend', [ChatController::class, 'pollIncoming'])->name('chat.poll-incoming');
 
     // Meldingen & Rapporteren (Speler, Bende of Chat)
-    Route::post('/rapporteren', [ReportController::class, 'store'])->name('report.store');
+    Route::post('/rapporteren', [ReportController::class, 'store'])->middleware('throttle:10,1')->name('report.store');
 
     // Berichten (Messages & Post)
     Route::get('/berichten', [MessageController::class, 'index'])->name('messages.index');
-    Route::post('/berichten/versturen', [MessageController::class, 'send'])->name('messages.send');
+    Route::post('/berichten/versturen', [MessageController::class, 'send'])->middleware('throttle:20,1')->name('messages.send');
     Route::post('/berichten/alles-lezen', [MessageController::class, 'markAllRead'])->name('messages.mark-all-read');
     Route::post('/berichten/{message}/lezen', [MessageController::class, 'markRead'])->name('messages.mark-read');
     Route::delete('/berichten/alles-verwijderen', [MessageController::class, 'destroyAll'])->name('messages.destroy-all');
@@ -230,8 +230,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/vrienden/{friend}/accepteren', [FriendController::class, 'accept'])->name('friends.accept');
     Route::post('/vrienden/{friend}/weigeren', [FriendController::class, 'reject'])->name('friends.reject');
     Route::delete('/vrienden/{friend}', [FriendController::class, 'remove'])->name('friends.remove');
-    Route::post('/vrienden/{friend}/respect', [FriendController::class, 'giveRespect'])->name('friends.respect');
-    Route::post('/vrienden/massa-bericht', [FriendController::class, 'massMessage'])->name('friends.mass-message');
+    Route::post('/vrienden/{friend}/respect', [FriendController::class, 'giveRespect'])->middleware('throttle:30,1')->name('friends.respect');
+    Route::post('/vrienden/massa-bericht', [FriendController::class, 'massMessage'])->middleware('throttle:5,1')->name('friends.mass-message');
 
     // Tijdlijn (Twitter van de TBS Kliniek)
     Route::get('/tijdlijn', [TimelineController::class, 'index'])->name('timeline.index');
@@ -291,7 +291,7 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Functie 3: TBS FM (Radio & Shoutouts)
     Route::get('/tbs-fm', [RadioController::class, 'index'])->name('radio.index');
-    Route::post('/tbs-fm/shoutout', [RadioController::class, 'shoutout'])->name('radio.shoutout');
+    Route::post('/tbs-fm/shoutout', [RadioController::class, 'shoutout'])->middleware('throttle:10,1')->name('radio.shoutout');
     Route::post('/tbs-fm/{shoutout}/like', [RadioController::class, 'like'])->name('radio.like');
 
     // Functie 7: Het Grote Uitbraakcomplot (Tunnel)
@@ -441,8 +441,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/bank/leningen/aanvragen', [BankController::class, 'requestLoan'])->name('bank.loans.request');
     Route::post('/bank/leningen/{loan}/aflossen', [BankController::class, 'repayLoan'])->name('bank.loans.repay');
     Route::post('/bank/leningen/{loan}/alles-aflossen', [BankController::class, 'repayLoanFull'])->name('bank.loans.repay-full');
-    Route::post('/bank/pincode/instellen', [BankController::class, 'setPin'])->name('bank.pin.set');
-    Route::post('/bank/pincode/verifieren', [BankController::class, 'verifyPin'])->name('bank.pin.verify');
+    Route::post('/bank/pincode/instellen', [BankController::class, 'setPin'])->middleware('throttle:10,1')->name('bank.pin.set');
+    Route::post('/bank/pincode/verifieren', [BankController::class, 'verifyPin'])->middleware('throttle:5,1')->name('bank.pin.verify');
     Route::post('/bank/pincode/uitwerpen', [BankController::class, 'ejectCard'])->name('bank.pin.eject');
 
     // Casino
@@ -509,8 +509,8 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::get('/profiel', [ProfileController::class, 'show'])->name('profile.me');
     Route::get('/speler/{name}', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/u/{name}', [ProfileController::class, 'show'])->name('profile');
-    Route::post('/speler/{name}/respect', [ProfileController::class, 'giveRespect'])->name('profile.respect');
-    Route::post('/speler/{name}/gastenboek', [ProfileController::class, 'postGuestbook'])->name('guestbook.post');
+    Route::post('/speler/{name}/respect', [ProfileController::class, 'giveRespect'])->middleware('throttle:30,1')->name('profile.respect');
+    Route::post('/speler/{name}/gastenboek', [ProfileController::class, 'postGuestbook'])->middleware('throttle:15,1')->name('guestbook.post');
     Route::delete('/speler/gastenboek/{entry}', [ProfileController::class, 'destroyGuestbook'])->name('guestbook.destroy');
     Route::post('/profiel/bijwerken', [ProfileController::class, 'updateBio'])->name('profile.update');
     Route::post('/profiel/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
@@ -547,13 +547,13 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
     Route::post('/gangs/kick/{member}', [GangController::class, 'kick'])->name('gangs.kick');
     Route::post('/gangs/promote/{member}', [GangController::class, 'promote'])->name('gangs.promote');
     Route::post('/gangs/opnemen', [GangController::class, 'withdraw'])->name('gangs.withdraw');
-    Route::post('/gangs/massa-bericht', [GangController::class, 'massMessage'])->name('gangs.mass-message');
+    Route::post('/gangs/massa-bericht', [GangController::class, 'massMessage'])->middleware('throttle:5,1')->name('gangs.mass-message');
     Route::post('/gangs/verzoeken/{requestRecord}/behandelen', [GangController::class, 'handleRequest'])->name('gangs.handle-request');
     Route::post('/gangs/bondgenoot', [GangController::class, 'addAlliance'])->name('gangs.add-alliance');
     Route::delete('/gangs/bondgenoot/{alliance}', [GangController::class, 'removeAlliance'])->name('gangs.remove-alliance');
     Route::post('/gangs/opheffen', [GangController::class, 'disband'])->name('gangs.disband');
-    Route::post('/gangs/aanvallen', [GangController::class, 'attack'])->name('gangs.attack');
-    Route::post('/gangs/claim-uurloon', [GangController::class, 'claimWage'])->name('gangs.claim-wage');
+    Route::post('/gangs/aanvallen', [GangController::class, 'attack'])->middleware('throttle:30,1')->name('gangs.attack');
+    Route::post('/gangs/claim-uurloon', [GangController::class, 'claimWage'])->middleware('throttle:30,1')->name('gangs.claim-wage');
 
     // Bende Panden, Productie & NPC Rekruten
     Route::get('/gangs/panden', [GangPropertyController::class, 'index'])->name('gangs.panden');

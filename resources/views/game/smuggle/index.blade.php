@@ -204,7 +204,7 @@
                                 <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="action" value="produce_sigaretten">
-                                    <button type="submit" title="Omzeil cooldown met 20 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
+                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 20 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                         <i class="fa-solid fa-star text-[11px]"></i>
                                         <span>Omzeilen (20 ⭐)</span>
                                     </button>
@@ -215,7 +215,7 @@
                                     @csrf
                                     <input type="hidden" name="type" value="sigaretten">
                                     <button type="submit" 
-                                            @if($character->energy < 5) disabled @endif
+                                            @if($character->energy < 5 || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                             class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
@@ -266,7 +266,7 @@
                                 <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="action" value="produce_ritalin">
-                                    <button type="submit" title="Omzeil cooldown met 35 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
+                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 35 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                         <i class="fa-solid fa-star text-[11px]"></i>
                                         <span>Omzeilen (35 ⭐)</span>
                                     </button>
@@ -277,7 +277,7 @@
                                     @csrf
                                     <input type="hidden" name="type" value="ritalin">
                                     <button type="submit" 
-                                            @if($character->energy < 10) disabled @endif
+                                            @if($character->energy < 10 || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                             class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
@@ -328,7 +328,7 @@
                                 <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="action" value="produce_telefoon">
-                                    <button type="submit" title="Omzeil cooldown met 50 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
+                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 50 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                         <i class="fa-solid fa-star text-[11px]"></i>
                                         <span>Omzeilen (50 ⭐)</span>
                                     </button>
@@ -339,7 +339,7 @@
                                     @csrf
                                     <input type="hidden" name="type" value="telefoon">
                                     <button type="submit" 
-                                            @if($character->energy < 20) disabled @endif
+                                            @if($character->energy < 20 || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                             class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-gear text-[11px]"></i>
                                         <span>Produceren</span>
@@ -390,7 +390,7 @@
                                 <form method="POST" action="{{ route('cooldown.skip') }}" class="inline-block">
                                     @csrf
                                     <input type="hidden" name="action" value="produce_wiet">
-                                    <button type="submit" title="Omzeil cooldown met 40 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5">
+                                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) title="Omzeil cooldown met 40 Sterren" class="btn-star-gold px-3.5 py-1.5 active:scale-95 text-slate-900 dark:text-white font-black rounded-xl text-xs shadow-xs transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                         <i class="fa-solid fa-star text-[11px]"></i>
                                         <span>Omzeilen (40 ⭐)</span>
                                     </button>
@@ -401,7 +401,7 @@
                                     @csrf
                                     <input type="hidden" name="type" value="wiet">
                                     <button type="submit" 
-                                            @if($character->energy < 15) disabled @endif
+                                            @if($character->energy < 15 || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                             class="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white text-xs font-black px-4 py-2.5 rounded-xl transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-cannabis text-[11px]"></i>
                                         <span>Kweken</span>
@@ -473,7 +473,7 @@
                                 @csrf
                                 <input type="hidden" name="order_id" value="{{ $order['id'] }}">
                                 <button type="submit" 
-                                        @if(!$order['can_fulfill']) disabled @endif
+                                        @if(!$order['can_fulfill'] || $character->isImprisoned() || $character->isComatose()) disabled @endif
                                         class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 disabled:bg-slate-100 disabled:dark:bg-slate-800/80 disabled:text-slate-400 disabled:dark:text-slate-500 disabled:border disabled:border-slate-200/80 disabled:dark:border-slate-700/60 disabled:cursor-not-allowed disabled:shadow-none text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-check text-[11px]"></i>
                                     <span>Verkopen</span>
@@ -489,7 +489,8 @@
                                 @csrf
                                 <input type="hidden" name="order_id" value="{{ $order['id'] }}">
                                 <button type="submit" 
-                                        class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1">
+                                        @disabled($character->isImprisoned() || $character->isComatose())
+                                        class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
                                     <i class="fa-solid fa-xmark text-[10px]"></i>
                                     <span>Weigeren</span>
                                 </button>

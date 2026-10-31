@@ -173,7 +173,7 @@
                                         <label class="text-[10px] font-black text-amber-900 dark:text-amber-300 uppercase tracking-wider block flex items-center gap-1.5">
                                             <i class="fa-solid fa-user-gear text-amber-600 dark:text-amber-400"></i> Account Inlognaam (User)
                                         </label>
-                                        <input type="text" name="username" value="{{ $player->user?->name }}" required
+                                        <input type="text" name="username" value="{{ $player->user?->name }}" {{ $player->user ? 'required' : '' }} placeholder="{{ $player->user ? 'Inlognaam' : 'Geen account gekoppeld' }}"
                                                class="w-full bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-slate-900 dark:text-slate-100 rounded-xl px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-amber-500 mt-1">
                                     </div>
                                     <div>

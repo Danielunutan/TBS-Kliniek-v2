@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $otherPlayers = $otherPlayers ?? $friends ?? collect();
+@endphp
 <div class="space-y-6" x-data="{ composeOpen: {{ !empty($initialRecipient) ? 'true' : 'false' }} }">
 
     <!-- Header Banner -->
@@ -35,7 +38,7 @@
                     <i class="fa-solid fa-check-double"></i>
                     <span>Alles Gelezen</span>
                     @if($unreadCount > 0)
-                        <span class="bg-emerald-800 dark:bg-emerald-900 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadCount }}</span>
+                        <span class="bg-emerald-800 dark:bg-emerald-900 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">{{ $unreadCount }}</span>
                     @endif
                 </button>
             </form>
@@ -130,7 +133,7 @@
             <i class="fa-solid fa-bell"></i>
             <span>Ongelezen</span>
             @if($unreadCount > 0)
-                <span class="{{ $filter === 'unread' ? 'bg-white text-rose-700' : 'bg-rose-500 text-white' }} text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">{{ $unreadCount }}</span>
+                <span class="{{ $filter === 'unread' ? 'bg-white text-rose-700' : 'bg-rose-500 text-white' }} text-[10px] font-extrabold px-1.5 py-0.5 rounded-full">{{ $unreadCount }}</span>
             @endif
         </a>
         <a href="{{ route('messages.index', ['filter' => 'theft']) }}" 
@@ -343,7 +346,7 @@
                                @click.outside="openDropdown = false"
                                autocomplete="off"
                                placeholder="Kies een vriend uit je lijst..."
-                               class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl py-2.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition tbs-search-input"
+                               class="w-full text-base sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl py-2.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition tbs-search-input"
                                style="padding-left: 2.75rem !important; padding-right: 2.25rem !important;">
                         <div class="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 text-xs z-10">
                             <i class="fa-solid fa-chevron-down transition-transform duration-150" :class="openDropdown ? 'rotate-180' : ''"></i>
@@ -376,20 +379,22 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Onderwerp</label>
                     <input type="text" name="subject" required placeholder="Bijv. Deal in de kantine / Bende bondgenootschap"
-                           class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
+                           class="w-full text-base sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Boodschap</label>
                     <textarea name="content" required rows="4" placeholder="Schrijf je geheime brief..."
-                              class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none"></textarea>
+                              class="w-full text-base sm:text-xs font-semibold bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl p-3 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none"></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
                     <button type="button" @click="composeOpen = false" class="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 rounded-xl transition cursor-pointer">
                         Annuleren
                     </button>
-                    <button type="submit" class="px-5 py-2 text-xs font-black bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white rounded-xl transition-all duration-150 shadow-xs active:scale-95 cursor-pointer">
+                    <button type="submit" 
+                            {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                            class="px-5 py-2 text-xs font-black {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white cursor-pointer active:scale-95' }} rounded-xl transition-all duration-150 shadow-xs">
                         Brief Versturen
                     </button>
                 </div>

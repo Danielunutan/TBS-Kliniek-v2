@@ -4,7 +4,7 @@
 <div class="space-y-6" x-data="{
     memberSearch: '',
     onlyOnline: false,
-    members: {{ Js::from($gangMembersData ?? []) }},
+    members: @js($gangMembersData ?? []),
     get list() {
         let q = this.memberSearch.toLowerCase().trim();
         return this.members.filter(m => {

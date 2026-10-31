@@ -149,19 +149,19 @@
                                     {{ $ticket->category_label }}
                                 </span>
                                 @if($ticket->status === 'beantwoord')
-                                <span class="text-[9px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.2 rounded-sm border border-emerald-200/80 dark:border-emerald-800/70 font-bold inline-flex items-center gap-1">
+                                <span class="text-[9px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-sm border border-emerald-200/80 dark:border-emerald-800/70 font-bold inline-flex items-center gap-1">
                                     <i class="fa-solid fa-check text-[8px]"></i> Beantwoord door staff
                                 </span>
                                 @elseif($ticket->status === 'gesloten')
-                                <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.2 rounded-sm border border-slate-200/80 dark:border-slate-700 font-bold inline-flex items-center gap-1">
+                                <span class="text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded-sm border border-slate-200/80 dark:border-slate-700 font-bold inline-flex items-center gap-1">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Gesloten
                                 </span>
                                 @elseif($ticket->last_reply_by_staff)
-                                <span class="text-[9px] bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-1.5 py-0.2 rounded-sm border border-purple-200/80 dark:border-purple-800/70 font-bold">
+                                <span class="text-[9px] bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded-sm border border-purple-200/80 dark:border-purple-800/70 font-bold">
                                     Wacht op speler
                                 </span>
                                 @else
-                                <span class="text-[9px] bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 px-1.5 py-0.2 rounded-sm border border-amber-200/80 dark:border-amber-800/70 font-bold inline-flex items-center gap-1 animate-pulse">
+                                <span class="text-[9px] bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded-sm border border-amber-200/80 dark:border-amber-800/70 font-bold inline-flex items-center gap-1 animate-pulse">
                                     <i class="fa-solid fa-bell text-[8px]"></i> Reactie vereist!
                                 </span>
                                 @endif

@@ -60,7 +60,7 @@
              x-transition:leave="transition ease-in duration-200"
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 translate-y-8"
-             class="fixed bottom-20 lg:bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-2xl space-y-3.5 text-slate-800 dark:text-slate-100">
+             class="fixed bottom-20 lg:bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-[60] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 shadow-2xl space-y-3.5 text-slate-800 dark:text-slate-100">
             
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200/80 dark:border-purple-800/70 flex items-center justify-center text-lg shrink-0 shadow-2xs">
@@ -95,7 +95,7 @@
 
         <!-- COOKIE PREFERENCES MODAL -->
         <div x-show="showModal" x-cloak
-             class="fixed inset-0 z-50 flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none backdrop-blur-xs">
+             class="fixed inset-0 z-[80] flex items-center justify-center p-4 pb-24 lg:pb-4 bg-slate-950/80 select-none backdrop-blur-xs">
             
             <div @click.away="showModal = false"
                  class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-lg w-full max-h-[85dvh] overflow-y-auto p-6 sm:p-7 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100 transform-gpu will-change-transform">
@@ -105,7 +105,7 @@
                         <i class="fa-solid fa-cookie-bite text-purple-600 dark:text-purple-400 text-lg"></i>
                         <h3 class="text-base font-black text-slate-900 dark:text-white">Cookie-instellingen Beheren</h3>
                     </div>
-                    <button type="button" @click="showModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg cursor-pointer p-1 transition-colors">
+                    <button type="button" @click="showModal = false" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white text-lg cursor-pointer transition-colors" aria-label="Sluiten">
                         &times;
                     </button>
                 </div>

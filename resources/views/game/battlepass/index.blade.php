@@ -135,7 +135,7 @@
 @endphp
 
 <script>
-    window.__TBS_BP_DATA__ = @json($bpFrontendPayload);
+    window.__TBS_BP_DATA__ = @js($bpFrontendPayload);
 </script>
 
 <div class="space-y-5"
@@ -152,6 +152,7 @@
         claimableCount: window.__TBS_BP_DATA__.claimableCount,
         busyKey: null,
         touchStartX: 0,
+        touchStartY: 0,
 
         get currentItem() {
             return this.levels[this.activeLevel] || this.levels[1];
@@ -548,8 +549,8 @@
 
     <!-- ULTRA-SNELLE INTERACTIEVE SLIDER KAART MET 2 GROTE PAARSE PIJLEN (VOOR & ACHTERKANT) -->
     <div class="relative flex items-center justify-center sm:px-14"
-         @touchstart.passive="touchStartX = $event.changedTouches[0].screenX"
-         @touchend.passive="const diff = $event.changedTouches[0].screenX - touchStartX; if (Math.abs(diff) > 45) { diff < 0 ? nextSlide() : prevSlide(); }">
+         @touchstart.passive="touchStartX = $event.changedTouches[0].screenX; touchStartY = $event.changedTouches[0].screenY"
+         @touchend.passive="const diffX = $event.changedTouches[0].screenX - touchStartX; const diffY = $event.changedTouches[0].screenY - touchStartY; if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY) * 1.5) { diffX < 0 ? nextSlide() : prevSlide(); }">
 
         <!-- Grote Pijl VOORKANT (Links) -->
         <button type="button"

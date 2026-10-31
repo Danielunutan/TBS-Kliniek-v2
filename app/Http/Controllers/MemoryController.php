@@ -350,7 +350,8 @@ class MemoryController extends Controller
             }
 
             if ($rewardRespect > 0) {
-                $lockedChar->increment('respect', $rewardRespect);
+                $lockedChar->addRespect($rewardRespect);
+                $lockedChar->save();
             }
 
             if ($rewardXp > 0) {

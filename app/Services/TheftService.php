@@ -119,6 +119,17 @@ class TheftService
             ];
         }
 
+        if ($character->isComatose()) {
+            return [
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand) en kunt geen diefstallen plegen!',
+                'cash_stolen' => 0,
+                'xp_gained' => 0,
+                'jailed' => false,
+                'jail_minutes' => 0,
+            ];
+        }
+
         if ($character->isImprisoned()) {
             return [
                 'success' => false,
@@ -135,6 +146,17 @@ class TheftService
                 return [
                     'success' => false,
                     'message' => 'Je kunt niet uit je eigen zakken stelen!',
+                    'cash_stolen' => 0,
+                    'xp_gained' => 0,
+                    'jailed' => false,
+                    'jail_minutes' => 0,
+                ];
+            }
+
+            if ($victim->isComatose()) {
+                return [
+                    'success' => false,
+                    'message' => "{$victim->name} verkeert in Code Blauw (Hartstilstand) op de intensive care en kan niet worden bestolen.",
                     'cash_stolen' => 0,
                     'xp_gained' => 0,
                     'jailed' => false,

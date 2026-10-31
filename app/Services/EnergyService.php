@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Character;
+use Illuminate\Support\Facades\DB;
 
 class EnergyService
 {
@@ -49,7 +50,7 @@ class EnergyService
             $character->last_energy_refill_at = $now;
             $character->save();
         } else {
-            $secondsElapsed = $now->diffInSeconds($lastRefill);
+            $secondsElapsed = (int) floor($now->diffInSeconds($lastRefill));
         }
 
         $regenInterval = match ($character->getSupporterTier()) {
@@ -62,7 +63,7 @@ class EnergyService
 
         if ($secondsElapsed >= $regenInterval) {
             $pointsToRegen = (int) floor($secondsElapsed / $regenInterval);
-            $leftoverSeconds = $secondsElapsed % $regenInterval;
+            $leftoverSeconds = (int) ($secondsElapsed % $regenInterval);
 
             $newEnergy = min($character->max_energy, $character->energy + $pointsToRegen);
             $newHealth = min($character->max_health, $character->health + $pointsToRegen);
@@ -90,15 +91,29 @@ class EnergyService
             return true;
         }
 
-        $this->refresh($character);
+        return DB::transaction(function () use ($character, $amount): bool {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked) {
+                return false;
+            }
 
-        if ($character->energy < $amount) {
-            return false;
-        }
+            $this->refresh($locked);
 
-        $character->energy -= $amount;
-        $character->save();
+            if ($locked->energy < $amount) {
+                $character->energy = $locked->energy;
 
-        return true;
+                return false;
+            }
+
+            $locked->energy -= $amount;
+            $locked->save();
+
+            $character->energy = $locked->energy;
+            $character->health = $locked->health;
+            $character->last_energy_refill_at = $locked->last_energy_refill_at;
+
+            return true;
+        });
     }
 }

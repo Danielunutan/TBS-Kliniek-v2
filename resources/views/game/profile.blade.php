@@ -33,8 +33,8 @@
     selectedNameGradient: '{{ $profileCharacter->getCustomNameGradient() ?? 'none' }}',
     selectedNameGlow: '{{ $profileCharacter->getCustomNameGlow() ?? 'none' }}',
     selectedSparkle: {{ $profileCharacter->isSparkleActive() ? 'true' : 'false' }},
-    gradientMap: {{ Js::from(collect($nameGradientCatalog)->map(fn($g) => ['css' => $g['css'], 'glow' => $g['glow']])) }},
-    colorGlowMap: {{ Js::from(collect($nameColorCatalog)->map(fn($c) => $c['glow'])) }},
+    gradientMap: @js(collect($nameGradientCatalog)->map(fn($g) => ['css' => $g['css'], 'glow' => $g['glow']])),
+    colorGlowMap: @js(collect($nameColorCatalog)->map(fn($c) => $c['glow'])),
     init() {
         if ({{ $hasExplicitProfileTab ? 'false' : 'true' }} && sessionStorage.getItem('tbs_profile_tab')) {
             this.activeTab = sessionStorage.getItem('tbs_profile_tab');
@@ -307,7 +307,7 @@
                                 <i class="fa-solid fa-award text-amber-500 text-[11px]"></i>
                                 <span>{{ $profileCharacter->title ?? 'Modelpatiënt' }}</span>
                                 @if($isOwnProfile)
-                                <button @click="titleModalOpen = true" type="button" class="ml-1 text-slate-400 hover:{{ $theme['badge_text'] }} transition cursor-pointer" title="Titel wijzigen">
+                                <button @click="titleModalOpen = true" type="button" class="ml-1 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition cursor-pointer" title="Titel wijzigen">
                                     <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                                 </button>
                                 @endif
@@ -424,7 +424,8 @@
                             <input type="hidden" name="from_profile" value="1">
                             
                             <button type="submit" 
-                                    class="px-4 py-2 text-xs font-black rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white transition shadow-xs flex items-center gap-2 cursor-pointer"
+                                    {{ Auth::user()->character->isImprisoned() || Auth::user()->character->isComatose() || Auth::user()->character->energy < 20 ? 'disabled' : '' }}
+                                    class="px-4 py-2 text-xs font-black rounded-xl transition shadow-xs flex items-center gap-2 {{ Auth::user()->character->isImprisoned() || Auth::user()->character->isComatose() || Auth::user()->character->energy < 20 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 active:scale-95 text-white cursor-pointer' }}"
                                     title="Overmeester en beroof {{ $profileCharacter->name }} van contant geld (20 energie)">
                                 <i class="fa-solid fa-mask"></i>
                                 <span>Beroof Patiënt (€{{ number_format($profileCharacter->cash, 0, ',', '.') }})</span>
@@ -806,7 +807,7 @@
                                     {{ $visit->visitor->name }}
                                 </span>
                                 <div class="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
-                                    <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300">
+                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300">
                                         Lvl {{ $visit->visitor->level }}
                                     </span>
                                     @if($visit->visitor->gang)
@@ -850,7 +851,7 @@
                                     {{ $visit->visited->name }}
                                 </span>
                                 <div class="flex items-center gap-1 mt-0.5 flex-wrap justify-center">
-                                    <span class="text-[9px] font-black px-1.5 py-0.2 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300">
+                                    <span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-200 dark:bg-purple-950 text-slate-700 dark:text-purple-300">
                                         Lvl {{ $visit->visited->level }}
                                     </span>
                                     @if($visit->visited->gang)
@@ -1205,11 +1206,11 @@
                             </span>
 
                             @if($badge['unlocked'])
-                                <span class="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800">
+                                <span class="text-[9px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
                                     <i class="fa-solid fa-check text-[8px]"></i> Behaald
                                 </span>
                             @else
-                                <span class="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded">
+                                <span class="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                                     <i class="fa-solid fa-lock text-[8px]"></i> Gesloten
                                 </span>
                             @endif
@@ -1289,11 +1290,11 @@
                             </a>
                         </div>
                         <div class="flex items-center gap-1.5 mt-0.5">
-                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.2 rounded">
+                            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">
                                 Lvl {{ $f->friend->level }}
                             </span>
                             @if($f->friend->gang)
-                            <a href="{{ route('gangs.show', $f->friend->gang->id) }}" class="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.2 rounded border border-purple-100 dark:border-purple-800 hover:bg-purple-100 transition truncate" title="Bekijk {{ $f->friend->gang->name }}">
+                            <a href="{{ route('gangs.show', $f->friend->gang->id) }}" class="text-[10px] font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-100 dark:border-purple-800 hover:bg-purple-100 transition truncate" title="Bekijk {{ $f->friend->gang->name }}">
                                 [{{ $f->friend->gang->tag }}]
                             </a>
                             @endif
@@ -1337,7 +1338,9 @@
                 <textarea name="message" rows="3" required maxlength="500" placeholder="Schrijf een respectvolle (of dreigende) boodschap..." class="w-full text-xs p-3 rounded-xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition resize-none"></textarea>
             </div>
             <div class="flex justify-end">
-                <button type="submit" class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center gap-2">
+                <button type="submit" 
+                        {{ Auth::user()->character->isImprisoned() || Auth::user()->character->isComatose() ? 'disabled' : '' }}
+                        class="bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center gap-2">
                     <i class="fa-solid fa-paper-plane text-[10px]"></i> Plaats Bericht
                 </button>
             </div>
@@ -1357,7 +1360,7 @@
                             </a>
                             @if($entry->author->user && $entry->author->user->role !== 'user')
                                 @php $gBadge = $entry->author->user->role_badge; @endphp
-                                <span class="text-[9px] font-black uppercase tracking-wider {{ $gBadge['bg'] }} {{ $gBadge['text'] }} border {{ $gBadge['border'] }} px-1.5 py-0.2 rounded inline-flex items-center gap-1">
+                                <span class="text-[9px] font-black uppercase tracking-wider {{ $gBadge['bg'] }} {{ $gBadge['text'] }} border {{ $gBadge['border'] }} px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                                     <i class="fa-solid {{ $gBadge['icon'] }} text-[8px]"></i> {{ $gBadge['label'] }}
                                 </span>
                             @endif
@@ -1638,7 +1641,7 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400">Aan patiënt: <strong class="text-slate-800 dark:text-slate-200">{{ $profileCharacter->name }}</strong></p>
                     </div>
                 </div>
-                <button type="button" @click="staffWarnModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer">&times;</button>
+                <button type="button" @click="staffWarnModalOpen = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer text-lg" aria-label="Sluiten">&times;</button>
             </div>
 
             <form action="{{ route('admin.moderation.warn', $profileCharacter->user) }}" method="POST" class="space-y-4">
@@ -1673,7 +1676,7 @@
                         <p class="text-xs text-slate-500 dark:text-slate-400">Patiënt: <strong class="text-slate-800 dark:text-slate-200">{{ $profileCharacter->name }}</strong></p>
                     </div>
                 </div>
-                <button type="button" @click="staffBanModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg cursor-pointer">&times;</button>
+                <button type="button" @click="staffBanModalOpen = false" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer text-lg" aria-label="Sluiten">&times;</button>
             </div>
 
             <form action="{{ route('admin.moderation.ban', $profileCharacter->user) }}" method="POST" class="space-y-4">
@@ -2061,7 +2064,7 @@
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center justify-between gap-1">
                                             <span class="font-black text-xs text-slate-900 dark:text-white truncate">{{ $sticker['name'] }}</span>
-                                            <span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                            <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
                                                 {{ $sticker['rarity'] }}
                                             </span>
                                         </div>

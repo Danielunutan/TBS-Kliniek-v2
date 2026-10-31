@@ -112,6 +112,7 @@
 
             <button type="submit"
                     {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'disabled' : '' }}
+                    title="{{ $character->isImprisoned() ? 'Je zit in de isoleercel' : ($character->isComatose() ? 'Je ligt in coma' : ($character->cash < 50 ? 'Onvoldoende contant geld (min. €50)' : 'Draai het roulette wiel')) }}"
                     class="w-full py-3.5 px-6 rounded-xl font-black text-sm transition-all duration-150 shadow-xs cursor-pointer active:scale-95 {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed active:scale-100' : 'bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white' }}">
                 <i class="fa-solid fa-dharmachakra mr-2"></i> Draai aan het wiel!
             </button>

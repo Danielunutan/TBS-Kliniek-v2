@@ -183,6 +183,12 @@
                             <i class="fa-solid fa-bolt"></i>
                             <span>Te Weinig Energie</span>
                         </button>
+                    @elseif(! $character)
+                        <button disabled 
+                                class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 font-black text-xs uppercase tracking-wider cursor-not-allowed flex items-center gap-2">
+                            <i class="fa-solid fa-user-xmark"></i>
+                            <span>Geen Karakter</span>
+                        </button>
                     @else
                         <form method="POST" action="{{ route('control-points.capture', $point) }}">
                             @csrf

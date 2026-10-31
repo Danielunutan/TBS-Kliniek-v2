@@ -358,8 +358,10 @@ class TreatmentController extends Controller
         $this->cooldownService->setCooldown($character, 'treatment_session', 7200);
 
         // Apply respect modifications
-        if ($totalRespect !== 0) {
-            $character->respect = max(0, $character->respect + $totalRespect);
+        if ($totalRespect > 0) {
+            $character->addRespect($totalRespect);
+        } elseif ($totalRespect < 0) {
+            $character->respect = max(0, (int) round(($character->respect ?? 0) + $totalRespect));
         }
 
         // Outcome branch based on performance

@@ -96,12 +96,9 @@ class TunnelController extends Controller
         }
 
         $energyCost = 20;
-        if ($character->energy < $energyCost) {
+        if (! $this->energy->consume($character, $energyCost)) {
             return back()->with('error', "Je bent bekaf. Je hebt minimaal {$energyCost} energie nodig om te graven!");
         }
-
-        $character->energy -= $energyCost;
-        $character->save();
 
         // Voortgang boeken
         $progressGain = mt_rand(2, 5);

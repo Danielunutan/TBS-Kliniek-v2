@@ -173,7 +173,8 @@
                         <form action="{{ route('packages.open-bag-all') }}" method="POST">
                             @csrf
                             <button type="submit"
-                                    class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                    class="w-full py-3 px-4 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2"
                                     title="Open alle {{ $character->unopened_bags }} koffers tegelijk en ontvang alle beloningen in één keer!">
                                 <i class="fa-solid fa-bolt text-amber-300"></i>
                                 <span>Kraak {{ $character->unopened_bags > 50 ? '50 van je ' : 'Alle ' }}{{ min(50, $character->unopened_bags) }} Koffer{{ min(50, $character->unopened_bags) > 1 ? 's' : '' }} In Één Klap!</span>
@@ -186,7 +187,8 @@
                             <form action="{{ route('packages.open-bag') }}" method="POST">
                                 @csrf
                                 <button type="submit" 
-                                        class="w-full py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 active:scale-95 font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer flex items-center justify-center gap-2">
+                                        {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                        class="w-full py-2.5 px-3 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/60 dark:hover:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/70 active:scale-95 cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-key"></i>
                                     <span>Kraak 1 Koffer</span>
                                 </button>
@@ -195,7 +197,8 @@
                                 @csrf
                                 <input type="hidden" name="amount" value="1">
                                 <button type="submit" 
-                                        class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                                        {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                        class="w-full py-2.5 px-3 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-1.5"
                                         title="Verkoop 1 koffer direct voor €2.500 wit bankgeld">
                                     <i class="fa-solid fa-sack-dollar"></i>
                                     <span>Verkoop 1 (€2.500)</span>
@@ -208,7 +211,8 @@
                             @csrf
                             <input type="hidden" name="amount" value="{{ min(100, $character->unopened_bags) }}">
                             <button type="submit"
-                                    class="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 text-[11px] font-black transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                                    {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'disabled' : '' }}
+                                    class="w-full py-2 px-3 rounded-xl {{ $character->isImprisoned() || $character->isComatose() || ($character->unopened_bags ?? 0) <= 0 ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 cursor-pointer active:scale-95' }} text-[11px] font-black transition-all duration-150 flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-money-bill-transfer"></i>
                                 <span>Verkoop {{ $character->unopened_bags > 100 ? '100 van je ' : 'Alle ' }}{{ min(100, $character->unopened_bags) }} Koffers Direct (€{{ number_format(min(100, $character->unopened_bags) * 2500, 0, ',', '.') }} bankgeld)</span>
                             </button>
@@ -255,7 +259,8 @@
                     <form action="{{ route('packages.open-xxl') }}" method="POST">
                         @csrf
                         <button type="submit" 
-                                class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2">
+                                {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                                class="w-full py-2.5 px-4 rounded-xl {{ $character->isImprisoned() || $character->isComatose() ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 dark:bg-amber-500 dark:hover:bg-amber-600 active:scale-95 text-white cursor-pointer' }} font-black text-xs uppercase tracking-wider transition-all duration-150 shadow-xs flex items-center justify-center gap-2">
                             <i class="fa-solid fa-unlock-keyhole"></i>
                             <span>Kraak XXL Koffer Nu</span>
                         </button>
@@ -265,7 +270,7 @@
                     <form action="{{ route('packages.buy-xxl') }}" method="POST">
                         @csrf
                         <button type="submit" 
-                                @if(($character->stars ?? 0) < 100) disabled @endif
+                                {{ $character->isImprisoned() || $character->isComatose() || ($character->stars ?? 0) < 100 ? 'disabled' : '' }}
                                 class="btn-star-gold w-full py-2.5 px-4 rounded-xl font-black text-xs transition-all duration-150 active:scale-95 shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
                             <i class="fa-solid fa-star text-[11px]"></i>
                             <span>Koop XXL Koffer (100 Sterren)</span>
@@ -416,7 +421,7 @@
                 $hasTokenCost = ($pkg['token_cost'] ?? 0) > 0;
                 $canAffordTokens = !$hasTokenCost || ($character->vault_tokens >= $pkg['token_cost']);
                 $canAffordEnergy = $character->energy >= $pkg['energy'];
-                $otherBlocked = $character->isImprisoned() || !$canAffordEnergy || !$canAffordTokens;
+                $otherBlocked = $character->isImprisoned() || $character->isComatose() || !$canAffordEnergy || !$canAffordTokens;
                 $isDisabled = $otherBlocked || $pkgCooldown > 0;
             @endphp
             <div class="bg-slate-50/90 hover:bg-white dark:bg-slate-800/60 dark:hover:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/70 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all duration-200 shadow-xs group">

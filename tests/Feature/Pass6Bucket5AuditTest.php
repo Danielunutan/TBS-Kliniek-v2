@@ -78,10 +78,61 @@ class Pass6Bucket5AuditTest extends TestCase
 
         $this->actingAs($user)->get(route('armwrestling.index'))
             ->assertOk()
+            ->assertSee('Code Blauw (Geen Armworstelen)')
             ->assertSee('disabled', false);
 
         $this->actingAs($user)->get(route('casino.index'))
             ->assertOk()
             ->assertSee('Math.min(10000000, Math.max(10, cash))', false);
+    }
+
+    public function test_login_preserves_avatar_6_on_validation_failure(): void
+    {
+        $response = $this->withSession([
+            '_old_input' => [
+                'avatar' => 'assets/characters/avatar_male_6.jpg',
+            ],
+        ])->get(route('login'));
+
+        $response->assertOk();
+        $response->assertSee('assets/characters/avatar_male_6.jpg');
+    }
+
+    public function test_battlepass_and_battle_views_use_secure_encoding_and_js(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        Character::factory()->create([
+            'user_id' => $user->id,
+            'level' => 5,
+        ]);
+
+        $bpResponse = $this->actingAs($user)->get(route('battlepass.index'));
+        $bpResponse->assertOk();
+        $bpResponse->assertSee('window.__TBS_BP_DATA__ = JSON.parse(', false);
+
+        $battleResponse = $this->actingAs($user)->get(route('battle.index'));
+        $battleResponse->assertOk();
+        $battleResponse->assertSee('encodeURIComponent(catKey)', false);
+    }
+
+    public function test_cinema_view_guards_comatose_and_restricts_official_checkbox(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true, 'role' => 'user']);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'coma_until' => now()->addHours(2),
+        ]);
+
+        $response = $this->actingAs($user)->get(route('cinema.index'));
+        $response->assertOk();
+        $response->assertSee('Code Blauw');
+        $response->assertDontSee('Officiële Zaal (TBS Kliniek Hoofdzaal)');
+
+        $admin = User::factory()->create(['is_onboarded' => true, 'role' => 'admin']);
+        Character::factory()->create(['user_id' => $admin->id]);
+
+        $adminResponse = $this->actingAs($admin)->get(route('cinema.index'));
+        $adminResponse->assertOk();
+        $adminResponse->assertSee('Officiële Zaal (TBS Kliniek Hoofdzaal)');
     }
 }

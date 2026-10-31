@@ -3,7 +3,7 @@
 @section('title', 'Depot & Centrale Opslag - TBS Kliniek')
 
 @section('content')
-<div class="space-y-6 pb-12" x-data="{ tab: '{{ $activeTab }}', sellModalItem: null, sellQty: 1 }">
+<div class="space-y-6 pb-12" x-data="{ tab: @js($activeTab ?? 'garage'), sellModalItem: null, sellQty: 1 }">
 
     @include('game.control_points.banner', ['slug' => 'depot'])
 
@@ -29,7 +29,7 @@
             </div>
 
             <!-- QUICK SHORTCUTS -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                 <a href="{{ route('marketplace.index', ['type' => 'depot_item']) }}" 
                    class="px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/70 font-black text-xs uppercase tracking-wider transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-shop text-xs text-indigo-500"></i>
@@ -494,7 +494,7 @@
 
                     <!-- SELL BUTTON -->
                     <button type="button" 
-                            @click="sellModalItem = { id: {{ $itemRow->id }}, name: '{{ addslashes($it->name) }}', qty: {{ $itemRow->quantity }}, unitPrice: {{ $unitSellPrice }} }; sellQty = 1;"
+                            @click="sellModalItem = { id: {{ (int) $itemRow->id }}, name: @js($it->name), qty: {{ (int) $itemRow->quantity }}, unitPrice: {{ (int) $unitSellPrice }} }; sellQty = 1;"
                             class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-[11px] transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1">
                         <i class="fa-solid fa-coins text-amber-500"></i>
                         <span>Verkopen</span>
@@ -762,7 +762,7 @@
                         </a>
 
                         <button type="button" 
-                                @click="sellModalItem = { id: {{ $eRow->id }}, name: '{{ addslashes($eItem->name) }}', qty: {{ $eRow->quantity }}, unitPrice: {{ $eventSellPrice }} }; sellQty = 1;"
+                                @click="sellModalItem = { id: {{ (int) $eRow->id }}, name: @js($eItem->name), qty: {{ (int) $eRow->quantity }}, unitPrice: {{ (int) $eventSellPrice }} }; sellQty = 1;"
                                 class="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-[11px] transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1">
                             <i class="fa-solid fa-coins text-amber-500"></i>
                             <span>Verkopen</span>

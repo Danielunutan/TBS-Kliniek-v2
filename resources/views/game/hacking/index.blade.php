@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="space-y-6" x-data="tbsHackingTerminal({
-    canHack: {{ $canHack ? 'true' : 'false' }},
+    canHack: {{ ($canHack && ! $character->isComatose() && ! $character->isImprisoned()) ? 'true' : 'false' }},
     initialStage: '{{ $currentStage }}',
     secondsLeftDaily: {{ $secondsUntilMidnight }},
     csrfToken: '{{ csrf_token() }}',
@@ -92,10 +92,22 @@
                             <i class="fa-solid fa-lock"></i>
                         </div>
                         <div class="space-y-1">
-                            <h3 class="text-xl font-black text-white tracking-wide">MAINFRAME LOCKOUT ACTIEF</h3>
-                            <p class="text-xs text-emerald-300/80 max-w-md mx-auto">
-                                Je hebt vandaag je dagelijkse hackpoging al voltooid of de kliniekbeveiliging heeft de trace afgerond. De poorten resetten automatisch om middernacht!
-                            </p>
+                            @if($character->isComatose())
+                                <h3 class="text-xl font-black text-rose-400 tracking-wide">PATIËNT IN COMA (CODE BLAUW)</h3>
+                                <p class="text-xs text-rose-300/80 max-w-md mx-auto">
+                                    Je ligt buiten bewustzijn op de intensive care. Je kunt geen mainframe hacken zolang je comateus bent!
+                                </p>
+                            @elseif($character->isImprisoned())
+                                <h3 class="text-xl font-black text-amber-400 tracking-wide">OPGESLOTEN IN DE ISOLEERCEL</h3>
+                                <p class="text-xs text-amber-300/80 max-w-md mx-auto">
+                                    Je zit achter slot en grendel. Je hebt geen toegang tot terminals vanuit de isoleercel!
+                                </p>
+                            @else
+                                <h3 class="text-xl font-black text-white tracking-wide">MAINFRAME LOCKOUT ACTIEF</h3>
+                                <p class="text-xs text-emerald-300/80 max-w-md mx-auto">
+                                    Je hebt vandaag je dagelijkse hackpoging al voltooid of de kliniekbeveiliging heeft de trace afgerond. De poorten resetten automatisch om middernacht!
+                                </p>
+                            @endif
                         </div>
                         <div class="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-center">
                             <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">Volgende inbraakpoging beschikbaar over:</span>

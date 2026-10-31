@@ -304,6 +304,10 @@ function trainingManager(config) {
         },
         async train(statKey, times = 1, mode = 'stat') {
             if (this.isTraining) return;
+            if (this.isComatose) {
+                this.showToast('Je ligt in Code Blauw (Coma) en kunt nu niet trainen!', true);
+                return;
+            }
             if (this.isImprisoned) {
                 this.showToast('Je zit in de isoleercel en kunt nu niet trainen!', true);
                 return;

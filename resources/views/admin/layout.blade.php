@@ -86,7 +86,7 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.tickets.*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-headset"></i> Support Tickets
                 @php
-                    $pendingAdminTicketsCount = \App\Models\SupportTicket::whereIn('status', ['open', 'in_behandeling'])->count();
+                    $pendingAdminTicketsCount = \Illuminate\Support\Facades\Schema::hasTable('support_tickets') ? \App\Models\SupportTicket::whereIn('status', ['open', 'in_behandeling'])->count() : 0;
                 @endphp
                 @if($pendingAdminTicketsCount > 0)
                 <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('admin.tickets.*') ? 'bg-white dark:bg-white/20 text-purple-700 dark:text-white' : 'bg-rose-500 text-white' }}">
@@ -102,7 +102,7 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.moderation.*') ? 'bg-rose-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-gavel {{ request()->routeIs('admin.moderation.*') ? 'text-white' : 'text-rose-500' }}"></i> Moderatie & Sancties
                 @php
-                    $pendingReportsBadge = \App\Models\Report::where('status', 'pending')->count();
+                    $pendingReportsBadge = \Illuminate\Support\Facades\Schema::hasTable('reports') ? \App\Models\Report::where('status', 'pending')->count() : 0;
                 @endphp
                 @if($pendingReportsBadge > 0)
                 <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('admin.moderation.*') ? 'bg-white dark:bg-white/20 text-rose-700 dark:text-white' : 'bg-rose-500 text-white animate-pulse' }}">
@@ -114,7 +114,7 @@
                class="px-4 py-2 rounded-xl transition flex items-center gap-2 {{ request()->routeIs('admin.audit_log.*') ? 'bg-purple-600 text-white font-black shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white' }}">
                 <i class="fa-solid fa-shield-virus {{ request()->routeIs('admin.audit_log.*') ? 'text-white' : 'text-purple-600' }}"></i> Audit Log &amp; Risico
                 @php
-                    $highRiskCountBadge = \App\Models\AuditLog::where('risk_level', 'hoog')->count();
+                    $highRiskCountBadge = \Illuminate\Support\Facades\Schema::hasTable('audit_logs') ? \App\Models\AuditLog::where('risk_level', 'hoog')->count() : 0;
                 @endphp
                 @if($highRiskCountBadge > 0)
                 <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ request()->routeIs('admin.audit_log.*') ? 'bg-white dark:bg-white/20 text-rose-700 dark:text-white' : 'bg-rose-600 text-white animate-pulse' }}">
