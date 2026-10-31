@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\CharacterItem;
 use App\Models\Item;
 use App\Models\User;
@@ -79,6 +80,10 @@ class InfirmaryController extends Controller
             return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot de ziekenboeg balie!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($this->cooldownService->isOnCooldown($character, 'infirmary_take')) {
             $seconds = $this->cooldownService->getRemainingSeconds($character, 'infirmary_take');
 
@@ -111,6 +116,10 @@ class InfirmaryController extends Controller
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'In de isoleercel kun je geen pillen palmen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($this->cooldownService->isOnCooldown($character, 'infirmary_palm')) {

@@ -223,7 +223,7 @@ class TunnelController extends Controller
 
             $this->economy->addCash($lockedCharacter, $cashReward);
             $this->level->addXp($lockedCharacter, $xpReward);
-            $lockedCharacter->respect += $respectReward;
+            $lockedCharacter->addRespect($respectReward);
             $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $starsReward;
             $lockedCharacter->prison_escapes = ($lockedCharacter->prison_escapes ?? 0) + 1;
             $lockedCharacter->save();

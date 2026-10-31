@@ -123,7 +123,7 @@ class PickpocketController extends Controller
             // Zwart geld contant!
             $this->economy->addCash($character, $cash);
             $this->level->addXp($character, $action['xp']);
-            $character->respect += 1;
+            $character->addRespect(1);
             $character->save();
 
             HalloweenService::record($character, 'theft', 1);

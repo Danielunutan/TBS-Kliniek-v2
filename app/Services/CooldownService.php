@@ -179,15 +179,30 @@ class CooldownService
             }
 
             $cost = Character::REVIVE_SERUM_STARS;
-            if (($character->stars ?? 0) < $cost) {
+            $revived = DB::transaction(function () use ($character, $cost): bool {
+                /** @var Character|null $locked */
+                $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+                if (! $locked || ! $locked->needsReviveSerum() || ($locked->stars ?? 0) < $cost) {
+                    return false;
+                }
+
+                $locked->stars -= $cost;
+                $locked->applyReviveSerum();
+                $character->stars = $locked->stars;
+                $character->health = $locked->health;
+                $character->coma_until = $locked->coma_until;
+
+                return true;
+            });
+
+            if (! $revived) {
+                $character->refresh();
+
                 return [
                     'success' => false,
                     'message' => "Je hebt {$cost} Sterren ⭐ nodig voor een ".Character::REVIVE_SERUM_NAME.'! (Je hebt: '.($character->stars ?? 0).')',
                 ];
             }
-
-            $character->stars -= $cost;
-            $character->applyReviveSerum();
 
             return [
                 'success' => true,

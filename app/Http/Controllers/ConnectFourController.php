@@ -267,7 +267,9 @@ class ConnectFourController extends Controller
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
             /** @var CharacterConnectFourStat $stat */
-            $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $lockedCharacter->id]);
+            $stat = CharacterConnectFourStat::where('character_id', $lockedCharacter->id)
+                ->lockForUpdate()
+                ->firstOrCreate(['character_id' => $lockedCharacter->id]);
 
             if (! $stat->isOnCooldown()) {
                 return redirect()->route('connect_four.index')

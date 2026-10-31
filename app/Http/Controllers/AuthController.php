@@ -396,33 +396,37 @@ class AuthController extends Controller
 
         $avatar = $avatarInput ?? ($gender === 'female' ? 'assets/characters/avatar_female_1.jpg' : 'assets/characters/avatar_male_1.jpg');
 
-        $user = User::create([
-            'name' => $validated['username'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'registration_ip' => $clientIp,
-            'last_login_ip' => $clientIp,
-        ]);
+        [$user, $character] = DB::transaction(function () use ($validated, $clientIp, $gender, $avatar): array {
+            $user = User::create([
+                'name' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'registration_ip' => $clientIp,
+                'last_login_ip' => $clientIp,
+            ]);
 
-        $character = Character::create([
-            'user_id' => $user->id,
-            'name' => $validated['username'],
-            'title' => $gender === 'female' ? 'Nieuwe Patiënte' : 'Nieuwe Patiënt',
-            'avatar' => $avatar,
-            'gender' => $gender,
-            'bio' => 'Pas binnengebracht via transport. Klaar om naam te maken.',
-            'status_message' => 'Rondje maken over de afdeling...',
-            'level' => 1,
-            'xp' => 0,
-            'total_xp' => 0,
-            'cash' => 250,
-            'bank' => 1000,
-            'energy' => 100,
-            'max_energy' => 100,
-            'health' => 100,
-            'max_health' => 100,
-            'respect' => 10,
-        ]);
+            $character = Character::create([
+                'user_id' => $user->id,
+                'name' => $validated['username'],
+                'title' => $gender === 'female' ? 'Nieuwe Patiënte' : 'Nieuwe Patiënt',
+                'avatar' => $avatar,
+                'gender' => $gender,
+                'bio' => 'Pas binnengebracht via transport. Klaar om naam te maken.',
+                'status_message' => 'Rondje maken over de afdeling...',
+                'level' => 1,
+                'xp' => 0,
+                'total_xp' => 0,
+                'cash' => 250,
+                'bank' => 1000,
+                'energy' => 100,
+                'max_energy' => 100,
+                'health' => 100,
+                'max_health' => 100,
+                'respect' => 10,
+            ]);
+
+            return [$user, $character];
+        });
 
         $refName = $request->input('ref') ?: $request->session()->get('referral_name');
         $isOohpaPromo = false;

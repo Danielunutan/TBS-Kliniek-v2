@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\TrainingLog;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
@@ -42,6 +43,10 @@ class CombatTrainingController extends Controller
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet trainen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $validated = $request->validate([

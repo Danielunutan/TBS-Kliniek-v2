@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\User;
 use App\Services\CooldownService;
 use App\Services\DailyBattleService;
@@ -118,6 +119,10 @@ class DaycareController extends Controller
 
         if ($character->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toestemming voor dagbesteding!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         if ($this->cooldownService->isOnCooldown($character, 'dagbesteding')) {

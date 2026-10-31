@@ -531,47 +531,70 @@ class GangController extends Controller
             return back()->with('error', 'Geen bevoegdheid.');
         }
 
+        if ($requestRecord->status !== 'pending') {
+            return back()
+                ->with('active_gang_tab', 'beheer')
+                ->with('beheer_tab', 'verzoeken')
+                ->with('error', 'Deze aanvraag is al afgehandeld.');
+        }
+
         $action = $request->input('action') ?? $request->input('decision'); // 'accept' or 'reject'
 
         if ($action === 'accept') {
-            $maxMembers = (int) ($gang->max_members ?? 10);
-            if ($gang->members()->count() >= $maxMembers) {
-                return back()
-                    ->with('active_gang_tab', 'beheer')
-                    ->with('beheer_tab', 'verzoeken')
-                    ->with('error', "De bende zit vol! De maximale capaciteit is {$maxMembers} leden.");
-            }
+            return DB::transaction(function () use ($requestRecord, $gang, $character): RedirectResponse {
+                /** @var GangRequest|null $lockedRequest */
+                $lockedRequest = GangRequest::where('id', $requestRecord->id)->lockForUpdate()->first();
+                if (! $lockedRequest || $lockedRequest->status !== 'pending') {
+                    return back()
+                        ->with('active_gang_tab', 'beheer')
+                        ->with('beheer_tab', 'verzoeken')
+                        ->with('error', 'Deze aanvraag is al afgehandeld.');
+                }
 
-            $candidate = $requestRecord->character;
-            if (! $candidate) {
-                $requestRecord->status = 'rejected';
-                $requestRecord->save();
+                /** @var Gang|null $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+                if (! $lockedGang) {
+                    return back()->with('error', 'Bende niet gevonden.');
+                }
 
-                return back()
-                    ->with('active_gang_tab', 'beheer')
-                    ->with('beheer_tab', 'verzoeken')
-                    ->with('error', 'Kandidaat niet gevonden.');
-            }
+                $maxMembers = (int) ($lockedGang->max_members ?? 10);
+                if ($lockedGang->members()->count() >= $maxMembers) {
+                    return back()
+                        ->with('active_gang_tab', 'beheer')
+                        ->with('beheer_tab', 'verzoeken')
+                        ->with('error', "De bende zit vol! De maximale capaciteit is {$maxMembers} leden.");
+                }
 
-            if ($candidate->gang_id) {
-                $requestRecord->status = 'rejected';
-                $requestRecord->save();
+                /** @var Character|null $candidate */
+                $candidate = Character::where('id', $lockedRequest->character_id)->lockForUpdate()->first();
+                if (! $candidate) {
+                    $lockedRequest->status = 'rejected';
+                    $lockedRequest->save();
 
-                return back()
-                    ->with('active_gang_tab', 'beheer')
-                    ->with('beheer_tab', 'verzoeken')
-                    ->with('error', "{$candidate->name} is inmiddels al lid van een andere bende.");
-            }
+                    return back()
+                        ->with('active_gang_tab', 'beheer')
+                        ->with('beheer_tab', 'verzoeken')
+                        ->with('error', 'Kandidaat niet gevonden.');
+                }
 
-            if (($gang->min_respect ?? 0) > 0 && ($candidate->respect ?? 0) < (int) $gang->min_respect) {
-                return back()
-                    ->with('active_gang_tab', 'beheer')
-                    ->with('beheer_tab', 'verzoeken')
-                    ->with('error', 'Deze kandidaat voldoet niet meer aan de toelatingseis van '.number_format($gang->min_respect, 0, ',', '.').' respect! (Kandidaat heeft: '.number_format($candidate->respect ?? 0, 0, ',', '.').' respect)');
-            }
+                if ($candidate->gang_id) {
+                    $lockedRequest->status = 'rejected';
+                    $lockedRequest->save();
 
-            DB::transaction(function () use ($candidate, $gang, $requestRecord, $character) {
-                $candidate->gang_id = $gang->id;
+                    return back()
+                        ->with('active_gang_tab', 'beheer')
+                        ->with('beheer_tab', 'verzoeken')
+                        ->with('error', "{$candidate->name} is inmiddels al lid van een andere bende.");
+                }
+
+                if (($lockedGang->min_respect ?? 0) > 0 && ($candidate->respect ?? 0) < (int) $lockedGang->min_respect) {
+                    return back()
+                        ->with('active_gang_tab', 'beheer')
+                        ->with('beheer_tab', 'verzoeken')
+                        ->with('error', 'Deze kandidaat voldoet niet meer aan de toelatingseis van '.number_format($lockedGang->min_respect, 0, ',', '.').' respect! (Kandidaat heeft: '.number_format($candidate->respect ?? 0, 0, ',', '.').' respect)');
+                }
+
+                $candidate->gang_id = $lockedGang->id;
                 $candidate->gang_role = 'member';
                 $candidate->last_gang_wage_at = now()->startOfHour();
                 $candidate->is_vip = true;
@@ -584,9 +607,9 @@ class GangController extends Controller
                 GameMessage::create([
                     'recipient_id' => $candidate->id,
                     'sender_id' => $character->id,
-                    'sender_name' => $gang->name,
-                    'subject' => "🎉 Je aanvraag voor {$gang->name} is geaccepteerd (+3 Dagen Gratis VIP)!",
-                    'content' => "Welkom bij de bende! Je bent nu officieel lid van {$gang->name}. Als welkomstgeschenk is er direct 3 Dagen Gratis VIP geactiveerd op je account!",
+                    'sender_name' => $lockedGang->name,
+                    'subject' => "🎉 Je aanvraag voor {$lockedGang->name} is geaccepteerd (+3 Dagen Gratis VIP)!",
+                    'content' => "Welkom bij de bende! Je bent nu officieel lid van {$lockedGang->name}. Als welkomstgeschenk is er direct 3 Dagen Gratis VIP geactiveerd op je account!",
                     'type' => 'gang',
                 ]);
 
@@ -595,23 +618,23 @@ class GangController extends Controller
                     'type' => 'gang',
                     'icon' => 'fa-users',
                     'title' => 'Toegelaten tot bende!',
-                    'message' => "Gefeliciteerd! Je aanvraag voor '{$gang->name}' is geaccepteerd. Je bent nu lid!",
+                    'message' => "Gefeliciteerd! Je aanvraag voor '{$lockedGang->name}' is geaccepteerd. Je bent nu lid!",
                 ]);
 
-                $requestRecord->status = 'accepted';
-                $requestRecord->save();
+                $lockedRequest->status = 'accepted';
+                $lockedRequest->save();
 
                 // Cancel any other pending requests for this character
                 GangRequest::where('character_id', $candidate->id)
-                    ->where('id', '!=', $requestRecord->id)
+                    ->where('id', '!=', $lockedRequest->id)
                     ->where('status', 'pending')
                     ->update(['status' => 'rejected']);
-            });
 
-            return back()
-                ->with('active_gang_tab', 'beheer')
-                ->with('beheer_tab', 'verzoeken')
-                ->with('success', "Aanvraag geaccepteerd! {$candidate->name} is nu lid.");
+                return back()
+                    ->with('active_gang_tab', 'beheer')
+                    ->with('beheer_tab', 'verzoeken')
+                    ->with('success', "Aanvraag geaccepteerd! {$candidate->name} is nu lid.");
+            });
         }
 
         $requestRecord->status = 'rejected';
@@ -646,73 +669,82 @@ class GangController extends Controller
             return back()->with('error', 'Je bent momenteel geen lid van een bende.');
         }
 
-        $gang = $character->gang;
-        $leaveFee = 0;
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var Character $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedChar || ! $lockedChar->gang_id) {
+                return back()->with('error', 'Je bent momenteel geen lid van een bende.');
+            }
 
-        // Leave fee multiplier deduction (only if not disbanding as leader)
-        if ($gang && $character->gang_role !== 'leader') {
-            $hourlyWage = $this->wageService->calculateHourlyWage($gang);
-            $multiplier = min(50, max(0, (int) ($gang->leave_fee_multiplier ?? 0)));
-            $leaveFee = $hourlyWage * $multiplier;
+            /** @var Gang|null $gang */
+            $gang = Gang::where('id', $lockedChar->gang_id)->lockForUpdate()->first();
+            $leaveFee = 0;
+
+            // Leave fee multiplier deduction (only if not disbanding as leader)
+            if ($gang && $lockedChar->gang_role !== 'leader') {
+                $hourlyWage = $this->wageService->calculateHourlyWage($gang);
+                $multiplier = min(50, max(0, (int) ($gang->leave_fee_multiplier ?? 0)));
+                $leaveFee = $hourlyWage * $multiplier;
+
+                if ($leaveFee > 0) {
+                    if ($lockedChar->cash < $leaveFee) {
+                        return back()->with('error', 'Je kunt de bende niet verlaten: de vertrekboete bedraagt €'.number_format($leaveFee, 0, ',', '.')." ({$multiplier}x uurloon). Je hebt momenteel slechts €".number_format($lockedChar->cash, 0, ',', '.').' contant geld op zak!');
+                    }
+
+                    $lockedChar->cash -= $leaveFee;
+                    $gang->treasury += $leaveFee;
+                    $gang->save();
+                }
+            }
+
+            if (($lockedChar->gang_role === 'leader' || ($gang && (int) $gang->leader_character_id === (int) $lockedChar->id)) && $gang) {
+                $nextMember = $gang->members()->where('id', '!=', $lockedChar->id)->lockForUpdate()->first();
+                if ($nextMember) {
+                    $gang->leader_character_id = $nextMember->id;
+                    $gang->save();
+                    $nextMember->gang_role = 'leader';
+                    $nextMember->save();
+                } else {
+                    CharacterVehicle::where('gang_id', $gang->id)
+                        ->where('in_gang_garage', true)
+                        ->update([
+                            'in_gang_garage' => false,
+                            'gang_id' => null,
+                            'stored_at' => null,
+                            'stored_by_character_id' => null,
+                        ]);
+                    $gang->delete();
+                }
+            }
+
+            // Return all gang-stored vehicles owned by the departing character back to their personal garage
+            CharacterVehicle::where('character_id', $lockedChar->id)
+                ->where('in_gang_garage', true)
+                ->update([
+                    'in_gang_garage' => false,
+                    'gang_id' => null,
+                    'stored_at' => null,
+                    'stored_by_character_id' => null,
+                ]);
+
+            $this->wageService->payoutPendingWages($lockedChar);
+            $lockedChar->gang_id = null;
+            $lockedChar->gang_role = 'none';
+            $lockedChar->last_gang_wage_at = null;
+            // Gang members receive no allowance; restart the clock so leaving does not pay a 24-hour backlog.
+            $lockedChar->last_allowance_at = now();
+            $lockedChar->save();
+
+            if ($gang && $gang->exists) {
+                $this->clearAppointedRoles($gang, $lockedChar);
+            }
 
             if ($leaveFee > 0) {
-                if ($character->cash < $leaveFee) {
-                    return back()->with('error', 'Je kunt de bende niet verlaten: de vertrekboete bedraagt €'.number_format($leaveFee, 0, ',', '.')." ({$multiplier}x uurloon). Je hebt momenteel slechts €".number_format($character->cash, 0, ',', '.').' contant geld op zak!');
-                }
-
-                $character->cash -= $leaveFee;
-                $gang->treasury += $leaveFee;
-                $gang->save();
+                return redirect()->route('gangs.index')->with('success', 'Je hebt de bende verlaten. Er is €'.number_format($leaveFee, 0, ',', '.').' overgemaakt naar de bende kluis als vertrekboete.');
             }
-        }
 
-        if (($character->gang_role === 'leader' || ($gang && (int) $gang->leader_character_id === (int) $character->id)) && $gang) {
-            $nextMember = $gang->members()->where('id', '!=', $character->id)->first();
-            if ($nextMember) {
-                $gang->leader_character_id = $nextMember->id;
-                $gang->save();
-                $nextMember->gang_role = 'leader';
-                $nextMember->save();
-            } else {
-                CharacterVehicle::where('gang_id', $gang->id)
-                    ->where('in_gang_garage', true)
-                    ->update([
-                        'in_gang_garage' => false,
-                        'gang_id' => null,
-                        'stored_at' => null,
-                        'stored_by_character_id' => null,
-                    ]);
-                $gang->delete();
-            }
-        }
-
-        // Return all gang-stored vehicles owned by the departing character back to their personal garage
-        CharacterVehicle::where('character_id', $character->id)
-            ->where('in_gang_garage', true)
-            ->update([
-                'in_gang_garage' => false,
-                'gang_id' => null,
-                'stored_at' => null,
-                'stored_by_character_id' => null,
-            ]);
-
-        $this->wageService->payoutPendingWages($character);
-        $character->gang_id = null;
-        $character->gang_role = 'none';
-        $character->last_gang_wage_at = null;
-        // Gang members receive no allowance; restart the clock so leaving does not pay a 24-hour backlog.
-        $character->last_allowance_at = now();
-        $character->save();
-
-        if ($gang && $gang->exists) {
-            $this->clearAppointedRoles($gang, $character);
-        }
-
-        if ($leaveFee > 0) {
-            return redirect()->route('gangs.index')->with('success', 'Je hebt de bende verlaten. Er is €'.number_format($leaveFee, 0, ',', '.').' overgemaakt naar de bende kluis als vertrekboete.');
-        }
-
-        return redirect()->route('gangs.index')->with('success', 'Je hebt de bende succesvol verlaten.');
+            return redirect()->route('gangs.index')->with('success', 'Je hebt de bende succesvol verlaten.');
+        });
     }
 
     /**
@@ -758,7 +790,7 @@ class GangController extends Controller
             // Deduct cash and calculate balanced respect (capped at 5,000 per donation to prevent respect-overflow)
             $lockedCharacter->cash -= $amount;
             $respectGained = min(5000, (int) ceil($amount / 2000));
-            $lockedCharacter->respect += $respectGained;
+            $lockedCharacter->addRespect($respectGained);
             $lockedCharacter->save();
 
             // Add cash to gang treasury
@@ -912,11 +944,11 @@ class GangController extends Controller
             }
 
             $validated = $request->validate([
-                'leader_id' => ['nullable', 'exists:characters,id'],
-                'boss_babe_id' => ['nullable', 'exists:characters,id'],
-                'co_leader_id' => ['nullable', 'exists:characters,id'],
-                'personal_shopper_id' => ['nullable', 'exists:characters,id'],
-                'money_magnet_id' => ['nullable', 'exists:characters,id'],
+                'leader_id' => ['nullable', Rule::exists('characters', 'id')->where('gang_id', $gang->id)],
+                'boss_babe_id' => ['nullable', Rule::exists('characters', 'id')->where('gang_id', $gang->id)],
+                'co_leader_id' => ['nullable', Rule::exists('characters', 'id')->where('gang_id', $gang->id)],
+                'personal_shopper_id' => ['nullable', Rule::exists('characters', 'id')->where('gang_id', $gang->id)],
+                'money_magnet_id' => ['nullable', Rule::exists('characters', 'id')->where('gang_id', $gang->id)],
             ]);
 
             $newLeaderId = (int) ($validated['leader_id'] ?? $validated['boss_babe_id'] ?? $gang->leader_character_id);

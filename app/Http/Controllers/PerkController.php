@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PerkController extends Controller
@@ -64,21 +66,26 @@ class PerkController extends Controller
             return back()->with('error', 'Ongeldige perk geselecteerd.');
         }
 
-        if ($character->hasPerk($perk)) {
-            return back()->with('error', 'Deze perk is momenteel al actief! Je kunt deze weer opnieuw activeren zodra de huidige 24 uur zijn verlopen.');
-        }
-
         $perkData = self::PERKS[$perk];
         $cost = $perkData['cost_stars'];
 
-        if (($character->stars ?? 0) < $cost) {
-            return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig voor deze perk (je hebt er {$character->stars}).");
-        }
+        return DB::transaction(function () use ($character, $perk, $perkData, $cost) {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-        $character->stars -= $cost;
-        $character->addPerk($perk, 24);
-        $character->save();
+            if ($locked->hasPerk($perk)) {
+                return back()->with('error', 'Deze perk is momenteel al actief! Je kunt deze weer opnieuw activeren zodra de huidige 24 uur zijn verlopen.');
+            }
 
-        return back()->with('success', "🎉 Gefeliciteerd! Je hebt de perk '{$perkData['name']}' succesvol geactiveerd voor 24 uur!");
+            if (($locked->stars ?? 0) < $cost) {
+                return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig voor deze perk (je hebt er {$locked->stars}).");
+            }
+
+            $locked->stars -= $cost;
+            $locked->addPerk($perk, 24);
+            $locked->save();
+
+            return back()->with('success', "🎉 Gefeliciteerd! Je hebt de perk '{$perkData['name']}' succesvol geactiveerd voor 24 uur!");
+        });
     }
 }

@@ -254,7 +254,7 @@ class ShopController extends Controller
         $ownedCount = 0;
         $successMsg = '';
 
-        $purchaseSuccess = DB::transaction(function () use ($character, $totalCost, $item, $quantity, $discountNote, $formatted, &$ownedCount, &$successMsg): bool {
+        $purchaseSuccess = DB::transaction(function () use ($character, $totalCost, $item, $quantity, $isDirectDelivery, $isRestrictedStatItem, $discountNote, $formatted, &$ownedCount, &$successMsg): bool {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
             $totalAvailable = (int) ($locked->cash + $locked->bank);
@@ -270,6 +270,16 @@ class ShopController extends Controller
                     ->lockForUpdate()
                     ->exists();
                 if ($alreadyOwnedUnderLock) {
+                    return false;
+                }
+            } elseif (! $isDirectDelivery && ! $locked->canAddStorageItem($quantity)) {
+                return false;
+            }
+
+            if ($isRestrictedStatItem) {
+                $lockedPerks = $locked->perks ?? [];
+                $cooldownKey = 'last_bought_'.str_replace('-', '_', $item->slug);
+                if (! empty($lockedPerks[$cooldownKey]) && Carbon::parse($lockedPerks[$cooldownKey])->addHours(6)->isFuture()) {
                     return false;
                 }
             }
@@ -981,8 +991,13 @@ class ShopController extends Controller
         $totalCost = $bundle['cost_stars'] * $quantity;
 
         return DB::transaction(function () use ($character, $recipientId, $bundle, $quantity, $totalCost): RedirectResponse {
+            $isGift = ! empty($recipientId) && (int) $recipientId !== $character->id;
+            $lockIds = $isGift ? [$character->id, (int) $recipientId] : [$character->id];
+            sort($lockIds);
+            $lockedChars = Character::whereIn('id', $lockIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
             /** @var Character $lockedCharacter */
-            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            $lockedCharacter = $lockedChars->get($character->id);
 
             if (($lockedCharacter->stars ?? 0) < $totalCost) {
                 return back()->with('error', "Niet genoeg sterren! Deze bundel kost {$totalCost} Sterren ⭐ (Je hebt er {$lockedCharacter->stars}).");
@@ -990,10 +1005,8 @@ class ShopController extends Controller
 
             $lockedCharacter->stars -= $totalCost;
 
-            // Determine target recipient (either self or gifted friend)
-            $isGift = ! empty($recipientId) && (int) $recipientId !== $lockedCharacter->id;
             /** @var Character $target */
-            $target = $isGift ? Character::where('id', $recipientId)->lockForUpdate()->findOrFail($recipientId) : $lockedCharacter;
+            $target = $isGift ? ($lockedChars->get((int) $recipientId) ?? Character::findOrFail($recipientId)) : $lockedCharacter;
 
             // Total contents calculated
             $totalCash = $bundle['cash'] * $quantity;
@@ -1080,6 +1093,13 @@ class ShopController extends Controller
         return DB::transaction(function () use ($request, $character, $targetStat): RedirectResponse|JsonResponse {
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if ($lockedCharacter->isComatose()) {
+                $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+                return ($request->wantsJson() || $request->ajax())
+                    ? response()->json(['success' => false, 'message' => $msg], 422)
+                    : back()->with('error', $msg);
+            }
             $this->energyService->refresh($lockedCharacter);
 
             $needsEnergy = in_array($targetStat, ['energy', 'both'], true) && $lockedCharacter->energy < $lockedCharacter->max_energy;

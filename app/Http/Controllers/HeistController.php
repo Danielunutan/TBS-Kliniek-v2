@@ -146,13 +146,28 @@ class HeistController extends Controller
 
             $charVehicle = $qualifyingVehicles->sortByDesc('effective_speed')->first();
 
-            // Energy requirement checked after all gang prerequisites pass
-            if (! $this->energyService->consume($character, $heist->energy_cost)) {
-                return back()->with('error', "Niet genoeg energie! Deze operatie kost {$heist->energy_cost} Energie.");
+            // Deduct masks directly from Gang Depot atomically under row lock
+            $masksDeducted = DB::transaction(function () use ($gang, $heist): bool {
+                /** @var Gang|null $lockedGang */
+                $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+                if (! $lockedGang || (int) ($lockedGang->masks ?? 0) < $heist->required_mask_count) {
+                    return false;
+                }
+                $lockedGang->decrement('masks', $heist->required_mask_count);
+
+                return true;
+            });
+
+            if (! $masksDeducted) {
+                return back()->with('error', "Onvoldoende maskers in het Bende Depot! Voor de {$heist->name} zijn {$heist->required_mask_count} maskers vereist in het Bende Depot.");
             }
 
-            // Deduct masks directly from Gang Depot
-            $gang->decrement('masks', $heist->required_mask_count);
+            // Energy requirement checked after all gang prerequisites pass
+            if (! $this->energyService->consume($character, $heist->energy_cost)) {
+                Gang::where('id', $gang->id)->increment('masks', $heist->required_mask_count);
+
+                return back()->with('error', "Niet genoeg energie! Deze operatie kost {$heist->energy_cost} Energie.");
+            }
         } else {
             // Solo Heist: Personal masks & Personal garage vehicle
             $currentMasks = $character->masks ?? 0;
@@ -239,7 +254,7 @@ class HeistController extends Controller
                 }
 
                 $character->cash += $playerPayout;
-                $character->respect += $heist->respect_reward;
+                $character->addRespect($heist->respect_reward);
                 $this->levelService->addXp($character, $heist->xp_reward);
 
                 $formattedGangCash = number_format($gangPayout, 0, ',', '.');
@@ -247,7 +262,7 @@ class HeistController extends Controller
             } else {
                 $playerPayout = $totalPayout;
                 $character->cash += $playerPayout;
-                $character->respect += $heist->respect_reward;
+                $character->addRespect($heist->respect_reward);
                 $this->levelService->addXp($character, $heist->xp_reward);
             }
 

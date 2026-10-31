@@ -161,7 +161,16 @@ class AdminTicketController extends Controller
             return back()->with('error', 'Personage van indiener kon niet gevonden worden.');
         }
 
-        $gang = DB::transaction(function () use ($character, $ticket, $gangName, $gangTag, $bonusCash, $vipBoostUntil): Gang {
+        $staffUser = Auth::user();
+        $staffName = $staffUser?->name ? ucfirst($staffUser->name) : 'Daniel';
+
+        $gang = DB::transaction(function () use ($character, $ticket, $gangName, $gangTag, $bonusCash, $vipDays, $vipBoostUntil, $validated, $staffName): ?Gang {
+            /** @var SupportTicket|null $lockedTicket */
+            $lockedTicket = SupportTicket::where('id', $ticket->id)->lockForUpdate()->first();
+            if (! $lockedTicket || $lockedTicket->isGangTransferApproved()) {
+                return null;
+            }
+
             // Leave existing gang if any and return stored vehicles
             if ($character->gang_id) {
                 $oldGang = Gang::find($character->gang_id);
@@ -232,7 +241,7 @@ class AdminTicketController extends Controller
             $character->save();
 
             // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
-            $memberNames = $ticket->metadata['member_names'] ?? null;
+            $memberNames = $lockedTicket->metadata['member_names'] ?? null;
             if (! empty($memberNames)) {
                 $names = array_filter(array_map('trim', explode(',', str_replace(["\n", "\r", ';'], ',', $memberNames))));
                 if (! empty($names)) {
@@ -250,40 +259,40 @@ class AdminTicketController extends Controller
                 }
             }
 
+            $customReply = $validated['reply_message'] ?? null;
+            $autoReply = $customReply ?: "Gefeliciteerd! Jouw aanvraag voor de Gang Overstap Bonus is goedgekeurd door TBS Kliniek Staff!\n\nJe bende '{$newGang->name}' [{$newGang->tag}] is direct voor je opgericht en we hebben € ".number_format($bonusCash, 0, ',', '.')." startkapitaal in jullie kluis gestort. Daarnaast hebben jij en al je bendeleden {$vipDays} dagen gratis VIP geactiveerd gekregen!\n\nNodig al je leden uit via het Bendepaneel en veel succes met het veroveren van de kliniek!\n\nMet vriendelijke groet,\n{$staffName}\nTBS Kliniek Staff";
+
+            SupportTicketMessage::create([
+                'support_ticket_id' => $lockedTicket->id,
+                'user_id' => Auth::id(),
+                'character_id' => Auth::user()?->character?->id,
+                'is_staff' => true,
+                'message' => $autoReply,
+            ]);
+
+            $metadata = $lockedTicket->metadata ?? [];
+            $metadata['bonus_approved_at'] = now()->toIso8601String();
+            $metadata['approved_by_user_id'] = Auth::id();
+            $metadata['approved_by_name'] = $staffName;
+            $metadata['created_gang_id'] = $newGang->id;
+            $metadata['created_gang_name'] = $newGang->name;
+            $metadata['created_gang_tag'] = $newGang->tag;
+            $metadata['bonus_cash'] = $bonusCash;
+            $metadata['vip_days'] = $vipDays;
+
+            $lockedTicket->update([
+                'metadata' => $metadata,
+                'status' => 'beantwoord',
+                'last_reply_at' => now(),
+                'last_reply_by_staff' => true,
+            ]);
+
             return $newGang;
         });
 
-        // Format staff auto-reply message
-        $staffUser = Auth::user();
-        $staffName = $staffUser?->name ? ucfirst($staffUser->name) : 'Daniel';
-
-        $customReply = $validated['reply_message'] ?? null;
-        $autoReply = $customReply ?: "Gefeliciteerd! Jouw aanvraag voor de Gang Overstap Bonus is goedgekeurd door TBS Kliniek Staff!\n\nJe bende '{$gang->name}' [{$gang->tag}] is direct voor je opgericht en we hebben € ".number_format($bonusCash, 0, ',', '.')." startkapitaal in jullie kluis gestort. Daarnaast hebben jij en al je bendeleden {$vipDays} dagen gratis VIP geactiveerd gekregen!\n\nNodig al je leden uit via het Bendepaneel en veel succes met het veroveren van de kliniek!\n\nMet vriendelijke groet,\n{$staffName}\nTBS Kliniek Staff";
-
-        SupportTicketMessage::create([
-            'support_ticket_id' => $ticket->id,
-            'user_id' => Auth::id(),
-            'character_id' => Auth::user()?->character?->id,
-            'is_staff' => true,
-            'message' => $autoReply,
-        ]);
-
-        $metadata = $ticket->metadata ?? [];
-        $metadata['bonus_approved_at'] = now()->toIso8601String();
-        $metadata['approved_by_user_id'] = Auth::id();
-        $metadata['approved_by_name'] = $staffName;
-        $metadata['created_gang_id'] = $gang->id;
-        $metadata['created_gang_name'] = $gang->name;
-        $metadata['created_gang_tag'] = $gang->tag;
-        $metadata['bonus_cash'] = $bonusCash;
-        $metadata['vip_days'] = $vipDays;
-
-        $ticket->update([
-            'metadata' => $metadata,
-            'status' => 'beantwoord',
-            'last_reply_at' => now(),
-            'last_reply_by_staff' => true,
-        ]);
+        if (! $gang) {
+            return back()->with('error', 'Deze Gang Overstap Bonus is al goedgekeurd!');
+        }
 
         return back()->with('success', "Gang Overstap Bonus succesvol goedgekeurd! Bende '{$gang->name}' [{$gang->tag}] is aangemaakt met €".number_format($bonusCash, 0, ',', '.')." kluisgeld en {$vipDays} dagen VIP.");
     }

@@ -67,9 +67,9 @@ class DailyBattleController extends Controller
         $ranked = $scores->map(function ($s, $idx) use ($col) {
             return [
                 'rank' => $idx + 1,
-                'name' => $s->character->name ?? 'Anoniem',
+                'name' => $s->character?->name ?? 'Anoniem',
                 'avatar' => $s->character?->avatar_url ?? asset('assets/characters/avatar_female_1.jpg'),
-                'level' => $s->character->level ?? 1,
+                'level' => $s->character?->level ?? 1,
                 'score' => $s->{$col},
             ];
         });

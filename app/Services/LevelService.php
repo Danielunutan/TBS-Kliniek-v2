@@ -51,8 +51,10 @@ class LevelService
                 $character->cash += $bonusCash;
                 $character->vault_tokens = ($character->vault_tokens ?? 0) + $bonusTokens;
                 $character->energy = $character->max_energy;
-                $character->health = $character->max_health;
-                $character->respect += 5;
+                if (! $character->isComatose()) {
+                    $character->health = $character->max_health;
+                }
+                $character->addRespect(5);
             } else {
                 break;
             }

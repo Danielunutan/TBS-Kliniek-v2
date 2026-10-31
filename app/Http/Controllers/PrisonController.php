@@ -143,6 +143,18 @@ class PrisonController extends Controller
             return redirect()->route('prison')->with('info', 'Je zit momenteel niet in de isoleercel!');
         }
 
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                ], 422);
+            }
+
+            return back()->with('error', $msg);
+        }
+
         $result = $this->prisonService->attemptEscape($character, $this->energyService);
 
         if ($result['success']) {
@@ -267,7 +279,7 @@ class PrisonController extends Controller
         if ($roll <= $successRate) {
             $character->prison_escapes = ($character->prison_escapes ?? 0) + 1;
             $character->breakout_slay = ($character->breakout_slay ?? 0) + 0.1;
-            $character->respect += 2;
+            $character->addRespect(2);
             $this->levelService->addXp($character, 140);
 
             // 25% chance of +1 strength from forcing security locks/bars (capped at level maximum)
@@ -278,30 +290,39 @@ class PrisonController extends Controller
 
             app(DailyBattleService::class)->record($character, 'breakouts', 1);
 
-            // Release real inmate
-            if ($targetInmate && $targetInmate->isImprisoned()) {
-                $targetInmate->is_in_prison = false;
-                $targetInmate->prison_until = null;
-                $targetInmate->prison_reason = null;
-                $targetInmate->prison_escape_attempted = false;
-                $targetInmate->save();
+            // Release real inmate under lock
+            if ($targetInmate) {
+                DB::transaction(function () use ($targetInmate, $character) {
+                    /** @var Character|null $lockedInmate */
+                    $lockedInmate = Character::where('id', $targetInmate->id)->lockForUpdate()->first();
+                    if (! $lockedInmate || ! $lockedInmate->isImprisoned()) {
+                        return;
+                    }
 
-                GameNotification::create([
-                    'character_id' => $targetInmate->id,
-                    'type' => 'prison',
-                    'icon' => 'fa-door-open',
-                    'title' => 'Uitgebroken door een medepatiënt!',
-                    'message' => "{$character->name} heeft je zojuist bevrijd uit de isoleercel!",
-                ]);
+                    $lockedInmate->is_in_prison = false;
+                    $lockedInmate->prison_until = null;
+                    $lockedInmate->prison_reason = null;
+                    $lockedInmate->prison_escape_attempted = false;
+                    $lockedInmate->ad_prison_progress = 0;
+                    $lockedInmate->save();
 
-                GameMessage::create([
-                    'recipient_id' => $targetInmate->id,
-                    'sender_id' => $character->id,
-                    'sender_name' => $character->name,
-                    'subject' => '🔓 VRIJ! Je bent bevrijd uit de gevangenis!',
-                    'content' => "Patiënt {$targetInmate->name},\n\n{$character->name} heeft zojuist met gevaar voor eigen leven de isoleerceldeur geforceerd en jou bevrijd!",
-                    'type' => 'jail',
-                ]);
+                    GameNotification::create([
+                        'character_id' => $lockedInmate->id,
+                        'type' => 'prison',
+                        'icon' => 'fa-door-open',
+                        'title' => 'Uitgebroken door een medepatiënt!',
+                        'message' => "{$character->name} heeft je zojuist bevrijd uit de isoleercel!",
+                    ]);
+
+                    GameMessage::create([
+                        'recipient_id' => $lockedInmate->id,
+                        'sender_id' => $character->id,
+                        'sender_name' => $character->name,
+                        'subject' => '🔓 VRIJ! Je bent bevrijd uit de gevangenis!',
+                        'content' => "Patiënt {$lockedInmate->name},\n\n{$character->name} heeft zojuist met gevaar voor eigen leven de isoleerceldeur geforceerd en jou bevrijd!",
+                        'type' => 'jail',
+                    ]);
+                });
             }
 
             return back()->with('success', "🎉 RAAK! De celdeur zwaait open! {$targetName} succesvol uitgebroken! +2 Respect 🔥 en +140 XP verdiend!");

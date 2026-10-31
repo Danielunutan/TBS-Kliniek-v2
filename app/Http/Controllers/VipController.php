@@ -29,26 +29,29 @@ class VipController extends Controller
         if ($character->isVip()) {
             $lastReward = $character->last_vip_reward_at;
             if (! $lastReward || $lastReward->diffInHours(now()) >= 1) {
-                $hours = $lastReward ? min(24, (int) $lastReward->diffInHours(now())) : 1;
-                $tier = (int) ($character->perks['supporter_tier'] ?? 1);
-                $hourlyCashBonus = match ($tier) {
-                    4 => 50000,
-                    3 => 20000,
-                    2 => 7500,
-                    default => 2500,
-                };
+                $earnedPoints = 0;
+                $earnedCash = 0;
 
-                $earnedPoints = 5 * $hours;
-                $earnedCash = $hourlyCashBonus * $hours;
-
-                // Re-check the timestamp under lock so parallel page loads cannot pay the hourly bonus twice.
-                $rewardPaid = DB::transaction(function () use ($character, $earnedPoints, $earnedCash): bool {
+                // Re-check the timestamp and compute elapsed hours under lock so parallel page loads cannot pay twice.
+                $rewardPaid = DB::transaction(function () use ($character, &$earnedPoints, &$earnedCash): bool {
                     /** @var Character $locked */
                     $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
                     if ($locked->last_vip_reward_at && $locked->last_vip_reward_at->diffInHours(now()) < 1) {
                         return false;
                     }
+
+                    $hours = $locked->last_vip_reward_at ? min(24, (int) $locked->last_vip_reward_at->diffInHours(now())) : 1;
+                    $tier = (int) ($locked->perks['supporter_tier'] ?? 1);
+                    $hourlyCashBonus = match ($tier) {
+                        4 => 50000,
+                        3 => 20000,
+                        2 => 7500,
+                        default => 2500,
+                    };
+
+                    $earnedPoints = 5 * $hours;
+                    $earnedCash = $hourlyCashBonus * $hours;
 
                     $locked->vip_points = ($locked->vip_points ?? 0) + $earnedPoints;
                     $locked->bank = ($locked->bank ?? 0) + $earnedCash;

@@ -400,6 +400,15 @@ class BuyMeACoffeeWebhookController extends Controller
 
         $character->save();
 
+        GameNotification::create([
+            'character_id' => $character->id,
+            'type' => 'donation',
+            'icon' => 'fa-gift',
+            'title' => "Extra pakket geactiveerd: {$title}!",
+            'message' => "Hartelijk dank voor je steun! Je pakket ({$title}) is direct bijgeschreven op je account.",
+            'is_read' => false,
+        ]);
+
         AuditLogService::log(
             action: 'buymeacoffee_extra',
             category: 'economy',

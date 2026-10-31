@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\GameNotification;
 use App\Models\VaultCode;
 use App\Services\CooldownService;
@@ -313,6 +314,10 @@ class TreatmentController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niet op behandelaarsgesprek!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($this->cooldownService->isOnCooldown($character, 'treatment_session')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'treatment_session');
             $mins = ceil($remaining / 60);
@@ -448,6 +453,10 @@ class TreatmentController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen verlofactiviteiten uitvoeren!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if (! $character->isOnLeave()) {
             return back()->with('error', 'Je hebt momenteel geen actief Begeleid Verlof! Slaag eerst voor je Behandelaarsgesprek.');
         }
@@ -516,7 +525,7 @@ class TreatmentController extends Controller
         }
 
         $this->level->addXp($character, $xp);
-        $character->respect += $respect;
+        $character->addRespect($respect);
         $character->leave_trips_count = ($character->leave_trips_count ?? 0) + 1;
         $character->save();
 

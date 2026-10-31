@@ -359,26 +359,28 @@ class RoadmapController extends Controller
             return back()->with('error', 'Onbekende feature.');
         }
 
-        $userVotes = Cache::get('tbs_user_votes_'.$character->id, []);
+        return Cache::lock('tbs_roadmap_votes_lock', 5)->block(3, function () use ($character, $featureKey, $features): RedirectResponse {
+            $userVotes = Cache::get('tbs_user_votes_'.$character->id, []);
 
-        if (in_array($featureKey, $userVotes, true)) {
-            // Unvote / stem intrekken
-            $userVotes = array_values(array_diff($userVotes, [$featureKey]));
+            if (in_array($featureKey, $userVotes, true)) {
+                // Unvote / stem intrekken
+                $userVotes = array_values(array_diff($userVotes, [$featureKey]));
+                $votes = Cache::get('tbs_roadmap_votes', []);
+                $votes[$featureKey] = max(0, ((int) ($votes[$featureKey] ?? 0)) - 1);
+                Cache::forever('tbs_roadmap_votes', $votes);
+                Cache::forever('tbs_user_votes_'.$character->id, $userVotes);
+
+                return back()->with('success', 'Je stem voor "'.$features[$featureKey]['title'].'" is ingetrokken.');
+            }
+
+            // Vote toevoegen
+            $userVotes[] = $featureKey;
             $votes = Cache::get('tbs_roadmap_votes', []);
-            $votes[$featureKey] = max(0, ((int) ($votes[$featureKey] ?? 0)) - 1);
+            $votes[$featureKey] = ((int) ($votes[$featureKey] ?? 0)) + 1;
             Cache::forever('tbs_roadmap_votes', $votes);
             Cache::forever('tbs_user_votes_'.$character->id, $userVotes);
 
-            return back()->with('success', 'Je stem voor "'.$features[$featureKey]['title'].'" is ingetrokken.');
-        }
-
-        // Vote toevoegen
-        $userVotes[] = $featureKey;
-        $votes = Cache::get('tbs_roadmap_votes', []);
-        $votes[$featureKey] = ((int) ($votes[$featureKey] ?? 0)) + 1;
-        Cache::forever('tbs_roadmap_votes', $votes);
-        Cache::forever('tbs_user_votes_'.$character->id, $userVotes);
-
-        return back()->with('success', 'Bedankt voor je stem! Je hebt gestemd op "'.$features[$featureKey]['title'].'".');
+            return back()->with('success', 'Bedankt voor je stem! Je hebt gestemd op "'.$features[$featureKey]['title'].'".');
+        });
     }
 }

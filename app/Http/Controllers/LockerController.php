@@ -90,7 +90,7 @@ class LockerController extends Controller
             // Zwart geld contant!
             $this->economy->addCash($character, $cash);
             $this->level->addXp($character, $locker['xp']);
-            $character->respect += 1;
+            $character->addRespect(1);
             $character->save();
 
             HalloweenService::record($character, 'vault', 1);

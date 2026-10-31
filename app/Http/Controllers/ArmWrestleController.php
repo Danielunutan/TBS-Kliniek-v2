@@ -528,8 +528,18 @@ class ArmWrestleController extends Controller
             $bet = (int) $match->bet_amount;
             $pot = $bet * 2;
 
-            /** @var Character $lockedOpponent */
-            $lockedOpponent = Character::where('id', $opponent->id)->lockForUpdate()->first();
+            $lockIds = [$opponent->id, $match->challenger_id];
+            sort($lockIds);
+            $lockedChars = Character::whereIn('id', $lockIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
+            /** @var Character|null $lockedOpponent */
+            $lockedOpponent = $lockedChars->get($opponent->id);
+            /** @var Character|null $challenger */
+            $challenger = $lockedChars->get($match->challenger_id);
+
+            if (! $lockedOpponent || ! $challenger) {
+                return back()->with('error', 'Uitdager niet gevonden.');
+            }
 
             if ($lockedOpponent->energy < 5) {
                 return back()->with('error', 'Je hebt minimaal 5 Energie nodig om deze uitdaging aan te gaan!');
@@ -537,12 +547,6 @@ class ArmWrestleController extends Controller
 
             if ($lockedOpponent->cash < $bet) {
                 return back()->with('error', 'Je hebt onvoldoende contant geld op zak om deze uitdaging aan te gaan (€'.number_format($bet, 0, ',', '.').').');
-            }
-
-            /** @var Character $challenger */
-            $challenger = Character::where('id', $match->challenger_id)->lockForUpdate()->first();
-            if (! $challenger) {
-                return back()->with('error', 'Uitdager niet gevonden.');
             }
 
             $match->status = 'completed';

@@ -392,7 +392,9 @@ class MemoryController extends Controller
             /** @var Character $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
             /** @var CharacterMemoryStat $stat */
-            $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $lockedChar->id]);
+            $stat = CharacterMemoryStat::where('character_id', $lockedChar->id)
+                ->lockForUpdate()
+                ->firstOrCreate(['character_id' => $lockedChar->id]);
 
             if (! $stat->isOnCooldown()) {
                 return redirect()->route('memory.index')

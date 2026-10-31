@@ -117,7 +117,7 @@ class PackageController extends Controller
                 $bagDropped = true;
             }
 
-            $character->respect += 1;
+            $character->addRespect(1);
             $character->save();
 
             $tokenTxt = $tokensFound > 0 ? " +{$tokensFound} KluisMunten 🔑 gevonden!" : '';
@@ -155,6 +155,10 @@ class PackageController extends Controller
 
             if ($character->isImprisoned()) {
                 return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
+            }
+
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             if (($character->unopened_bags ?? 0) <= 0) {
@@ -196,7 +200,7 @@ class PackageController extends Controller
                 ]);
             }
 
-            $character->respect += 2;
+            $character->addRespect(2);
             $character->save();
 
             $logParts = ['€'.number_format($bankReward, 0, ',', '.').' contant'];
@@ -237,6 +241,10 @@ class PackageController extends Controller
 
             if ($character->isImprisoned()) {
                 return back()->with('error', 'Vanuit de isoleercel kun je geen tassen openen!');
+            }
+
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
             }
 
             $availableBags = (int) ($character->unopened_bags ?? 0);
@@ -286,7 +294,7 @@ class PackageController extends Controller
             $character->bank += $totalBank;
             $character->stars = ($character->stars ?? 0) + $totalStars;
             $character->masks = ($character->masks ?? 0) + $totalMasks;
-            $character->respect += $totalRespect;
+            $character->addRespect($totalRespect);
 
             $this->level->addXp($character, $totalXp);
             $character->save();
@@ -336,6 +344,10 @@ class PackageController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen koffers verkopen!');
             }
 
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
+
             if (($character->unopened_bags ?? 0) < $amount) {
                 return back()->with('error', 'Je hebt niet genoeg ongeopende koffers om te verkopen.');
             }
@@ -365,6 +377,10 @@ class PackageController extends Controller
                 return back()->with('error', 'Vanuit de isoleercel kun je geen XXL koffers openen!');
             }
 
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
+
             if (($character->xxl_cases ?? 0) <= 0) {
                 return back()->with('error', 'Je hebt geen XXL koffers in je bezit! Win ze in de 24 Uur Battle of koop er een met sterren.');
             }
@@ -385,7 +401,7 @@ class PackageController extends Controller
             $character->masks = ($character->masks ?? 0) + $masksFound;
 
             $respectGain = rand(15, 30);
-            $character->respect += $respectGain;
+            $character->addRespect($respectGain);
 
             // Generate 2-4 secret vault codes
             $codeCount = rand(2, 4);
@@ -430,6 +446,14 @@ class PackageController extends Controller
         return DB::transaction(function () use ($user, $cost) {
             /** @var Character $character */
             $character = Character::where('id', $user->character->id)->lockForUpdate()->first();
+
+            if ($character->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen XXL Koffers kopen!');
+            }
+
+            if ($character->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
             if (($character->stars ?? 0) < $cost) {
                 return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om een XXL Koffer te kopen (je hebt er {$character->stars}).");

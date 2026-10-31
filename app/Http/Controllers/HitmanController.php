@@ -72,7 +72,7 @@ class HitmanController extends Controller
                 $op['vest_name'] = $targetModel->getActiveVestInfo()['name'] ?? null;
                 $op['cash_formatted'] = '€'.number_format((int) $targetModel->cash, 0, ',', '.');
                 $op['bank_formatted'] = '€'.number_format((int) $targetModel->bank, 0, ',', '.');
-                $op['is_protected'] = $targetModel->isProtected();
+                $op['is_protected'] = $targetModel->hasIsolationProtection();
                 $op['is_wing_locked'] = $targetModel->isWingLocked();
                 $op['streak_deaths'] = $targetModel->getLiquidationStreakDeaths();
             } else {
@@ -97,8 +97,8 @@ class HitmanController extends Controller
             ->get()
             ->map(function (Character $target) use ($character, $intelMap, $attackerWing) {
                 $hasBloodFeud = BloodFeud::hasClaimAgainst($character, $target->id) !== null;
-                $onCooldown = $this->cooldownService->isOnCooldown($character, "hitman_target_{$target->id}");
-                $cooldownSec = $onCooldown ? $this->cooldownService->getRemainingSeconds($character, "hitman_target_{$target->id}") : 0;
+                $onCooldown = false;
+                $cooldownSec = 0;
                 $streakDeaths = $target->getLiquidationStreakDeaths();
                 $dailyDeathsReached = $target->needsReviveSerum();
                 $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
@@ -179,8 +179,8 @@ class HitmanController extends Controller
             ->get()
             ->map(function (Character $target) use ($character, $intelMap, $attackerWing) {
                 $hasBloodFeud = BloodFeud::hasClaimAgainst($character, $target->id) !== null;
-                $onCooldown = $this->cooldownService->isOnCooldown($character, "hitman_target_{$target->id}");
-                $cooldownSec = $onCooldown ? $this->cooldownService->getRemainingSeconds($character, "hitman_target_{$target->id}") : 0;
+                $onCooldown = false;
+                $cooldownSec = 0;
                 $dailyDeathsReached = $target->needsReviveSerum();
                 $isLevelRestricted = ! $hasBloodFeud && (($character->level - $target->level) > 15);
 
@@ -200,7 +200,7 @@ class HitmanController extends Controller
                     'isOnline' => $target->isOnline(),
                     'inPrison' => $target->isImprisoned(),
                     'inComa' => $target->needsReviveSerum(),
-                    'isProtected' => $target->isProtected(),
+                    'isProtected' => $target->hasIsolationProtection(),
                     'hasBloodFeud' => $hasBloodFeud,
                     'onCooldown' => $onCooldown,
                     'cooldownSeconds' => $cooldownSec,
@@ -559,7 +559,7 @@ class HitmanController extends Controller
             return back()->with('error', "{$target->name} ligt al in Code Blauw (Hartstilstand na 10 liquidaties)!");
         }
 
-        if ($target->isProtected()) {
+        if ($target->hasIsolationProtection()) {
             return back()->with('error', "{$target->name} heeft actieve bescherming en kan niet worden aangevallen.");
         }
 
@@ -660,7 +660,7 @@ class HitmanController extends Controller
             return back()->with('error', "{$defender->name} is al 10x geliquideerd en ligt in Code Blauw (Hartstilstand) te wachten op een Reanimatie-Serum!");
         }
 
-        if ($defender->isProtected()) {
+        if ($defender->hasIsolationProtection()) {
             return back()->with('error', "{$defender->name} heeft momenteel een actief Medisch Infuus-Schild of Isolatiebescherming en kan even niet worden beschoten.");
         }
 
@@ -711,7 +711,7 @@ class HitmanController extends Controller
 
         try {
             $defender->refresh();
-            if ($defender->isImprisoned() || $defender->needsReviveSerum() || $defender->isProtected()) {
+            if ($defender->isImprisoned() || $defender->needsReviveSerum() || $defender->hasIsolationProtection()) {
                 return back()->with('error', "{$defender->name} is zojuist al geraakt of beschermd en kan nu niet worden beschoten.");
             }
 
@@ -818,6 +818,14 @@ class HitmanController extends Controller
                 }
                 if ($stolenBank > 0) {
                     $defender->bank = max(0, (int) $defender->bank - $stolenBank);
+                    BankTransaction::record(
+                        $defender,
+                        'withdrawal',
+                        'bank',
+                        $stolenBank,
+                        (int) $defender->bank,
+                        "Bank geplunderd bij liquidatie door {$attacker->name}"
+                    );
                 }
                 if ($totalStolen > 0) {
                     $attacker->cash = (int) $attacker->cash + $totalStolen;

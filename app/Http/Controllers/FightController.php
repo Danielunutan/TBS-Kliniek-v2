@@ -479,6 +479,7 @@ class FightController extends Controller
                 'respect' => 2,
                 'gained_strength' => $gainedStrength,
                 'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
+                'max_today' => $dailyLimit,
                 'from_profile' => $request->boolean('from_profile'),
                 'resolved' => false,
             ];
@@ -498,6 +499,7 @@ class FightController extends Controller
                 'xp' => 0,
                 'respect' => 0,
                 'left_today' => max(0, $dailyLimit - $attacker->daily_attacks_count),
+                'max_today' => $dailyLimit,
                 'from_profile' => $request->boolean('from_profile'),
                 'resolved' => false,
             ];

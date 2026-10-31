@@ -609,6 +609,14 @@ class DashboardController extends Controller
                 : back()->with('error', $msg);
         }
 
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg], 403)
+                : back()->with('error', $msg);
+        }
+
         // The Peuken Beurs is a paid widget (legacy key peuken_market, now part of the tunnel widget).
         if (! $character->isWidgetUnlocked('tunnel')) {
             $msg = 'Ontgrendel eerst de Peuken Beurs widget op je dashboard!';
@@ -727,6 +735,14 @@ class DashboardController extends Controller
 
         if ($character->isImprisoned()) {
             $msg = 'Je zit in de isoleercel en kunt de bewakingsradar niet bedienen!';
+
+            return $request->expectsJson() || $request->ajax()
+                ? response()->json(['error' => $msg], 403)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
 
             return $request->expectsJson() || $request->ajax()
                 ? response()->json(['error' => $msg], 403)

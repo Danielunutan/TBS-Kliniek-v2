@@ -99,6 +99,10 @@ class MarketplaceController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je niet handelen op de Marktplaats!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'item_type' => ['required', 'string', 'in:stars,packages,cash,vault_codes,masks,pumpkin_seeds,depot_item,vehicle,property'],
             'amount' => ['required', 'integer', 'min:1'],
@@ -333,6 +337,10 @@ class MarketplaceController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen aankopen doen!');
         }
 
+        if ($buyer->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($listing->seller_id === $buyer->id) {
             return back()->with('error', 'Je kunt je eigen marktaanbod niet kopen! Gebruik annuleren als je het terug wilt.');
         }
@@ -364,8 +372,14 @@ class MarketplaceController extends Controller
                     throw new \RuntimeException('Dit artikel is zojuist al verkocht aan een andere patiënt.');
                 }
 
+                $lockIds = array_values(array_filter(array_unique([$buyer->id, $lockedListing->seller_id])));
+                sort($lockIds);
+                $lockedCharacters = Character::whereIn('id', $lockIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
                 /** @var Character $lockedBuyer */
-                $lockedBuyer = Character::where('id', $buyer->id)->lockForUpdate()->first();
+                $lockedBuyer = $lockedCharacters->get($buyer->id);
+                /** @var Character|null $lockedSeller */
+                $lockedSeller = $lockedListing->seller_id ? $lockedCharacters->get($lockedListing->seller_id) : null;
 
                 if ($lockedListing->item_type === 'depot_item') {
                     $listedItem = Item::find($lockedListing->related_id);
@@ -402,25 +416,21 @@ class MarketplaceController extends Controller
                 }
 
                 // Process seller payout
-                $seller = $lockedListing->seller;
-                if ($seller) {
-                    /** @var Character $lockedSeller */
-                    $lockedSeller = Character::where('id', $seller->id)->lockForUpdate()->first();
-
+                if ($lockedSeller) {
                     if ($lockedListing->currency === 'cash') {
                         if ($lockedListing->item_type === 'property' && isset($lockedListing->metadata['seller_gang_id'])) {
                             $sellerGang = Gang::find($lockedListing->metadata['seller_gang_id']);
                             if ($sellerGang) {
                                 $sellerGang->increment('treasury', $lockedListing->price);
-                            } elseif ($lockedSeller) {
+                            } else {
                                 $lockedSeller->bank += $lockedListing->price;
                                 $lockedSeller->save();
                             }
-                        } elseif ($lockedSeller) {
+                        } else {
                             $lockedSeller->bank += $lockedListing->price;
                             $lockedSeller->save();
                         }
-                    } elseif ($lockedListing->currency === 'stars' && $lockedSeller) {
+                    } elseif ($lockedListing->currency === 'stars') {
                         $lockedSeller->stars = ($lockedSeller->stars ?? 0) + $lockedListing->price;
                         $lockedSeller->save();
                     }
@@ -444,24 +454,26 @@ class MarketplaceController extends Controller
                     $charItem->save();
                 } elseif ($lockedListing->item_type === 'vehicle') {
                     $charVehicle = CharacterVehicle::where('id', $lockedListing->related_id)->lockForUpdate()->first();
-                    if ($charVehicle) {
-                        $charVehicle->character_id = $lockedBuyer->id;
-                        $charVehicle->in_gang_garage = false;
-                        $charVehicle->gang_id = null;
-                        $charVehicle->stored_at = null;
-                        $charVehicle->stored_by_character_id = null;
-                        $charVehicle->is_for_sale = false;
-                        $charVehicle->is_active = false;
-                        $charVehicle->save();
+                    if (! $charVehicle) {
+                        throw new \RuntimeException('Het aangeboden voertuig kon niet meer worden gevonden.');
                     }
+                    $charVehicle->character_id = $lockedBuyer->id;
+                    $charVehicle->in_gang_garage = false;
+                    $charVehicle->gang_id = null;
+                    $charVehicle->stored_at = null;
+                    $charVehicle->stored_by_character_id = null;
+                    $charVehicle->is_for_sale = false;
+                    $charVehicle->is_active = false;
+                    $charVehicle->save();
                 } elseif ($lockedListing->item_type === 'property') {
                     $gangProperty = GangProperty::where('id', $lockedListing->related_id)->lockForUpdate()->first();
-                    if ($gangProperty && $lockedBuyer->gang_id) {
-                        $gangProperty->gang_id = $lockedBuyer->gang_id;
-                        $gangProperty->is_for_sale = false;
-                        $gangProperty->production_status = 'idle';
-                        $gangProperty->save();
+                    if (! $gangProperty || ! $lockedBuyer->gang_id) {
+                        throw new \RuntimeException('Het aangeboden bendepand of je bende kon niet worden gevonden.');
                     }
+                    $gangProperty->gang_id = $lockedBuyer->gang_id;
+                    $gangProperty->is_for_sale = false;
+                    $gangProperty->production_status = 'idle';
+                    $gangProperty->save();
                 } elseif ($lockedListing->item_type === 'stars') {
                     $lockedBuyer->stars = ($lockedBuyer->stars ?? 0) + $lockedListing->amount;
                 } elseif ($lockedListing->item_type === 'packages') {
@@ -497,10 +509,10 @@ class MarketplaceController extends Controller
                 $lockedListing->buyer_id = $lockedBuyer->id;
                 $lockedListing->save();
 
-                if ($seller) {
+                if ($lockedSeller) {
                     $currName = $lockedListing->currency === 'stars' ? "{$lockedListing->price} Sterren ⭐" : '€'.number_format($lockedListing->price, 0, ',', '.').' (wit op de bank)';
                     GameMessage::create([
-                        'recipient_id' => $seller->id,
+                        'recipient_id' => $lockedSeller->id,
                         'sender_id' => $lockedBuyer->id,
                         'sender_name' => 'Marktplaats Systeem',
                         'subject' => "🛒 Artikel Verkocht: {$lockedListing->title}",

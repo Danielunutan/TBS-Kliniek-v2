@@ -68,6 +68,10 @@ class IsolationController extends Controller
             return back()->with('error', 'Je zit al in de isoleercel als straf! Je kunt nu geen vrijwillige isolatie kopen.');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'hours' => ['required', 'integer', 'min:1', 'max:72'],
             'currency' => ['required', 'string', 'in:cash,stars'],

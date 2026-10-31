@@ -47,6 +47,14 @@ class BountyController extends Controller
     {
         $character = Auth::user()->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen kopgeld uitloven!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $request->validate([
             'amount' => 'required|integer|min:1000|max:10000000',
             'reason' => 'nullable|string|max:150',

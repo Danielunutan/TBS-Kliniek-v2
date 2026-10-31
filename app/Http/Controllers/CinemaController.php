@@ -156,12 +156,20 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen bioscoopzaal openen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'min:3', 'max:80'],
             'description' => ['nullable', 'string', 'max:250'],
             'youtube_url' => ['required', 'string'],
             'is_private' => ['nullable', 'boolean'],
-            'passcode' => ['nullable', 'string', 'max:20'],
+            'passcode' => ['nullable', 'required_if:is_private,1', 'string', 'min:1', 'max:20'],
         ]);
 
         $videoId = CinemaRoom::extractYoutubeId($validated['youtube_url']);
@@ -258,7 +266,7 @@ class CinemaController extends Controller
 
         $providedPass = $request->input('pin', $request->query('pin', session("cinema_pin_{$room->id}")));
 
-        return $providedPass !== null && $providedPass === $room->passcode;
+        return ! empty($room->passcode) && $providedPass !== null && $providedPass === $room->passcode;
     }
 
     /**
@@ -277,7 +285,7 @@ class CinemaController extends Controller
         // Check private room password
         if ($room->is_private && $room->host_character_id !== $character->id && ! $user->isStaff()) {
             $providedPass = $request->query('pin', session("cinema_pin_{$room->id}"));
-            if ($providedPass !== $room->passcode) {
+            if (empty($room->passcode) || $providedPass !== $room->passcode) {
                 return redirect()->route('cinema.index')->with('error', 'Deze zaal is privé beveiligd met een toegangscode!');
             }
             session(["cinema_pin_{$room->id}" => $providedPass]);
@@ -375,6 +383,22 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            $msg = 'Vanuit de isoleercel kun je geen berichten sturen in de bioscoop!';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
 
         if (! $this->canAccessRoom($request, $room, $user, $character)) {
             if ($request->wantsJson()) {
@@ -593,6 +617,22 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            $msg = 'Vanuit de isoleercel kun je geen berichten sturen in de bioscoop!';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
 
         if (! $this->canAccessRoom($request, $room, $user, $character)) {
             if ($request->wantsJson()) {

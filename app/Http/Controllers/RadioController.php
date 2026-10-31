@@ -124,6 +124,10 @@ class RadioController extends Controller
         /** @var Character $character */
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot de radiozender van de afdeling!');
+        }
+
         if ($character->isComatose()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }

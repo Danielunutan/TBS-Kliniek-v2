@@ -261,23 +261,28 @@ class RookieService
      */
     public function completeTour(Character $character): array
     {
-        $perks = $character->perks ?? [];
+        return DB::transaction(function () use ($character): array {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            $perks = $locked->perks ?? [];
 
-        if (! empty($perks['intake_tour_completed'])) {
+            if (! empty($perks['intake_tour_completed'])) {
+                return [
+                    'success' => true,
+                    'message' => 'Rondleiding was al afgerond.',
+                ];
+            }
+
+            $perks['intake_tour_completed'] = true;
+            $locked->cash += 1000;
+            $locked->perks = $perks;
+            $locked->save();
+            $character->refresh();
+
             return [
                 'success' => true,
-                'message' => 'Rondleiding was al afgerond.',
+                'message' => 'Welkom in FPC De Balk! Je hebt de intake rondleiding afgerond en €1.000 startersbonus ontvangen.',
             ];
-        }
-
-        $perks['intake_tour_completed'] = true;
-        $character->cash += 1000;
-        $character->perks = $perks;
-        $character->save();
-
-        return [
-            'success' => true,
-            'message' => 'Welkom in FPC De Balk! Je hebt de intake rondleiding afgerond en €1.000 startersbonus ontvangen.',
-        ];
+        });
     }
 }

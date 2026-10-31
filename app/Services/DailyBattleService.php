@@ -261,12 +261,18 @@ class DailyBattleService
      */
     protected function awardPrize(Character $character, string $type, int $amount, string $categoryTitle, int $rank): void
     {
+        /** @var Character|null $locked */
+        $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+        if (! $locked) {
+            return;
+        }
+
         if ($type === 'stars') {
-            $character->stars = ($character->stars ?? 0) + $amount;
+            $locked->stars = ($locked->stars ?? 0) + $amount;
         } elseif ($type === 'masks') {
-            $character->masks = ($character->masks ?? 0) + $amount;
+            $locked->masks = ($locked->masks ?? 0) + $amount;
         } elseif ($type === 'xxl_cases') {
-            $character->xxl_cases = ($character->xxl_cases ?? 0) + $amount;
+            $locked->xxl_cases = ($locked->xxl_cases ?? 0) + $amount;
         } elseif ($type === 'vault_codes') {
             for ($i = 0; $i < $amount; $i++) {
                 VaultCode::create([
@@ -274,12 +280,12 @@ class DailyBattleService
                     'reward_cash' => rand(2500, 7500),
                     'reward_stars' => (rand(1, 100) <= 25 ? 1 : 0),
                     'reward_tokens' => 3,
-                    'character_id' => $character->id,
+                    'character_id' => $locked->id,
                     'is_redeemed' => false,
                 ]);
             }
         }
-        $character->save();
+        $locked->save();
 
         GameNotification::create([
             'character_id' => $character->id,

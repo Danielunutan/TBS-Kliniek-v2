@@ -93,6 +93,14 @@ class BankController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($this->economyService->deposit($character, $validated['amount'])) {
             $formatted = number_format($validated['amount'], 0, ',', '.');
 
@@ -116,6 +124,15 @@ class BankController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Geldmaat!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $amount = (int) $validated['amount'];
 
         if ($character->bank < $amount) {
@@ -155,6 +172,14 @@ class BankController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen lening afsluiten!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         $depositTo = $validated['deposit_to'] ?? 'cash';
         $result = $this->loanService->requestLoan($character, $validated['amount'], $depositTo);

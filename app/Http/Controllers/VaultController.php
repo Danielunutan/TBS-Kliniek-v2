@@ -230,7 +230,7 @@ class VaultController extends Controller
             $this->economy->addCash($character, $reward);
             $this->level->addXp($character, 175);
             $character->vault_tokens = ($character->vault_tokens ?? 0) + $tokenReward;
-            $character->respect += 3;
+            $character->addRespect(3);
             $character->save();
 
             HalloweenService::record($character, 'vault', 1);
@@ -286,6 +286,10 @@ class VaultController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscodes inwisselen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $codeId = $request->input('code_id');
@@ -394,7 +398,7 @@ class VaultController extends Controller
             $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $totalStars;
             $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + $totalTokens;
             $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + $masksGranted;
-            $lockedCharacter->respect += $totalRespect;
+            $lockedCharacter->addRespect($totalRespect);
             $lockedCharacter->claimed_level_rewards = $claimedRewards;
             $lockedCharacter->save();
 
@@ -420,6 +424,14 @@ class VaultController extends Controller
         $character = Auth::user()->character;
         $cost = 4;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscode decoderen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if (($character->vault_tokens ?? 0) < $cost) {
             return back()->with('error', "Je hebt minimaal {$cost} KluisMunten nodig om de exacte kluiscode te decoderen!");
         }
@@ -440,6 +452,14 @@ class VaultController extends Controller
     {
         $character = Auth::user()->character;
         $cost = 1;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen kluis-tip kopen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         if (($character->vault_tokens ?? 0) < $cost) {
             return back()->with('error', "Je hebt minimaal {$cost} KluisMunt nodig voor een tip!");
@@ -466,6 +486,14 @@ class VaultController extends Controller
         $character = Auth::user()->character;
         $cost = 2;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen Alarm Jammer kopen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if (($character->vault_tokens ?? 0) < $cost) {
             return back()->with('error', "Je hebt minimaal {$cost} KluisMunten nodig voor een Alarm Jammer!");
         }
@@ -487,6 +515,10 @@ class VaultController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen kluiscodes verkopen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $codeId = $request->input('code_id');
@@ -529,6 +561,10 @@ class VaultController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen maskers verkopen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $amount = max(1, (int) $request->input('amount', 1));

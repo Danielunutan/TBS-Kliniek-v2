@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
@@ -38,6 +39,10 @@ class HighLowController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je niet gokken!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         // Anti-spam cooldown check (6 seconds)

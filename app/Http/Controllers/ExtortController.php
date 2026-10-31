@@ -89,7 +89,7 @@ class ExtortController extends Controller
             // Zwart geld contant!
             $this->economy->addCash($character, $cash);
             $this->level->addXp($character, $target['xp']);
-            $character->respect += 2;
+            $character->addRespect(2);
             $character->save();
 
             return back()->with('success', 'Afpersing geslaagd! Het doelwit betaalt €'.number_format($cash, 0, ',', '.')." contant uit angst. +{$target['xp']} XP.");

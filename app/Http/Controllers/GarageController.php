@@ -289,6 +289,10 @@ class GarageController extends Controller
             return back()->with('error', 'Dit voertuig is niet in jouw bezit.');
         }
 
+        if ($characterVehicle->is_for_sale || $characterVehicle->in_gang_garage) {
+            return back()->with('error', 'Een voertuig dat te koop staat of in de bendegarage gestald is kan niet als actief voertuig gekozen worden.');
+        }
+
         CharacterVehicle::where('character_id', $character->id)->update(['is_active' => false]);
         $characterVehicle->update(['is_active' => true]);
 
@@ -319,26 +323,37 @@ class GarageController extends Controller
             return back()->with('info', "De {$characterVehicle->vehicle->name} is al in topconditie (100%)!");
         }
 
-        $cost = $characterVehicle->repair_cost;
-        $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
+        return DB::transaction(function () use ($character, $characterVehicle) {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var CharacterVehicle $lockedVehicle */
+            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
 
-        if ($totalFunds < $cost) {
-            $formattedCost = number_format($cost, 0, ',', '.');
+            if ($lockedVehicle->current_condition >= 100) {
+                return back()->with('info', "De {$characterVehicle->vehicle->name} is al in topconditie (100%)!");
+            }
 
-            return back()->with('error', "Niet genoeg geld! Volledige revisie kost €{$formattedCost}.");
-        }
+            $cost = $lockedVehicle->repair_cost;
+            $totalFunds = ($lockedCharacter->cash ?? 0) + ($lockedCharacter->bank ?? 0);
 
-        if (($character->cash ?? 0) >= $cost) {
-            $character->cash -= $cost;
-        } else {
-            $diff = $cost - $character->cash;
-            $character->cash = 0;
-            $character->bank -= $diff;
-        }
-        $character->save();
+            if ($totalFunds < $cost) {
+                $formattedCost = number_format($cost, 0, ',', '.');
 
-        $characterVehicle->update(['current_condition' => 100]);
+                return back()->with('error', "Niet genoeg geld! Volledige revisie kost €{$formattedCost}.");
+            }
 
-        return back()->with('success', "🔧 Garage revisie voltooid! {$characterVehicle->vehicle->name} is weer 100% gerepareerd voor €".number_format($cost, 0, ',', '.').'!');
+            if (($lockedCharacter->cash ?? 0) >= $cost) {
+                $lockedCharacter->cash -= $cost;
+            } else {
+                $diff = $cost - $lockedCharacter->cash;
+                $lockedCharacter->cash = 0;
+                $lockedCharacter->bank -= $diff;
+            }
+            $lockedCharacter->save();
+
+            $lockedVehicle->update(['current_condition' => 100]);
+
+            return back()->with('success', "🔧 Garage revisie voltooid! {$characterVehicle->vehicle->name} is weer 100% gerepareerd voor €".number_format($cost, 0, ',', '.').'!');
+        });
     }
 }

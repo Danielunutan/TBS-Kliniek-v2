@@ -346,8 +346,7 @@ class ProfileController extends Controller
             'receiver_id' => $targetCharacter->id,
         ]);
 
-        $targetCharacter->respect += 1;
-        $targetCharacter->save();
+        $targetCharacter->increment('respect', 1);
 
         GameNotification::create([
             'character_id' => $targetCharacter->id,

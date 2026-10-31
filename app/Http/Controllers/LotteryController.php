@@ -71,6 +71,10 @@ class LotteryController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen loten kopen!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $quantity = (int) $validated['quantity'];
         $currency = $validated['currency'];
 

@@ -72,6 +72,15 @@ class TrainingService
             ];
         }
 
+        if ($character->isComatose()) {
+            return [
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+                'stat_gain' => 0,
+                'new_value' => (int) $character->{$stat},
+            ];
+        }
+
         $character->syncStatsWithLevelCap();
 
         $currentValue = (int) $character->{$stat};

@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -930,26 +931,28 @@ class ChatController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        $msg = ChatMessage::findOrFail($id);
-        $hearts = is_array($msg->hearts_users) ? $msg->hearts_users : [];
+        return DB::transaction(function () use ($id, $character): JsonResponse {
+            $msg = ChatMessage::where('id', $id)->lockForUpdate()->firstOrFail();
+            $hearts = is_array($msg->hearts_users) ? $msg->hearts_users : [];
 
-        if (in_array($character->id, $hearts, true)) {
-            $hearts = array_values(array_filter($hearts, fn ($uid) => $uid !== $character->id));
-            $hasHearted = false;
-        } else {
-            $hearts[] = $character->id;
-            $hasHearted = true;
-        }
+            if (in_array($character->id, $hearts, true)) {
+                $hearts = array_values(array_filter($hearts, fn ($uid) => $uid !== $character->id));
+                $hasHearted = false;
+            } else {
+                $hearts[] = $character->id;
+                $hasHearted = true;
+            }
 
-        $msg->hearts_users = $hearts;
-        $msg->hearts_count = count($hearts);
-        $msg->save();
+            $msg->hearts_users = $hearts;
+            $msg->hearts_count = count($hearts);
+            $msg->save();
 
-        return response()->json([
-            'success' => true,
-            'hearts_count' => $msg->hearts_count,
-            'has_hearted' => $hasHearted,
-        ]);
+            return response()->json([
+                'success' => true,
+                'hearts_count' => $msg->hearts_count,
+                'has_hearted' => $hasHearted,
+            ]);
+        });
     }
 
     /**
@@ -961,31 +964,33 @@ class ChatController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
-        $msg = DirectMessage::findOrFail($id);
+        return DB::transaction(function () use ($id, $character): JsonResponse {
+            $msg = DirectMessage::where('id', $id)->lockForUpdate()->firstOrFail();
 
-        if ($msg->sender_id !== $character->id && $msg->recipient_id !== $character->id) {
-            return response()->json(['success' => false, 'message' => 'Geen toegang.'], 403);
-        }
+            if ($msg->sender_id !== $character->id && $msg->recipient_id !== $character->id) {
+                return response()->json(['success' => false, 'message' => 'Geen toegang.'], 403);
+            }
 
-        $hearts = is_array($msg->hearts_users) ? $msg->hearts_users : [];
+            $hearts = is_array($msg->hearts_users) ? $msg->hearts_users : [];
 
-        if (in_array($character->id, $hearts, true)) {
-            $hearts = array_values(array_filter($hearts, fn ($uid) => $uid !== $character->id));
-            $hasHearted = false;
-        } else {
-            $hearts[] = $character->id;
-            $hasHearted = true;
-        }
+            if (in_array($character->id, $hearts, true)) {
+                $hearts = array_values(array_filter($hearts, fn ($uid) => $uid !== $character->id));
+                $hasHearted = false;
+            } else {
+                $hearts[] = $character->id;
+                $hasHearted = true;
+            }
 
-        $msg->hearts_users = $hearts;
-        $msg->hearts_count = count($hearts);
-        $msg->save();
+            $msg->hearts_users = $hearts;
+            $msg->hearts_count = count($hearts);
+            $msg->save();
 
-        return response()->json([
-            'success' => true,
-            'hearts_count' => $msg->hearts_count,
-            'has_hearted' => $hasHearted,
-        ]);
+            return response()->json([
+                'success' => true,
+                'hearts_count' => $msg->hearts_count,
+                'has_hearted' => $hasHearted,
+            ]);
+        });
     }
 
     /**

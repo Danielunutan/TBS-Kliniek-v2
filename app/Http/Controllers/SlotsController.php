@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
@@ -33,6 +34,14 @@ class SlotsController extends Controller
 
             return $request->expectsJson()
                 ? response()->json(['success' => false, 'message' => $msg], 403)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return $request->expectsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 422)
                 : back()->with('error', $msg);
         }
 

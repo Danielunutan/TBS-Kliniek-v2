@@ -10,6 +10,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class FriendController extends Controller
@@ -176,36 +177,49 @@ class FriendController extends Controller
         }
 
         $sender = $friend->character;
+        if (! $sender) {
+            $friend->delete();
 
-        $friend->status = 'accepted';
-        $friend->save();
+            return back()->with('error', 'Deze patiënt bestaat niet meer.');
+        }
 
-        // Create reciprocal friendship record
-        Friend::updateOrCreate([
-            'character_id' => $character->id,
-            'friend_id' => $sender->id,
-        ], [
-            'is_bff' => false,
-            'status' => 'accepted',
-        ]);
+        return DB::transaction(function () use ($friend, $character, $sender): RedirectResponse {
+            /** @var Friend|null $lockedFriend */
+            $lockedFriend = Friend::where('id', $friend->id)->lockForUpdate()->first();
+            if (! $lockedFriend || $lockedFriend->status !== 'pending') {
+                return back()->with('error', 'Ongeldig of reeds behandeld vriendschapsverzoek.');
+            }
 
-        // Send confirmation message to requester
-        GameMessage::create([
-            'recipient_id' => $sender->id,
-            'sender_id' => $character->id,
-            'sender_name' => $character->name,
-            'subject' => "🎉 {$character->name} heeft je vriendschapsverzoek geaccepteerd!",
-            'content' => "Patiënt {$sender->name},\n\n{$character->name} heeft je vriendschapsverzoek zojuist geaccepteerd! Jullie zijn nu vrienden in de TBS Kliniek en kunnen elkaar respect geven.",
-            'type' => 'system',
-        ]);
+            $lockedFriend->status = 'accepted';
+            $lockedFriend->save();
 
-        // Mark friend_request message as read
-        GameMessage::where('recipient_id', $character->id)
-            ->where('sender_id', $sender->id)
-            ->where('type', 'friend_request')
-            ->update(['is_read' => true]);
+            // Create reciprocal friendship record
+            Friend::updateOrCreate([
+                'character_id' => $character->id,
+                'friend_id' => $sender->id,
+            ], [
+                'is_bff' => false,
+                'status' => 'accepted',
+            ]);
 
-        return back()->with('success', "Je bent nu officieel vrienden met {$sender->name}!");
+            // Send confirmation message to requester
+            GameMessage::create([
+                'recipient_id' => $sender->id,
+                'sender_id' => $character->id,
+                'sender_name' => $character->name,
+                'subject' => "🎉 {$character->name} heeft je vriendschapsverzoek geaccepteerd!",
+                'content' => "Patiënt {$sender->name},\n\n{$character->name} heeft je vriendschapsverzoek zojuist geaccepteerd! Jullie zijn nu vrienden in de TBS Kliniek en kunnen elkaar respect geven.",
+                'type' => 'system',
+            ]);
+
+            // Mark friend_request message as read
+            GameMessage::where('recipient_id', $character->id)
+                ->where('sender_id', $sender->id)
+                ->where('type', 'friend_request')
+                ->update(['is_read' => true]);
+
+            return back()->with('success', "Je bent nu officieel vrienden met {$sender->name}!");
+        });
     }
 
     /**

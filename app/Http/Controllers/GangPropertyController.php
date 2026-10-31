@@ -145,22 +145,44 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Dit voertuig staat te koop op de marktplaats en kan niet worden gestald.');
         }
 
-        // Capacity check
-        $totalSlots = $gang->total_vehicle_slots;
-        $currentCount = $gang->storedVehicles()->count();
-        if ($currentCount >= $totalSlots) {
-            return back()->with('error', "De bende garage zit vol ({$currentCount}/{$totalSlots} plekken bezet)! Koop meer garage- of opslagpanden via Bende Panden om extra wagenplekken vrij te spelen.");
-        }
+        $errorMessage = DB::transaction(function () use ($characterVehicle, $gang, $character): ?string {
+            /** @var Gang|null $lockedGang */
+            $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+            /** @var CharacterVehicle|null $lockedVehicle */
+            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
 
-        DB::transaction(function () use ($characterVehicle, $gang, $character): void {
-            $characterVehicle->update([
-                'gang_id' => $gang->id,
+            if (! $lockedGang || ! $lockedVehicle || $lockedVehicle->character_id !== $character->id) {
+                return 'Dit voertuig is niet van jou.';
+            }
+
+            if ($lockedVehicle->in_gang_garage) {
+                return 'Dit voertuig staat al in de bende garage.';
+            }
+
+            if ($lockedVehicle->is_for_sale) {
+                return 'Dit voertuig staat te koop op de marktplaats en kan niet worden gestald.';
+            }
+
+            $totalSlots = $lockedGang->total_vehicle_slots;
+            $currentCount = $lockedGang->storedVehicles()->count();
+            if ($currentCount >= $totalSlots) {
+                return "De bende garage zit vol ({$currentCount}/{$totalSlots} plekken bezet)! Koop meer garage- of opslagpanden via Bende Panden om extra wagenplekken vrij te spelen.";
+            }
+
+            $lockedVehicle->update([
+                'gang_id' => $lockedGang->id,
                 'in_gang_garage' => true,
                 'stored_at' => now(),
                 'stored_by_character_id' => $character->id,
                 'is_active' => false,
             ]);
+
+            return null;
         });
+
+        if ($errorMessage !== null) {
+            return back()->with('error', $errorMessage);
+        }
 
         return back()->with('success', "🚗 Je {$characterVehicle->vehicle->name} is veilig gestald in de Bende Garage van {$gang->name}!");
     }
@@ -195,18 +217,42 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Alleen de eigenaar of een bendebeheerder kan dit voertuig uit de bende garage halen.');
         }
 
-        if (! $character->canAddVehicle()) {
-            return back()->with('error', "Je persoonlijke garage zit vol ({$character->getGarageUsed()}/{$character->getGarageCapacity()} plekken bezet)! Verkoop eerst een wagen of stal een andere wagen in de Bende Garage voordat je dit voertuig terughaalt.");
-        }
+        $errorMessage = DB::transaction(function () use ($character, $characterVehicle, $gang): ?string {
+            /** @var Character $lockedChar */
+            $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var CharacterVehicle|null $lockedVehicle */
+            $lockedVehicle = CharacterVehicle::where('id', $characterVehicle->id)->lockForUpdate()->first();
 
-        DB::transaction(function () use ($characterVehicle): void {
-            $characterVehicle->update([
+            if (! $lockedVehicle || ! $lockedVehicle->in_gang_garage || $lockedVehicle->gang_id !== $gang->id) {
+                return 'Dit voertuig staat niet in jullie bende garage.';
+            }
+
+            if ($lockedVehicle->is_for_sale) {
+                return 'Dit voertuig staat te koop op de marktplaats en kan niet uit de bende garage worden gehaald.';
+            }
+
+            /** @var Character $ownerChar */
+            $ownerChar = $lockedVehicle->character_id === $lockedChar->id
+                ? $lockedChar
+                : Character::where('id', $lockedVehicle->character_id)->lockForUpdate()->first();
+
+            if ($ownerChar && ! $ownerChar->canAddVehicle()) {
+                return "De persoonlijke garage zit vol ({$ownerChar->getGarageUsed()}/{$ownerChar->getGarageCapacity()} plekken bezet)! Verkoop eerst een wagen of stal een andere wagen in de Bende Garage voordat je dit voertuig terughaalt.";
+            }
+
+            $lockedVehicle->update([
                 'in_gang_garage' => false,
                 'gang_id' => null,
                 'stored_at' => null,
                 'stored_by_character_id' => null,
             ]);
+
+            return null;
         });
+
+        if ($errorMessage !== null) {
+            return back()->with('error', $errorMessage);
+        }
 
         return back()->with('success', "🔑 De {$characterVehicle->vehicle->name} is succesvol uit de Bende Garage gehaald en terug in je persoonlijke wagenpark geplaatst!");
     }

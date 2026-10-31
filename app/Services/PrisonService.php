@@ -75,6 +75,13 @@ class PrisonService
             ];
         }
 
+        if ($character->isComatose()) {
+            return [
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ];
+        }
+
         if ($character->prison_escape_attempted) {
             return [
                 'success' => false,
@@ -102,6 +109,7 @@ class PrisonService
                 $newStamina = min($character->getMaxStatForLevel(), $newStamina + 1);
             }
 
+            $character->addRespect(15);
             $character->update([
                 'is_in_prison' => false,
                 'prison_until' => null,
@@ -110,7 +118,6 @@ class PrisonService
                 'prison_escape_attempted' => false,
                 'prison_escapes' => $character->prison_escapes + 1,
                 'stamina' => $newStamina,
-                'respect' => $character->respect + 15,
             ]);
             $character->refresh();
 
