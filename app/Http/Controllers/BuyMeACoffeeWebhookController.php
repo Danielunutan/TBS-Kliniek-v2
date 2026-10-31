@@ -23,7 +23,16 @@ class BuyMeACoffeeWebhookController extends Controller
         $secret = config('services.buymeacoffee.webhook_secret');
         $signature = $request->header('x-signature-sha256') ?? $request->header('X-Signature-Sha256');
 
-        // Fail closed: when a secret is configured, a missing or wrong signature must never pass.
+        // Fail closed in non-test environments when secret is missing, and always verify when secret is configured.
+        if (empty($secret) && ! app()->environment('testing', 'local')) {
+            Log::error('BuyMeACoffee Webhook: BUYMEACOFFEE_WEBHOOK_SECRET is not configured in production.');
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Webhook secret not configured',
+            ], 403);
+        }
+
         if (! empty($secret)) {
             $rawContent = (string) $request->getContent();
             $expected = hash_hmac('sha256', $rawContent, (string) $secret);
@@ -104,7 +113,21 @@ class BuyMeACoffeeWebhookController extends Controller
             ], 200);
         }
 
-        // Normal Order / Donation / Membership
+        // Normal Order / Donation / Membership: prevent replay attacks from granting duplicate rewards for the same event.
+        if (! empty($externalId)) {
+            $alreadyProcessed = BuyMeACoffeeOrder::where('external_id', $externalId)
+                ->where('event', $event)
+                ->whereIn('status', ['matched', 'manually_linked'])
+                ->exists();
+            if ($alreadyProcessed) {
+                return response()->json([
+                    'status' => 'success',
+                    'action' => 'already_processed',
+                    'matched' => true,
+                ], 200);
+            }
+        }
+
         $order = BuyMeACoffeeOrder::updateOrCreate(
             ['external_id' => $externalId ?: ('order_'.uniqid())],
             [

@@ -91,6 +91,23 @@ class DailyRewardController extends Controller
     public function spin(Request $request): JsonResponse|RedirectResponse
     {
         $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            $msg = 'Vanuit de isoleercel kun je niet aan het Rad van Fortuin draaien!';
+
+            return ($request->wantsJson() || $request->ajax())
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
+        if ($character->isComatose()) {
+            $msg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return ($request->wantsJson() || $request->ajax())
+                ? response()->json(['success' => false, 'message' => $msg], 422)
+                : back()->with('error', $msg);
+        }
+
         $this->energy->refresh($character);
 
         // Randomly pick a winning sector (0 to 7)
@@ -213,6 +230,14 @@ class DailyRewardController extends Controller
     public function claimStreak(Request $request): RedirectResponse
     {
         $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je de dagelijkse bonus niet claimen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         if (! Character::isLoginBonusWindowActive() && ! app()->environment('testing')) {
             return back()->with('error', 'De dagelijkse inlog bonus kan alleen worden geclaimd tussen 22:00 en 22:30!');

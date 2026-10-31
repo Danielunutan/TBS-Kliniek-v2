@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class GarageController extends Controller
@@ -216,46 +217,59 @@ class GarageController extends Controller
 
         $paymentMethod = $request->input('payment', 'cash');
 
-        if ($vehicle->price_cash === 0 || $paymentMethod === 'stars') {
-            if ($finalPriceStars <= 0) {
-                return back()->with('error', 'Dit voertuig kan niet met sterren gekocht worden.');
-            }
+        try {
+            DB::transaction(function () use ($character, $vehicle, $paymentMethod, $finalPriceStars, $finalPriceCash, $initialCondition, $initialTunedSpeed): void {
+                /** @var Character $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if (($character->stars ?? 0) < $finalPriceStars) {
-                return back()->with('error', "Je hebt minimaal {$finalPriceStars} Sterren ⭐ nodig (je hebt er {$character->stars}).");
-            }
+                if (! $lockedCharacter->canAddVehicle()) {
+                    throw new \RuntimeException("Je persoonlijke garage zit vol ({$lockedCharacter->getGarageUsed()}/{$lockedCharacter->getGarageCapacity()} plaatsen)! Bereik een hoger level of activeer VIP voor +3 extra garageplekken.");
+                }
 
-            $character->stars -= $finalPriceStars;
-            $character->save();
-        } else {
-            $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
-            if ($totalFunds < $finalPriceCash) {
-                $formattedCost = number_format($finalPriceCash, 0, ',', '.');
+                if ($vehicle->price_cash === 0 || $paymentMethod === 'stars') {
+                    if ($finalPriceStars <= 0) {
+                        throw new \RuntimeException('Dit voertuig kan niet met sterren gekocht worden.');
+                    }
 
-                return back()->with('error', "Niet genoeg saldo! Deze {$vehicle->name} kost momenteel €{$formattedCost}.");
-            }
+                    if (($lockedCharacter->stars ?? 0) < $finalPriceStars) {
+                        throw new \RuntimeException("Je hebt minimaal {$finalPriceStars} Sterren ⭐ nodig (je hebt er {$lockedCharacter->stars}).");
+                    }
 
-            if (($character->cash ?? 0) >= $finalPriceCash) {
-                $character->cash -= $finalPriceCash;
-            } else {
-                $diff = $finalPriceCash - $character->cash;
-                $character->cash = 0;
-                $character->bank -= $diff;
-            }
-            $character->save();
+                    $lockedCharacter->stars -= $finalPriceStars;
+                    $lockedCharacter->save();
+                } else {
+                    $totalFunds = ($lockedCharacter->cash ?? 0) + ($lockedCharacter->bank ?? 0);
+                    if ($totalFunds < $finalPriceCash) {
+                        $formattedCost = number_format($finalPriceCash, 0, ',', '.');
+
+                        throw new \RuntimeException("Niet genoeg saldo! Deze {$vehicle->name} kost momenteel €{$formattedCost}.");
+                    }
+
+                    if (($lockedCharacter->cash ?? 0) >= $finalPriceCash) {
+                        $lockedCharacter->cash -= $finalPriceCash;
+                    } else {
+                        $diff = $finalPriceCash - $lockedCharacter->cash;
+                        $lockedCharacter->cash = 0;
+                        $lockedCharacter->bank -= $diff;
+                    }
+                    $lockedCharacter->save();
+                }
+
+                // Deactivate existing vehicles if needed
+                $hasVehicles = CharacterVehicle::where('character_id', $lockedCharacter->id)->exists();
+
+                CharacterVehicle::create([
+                    'character_id' => $lockedCharacter->id,
+                    'vehicle_id' => $vehicle->id,
+                    'current_condition' => $initialCondition,
+                    'tuned_speed' => $initialTunedSpeed,
+                    'is_active' => ! $hasVehicles,
+                    'total_heists_done' => 0,
+                ]);
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // Deactivate existing vehicles if needed
-        $hasVehicles = CharacterVehicle::where('character_id', $character->id)->exists();
-
-        $charVehicle = CharacterVehicle::create([
-            'character_id' => $character->id,
-            'vehicle_id' => $vehicle->id,
-            'current_condition' => $initialCondition,
-            'tuned_speed' => $initialTunedSpeed,
-            'is_active' => ! $hasVehicles,
-            'total_heists_done' => 0,
-        ]);
 
         $tuneMsg = ($initialTunedSpeed !== $vehicle->speed_pct) ? " (Tuned topsnelheid: {$initialTunedSpeed}%)" : '';
 

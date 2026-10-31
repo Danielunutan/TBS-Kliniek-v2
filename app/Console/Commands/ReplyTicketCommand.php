@@ -15,7 +15,7 @@ class ReplyTicketCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'ticket:reply {ticket_number}';
+    protected $signature = 'ticket:auto-reply {ticket_number}';
 
     /**
      * The console command description.

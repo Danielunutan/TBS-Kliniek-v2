@@ -51,14 +51,12 @@ class CheckMaintenanceMode
             return $next($request);
         }
 
-        // Check if the currently authenticated user is Daniel or the platform owner
+        // Check if the currently authenticated user is the platform owner or an administrator
         $user = $request->user();
         if ($user) {
             $isDaniel = $user->isOwner()
-                || strtolower($user->name) === 'daniel'
-                || strtolower($user->name) === 'daniël'
-                || in_array(strtolower($user->email), ['danielunutan@icloud.com', 'admin@tbskliniek.nl'], true)
-                || ($user->character && in_array(mb_strtolower($user->character->name), ['daniel', 'daniël'], true));
+                || $user->isAdmin()
+                || in_array(strtolower($user->email), ['danielunutan@icloud.com', 'admin@tbskliniek.nl'], true);
 
             if ($isDaniel) {
                 return $next($request);

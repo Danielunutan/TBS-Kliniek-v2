@@ -125,9 +125,10 @@ class LotteryRound extends Model
                 return $existingActive;
             }
 
-            $allTickets = $round->tickets()->whereHas('character')->get();
+            /** @var LotteryTicket|null $winningTicket */
+            $winningTicket = $round->tickets()->whereHas('character')->inRandomOrder()->first();
 
-            if ($allTickets->isEmpty()) {
+            if (! $winningTicket) {
                 $nextRound = self::create([
                     'round_number' => $round->round_number + 1,
                     'jackpot' => $round->jackpot + 25000,
@@ -150,8 +151,6 @@ class LotteryRound extends Model
                 return $nextRound;
             }
 
-            /** @var LotteryTicket $winningTicket */
-            $winningTicket = $allTickets->random();
             /** @var Character|null $winner */
             $winner = $winningTicket->character;
 

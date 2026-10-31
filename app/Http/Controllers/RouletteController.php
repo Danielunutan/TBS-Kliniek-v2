@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
 use App\Services\LevelService;
@@ -33,6 +34,10 @@ class RouletteController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je niet gokken!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($this->cooldownService->isOnCooldown($character, 'casino_roulette')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'casino_roulette');
 
@@ -48,6 +53,8 @@ class RouletteController extends Controller
         if (! $this->economy->deductCash($character, $bet)) {
             return back()->with('error', 'Je hebt onvoldoende contant geld. Inzet: €'.number_format($bet, 0, ',', '.').'.');
         }
+
+        $this->cooldownService->setCooldown($character, 'casino_roulette', 8);
 
         $number = rand(0, 36);
 
@@ -81,8 +88,6 @@ class RouletteController extends Controller
         ];
 
         $multiplier = $multipliers[$betType] ?? 2;
-
-        $this->cooldownService->setCooldown($character, 'casino_roulette', 8);
 
         if ($won) {
             $payout = $bet * $multiplier;

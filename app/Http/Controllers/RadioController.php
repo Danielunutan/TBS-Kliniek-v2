@@ -77,6 +77,10 @@ class RadioController extends Controller
             return redirect()->route('prison')->with('error', 'In de isoleercel heb je geen toegang tot de radiozender van de afdeling!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($this->cooldownService->isOnCooldown($character, 'radio_shoutout')) {
             $remaining = $this->cooldownService->getRemainingSeconds($character, 'radio_shoutout').' seconden';
 
@@ -90,12 +94,11 @@ class RadioController extends Controller
         ]);
 
         $cost = 150;
-        if ($character->cash < $cost) {
+        if (! $this->economy->deductCash($character, $cost)) {
             return back()->with('error', 'Een shoutout uitzenden kost €'.number_format($cost, 0, ',', '.').' kleingeld voor de zendkosten!');
         }
 
-        $character->cash -= $cost;
-        $character->save();
+        $this->cooldownService->setCooldown($character, 'radio_shoutout');
 
         $gangName = $character->gang ? $character->gang->name : null;
 
@@ -110,7 +113,6 @@ class RadioController extends Controller
         ]);
 
         $this->level->addXp($character, 15);
-        $this->cooldownService->setCooldown($character, 'radio_shoutout');
 
         return back()->with('success', "📻 LIVE ON AIR! Jouw plaatje '{$validated['track_title']}' en shoutout knallen nu over de afdelingsspeakers (+15 XP)!");
     }
@@ -122,22 +124,22 @@ class RadioController extends Controller
         /** @var Character $character */
         $character = $user->character;
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($shoutout->character_id === $character->id) {
             return back()->with('error', 'Je kunt niet je eigen radioshoutout liken!');
         }
 
-        $existing = RadioShoutoutLike::where('radio_shoutout_id', $shoutout->id)
-            ->where('character_id', $character->id)
-            ->first();
-
-        if ($existing) {
-            return back()->with('error', 'Je hebt dit radiosterretje al respect gegeven!');
-        }
-
-        RadioShoutoutLike::create([
+        $like = RadioShoutoutLike::firstOrCreate([
             'radio_shoutout_id' => $shoutout->id,
             'character_id' => $character->id,
         ]);
+
+        if (! $like->wasRecentlyCreated) {
+            return back()->with('error', 'Je hebt dit radiosterretje al respect gegeven!');
+        }
 
         $shoutout->increment('likes_count');
 

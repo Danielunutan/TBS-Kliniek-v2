@@ -65,6 +65,7 @@ class MarketplaceController extends Controller
 
         $ownedVehicles = CharacterVehicle::where('character_id', $character->id)
             ->where('is_for_sale', false)
+            ->where('in_gang_garage', false)
             ->with('vehicle')
             ->orderByDesc('is_active')
             ->get();
@@ -161,6 +162,7 @@ class MarketplaceController extends Controller
                     $charVehicle = CharacterVehicle::where('id', $request->input('character_vehicle_id'))
                         ->where('character_id', $lockedCharacter->id)
                         ->where('is_for_sale', false)
+                        ->where('in_gang_garage', false)
                         ->with('vehicle')
                         ->lockForUpdate()
                         ->first();
@@ -377,6 +379,12 @@ class MarketplaceController extends Controller
                         if ($alreadyOwnsEquipment) {
                             throw new \RuntimeException("Je bezit deze unieke uitrusting ({$listedItem->name}) al in je rugzak (maximaal 1 per soort)!");
                         }
+                    } elseif (! $lockedBuyer->canAddStorageItem($lockedListing->amount)) {
+                        throw new \RuntimeException('Je opbergplaats zit vol! Maak eerst ruimte in je depot.');
+                    }
+                } elseif ($lockedListing->item_type === 'vehicle') {
+                    if ($lockedBuyer->getGarageUsed() >= $lockedBuyer->getGarageCapacity()) {
+                        throw new \RuntimeException('Je garage zit vol! Verhoog je capaciteit of verkoop eerst een wagen om plaats te maken.');
                     }
                 }
 
@@ -438,6 +446,10 @@ class MarketplaceController extends Controller
                     $charVehicle = CharacterVehicle::where('id', $lockedListing->related_id)->lockForUpdate()->first();
                     if ($charVehicle) {
                         $charVehicle->character_id = $lockedBuyer->id;
+                        $charVehicle->in_gang_garage = false;
+                        $charVehicle->gang_id = null;
+                        $charVehicle->stored_at = null;
+                        $charVehicle->stored_by_character_id = null;
                         $charVehicle->is_for_sale = false;
                         $charVehicle->is_active = false;
                         $charVehicle->save();

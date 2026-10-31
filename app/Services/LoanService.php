@@ -36,10 +36,14 @@ class LoanService
         $interestAmount = (int) round(($amount * $interestRate) / 100);
         $totalDue = $amount + $interestAmount;
 
-        // Generate unique loan number like #5332
+        // Generate unique loan number like #5332 with a bounded retry and fallback so it can never spin forever.
         $loanNumber = '#'.rand(1000, 9999);
+        $attempts = 0;
         while (Loan::where('loan_number', $loanNumber)->exists()) {
-            $loanNumber = '#'.rand(1000, 9999);
+            $attempts++;
+            $loanNumber = $attempts < 20
+                ? '#'.rand(1000, 9999)
+                : '#'.$character->id.'-'.strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
         }
 
         /** @var Loan|null $loan */
@@ -92,6 +96,13 @@ class LoanService
 
             return $loan;
         });
+
+        if (! $loan) {
+            return [
+                'success' => false,
+                'message' => 'Je maximale leencapaciteit is ontoereikend voor dit bedrag.',
+            ];
+        }
 
         $formattedAmount = number_format($amount, 0, ',', '.');
         $formattedTax = number_format($interestAmount, 0, ',', '.');

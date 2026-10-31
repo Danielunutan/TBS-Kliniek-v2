@@ -627,37 +627,56 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Sigaretten item niet geconfigureerd.'], 500);
         }
 
-        $charItem = CharacterItem::where('character_id', $character->id)
-            ->where('item_id', $sigItem->id)
-            ->where('quantity', '>', 0)
-            ->first();
-
-        $currentStock = $charItem ? (int) $charItem->quantity : 0;
-
         $hour = (int) now()->format('H');
         $wave = (sin($hour * 0.52) * 11) + (cos($hour * 0.3) * 5);
         $peukPrice = max(28, (int) round(42 + $wave));
 
         $requestedAmount = $validated['amount'];
-        $toSell = $requestedAmount === 'all' ? $currentStock : (int) $requestedAmount;
 
-        if ($toSell <= 0 || $currentStock < $toSell) {
-            $msg = "Je hebt minimaal {$toSell} peuken nodig om te verkopen (je hebt er {$currentStock})!";
+        $soldData = DB::transaction(function () use ($character, $sigItem, $requestedAmount, $peukPrice) {
+            $charItem = CharacterItem::where('character_id', $character->id)
+                ->where('item_id', $sigItem->id)
+                ->where('quantity', '>', 0)
+                ->lockForUpdate()
+                ->first();
 
+            $currentStock = $charItem ? (int) $charItem->quantity : 0;
+            $toSell = $requestedAmount === 'all' ? $currentStock : (int) $requestedAmount;
+
+            if ($toSell <= 0 || $currentStock < $toSell) {
+                return ['error' => "Je hebt minimaal {$toSell} peuken nodig om te verkopen (je hebt er {$currentStock})!"];
+            }
+
+            $totalCash = $toSell * $peukPrice;
+            $xpGain = max(10, (int) round($toSell * 3.5));
+            $respectGain = max(1, (int) floor($toSell / 5));
+
+            $charItem->decrement('quantity', $toSell);
+            if ($charItem->fresh()?->quantity <= 0) {
+                $charItem->delete();
+            }
+
+            return [
+                'toSell' => $toSell,
+                'currentStock' => $currentStock,
+                'totalCash' => $totalCash,
+                'xpGain' => $xpGain,
+                'respectGain' => $respectGain,
+            ];
+        });
+
+        if (isset($soldData['error'])) {
             return $request->expectsJson() || $request->ajax()
-                ? response()->json(['error' => $msg], 400)
-                : back()->with('error', $msg);
+                ? response()->json(['error' => $soldData['error']], 400)
+                : back()->with('error', $soldData['error']);
         }
 
-        $totalCash = $toSell * $peukPrice;
-        $xpGain = max(10, (int) round($toSell * 3.5));
-        $respectGain = max(1, (int) floor($toSell / 5));
+        $toSell = $soldData['toSell'];
+        $currentStock = $soldData['currentStock'];
+        $totalCash = $soldData['totalCash'];
+        $xpGain = $soldData['xpGain'];
+        $respectGain = $soldData['respectGain'];
 
-        // Deduct cigarettes & reward cash, xp, respect
-        $charItem->decrement('quantity', $toSell);
-        if ($charItem->fresh()?->quantity <= 0) {
-            $charItem->delete();
-        }
         $this->economyService->addCash($character, $totalCash);
         $this->levelService->addXp($character, $xpGain);
         $character->addRespect($respectGain);
@@ -729,6 +748,8 @@ class DashboardController extends Controller
         $peukenFound = mt_rand(1, 3);
         $xpGain = 30;
 
+        $this->cooldownService->setCooldown($character, 'radar_sweep', 1800);
+
         $this->economyService->addCash($character, $cashFound);
         $this->levelService->addXp($character, $xpGain);
         $character->addRespect(1);
@@ -743,8 +764,6 @@ class DashboardController extends Controller
             );
             $ci->increment('quantity', $peukenFound);
         }
-
-        $this->cooldownService->setCooldown($character, 'radar_sweep', 1800);
 
         $msg = '📡 RADAR SWEEP SUCCES! Dode hoek gescand bij container 4. Buit: €'.number_format($cashFound, 0, ',', '.')." contant en {$peukenFound}x Sigaretten meegesmokkeld (+{$xpGain} XP)!";
 

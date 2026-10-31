@@ -9,6 +9,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class InformantController extends Controller
@@ -79,6 +80,10 @@ class InformantController extends Controller
             return redirect()->route('prison')->with('error', 'Je kunt geen informanten inhuren vanuit de isoleercel!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'informant_id' => ['required', 'integer', 'in:1,2,3,4'],
         ]);
@@ -113,12 +118,15 @@ class InformantController extends Controller
             $reward = rand($info['reward_min'], $info['reward_max']);
             $this->economy->addCash($character, $reward);
             $this->level->addXp($character, $info['xp']);
-            $maxStat = $character->getMaxStatForLevel();
-            if ((int) ($character->intelligence ?? 10) < $maxStat) {
-                $character->intelligence = min($maxStat, (int) ($character->intelligence ?? 10) + 1);
-            }
-            $character->respect += 1;
-            $character->save();
+            DB::transaction(function () use ($character): void {
+                $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+                $maxStat = $locked->getMaxStatForLevel();
+                if ((int) ($locked->intelligence ?? 10) < $maxStat) {
+                    $locked->intelligence = min($maxStat, (int) ($locked->intelligence ?? 10) + 1);
+                }
+                $locked->respect += 1;
+                $locked->save();
+            });
 
             return back()->with('success', "Je {$info['label']} levert goudwaardige intel op! Je int €".number_format($reward, 0, ',', '.')." aan buit en winst. +{$info['xp']} XP, +1 Intelligentie.");
         }

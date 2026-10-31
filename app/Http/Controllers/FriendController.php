@@ -314,6 +314,11 @@ class FriendController extends Controller
             return back()->with('error', "Je hebt {$friend->friend->name} vandaag al respect gegeven! Wacht nog {$hoursLeft} uur.");
         }
 
+        // Rotate captcha challenge so one solved answer cannot be replayed across multiple respect submissions.
+        $n1 = rand(2, 9);
+        $n2 = rand(1, 8);
+        session(['friend_captcha_q' => "{$n1} + {$n2}", 'friend_captcha_ans' => $n1 + $n2]);
+
         $target = $friend->friend;
         $respectBonus = $friend->is_bff ? 2 : 1;
         $target->respect += $respectBonus;

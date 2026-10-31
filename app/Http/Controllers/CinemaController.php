@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -168,8 +169,8 @@ class CinemaController extends Controller
             return back()->withInput()->with('error', 'Ongeldige YouTube URL of video ID! Plak een geldige YouTube link (bijv. https://www.youtube.com/watch?v=... of https://youtu.be/...).');
         }
 
-        $baseSlug = Str::slug($validated['title']);
-        $slug = $baseSlug ?: 'cinema-zaal-'.rand(100, 999);
+        $baseSlug = Str::slug($validated['title']) ?: 'cinema-zaal';
+        $slug = $baseSlug;
         $count = 1;
         while (CinemaRoom::where('slug', $slug)->exists()) {
             $slug = "{$baseSlug}-{$count}";
@@ -397,15 +398,6 @@ class CinemaController extends Controller
             return back()->with('error', 'Ongeldige YouTube video link!');
         }
 
-        $queue = $room->getQueue();
-        if (count($queue) >= 25) {
-            if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Wachtrij is vol (maximaal 25 video\'s).'], 422);
-            }
-
-            return back()->with('error', 'Wachtrij is vol (maximaal 25 video\'s).');
-        }
-
         $itemTitle = ! empty($validated['title']) ? trim($validated['title']) : "YouTube Video ({$videoId})";
 
         $item = [
@@ -419,9 +411,27 @@ class CinemaController extends Controller
             'added_at' => now()->format('H:i'),
         ];
 
-        $queue[] = $item;
-        $room->video_queue = $queue;
-        $room->save();
+        $queue = DB::transaction(function () use ($room, $item) {
+            /** @var CinemaRoom $lockedRoom */
+            $lockedRoom = CinemaRoom::where('id', $room->id)->lockForUpdate()->firstOrFail();
+            $currentQueue = $lockedRoom->getQueue();
+            if (count($currentQueue) >= 25) {
+                return null;
+            }
+            $currentQueue[] = $item;
+            $lockedRoom->video_queue = $currentQueue;
+            $lockedRoom->save();
+
+            return $currentQueue;
+        });
+
+        if ($queue === null) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Wachtrij is vol (maximaal 25 video\'s).'], 422);
+            }
+
+            return back()->with('error', 'Wachtrij is vol (maximaal 25 video\'s).');
+        }
 
         CinemaMessage::create([
             'room_id' => $room->id,
@@ -449,6 +459,14 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($room->is_closed) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
+            }
+
+            return back()->with('error', 'Deze zaal is gesloten.');
+        }
+
         if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan video\'s starten.'], 403);
@@ -457,17 +475,31 @@ class CinemaController extends Controller
             return back()->with('error', 'Alleen de zaalhost kan video\'s starten.');
         }
 
-        $queue = $room->getQueue();
         $target = null;
         $remaining = [];
 
-        foreach ($queue as $item) {
-            if ($item['id'] === $queueId && $target === null) {
-                $target = $item;
-            } else {
-                $remaining[] = $item;
+        DB::transaction(function () use ($room, $queueId, &$target, &$remaining) {
+            /** @var CinemaRoom $lockedRoom */
+            $lockedRoom = CinemaRoom::where('id', $room->id)->lockForUpdate()->firstOrFail();
+            $queue = $lockedRoom->getQueue();
+
+            foreach ($queue as $item) {
+                if ($item['id'] === $queueId && $target === null) {
+                    $target = $item;
+                } else {
+                    $remaining[] = $item;
+                }
             }
-        }
+
+            if ($target) {
+                $lockedRoom->youtube_video_id = $target['youtube_video_id'];
+                $lockedRoom->youtube_url = $target['youtube_url'];
+                $lockedRoom->video_started_at = now();
+                $lockedRoom->seek_offset = 0;
+                $lockedRoom->video_queue = $remaining;
+                $lockedRoom->save();
+            }
+        });
 
         if (! $target) {
             if ($request->wantsJson()) {
@@ -477,12 +509,7 @@ class CinemaController extends Controller
             return back()->with('error', 'Video niet gevonden in wachtrij.');
         }
 
-        $room->youtube_video_id = $target['youtube_video_id'];
-        $room->youtube_url = $target['youtube_url'];
-        $room->video_started_at = now();
-        $room->seek_offset = 0;
-        $room->video_queue = $remaining;
-        $room->save();
+        $room->refresh();
 
         CinemaMessage::create([
             'room_id' => $room->id,
@@ -512,6 +539,14 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($room->is_closed) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
+            }
+
+            return back()->with('error', 'Deze zaal is gesloten.');
+        }
+
         if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan items uit de wachtrij verwijderen.'], 403);
@@ -520,10 +555,16 @@ class CinemaController extends Controller
             return back()->with('error', 'Alleen de zaalhost kan items uit de wachtrij verwijderen.');
         }
 
-        $queue = $room->getQueue();
-        $filtered = array_values(array_filter($queue, fn ($item) => $item['id'] !== $queueId));
-        $room->video_queue = $filtered;
-        $room->save();
+        $filtered = DB::transaction(function () use ($room, $queueId) {
+            /** @var CinemaRoom $lockedRoom */
+            $lockedRoom = CinemaRoom::where('id', $room->id)->lockForUpdate()->firstOrFail();
+            $queue = $lockedRoom->getQueue();
+            $remaining = array_values(array_filter($queue, fn ($item) => $item['id'] !== $queueId));
+            $lockedRoom->video_queue = $remaining;
+            $lockedRoom->save();
+
+            return $remaining;
+        });
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -658,6 +699,10 @@ class CinemaController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($room->is_closed) {
+            return response()->json(['success' => false, 'message' => 'Deze zaal is gesloten.'], 422);
+        }
+
         if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
             return response()->json(['success' => false, 'message' => 'Alleen de zaalhost kan synchroniseren.'], 403);
         }
@@ -681,6 +726,10 @@ class CinemaController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($room->is_closed) {
+            return back()->with('error', 'Deze zaal is gesloten.');
+        }
 
         if ($room->host_character_id !== $character->id && ! $user->isStaff()) {
             return back()->with('error', 'Alleen de zaalhost kan de video wijzigen!');

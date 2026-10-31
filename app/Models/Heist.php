@@ -72,9 +72,15 @@ class Heist extends Model
         }
 
         $personal = CharacterVehicle::where('character_id', $character->id)
+            ->where('in_gang_garage', false)
+            ->where('is_for_sale', false)
             ->where('is_active', true)
             ->with('vehicle')
-            ->first() ?? CharacterVehicle::where('character_id', $character->id)->with('vehicle')->first();
+            ->first() ?? CharacterVehicle::where('character_id', $character->id)
+            ->where('in_gang_garage', false)
+            ->where('is_for_sale', false)
+            ->with('vehicle')
+            ->first();
 
         if ($personal && $this->vehicleQualifies($personal)) {
             return $personal;

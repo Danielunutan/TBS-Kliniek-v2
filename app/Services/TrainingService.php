@@ -100,7 +100,18 @@ class TrainingService
             ];
         }
 
+        if (! $this->economyService->deductCash($character, $cashCost)) {
+            return [
+                'success' => false,
+                'message' => "Je hebt €{$cashCost} nodig om {$statName} te trainen, maar je hebt onvoldoende contant geld.",
+                'stat_gain' => 0,
+                'new_value' => $currentValue,
+            ];
+        }
+
         if (! $this->energyService->consume($character, $energyCost)) {
+            $this->economyService->addCash($character, $cashCost);
+
             return [
                 'success' => false,
                 'message' => "Niet genoeg energie! Trainen kost {$energyCost} energie.",
@@ -108,8 +119,6 @@ class TrainingService
                 'new_value' => $currentValue,
             ];
         }
-
-        $this->economyService->deductCash($character, $cashCost);
 
         if ($mode === 'level') {
             $gain = 0;

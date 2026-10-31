@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class TimelineController extends Controller
@@ -80,7 +81,10 @@ class TimelineController extends Controller
         ]);
 
         // Posting costs nothing, so XP is capped per day; otherwise a script could post its way to any level.
-        $postsToday = TimelinePost::where('character_id', $character->id)->where('created_at', '>=', now()->startOfDay())->count();
+        // Track daily XP awards in Cache rather than counting live rows so post-delete-repost cannot reset the cap.
+        $xpCacheKey = 'timeline_xp_posts:'.$character->id.':'.now()->toDateString();
+        Cache::add($xpCacheKey, 0, now()->endOfDay());
+        $postsToday = (int) Cache::increment($xpCacheKey);
         if ($postsToday > self::DAILY_XP_POSTS) {
             return back()->with('success', 'Je bericht is live geplaatst op de openbare kliniek tijdlijn! (Dagelijkse XP-limiet voor berichten bereikt)');
         }
@@ -172,7 +176,9 @@ class TimelineController extends Controller
             'content' => trim(strip_tags($validated['content'])),
         ]);
 
-        $commentsToday = TimelineComment::where('character_id', $character->id)->where('created_at', '>=', now()->startOfDay())->count();
+        $xpCommentKey = 'timeline_xp_comments:'.$character->id.':'.now()->toDateString();
+        Cache::add($xpCommentKey, 0, now()->endOfDay());
+        $commentsToday = (int) Cache::increment($xpCommentKey);
         if ($commentsToday > self::DAILY_XP_COMMENTS) {
             return back()->with('success', 'Je reactie is geplaatst! (Dagelijkse XP-limiet voor reacties bereikt)');
         }

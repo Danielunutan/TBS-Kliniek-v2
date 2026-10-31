@@ -30,6 +30,10 @@ class RadioShoutout extends Model
 
     public function isLikedBy(int $characterId): bool
     {
+        if ($this->relationLoaded('likes')) {
+            return $this->likes->contains('character_id', $characterId);
+        }
+
         return $this->likes()->where('character_id', $characterId)->exists();
     }
 }

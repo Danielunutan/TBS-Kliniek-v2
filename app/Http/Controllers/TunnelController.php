@@ -13,6 +13,7 @@ use App\Services\PrisonService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class TunnelController extends Controller
@@ -196,33 +197,49 @@ class TunnelController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        /** @var EscapeTunnel $tunnel */
-        $tunnel = EscapeTunnel::firstOrCreate(['character_id' => $character->id]);
-
-        if ($tunnel->progress_pct < 100) {
-            return back()->with('error', 'De tunnel is nog niet klaar! Je bent pas op '.$tunnel->progress_pct.'%.');
-        }
-
-        if ($tunnel->is_completed) {
-            return back()->with('info', 'Je hebt de ontsnapping al eens voltooid.');
-        }
-
-        // Grote ontsnapping bekronen
-        $tunnel->is_completed = true;
-        $tunnel->escaped_at = now();
-        $tunnel->save();
-
         $cashReward = 25000;
         $xpReward = 500;
         $respectReward = 15;
         $starsReward = 25;
 
-        $this->economy->addCash($character, $cashReward);
-        $this->level->addXp($character, $xpReward);
-        $character->respect += $respectReward;
-        $character->stars = ($character->stars ?? 0) + $starsReward;
-        $character->prison_escapes = ($character->prison_escapes ?? 0) + 1;
-        $character->save();
+        $status = DB::transaction(function () use ($character, $cashReward, $xpReward, $respectReward, $starsReward): string {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            /** @var EscapeTunnel $tunnel */
+            $tunnel = EscapeTunnel::where('character_id', $lockedCharacter->id)->lockForUpdate()->first()
+                ?? EscapeTunnel::create(['character_id' => $lockedCharacter->id]);
+
+            if ($tunnel->progress_pct < 100) {
+                return 'incomplete:'.$tunnel->progress_pct;
+            }
+
+            if ($tunnel->is_completed) {
+                return 'already_completed';
+            }
+
+            $tunnel->is_completed = true;
+            $tunnel->escaped_at = now();
+            $tunnel->save();
+
+            $this->economy->addCash($lockedCharacter, $cashReward);
+            $this->level->addXp($lockedCharacter, $xpReward);
+            $lockedCharacter->respect += $respectReward;
+            $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + $starsReward;
+            $lockedCharacter->prison_escapes = ($lockedCharacter->prison_escapes ?? 0) + 1;
+            $lockedCharacter->save();
+
+            return 'ok';
+        });
+
+        if (str_starts_with($status, 'incomplete:')) {
+            $pct = substr($status, strlen('incomplete:'));
+
+            return back()->with('error', 'De tunnel is nog niet klaar! Je bent pas op '.$pct.'%.');
+        }
+
+        if ($status === 'already_completed') {
+            return back()->with('info', 'Je hebt de ontsnapping al eens voltooid.');
+        }
 
         return back()->with('success', '🏆 HET GROTE UITBRAAKCOMPLOT IS VOLTOOID! Midden in de nacht kroop je door de lepel-gegraven tunnel onder de buitenmuur door! Beloning: €'.number_format($cashReward, 0, ',', '.')." buit, +{$xpReward} XP, +{$respectReward} Respect en 25 Sterren ⭐!");
     }

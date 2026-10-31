@@ -108,6 +108,13 @@ class TrueCrimeController extends Controller
             ], 422);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'case_id' => ['required', 'integer', 'exists:true_crime_cases,id'],
             'suspect_index' => ['required', 'integer', 'in:0,1,2,3'],
@@ -133,6 +140,13 @@ class TrueCrimeController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Dit dossier is momenteel niet jouw actieve onderzoek!',
+                ], 422);
+            }
+
+            if ($state->current_case_id === null && in_array((int) $validated['case_id'], $state->solved_case_ids ?? [], true) && TrueCrimeCase::whereNotIn('id', $state->solved_case_ids ?? [])->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dit dossier heb je al eerder opgelost!',
                 ], 422);
             }
 
@@ -262,30 +276,34 @@ class TrueCrimeController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
-        /** @var CharacterTrueCrimeState $state */
-        $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $character->id]);
+        return DB::transaction(function () use ($character): RedirectResponse {
+            /** @var CharacterTrueCrimeState $state */
+            $state = CharacterTrueCrimeState::where('character_id', $character->id)
+                ->lockForUpdate()
+                ->firstOrCreate(['character_id' => $character->id]);
 
-        if (! $state->isOnCooldown()) {
-            return redirect()->route('true_crime.index')
-                ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
-        }
+            if (! $state->isOnCooldown()) {
+                return redirect()->route('true_crime.index')
+                    ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+            }
 
-        $current = ($state->cooldown_ads_watched ?? 0) + 1;
-        if ($current >= 5) {
+            $current = ($state->cooldown_ads_watched ?? 0) + 1;
+            if ($current >= 5) {
+                $state->update([
+                    'cooldown_until' => null,
+                    'cooldown_ads_watched' => 0,
+                    'current_case_id' => null,
+                ]);
+
+                return redirect()->route('true_crime.index')->with('success', '🎉 [5/5 Ads] Gefeliciteerd! Je hebt 5 advertenties bekeken. Caroline heeft direct een nieuw dossier voor je ontgrendeld!');
+            }
+
             $state->update([
-                'cooldown_until' => null,
-                'cooldown_ads_watched' => 0,
-                'current_case_id' => null,
+                'cooldown_ads_watched' => $current,
             ]);
+            $left = 5 - $current;
 
-            return redirect()->route('true_crime.index')->with('success', '🎉 [5/5 Ads] Gefeliciteerd! Je hebt 5 advertenties bekeken. Caroline heeft direct een nieuw dossier voor je ontgrendeld!');
-        }
-
-        $state->update([
-            'cooldown_ads_watched' => $current,
-        ]);
-        $left = 5 - $current;
-
-        return redirect()->route('true_crime.index')->with('success', "🔍 [{$current}/5 Ads] Advertentie geregistreerd! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om Caroline\'s 24-uurs wachttijd te omzeilen.');
+            return redirect()->route('true_crime.index')->with('success', "🔍 [{$current}/5 Ads] Advertentie geregistreerd! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om Caroline\'s 24-uurs wachttijd te omzeilen.');
+        });
     }
 }

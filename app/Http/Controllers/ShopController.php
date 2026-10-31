@@ -263,6 +263,17 @@ class ShopController extends Controller
                 return false;
             }
 
+            if ($item->category === 'equipment') {
+                $alreadyOwnedUnderLock = CharacterItem::where('character_id', $locked->id)
+                    ->where('item_id', $item->id)
+                    ->where('quantity', '>=', 1)
+                    ->lockForUpdate()
+                    ->exists();
+                if ($alreadyOwnedUnderLock) {
+                    return false;
+                }
+            }
+
             // Pay from cash first; if cash is insufficient, cover difference from bank
             if ($locked->cash >= $totalCost) {
                 $locked->cash -= $totalCost;
@@ -759,6 +770,8 @@ class ShopController extends Controller
                 $lockedCharacter->is_in_prison = false;
                 $lockedCharacter->prison_until = null;
                 $lockedCharacter->prison_reason = null;
+                $lockedCharacter->prison_escape_attempted = false;
+                $lockedCharacter->ad_prison_progress = 0;
                 $lockedCharacter->save();
 
                 return back()
@@ -997,17 +1010,29 @@ class ShopController extends Controller
             $target->unopened_bags = ($target->unopened_bags ?? 0) + $totalBags;
             $target->masks = ($target->masks ?? 0) + $totalMasks;
 
-            // Generate vault voucher codes for recipient
+            // Generate vault voucher codes for recipient in bulk chunks to avoid hundreds of individual INSERT queries
+            $nowTs = now();
+            $codeRows = [];
+            $seenCodes = [];
             for ($i = 0; $i < $totalCodes; $i++) {
-                $codeStr = VaultCode::generateUniqueCode('BDL');
-                VaultCode::create([
+                do {
+                    $codeStr = 'BDL-'.strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+                } while (isset($seenCodes[$codeStr]));
+                $seenCodes[$codeStr] = true;
+
+                $codeRows[] = [
                     'code' => $codeStr,
                     'reward_cash' => rand(2500, 7500),
                     'reward_stars' => rand(1, 3),
                     'reward_tokens' => 2,
                     'character_id' => $target->id,
                     'is_redeemed' => false,
-                ]);
+                    'created_at' => $nowTs,
+                    'updated_at' => $nowTs,
+                ];
+            }
+            foreach (array_chunk($codeRows, 200) as $chunk) {
+                VaultCode::insert($chunk);
             }
 
             $target->save();

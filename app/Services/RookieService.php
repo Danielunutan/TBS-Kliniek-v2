@@ -154,28 +154,37 @@ class RookieService
             return ['success' => false, 'message' => 'Je hebt de beloning voor deze taak al geclaimd.', 'reward' => ''];
         }
 
-        return DB::transaction(function () use ($character, $taskKey, &$perks, &$claimed) {
+        return DB::transaction(function () use ($character, $taskKey) {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            $perks = $locked->perks ?? [];
+            $claimed = $perks['rookie_rewards_claimed'] ?? [];
+
+            if (in_array($taskKey, $claimed, true)) {
+                return ['success' => false, 'message' => 'Je hebt de beloning voor deze taak al geclaimd.', 'reward' => ''];
+            }
+
             $rewardDesc = '';
 
             $levelService = app(LevelService::class);
 
             switch ($taskKey) {
                 case 'first_theft':
-                    $character->cash += 1000;
-                    $levelService->addXp($character, 15);
+                    $locked->cash += 1000;
+                    $levelService->addXp($locked, 15);
                     $rewardDesc = '€1.000 contant en 15 XP';
                     break;
 
                 case 'bank_deposit':
-                    $character->cash += 500;
-                    $character->respect = max(0, (int) ($character->respect ?? 0) + 5);
-                    $levelService->addXp($character, 15);
+                    $locked->cash += 500;
+                    $locked->respect = max(0, (int) ($locked->respect ?? 0) + 5);
+                    $levelService->addXp($locked, 15);
 
                     // The task label promises 5 cigarettes, so put them in the inventory.
                     $cigarettes = Item::where('slug', 'sigaretten')->first();
                     if ($cigarettes) {
                         $inventoryRow = CharacterItem::firstOrCreate(
-                            ['character_id' => $character->id, 'item_id' => $cigarettes->id],
+                            ['character_id' => $locked->id, 'item_id' => $cigarettes->id],
                             ['quantity' => 0]
                         );
                         $inventoryRow->increment('quantity', 5);
@@ -185,26 +194,26 @@ class RookieService
                     break;
 
                 case 'training':
-                    $levelService->addXp($character, 15);
-                    $maxStat = $character->getMaxStatForLevel();
-                    $character->strength = min($maxStat, (int) $character->strength + 1);
-                    $character->defense = min($maxStat, (int) $character->defense + 1);
+                    $levelService->addXp($locked, 15);
+                    $maxStat = $locked->getMaxStatForLevel();
+                    $locked->strength = min($maxStat, (int) $locked->strength + 1);
+                    $locked->defense = min($maxStat, (int) $locked->defense + 1);
                     $rewardDesc = '+1 Kracht, +1 Verdediging en 15 XP';
                     break;
 
                 case 'first_fight':
-                    $character->bullets = (int) ($character->bullets ?? 0) + 30;
-                    $levelService->addXp($character, 25);
+                    $locked->bullets = (int) ($locked->bullets ?? 0) + 30;
+                    $levelService->addXp($locked, 25);
                     $rewardDesc = '30 Kogels en 25 XP';
                     break;
 
                 case 'sponsor_vip':
-                    $currentExpiry = $character->vip_expires_at && $character->vip_expires_at->isFuture()
-                        ? $character->vip_expires_at
+                    $currentExpiry = $locked->vip_expires_at && $locked->vip_expires_at->isFuture()
+                        ? $locked->vip_expires_at
                         : now();
-                    $character->is_vip = true;
-                    $character->vip_expires_at = $currentExpiry->addDay();
-                    $levelService->addXp($character, 25);
+                    $locked->is_vip = true;
+                    $locked->vip_expires_at = $currentExpiry->addDay();
+                    $levelService->addXp($locked, 25);
                     $rewardDesc = '1 Dag Gratis VIP status en 25 XP';
                     break;
             }
@@ -219,16 +228,17 @@ class RookieService
 
             if ($hasAll && empty($perks['rookie_grand_claimed'])) {
                 $perks['rookie_grand_claimed'] = true;
-                $character->cash += 5000;
-                $levelService->addXp($character, 50);
-                if (empty($character->title) || $character->title === 'Nieuwe Patiënt') {
-                    $character->title = 'Kliniek Overlever';
+                $locked->cash += 5000;
+                $levelService->addXp($locked, 50);
+                if (empty($locked->title) || $locked->title === 'Nieuwe Patiënt') {
+                    $locked->title = 'Kliniek Overlever';
                 }
                 $grandUnlocked = true;
             }
 
-            $character->perks = $perks;
-            $character->save();
+            $locked->perks = $perks;
+            $locked->save();
+            $character->refresh();
 
             $msg = 'Gefeliciteerd! Je hebt '.$rewardDesc.' ontvangen.';
             if ($grandUnlocked) {

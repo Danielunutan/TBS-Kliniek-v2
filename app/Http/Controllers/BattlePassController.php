@@ -733,6 +733,10 @@ class BattlePassController extends Controller
         if (isset($rewards['respect'])) {
             $character->respect = ($character->respect ?? 0) + $rewards['respect'];
         }
+        // Apply XP first so any level-up raises getMaxStatForLevel() before strength is clamped.
+        if (isset($rewards['xp']) && $rewards['xp'] > 0) {
+            $this->levelService->addXp($character, $rewards['xp']);
+        }
         if (isset($rewards['strength'])) {
             $character->strength = min($character->getMaxStatForLevel(), ($character->strength ?? 0) + $rewards['strength']);
         }
@@ -756,9 +760,6 @@ class BattlePassController extends Controller
         }
         if (isset($rewards['health'])) {
             $character->health = min($character->max_health, ($character->health ?? 0) + $rewards['health']);
-        }
-        if (isset($rewards['xp']) && $rewards['xp'] > 0) {
-            $this->levelService->addXp($character, $rewards['xp']);
         }
     }
 }

@@ -187,9 +187,16 @@ class ArmWrestleController extends Controller
             ], 422);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
         $character->cooldownsMap = null;
         $remaining = $this->cooldownService->getRemainingSeconds($character, 'arm_wrestling');
-        if ($remaining > 2) {
+        if ($remaining > 0) {
             // Check if this is a duplicate submission for a match processed in the last 4 seconds
             $recentMatch = ArmWrestleMatch::where('challenger_id', $character->id)
                 ->where('type', 'npc')
@@ -402,6 +409,10 @@ class ArmWrestleController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen plaatsen!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'bet_amount' => ['required', 'integer', 'in:2500,5000,10000,25000,50000,100000'],
         ]);
@@ -482,6 +493,10 @@ class ArmWrestleController extends Controller
 
         if ($opponent->isImprisoned()) {
             return back()->with('error', 'Vanuit de isoleercel kun je geen uitdagingen aannemen!');
+        }
+
+        if ($opponent->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $opponent->cooldownsMap = null;

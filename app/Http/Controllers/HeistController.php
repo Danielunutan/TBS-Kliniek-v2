@@ -302,6 +302,7 @@ class HeistController extends Controller
 
             HeistLog::create([
                 'character_id' => $character->id,
+                'gang_id' => $heist->is_gang_heist ? $character->gang_id : null,
                 'heist_id' => $heist->id,
                 'vehicle_id' => $charVehicle->vehicle_id,
                 'success' => false,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BankTransaction;
 use App\Models\Character;
 use App\Models\GameNotification;
 use App\Services\EconomyService;
@@ -101,6 +102,14 @@ class IsolationController extends Controller
                     $remainder = $costCash - $locked->cash;
                     $locked->cash = 0;
                     $locked->bank -= $remainder;
+                    BankTransaction::record(
+                        $locked,
+                        'withdrawal',
+                        'bank',
+                        $remainder,
+                        (int) $locked->bank,
+                        "Vrijwillige Isolatie ({$hours} uur)"
+                    );
                 }
             }
 

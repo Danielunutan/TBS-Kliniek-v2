@@ -96,7 +96,7 @@ class MurderStatsController extends Controller
                     'is_online' => $char ? $char->isOnline() : false,
                 ];
             });
-            $topGangsWeek = DailyBattleScore::with('character.gang')
+            $topGangsWeek = DailyBattleScore::with('character.gang.members')
                 ->where('battle_date', '>=', $sevenDaysAgo)
                 ->where(function ($q) {
                     $q->where('score_kills', '>', 0)->orWhere('score_slay', '>', 0);
@@ -107,7 +107,7 @@ class MurderStatsController extends Controller
                 ->map(function ($scores) {
                     $gang = $scores->first()->character->gang;
                     $kills = (int) $scores->sum(fn ($s) => max((int) $s->score_kills, (int) round((int) $s->score_slay / 2)));
-                    $hasOnline = $gang->members()->get()->contains(fn ($m) => $m->isOnline());
+                    $hasOnline = $gang->members->contains(fn ($m) => $m->isOnline());
 
                     return (object) [
                         'name' => $gang->name,

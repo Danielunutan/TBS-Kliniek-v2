@@ -64,7 +64,7 @@ class ControlPointService
                 $heldMinutes = max(0, (int) $lockedPoint->captured_at->diffInMinutes($now));
                 $rewardCash = $heldMinutes * $lockedPoint->cash_per_minute;
                 // Cap maximum stars from control points to max 1 star total to preserve star scarcity
-                $rewardStars = ($lockedPoint->stars_per_minute > 0 && $heldMinutes >= 30) ? 1 : 0;
+                $rewardStars = $heldMinutes >= 30 ? 1 : 0;
 
                 $prevHolder = Character::where('id', $prevHolderId)->lockForUpdate()->first();
                 if ($prevHolder) {

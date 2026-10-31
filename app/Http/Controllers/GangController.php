@@ -351,7 +351,7 @@ class GangController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'min:3', 'max:25', 'unique:gangs,name'],
-            'tag' => ['required', 'string', 'min:2', 'max:4'],
+            'tag' => ['required', 'string', 'min:2', 'max:4', 'unique:gangs,tag'],
             'specialty' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:300'],
             'payment_method' => ['nullable', 'string', 'in:stars,cash'],
@@ -361,60 +361,72 @@ class GangController extends Controller
         $cashCost = 50000;
         $paymentMethod = $validated['payment_method'] ?? (($character->stars ?? 0) >= $starCost ? 'stars' : 'cash');
 
-        if ($paymentMethod === 'cash') {
-            $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
-            if ($totalFunds < $cashCost) {
-                return back()->with('error', 'Een bende oprichten met geld kost €'.number_format($cashCost, 0, ',', '.').' contant of van de bank. Je hebt momenteel €'.number_format($totalFunds, 0, ',', '.').'.');
-            }
+        try {
+            $gang = DB::transaction(function () use ($character, $validated, $starCost, $cashCost, $paymentMethod): Gang {
+                /** @var Character $lockedCharacter */
+                $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            if ($character->cash >= $cashCost) {
-                $character->cash -= $cashCost;
-            } else {
-                $remaining = $cashCost - $character->cash;
-                $character->cash = 0;
-                $character->bank -= $remaining;
-            }
-        } else {
-            if (($character->stars ?? 0) < $starCost) {
-                $totalFunds = ($character->cash ?? 0) + ($character->bank ?? 0);
-                if ($totalFunds >= $cashCost) {
-                    // Automatically fallback to cash if user has cash
-                    if ($character->cash >= $cashCost) {
-                        $character->cash -= $cashCost;
+                if ($lockedCharacter->gang_id) {
+                    throw new \RuntimeException('Je bent al lid van een bende. Verlaat eerst je huidige bende.');
+                }
+
+                if ($paymentMethod === 'cash') {
+                    $totalFunds = ($lockedCharacter->cash ?? 0) + ($lockedCharacter->bank ?? 0);
+                    if ($totalFunds < $cashCost) {
+                        throw new \RuntimeException('Een bende oprichten met geld kost €'.number_format($cashCost, 0, ',', '.').' contant of van de bank. Je hebt momenteel €'.number_format($totalFunds, 0, ',', '.').'.');
+                    }
+
+                    if ($lockedCharacter->cash >= $cashCost) {
+                        $lockedCharacter->cash -= $cashCost;
                     } else {
-                        $remaining = $cashCost - $character->cash;
-                        $character->cash = 0;
-                        $character->bank -= $remaining;
+                        $remaining = $cashCost - $lockedCharacter->cash;
+                        $lockedCharacter->cash = 0;
+                        $lockedCharacter->bank -= $remaining;
                     }
                 } else {
-                    return back()->with('error', "Een bende oprichten kost {$starCost} Sterren ⭐ of €".number_format($cashCost, 0, ',', '.')." KliniekCash! Je hebt momenteel {$character->stars} sterren en €".number_format($totalFunds, 0, ',', '.').'.');
+                    if (($lockedCharacter->stars ?? 0) < $starCost) {
+                        $totalFunds = ($lockedCharacter->cash ?? 0) + ($lockedCharacter->bank ?? 0);
+                        if ($totalFunds >= $cashCost) {
+                            if ($lockedCharacter->cash >= $cashCost) {
+                                $lockedCharacter->cash -= $cashCost;
+                            } else {
+                                $remaining = $cashCost - $lockedCharacter->cash;
+                                $lockedCharacter->cash = 0;
+                                $lockedCharacter->bank -= $remaining;
+                            }
+                        } else {
+                            throw new \RuntimeException("Een bende oprichten kost {$starCost} Sterren ⭐ of €".number_format($cashCost, 0, ',', '.')." KliniekCash! Je hebt momenteel {$lockedCharacter->stars} sterren en €".number_format($totalFunds, 0, ',', '.').'.');
+                        }
+                    } else {
+                        $lockedCharacter->stars -= $starCost;
+                    }
                 }
-            } else {
-                $character->stars -= $starCost;
-            }
+
+                $newGang = Gang::create([
+                    'name' => strip_tags($validated['name']),
+                    'tag' => strtoupper(strip_tags($validated['tag'])),
+                    'leader_character_id' => $lockedCharacter->id,
+                    'specialty' => strip_tags($validated['specialty'] ?? 'Kantine Controle'),
+                    'description' => strip_tags($validated['description'] ?? 'Een nieuwe gevreesde bende in de kliniek.'),
+                    'treasury' => 1000,
+                    'emblem' => 'fa-crown',
+                ]);
+
+                $lockedCharacter->gang_id = $newGang->id;
+                $lockedCharacter->gang_role = 'leader';
+                $lockedCharacter->last_gang_wage_at = now()->startOfHour();
+                $lockedCharacter->is_vip = true;
+                $currentExpiry = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                    ? $lockedCharacter->vip_expires_at
+                    : now();
+                $lockedCharacter->vip_expires_at = $currentExpiry->copy()->addDays(3);
+                $lockedCharacter->save();
+
+                return $newGang;
+            });
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $character->save();
-
-        $gang = Gang::create([
-            'name' => strip_tags($validated['name']),
-            'tag' => strtoupper(strip_tags($validated['tag'])),
-            'leader_character_id' => $character->id,
-            'specialty' => strip_tags($validated['specialty'] ?? 'Kantine Controle'),
-            'description' => strip_tags($validated['description'] ?? 'Een nieuwe gevreesde bende in de kliniek.'),
-            'treasury' => 1000,
-            'emblem' => 'fa-crown',
-        ]);
-
-        $character->gang_id = $gang->id;
-        $character->gang_role = 'leader';
-        $character->last_gang_wage_at = now()->startOfHour();
-        $character->is_vip = true;
-        $currentExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
-            ? $character->vip_expires_at
-            : now();
-        $character->vip_expires_at = $currentExpiry->copy()->addDays(3);
-        $character->save();
 
         session()->flash('active_gang_tab', 'mijn_gang');
 

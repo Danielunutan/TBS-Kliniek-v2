@@ -218,12 +218,13 @@
                 <img src="{{ $sent->friend->avatar_url }}" alt="{{ $sent->friend->name }}" class="w-5 h-5 rounded-md object-cover">
                 <span class="font-extrabold text-slate-800">{{ $sent->friend->name }}</span>
                 <span class="text-[10px] text-amber-600 font-semibold">(Wachten op acceptatie)</span>
-                <form action="{{ route('friends.reject', $sent) }}" method="POST" class="inline"
+                <form action="{{ route('friends.remove', $sent) }}" method="POST" class="inline"
                       data-confirm="Wil je dit verzonden vriendschapsverzoek annuleren?"
                       data-confirm-title="Verzoek Annuleren"
                       data-confirm-btn="Annuleren"
                       data-confirm-type="warning">
                     @csrf
+                    @method('DELETE')
                     <button type="submit" class="text-slate-400 hover:text-rose-600 ml-1" title="Verzoek annuleren">
                         <i class="fa-solid fa-xmark"></i>
                     </button>

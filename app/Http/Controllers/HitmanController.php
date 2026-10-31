@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\SerializeCharacterActions;
+use App\Models\BankTransaction;
 use App\Models\BloodFeud;
 use App\Models\Bounty;
 use App\Models\Character;
@@ -1082,15 +1083,32 @@ class HitmanController extends Controller
      */
     protected function deductCashOrBank(Character $character, int $amount): void
     {
-        if ($character->cash >= $amount) {
-            $character->cash -= $amount;
-        } else {
-            $remainder = $amount - (int) $character->cash;
-            $character->cash = 0;
-            $character->bank = max(0, (int) $character->bank - $remainder);
-        }
+        DB::transaction(function () use ($character, $amount): void {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (($locked->cash + $locked->bank) < $amount) {
+                throw new \RuntimeException('Onvoldoende saldo voor deze actie.');
+            }
+            if ($locked->cash >= $amount) {
+                $locked->cash -= $amount;
+            } else {
+                $remainder = $amount - (int) $locked->cash;
+                $locked->cash = 0;
+                $locked->bank = max(0, (int) $locked->bank - $remainder);
+                BankTransaction::record(
+                    $locked,
+                    'withdrawal',
+                    'bank',
+                    $remainder,
+                    (int) $locked->bank,
+                    'Liquidatie / Contract Uitgave'
+                );
+            }
 
-        $character->save();
+            $locked->save();
+            $character->cash = $locked->cash;
+            $character->bank = $locked->bank;
+        });
     }
 
     /**

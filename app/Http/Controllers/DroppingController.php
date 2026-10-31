@@ -196,9 +196,15 @@ class DroppingController extends Controller
             return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de nachtelijke coördinatie!");
         }
 
-        $character->cash -= $droneCost;
-        $character->energy -= $energyCost;
-        $character->save();
+        if (! $this->economy->deductCash($character, $droneCost)) {
+            return back()->with('error', 'Je hebt minimaal €'.number_format($droneCost, 0, ',', '.').' contant nodig om de dronepiloot via prepaid crypto vooruit te betalen!');
+        }
+
+        if (! $this->energy->consume($character, $energyCost)) {
+            $this->economy->addCash($character, $droneCost);
+
+            return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor de nachtelijke coördinatie!");
+        }
 
         // 12% kans dat zoeklichten de drone onderscheppen
         $caught = mt_rand(1, 100) <= 12;

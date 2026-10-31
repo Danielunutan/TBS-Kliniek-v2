@@ -490,22 +490,34 @@ class VaultController extends Controller
         }
 
         $codeId = $request->input('code_id');
-        $code = VaultCode::where('id', $codeId)
-            ->where('character_id', $character->id)
-            ->where('is_redeemed', false)
-            ->first();
+        $sellValue = 3500;
 
-        if (! $code) {
+        $soldCode = DB::transaction(function () use ($character, $codeId, $sellValue): ?string {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            $code = VaultCode::where('id', $codeId)
+                ->where('character_id', $lockedCharacter->id)
+                ->where('is_redeemed', false)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $code) {
+                return null;
+            }
+
+            $codeString = $code->code;
+            $lockedCharacter->bank += $sellValue;
+            $lockedCharacter->save();
+            $code->delete();
+
+            return $codeString;
+        });
+
+        if (! $soldCode) {
             return back()->with('error', 'Geselecteerde kluiscode is niet gevonden of al ingewisseld.');
         }
 
-        $sellValue = 3500;
-        $character->bank += $sellValue;
-        $character->save();
-
-        $code->delete();
-
-        return back()->with('success', "💰 Kluiscode {$code->code} succesvol verkocht voor €".number_format($sellValue, 0, ',', '.').' wit bankgeld 🏦!');
+        return back()->with('success', "💰 Kluiscode {$soldCode} succesvol verkocht voor €".number_format($sellValue, 0, ',', '.').' wit bankgeld 🏦!');
     }
 
     /**
@@ -520,17 +532,29 @@ class VaultController extends Controller
         }
 
         $amount = max(1, (int) $request->input('amount', 1));
-
-        if (($character->masks ?? 0) < $amount) {
-            return back()->with('error', "Je hebt niet genoeg maskers (je bezit er {$character->masks}).");
-        }
-
         $pricePerMask = 1500;
         $totalEarned = $amount * $pricePerMask;
 
-        $character->masks -= $amount;
-        $character->bank += $totalEarned;
-        $character->save();
+        $sold = DB::transaction(function () use ($character, $amount, $totalEarned): bool {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (($lockedCharacter->masks ?? 0) < $amount) {
+                return false;
+            }
+
+            $lockedCharacter->masks -= $amount;
+            $lockedCharacter->bank += $totalEarned;
+            $lockedCharacter->save();
+
+            return true;
+        });
+
+        if (! $sold) {
+            $character->refresh();
+
+            return back()->with('error', "Je hebt niet genoeg maskers (je bezit er {$character->masks}).");
+        }
 
         return back()->with('success', "🎭 {$amount}x Masker(s) succesvol verkocht voor €".number_format($totalEarned, 0, ',', '.').' wit bankgeld 🏦!');
     }

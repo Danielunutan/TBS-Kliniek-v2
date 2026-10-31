@@ -7,6 +7,7 @@ use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\Gang;
 use App\Support\GangPropertyCatalog;
+use Illuminate\Support\Facades\DB;
 
 class GangWageService
 {
@@ -198,74 +199,86 @@ class GangWageService
 
         $now = now();
 
-        // Initialize if never set: anchor to the current hour boundary
-        if (! $character->last_gang_wage_at) {
-            $character->last_gang_wage_at = $now->copy()->startOfHour();
-            $character->save();
-
-            return null;
-        }
-
-        if ($character->last_gang_wage_at > $now) {
-            return null;
-        }
-
-        // Always calculate from the start of the hour anchor so all members stay globally synchronized to :00:00
-        $lastWageAnchor = $character->last_gang_wage_at->copy()->startOfHour();
-        $secondsElapsed = (int) $lastWageAnchor->diffInSeconds($now);
-
-        if ($secondsElapsed < self::WAGE_INTERVAL_SECONDS) {
-            return null;
-        }
-
-        $hours = (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS);
-        if ($hours <= 0) {
-            return null;
-        }
-
-        $hourlyWage = $this->calculateHourlyWage($gang);
-        $totalPayout = $hours * $hourlyWage;
-
-        // Advance last_gang_wage_at by exactly the paid hours, snapped to the start of the hour
-        $character->last_gang_wage_at = $lastWageAnchor->copy()->addHours($hours)->startOfHour();
-
-        if ($totalPayout > 0) {
-            // Contant geld uitbetaling direct op zak van het personage
-            $character->cash += $totalPayout;
-            EventCashHuntService::record($character, $totalPayout, 'gang_wage');
-        }
-
-        $character->save();
-
-        if ($totalPayout > 0) {
-            // In-game bell notification (instantly visible on every page in header)
-            GameNotification::create([
-                'character_id' => $character->id,
-                'type' => 'gang_wage',
-                'icon' => 'fa-coins',
-                'title' => '💰 Bende Uurloon Uitbetaald!',
-                'message' => "Je hebt zojuist voor {$hours} gewerkte uur(en) bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld op zak ontvangen!',
-                'is_read' => false,
-            ]);
-
-            if ($sendNotificationMessage) {
-                GameMessage::create([
-                    'recipient_id' => $character->id,
-                    'sender_id' => $character->id,
-                    'sender_name' => 'Bende Salaris Administratie',
-                    'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
-                    'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld ontvangen op zak (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
-                    'type' => 'gang',
-                ]);
+        return DB::transaction(function () use ($character, $gang, $now, $sendNotificationMessage): ?array {
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter || ! $lockedCharacter->gang_id) {
+                return null;
             }
-        }
 
-        return [
-            'hours' => $hours,
-            'amount' => $totalPayout,
-            'hourly_wage' => $hourlyWage,
-            'gang_name' => $gang->name,
-        ];
+            // Initialize if never set: anchor to the current hour boundary
+            if (! $lockedCharacter->last_gang_wage_at) {
+                $lockedCharacter->last_gang_wage_at = $now->copy()->startOfHour();
+                $lockedCharacter->save();
+                $character->last_gang_wage_at = $lockedCharacter->last_gang_wage_at;
+
+                return null;
+            }
+
+            if ($lockedCharacter->last_gang_wage_at > $now) {
+                return null;
+            }
+
+            // Always calculate from the start of the hour anchor so all members stay globally synchronized to :00:00
+            $lastWageAnchor = $lockedCharacter->last_gang_wage_at->copy()->startOfHour();
+            $secondsElapsed = (int) $lastWageAnchor->diffInSeconds($now);
+
+            if ($secondsElapsed < self::WAGE_INTERVAL_SECONDS) {
+                return null;
+            }
+
+            $rawHours = (int) floor($secondsElapsed / self::WAGE_INTERVAL_SECONDS);
+            if ($rawHours <= 0) {
+                return null;
+            }
+
+            $hours = min(168, $rawHours);
+            $hourlyWage = $this->calculateHourlyWage($gang);
+            $totalPayout = $hours * $hourlyWage;
+
+            // Advance last_gang_wage_at by the elapsed hours, snapped to the start of the hour
+            $lockedCharacter->last_gang_wage_at = $lastWageAnchor->copy()->addHours($rawHours)->startOfHour();
+
+            if ($totalPayout > 0) {
+                // Contant geld uitbetaling direct op zak van het personage
+                $lockedCharacter->cash += $totalPayout;
+                EventCashHuntService::record($lockedCharacter, $totalPayout, 'gang_wage');
+            }
+
+            $lockedCharacter->save();
+            $character->cash = $lockedCharacter->cash;
+            $character->last_gang_wage_at = $lockedCharacter->last_gang_wage_at;
+
+            if ($totalPayout > 0) {
+                // In-game bell notification (instantly visible on every page in header)
+                GameNotification::create([
+                    'character_id' => $lockedCharacter->id,
+                    'type' => 'gang_wage',
+                    'icon' => 'fa-coins',
+                    'title' => '💰 Bende Uurloon Uitbetaald!',
+                    'message' => "Je hebt zojuist voor {$hours} gewerkte uur(en) bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld op zak ontvangen!',
+                    'is_read' => false,
+                ]);
+
+                if ($sendNotificationMessage) {
+                    GameMessage::create([
+                        'recipient_id' => $lockedCharacter->id,
+                        'sender_id' => $lockedCharacter->id,
+                        'sender_name' => 'Bende Salaris Administratie',
+                        'subject' => '💰 Bende Uurloon Uitbetaald: €'.number_format($totalPayout, 0, ',', '.'),
+                        'content' => "Gefeliciteerd!\n\nJe hebt zojuist voor {$hours} gewerkte uren bij bende '{$gang->name}' in totaal €".number_format($totalPayout, 0, ',', '.').' contant geld ontvangen op zak (Uurloon: €'.number_format($hourlyWage, 0, ',', '.').').',
+                        'type' => 'gang',
+                    ]);
+                }
+            }
+
+            return [
+                'hours' => $hours,
+                'amount' => $totalPayout,
+                'hourly_wage' => $hourlyWage,
+                'gang_name' => $gang->name,
+            ];
+        });
     }
 
     /**

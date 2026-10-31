@@ -610,26 +610,26 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // De Illegale Armpjedruk Arena (Kracht Showdown & PvP Tafel)
     Route::get('/armpjedrukken', [ArmWrestleController::class, 'index'])->name('armwrestling.index');
-    Route::post('/armpjedrukken/npc/finish', [ArmWrestleController::class, 'finishNpc'])->name('armwrestling.npc.finish');
+    Route::post('/armpjedrukken/npc/finish', [ArmWrestleController::class, 'finishNpc'])->middleware('throttle:30,1')->name('armwrestling.npc.finish');
     Route::post('/armpjedrukken/uitdaging/maken', [ArmWrestleController::class, 'createChallenge'])->name('armwrestling.challenge.create');
     Route::post('/armpjedrukken/uitdaging/{id}/annuleren', [ArmWrestleController::class, 'cancelChallenge'])->name('armwrestling.challenge.cancel');
     Route::post('/armpjedrukken/uitdaging/{id}/accepteren', [ArmWrestleController::class, 'acceptChallenge'])->name('armwrestling.challenge.accept');
 
     // Partner Minigame 1: 4 op 'n Rij met OOHPA Arjan
     Route::get('/vier-op-een-rij', [ConnectFourController::class, 'index'])->name('connect_four.index');
-    Route::post('/vier-op-een-rij/finish', [ConnectFourController::class, 'finishGame'])->name('connect_four.finish');
+    Route::post('/vier-op-een-rij/finish', [ConnectFourController::class, 'finishGame'])->middleware('throttle:30,1')->name('connect_four.finish');
     Route::post('/vier-op-een-rij/skip-cooldown-stars', [ConnectFourController::class, 'skipCooldownWithStars'])->name('connect_four.skip_cooldown_stars');
     Route::post('/vier-op-een-rij/skip-cooldown-ad', [ConnectFourController::class, 'skipCooldownWithAd'])->name('connect_four.skip_cooldown_ad');
 
     // Partner Minigame 2: True Crime Dossiers met Caroline (500 Cold Cases)
     Route::get('/true-crime', [TrueCrimeController::class, 'index'])->name('true_crime.index');
-    Route::post('/true-crime/solve', [TrueCrimeController::class, 'solve'])->name('true_crime.solve');
+    Route::post('/true-crime/solve', [TrueCrimeController::class, 'solve'])->middleware('throttle:30,1')->name('true_crime.solve');
     Route::post('/true-crime/skip-cooldown-stars', [TrueCrimeController::class, 'skipCooldownWithStars'])->name('true_crime.skip_cooldown_stars');
     Route::post('/true-crime/skip-cooldown-ad', [TrueCrimeController::class, 'skipCooldownWithAd'])->name('true_crime.skip_cooldown_ad');
 
     // Minigame: TBS Kliniek Memory (Extreem Geheugenspel met Rainbow)
     Route::get('/memory', [MemoryController::class, 'index'])->name('memory.index');
-    Route::post('/memory/finish', [MemoryController::class, 'finish'])->name('memory.finish');
+    Route::post('/memory/finish', [MemoryController::class, 'finish'])->middleware('throttle:30,1')->name('memory.finish');
     Route::post('/memory/skip-cooldown-stars', [MemoryController::class, 'skipCooldownWithStars'])->name('memory.skip_cooldown_stars');
     Route::post('/memory/skip-cooldown-ad', [MemoryController::class, 'skipCooldownWithAd'])->name('memory.skip_cooldown_ad');
 

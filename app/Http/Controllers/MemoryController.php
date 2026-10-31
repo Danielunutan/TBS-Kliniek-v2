@@ -258,6 +258,13 @@ class MemoryController extends Controller
             ], 422);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
         /** @var CharacterMemoryStat $stat */
         $stat = CharacterMemoryStat::firstOrCreate(['character_id' => $character->id]);
 

@@ -82,6 +82,13 @@ class ConnectFourController extends Controller
             ], 422);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'winner' => ['required', 'string', 'in:player,arjan,draw'],
             'moves' => ['required', 'integer', 'min:4', 'max:42'],

@@ -189,7 +189,7 @@
                     <!-- Live Kluis/Kas Pill -->
                     <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-black" title="Bende Kluis Saldo">
                         <i class="fa-solid fa-vault text-emerald-500"></i>
-                        <span>€{{ number_format($myGang->bank ?? 0, 0, ',', '.') }}</span>
+                        <span>€{{ number_format($myGang->treasury ?? 0, 0, ',', '.') }}</span>
                     </span>
 
                     <!-- Online Leden Pill -->
@@ -3408,7 +3408,7 @@
                         <p class="font-bold">Let goed op:</p>
                         <ul class="list-disc list-inside space-y-1">
                             <li>Alle {{ $myGang->members->count() }} leden worden direct ontbonden en staan weer op zichzelf.</li>
-                            <li>De bende kluis met een saldo van <strong>€{{ number_format($myGang->bank ?? 0, 0, ',', '.') }}</strong> verdwijnt permanent.</li>
+                            <li>De bende kluis met een saldo van <strong>€{{ number_format($myGang->treasury ?? 0, 0, ',', '.') }}</strong> verdwijnt permanent.</li>
                             <li>Alle allianties en ranglijstposities vervallen.</li>
                         </ul>
                     </div>

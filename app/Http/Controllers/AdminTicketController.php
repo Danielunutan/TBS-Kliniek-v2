@@ -10,6 +10,7 @@ use App\Models\SupportTicketMessage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AdminTicketController extends Controller
@@ -143,7 +144,7 @@ class AdminTicketController extends Controller
 
         $validated = $request->validate([
             'gang_name' => ['required', 'string', 'min:3', 'max:25', 'unique:gangs,name'],
-            'gang_tag' => ['required', 'string', 'min:2', 'max:4'],
+            'gang_tag' => ['required', 'string', 'min:2', 'max:4', 'unique:gangs,tag'],
             'bonus_cash' => ['nullable', 'integer', 'min:0'],
             'vip_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'reply_message' => ['nullable', 'string', 'max:5000'],
@@ -160,59 +161,97 @@ class AdminTicketController extends Controller
             return back()->with('error', 'Personage van indiener kon niet gevonden worden.');
         }
 
-        // Leave existing gang if any and return stored vehicles
-        if ($character->gang_id) {
-            CharacterVehicle::where('character_id', $character->id)
-                ->where('in_gang_garage', true)
-                ->update([
-                    'in_gang_garage' => false,
-                    'gang_id' => null,
-                    'stored_at' => null,
-                    'stored_by_character_id' => null,
-                ]);
+        $gang = DB::transaction(function () use ($character, $ticket, $gangName, $gangTag, $bonusCash, $vipBoostUntil): Gang {
+            // Leave existing gang if any and return stored vehicles
+            if ($character->gang_id) {
+                $oldGang = Gang::find($character->gang_id);
+                CharacterVehicle::where('character_id', $character->id)
+                    ->where('in_gang_garage', true)
+                    ->update([
+                        'in_gang_garage' => false,
+                        'gang_id' => null,
+                        'stored_at' => null,
+                        'stored_by_character_id' => null,
+                    ]);
 
-            $character->gang_id = null;
-            $character->gang_role = 'member';
-            $character->save();
-        }
-
-        // Create the new Gang
-        $gang = Gang::create([
-            'name' => $gangName,
-            'tag' => $gangTag,
-            'leader_character_id' => $character->id,
-            'specialty' => 'Kantine Controle',
-            'description' => 'Officiële overstapbende in TBS Kliniek. Gestart met €'.number_format($bonusCash, 0, ',', '.').' overstapbonus!',
-            'treasury' => $bonusCash,
-            'emblem' => 'fa-crown',
-            'vip_boost_until' => $vipBoostUntil,
-        ]);
-
-        // Assign leader and grant personal VIP as well
-        $character->gang_id = $gang->id;
-        $character->gang_role = 'leader';
-        $character->last_gang_wage_at = now();
-        $character->is_vip = true;
-        $character->vip_expires_at = $vipBoostUntil;
-        $character->save();
-
-        // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
-        $memberNames = $ticket->metadata['member_names'] ?? null;
-        if (! empty($memberNames)) {
-            $names = array_filter(array_map('trim', explode(',', str_replace(["\n", "\r", ';'], ',', $memberNames))));
-            if (! empty($names)) {
-                $matchedChars = Character::whereIn('name', $names)->get();
-                foreach ($matchedChars as $mc) {
-                    $mc->is_vip = true;
-                    $mc->vip_expires_at = $vipBoostUntil;
-                    if (! $mc->gang_id) {
-                        $mc->gang_id = $gang->id;
-                        $mc->gang_role = 'member';
+                if ($oldGang) {
+                    if ($oldGang->treasurer_id === $character->id) {
+                        $oldGang->treasurer_id = null;
                     }
-                    $mc->save();
+                    if ($oldGang->underboss_id === $character->id) {
+                        $oldGang->underboss_id = null;
+                    }
+                    if ($oldGang->leader_character_id === $character->id) {
+                        $nextLeader = Character::where('gang_id', $oldGang->id)
+                            ->where('id', '!=', $character->id)
+                            ->orderByRaw("CASE WHEN gang_role = 'coleader' THEN 0 ELSE 1 END")
+                            ->first();
+                        if ($nextLeader) {
+                            $oldGang->leader_character_id = $nextLeader->id;
+                            $nextLeader->gang_role = 'leader';
+                            $nextLeader->save();
+                            $oldGang->save();
+                        } else {
+                            CharacterVehicle::where('gang_id', $oldGang->id)
+                                ->update([
+                                    'in_gang_garage' => false,
+                                    'gang_id' => null,
+                                    'stored_at' => null,
+                                    'stored_by_character_id' => null,
+                                ]);
+                            $oldGang->delete();
+                        }
+                    } else {
+                        $oldGang->save();
+                    }
+                }
+
+                $character->gang_id = null;
+                $character->gang_role = 'member';
+                $character->save();
+            }
+
+            // Create the new Gang
+            $newGang = Gang::create([
+                'name' => $gangName,
+                'tag' => $gangTag,
+                'leader_character_id' => $character->id,
+                'specialty' => 'Kantine Controle',
+                'description' => 'Officiële overstapbende in TBS Kliniek. Gestart met €'.number_format($bonusCash, 0, ',', '.').' overstapbonus!',
+                'treasury' => $bonusCash,
+                'emblem' => 'fa-crown',
+                'vip_boost_until' => $vipBoostUntil,
+            ]);
+
+            // Assign leader and grant personal VIP as well
+            $character->gang_id = $newGang->id;
+            $character->gang_role = 'leader';
+            $character->last_gang_wage_at = now()->startOfHour();
+            $character->is_vip = true;
+            $character->vip_expires_at = $vipBoostUntil;
+            $character->save();
+
+            // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
+            $memberNames = $ticket->metadata['member_names'] ?? null;
+            if (! empty($memberNames)) {
+                $names = array_filter(array_map('trim', explode(',', str_replace(["\n", "\r", ';'], ',', $memberNames))));
+                if (! empty($names)) {
+                    $matchedChars = Character::whereIn('name', $names)->get();
+                    foreach ($matchedChars as $mc) {
+                        $mc->is_vip = true;
+                        $mc->vip_expires_at = $vipBoostUntil;
+                        if (! $mc->gang_id) {
+                            $mc->gang_id = $newGang->id;
+                            $mc->gang_role = 'member';
+                            $mc->last_gang_wage_at = now()->startOfHour();
+                        }
+                        $mc->save();
+                    }
                 }
             }
-        }
+
+            return $newGang;
+        });
 
         // Format staff auto-reply message
         $staffUser = Auth::user();

@@ -9,6 +9,7 @@ use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\VaultCode;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 class DailyBattleService
@@ -133,20 +134,30 @@ class DailyBattleService
             ->first();
 
         if (! $score) {
-            $score = DailyBattleScore::create([
-                'battle_date' => $today,
-                'character_id' => $character->id,
-                'score_slay' => 0,
-                'score_hustles' => 0,
-                'score_payments' => 0,
-                'score_breakouts' => 0,
-                'score_drugs_made' => 0,
-                'score_drugs_sold' => 0,
-                'score_kills' => 0,
-            ]);
+            try {
+                $score = DailyBattleScore::firstOrCreate(
+                    [
+                        'battle_date' => $today,
+                        'character_id' => $character->id,
+                    ],
+                    [
+                        'score_slay' => 0,
+                        'score_hustles' => 0,
+                        'score_payments' => 0,
+                        'score_breakouts' => 0,
+                        'score_drugs_made' => 0,
+                        'score_drugs_sold' => 0,
+                        'score_kills' => 0,
+                    ]
+                );
+            } catch (QueryException) {
+                $score = DailyBattleScore::whereDate('battle_date', $today)
+                    ->where('character_id', $character->id)
+                    ->first();
+            }
         }
 
-        $score->increment($col, $amount);
+        $score?->increment($col, $amount);
     }
 
     /**

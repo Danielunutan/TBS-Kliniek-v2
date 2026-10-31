@@ -208,6 +208,7 @@ class PrisonController extends Controller
             $locked->prison_until = null;
             $locked->prison_reason = null;
             $locked->prison_escape_attempted = false;
+            $locked->ad_prison_progress = 0;
             $locked->save();
 
             return true;
@@ -231,6 +232,10 @@ class PrisonController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'Je zit zelf in de isoleercel!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         // Validate the target before energy is spent so an invalid attempt costs nothing.

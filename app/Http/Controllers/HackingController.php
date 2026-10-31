@@ -112,6 +112,13 @@ class HackingController extends Controller
             ], 403);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 403);
+        }
+
         if (! $character->canDailyHack()) {
             return response()->json([
                 'success' => false,
@@ -182,6 +189,13 @@ class HackingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Vanuit de isoleercel kun je niet draaien aan het beloningsrad!',
+            ], 403);
+        }
+
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
             ], 403);
         }
 

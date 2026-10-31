@@ -183,6 +183,10 @@ class GangPropertyController extends Controller
             return back()->with('error', 'Dit voertuig staat niet in jullie bende garage.');
         }
 
+        if ($characterVehicle->is_for_sale) {
+            return back()->with('error', 'Dit voertuig staat te koop op de marktplaats en kan niet uit de bende garage worden gehaald.');
+        }
+
         // Only owner or gang officer can retrieve
         $isOwner = $characterVehicle->character_id === $character->id;
         $isOfficer = $gang->isOfficer($character);

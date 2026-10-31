@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Character;
 use App\Models\CharacterCooldown;
+use Illuminate\Support\Facades\DB;
 
 class CooldownService
 {
@@ -203,15 +204,25 @@ class CooldownService
             ];
         }
 
-        if (($character->stars ?? 0) < $cost) {
+        $deducted = DB::transaction(function () use ($character, $cost): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked || ($locked->stars ?? 0) < $cost) {
+                return false;
+            }
+            $locked->stars -= $cost;
+            $locked->save();
+            $character->stars = $locked->stars;
+
+            return true;
+        });
+
+        if (! $deducted) {
             return [
                 'success' => false,
                 'message' => "Je hebt {$cost} Sterren ⭐ nodig om deze resterende wachttijd over te slaan! (Je hebt: ".($character->stars ?? 0).')',
             ];
         }
-
-        $character->stars -= $cost;
-        $character->save();
 
         $this->clearCooldown($character, $action);
 

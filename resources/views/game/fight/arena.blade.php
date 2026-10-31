@@ -74,7 +74,7 @@
             </a>
         </div>
         <span class="text-xs font-mono font-bold text-purple-700 bg-purple-50 dark:bg-purple-950/60 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
-            Aanvallen over vandaag: {{ $arenaBattle['left_today'] }} / 100
+            Aanvallen over vandaag: {{ $arenaBattle['left_today'] }} / {{ $arenaBattle['max_today'] ?? 100 }}
         </span>
     </div>
 
