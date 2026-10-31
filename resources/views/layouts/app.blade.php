@@ -2337,32 +2337,19 @@
             @endphp
             <div x-data="{ 
                     sec: {{ $character->remainingPrisonSeconds() }},
-                    reloaded: false,
                     formatTime(s) {
                         if (s <= 0) return '00:00';
                         const m = Math.floor(s / 60);
                         const remainder = s % 60;
                         return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
                     },
-                    reloadSite() {
-                        if (this.reloaded) return;
-                        this.reloaded = true;
+                    onTimeExpired() {
                         this.sec = 0;
-                        const lastReload = parseInt(sessionStorage.getItem('tbs_last_prison_reload') || '0', 10);
-                        const now = Date.now();
-                        if (now - lastReload < 8000) return;
-                        sessionStorage.setItem('tbs_last_prison_reload', String(now));
-                        if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                            if (typeof window.Turbo.clearCache === 'function') {
-                                window.Turbo.clearCache();
-                            } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
-                                window.Turbo.cache.clear();
-                            } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
-                                window.Turbo.session.clearCache();
-                            }
-                            window.Turbo.visit(window.location.href, { action: 'replace' });
-                        } else {
-                            window.location.reload();
+                        if (typeof window.tbsRefreshStats === 'function') {
+                            window.tbsRefreshStats(true);
+                        }
+                        if (typeof window.tbsToast === 'function') {
+                            window.tbsToast('🔓 Je straf in de isoleercel is voorbij! Je bent weer vrij.', 'success', 6000);
                         }
                     },
                     init() {
@@ -2371,7 +2358,7 @@
                                 this.sec--;
                                 if (this.sec <= 0) {
                                     clearInterval(timer);
-                                    this.reloadSite();
+                                    this.onTimeExpired();
                                 }
                             }, 1000);
                         }
@@ -3506,18 +3493,11 @@
             }
         };
 
-        // When navigating back/forward via browser history (bfcache), ensure fresh state & styles without infinite reload loops
+        // When navigating back/forward via browser history (bfcache), refresh stats in background without reloading the page
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                const now = Date.now();
-                const last = parseInt(sessionStorage.getItem('tbs_last_pageshow_reload') || '0', 10);
-                if (now - last > 8000) {
-                    sessionStorage.setItem('tbs_last_pageshow_reload', String(now));
-                    if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                        window.Turbo.visit(window.location.href, { action: 'replace' });
-                    } else {
-                        window.location.reload();
-                    }
+                if (typeof window.tbsRefreshStats === 'function') {
+                    window.tbsRefreshStats(true);
                 }
             }
         });

@@ -39,26 +39,20 @@
                 const remainder = s % 60;
                 return (m < 10 ? '0' : '') + m + ':' + (remainder < 10 ? '0' : '') + remainder;
             },
-            reloadSite() {
+            releasePrisoner() {
                 if (this.reloaded) return;
                 this.reloaded = true;
                 this.sec = 0;
-                const lastReload = parseInt(sessionStorage.getItem('tbs_last_prison_reload') || '0', 10);
-                const now = Date.now();
-                if (now - lastReload < 8000) return;
-                sessionStorage.setItem('tbs_last_prison_reload', String(now));
-                if (window.Turbo) {
-                    if (typeof window.Turbo.clearCache === 'function') {
-                        window.Turbo.clearCache();
-                    } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
-                        window.Turbo.cache.clear();
-                    } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
-                        window.Turbo.session.clearCache();
-                    }
-                    window.Turbo.visit(window.location.href, { action: 'replace' });
-                } else {
-                    window.location.reload();
+                if (typeof window.tbsToast === 'function') {
+                    window.tbsToast('🔓 Je straf is voorbij! Je bent weer een vrij man.', 'success');
                 }
+                setTimeout(() => {
+                    if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                        window.Turbo.visit('{{ route('dashboard') }}');
+                    } else {
+                        window.location.href = '{{ route('dashboard') }}';
+                    }
+                }, 800);
             },
             async attemptEscape() {
                 if (this.attempted || this.isEscaping) return;
@@ -106,7 +100,7 @@
                         this.sec--;
                         if (this.sec <= 0) {
                             clearInterval(timer);
-                            this.reloadSite();
+                            this.releasePrisoner();
                         }
                     }, 1000);
                 }
