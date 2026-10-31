@@ -7,6 +7,7 @@ use App\Services\CooldownService;
 use App\Services\DailyBattleService;
 use App\Services\EconomyService;
 use App\Services\EnergyService;
+use App\Services\EventCashHuntService;
 use App\Services\HalloweenService;
 use App\Services\LevelService;
 use App\Services\PrisonService;
@@ -234,6 +235,7 @@ class HustleController extends Controller
 
             $character->save();
 
+            EventCashHuntService::record($character, $cash, 'hustle');
             app(DailyBattleService::class)->record($character, 'hustles', 1);
             HalloweenService::record($character, 'hustle', 1);
             HalloweenService::record($character, 'cash_earned', $cash);

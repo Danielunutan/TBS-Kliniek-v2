@@ -305,6 +305,14 @@ class FriendController extends Controller
     {
         $character = Auth::user()->character;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen respect uitdelen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($friend->character_id !== $character->id) {
             return back()->with('error', 'Geen bevoegdheid.');
         }
@@ -322,26 +330,45 @@ class FriendController extends Controller
             return back()->with('error', 'Foutief antwoord op de beveiligingsverificatie! Probeer het opnieuw.');
         }
 
-        if ($friend->last_respected_at && $friend->last_respected_at->diffInHours(now()) < 24) {
-            $hoursLeft = 24 - $friend->last_respected_at->diffInHours(now());
+        $target = $friend->friend;
+        $respectBonus = $friend->is_bff ? 2 : 1;
 
-            return back()->with('error', "Je hebt {$friend->friend->name} vandaag al respect gegeven! Wacht nog {$hoursLeft} uur.");
-        }
+        $errorMsg = DB::transaction(function () use ($friend, $target, $respectBonus, $character): ?string {
+            /** @var Friend|null $lockedFriend */
+            $lockedFriend = Friend::where('id', $friend->id)->lockForUpdate()->first();
+            if (! $lockedFriend || $lockedFriend->status !== 'accepted') {
+                return 'Je kunt alleen respect geven aan geaccepteerde vrienden.';
+            }
+
+            if ($lockedFriend->last_respected_at && $lockedFriend->last_respected_at->diffInHours(now()) < 24) {
+                $hoursLeft = 24 - $lockedFriend->last_respected_at->diffInHours(now());
+
+                return "Je hebt {$target->name} vandaag al respect gegeven! Wacht nog {$hoursLeft} uur.";
+            }
+
+            $lockedFriend->last_respected_at = now();
+            $lockedFriend->save();
+
+            /** @var Character|null $lockedTarget */
+            $lockedTarget = Character::where('id', $target->id)->lockForUpdate()->first();
+            if ($lockedTarget) {
+                $lockedTarget->addRespect($respectBonus);
+                $lockedTarget->save();
+            }
+
+            $this->levelService->addXp($character, 50);
+
+            return null;
+        });
 
         // Rotate captcha challenge so one solved answer cannot be replayed across multiple respect submissions.
         $n1 = rand(2, 9);
         $n2 = rand(1, 8);
         session(['friend_captcha_q' => "{$n1} + {$n2}", 'friend_captcha_ans' => $n1 + $n2]);
 
-        $target = $friend->friend;
-        $respectBonus = $friend->is_bff ? 2 : 1;
-        $target->respect += $respectBonus;
-        $target->save();
-
-        $friend->last_respected_at = now();
-        $friend->save();
-
-        $this->levelService->addXp($character, 50);
+        if ($errorMsg !== null) {
+            return back()->with('error', $errorMsg);
+        }
 
         GameMessage::create([
             'recipient_id' => $target->id,
@@ -361,6 +388,14 @@ class FriendController extends Controller
     public function massMessage(Request $request): RedirectResponse
     {
         $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen massaberichten versturen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         if ($character->last_friends_mass_message_at && $character->last_friends_mass_message_at->diffInHours(now()) < 24) {
             $hoursLeft = 24 - $character->last_friends_mass_message_at->diffInHours(now());
@@ -384,6 +419,23 @@ class FriendController extends Controller
             return back()->with('error', 'Je hebt nog geen vrienden in je vriendenlijst om een bericht naar te sturen!');
         }
 
+        $canSend = DB::transaction(function () use ($character): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if ($locked->last_friends_mass_message_at && $locked->last_friends_mass_message_at->diffInHours(now()) < 24) {
+                return false;
+            }
+
+            $locked->last_friends_mass_message_at = now();
+            $locked->save();
+
+            return true;
+        });
+
+        if (! $canSend) {
+            return back()->with('error', '⏳ Massabericht naar vrienden kan maar 1x per 24 uur verzonden worden.');
+        }
+
         foreach ($friends as $f) {
             GameMessage::create([
                 'recipient_id' => $f->friend->id,
@@ -394,9 +446,6 @@ class FriendController extends Controller
                 'type' => 'player',
             ]);
         }
-
-        $character->last_friends_mass_message_at = now();
-        $character->save();
 
         return back()->with('success', "💌 Massabericht succesvol verzonden naar al je {$friends->count()} vrienden!");
     }

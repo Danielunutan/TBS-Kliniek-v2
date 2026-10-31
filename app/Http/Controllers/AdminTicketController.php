@@ -145,7 +145,7 @@ class AdminTicketController extends Controller
         $validated = $request->validate([
             'gang_name' => ['required', 'string', 'min:3', 'max:25', 'unique:gangs,name'],
             'gang_tag' => ['required', 'string', 'min:2', 'max:4', 'unique:gangs,tag'],
-            'bonus_cash' => ['nullable', 'integer', 'min:0'],
+            'bonus_cash' => ['nullable', 'integer', 'min:0', 'max:50000000'],
             'vip_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'reply_message' => ['nullable', 'string', 'max:5000'],
         ]);
@@ -237,7 +237,10 @@ class AdminTicketController extends Controller
             $character->gang_role = 'leader';
             $character->last_gang_wage_at = now()->startOfHour();
             $character->is_vip = true;
-            $character->vip_expires_at = $vipBoostUntil;
+            $leaderBaseExpiry = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
+                ? $character->vip_expires_at->copy()
+                : now();
+            $character->vip_expires_at = $leaderBaseExpiry->addDays($vipDays);
             $character->save();
 
             // If member names were specified in ticket metadata, also grant existing players personal VIP and auto-join
@@ -248,7 +251,10 @@ class AdminTicketController extends Controller
                     $matchedChars = Character::whereIn('name', $names)->get();
                     foreach ($matchedChars as $mc) {
                         $mc->is_vip = true;
-                        $mc->vip_expires_at = $vipBoostUntil;
+                        $mcBaseExpiry = ($mc->vip_expires_at && $mc->vip_expires_at->isFuture())
+                            ? $mc->vip_expires_at->copy()
+                            : now();
+                        $mc->vip_expires_at = $mcBaseExpiry->addDays($vipDays);
                         if (! $mc->gang_id) {
                             $mc->gang_id = $newGang->id;
                             $mc->gang_role = 'member';

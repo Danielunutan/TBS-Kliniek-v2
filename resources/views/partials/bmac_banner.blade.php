@@ -47,7 +47,7 @@ class="bg-white dark:bg-slate-900 border-2 border-amber-400 dark:border-amber-50
     <!-- Right Quick Actions -->
     <div class="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
         <button type="button" 
-                @click="copyText('{{ $character->name }}', 'name')"
+                @click="copyText(@js($character->name), 'name')"
                 class="px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-slate-300 dark:border-slate-700 shadow-2xs">
             <i class="fa-regular fa-copy text-purple-600 dark:text-purple-400 text-xs"></i>
             <span x-show="copiedType === 'name'" class="text-emerald-600 dark:text-emerald-400 font-black">✓ Gekopieerd!</span>

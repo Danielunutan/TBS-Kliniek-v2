@@ -444,6 +444,15 @@ class ShopController extends Controller
 
             $this->energyService->refresh($lockedCharacter);
 
+            if ($lockedCharacter->isComatose()) {
+                $comaMsg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => $comaMsg], 422);
+                }
+
+                return back()->with('shop_tab', 'inventaris')->with('error', $comaMsg);
+            }
+
             $item = $lockedItem->item;
             if (! $item) {
                 if ($request->wantsJson() || $request->ajax()) {
@@ -801,6 +810,10 @@ class ShopController extends Controller
                     ->with('success', '💉 '.Character::REVIVE_SERUM_NAME." toegediend! Je bent direct ontwaakt uit Code Blauw voor {$cfg['cost']} Sterren ⭐, hersteld naar 100% HP, je teller staat op 0/10 en je hebt 30 minuten bescherming!");
             }
 
+            if ($validated['item_type'] === 'full_restore' && $lockedCharacter->isComatose()) {
+                return back()->with('shop_tab', 'sterren')->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Gebruik eerst een '.Character::REVIVE_SERUM_NAME.' om te ontwaken.');
+            }
+
             $lockedCharacter->stars -= $cfg['cost'];
 
             if ($validated['item_type'] === 'full_restore') {
@@ -1029,7 +1042,7 @@ class ShopController extends Controller
             $seenCodes = [];
             for ($i = 0; $i < $totalCodes; $i++) {
                 do {
-                    $codeStr = 'BDL-'.strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+                    $codeStr = VaultCode::generateUniqueCode('BDL');
                 } while (isset($seenCodes[$codeStr]));
                 $seenCodes[$codeStr] = true;
 

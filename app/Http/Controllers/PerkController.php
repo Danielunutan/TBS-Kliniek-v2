@@ -62,6 +62,10 @@ class PerkController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if (! array_key_exists($perk, self::PERKS)) {
             return back()->with('error', 'Ongeldige perk geselecteerd.');
         }

@@ -120,6 +120,10 @@ class MarketplaceController extends Controller
         $currency = $validated['currency'];
         $title = '';
 
+        if ($itemType === 'cash' && $currency === 'cash') {
+            return back()->with('error', 'Contant geld kan alleen tegen Sterren worden aangeboden op de Marktplaats.');
+        }
+
         try {
             DB::transaction(function () use ($request, $character, $itemType, &$amount, $price, $currency, &$title): void {
                 /** @var Character $lockedCharacter */
@@ -137,6 +141,11 @@ class MarketplaceController extends Controller
 
                     if (! $charItem || ! $charItem->item) {
                         throw new \RuntimeException('Selecteer een geldig item uit je depot.');
+                    }
+
+                    // Unique equipment only stacks to 1 on purchase; cap listing amount to 1 so surplus copies are not lost.
+                    if ($charItem->item->category === 'equipment') {
+                        $amount = 1;
                     }
 
                     if ($charItem->quantity < $amount) {
@@ -470,7 +479,14 @@ class MarketplaceController extends Controller
                     if (! $gangProperty || ! $lockedBuyer->gang_id) {
                         throw new \RuntimeException('Het aangeboden bendepand of je bende kon niet worden gevonden.');
                     }
-                    $gangProperty->gang_id = $lockedBuyer->gang_id;
+                    $buyerGang = Gang::where('id', $lockedBuyer->gang_id)->lockForUpdate()->first();
+                    if (! $buyerGang || ! $buyerGang->isOfficer($lockedBuyer)) {
+                        throw new \RuntimeException('Je moet leider of beheerder zijn van een bende om een bende pand te kopen op de marktplaats!');
+                    }
+                    if ($buyerGang->properties()->where('property_key', $gangProperty->property_key)->exists()) {
+                        throw new \RuntimeException('Jouw bende bezit dit type pand al!');
+                    }
+                    $gangProperty->gang_id = $buyerGang->id;
                     $gangProperty->is_for_sale = false;
                     $gangProperty->production_status = 'idle';
                     $gangProperty->save();
@@ -536,6 +552,14 @@ class MarketplaceController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel heb je geen toegang tot de Marktplaats!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         if ($listing->seller_id !== $character->id) {
             return back()->with('error', 'Dit is niet jouw aanbieding!');

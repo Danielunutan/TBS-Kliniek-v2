@@ -384,7 +384,7 @@
 
                         <!-- Live Direct Chat / Privébericht -->
                         <button type="button" 
-                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $profileCharacter->id }}, '{{ addslashes($profileCharacter->name) }}', '{{ $profileCharacter->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $profileCharacter->id]) }}'; }" 
+                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $profileCharacter->id }}, @js($profileCharacter->name), @js($profileCharacter->avatar_url)); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $profileCharacter->id]) }}'; }" 
                                 class="px-3.5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer" 
                                 title="Start live chat of stuur privébericht">
                             <i class="fa-solid fa-comments"></i>
@@ -1258,6 +1258,7 @@
         @else
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             @foreach($friends as $f)
+            @if($f->friend)
             <div class="p-4 rounded-xl border border-slate-200/90 hover:border-purple-300 bg-white hover:bg-purple-50/20 transition flex flex-col justify-between gap-3 shadow-2xs group">
                 <div class="flex items-center gap-3">
                     <a href="{{ route('profile.show', $f->friend->name) }}" class="relative shrink-0">
@@ -1297,13 +1298,14 @@
                     </a>
                     @if(Auth::user()->character->id !== $f->friend->id)
                     <button type="button" 
-                            onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $f->friend->id }}, '{{ addslashes($f->friend->name) }}', '{{ $f->friend->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $f->friend->id]) }}'; }" 
+                            onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $f->friend->id }}, @js($f->friend->name), @js($f->friend->avatar_url)); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $f->friend->id]) }}'; }" 
                             class="text-[11px] font-bold text-emerald-600 hover:text-emerald-800 transition flex items-center gap-1 cursor-pointer">
                         <i class="fa-solid fa-comments text-emerald-500"></i> Privé Chat
                     </button>
                     @endif
                 </div>
             </div>
+            @endif
             @endforeach
         </div>
         @endif
@@ -1332,6 +1334,7 @@
         <!-- Berichtjes lijst -->
         <div class="divide-y divide-slate-100 pt-4">
             @forelse($guestbookEntries as $entry)
+            @if($entry->author)
             <div class="py-4 flex items-start gap-4">
                 <img src="{{ $entry->author->avatar_url }}" alt="{{ $entry->author->name }}" class="w-9 h-9 rounded-lg object-cover shrink-0 border border-slate-200">
                 <div class="flex-1">
@@ -1369,6 +1372,7 @@
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">{{ $entry->message }}</p>
                 </div>
             </div>
+            @endif
             @empty
             <div class="py-8 text-center text-slate-400 text-xs">
                 Nog geen berichten in dit gastenboek. Wees de eerste die iets achterlaat!

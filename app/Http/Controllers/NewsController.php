@@ -96,6 +96,10 @@ class NewsController extends Controller
             return back()->with('error', 'In de isoleercel heb je geen toegang om reacties te plaatsen.');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'content' => ['required', 'string', 'min:2', 'max:500'],
         ]);

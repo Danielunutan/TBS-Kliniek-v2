@@ -56,7 +56,7 @@ class BloodFeud extends Model
 
     public function isActive(): bool
     {
-        return ! $this->is_avenged && $this->expires_at->isFuture();
+        return ! $this->is_avenged && $this->expires_at?->isFuture() === true;
     }
 
     /**

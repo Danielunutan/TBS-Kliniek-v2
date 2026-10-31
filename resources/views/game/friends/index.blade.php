@@ -51,7 +51,7 @@
                 <span class="text-[10px] font-bold text-pink-600 bg-pink-50 border border-pink-100 px-2 py-0.5 rounded-full">Dubbel Respect Bonus</span>
             </div>
 
-            @if($bff)
+            @if($bff && $bff->friend)
             <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
                 <a href="{{ route('profile.show', $bff->friend->name) }}" class="relative group shrink-0">
                     <img src="{{ $bff->friend->avatar_url }}" alt="{{ $bff->friend->name }}" class="w-20 h-20 rounded-2xl object-cover border-2 border-pink-300 shadow-md group-hover:scale-105 transition-transform">
@@ -76,7 +76,7 @@
                     </p>
                     <div class="pt-2 flex items-center justify-center sm:justify-start gap-2">
                         <button type="button" 
-                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $bff->friend->id }}, '{{ addslashes($bff->friend->name) }}', '{{ $bff->friend->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $bff->friend->id]) }}'; }" 
+                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $bff->friend->id }}, @js($bff->friend->name), @js($bff->friend->avatar_url)); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $bff->friend->id]) }}'; }" 
                                 class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-comments text-emerald-600"></i> Privé Chat
                         </button>
@@ -156,6 +156,7 @@
 
         <div class="divide-y divide-purple-100">
             @foreach($pendingRequests as $req)
+            @if($req->character)
             <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-purple-50/30 transition">
                 <div class="flex items-center gap-3.5">
                     <a href="{{ route('profile.show', $req->character->name) }}">
@@ -198,6 +199,7 @@
                     </form>
                 </div>
             </div>
+            @endif
             @endforeach
         </div>
     </div>
@@ -214,6 +216,7 @@
         </div>
         <div class="p-3 sm:p-4 flex flex-wrap gap-2.5">
             @foreach($sentRequests as $sent)
+            @if($sent->friend)
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                 <img src="{{ $sent->friend->avatar_url }}" alt="{{ $sent->friend->name }}" class="w-5 h-5 rounded-md object-cover">
                 <span class="font-extrabold text-slate-800">{{ $sent->friend->name }}</span>
@@ -230,6 +233,7 @@
                     </button>
                 </form>
             </div>
+            @endif
             @endforeach
         </div>
     </div>
@@ -278,6 +282,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-xs">
                     @foreach($friends as $f)
+                    @if($f->friend)
                     <tr class="hover:bg-slate-50/70 transition">
                         <td class="py-3.5 px-4">
                             <div class="flex items-center gap-3">
@@ -333,7 +338,7 @@
                                 @endphp
                                 @if($canRespect)
                                 <button type="button" 
-                                        @click="selectedFriendForRespect = { id: {{ $f->id }}, name: '{{ $f->friend->name }}', is_bff: {{ $f->is_bff ? 'true' : 'false' }} }"
+                                        @click="selectedFriendForRespect = { id: {{ $f->id }}, name: @js($f->friend->name), is_bff: {{ $f->is_bff ? 'true' : 'false' }} }"
                                         class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-[11px] transition shadow-2xs flex items-center gap-1.5">
                                     <i class="fa-solid fa-award text-amber-300"></i>
                                     <span>Geef Respect</span>
@@ -356,7 +361,7 @@
 
                                 <!-- Send message link -->
                                 <button type="button" 
-                                        onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $f->friend->id }}, '{{ addslashes($f->friend->name) }}', '{{ $f->friend->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $f->friend->id]) }}'; }" 
+                                        onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $f->friend->id }}, @js($f->friend->name), @js($f->friend->avatar_url)); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $f->friend->id]) }}'; }" 
                                         title="Privé chat openen met {{ $f->friend->name }}"
                                         class="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 text-xs transition cursor-pointer">
                                     <i class="fa-solid fa-comments"></i>
@@ -378,6 +383,7 @@
                             </div>
                         </td>
                     </tr>
+                    @endif
                     @endforeach
                 </tbody>
             </table>

@@ -64,6 +64,14 @@ class MissionController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'In de isoleercel kun je geen missies uitvoeren!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($character->hasCompletedMission($mission)) {
             return back()->with('error', 'Deze missie is al succesvol voltooid en kan niet opnieuw worden uitgevoerd.');
         }

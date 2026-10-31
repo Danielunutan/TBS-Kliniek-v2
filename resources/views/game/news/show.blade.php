@@ -182,6 +182,7 @@
         @else
         <div class="space-y-3">
             @foreach($comments as $comment)
+            @if($comment->character)
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex items-start justify-between gap-4">
                 <div class="flex items-start gap-3.5 min-w-0 flex-1">
                     <a href="{{ route('profile.show', $comment->character->name) }}" class="shrink-0">
@@ -233,6 +234,7 @@
                 </form>
                 @endif
             </div>
+            @endif
             @endforeach
         </div>
 

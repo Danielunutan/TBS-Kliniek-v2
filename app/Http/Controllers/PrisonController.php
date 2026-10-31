@@ -251,6 +251,11 @@ class PrisonController extends Controller
         }
 
         // Validate the target before energy is spent so an invalid attempt costs nothing.
+        $isSimulatedTarget = in_array($id, ['sim_1', 'sim_2', 'sim_3'], true);
+        if (! $isSimulatedTarget && ! is_numeric($id)) {
+            return back()->with('error', 'Ongeldige patiënt geselecteerd voor uitbraak.');
+        }
+
         $targetInmate = is_numeric($id) ? Character::find($id) : null;
         $targetName = $targetInmate ? $targetInmate->name : 'deze patiënt';
 

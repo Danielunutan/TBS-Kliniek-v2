@@ -389,7 +389,7 @@
                                     $isBot = ($m['bot'] ?? false) || in_array(strtolower($m['username']), ['counting', 'craig', 'disboard', 'flavibot', 'truth or dare', 'guess the song', 'dank memer', 'tbs kliniek']);
                                     $searchString = strtolower($m['username'] . ' ' . ($game ?? ''));
                                 @endphp
-                                <div x-show="!searchMember || '{{ addslashes($searchString) }}'.includes(searchMember.toLowerCase().trim())"
+                                <div x-show="!searchMember || @js($searchString).includes(searchMember.toLowerCase().trim())"
                                      class="flex items-center justify-between py-2 px-2.5 rounded-xl hover:bg-slate-50 transition group">
                                     <div class="flex items-center gap-2.5 min-w-0">
                                         <div class="relative shrink-0">

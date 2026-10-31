@@ -364,7 +364,7 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
     totalMessages: {{ (int) $totalMessages }},
     currentPage: {{ (int) $currentPage }},
     totalPages: {{ (int) $totalPages }},
-    searchQuery: '{{ addslashes($searchQuery ?? '') }}',
+    searchQuery: @js($searchQuery ?? ''),
     feedUrl: '{{ route('admin.mail.feed') }}',
     messageBaseUrl: '{{ url('/admin/mail/message') }}',
     sendUrl: '{{ route('admin.mail.send') }}',
@@ -747,8 +747,9 @@ window.tbsMailboxClient = function tbsMailboxClient(config) {
                         </template>
 
                         <template x-if="!bodyLoading && selectedMessage.body_html">
-                            <div class="prose dark:prose-invert max-w-none text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-sans"
-                                 x-html="selectedMessage.body_html"></div>
+                            <iframe class="w-full h-96 border-0 bg-white rounded-xl"
+                                    sandbox="allow-popups"
+                                    :srcdoc="selectedMessage.body_html"></iframe>
                         </template>
 
                         <template x-if="!bodyLoading && !selectedMessage.body_html && selectedMessage.body_plain">

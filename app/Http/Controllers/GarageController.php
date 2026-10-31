@@ -192,6 +192,14 @@ class GarageController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen voertuigen kopen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($character->level < $vehicle->min_level) {
             return back()->with('error', "Je moet minimaal Level {$vehicle->min_level} zijn om de {$vehicle->name} te besturen!");
         }
@@ -285,6 +293,14 @@ class GarageController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je je vluchtvoertuig niet wijzigen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         if ($characterVehicle->character_id !== $character->id) {
             return back()->with('error', 'Dit voertuig is niet in jouw bezit.');
         }
@@ -307,6 +323,14 @@ class GarageController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen voertuigen reviseren!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         // Check ownership or gang officer permission if the vehicle is stored in the gang garage
         $isOwner = $characterVehicle->character_id === $character->id;

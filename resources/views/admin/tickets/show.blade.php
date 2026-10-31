@@ -265,7 +265,7 @@
                 <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 text-sm font-extrabold text-slate-900">
                         <i class="fa-solid fa-reply text-purple-600"></i>
-                        <span>{{ $ticket->status === 'beantwoord' ? 'Aanvullend antwoord sturen naar ' . $ticket->character->name : 'Antwoord sturen naar ' . $ticket->character->name }}</span>
+                        <span>{{ $ticket->status === 'beantwoord' ? 'Aanvullend antwoord sturen naar ' . ($ticket->character?->name ?? 'Speler') : 'Antwoord sturen naar ' . ($ticket->character?->name ?? 'Speler') }}</span>
                     </div>
                     @if($ticket->status === 'beantwoord')
                     <span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
@@ -322,6 +322,7 @@
                     <span>Patiënt Dossier</span>
                 </div>
 
+                @if($ticket->character)
                 <div class="flex items-center gap-3">
                     <img src="{{ $ticket->character->avatar_url }}" 
                          alt="{{ $ticket->character->name }}" 
@@ -329,7 +330,7 @@
                     <div>
                         <div class="font-extrabold text-sm text-slate-900">{{ $ticket->character->name }}</div>
                         <div class="text-xs text-purple-700 font-bold">Level {{ $ticket->character->level }} &bull; {{ $ticket->character->title ?? 'Patiënt' }}</div>
-                        <div class="text-[11px] text-slate-400">{{ $ticket->user->email }}</div>
+                        <div class="text-[11px] text-slate-400">{{ $ticket->user?->email ?? 'Geen e-mail' }}</div>
                     </div>
                 </div>
 
@@ -364,7 +365,7 @@
                     </div>
                     <div class="flex items-center justify-between pt-2">
                         <span class="text-slate-500">Lid sinds:</span>
-                        <span class="text-slate-700">{{ $ticket->user->created_at->format('d-m-Y') }}</span>
+                        <span class="text-slate-700">{{ $ticket->user?->created_at?->format('d-m-Y') ?? '-' }}</span>
                     </div>
                 </div>
 
@@ -375,6 +376,11 @@
                         <span>Bewerk Speler in Admin</span>
                     </a>
                 </div>
+                @else
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500">
+                    Patiënt account is verwijderd of niet meer beschikbaar.
+                </div>
+                @endif
             </div>
         </div>
 

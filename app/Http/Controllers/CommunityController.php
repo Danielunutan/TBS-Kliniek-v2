@@ -139,6 +139,22 @@ class CommunityController extends Controller
             return redirect()->route('dashboard')->with('error', 'Je hebt nog geen actief personage.');
         }
 
+        if ($character->isImprisoned()) {
+            $jailMsg = 'Vanuit de isoleercel kun je geen community beloningen claimen!';
+
+            return ($request->expectsJson() || $request->ajax())
+                ? response()->json(['success' => false, 'message' => $jailMsg], 422)
+                : redirect()->route('community.index')->with('error', $jailMsg);
+        }
+
+        if ($character->isComatose()) {
+            $comaMsg = 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+
+            return ($request->expectsJson() || $request->ajax())
+                ? response()->json(['success' => false, 'message' => $comaMsg], 422)
+                : redirect()->route('community.index')->with('error', $comaMsg);
+        }
+
         $platforms = self::platforms();
         if (! isset($platforms[$platform])) {
             return redirect()->route('community.index')->with('error', 'Ongeldig platform geselecteerd.');
@@ -195,8 +211,8 @@ class CommunityController extends Controller
                 /** @var Character $locked */
                 $locked = Character::where('id', $character->id)->lockForUpdate()->first();
                 $locked->cash += $reward['cash'];
-                $locked->respect += $reward['respect'];
                 $locked->energy = min($locked->max_energy, $locked->energy + $reward['energy']);
+                $locked->addRespect($reward['respect']);
                 $locked->save();
             });
         } catch (UniqueConstraintViolationException) {

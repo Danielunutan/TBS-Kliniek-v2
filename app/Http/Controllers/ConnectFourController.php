@@ -263,6 +263,14 @@ class ConnectFourController extends Controller
         /** @var Character $character */
         $character = Auth::user()->character;
 
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Je zit in de isoleercel!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         return DB::transaction(function () use ($character): RedirectResponse {
             /** @var Character $lockedCharacter */
             $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
@@ -307,6 +315,14 @@ class ConnectFourController extends Controller
 
         /** @var Character $character */
         $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Je zit in de isoleercel!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         /** @var CharacterConnectFourStat $stat */
         $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $character->id]);

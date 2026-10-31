@@ -6,7 +6,7 @@
 @section('content')
 <div class="space-y-6"
      x-data="{
-         search: '{{ addslashes($initialSearch) }}',
+         search: @js($initialSearch),
          filter: '{{ in_array($initialFilter, ['all', 'online', 'offline', 'gang', 'solo', 'vip', 'prison']) ? $initialFilter : 'all' }}',
          sortBy: '{{ $initialFilter === 'online' ? 'online_first' : 'respect_desc' }}',
          viewMode: 'grid',

@@ -66,6 +66,10 @@ class DiscordVerification extends Model
      */
     public function getLinkedAccountsAttribute()
     {
+        if (empty($this->fingerprint_hash)) {
+            return collect();
+        }
+
         return static::where('fingerprint_hash', $this->fingerprint_hash)
             ->where('discord_id', '!=', $this->discord_id)
             ->orderByDesc('id')

@@ -47,6 +47,10 @@ class MessageController extends Controller
             return back()->with('error', 'Vanuit de isoleercel kun je geen brieven versturen!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'recipient_name' => ['required', 'string', 'exists:characters,name'],
             'subject' => ['required', 'string', 'max:100'],

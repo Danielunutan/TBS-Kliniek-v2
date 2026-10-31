@@ -156,6 +156,11 @@ class SponsorAdController extends Controller
                     'message' => 'Je ligt momenteel niet in de Intensive Care Coma.',
                 ], 422);
             }
+        } elseif ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Gebruik eerst de IC Reanimatie of een '.Character::REVIVE_SERUM_NAME.'.',
+            ], 422);
         } elseif ($rewardType === 'prison') {
             if (! $character->isImprisoned()) {
                 return response()->json([

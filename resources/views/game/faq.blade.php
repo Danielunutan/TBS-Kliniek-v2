@@ -4,7 +4,7 @@
 <div class="space-y-6" x-data="{
     activeCategory: 'beginners',
     openQuestion: null,
-    searchQuery: '{{ addslashes($search) }}',
+    searchQuery: @js($search),
     showSimulator: false,
     allOpen: false,
     calcStrength: 25,

@@ -1490,6 +1490,7 @@
                             @elseif($packageCooldown === 0)
                                 <form method="POST" action="{{ route('packages.intercept') }}">
                                     @csrf
+                                    <input type="hidden" name="package_id" value="2">
                                     <button type="submit" class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black text-xs transition shadow-sm shadow-purple-600/25 flex items-center justify-center gap-1.5 cursor-pointer">
                                         <i class="fa-solid fa-box-archive text-amber-300"></i>
                                         <span>Onderschep Koffer in Postkamer (10 E)</span>

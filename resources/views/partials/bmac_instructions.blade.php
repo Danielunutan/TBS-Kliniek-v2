@@ -70,7 +70,7 @@ class="bg-white dark:bg-slate-900 border-2 border-amber-400 dark:border-amber-50
             <div class="space-y-2 pt-2">
                 <!-- Spelersnaam Knop -->
                 <button type="button" 
-                        @click="copyText('{{ $character->name }}', 'name')"
+                        @click="copyText(@js($character->name), 'name')"
                         class="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border-2 border-purple-300 dark:border-purple-600 hover:border-purple-500 text-left flex items-center justify-between text-xs font-bold transition cursor-pointer shadow-xs">
                     <div class="flex items-center gap-2 min-w-0">
                         <i class="fa-solid fa-user text-purple-600 dark:text-purple-400 text-xs"></i>

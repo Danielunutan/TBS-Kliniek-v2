@@ -14,6 +14,7 @@ use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class SmuggleController extends Controller
@@ -154,23 +155,35 @@ class SmuggleController extends Controller
             return back()->with('error', 'Item niet gevonden.');
         }
 
-        $charItem = CharacterItem::where('character_id', $character->id)
-            ->where('item_id', $item->id)
-            ->where('quantity', '>', 0)
-            ->first();
+        $sold = DB::transaction(function () use ($character, $item, $order): bool {
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            $charItem = CharacterItem::where('character_id', $lockedCharacter->id)
+                ->where('item_id', $item->id)
+                ->where('quantity', '>', 0)
+                ->lockForUpdate()
+                ->first();
 
-        if (! $charItem || $charItem->quantity < $order['amount']) {
+            if (! $charItem || $charItem->quantity < $order['amount']) {
+                return false;
+            }
+
+            $charItem->decrement('quantity', $order['amount']);
+            if ($charItem->fresh()?->quantity <= 0) {
+                $charItem->delete();
+            }
+            $this->economy->addCash($lockedCharacter, $order['reward_cash']);
+            $lockedCharacter->addRespect($order['reward_respect']);
+            $lockedCharacter->save();
+
+            return true;
+        });
+
+        if (! $sold) {
             return back()->with('error', "Je hebt niet genoeg {$item->name} om aan {$order['buyer']} te leveren!");
         }
 
-        $charItem->decrement('quantity', $order['amount']);
-        if ($charItem->fresh()?->quantity <= 0) {
-            $charItem->delete();
-        }
-        $this->economy->addCash($character, $order['reward_cash']);
-        $character->addRespect($order['reward_respect']);
-        $character->save();
-
+        $character->refresh();
         app(DailyBattleService::class)->record($character, 'drugs_sold', $order['amount']);
 
         // 5% Rank XP reward for completing the sale
@@ -192,6 +205,14 @@ class SmuggleController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return redirect()->route('prison')->with('error', 'Je zit in de isoleercel en kunt niet handelen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         $validated = $request->validate([
             'order_id' => ['required', 'string', 'in:order_1,order_2,order_3'],

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\BankTransaction;
 use App\Models\Character;
+use Illuminate\Support\Facades\DB;
 
 class AllowanceService
 {
@@ -46,59 +47,72 @@ class AllowanceService
             return null;
         }
 
-        $now = now();
+        // Lock the character row so the 15-minute cron job and web requests cannot double-pay the same allowance cycles.
+        return DB::transaction(function () use ($character): ?array {
+            /** @var Character|null $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $locked || $locked->gang_id) {
+                return null;
+            }
 
-        // Initialize if never set: set to 1 interval ago so player receives their initial allowance right away
-        if (! $character->last_allowance_at) {
-            $character->last_allowance_at = $now->copy()->subSeconds(self::ALLOWANCE_INTERVAL_SECONDS);
-            $character->save();
-        }
+            $now = now();
 
-        if ($character->last_allowance_at > $now) {
-            return null;
-        }
+            // Initialize if never set: set to 1 interval ago so player receives their initial allowance right away
+            if (! $locked->last_allowance_at) {
+                $locked->last_allowance_at = $now->copy()->subSeconds(self::ALLOWANCE_INTERVAL_SECONDS);
+                $locked->save();
+            }
 
-        $secondsElapsed = (int) $character->last_allowance_at->diffInSeconds($now);
+            if ($locked->last_allowance_at > $now) {
+                return null;
+            }
 
-        if ($secondsElapsed < self::ALLOWANCE_INTERVAL_SECONDS) {
-            return null;
-        }
+            $secondsElapsed = (int) $locked->last_allowance_at->diffInSeconds($now);
 
-        $amountPerQuarter = $this->getAllowanceAmountFor($character);
+            if ($secondsElapsed < self::ALLOWANCE_INTERVAL_SECONDS) {
+                return null;
+            }
 
-        // Cap backlog at max 96 cycles (24 hours)
-        $rawCycles = (int) floor($secondsElapsed / self::ALLOWANCE_INTERVAL_SECONDS);
-        $cycles = min(96, $rawCycles);
-        $leftoverSeconds = $secondsElapsed % self::ALLOWANCE_INTERVAL_SECONDS;
-        $totalPayout = $cycles * $amountPerQuarter;
+            $amountPerQuarter = $this->getAllowanceAmountFor($locked);
 
-        if ($totalPayout <= 0) {
-            $character->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
-            $character->save();
+            // Cap backlog at max 96 cycles (24 hours)
+            $rawCycles = (int) floor($secondsElapsed / self::ALLOWANCE_INTERVAL_SECONDS);
+            $cycles = min(96, $rawCycles);
+            $leftoverSeconds = $secondsElapsed % self::ALLOWANCE_INTERVAL_SECONDS;
+            $totalPayout = $cycles * $amountPerQuarter;
 
-            return null;
-        }
+            if ($totalPayout <= 0) {
+                $locked->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
+                $locked->save();
+                $character->last_allowance_at = $locked->last_allowance_at;
 
-        // Clean deposit directly to character bank account
-        $character->bank += $totalPayout;
-        $character->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
-        $character->save();
+                return null;
+            }
 
-        $vipNote = $character->isVip() ? ' (VIP Bonus)' : '';
-        BankTransaction::record(
-            $character,
-            'allowance',
-            'bank',
-            $totalPayout,
-            $character->bank,
-            'TBS Patiënten Uitkering'.$vipNote.' ontvangen (+€'.number_format($totalPayout, 0, ',', '.').')'
-        );
+            // Clean deposit directly to character bank account
+            $locked->bank += $totalPayout;
+            $locked->last_allowance_at = $now->copy()->subSeconds($leftoverSeconds);
+            $locked->save();
 
-        return [
-            'cycles' => $cycles,
-            'amount' => $totalPayout,
-            'amount_per_quarter' => $amountPerQuarter,
-        ];
+            $character->bank = $locked->bank;
+            $character->last_allowance_at = $locked->last_allowance_at;
+
+            $vipNote = $locked->isVip() ? ' (VIP Bonus)' : '';
+            BankTransaction::record(
+                $locked,
+                'allowance',
+                'bank',
+                $totalPayout,
+                $locked->bank,
+                'TBS Patiënten Uitkering'.$vipNote.' ontvangen (+€'.number_format($totalPayout, 0, ',', '.').')'
+            );
+
+            return [
+                'cycles' => $cycles,
+                'amount' => $totalPayout,
+                'amount_per_quarter' => $amountPerQuarter,
+            ];
+        });
     }
 
     /**

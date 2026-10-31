@@ -6,6 +6,7 @@ use App\Models\DiscordShieldBan;
 use App\Models\DiscordShieldLog;
 use App\Models\DiscordShieldSetting;
 use App\Models\DiscordVerification;
+use App\Models\User;
 use App\Services\DiscordShieldService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -75,6 +76,12 @@ class DiscordShieldAdminController extends Controller
      */
     public function updateSettings(Request $request): RedirectResponse
     {
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+        if (! $currentUser->isOwner() && ! $currentUser->isAdmin()) {
+            return back()->with('error', 'Alleen de eigenaar of een beheerder kan Discord Shield systeeminstellingen wijzigen.');
+        }
+
         $validated = $request->validate([
             'bot_token' => 'nullable|string',
             'client_id' => 'nullable|string',

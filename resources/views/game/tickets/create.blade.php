@@ -429,8 +429,8 @@
 <script>
 function ticketForm() {
     return {
-        selectedCategory: '{{ old('category', request('category', 'gang_overstap')) }}',
-        selectedPriority: '{{ old('priority', 'normaal') }}',
+        selectedCategory: @js(old('category', request('category', 'gang_overstap'))),
+        selectedPriority: @js(old('priority', 'normaal')),
 
         selectCategory(cat) {
             this.selectedCategory = cat;

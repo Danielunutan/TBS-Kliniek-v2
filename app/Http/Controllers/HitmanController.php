@@ -988,6 +988,14 @@ class HitmanController extends Controller
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
+            if ($locked->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen munitie aanschaffen!');
+            }
+
+            if ($locked->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
+
             if ($currency === 'cash') {
                 $costCash = $ammo['cost_cash'];
                 if (($locked->cash + $locked->bank) < $costCash) {
@@ -1047,6 +1055,14 @@ class HitmanController extends Controller
         return DB::transaction(function () use ($character, $vest, $currency): RedirectResponse {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if ($locked->isImprisoned()) {
+                return back()->with('error', 'Vanuit de isoleercel kun je geen kogelwerend vest aanschaffen!');
+            }
+
+            if ($locked->isComatose()) {
+                return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+            }
 
             if ($currency === 'cash') {
                 $costCash = $vest['cost_cash'];

@@ -512,6 +512,15 @@ class BattlePassController extends Controller
 
         /** @var Character $character */
         $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            return $this->respondBp($request, false, 'Vanuit de isoleercel kun je geen Battle Pass beloningen claimen!');
+        }
+
+        if ($character->isComatose()) {
+            return $this->respondBp($request, false, 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $lvl = (int) $validated['level'];
         $track = (string) $validated['track'];
 
@@ -595,6 +604,15 @@ class BattlePassController extends Controller
     {
         /** @var Character $character */
         $character = Auth::user()->character;
+
+        if ($character->isImprisoned()) {
+            return $this->respondBp($request, false, 'Vanuit de isoleercel kun je geen Battle Pass beloningen claimen!');
+        }
+
+        if ($character->isComatose()) {
+            return $this->respondBp($request, false, 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $config = self::getPassConfig();
 
         $supporterTier = $character->getSupporterTier();

@@ -76,6 +76,14 @@ class EnergyService
      */
     public function consume(Character $character, int $amount): bool
     {
+        if ($amount < 0) {
+            return false;
+        }
+
+        if ($amount === 0) {
+            return true;
+        }
+
         $this->refresh($character);
 
         if ($character->energy < $amount) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Character;
 use App\Services\CooldownService;
 use App\Services\EconomyService;
+use App\Services\EventCashHuntService;
 use App\Services\LevelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -99,6 +100,7 @@ class HighLowController extends Controller
 
             $this->economy->addCash($character, $totalPayout);
             $this->level->addXp($character, 15);
+            EventCashHuntService::record($character, $profit, 'highlow');
 
             return back()->with('success', "Gewonnen! Huidig: {$cardLabels[$currentCard]} → Nieuw: {$cardLabels[$nextCard]} ({$multiplier}x)! +€".number_format($profit, 0, ',', '.').'! +15 XP.');
         }

@@ -664,6 +664,11 @@ class DashboardController extends Controller
                 $charItem->delete();
             }
 
+            $this->economyService->addCash($character, $totalCash);
+            $this->levelService->addXp($character, $xpGain);
+            $character->addRespect($respectGain);
+            $character->save();
+
             return [
                 'toSell' => $toSell,
                 'currentStock' => $currentStock,
@@ -684,11 +689,6 @@ class DashboardController extends Controller
         $totalCash = $soldData['totalCash'];
         $xpGain = $soldData['xpGain'];
         $respectGain = $soldData['respectGain'];
-
-        $this->economyService->addCash($character, $totalCash);
-        $this->levelService->addXp($character, $xpGain);
-        $character->addRespect($respectGain);
-        $character->save();
 
         if (class_exists(DailyBattleService::class)) {
             app(DailyBattleService::class)->record($character, 'drugs_sold', $toSell);

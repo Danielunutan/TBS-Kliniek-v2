@@ -443,7 +443,7 @@
                                     @if($reportedUser && ! $reportedUser->isOwner())
                                         <!-- DIRECTE MAATREGEL: WAARSCHUWEN -->
                                         <button type="button" 
-                                                @click="openQuickWarn('{{ $reportedUser->id }}', '{{ addslashes($report->reported_name) }}', '{{ addslashes($report->reason) }}')"
+                                                @click="openQuickWarn(@js((string) $reportedUser->id), @js($report->reported_name), @js($report->reason))"
                                                 class="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-600 hover:text-white text-amber-700 text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
                                                 title="Deel direct een officiële waarschuwing uit aan {{ $report->reported_name }}">
                                             <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
@@ -453,7 +453,7 @@
                                         <!-- DIRECTE MAATREGEL: VERBANNEN -->
                                         @if(! $reportedUser->is_banned)
                                         <button type="button" 
-                                                @click="openQuickBan('{{ $reportedUser->id }}', '{{ addslashes($report->reported_name) }}', '{{ addslashes($report->reason) }}')"
+                                                @click="openQuickBan(@js((string) $reportedUser->id), @js($report->reported_name), @js($report->reason))"
                                                 class="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
                                                 title="Verban {{ $report->reported_name }} direct van het spel">
                                             <i class="fa-solid fa-ban text-[10px]"></i>

@@ -219,7 +219,7 @@ class CooldownService
             ];
         }
 
-        $deducted = DB::transaction(function () use ($character, $cost): bool {
+        $deducted = DB::transaction(function () use ($character, $action, $cost): bool {
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
             if (! $locked || ($locked->stars ?? 0) < $cost) {
@@ -228,6 +228,7 @@ class CooldownService
             $locked->stars -= $cost;
             $locked->save();
             $character->stars = $locked->stars;
+            $this->clearCooldown($locked, $action);
 
             return true;
         });
@@ -238,8 +239,6 @@ class CooldownService
                 'message' => "Je hebt {$cost} Sterren ⭐ nodig om deze resterende wachttijd over te slaan! (Je hebt: ".($character->stars ?? 0).')',
             ];
         }
-
-        $this->clearCooldown($character, $action);
 
         return [
             'success' => true,

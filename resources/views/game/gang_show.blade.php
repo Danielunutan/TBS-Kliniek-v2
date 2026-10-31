@@ -47,7 +47,7 @@
             <!-- Top Right Action Controls -->
             <div class="relative z-10 flex items-center justify-end gap-2">
                 <button type="button" 
-                        @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $gang->id }}, name: '{{ addslashes($gang->name) }}' })"
+                        @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $gang->id }}, name: @js($gang->name) })"
                         class="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
                         title="Rapporteer deze bende bij moderatie">
                     <i class="fa-solid fa-flag text-rose-400"></i>

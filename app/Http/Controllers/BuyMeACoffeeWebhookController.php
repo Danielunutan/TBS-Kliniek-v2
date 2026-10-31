@@ -10,6 +10,7 @@ use App\Services\AuditLogService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -113,55 +114,59 @@ class BuyMeACoffeeWebhookController extends Controller
             ], 200);
         }
 
-        // Normal Order / Donation / Membership: prevent replay attacks from granting duplicate rewards for the same event.
-        if (! empty($externalId)) {
-            $alreadyProcessed = BuyMeACoffeeOrder::where('external_id', $externalId)
-                ->where('event', $event)
-                ->whereIn('status', ['matched', 'manually_linked'])
-                ->exists();
-            if ($alreadyProcessed) {
-                return response()->json([
-                    'status' => 'success',
-                    'action' => 'already_processed',
-                    'matched' => true,
-                ], 200);
+        $lockKey = 'bmac_webhook_'.md5(($externalId ?: uniqid()).'_'.$event);
+
+        return Cache::lock($lockKey, 15)->block(5, function () use ($externalId, $event, $supporterName, $supporterEmail, $amount, $currency, $tierName, $message, $character, $isMembership, $payload, $data): JsonResponse {
+            // Normal Order / Donation / Membership: prevent replay attacks from granting duplicate rewards for the same event.
+            if (! empty($externalId)) {
+                $alreadyProcessed = BuyMeACoffeeOrder::where('external_id', $externalId)
+                    ->where('event', $event)
+                    ->whereIn('status', ['matched', 'manually_linked'])
+                    ->exists();
+                if ($alreadyProcessed) {
+                    return response()->json([
+                        'status' => 'success',
+                        'action' => 'already_processed',
+                        'matched' => true,
+                    ], 200);
+                }
             }
-        }
 
-        $order = BuyMeACoffeeOrder::updateOrCreate(
-            ['external_id' => $externalId ?: ('order_'.uniqid())],
-            [
-                'event' => $event,
-                'supporter_name' => $supporterName ?: null,
-                'supporter_email' => $supporterEmail ?: null,
-                'amount' => $amount,
-                'currency' => $currency,
-                'membership_tier' => $tierName ?: null,
-                'message' => $message ?: null,
-                'character_id' => $character?->id,
-                'status' => $character ? 'matched' : 'unmatched',
-                'is_membership' => $isMembership,
-                'membership_status' => $isMembership ? 'active' : null,
-                'payload' => $payload,
-                'linked_at' => $character ? now() : null,
-            ]
-        );
+            $order = BuyMeACoffeeOrder::updateOrCreate(
+                ['external_id' => $externalId ?: ('order_'.uniqid())],
+                [
+                    'event' => $event,
+                    'supporter_name' => $supporterName ?: null,
+                    'supporter_email' => $supporterEmail ?: null,
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'membership_tier' => $tierName ?: null,
+                    'message' => $message ?: null,
+                    'character_id' => $character?->id,
+                    'status' => $character ? 'matched' : 'unmatched',
+                    'is_membership' => $isMembership,
+                    'membership_status' => $isMembership ? 'active' : null,
+                    'payload' => $payload,
+                    'linked_at' => $character ? now() : null,
+                ]
+            );
 
-        if ($character) {
-            $this->processEvent($event, $data, $character);
-        } else {
-            Log::warning('BuyMeACoffee Webhook: Player could not be matched automatically', [
-                'event' => $event,
-                'data' => $data,
+            if ($character) {
+                $this->processEvent($event, $data, $character);
+            } else {
+                Log::warning('BuyMeACoffee Webhook: Player could not be matched automatically', [
+                    'event' => $event,
+                    'data' => $data,
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'success',
                 'order_id' => $order->id,
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'order_id' => $order->id,
-            'matched' => $character !== null,
-        ], 200);
+                'matched' => $character !== null,
+            ], 200);
+        });
     }
 
     /**

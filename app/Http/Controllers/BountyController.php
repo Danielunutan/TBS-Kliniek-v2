@@ -9,6 +9,7 @@ use App\Services\EconomyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BountyController extends Controller
@@ -79,28 +80,36 @@ class BountyController extends Controller
 
         $amount = (int) $request->input('amount');
 
-        // Deduct cash from placer atomically
-        if (! $this->economy->deductCash($character, $amount)) {
+        $deducted = DB::transaction(function () use ($character, $target, $amount, $request): bool {
+            // Deduct cash from placer atomically
+            if (! $this->economy->deductCash($character, $amount)) {
+                return false;
+            }
+
+            // Create bounty
+            Bounty::create([
+                'target_character_id' => $target->id,
+                'placed_by_character_id' => $character->id,
+                'amount' => $amount,
+                'reason' => $request->input('reason') ?: 'Vogelvrij verklaard door rivaal.',
+                'is_claimed' => false,
+            ]);
+
+            // Send warning notification to target
+            GameNotification::create([
+                'character_id' => $target->id,
+                'type' => 'bounty_placed',
+                'title' => 'Er staat KOPGELD op je hoofd!',
+                'message' => "Patiënt {$character->name} heeft een kopgeld van €".number_format($amount, 0, ',', '.').' op jouw hoofd gezet! Kijk uit voor premiejagers.',
+                'is_read' => false,
+            ]);
+
+            return true;
+        });
+
+        if (! $deducted) {
             return back()->with('error', 'Je hebt niet genoeg contant geld (€ '.number_format($amount, 0, ',', '.').' nodig) om dit kopgeld uit te loven.');
         }
-
-        // Create bounty
-        $bounty = Bounty::create([
-            'target_character_id' => $target->id,
-            'placed_by_character_id' => $character->id,
-            'amount' => $amount,
-            'reason' => $request->input('reason') ?: 'Vogelvrij verklaard door rivaal.',
-            'is_claimed' => false,
-        ]);
-
-        // Send warning notification to target
-        GameNotification::create([
-            'character_id' => $target->id,
-            'type' => 'bounty_placed',
-            'title' => 'Er staat KOPGELD op je hoofd!',
-            'message' => "Patiënt {$character->name} heeft een kopgeld van €".number_format($amount, 0, ',', '.').' op jouw hoofd gezet! Kijk uit voor premiejagers.',
-            'is_read' => false,
-        ]);
 
         return redirect()->route('bounties.index')
             ->with('success', 'Kopgeld van €'.number_format($amount, 0, ',', '.')." succesvol uitgeloofd op {$target->name}!");

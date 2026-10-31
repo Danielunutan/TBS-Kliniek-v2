@@ -55,6 +55,14 @@ class HalloweenController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween quests claimen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $allQuests = array_merge(HalloweenService::DAILY_QUESTS, HalloweenService::WEEKLY_QUESTS);
         if (! array_key_exists($questKey, $allQuests)) {
             return back()->with('error', 'Onbekende Halloween quest.');
@@ -86,23 +94,26 @@ class HalloweenController extends Controller
             $lockedRecord->claimed_at = now();
             $lockedRecord->save();
 
+            /** @var Character $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+
             // Grant rewards
-            $character->pumpkin_seeds = ($character->pumpkin_seeds ?? 0) + $quest['seeds'];
+            $lockedCharacter->pumpkin_seeds = ($lockedCharacter->pumpkin_seeds ?? 0) + $quest['seeds'];
 
             if (! empty($quest['xp'])) {
-                $this->levelService->addXp($character, $quest['xp']);
+                $this->levelService->addXp($lockedCharacter, $quest['xp']);
             }
             if (! empty($quest['respect'])) {
-                $character->addRespect($quest['respect']);
+                $lockedCharacter->addRespect($quest['respect']);
             }
             if (! empty($quest['cash'])) {
-                $this->economyService->addCash($character, $quest['cash']);
+                $this->economyService->addCash($lockedCharacter, $quest['cash']);
             }
             if (! empty($quest['tokens'])) {
-                $character->vault_tokens = ($character->vault_tokens ?? 0) + $quest['tokens'];
+                $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + $quest['tokens'];
             }
 
-            $character->save();
+            $lockedCharacter->save();
 
             return false;
         });
@@ -152,6 +163,14 @@ class HalloweenController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween quests claimen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         $itemKey = $validated['item_key'];
         if (! array_key_exists($itemKey, HalloweenService::SHOP_ITEMS)) {
@@ -269,6 +288,14 @@ class HalloweenController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen Halloween quests claimen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         $key = $validated['border_key'] ?? null;
 

@@ -8,6 +8,7 @@ use App\Models\GameMessage;
 use App\Models\GameNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EventCashHuntService
 {
@@ -229,7 +230,8 @@ class EventCashHuntService
             // Broadcast in clinic chat
             try {
                 app(ChatBotService::class)->broadcast("🏆 EVENT WINNAAR: {$lockedWinner->name} heeft vanavond De Grote Geldjacht gewonnen met {$earnedFmt} binnengehaald geld en wint 750 Sterren ⭐! Iedereen bedankt voor het meespelen!");
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
+                Log::warning('EventCashHuntService broadcast failed: '.$e->getMessage());
             }
 
             return [

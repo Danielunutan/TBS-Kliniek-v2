@@ -16,6 +16,7 @@ use App\Support\ProfileStickerCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -180,6 +181,14 @@ class ProfileController extends Controller
         $user = Auth::user();
         $authorCharacter = $user->character;
 
+        if ($authorCharacter->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen gastenboekberichten plaatsen!');
+        }
+
+        if ($authorCharacter->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $targetCharacter = Character::where('name', $name)->firstOrFail();
 
         GuestbookEntry::create([
@@ -324,37 +333,55 @@ class ProfileController extends Controller
         $user = Auth::user();
         $myCharacter = $user->character;
 
+        if ($myCharacter->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen respect uitdelen!');
+        }
+
+        if ($myCharacter->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $targetCharacter = Character::where('name', $name)->firstOrFail();
 
         if ($targetCharacter->id === $myCharacter->id) {
             return back()->with('error', 'Je kunt jezelf geen respect aanbieden!');
         }
 
-        $recent = ProfileRespect::where('giver_id', $myCharacter->id)
-            ->where('receiver_id', $targetCharacter->id)
-            ->where('created_at', '>=', now()->subHours(24))
-            ->first();
+        $errorMsg = DB::transaction(function () use ($myCharacter, $targetCharacter): ?string {
+            Character::where('id', $myCharacter->id)->lockForUpdate()->first();
 
-        if ($recent) {
-            $hoursLeft = max(1, 24 - (int) $recent->created_at->diffInHours(now()));
+            $recent = ProfileRespect::where('giver_id', $myCharacter->id)
+                ->where('receiver_id', $targetCharacter->id)
+                ->where('created_at', '>=', now()->subHours(24))
+                ->first();
 
-            return back()->with('error', "Je hebt {$targetCharacter->name} vandaag al respect gegeven! Probeer het over ~{$hoursLeft}u weer.");
+            if ($recent) {
+                $hoursLeft = max(1, 24 - (int) $recent->created_at->diffInHours(now()));
+
+                return "Je hebt {$targetCharacter->name} vandaag al respect gegeven! Probeer het over ~{$hoursLeft}u weer.";
+            }
+
+            ProfileRespect::create([
+                'giver_id' => $myCharacter->id,
+                'receiver_id' => $targetCharacter->id,
+            ]);
+
+            $targetCharacter->increment('respect', 1);
+
+            GameNotification::create([
+                'character_id' => $targetCharacter->id,
+                'type' => 'respect',
+                'icon' => 'fa-smoking',
+                'title' => 'Respect ontvangen!',
+                'message' => "{$myCharacter->name} heeft jou een sigaret & respectpunt aangeboden op je profiel! (+1 Respect)",
+            ]);
+
+            return null;
+        });
+
+        if ($errorMsg !== null) {
+            return back()->with('error', $errorMsg);
         }
-
-        ProfileRespect::create([
-            'giver_id' => $myCharacter->id,
-            'receiver_id' => $targetCharacter->id,
-        ]);
-
-        $targetCharacter->increment('respect', 1);
-
-        GameNotification::create([
-            'character_id' => $targetCharacter->id,
-            'type' => 'respect',
-            'icon' => 'fa-smoking',
-            'title' => 'Respect ontvangen!',
-            'message' => "{$myCharacter->name} heeft jou een sigaret & respectpunt aangeboden op je profiel! (+1 Respect)",
-        ]);
 
         return back()->with('success', "Je hebt {$targetCharacter->name} een peuk en respect aangeboden! (+1 Respect)");
     }

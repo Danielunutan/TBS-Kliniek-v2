@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -135,6 +136,7 @@ class Character extends Model
         'leave_until' => 'datetime',
         'sedated_until' => 'datetime',
         'last_treatment_at' => 'datetime',
+        'last_infirmary_visit_at' => 'datetime',
         'treatment_score' => 'integer',
         'leave_trips_count' => 'integer',
         'treatment_history' => 'array',
@@ -410,7 +412,7 @@ class Character extends Model
      */
     public function getDisplayNameAttribute(): string
     {
-        return $this->attributes['display_name'] ?? $this->name;
+        return (string) ($this->attributes['display_name'] ?? $this->name ?? '');
     }
 
     /**
@@ -1198,20 +1200,27 @@ class Character extends Model
      */
     public function claimDiscordReward(): bool
     {
-        if ($this->hasClaimedDiscordReward()) {
-            return false;
-        }
+        return DB::transaction(function (): bool {
+            /** @var self|null $locked */
+            $locked = self::where('id', $this->id)->lockForUpdate()->first();
+            if (! $locked || $locked->hasClaimedDiscordReward()) {
+                return false;
+            }
 
-        $this->cash += 2500;
-        $this->is_vip = true;
-        $currentExpiry = ($this->vip_expires_at && $this->vip_expires_at->isFuture())
-            ? $this->vip_expires_at
-            : now();
-        $this->vip_expires_at = $currentExpiry->addDays(3);
-        $this->discord_reward_claimed_at = now();
-        $this->save();
+            $locked->cash += 2500;
+            $locked->is_vip = true;
+            $currentExpiry = ($locked->vip_expires_at && $locked->vip_expires_at->isFuture())
+                ? $locked->vip_expires_at->copy()
+                : now();
+            $locked->vip_expires_at = $currentExpiry->addDays(3);
+            $locked->discord_reward_claimed_at = now();
+            $locked->save();
 
-        return true;
+            $this->fill($locked->getAttributes());
+            $this->syncOriginal();
+
+            return true;
+        });
     }
 
     /**
@@ -1781,6 +1790,8 @@ class Character extends Model
                     'is_in_prison' => false,
                     'prison_until' => null,
                     'prison_reason' => null,
+                    'ad_prison_progress' => 0,
+                    'prison_escape_attempted' => false,
                 ]);
             }
 

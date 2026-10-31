@@ -131,6 +131,14 @@ class DepotController extends Controller
         $user = Auth::user();
         $character = $user->character;
 
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen voorwerpen uit je depot verkopen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         return DB::transaction(function () use ($request, $characterItem, $character): RedirectResponse {
             /** @var CharacterItem|null $lockedItem */
             $lockedItem = CharacterItem::where('id', $characterItem->id)
@@ -186,6 +194,14 @@ class DepotController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $character = $user->character;
+
+        if ($character->isImprisoned()) {
+            return back()->with('error', 'Vanuit de isoleercel kun je geen maskers uit je depot verkopen!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
 
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],

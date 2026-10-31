@@ -179,9 +179,6 @@ class TheftService
                 ];
             }
 
-            // Attacker breaks own protection when initiating theft
-            $character->breakProtection();
-
             // Daily PvP attack limit: 100 per day (1000 for VIP)
             $dailyKey = 'pvp_thefts_today_'.$character->id.'_'.now()->toDateString();
             $dailyCount = cache()->get($dailyKey, 0);
@@ -198,8 +195,6 @@ class TheftService
                 ];
             }
 
-            cache()->put($dailyKey, $dailyCount + 1, now()->endOfDay());
-
             // Anti-script rate limit: 3 steal attempts per target before cooling down
             $attemptKey = "theft_attempts_{$character->id}_{$victim->id}";
             $attempts = session($attemptKey, 0);
@@ -214,8 +209,6 @@ class TheftService
                     'jail_minutes' => 0,
                 ];
             }
-
-            session([$attemptKey => $attempts + 1]);
         }
 
         $tier = self::TIERS[$tierKey];
@@ -240,6 +233,13 @@ class TheftService
                 'jailed' => false,
                 'jail_minutes' => 0,
             ];
+        }
+
+        if ($victim) {
+            // Attacker breaks own protection when initiating theft
+            $character->breakProtection();
+            cache()->put($dailyKey, $dailyCount + 1, now()->endOfDay());
+            session([$attemptKey => $attempts + 1]);
         }
 
         // Calculate chance based on effective intelligence + stamina bonus (including gear)

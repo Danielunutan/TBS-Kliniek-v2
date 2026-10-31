@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\Referral;
+use Illuminate\Support\Facades\DB;
 
 class ReferralService
 {
@@ -64,47 +65,58 @@ class ReferralService
      */
     public function checkAndGrantRewards(Character $referrer): int
     {
-        $unrewarded = Referral::where('referrer_id', $referrer->id)
-            ->where('rewarded', false)
-            ->orderBy('id')
-            ->get();
+        return DB::transaction(function () use ($referrer): int {
+            /** @var Character|null $lockedReferrer */
+            $lockedReferrer = Character::where('id', $referrer->id)->lockForUpdate()->first();
+            if (! $lockedReferrer) {
+                return 0;
+            }
 
-        $monthsGranted = 0;
+            $unrewarded = Referral::where('referrer_id', $lockedReferrer->id)
+                ->where('rewarded', false)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
 
-        while ($unrewarded->count() >= 3) {
-            $trio = $unrewarded->splice(0, 3);
+            $monthsGranted = 0;
 
-            foreach ($trio as $item) {
-                $item->update([
-                    'rewarded' => true,
-                    'rewarded_at' => now(),
+            while ($unrewarded->count() >= 3) {
+                $trio = $unrewarded->splice(0, 3);
+
+                foreach ($trio as $item) {
+                    $item->update([
+                        'rewarded' => true,
+                        'rewarded_at' => now(),
+                    ]);
+                }
+
+                // Extend or activate VIP for 1 week (7 days)
+                if ($lockedReferrer->isVip() && $lockedReferrer->vip_expires_at && $lockedReferrer->vip_expires_at->isFuture()) {
+                    $lockedReferrer->vip_expires_at = $lockedReferrer->vip_expires_at->copy()->addDays(7);
+                } else {
+                    $lockedReferrer->is_vip = true;
+                    $lockedReferrer->vip_expires_at = now()->addDays(7);
+                }
+                $lockedReferrer->save();
+                $referrer->is_vip = $lockedReferrer->is_vip;
+                $referrer->vip_expires_at = $lockedReferrer->vip_expires_at;
+
+                $monthsGranted++;
+
+                // Send notification message to referrer
+                $untilFormatted = $lockedReferrer->vip_expires_at ? $lockedReferrer->vip_expires_at->format('d-m-Y H:i') : 'onbepaalde tijd';
+                GameMessage::create([
+                    'recipient_id' => $lockedReferrer->id,
+                    'sender_id' => null,
+                    'sender_name' => 'Directie TBS Kliniek',
+                    'type' => 'vip_reward',
+                    'subject' => '🎁 1 Week Gratis VIP Ontvangen (Referral Beloning)!',
+                    'content' => "Geweldig nieuws! Je hebt 3 nieuwe patiënten aangebracht via jouw persoonlijke referral link. Je VIP status is automatisch geactiveerd of met 7 dagen verlengd (geldig t/m {$untilFormatted})! Bedankt voor het laten groeien van TBS Kliniek.",
                 ]);
             }
 
-            // Extend or activate VIP for 1 week (7 days)
-            if ($referrer->isVip() && $referrer->vip_expires_at && $referrer->vip_expires_at->isFuture()) {
-                $referrer->vip_expires_at = $referrer->vip_expires_at->copy()->addDays(7);
-            } else {
-                $referrer->is_vip = true;
-                $referrer->vip_expires_at = now()->addDays(7);
-            }
-            $referrer->save();
-
-            $monthsGranted++;
-
-            // Send notification message to referrer
-            $untilFormatted = $referrer->vip_expires_at ? $referrer->vip_expires_at->format('d-m-Y H:i') : 'onbepaalde tijd';
-            GameMessage::create([
-                'recipient_id' => $referrer->id,
-                'sender_id' => null,
-                'sender_name' => 'Directie TBS Kliniek',
-                'type' => 'vip_reward',
-                'subject' => '🎁 1 Week Gratis VIP Ontvangen (Referral Beloning)!',
-                'content' => "Geweldig nieuws! Je hebt 3 nieuwe patiënten aangebracht via jouw persoonlijke referral link. Je VIP status is automatisch geactiveerd of met 7 dagen verlengd (geldig t/m {$untilFormatted})! Bedankt voor het laten groeien van TBS Kliniek.",
-            ]);
-        }
-
-        return $monthsGranted;
+            return $monthsGranted;
+        });
     }
 
     /**

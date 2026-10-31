@@ -70,6 +70,10 @@ class TimelineController extends Controller
             return back()->with('error', 'In de isoleercel heb je geen toegang tot de publieke feed!');
         }
 
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
+        }
+
         $validated = $request->validate([
             'content' => ['required', 'string', 'min:2', 'max:280'],
         ]);
@@ -164,6 +168,10 @@ class TimelineController extends Controller
 
         if ($character->isImprisoned()) {
             return back()->with('error', 'In de isoleercel kun je niet reageren op de tijdlijn!');
+        }
+
+        if ($character->isComatose()) {
+            return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
         $validated = $request->validate([

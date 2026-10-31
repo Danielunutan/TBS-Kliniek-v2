@@ -65,6 +65,7 @@
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                 @foreach($bounties as $bounty)
+                @if($bounty->target)
                 <div class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-rose-200 dark:border-rose-900/60 shadow-xs hover:border-rose-400 dark:hover:border-rose-600 transition overflow-hidden flex flex-col justify-between group">
                     <div>
                         <!-- Header Banner -->
@@ -124,6 +125,7 @@
                         @endif
                     </div>
                 </div>
+                @endif
                 @endforeach
             </div>
         @endif

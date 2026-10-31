@@ -404,18 +404,18 @@
 function onboardingWizard() {
     return {
         step: 1,
-        username: '{{ old('username', $suggestedUsername) }}',
-        displayName: '{{ old('display_name', $suggestedDisplayName) }}',
-        birthdate: '{{ old('birthdate', $character?->birthdate?->format('Y-m-d') ?? '') }}',
+        username: @js(old('username', $suggestedUsername)),
+        displayName: @js(old('display_name', $suggestedDisplayName)),
+        birthdate: @js(old('birthdate', $character?->birthdate?->format('Y-m-d') ?? '')),
         calculatedAge: null,
         usernameStatus: 'initial',
         usernameMessage: '',
         usernameLoading: false,
         checkTimeout: null,
-        selectedAvatar: '{{ old('avatar', $character?->avatar ?: 'assets/characters/avatar_male_1.jpg') }}',
-        selectedAvatarUrl: '{{ asset($character?->avatar ?: 'assets/characters/avatar_male_1.jpg') }}',
+        selectedAvatar: @js(old('avatar', $character?->avatar ?: 'assets/characters/avatar_male_1.jpg')),
+        selectedAvatarUrl: @js(asset($character?->avatar ?: 'assets/characters/avatar_male_1.jpg')),
         selectedAvatarLabel: 'Standaard Avatar',
-        selectedColor: '{{ old('profile_color', $character?->profile_color ?: 'purple') }}',
+        selectedColor: @js(old('profile_color', $character?->profile_color ?: 'purple')),
         selectedSpecialty: 'hossel',
         
         // Crop Modal State

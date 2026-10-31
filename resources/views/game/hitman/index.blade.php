@@ -20,11 +20,11 @@
 @endphp
 
 <div class="space-y-6" x-data="{
-    activeTab: '{{ request('tab', 'liquidatie') }}',
-    selectedTargetId: '{{ $initialTarget?->id ?? '' }}',
-    selectedTargetName: '{{ addslashes($initialTarget?->name ?? '') }}',
+    activeTab: @js(request('tab', 'liquidatie')),
+    selectedTargetId: @js((string) ($initialTarget?->id ?? '')),
+    selectedTargetName: @js($initialTarget?->name ?? ''),
     selectedTargetSameWing: {{ $initialTarget && $initialTarget->in_same_wing ? 'true' : 'false' }},
-    selectedTargetRevealedWing: '{{ addslashes($initialTarget?->revealed_location ?? '') }}',
+    selectedTargetRevealedWing: @js($initialTarget?->revealed_location ?? ''),
     bulletAmount: {{ $canOneTap ? 1 : $minBullets }},
     minBullets: {{ $minBullets }},
     canOneTap: {{ $canOneTap ? 'true' : 'false' }},
@@ -292,7 +292,7 @@
                         </div>
                     </div>
                     <button type="button"
-                            @click="activeTab = 'inlichtingen'; selectTarget('{{ $feud->attacker->id }}', '{{ addslashes($feud->attacker->name) }}', false, '')"
+                            @click="activeTab = 'inlichtingen'; selectTarget(@js((string) $feud->attacker->id), @js($feud->attacker->name), false, '')"
                             class="py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer shrink-0 whitespace-nowrap">
                         <i class="fa-solid fa-crosshairs mr-1"></i> Spoor Op
                     </button>
@@ -399,7 +399,7 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-80 overflow-y-auto p-1 -mx-1">
                         @foreach($targets as $t)
-                        <div @click="selectTarget('{{ $t->id }}', '{{ addslashes($t->name) }}', {{ $t->in_same_wing ? 'true' : 'false' }}, '{{ addslashes($t->revealed_location ?? '') }}')"
+                        <div @click="selectTarget(@js((string) $t->id), @js($t->name), {{ $t->in_same_wing ? 'true' : 'false' }}, @js($t->revealed_location ?? ''))"
                              :class="selectedTargetId === '{{ $t->id }}' ? 'border-purple-600 dark:border-purple-500 bg-purple-50/60 dark:bg-purple-900/40 ring-2 ring-purple-500/40 shadow-2xs' : 'border-slate-200 dark:border-purple-900/50 bg-slate-50/80 dark:bg-purple-950/30 hover:bg-white dark:hover:bg-purple-950/60'"
                              class="p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between gap-2">
                             <div class="flex items-center justify-between gap-2">
@@ -865,7 +865,7 @@
                                     </form>
                                 @endif
                                 <button type="button"
-                                        @click="selectTarget('{{ $op['target_id'] }}', '{{ addslashes($op['target_name']) }}', {{ $op['same_wing'] ? 'true' : 'false' }}, '{{ addslashes($op['revealed_location'] ?? '') }}'); activeTab = 'liquidatie';"
+                                        @click="selectTarget(@js((string) $op['target_id']), @js($op['target_name']), {{ $op['same_wing'] ? 'true' : 'false' }}, @js($op['revealed_location'] ?? '')); activeTab = 'liquidatie';"
                                         class="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition cursor-pointer flex items-center justify-center gap-1.5">
                                     <i class="fa-solid fa-crosshairs"></i>
                                     <span>Direct Viseren</span>

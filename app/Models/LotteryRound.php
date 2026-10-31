@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -82,18 +83,25 @@ class LotteryRound extends Model
         $current = self::where('is_drawn', false)->orderByDesc('id')->first();
 
         if (! $current) {
-            $latest = self::orderByDesc('id')->first();
-            $nextRound = $latest ? $latest->round_number + 1 : 1;
+            $current = Cache::lock('lottery_round_creation_lock', 10)->block(5, function (): self {
+                $existing = self::where('is_drawn', false)->orderByDesc('id')->first();
+                if ($existing) {
+                    return $existing;
+                }
 
-            $current = self::create([
-                'round_number' => $nextRound,
-                'jackpot' => 25000,
-                'tax_collected' => 0,
-                'starts_at' => now(),
-                'draws_at' => now()->addDays(14),
-                'is_drawn' => false,
-                'total_tickets_sold' => 0,
-            ]);
+                $latest = self::orderByDesc('id')->first();
+                $nextRound = $latest ? $latest->round_number + 1 : 1;
+
+                return self::create([
+                    'round_number' => $nextRound,
+                    'jackpot' => 25000,
+                    'tax_collected' => 0,
+                    'starts_at' => now(),
+                    'draws_at' => now()->addDays(14),
+                    'is_drawn' => false,
+                    'total_tickets_sold' => 0,
+                ]);
+            });
         }
 
         return $current;

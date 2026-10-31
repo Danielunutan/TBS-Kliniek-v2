@@ -312,6 +312,13 @@ class ChatController extends Controller
             ], 422);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
         $rawMessage = trim((string) $request->input('message', ''));
         $cleanMessage = strip_tags($rawMessage);
 
@@ -687,6 +694,13 @@ class ChatController extends Controller
             ], 422);
         }
 
+        if ($character->isComatose()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.',
+            ], 422);
+        }
+
         $partner = Character::find($partnerId);
         if (! $partner) {
             return response()->json(['success' => false, 'message' => 'Patiënt niet gevonden.'], 404);
@@ -1059,8 +1073,9 @@ class ChatController extends Controller
             ], 403);
         }
 
-        $otherId = ((int) $msg->sender_id === (int) $character->id) ? (int) $msg->recipient_id : (int) $msg->sender_id;
-        $convKey = min($character->id, $otherId).'_'.max($character->id, $otherId);
+        $senderId = (int) ($msg->sender_id ?? 0);
+        $recipientId = (int) $msg->recipient_id;
+        $convKey = min($senderId, $recipientId).'_'.max($senderId, $recipientId);
         $deleted = Cache::get("dm_deleted_ids_{$convKey}", []);
         $deleted[] = $id;
         $deleted = array_slice(array_unique($deleted), -50);

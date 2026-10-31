@@ -144,6 +144,14 @@ class VipController extends Controller
             /** @var Character $locked */
             $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
+            if ($locked->isComatose()) {
+                return 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.';
+            }
+
+            if ($locked->isImprisoned()) {
+                return 'Vanuit de isoleercel kun je geen VIP-beloningen inwisselen!';
+            }
+
             if ($currency === 'stars') {
                 if (($locked->stars ?? 0) < $cost) {
                     return "Niet genoeg Gouden Sterren! Je hebt {$locked->stars} sterren, maar {$cost} sterren zijn vereist.";
@@ -168,7 +176,7 @@ class VipController extends Controller
                     $locked->health = $locked->max_health;
                     break;
                 case 'respect_boost':
-                    $locked->respect += 50;
+                    $locked->addRespect(50);
                     break;
                 case 'week_vip_stars':
                     $locked->is_vip = true;

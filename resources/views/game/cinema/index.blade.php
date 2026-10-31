@@ -109,7 +109,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             @foreach($officialRooms as $room)
-            <div x-show="matchesFilter(true, {{ $room->host_character_id === $character->id ? 'true' : 'false' }}, '{{ addslashes($room->title) }}', '{{ addslashes($room->host?->name ?? '') }}')"
+            <div x-show="matchesFilter(true, {{ $room->host_character_id === $character->id ? 'true' : 'false' }}, @js($room->title), @js($room->host?->name ?? ''))"
                  class="bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-700/80 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between group">
                 
                 <!-- Video Thumbnail Banner with Play Overlay -->
@@ -227,7 +227,7 @@
         @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($patientRooms as $pRoom)
-            <div x-show="matchesFilter(false, {{ $pRoom->host_character_id === $character->id ? 'true' : 'false' }}, '{{ addslashes($pRoom->title) }}', '{{ addslashes($pRoom->host?->name ?? '') }}')"
+            <div x-show="matchesFilter(false, {{ $pRoom->host_character_id === $character->id ? 'true' : 'false' }}, @js($pRoom->title), @js($pRoom->host?->name ?? ''))"
                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md transition flex flex-col justify-between group">
                 
                 <!-- Video Thumbnail Banner -->

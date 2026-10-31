@@ -103,6 +103,7 @@
         @else
         <div class="space-y-4">
             @foreach($posts as $post)
+            @if($post->character)
             @php
                 $isLikedByMe = $post->isLikedBy($character);
                 $myEmoji = $post->likedEmojiBy($character);
@@ -241,7 +242,7 @@
 
                         <!-- Privébericht Button -->
                         <button type="button" 
-                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $post->character->id }}, '{{ addslashes($post->character->name) }}', '{{ $post->character->avatar_url }}'); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $post->character->id]) }}'; }"
+                                onclick="if(window.openTBSDirectChat){ window.openTBSDirectChat({{ $post->character->id }}, @js($post->character->name), @js($post->character->avatar_url)); } else { window.location.href='{{ route('chat.index', ['tab' => 'direct', 'recipient' => $post->character->id]) }}'; }"
                                 class="flex items-center gap-1.5 text-slate-500 hover:text-purple-600 transition font-bold group cursor-pointer">
                             <span class="p-1 rounded-lg group-hover:bg-purple-50 transition">
                                 <i class="fa-regular fa-paper-plane group-hover:text-purple-600"></i>
@@ -266,6 +267,7 @@
                     @if($post->comments->isNotEmpty())
                     <div class="space-y-2.5">
                         @foreach($post->comments as $comment)
+                        @if($comment->character)
                         <div class="bg-slate-50 border border-slate-200/70 rounded-xl p-3 flex items-start justify-between gap-3">
                             <div class="flex items-start gap-2.5">
                                 <a href="{{ route('profile.show', $comment->character->name) }}" class="shrink-0">
@@ -306,6 +308,7 @@
                             </form>
                             @endif
                         </div>
+                        @endif
                         @endforeach
                     </div>
                     @endif
@@ -350,6 +353,7 @@
                     </form>
                 </div>
             </div>
+            @endif
             @endforeach
         </div>
 

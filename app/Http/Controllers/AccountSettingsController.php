@@ -29,7 +29,7 @@ class AccountSettingsController extends Controller
         $daysUntilChange = 0;
 
         if ($character->username_changed_at) {
-            $nextAllowed = $character->username_changed_at->addMonths(6);
+            $nextAllowed = $character->username_changed_at->copy()->addMonths(6);
             if ($nextAllowed->isFuture()) {
                 $canChangeUsername = false;
                 $daysUntilChange = (int) now()->diffInDays($nextAllowed);
@@ -108,7 +108,7 @@ class AccountSettingsController extends Controller
         $daysUntilChange = 0;
 
         if ($character->username_changed_at) {
-            $nextAllowed = $character->username_changed_at->addMonths(6);
+            $nextAllowed = $character->username_changed_at->copy()->addMonths(6);
             if ($nextAllowed->isFuture()) {
                 $isUsernameLocked = true;
                 $daysUntilChange = (int) now()->diffInDays($nextAllowed);

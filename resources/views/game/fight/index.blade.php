@@ -331,7 +331,7 @@
             <!-- MOBILE TOUCH CARDS (block on mobile, hidden on md+) -->
             <div class="block md:hidden space-y-2.5">
                 @forelse($opponents as $index => $opp)
-                <div x-show="!searchQuery || '{{ strtolower($opp->name) }}'.includes(searchQuery.toLowerCase())"
+                <div x-show="!searchQuery || @js(strtolower($opp->name)).includes(searchQuery.toLowerCase())"
                      class="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 space-y-2.5 shadow-2xs">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2.5 min-w-0">
@@ -421,7 +421,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium">
                         @forelse($opponents as $index => $opp)
-                        <tr x-show="!searchQuery || '{{ strtolower($opp->name) }}'.includes(searchQuery.toLowerCase())"
+                        <tr x-show="!searchQuery || @js(strtolower($opp->name)).includes(searchQuery.toLowerCase())"
                             class="hover:bg-slate-50 transition-colors">
                             
                             <!-- Rank Number -->

@@ -457,14 +457,14 @@
                         <!-- Top Right Action Controls -->
                         <div class="relative z-10 flex items-center justify-end gap-2">
                             <button type="button" 
-                                    @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $myGang->id }}, name: '{{ addslashes($myGang->name) }}' })"
+                                    @click="window.tbsOpenReportModal({ type: 'gang', id: {{ $myGang->id }}, name: @js($myGang->name) })"
                                     class="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
                                     title="Rapporteer deze bende bij moderatie">
                                 <i class="fa-solid fa-flag text-rose-400"></i>
                                 <span class="hidden sm:inline">Rapporteer</span>
                             </button>
                             <form action="{{ route('gangs.leave') }}" method="POST"
-                                  onsubmit="return confirm('{{ $character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . addslashes($myGang->name) . ' wilt verlaten?') }}');">
+                                  onsubmit="return confirm(@js($character->gang_role === 'leader' ? ($myGang->members->count() > 1 ? 'Weet je zeker dat je de bende wilt verlaten? Het leiderschap wordt overgedragen aan een ander bendelid.' : 'Weet je zeker dat je de bende wilt verlaten? Omdat je het enige lid bent, wordt de bende definitief opgeheven!') : ($myLeaveFee > 0 ? 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten? De vertrekboete bedraagt €' . number_format($myLeaveFee, 0, ',', '.') . ' (' . $myLeaveMultiplier . 'x uurloon) en wordt overgemaakt naar de bende kluis.' : 'Weet je zeker dat je ' . $myGang->name . ' wilt verlaten?')));">
                                 @csrf
                                 <button type="submit" 
                                         class="px-3 py-1.5 rounded-xl bg-black/60 hover:bg-rose-900/80 text-white text-xs font-bold border border-white/20 shadow-xs flex items-center gap-1.5 backdrop-blur-xs transition cursor-pointer"
@@ -2399,9 +2399,13 @@
                                             {{ $log->created_at->format('H:i') }}
                                         </td>
                                         <td class="py-2.5 px-3 font-bold text-slate-800 dark:text-slate-200">
+                                            @if($log->character)
                                             <a href="{{ route('profile.show', $log->character->name) }}" class="text-purple-700 dark:text-purple-400 hover:underline">
                                                 {{ $log->character->name }}
                                             </a>
+                                            @else
+                                            <span class="text-slate-400">Onbekend</span>
+                                            @endif
                                         </td>
                                         <td class="py-2.5 px-3 text-right font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">
                                             +€{{ number_format($log->amount, 0, ',', '.') }}
@@ -3433,9 +3437,9 @@
             @if($myGang && $myGang->isOfficer($character))
             <div x-show="activeGangTab === 'instellingen'" 
                  x-data="{ 
-                     settingsTab: '{{ session('settings_tab', 'algemeen') }}',
-                     previewName: '{{ addslashes($myGang->name) }}',
-                     previewTag: '{{ addslashes($myGang->tag) }}'
+                     settingsTab: @js(session('settings_tab', 'algemeen')),
+                     previewName: @js($myGang->name),
+                     previewTag: @js($myGang->tag)
                  }" 
                  class="space-y-5">
 

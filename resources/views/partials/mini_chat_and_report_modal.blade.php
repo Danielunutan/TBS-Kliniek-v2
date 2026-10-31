@@ -1818,7 +1818,8 @@
                 // Convert links (https:// or http://) into safe clickable links
                 const urlRegex = /(?<!href="|href=')(https?:\/\/[^\s<]+)/gi;
                 safe = safe.replace(urlRegex, (url) => {
-                    return `<a href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold text-amber-300 dark:text-amber-400 hover:text-amber-200 dark:hover:text-amber-300 break-all transition">${url}</a>`;
+                    const cleanUrl = url.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();" class="underline font-bold text-amber-300 dark:text-amber-400 hover:text-amber-200 dark:hover:text-amber-300 break-all transition">${cleanUrl}</a>`;
                 });
 
                 return safe;

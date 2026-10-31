@@ -136,6 +136,10 @@ class AdminModerationController extends Controller
         /** @var User $currentUser */
         $currentUser = Auth::user();
 
+        if (($user->isOwner() || $user->role === 'admin') && ! $currentUser->isOwner()) {
+            return back()->with('error', 'Alleen de eigenaar kan de verbanning van een Admin of Eigenaar opheffen.');
+        }
+
         if (! $user->is_banned) {
             return back()->with('info', 'Deze gebruiker is momenteel niet verbannen.');
         }
@@ -157,6 +161,10 @@ class AdminModerationController extends Controller
 
         if ($user->id === $currentUser->id) {
             return back()->with('error', 'Je kunt jezelf geen waarschuwing geven.');
+        }
+
+        if (($user->isOwner() || $user->role === 'admin') && ! $currentUser->isOwner()) {
+            return back()->with('error', 'Je kunt geen officiële waarschuwing uitdelen aan een Admin of de Eigenaar.');
         }
 
         $validated = $request->validate([

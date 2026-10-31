@@ -667,11 +667,11 @@
                     </div>
                     <div class="min-w-0">
                         <div class="font-black text-slate-900 dark:text-white truncate">
-                            {{ $log->character->name }}
+                            {{ $log->character?->name ?? 'Onbekende Speler' }}
                             @if($log->gang)
                                 <span class="text-amber-500 font-extrabold text-[10px]">[{{ $log->gang->tag }}]</span>
                             @endif
-                            &bull; <span class="font-normal text-slate-600 dark:text-slate-300">{{ $log->heist->name }}</span>
+                            &bull; <span class="font-normal text-slate-600 dark:text-slate-300">{{ $log->heist?->name ?? 'Onbekende Kraak' }}</span>
                         </div>
                         <div class="text-[11px] text-slate-500 dark:text-slate-400">
                             {{ $log->created_at->diffForHumans() }} &bull; {{ $log->vehicle?->name ?? 'Onbekend voertuig' }}

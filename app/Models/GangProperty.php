@@ -6,6 +6,7 @@ use App\Support\GangPropertyCatalog;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class GangProperty extends Model
 {
@@ -32,13 +33,17 @@ class GangProperty extends Model
         return $this->belongsTo(Gang::class);
     }
 
-    public function assignedNpc(): BelongsTo
+    public function assignedNpc(): HasOne
     {
-        return $this->belongsTo(GangNpc::class, 'assigned_npc_id');
+        return $this->hasOne(GangNpc::class, 'assigned_property_id');
     }
 
     public function getCatalogDefinition(): ?array
     {
+        if (empty($this->property_key)) {
+            return null;
+        }
+
         return GangPropertyCatalog::get($this->property_key);
     }
 

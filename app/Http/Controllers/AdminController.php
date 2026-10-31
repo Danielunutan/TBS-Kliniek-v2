@@ -127,6 +127,10 @@ class AdminController extends Controller
         /** @var User $currentUser */
         $currentUser = Auth::user();
 
+        if ($character->user && ($character->user->isOwner() || $character->user->role === 'admin') && ! $currentUser->isOwner()) {
+            return back()->with('error', 'Alleen de eigenaar kan het profiel of de status van een Admin of Eigenaar wijzigen.');
+        }
+
         // Moderatie: Update login gebruikersnaam (User name)
         if ($request->filled('username') && $character->user) {
             $character->user->name = trim((string) $validated['username']);
@@ -304,6 +308,10 @@ class AdminController extends Controller
      */
     public function updateGameplay(Request $request): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
+        }
+
         $validated = $request->validate([
             'win_rate_casino' => 'required|integer|between:1,100',
             'win_rate_theft' => 'required|integer|between:1,100',
@@ -346,6 +354,10 @@ class AdminController extends Controller
      */
     public function updateChests(Request $request): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
+        }
+
         $validated = $request->validate([
             'case_xxl_price_cash' => 'required|numeric|min:0',
             'case_xxl_price_stars' => 'required|numeric|min:0',
@@ -391,6 +403,10 @@ class AdminController extends Controller
      */
     public function updateVault(Request $request): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
+        }
+
         $validated = $request->validate([
             'vault_code' => 'required|string|min:2|max:10',
             'vault_reward_cash' => 'required|numeric|min:0',
@@ -412,6 +428,10 @@ class AdminController extends Controller
      */
     public function randomizeVaultCode(): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen deze instellingen wijzigen.');
+        }
+
         $newCode = (string) rand(1000, 9999);
         GameSetting::set('vault_code', $newCode, 'Automatisch gegenereerde kluiscode');
 
@@ -668,6 +688,10 @@ class AdminController extends Controller
      */
     public function linkBuyMeACoffee(Request $request, BuyMeACoffeeOrder $order): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
+        }
+
         $validated = $request->validate([
             'character_id' => 'required|exists:characters,id',
             'membership_tier' => 'nullable|string',
@@ -737,6 +761,10 @@ class AdminController extends Controller
      */
     public function regrantBuyMeACoffee(BuyMeACoffeeOrder $order): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
+        }
+
         if (! $order->character) {
             return back()->with('error', 'Koppel eerst een speler aan deze order voordat je beloningen kunt uitkeren!');
         }
@@ -783,6 +811,10 @@ class AdminController extends Controller
      */
     public function cancelBuyMeACoffee(BuyMeACoffeeOrder $order): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
+        }
+
         $character = $order->character;
 
         $order->status = 'cancelled';
@@ -805,6 +837,10 @@ class AdminController extends Controller
      */
     public function createBuyMeACoffeeManual(Request $request): RedirectResponse
     {
+        if (Auth::user()->role === 'moderator') {
+            return back()->with('error', 'Alleen beheerders (Admin/Owner) mogen Buy Me a Coffee orders beheren.');
+        }
+
         $validated = $request->validate([
             'supporter_name' => 'required|string|max:100',
             'supporter_email' => 'nullable|email|max:150',

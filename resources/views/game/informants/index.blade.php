@@ -4,7 +4,7 @@
 @php
     $totalWealth = (int) $character->cash + (int) $character->bank;
 @endphp
-<div class="space-y-6" x-data="{ targetName: '{{ addslashes($patients->first()?->name ?? '') }}' }">
+<div class="space-y-6" x-data="{ targetName: @js($patients->first()?->name ?? '') }">
     <div class="bg-white rounded-2xl p-6 sm:p-8 text-slate-800 relative overflow-hidden shadow-xs border border-slate-200">
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
