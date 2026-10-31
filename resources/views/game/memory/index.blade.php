@@ -93,6 +93,15 @@
                         <span>Direct Opnieuw Spelen (10 Sterren ⭐)</span>
                     </button>
                 </form>
+                @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                <button type="button"
+                        onclick="window.tbsOpenSponsorAd('cooldown_memory')"
+                        {{ $character->isImprisoned() || $character->isComatose() ? 'disabled' : '' }}
+                        class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-play text-[12px]"></i>
+                    <span>Overslaan via Sponsor-Ad (Gratis)</span>
+                </button>
+                @endif
                 <p class="text-[10px] text-slate-500 dark:text-slate-400">Gebruik 10 Sterren ⭐ om de wachttijd over te slaan en onmiddellijk weer te spelen.</p>
             </div>
         </div>

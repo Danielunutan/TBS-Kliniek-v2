@@ -215,18 +215,22 @@
                 </div>
             </div>
 
-            <!-- Daily Card 4: Directe Vrijlating (1 Ad, Onbeperkt) -->
+            <!-- Daily Card 4: Directe Vrijlating (Onbeperkt) -->
+            @php
+                $reqPrisonAds = $character->getRequiredPrisonAds();
+                $currPrisonAds = (int) ($character->ad_prison_progress ?? 0);
+            @endphp
             <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between transition-all duration-200 group relative overflow-hidden">
                 <div class="relative z-10">
                     <div class="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-800/70 flex items-center justify-center text-xl mb-3 group-hover:scale-105 transition shadow-2xs">
                         <i class="fa-solid fa-unlock-keyhole"></i>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 px-2 py-0.5 rounded-full">Onbeperkt • 1 Ad per vrijlating</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 px-2 py-0.5 rounded-full">Onbeperkt • {{ $character->isImprisoned() ? "{$currPrisonAds}/{$reqPrisonAds} Ads" : '-3m / Vrijlating' }}</span>
                     </div>
                     <h3 class="text-base font-extrabold text-slate-900 dark:text-white group-hover:text-rose-600 transition">Direct Vrijkomen</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        Zit je vast in de isoleercel? Bekijk 1 sponsor video en kom per direct vrij! Dit mag zo vaak als je wilt.
+                        Zit je vast in de isoleercel? Elke sponsor video haalt 3 minuten van je straf af en bij {{ $reqPrisonAds }} {{ $reqPrisonAds === 1 ? 'ad' : 'ads' }} kom je per direct vrij!
                     </p>
 
                     <!-- Status Indicator -->
@@ -234,11 +238,17 @@
                         <div class="flex items-center justify-between text-[11px] font-bold">
                             <span class="text-slate-500 dark:text-slate-400">Status:</span>
                             @if($character->isImprisoned())
-                                <span class="text-rose-600 dark:text-rose-400 font-extrabold animate-pulse">Vast in Isoleercel!</span>
+                                <span class="text-rose-600 dark:text-rose-400 font-extrabold animate-pulse">Vast ({{ $currPrisonAds }} / {{ $reqPrisonAds }} Ads)</span>
                             @else
                                 <span class="text-emerald-600 dark:text-emerald-400 font-extrabold">Altijd Beschikbaar</span>
                             @endif
                         </div>
+                        @if($character->isImprisoned())
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700 mt-1">
+                            <div class="bg-rose-600 h-full rounded-full transition-all duration-300"
+                                 style="width: {{ min(100, ($currPrisonAds / max(1, $reqPrisonAds)) * 100) }}%;"></div>
+                        </div>
+                        @endif
                     </div>
                 </div>
                 <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 relative z-10">
@@ -252,7 +262,7 @@
                     @else
                         <button type="button" onclick="window.tbsOpenSponsorAd('prison', () => { window.location.reload(); })" class="w-full min-h-11 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center leading-tight">
                             <i class="fa-solid fa-unlock text-xs"></i>
-                            <span>Kijk Ad voor Direct Vrij</span>
+                            <span>Kijk Ad voor Vrijlating ({{ $currPrisonAds + 1 }}/{{ $reqPrisonAds }})</span>
                         </button>
                     @endif
                 </div>

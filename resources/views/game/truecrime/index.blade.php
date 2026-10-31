@@ -77,6 +77,15 @@
                     </div>
 
                     <!-- Progress Bar & Segments -->
+                    @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                    <button type="button"
+                            onclick="window.tbsOpenSponsorAd('cooldown_true_crime')"
+                            @disabled($character->isImprisoned() || $character->isComatose())
+                            class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-play text-[12px]"></i>
+                        <span>Bekijk Sponsor-Ad ({{ $adsWatched }}/5 Bekeken)</span>
+                    </button>
+                    @endif
                     <form action="{{ route('true_crime.skip_cooldown_stars') }}" method="POST" class="w-full">
                         @csrf
                         <button type="submit" 
@@ -309,13 +318,12 @@
                 </div>
 
                 <!-- AD SKIP BUTTON (TO UNLOCK NEXT CASE IMMEDIATELY) -->
-                <form action="{{ route('true_crime.skip_cooldown_ad') }}" method="POST">
-                    @csrf
-                    <button type="submit" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fa-solid fa-folder-open"></i>
-                        <span>Direct Nieuw Dossier Openen via Sponsor-Ad</span>
-                    </button>
-                </form>
+                @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_true_crime')" @disabled($character->isImprisoned() || $character->isComatose()) class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>Direct Nieuw Dossier Openen via Sponsor-Ad</span>
+                </button>
+                @endif
 
                 <button type="button" @click="closeModalAndReload()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                     Sluiten & 24u Afwachten

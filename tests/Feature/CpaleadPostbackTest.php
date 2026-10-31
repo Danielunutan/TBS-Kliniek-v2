@@ -89,4 +89,52 @@ class CpaleadPostbackTest extends TestCase
         $character->refresh();
         $this->assertEquals($afterFirstCash, $character->cash);
     }
+
+    public function test_postback_vip_milestone_only_triggers_on_exact_250_multiples_and_prison_resets_progress(): void
+    {
+        $character = Character::first();
+        $character->update([
+            'ads_watched_total' => 249,
+            'is_vip' => false,
+            'vip_expires_at' => null,
+            'is_in_prison' => true,
+            'prison_until' => now()->addMinutes(5),
+            'ad_prison_progress' => 2,
+            'prison_escape_attempted' => true,
+        ]);
+
+        // 250th ad unlocks 24h VIP and releases from prison
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => 'TBS-'.$character->id,
+            'subid2' => 'prison',
+            'lead_id' => 'cpalead_lead_vip_250',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals(250, $character->ads_watched_total);
+        $this->assertTrue((bool) $character->is_vip);
+        $this->assertFalse((bool) $character->is_in_prison);
+        $this->assertEquals(0, $character->ad_prison_progress);
+        $this->assertFalse((bool) $character->prison_escape_attempted);
+
+        // Expire VIP and verify 251st ad does NOT re-grant free VIP
+        $character->update([
+            'is_vip' => false,
+            'vip_expires_at' => now()->subMinute(),
+        ]);
+
+        $this->get('/api/cpalead/postback?'.http_build_query([
+            'password' => 'test_cpalead_secret',
+            'subid' => $character->id,
+            'subid2' => 'cash',
+            'lead_id' => 'cpalead_lead_vip_251',
+            'payout' => '0.50',
+        ]))->assertOk();
+
+        $character->refresh();
+        $this->assertEquals(251, $character->ads_watched_total);
+        $this->assertFalse((bool) $character->is_vip);
+    }
 }

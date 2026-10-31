@@ -455,11 +455,16 @@ class MemoryController extends Controller
                 ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
         }
 
-        $stat->update([
-            'cooldown_until' => null,
-        ]);
+        $request->merge(['reward_type' => 'cooldown_memory']);
+        $claimResponse = app(SponsorAdController::class)->claim($request);
+        $data = $claimResponse->getData(true);
+
+        if ($claimResponse->getStatusCode() !== 200 || empty($data['success'])) {
+            return redirect()->route('memory.index')
+                ->with('error', $data['message'] ?? 'Bekijk eerst de volledige sponsor-advertentie om de wachttijd te resetten.');
+        }
 
         return redirect()->route('memory.index')
-            ->with('success', '⚡ Dankzij de sponsor-ad is je geheugen weer 100% gefocust en kun je direct weer een ronde spelen!');
+            ->with('success', $data['reward_details'] ?? '⚡ Dankzij de sponsor-ad is je geheugen weer 100% gefocust en kun je direct weer een ronde spelen!');
     }
 }

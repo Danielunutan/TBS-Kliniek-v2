@@ -326,26 +326,22 @@ class ConnectFourController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        return DB::transaction(function () use ($character): RedirectResponse {
-            /** @var CharacterConnectFourStat $stat */
-            $stat = CharacterConnectFourStat::where('character_id', $character->id)
-                ->lockForUpdate()
-                ->firstOrCreate(['character_id' => $character->id]);
+        $stat = CharacterConnectFourStat::firstOrCreate(['character_id' => $character->id]);
+        if (! $stat->isOnCooldown()) {
+            return redirect()->route('connect_four.index')
+                ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+        }
 
-            if (! $stat->isOnCooldown()) {
-                return redirect()->route('connect_four.index')
-                    ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
-            }
+        $request->merge(['reward_type' => 'cooldown_connect_four']);
+        $claimResponse = app(SponsorAdController::class)->claim($request);
+        $data = $claimResponse->getData(true);
 
-            $stat->update([
-                'cooldown_until' => null,
-                'matches_played' => 0,
-                'current_player_wins' => 0,
-                'current_arjan_wins' => 0,
-                'current_draws' => 0,
-            ]);
+        if ($claimResponse->getStatusCode() !== 200 || empty($data['success'])) {
+            return redirect()->route('connect_four.index')
+                ->with('error', $data['message'] ?? 'Bekijk eerst de volledige sponsor-advertentie om de wachttijd te resetten.');
+        }
 
-            return redirect()->route('connect_four.index')->with('success', 'Dankzij de sponsor-advertentie heeft OOHPA Arjan direct zijn koffie op en staat hij te popelen voor een nieuw 5-potjes toernooi!');
-        });
+        return redirect()->route('connect_four.index')
+            ->with('success', $data['reward_details'] ?? 'Dankzij de sponsor-advertentie heeft OOHPA Arjan direct zijn koffie op en staat hij te popelen voor een nieuw 5-potjes toernooi!');
     }
 }

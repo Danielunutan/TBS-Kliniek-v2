@@ -22,7 +22,7 @@ class CpaleadPostbackController extends Controller
      */
     public function handle(Request $request): Response
     {
-        $configuredPassword = config('services.cpalead.password') ?? env('CPALEAD_POSTBACK_PASSWORD');
+        $configuredPassword = config('services.cpalead.password');
         $incomingPassword = $request->input('password');
 
         // 1. Enforce postback password authentication
@@ -64,7 +64,8 @@ class CpaleadPostbackController extends Controller
         }
 
         // 4. Resolve Character
-        $character = Character::find($subid);
+        $normalizedSubId = preg_replace('/^TBS-/i', '', $subid);
+        $character = ctype_digit((string) $normalizedSubId) ? Character::find((int) $normalizedSubId) : null;
         if (! $character) {
             Log::info('CPAlead postback: Character not found for subid.', ['subid' => $subid, 'lead_id' => $leadId]);
 
@@ -88,50 +89,65 @@ class CpaleadPostbackController extends Controller
 
         // 5. Grant reward inside a database transaction
         $rewardGranted = '';
+        $isDuplicate = false;
 
-        DB::transaction(function () use ($character, $leadId, $subid, $subid2, $payout, $campaignId, $campaignName, $ipAddress, &$rewardGranted) {
+        DB::transaction(function () use ($character, $leadId, $subid, $subid2, $payout, $campaignId, $campaignName, $ipAddress, &$rewardGranted, &$isDuplicate) {
+            /** @var Character|null $lockedCharacter */
+            $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
+            if (! $lockedCharacter) {
+                return;
+            }
+
             // Check double-entry lock
             if (CpaleadConversion::where('lead_id', $leadId)->lockForUpdate()->exists()) {
+                $isDuplicate = true;
+
                 return;
             }
 
             // Increment sponsor ad counts
             $today = now()->format('Y-m-d');
-            if ($character->last_ad_date !== $today) {
-                $character->ads_watched_today = 1;
-                $character->last_ad_date = $today;
+            if ($lockedCharacter->last_ad_date !== $today) {
+                $lockedCharacter->ads_watched_today = 1;
+                $lockedCharacter->last_ad_date = $today;
             } else {
-                $character->ads_watched_today = ($character->ads_watched_today ?? 0) + 1;
+                $lockedCharacter->ads_watched_today = ($lockedCharacter->ads_watched_today ?? 0) + 1;
             }
 
-            $character->ads_watched_total = ($character->ads_watched_total ?? 0) + 1;
-            $character->last_ad_watched_at = now();
+            $lockedCharacter->ads_watched_total = ($lockedCharacter->ads_watched_total ?? 0) + 1;
+            $lockedCharacter->last_ad_watched_at = now();
 
             // Check 250-ad milestone for 24h Free VIP
             $vipNotice = '';
-            if ($character->ads_watched_total >= 250 && (! $character->is_vip || ($character->vip_expires_at && $character->vip_expires_at->isPast()))) {
-                $character->is_vip = true;
-                $character->vip_expires_at = now()->addHours(24);
+            if ($lockedCharacter->ads_watched_total > 0 && $lockedCharacter->ads_watched_total % 250 === 0) {
+                $lockedCharacter->is_vip = true;
+                $lockedCharacter->vip_expires_at = ($lockedCharacter->vip_expires_at && $lockedCharacter->vip_expires_at->isFuture())
+                    ? $lockedCharacter->vip_expires_at->addHours(24)
+                    : now()->addHours(24);
                 $vipNotice = ' 🌟 24 UUR GRATIS VIP ONTGRENDELD!';
             }
 
             // Grant chosen reward
             switch ($subid2) {
                 case 'prison':
-                    if ($character->is_in_prison && $character->prison_until && $character->prison_until->isFuture()) {
-                        $newUntil = $character->prison_until->subMinutes(15);
+                    if ($lockedCharacter->isImprisoned() && $lockedCharacter->prison_until) {
+                        $newUntil = $lockedCharacter->prison_until->copy()->subMinutes(15);
                         if ($newUntil->isPast()) {
-                            $character->is_in_prison = false;
-                            $character->prison_until = null;
-                            $character->prison_reason = null;
+                            $lockedCharacter->is_in_prison = false;
+                            $lockedCharacter->prison_until = null;
+                            $lockedCharacter->prison_reason = null;
+                            $lockedCharacter->ad_prison_progress = 0;
+                            $lockedCharacter->prison_escape_attempted = false;
                             $rewardGranted = '-15 min straftijd (Direct vrijgelaten uit isoleercel!)';
                         } else {
-                            $character->prison_until = $newUntil;
+                            $lockedCharacter->prison_until = $newUntil;
                             $rewardGranted = '-15 min straftijd';
                         }
                     } else {
                         // Fallback to cash if not in prison
-                        $this->economy->addCash($character, 2500);
+                        $lockedCharacter->ad_prison_progress = 0;
+                        $lockedCharacter->save();
+                        $this->economy->addCash($lockedCharacter, 2500, 'sponsor_ad');
                         $rewardGranted = '€2.500 zakgeld (Niet in cel)';
                     }
                     break;
@@ -140,7 +156,7 @@ class CpaleadPostbackController extends Controller
                 case 'bullet':
                 case 'kogels':
                 case 'kogel':
-                    $character->bullets = ($character->bullets ?? 0) + 50;
+                    $lockedCharacter->bullets = ($lockedCharacter->bullets ?? 0) + 50;
                     $rewardGranted = '+50 Scherpe Kogels 💣';
                     break;
 
@@ -149,7 +165,7 @@ class CpaleadPostbackController extends Controller
                 case 'kogel_vest':
                 case 'armor':
                 case 'armour':
-                    $character->vest_until = now()->addHours(12);
+                    $lockedCharacter->vest_until = now()->addHours(12);
                     $rewardGranted = '12u Kogelwerend Vest 🛡️';
                     break;
 
@@ -158,38 +174,40 @@ class CpaleadPostbackController extends Controller
                 case 'ic':
                 case 'intensive_care':
                 case 'revive':
-                    $character->coma_until = null;
-                    $character->health = max(25, (int) ($character->max_health * 0.5));
+                    $lockedCharacter->ad_coma_progress = 0;
+                    $lockedCharacter->coma_until = null;
+                    $lockedCharacter->health = max(25, (int) ($lockedCharacter->max_health * 0.5));
                     $rewardGranted = 'Ontwaakt uit Intensive Care Coma 💉';
                     break;
 
                 case 'mask':
-                    $character->masks = ($character->masks ?? 0) + 1;
+                    $lockedCharacter->masks = ($lockedCharacter->masks ?? 0) + 1;
                     $rewardGranted = '+1 Zakkenrollers Masker 🎭';
                     break;
 
                 case 'token':
-                    $character->vault_tokens = ($character->vault_tokens ?? 0) + 1;
+                    $lockedCharacter->vault_tokens = ($lockedCharacter->vault_tokens ?? 0) + 1;
                     $rewardGranted = '+1 Kluismunt 🪙';
                     break;
 
                 case 'star':
-                    $character->stars = ($character->stars ?? 0) + 1;
+                    $lockedCharacter->stars = ($lockedCharacter->stars ?? 0) + 1;
                     $rewardGranted = '+1 Ster ⭐';
                     break;
 
                 case 'cash':
                 default:
-                    $this->economy->addCash($character, 2500);
+                    $lockedCharacter->save();
+                    $this->economy->addCash($lockedCharacter, 2500, 'sponsor_ad');
                     $rewardGranted = '€2.500 zakgeld';
                     break;
             }
 
-            $character->save();
+            $lockedCharacter->save();
 
             // Record conversion
             CpaleadConversion::create([
-                'character_id' => $character->id,
+                'character_id' => $lockedCharacter->id,
                 'lead_id' => $leadId,
                 'subid' => $subid,
                 'subid2' => $subid2,
@@ -203,7 +221,7 @@ class CpaleadPostbackController extends Controller
             // Notify player in-game
             try {
                 GameNotification::create([
-                    'character_id' => $character->id,
+                    'character_id' => $lockedCharacter->id,
                     'type' => 'ad_reward',
                     'title' => '🎉 Sponsorkamer Beloning Ontvangen!',
                     'message' => "Je hebt een CPAlead sponsoropdracht voltooid ({$campaignName}). Jouw beloning: {$rewardGranted}!{$vipNotice}",
@@ -213,6 +231,10 @@ class CpaleadPostbackController extends Controller
             } catch (\Exception $e) {
             }
         });
+
+        if ($isDuplicate) {
+            return response('OK - Duplicate already processed', 200);
+        }
 
         Log::info("CPAlead conversion credited: Lead {$leadId} for Character {$subid} ({$rewardGranted}).");
 

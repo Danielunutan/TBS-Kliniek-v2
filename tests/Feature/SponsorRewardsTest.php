@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\SponsorAdController;
 use App\Models\Character;
+use App\Models\CharacterConnectFourStat;
+use App\Models\CharacterMemoryStat;
+use App\Models\CharacterTrueCrimeState;
 use App\Models\LotteryRound;
 use App\Models\LotteryTicket;
 use App\Models\User;
@@ -463,5 +466,64 @@ class SponsorRewardsTest extends TestCase
         $res->assertStatus(200);
         $character->refresh();
         $this->assertEquals(1, $character->ad_bullets_progress);
+    }
+
+    public function test_unverified_minigame_cooldown_ad_skips_are_rejected(): void
+    {
+        [$user, $character] = $this->createTestUser();
+
+        $c4Stat = CharacterConnectFourStat::create([
+            'character_id' => $character->id,
+            'matches_played' => 5,
+            'cooldown_until' => now()->addMinutes(10),
+        ]);
+
+        $memStat = CharacterMemoryStat::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addMinutes(15),
+        ]);
+
+        $tcState = CharacterTrueCrimeState::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addHours(24),
+            'cooldown_ads_watched' => 0,
+        ]);
+
+        // Unverified direct POSTs without a watched ad session must fail and preserve cooldowns
+        $this->actingAs($user)->post(route('connect_four.skip_cooldown_ad'))
+            ->assertRedirect(route('connect_four.index'))
+            ->assertSessionHas('error');
+        $this->assertTrue($c4Stat->fresh()->isOnCooldown());
+
+        $this->actingAs($user)->post(route('memory.skip_cooldown_ad'))
+            ->assertRedirect(route('memory.index'))
+            ->assertSessionHas('error');
+        $this->assertTrue($memStat->fresh()->isOnCooldown());
+
+        $this->actingAs($user)->post(route('true_crime.skip_cooldown_ad'))
+            ->assertRedirect(route('true_crime.index'))
+            ->assertSessionHas('error');
+        $this->assertEquals(0, $tcState->fresh()->cooldown_ads_watched);
+        $this->assertTrue($tcState->fresh()->isOnCooldown());
+
+        // Verified ad watches reset Connect Four and Memory cooldowns
+        $this->simulateAdWatch($user, $character, 'cooldown_connect_four')->assertOk();
+        $this->assertFalse($c4Stat->fresh()->isOnCooldown());
+        $this->assertEquals(0, $c4Stat->fresh()->matches_played);
+
+        $this->simulateAdWatch($user, $character, 'cooldown_memory')->assertOk();
+        $this->assertFalse($memStat->fresh()->isOnCooldown());
+    }
+
+    public function test_claim_returns_403_when_ads_are_disabled(): void
+    {
+        [$user, $character] = $this->createTestUser();
+        config(['services.robinads.enabled' => false]);
+
+        $res = $this->actingAs($user)->postJson(route('sponsor.claim'), [
+            'token' => 'disabled_test_token',
+        ]);
+
+        $res->assertStatus(403);
     }
 }

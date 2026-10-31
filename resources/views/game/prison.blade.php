@@ -140,13 +140,25 @@
             </div>
         </div>
 
-        <!-- Actions Row: Responsive 2-column Grid (100% on mobile, 50/50 on sm+) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40 relative z-10">
+        <!-- Actions Row: Responsive Grid -->
+        <div class="grid grid-cols-1 {{ \App\Http\Controllers\SponsorAdController::areAdsEnabled() ? 'sm:grid-cols-3' : 'sm:grid-cols-2' }} gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40 relative z-10">
             <!-- Watch Ad Button -->
             @php
                 $reqPrisonAds = $character ? $character->getRequiredPrisonAds() : 1;
                 $currPrisonAds = $character ? (int) ($character->ad_prison_progress ?? 0) : 0;
             @endphp
+            @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+            <button type="button"
+                    onclick="window.tbsOpenSponsorAd('prison')"
+                    class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
+                    title="Bekijk een sponsor-ad voor -3 min straftijd en vrijlating bij {{ $reqPrisonAds }} ad(s)">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-play text-xs"></i>
+                    <span>Sponsor-Ad (-3m)</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-md bg-purple-900/80 text-[10px] font-black text-purple-100">{{ $currPrisonAds }}/{{ $reqPrisonAds }} Ads</span>
+            </button>
+            @endif
             <form action="{{ route('shop.buy-star-item') }}" method="POST" class="w-full">
                 @csrf
                 <input type="hidden" name="item_type" value="prison_escape">

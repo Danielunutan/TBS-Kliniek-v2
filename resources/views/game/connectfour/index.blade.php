@@ -212,13 +212,10 @@ body.dark .board-socket:hover,
                         </button>
                     </form>
                     @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-                    <form action="{{ route('connect_four.skip_cooldown_ad') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play"></i>
-                            <span>Overslaan via Sponsor-Ad (Direct Revanche)</span>
-                        </button>
-                    </form>
+                    <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Overslaan via Sponsor-Ad (Direct Revanche)</span>
+                    </button>
                     @endif
                     <p class="text-[10px] text-slate-400">Sla de wachttijd direct over en start onmiddellijk weer een nieuwe serie van 5 potjes!</p>
                 </div>
@@ -523,13 +520,10 @@ body.dark .board-socket:hover,
             </form>
 
             @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
-            <form action="{{ route('connect_four.skip_cooldown_ad') }}" method="POST">
-                @csrf
-                <button type="submit" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-play"></i>
-                    <span>Direct Revanche via Sponsor-Ad</span>
-                </button>
-            </form>
+            <button type="button" onclick="window.tbsOpenSponsorAd('cooldown_connect_four')" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i>
+                <span>Direct Revanche via Sponsor-Ad</span>
+            </button>
             @endif
 
             <button type="button" onclick="closeTournamentModal()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">

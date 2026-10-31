@@ -293,34 +293,22 @@ class TrueCrimeController extends Controller
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
 
-        return DB::transaction(function () use ($character): RedirectResponse {
-            /** @var CharacterTrueCrimeState $state */
-            $state = CharacterTrueCrimeState::where('character_id', $character->id)
-                ->lockForUpdate()
-                ->firstOrCreate(['character_id' => $character->id]);
+        $state = CharacterTrueCrimeState::firstOrCreate(['character_id' => $character->id]);
+        if (! $state->isOnCooldown()) {
+            return redirect()->route('true_crime.index')
+                ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
+        }
 
-            if (! $state->isOnCooldown()) {
-                return redirect()->route('true_crime.index')
-                    ->with('info', 'Er is momenteel geen actieve wachttijd om over te slaan.');
-            }
+        $request->merge(['reward_type' => 'true_crime']);
+        $claimResponse = app(SponsorAdController::class)->claim($request);
+        $data = $claimResponse->getData(true);
 
-            $current = ($state->cooldown_ads_watched ?? 0) + 1;
-            if ($current >= 5) {
-                $state->update([
-                    'cooldown_until' => null,
-                    'cooldown_ads_watched' => 0,
-                    'current_case_id' => null,
-                ]);
+        if ($claimResponse->getStatusCode() !== 200 || empty($data['success'])) {
+            return redirect()->route('true_crime.index')
+                ->with('error', $data['message'] ?? 'Bekijk eerst de volledige sponsor-advertentie om Caroline\'s wachttijd te verkorten.');
+        }
 
-                return redirect()->route('true_crime.index')->with('success', '🎉 [5/5 Ads] Gefeliciteerd! Je hebt 5 advertenties bekeken. Caroline heeft direct een nieuw dossier voor je ontgrendeld!');
-            }
-
-            $state->update([
-                'cooldown_ads_watched' => $current,
-            ]);
-            $left = 5 - $current;
-
-            return redirect()->route('true_crime.index')->with('success', "🔍 [{$current}/5 Ads] Advertentie geregistreerd! Bekijk nog {$left} ".($left === 1 ? 'advertentie' : 'advertenties').' om Caroline\'s 24-uurs wachttijd te omzeilen.');
-        });
+        return redirect()->route('true_crime.index')
+            ->with('success', $data['reward_details'] ?? $data['message']);
     }
 }

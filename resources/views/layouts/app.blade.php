@@ -250,7 +250,7 @@
             $activeCategory = 'event';
         } elseif (request()->routeIs('gangs.*') || request()->is('gangs*', 'bendes*')) {
             $activeCategory = 'bende';
-        } elseif (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'news.*', 'newspaper.*', 'roadmap.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'nieuws*', 'afdelingsblad*', 'roadmap*')) {
+        } elseif (request()->routeIs('timeline.*', 'friends.*', 'leaderboard.*', 'battle.*', 'prison', 'news.*', 'newspaper.*', 'roadmap.*', 'sponsor.*', 'community.*') || request()->is('tijdlijn*', 'vrienden*', 'ranglijst*', 'battle*', 'isoleercel*', 'nieuws*', 'afdelingsblad*', 'roadmap*', 'sponsorkamer*', 'community*')) {
             $activeCategory = 'algemeen';
         } elseif (request()->routeIs('depot.*', 'missions.*', 'training.*', 'treatment.*', 'infirmary.*', 'daycare.*') || request()->is('depot*', 'missies*', 'training*', 'behandeling*', 'ziekenboeg*', 'dagbesteding*')) {
             $activeCategory = 'voortgang';
@@ -1040,6 +1040,15 @@
                         <i class="fa-solid fa-dungeon w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Isoleercel</span>
                     </a>
+                    @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                    <a href="{{ route('sponsor.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-handshake w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                            <span>Sponsorkamer</span>
+                        </div>
+                        <span class="text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-800">Gratis</span>
+                    </a>
+                    @endif
                     <a href="{{ route('roadmap.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-compass w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Toekomst & Roadmap</span>
@@ -2393,7 +2402,19 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40">
+                <div class="grid grid-cols-1 {{ \App\Http\Controllers\SponsorAdController::areAdsEnabled() ? 'sm:grid-cols-3' : 'sm:grid-cols-2' }} gap-2.5 pt-3 border-t border-rose-100 dark:border-rose-900/40">
+                    @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
+                    <button type="button"
+                            onclick="window.tbsOpenSponsorAd('prison')"
+                            class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 active:scale-95 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-sm hover:shadow-md cursor-pointer flex items-center justify-between gap-2"
+                            title="Bekijk een sponsor-ad voor -3 min straftijd en vrijlating bij {{ $topReqPrisonAds }} ad(s)">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-play text-xs"></i>
+                            <span>Sponsor-Ad (-3m)</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-md bg-rose-900/80 text-[10px] font-black text-rose-100">{{ $topCurrPrisonAds }}/{{ $topReqPrisonAds }} Ads</span>
+                    </button>
+                    @endif
                     <form action="{{ route('shop.buy-star-item') }}" method="POST" class="w-full">
                         @csrf
                         <input type="hidden" name="item_type" value="prison_escape">
