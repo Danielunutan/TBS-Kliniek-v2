@@ -454,7 +454,8 @@ class ChatController extends Controller
         // 1. Pinned Kliniek Directie Bot Conversation
         $botLastMessage = DirectMessage::whereNull('sender_id')
             ->where('recipient_id', $character->id)
-            ->latest('id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->first();
 
         $botUnread = DirectMessage::whereNull('sender_id')
@@ -575,14 +576,22 @@ class ChatController extends Controller
         $afterId = (int) $request->query('after_id', 0);
 
         if ($partnerId === 0) {
-            // Kliniek Directie Bot messages
+            // Kliniek Directie Bot messages (ordered chronologically so backfilled historical messages stay in order)
             $query = DirectMessage::whereNull('sender_id')
                 ->where('recipient_id', $character->id);
 
             if ($afterId > 0) {
-                $messages = $query->where('id', '>', $afterId)->orderBy('id', 'asc')->get();
+                $messages = $query->where('id', '>', $afterId)
+                    ->orderBy('created_at', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
             } else {
-                $messages = $query->orderBy('id', 'desc')->take(40)->get()->reverse()->values();
+                $messages = $query->orderByDesc('created_at')
+                    ->orderByDesc('id')
+                    ->take(40)
+                    ->get()
+                    ->reverse()
+                    ->values();
             }
 
             // Mark as read
@@ -643,7 +652,7 @@ class ChatController extends Controller
         $formatted = $messages->map(function (DirectMessage $msg) use ($character) {
             $senderName = $msg->sender_id === null ? '🏥 Kliniek Directie' : ($msg->sender?->name ?? 'Patiënt');
             $senderAvatar = $msg->sender_id === null
-                ? asset('assets/characters/directie-bot.png')
+                ? null
                 : ($msg->sender?->avatar_url ?? asset('assets/characters/avatar_male_1.jpg'));
 
             return [
@@ -651,13 +660,15 @@ class ChatController extends Controller
                 'sender_id' => $msg->sender_id,
                 'sender_name' => $senderName,
                 'sender_avatar' => $senderAvatar,
+                'is_bot' => $msg->sender_id === null,
                 'recipient_id' => $msg->recipient_id,
                 'message' => $msg->message,
                 'type' => $msg->type,
                 'metadata' => $msg->metadata,
-                'time' => $msg->created_at->format('H:i'),
+                'time' => $msg->created_at->isToday() ? $msg->created_at->format('H:i') : $msg->created_at->format('d-m H:i'),
                 'date' => $msg->created_at->format('d-m-Y'),
                 'created_at' => $msg->created_at->format('d-m-Y H:i'),
+                'timestamp' => $msg->created_at->timestamp,
                 'is_me' => $msg->sender_id === $character->id,
                 'is_read' => (bool) $msg->is_read,
                 'read_at' => $msg->read_at ? $msg->read_at->format('H:i') : null,
@@ -839,9 +850,13 @@ class ChatController extends Controller
                 'id' => $latestDm->id,
                 'sender_id' => $latestDm->sender_id ?? 0,
                 'sender_name' => $sender ? $sender->name : '🏥 Kliniek Directie',
-                'sender_avatar' => $sender ? $sender->avatar_url : asset('characters/avatar-default.png'),
+                'sender_avatar' => $sender ? $sender->avatar_url : null,
                 'message' => Str::limit($latestDm->message, 80),
+                'full_message' => $latestDm->message,
+                'type' => $latestDm->type ?? 'chat',
+                'metadata' => $latestDm->metadata,
                 'time' => $latestDm->created_at->format('H:i'),
+                'timestamp' => $latestDm->created_at->timestamp,
                 'is_bot' => $latestDm->sender_id === null,
                 'reply_to_id' => $latestDm->reply_to_id,
                 'reply_to_name' => $latestDm->reply_to_name,

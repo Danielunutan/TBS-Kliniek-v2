@@ -108,45 +108,159 @@ return new class extends Migration
             $chatMsg->delete();
         }
 
-        // 3. Backfill any historical liquidations recorded in game_notifications (type 'skull') where the attacker was missing a direct report
+        // 3. Backfill and upgrade historical liquidations recorded in game_notifications (type 'skull')
         if (Schema::hasTable('game_notifications')) {
             $historicalSkullNotifications = GameNotification::where('type', 'skull')->get();
 
             foreach ($historicalSkullNotifications as $notif) {
-                if (preg_match('/^([^\s]+(?: [^\s]+)?)\s+heeft je\s+(.+?)\s+geliquideerd met\s+(.+?)!\s+Er is\s+(.+?)\s+geplunderd/ui', $notif->message, $match)) {
+                $defender = Character::find($notif->character_id);
+                if (! $defender) {
+                    continue;
+                }
+
+                $attacker = null;
+                $reportHeadline = null;
+                $medicalNote = null;
+
+                if (preg_match('/^(.+?)\s+heeft je\s+op\s+(.+?)\s+\((?:\+25% Sluipaanval-bonus|Afstandssalvo vanaf [^)]+)\)\s+geliquideerd met\s+(.+?)!\s+Er is\s+€([\d\.]+)\s+contant \(45%\)\s*\+\s*€([\d\.]+)\s+bank \(7%\)\s+geplunderd\.\s*(.*)$/usi', $notif->message, $match)) {
                     $attackerName = trim($match[1]);
+                    $wing = trim($match[2]);
+                    $shotType = trim($match[3]);
+                    $cashInt = (int) str_replace('.', '', $match[4]);
+                    $bankInt = (int) str_replace('.', '', $match[5]);
+                    $totalFmt = '€'.number_format($cashInt + $bankInt, 0, ',', '.');
+                    $medicalNote = trim($match[6]);
+
                     $attacker = Character::where('name', $attackerName)->first()
                         ?? Character::whereRaw('LOWER(name) = ?', [strtolower($attackerName)])->first();
-                    $defender = Character::find($notif->character_id);
+                    $resolvedAttackerName = $attacker ? $attacker->name : $attackerName;
 
-                    if ($attacker && $defender) {
-                        $hasAttackerDm = DirectMessage::where('recipient_id', $attacker->id)
-                            ->whereNull('sender_id')
-                            ->where('created_at', $notif->created_at)
-                            ->exists();
+                    $reportHeadline = "🎯 LIQUIDATIE OP {$wing}: {$resolvedAttackerName} heeft {$defender->name} neergeschoten met {$shotType} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!";
+                } elseif (preg_match('/^(.+?)\s+heeft je\s+(.+?)\s+geliquideerd met\s+(.+?)!\s+Er is\s+(.+?)\s+geplunderd\.\s*(.*)$/usi', $notif->message, $match)) {
+                    $attackerName = trim($match[1]);
+                    $wing = trim(preg_replace('/^op\s+/i', '', preg_replace('/\s*\([^)]*\)\s*$/', '', $match[2])));
+                    $shotType = trim($match[3]);
+                    $lootText = trim($match[4]);
+                    $medicalNote = trim($match[5]);
 
-                        if (! $hasAttackerDm) {
-                            $reportText = "🎯 LIQUIDATIE OP {$notif->title}: {$attacker->name} heeft {$defender->name} geliquideerd met {$match[3]} en {$match[4]} geplunderd!";
-                            DirectMessage::create([
-                                'sender_id' => null,
-                                'recipient_id' => $attacker->id,
-                                'type' => 'liquidation',
-                                'message' => $reportText,
-                                'metadata' => [
-                                    'title' => 'Liquidatie Incidentenrapport',
-                                    'source' => 'notification_backfill',
-                                    'attacker_name' => $attacker->name,
-                                    'defender_name' => $defender->name,
-                                ],
-                                'is_read' => true,
-                                'created_at' => $notif->created_at,
-                                'updated_at' => $notif->updated_at,
-                            ]);
+                    $attacker = Character::where('name', $attackerName)->first()
+                        ?? Character::whereRaw('LOWER(name) = ?', [strtolower($attackerName)])->first();
+                    $resolvedAttackerName = $attacker ? $attacker->name : $attackerName;
+
+                    $reportHeadline = "🎯 LIQUIDATIE OP {$wing}: {$resolvedAttackerName} heeft {$defender->name} neergeschoten met {$shotType} ({$lootText} geplunderd)!";
+                } elseif (preg_match('/^(.+?)\s+heeft je neergeschoten met\s+(\d+)\s+kogels!.*?\((€[\d\.]+)\)\s+is geplunderd/usi', $notif->message, $match)) {
+                    $attackerName = trim($match[1]);
+                    $bullets = trim($match[2]);
+                    $cashFmt = trim($match[3]);
+
+                    $attacker = Character::where('name', $attackerName)->first()
+                        ?? Character::whereRaw('LOWER(name) = ?', [strtolower($attackerName)])->first();
+                    $resolvedAttackerName = $attacker ? $attacker->name : $attackerName;
+
+                    $reportHeadline = "🎯 LIQUIDATIE: {$resolvedAttackerName} heeft {$defender->name} neergeschoten met {$bullets} kogels en {$cashFmt} contant geplunderd!";
+                }
+
+                if (! $reportHeadline) {
+                    continue;
+                }
+
+                $defenderMessage = $medicalNote ? "{$reportHeadline}\n\n🏥 {$medicalNote}" : $reportHeadline;
+
+                // Ensure defender has a clean 'liquidation' DM (upgrading any 'skull' DM created by GameNotification::booted)
+                $defenderDm = DirectMessage::where('recipient_id', $defender->id)
+                    ->whereNull('sender_id')
+                    ->whereBetween('created_at', [
+                        $notif->created_at->copy()->subSeconds(5),
+                        $notif->created_at->copy()->addSeconds(5),
+                    ])
+                    ->orderByRaw("CASE WHEN type = 'liquidation' THEN 0 ELSE 1 END")
+                    ->first();
+
+                if ($defenderDm) {
+                    $defenderDm->update([
+                        'type' => 'liquidation',
+                        'message' => $defenderMessage,
+                        'metadata' => array_merge($defenderDm->metadata ?? [], [
+                            'title' => 'Liquidatie Incidentenrapport',
+                            'game_notification_id' => $notif->id,
+                        ]),
+                    ]);
+
+                    DirectMessage::where('recipient_id', $defender->id)
+                        ->whereNull('sender_id')
+                        ->where('id', '!=', $defenderDm->id)
+                        ->whereIn('type', ['skull', 'liquidation'])
+                        ->whereBetween('created_at', [
+                            $notif->created_at->copy()->subSeconds(5),
+                            $notif->created_at->copy()->addSeconds(5),
+                        ])
+                        ->delete();
+                } else {
+                    DirectMessage::create([
+                        'sender_id' => null,
+                        'recipient_id' => $defender->id,
+                        'type' => 'liquidation',
+                        'message' => $defenderMessage,
+                        'metadata' => [
+                            'title' => 'Liquidatie Incidentenrapport',
+                            'source' => 'notification_backfill',
+                            'game_notification_id' => $notif->id,
+                        ],
+                        'is_read' => (bool) $notif->is_read,
+                        'created_at' => $notif->created_at,
+                        'updated_at' => $notif->updated_at,
+                    ]);
+                }
+
+                // Ensure attacker also has the 'liquidation' DM in their Kliniek Directie conversation
+                if ($attacker) {
+                    $attackerDm = DirectMessage::where('recipient_id', $attacker->id)
+                        ->whereNull('sender_id')
+                        ->where('type', 'liquidation')
+                        ->whereBetween('created_at', [
+                            $notif->created_at->copy()->subSeconds(5),
+                            $notif->created_at->copy()->addSeconds(5),
+                        ])
+                        ->first();
+
+                    if ($attackerDm) {
+                        if (str_starts_with($attackerDm->message, '🎯 LIQUIDATIE OP 🚨')) {
+                            $attackerDm->update(['message' => $reportHeadline]);
                         }
+                    } else {
+                        DirectMessage::create([
+                            'sender_id' => null,
+                            'recipient_id' => $attacker->id,
+                            'type' => 'liquidation',
+                            'message' => $reportHeadline,
+                            'metadata' => [
+                                'title' => 'Liquidatie Incidentenrapport',
+                                'source' => 'notification_backfill',
+                                'attacker_name' => $attacker->name,
+                                'defender_name' => $defender->name,
+                            ],
+                            'is_read' => true,
+                            'created_at' => $notif->created_at,
+                            'updated_at' => $notif->updated_at,
+                        ]);
                     }
                 }
             }
         }
+
+        // 4. Upgrade any remaining legacy 'skull' DirectMessages to 'liquidation'
+        DirectMessage::whereNull('sender_id')
+            ->where('type', 'skull')
+            ->each(function (DirectMessage $dm) {
+                $cleanMsg = preg_replace('/^📢\s*/u', '🎯 ', $dm->message);
+                $dm->update([
+                    'type' => 'liquidation',
+                    'message' => $cleanMsg,
+                    'metadata' => array_merge($dm->metadata ?? [], [
+                        'title' => 'Liquidatie Incidentenrapport',
+                    ]),
+                ]);
+            });
 
         // 4. Refresh public chat cache
         $latest = ChatMessage::where('channel', 'global')->latest('id')->first();

@@ -808,6 +808,19 @@ class HitmanController extends Controller
                     'message' => "{$attacker->name} vuurde op {$defenderWing} {$bulletCount} patro(o)n(en) op je af, maar jouw {$vestLabel} kaatste het schot terug! {$attacker->name} is zwaargewond per brancard afgevoerd naar een andere afdeling!",
                 ]);
 
+                try {
+                    $backfireDm = $attackerStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
+                        ? "💥 DODELIJKE BACKFIRE OP {$defenderWing} (10/10): Het {$vestLabel} van {$defender->name} kaatste je schot terug! Je verkeert nu in Code Blauw (Hartstilstand) en hebt een ".Character::REVIVE_SERUM_NAME.' nodig om weer tot leven te komen!'
+                        : "💥 BACKFIRE OP {$defenderWing} ({$attackerStreak}/10): Het {$vestLabel} van {$defender->name} kaatste jouw kogels terug! Je bent met 20 HP per brancard geëvacueerd naar {$evacWing} en kunt direct eten om te healen.";
+                    app(ChatBotService::class)->sendLiquidationNotice($attacker, $backfireDm, [
+                        'subtype' => 'backfire',
+                        'location' => $defenderWing,
+                        'attacker_id' => $attacker->id,
+                        'defender_id' => $defender->id,
+                    ]);
+                } catch (\Throwable) {
+                }
+
                 if ($attackerStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
                     return back()->with('error', "💥 DODELIJKE BACKFIRE (10/10 LIQUIDATIES)! Het {$vestLabel} van {$defender->name} kaatste je schot terug! Dit was je 10e fatale treffer: je verkeert nu in Code Blauw (Hartstilstand) en hebt een ".Character::REVIVE_SERUM_NAME.' nodig om weer tot leven te komen!');
                 }
@@ -883,8 +896,9 @@ class HitmanController extends Controller
 
                 // Claim any open Bounties on defender
                 $bountyReward = 0;
+                $bountyPlacerIds = collect();
                 if (class_exists(Bounty::class)) {
-                    $bountyReward = DB::transaction(function () use ($defender, $attacker): int {
+                    $bountyReward = DB::transaction(function () use ($defender, $attacker, &$bountyPlacerIds): int {
                         // Lock the open bounties: the brawl page can claim the same bounties at the same moment.
                         $openBounties = Bounty::where('target_character_id', $defender->id)
                             ->where('is_claimed', false)
@@ -894,6 +908,9 @@ class HitmanController extends Controller
                         $sum = 0;
                         foreach ($openBounties as $bounty) {
                             $sum += (int) $bounty->amount;
+                            if ($bounty->placed_by_character_id) {
+                                $bountyPlacerIds->push((int) $bounty->placed_by_character_id);
+                            }
                             $bounty->update([
                                 'is_claimed' => true,
                                 'claimed_by_character_id' => $attacker->id,
@@ -923,21 +940,6 @@ class HitmanController extends Controller
                     if ($attacker->gang && Schema::hasColumn('gangs', 'respect')) {
                         $attacker->gang->increment('respect', 150);
                     }
-
-                    try {
-                        $feudParties = collect([$attacker, $defender]);
-                        if ($avengedVictim) {
-                            $feudParties->push($avengedVictim);
-                        }
-                        $feudNotice = "🩸 BLOEDWRAAK VOLTROKKEN: {$attacker->name} heeft {$defender->name} op {$defenderWing} geliquideerd en de bende-vete gewroken!";
-                        app(ChatBotService::class)->notifyLiquidationParties($feudParties, $feudNotice, [
-                            'subtype' => 'blood_feud',
-                            'location' => $defenderWing,
-                            'attacker_id' => $attacker->id,
-                            'defender_id' => $defender->id,
-                        ]);
-                    } catch (\Throwable) {
-                    }
                 } else {
                     BloodFeud::create([
                         'attacker_id' => $attacker->id,
@@ -955,6 +957,59 @@ class HitmanController extends Controller
                 $locationNotice = $isSameWing ? "op {$defenderWing} (+25% Sluipaanval-bonus)" : "op {$defenderWing} (Afstandssalvo vanaf {$attackerWing})";
                 $lootBreakdown = '€'.number_format($stolenCash, 0, ',', '.').' contant (45%) + €'.number_format($stolenBank, 0, ',', '.').' bank (7%)';
 
+                // Send 1 unified private message from Kliniek Directie to each involved party BEFORE GameNotification::create
+                // so GameNotification::booted() does not create a duplicate DM for the victim.
+                try {
+                    $totalFmt = '€'.number_format($totalStolen, 0, ',', '.');
+                    $headline = "🎯 LIQUIDATIE OP {$defenderWing}: {$attacker->name} heeft {$defender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!";
+                    $feudSection = $bloodFeud
+                        ? "\n\n🩸 BLOEDWRAAK VOLTROKKEN: {$attacker->name} heeft {$defender->name} op {$defenderWing} geliquideerd en de bende-vete gewroken!"
+                        : '';
+                    $bountySection = $bountyReward > 0
+                        ? "\n\n💰 KOPGELD GEÏND: Openstaande premie van €".number_format($bountyReward, 0, ',', '.')." op {$defender->name} is uitbetaald aan {$attacker->name}!"
+                        : '';
+
+                    $commonMeta = [
+                        'subtype' => $bloodFeud ? 'blood_feud' : 'liquidation',
+                        'location' => $defenderWing,
+                        'attacker_id' => $attacker->id,
+                        'defender_id' => $defender->id,
+                        'stolen_cash' => $stolenCash,
+                        'stolen_bank' => $stolenBank,
+                        'total_stolen' => $totalStolen,
+                    ];
+
+                    $botService = app(ChatBotService::class);
+
+                    // 1. Attacker report
+                    $attackerSummary = "\n\n📊 Jouw Resultaat: +{$baseRespect} Respect, +400 XP! Doelwitstatus: {$defenderStreak}/10"
+                        .($defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM ? ' (Code Blauw Hartstilstand).' : ' (Per brancard afgevoerd).');
+                    $botService->sendLiquidationNotice($attacker, $headline.$feudSection.$bountySection.$attackerSummary, array_merge($commonMeta, ['role' => 'attacker']));
+
+                    // 2. Defender (victim) report
+                    $defenderMedical = $defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM
+                        ? "\n\n🚨 Medische Status (10/10 — CODE BLAUW): Omdat je nu 10x bent geliquideerd (10/10), verkeer je in Code Blauw en moet je het ".Character::REVIVE_SERUM_NAME.' aanschaffen om weer tot leven te komen!'
+                        : "\n\n🏥 Medische Status ({$defenderStreak}/10): Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!";
+                    $botService->sendLiquidationNotice($defender, $headline.$feudSection.$bountySection.$defenderMedical, array_merge($commonMeta, ['role' => 'defender']));
+
+                    // 3. Additional involved parties (original blood-feud victim and/or bounty placers)
+                    $notifiedIds = [$attacker->id, $defender->id];
+
+                    if ($avengedVictim && ! in_array($avengedVictim->id, $notifiedIds, true)) {
+                        $botService->sendLiquidationNotice($avengedVictim, $headline.$feudSection.$bountySection, array_merge($commonMeta, ['role' => 'avenged_victim']));
+                        $notifiedIds[] = $avengedVictim->id;
+                    }
+
+                    if ($bountyPlacerIds->isNotEmpty()) {
+                        $bountyPlacers = Character::whereIn('id', $bountyPlacerIds->unique()->diff($notifiedIds))->get();
+                        foreach ($bountyPlacers as $placer) {
+                            $botService->sendLiquidationNotice($placer, $headline.$bountySection.$feudSection, array_merge($commonMeta, ['role' => 'bounty_placer']));
+                            $notifiedIds[] = $placer->id;
+                        }
+                    }
+                } catch (\Throwable) {
+                }
+
                 if ($defenderStreak >= Character::MAX_LIQUIDATIONS_BEFORE_SERUM) {
                     GameNotification::create([
                         'character_id' => $defender->id,
@@ -971,25 +1026,6 @@ class HitmanController extends Controller
                         'title' => "🚨 GELIQUIDEERD OP {$defenderWing} ({$defenderStreak}/10)!",
                         'message' => "{$attacker->name} heeft je {$locationNotice} geliquideerd met {$shotTypeLabel}! Er is {$lootBreakdown} geplunderd. Je bent met 20 HP per brancard geëvacueerd naar {$newWing} met 15 min Medisch Infuus-Schild en kunt direct eten om te healen!",
                     ]);
-                }
-
-                try {
-                    $totalFmt = '€'.number_format($totalStolen, 0, ',', '.');
-                    $liquidationNotice = "🎯 LIQUIDATIE OP {$defenderWing}: {$attacker->name} heeft {$defender->name} neergeschoten met {$shotTypeLabel} en {$totalFmt} (45% contant + 7% bank) buitgemaakt!";
-                    $involvedParties = collect([$attacker, $defender]);
-                    if ($avengedVictim) {
-                        $involvedParties->push($avengedVictim);
-                    }
-                    app(ChatBotService::class)->notifyLiquidationParties($involvedParties, $liquidationNotice, [
-                        'subtype' => 'liquidation',
-                        'location' => $defenderWing,
-                        'attacker_id' => $attacker->id,
-                        'defender_id' => $defender->id,
-                        'stolen_cash' => $stolenCash,
-                        'stolen_bank' => $stolenBank,
-                        'total_stolen' => $totalStolen,
-                    ]);
-                } catch (\Throwable) {
                 }
 
                 $bountyMsg = $bountyReward > 0 ? ' + €'.number_format($bountyReward, 0, ',', '.').' Kopgeld-premie geïnd!' : '';

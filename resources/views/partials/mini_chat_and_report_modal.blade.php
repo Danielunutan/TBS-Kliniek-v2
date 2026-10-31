@@ -984,7 +984,14 @@
                                 <span class="text-[11px] font-bold">Terug</span>
                             </button>
                             <div class="relative shrink-0">
-                                <img :src="activeDirectPartner.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                <template x-if="activeDirectPartner.is_bot">
+                                    <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-xs font-black">
+                                        <i class="fa-solid fa-building-shield"></i>
+                                    </div>
+                                </template>
+                                <template x-if="!activeDirectPartner.is_bot">
+                                    <img :src="activeDirectPartner.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800" onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
+                                </template>
                                 <span x-show="activeDirectPartner.is_online" class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900"></span>
                             </div>
                             <div class="min-w-0">
@@ -1038,7 +1045,7 @@
                                             </span>
                                             <span class="text-slate-400 dark:text-slate-500 font-mono text-[9px]" x-text="dm.time"></span>
                                         </div>
-                                        <div class="text-[11px] leading-relaxed break-words [overflow-wrap:anywhere] text-slate-800 dark:text-slate-200" x-html="formatMessage(dm.message, false)"></div>
+                                        <div class="text-[11px] leading-relaxed break-words [overflow-wrap:anywhere] whitespace-pre-line text-slate-800 dark:text-slate-200" x-html="formatMessage(dm.message, false)"></div>
                                     </div>
                                 </template>
 
@@ -1046,7 +1053,12 @@
                                 <template x-if="dm.type !== 'kluiscode' && dm.type !== 'level_up' && dm.type !== 'liquidation'">
                                     <div class="flex items-start gap-2 group min-w-0 max-w-full" :class="dm.is_me ? 'flex-row-reverse' : ''">
                                         <!-- Avatar Image -->
-                                        <template x-if="!dm.is_me">
+                                        <template x-if="!dm.is_me && (dm.is_bot || dm.sender_id === null || activeDirectPartner?.is_bot)">
+                                            <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-500 border border-amber-300 dark:border-amber-700/60 flex items-center justify-center text-xs font-black shrink-0">
+                                                <i class="fa-solid fa-building-shield"></i>
+                                            </div>
+                                        </template>
+                                        <template x-if="!dm.is_me && !dm.is_bot && dm.sender_id !== null && !activeDirectPartner?.is_bot">
                                             <img :src="activeDirectPartner?.avatar || '{{ asset('assets/characters/avatar_male_1.jpg') }}'" 
                                                  class="w-7 h-7 rounded-lg object-cover border border-slate-200 dark:border-purple-800/60 shrink-0"
                                                  onerror="this.src='{{ asset('assets/characters/avatar_male_1.jpg') }}'">
@@ -2641,11 +2653,13 @@
                                                     this.activeDirectMessages.push({
                                                         id: dm.id,
                                                         sender_id: dm.sender_id,
+                                                        is_bot: dm.is_bot || false,
                                                         recipient_id: 0,
-                                                        message: dm.message,
-                                                        type: 'chat',
-                                                        metadata: null,
+                                                        message: dm.full_message || dm.message,
+                                                        type: dm.type || 'chat',
+                                                        metadata: dm.metadata || null,
                                                         time: dm.time,
+                                                        timestamp: dm.timestamp || 0,
                                                         is_me: false,
                                                         is_read: true,
                                                         read_at: null,

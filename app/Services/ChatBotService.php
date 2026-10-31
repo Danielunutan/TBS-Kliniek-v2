@@ -104,7 +104,7 @@ class ChatBotService
             'type' => 'liquidation',
             'message' => $message,
             'metadata' => array_merge([
-                'title' => 'Liquidatie Bericht',
+                'title' => 'Liquidatie Incidentenrapport',
                 'source' => 'kliniek_directie',
             ], $metadata),
             'is_read' => false,

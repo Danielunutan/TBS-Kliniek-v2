@@ -37,33 +37,45 @@ class GameNotification extends Model
     protected static function booted(): void
     {
         static::created(function (GameNotification $notification) {
-            $emoji = match ($notification->type) {
-                'theft' => '🚨',
-                'attack' => '⚔️',
-                'bounty_placed', 'bounty_claimed' => '🎯',
-                'prison', 'isolation' => '🔒',
-                'level' => '⭐',
-                'gang' => '🛡️',
-                'reward', 'daily_reward' => '🎁',
-                default => '📢',
-            };
+            $isLiquidationNotification = in_array($notification->type, ['skull', 'liquidation'], true);
 
-            $title = ! empty($notification->title) ? "**{$notification->title}**\n\n" : '';
-            $message = "{$emoji} {$title}{$notification->message}";
+            $alreadyNotifiedViaLiquidationDm = $isLiquidationNotification && DirectMessage::whereNull('sender_id')
+                ->where('recipient_id', $notification->character_id)
+                ->where('type', 'liquidation')
+                ->where('created_at', '>=', now()->subSeconds(10))
+                ->exists();
 
-            DirectMessage::create([
-                'sender_id' => null,
-                'recipient_id' => $notification->character_id,
-                'type' => $notification->type ?? 'system',
-                'message' => $message,
-                'metadata' => [
-                    'source' => 'game_notification',
-                    'icon' => $notification->icon,
-                    'title' => $notification->title,
-                    'game_notification_id' => $notification->id,
-                ],
-                'is_read' => (bool) $notification->is_read,
-            ]);
+            if (! $alreadyNotifiedViaLiquidationDm) {
+                $emoji = match ($notification->type) {
+                    'theft' => '🚨',
+                    'attack' => '⚔️',
+                    'bounty_placed', 'bounty_claimed' => '🎯',
+                    'skull', 'liquidation' => '🎯',
+                    'prison', 'isolation' => '🔒',
+                    'level' => '⭐',
+                    'gang' => '🛡️',
+                    'reward', 'daily_reward' => '🎁',
+                    default => '📢',
+                };
+
+                $title = ! empty($notification->title) ? "**{$notification->title}**\n\n" : '';
+                $message = "{$emoji} {$title}{$notification->message}";
+                $dmType = $isLiquidationNotification ? 'liquidation' : ($notification->type ?? 'system');
+
+                DirectMessage::create([
+                    'sender_id' => null,
+                    'recipient_id' => $notification->character_id,
+                    'type' => $dmType,
+                    'message' => $message,
+                    'metadata' => [
+                        'source' => 'game_notification',
+                        'icon' => $notification->icon,
+                        'title' => $isLiquidationNotification ? 'Liquidatie Incidentenrapport' : $notification->title,
+                        'game_notification_id' => $notification->id,
+                    ],
+                    'is_read' => (bool) $notification->is_read,
+                ]);
+            }
 
             // Dispatch native Web Push notification to desktop and mobile webapp
             try {
@@ -71,6 +83,7 @@ class GameNotification extends Model
                     'theft' => '/bank',
                     'attack' => '/luchtplaats',
                     'bounty_placed', 'bounty_claimed' => '/huurmoordenaar',
+                    'skull', 'liquidation' => '/liquidatie',
                     'prison', 'isolation' => '/gevangenis',
                     'gang' => '/gangs',
                     'reward', 'daily_reward' => '/dashboard',
