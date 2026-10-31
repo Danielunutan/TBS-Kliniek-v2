@@ -96,20 +96,46 @@
     </div>
 
     <!-- Stats Snapshot (3 clean metrics) -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
-            <span class="text-xs text-slate-600 dark:text-slate-300 font-bold">Hoofdprijs</span>
-            <span class="text-sm font-black text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                <span class="text-emerald-600 dark:text-emerald-400">€5.000.000</span> + <i class="fa-solid fa-star text-amber-500"></i> 1.000 ⭐
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <!-- 1. Hoofdprijs -->
+        <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs flex flex-col justify-between gap-2">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-trophy text-amber-500 text-xs"></i>
+                    <span>Hoofdprijs</span>
+                </span>
+                <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/60">
+                    Plek #1
+                </span>
+            </div>
+            <div class="flex flex-wrap items-baseline gap-2 pt-0.5">
+                <span class="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">€5.000.000</span>
+                <span class="text-xs font-bold text-slate-400 dark:text-slate-500">+</span>
+                <span class="inline-flex items-center gap-1 text-xs sm:text-sm font-black text-amber-500 dark:text-amber-400 font-mono">
+                    <i class="fa-solid fa-star text-amber-500 text-xs"></i>
+                    <span>1.000 Sterren</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- 2. Actieve Producenten -->
+        <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs flex flex-col justify-between gap-2">
+            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-users text-purple-500 text-xs"></i>
+                <span>Actieve Producenten</span>
             </span>
+            <div class="text-lg sm:text-xl font-black text-slate-900 dark:text-white font-mono pt-0.5" x-text="data.total_participants + (data.total_participants === 1 ? ' Patiënt' : ' Patiënten')">
+            </div>
         </div>
-        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
-            <span class="text-xs text-slate-600 dark:text-slate-300 font-bold">Actieve Producenten</span>
-            <span class="text-sm font-black text-slate-900 dark:text-white" x-text="data.total_participants + ' Patiënten'"></span>
-        </div>
-        <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-between">
-            <span class="text-xs text-slate-600 dark:text-slate-300 font-bold">Totaal Geproduceerd</span>
-            <span class="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono" x-text="data.total_drugs_produced_formatted"></span>
+
+        <!-- 3. Totaal Geproduceerd -->
+        <div class="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 shadow-xs flex flex-col justify-between gap-2">
+            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-cannabis text-emerald-500 text-xs"></i>
+                <span>Totaal Geproduceerd</span>
+            </span>
+            <div class="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono pt-0.5" x-text="data.total_drugs_produced_formatted">
+            </div>
         </div>
     </div>
 

@@ -2337,17 +2337,21 @@
                                         <!-- Patient Info -->
                                         <td class="py-3 px-3">
                                             <div class="flex items-center gap-2.5">
-                                                <a href="{{ route('profile.show', $d->character->name) }}" class="font-black text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 hover:underline flex items-center gap-1.5">
-                                                    <span>{{ $d->character->name }}</span>
-                                                </a>
-                                                @if($d->character->gang_role === 'leader')
-                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
-                                                        Leider
-                                                    </span>
-                                                @elseif($d->character->gang_role === 'co_leader')
-                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
-                                                        Co-Leider
-                                                    </span>
+                                                @if($d->character)
+                                                    <a href="{{ route('profile.show', $d->character->name) }}" class="font-black text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 hover:underline flex items-center gap-1.5">
+                                                        <span>{{ $d->character->name }}</span>
+                                                    </a>
+                                                    @if($d->character->gang_role === 'leader')
+                                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
+                                                            Leider
+                                                        </span>
+                                                    @elseif($d->character->gang_role === 'co_leader')
+                                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
+                                                            Co-Leider
+                                                        </span>
+                                                    @endif
+                                                @else
+                                                    <span class="font-bold text-slate-400">Onbekend</span>
                                                 @endif
                                             </div>
                                         </td>
@@ -3143,17 +3147,23 @@
                         @forelse($myGang->requests->where('status', 'pending') as $req)
                         <div class="p-3.5 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs transition hover:bg-slate-100/60 dark:hover:bg-slate-800/80">
                             <div class="flex items-center gap-3">
+                                @if($req->character)
                                 <div class="relative shrink-0">
                                     <img src="{{ $req->character->avatar_url }}" alt="{{ $req->character->name }}" class="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs">
                                     <span class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-slate-800 {{ $req->character->isOnline() ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600' }}" title="{{ $req->character->online_status_label }}"></span>
                                 </div>
+                                @endif
                                 <div>
                                     <div class="flex items-center gap-2">
+                                        @if($req->character)
                                         <a href="{{ route('profile.show', $req->character->name) }}" class="font-extrabold text-slate-900 dark:text-white hover:text-purple-700 dark:hover:text-purple-400 hover:underline">
                                             {{ $req->character->name }}
                                         </a>
+                                        @else
+                                        <span class="font-extrabold text-slate-400">Onbekend</span>
+                                        @endif
                                         <span class="text-[11px] text-slate-500 dark:text-slate-400">
-                                            (Level {{ $req->character->level ?? 1 }} &bull; {{ number_format($req->character->respect ?? 0, 0, ',', '.') }} respect)
+                                            (Level {{ $req->character?->level ?? 1 }} &bull; {{ number_format($req->character?->respect ?? 0, 0, ',', '.') }} respect)
                                         </span>
                                     </div>
                                     @if($req->message)
@@ -3376,9 +3386,13 @@
                                 @forelse($memberDonations as $md)
                                 <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
                                     <td class="py-3 px-3">
+                                        @if($md->character)
                                         <a href="{{ route('profile.show', $md->character->name) }}" class="font-extrabold text-purple-700 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300 hover:underline">
                                             {{ $md->character->name }}
                                         </a>
+                                        @else
+                                        <span class="font-extrabold text-slate-400">Onbekend</span>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-3 text-right font-extrabold text-slate-900 dark:text-white font-mono">
                                         €{{ number_format($md->total_amount, 0, ',', '.') }}

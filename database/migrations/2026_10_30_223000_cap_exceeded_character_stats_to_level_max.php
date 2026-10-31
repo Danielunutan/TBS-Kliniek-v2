@@ -16,12 +16,14 @@ return new class extends Migration
         }
 
         Character::query()
-            ->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
-            ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)')
+            ->where(function ($query): void {
+                $query->whereRaw('strength > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('defense > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('stamina > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('intelligence > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('charisma > (100 + COALESCE(level, 1) * 50)')
+                    ->orWhereRaw('discipline > (100 + COALESCE(level, 1) * 50)');
+            })
             ->chunkById(100, function ($characters): void {
                 foreach ($characters as $character) {
                     $character->syncStatsWithLevelCap();

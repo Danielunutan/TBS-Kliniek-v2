@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Character;
 use App\Models\ControlPoint;
 use App\Models\Gang;
+use App\Models\GangRequest;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -324,6 +325,25 @@ class AuditBatch6SecurityAndLogicTest extends TestCase
             'specialty' => 'smokkel',
         ]);
 
+        $orphanedDonationToday = (object) [
+            'character' => null,
+            'donation_count' => 1,
+            'amount' => 500,
+        ];
+        $orphanedMemberDonation = (object) [
+            'character' => null,
+            'total_amount' => 500,
+            'donation_count' => 1,
+        ];
+        $orphanedRequest = new GangRequest([
+            'gang_id' => $gang->id,
+            'character_id' => 999999,
+            'status' => 'pending',
+            'message' => 'Laat mij binnen!',
+        ]);
+        $orphanedRequest->setRelation('character', null);
+        $gang->setRelation('requests', collect([$orphanedRequest]));
+
         $view = $this->actingAs($member->user)->view('game.gangs', [
             'character' => $member,
             'myGang' => $gang,
@@ -338,10 +358,10 @@ class AuditBatch6SecurityAndLogicTest extends TestCase
             'hourlyWage' => 100,
             'dailyWage' => 2400,
             'wageDetails' => ['pending_amount' => 0, 'pending_hours' => 0, 'last_claim' => null],
-            'todayDonations' => collect(),
-            'totalDonatedToday' => 0,
+            'todayDonations' => collect([$orphanedDonationToday]),
+            'totalDonatedToday' => 500,
             'todayRecentLogs' => collect(),
-            'memberDonations' => collect(),
+            'memberDonations' => collect([$orphanedMemberDonation]),
             'inboundAlliances' => collect(),
             'recentAttacks' => collect(),
             'gangMembersData' => collect([$leader, $member]),
@@ -353,6 +373,7 @@ class AuditBatch6SecurityAndLogicTest extends TestCase
         ]);
 
         $view->assertSee("The 'Crazy' Syndicate");
+        $view->assertSee('Onbekend');
         // Verify the rival gang attack button is disabled because member is comatose (and not officer)
         $view->assertSee('disabled', false);
     }

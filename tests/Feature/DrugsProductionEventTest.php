@@ -281,4 +281,27 @@ class DrugsProductionEventTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    public function test_article_author_updates_to_daniel_via_migration(): void
+    {
+        $daniel = $this->createCharacter('Daniël');
+        $daniel->user->update(['email' => 'danielunutan@icloud.com']);
+
+        $article = NewsArticle::where('slug', EventDrugsProductionService::EVENT_SLUG)->first();
+        $this->assertNotNull($article);
+
+        // Run the update migration
+        $migration = require database_path('migrations/2026_10_31_082000_update_drugs_production_article_author_to_daniel.php');
+        $migration->up();
+
+        $article->refresh();
+        $this->assertEquals($daniel->id, $article->character_id);
+        $this->assertStringContainsString('Daniël', $article->content);
+
+        // When viewing the article, it shows Daniel as author
+        $this->actingAs($daniel->user);
+        $response = $this->get(route('news.show', $article->slug));
+        $response->assertStatus(200);
+        $response->assertSee('Daniël');
+    }
 }

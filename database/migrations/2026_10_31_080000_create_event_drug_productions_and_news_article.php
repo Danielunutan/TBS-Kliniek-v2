@@ -73,15 +73,23 @@ Hieronder zie je de actuele live stand. De ranglijst ververst automatisch elke 1
 Heel veel succes en moge de slimste producent winnen!
 
 *Met criminele groet,*  
-**De Kliniekdirectie & Hoofd Zaalwacht**
+**Daniël**
 MARKDOWN;
 
-        // Try to attach author to an admin character or clinic character if present
+        // Try to attach author to Daniel or an admin/owner character if present
         $senderChar = null;
         if (Schema::hasTable('characters')) {
-            $senderChar = Character::whereHas('user', function ($q) {
-                $q->where('role', 'admin');
-            })->first() ?? Character::first();
+            $senderChar = Character::where('name', 'Daniël')
+                ->orWhere('name', 'Daniel')
+                ->orWhere('name', 'like', '%daniel%')
+                ->orWhere('name', 'like', '%daniël%')
+                ->orWhereHas('user', function ($q) {
+                    $q->where('email', 'danielunutan@icloud.com')
+                        ->orWhere('email', 'like', '%daniel%')
+                        ->orWhere('name', 'like', '%daniel%')
+                        ->orWhereIn('role', ['owner', 'admin']);
+                })
+                ->first() ?? Character::first();
         }
 
         $article = NewsArticle::updateOrCreate(
