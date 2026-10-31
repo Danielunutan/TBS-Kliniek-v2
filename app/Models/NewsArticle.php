@@ -70,24 +70,24 @@ class NewsArticle extends Model
         // [img]url[/img] and ![alt](url) - support both https?:// and root-relative /assets/...
         $text = preg_replace(
             '/\[img\]((?:https?:\/\/|\/)[^\s<"\']+)\[\/img\]/i',
-            '<div class="my-4"><img src="$1" alt="Nieuws Afbeelding" class="rounded-2xl max-w-full max-h-96 object-contain border border-slate-200/80 shadow-xs" loading="lazy" onerror="this.style.display=\'none\'" /></div>',
+            '<div class="my-4"><img src="$1" alt="Nieuws Afbeelding" class="rounded-2xl max-w-full max-h-96 object-contain border border-slate-200/80 dark:border-slate-800 shadow-xs" loading="lazy" onerror="this.style.display=\'none\'" /></div>',
             $text
         );
         $text = preg_replace(
             '/!\[([^\]]*)\]\(((?:https?:\/\/|\/)[^\s<"\']+)\)/i',
-            '<div class="my-4"><img src="$2" alt="$1" class="rounded-2xl max-w-full max-h-96 object-contain border border-slate-200/80 shadow-xs" loading="lazy" onerror="this.style.display=\'none\'" /></div>',
+            '<div class="my-4"><img src="$2" alt="$1" class="rounded-2xl max-w-full max-h-96 object-contain border border-slate-200/80 dark:border-slate-800 shadow-xs" loading="lazy" onerror="this.style.display=\'none\'" /></div>',
             $text
         );
 
         // [link=url]label[/link] or [url=url]label[/url] - support both https?:// and /relative
         $text = preg_replace(
             '/\[(?:link|url)=((?:https?:\/\/|\/)[^\s<"\']+)\](.*?)\[\/(?:link|url)\]/i',
-            '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:text-purple-800 font-extrabold underline decoration-purple-300 hover:decoration-purple-600 transition inline-flex items-center gap-1">$2 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>',
+            '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-extrabold underline decoration-purple-300 dark:decoration-purple-700 hover:decoration-purple-600 transition inline-flex items-center gap-1">$2 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>',
             $text
         );
         $text = preg_replace(
             '/\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s<"\']+)\)/i',
-            '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-purple-600 hover:text-purple-800 font-extrabold underline decoration-purple-300 hover:decoration-purple-600 transition inline-flex items-center gap-1">$1 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>',
+            '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-extrabold underline decoration-purple-300 dark:decoration-purple-700 hover:decoration-purple-600 transition inline-flex items-center gap-1">$1 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>',
             $text
         );
 
@@ -123,8 +123,8 @@ class NewsArticle extends Model
         // Bold, italic, underline, strikethrough
         $text = preg_replace('/\[b\](.*?)\[\/b\]/i', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
         $text = preg_replace('/\*\*(.*?)\*\*/s', '<strong class="font-extrabold text-slate-900 dark:text-white">$1</strong>', $text);
-        $text = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em class="italic text-slate-700">$1</em>', $text);
-        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/s', '<em class="italic text-slate-700">$1</em>', $text);
+        $text = preg_replace('/\[i\](.*?)\[\/i\]/i', '<em class="italic text-slate-700 dark:text-slate-300">$1</em>', $text);
+        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/s', '<em class="italic text-slate-700 dark:text-slate-300">$1</em>', $text);
         $text = preg_replace('/\[u\](.*?)\[\/u\]/i', '<span class="underline decoration-slate-400">$1</span>', $text);
         $text = preg_replace('/\[s\](.*?)\[\/s\]/i', '<del class="line-through text-slate-400">$1</del>', $text);
         $text = preg_replace('/~~(.*?)~~/s', '<del class="line-through text-slate-400">$1</del>', $text);
@@ -132,12 +132,12 @@ class NewsArticle extends Model
         // Quote
         $text = preg_replace(
             '/\[quote\](.*?)\[\/quote\]/is',
-            '<blockquote class="border-l-4 border-purple-500 bg-purple-50/60 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 italic">$1</blockquote>',
+            '<blockquote class="border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-200 italic">$1</blockquote>',
             $text
         );
         $text = preg_replace(
             '/^>\s+(.*?)$/m',
-            '<blockquote class="border-l-4 border-purple-500 bg-purple-50/60 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 italic">$1</blockquote>',
+            '<blockquote class="border-l-4 border-purple-500 bg-purple-50/60 dark:bg-purple-950/40 rounded-r-xl p-3.5 my-3 text-xs sm:text-sm font-semibold text-purple-900 dark:text-purple-200 italic">$1</blockquote>',
             $text
         );
 
@@ -165,10 +165,10 @@ class NewsArticle extends Model
         }, $text);
 
         // Horizontal Rule
-        $text = preg_replace('/^---$/m', '<hr class="my-3 border-slate-200" />', $text);
+        $text = preg_replace('/^---$/m', '<hr class="my-3 border-slate-200 dark:border-slate-800" />', $text);
 
         // Unordered list items
-        $text = preg_replace('/^-\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 font-medium leading-relaxed">$1</li>', $text);
+        $text = preg_replace('/^-\s+(.*?)$/m', '<li class="ml-5 list-disc text-slate-700 dark:text-slate-300 font-medium leading-relaxed">$1</li>', $text);
 
         // Group consecutive <li> elements into a <ul>
         $text = preg_replace_callback('~((?:<li[^>]*>.*?</li>\s*)+)~s', function ($m) {

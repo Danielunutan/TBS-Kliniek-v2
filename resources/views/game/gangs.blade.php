@@ -2176,8 +2176,6 @@
                     </div>
                 </div>
             </div>
-                </div>
-            </div>
 
             <!-- TAB 3: DONEREN -->
             <div x-show="activeGangTab === 'doneren'" class="space-y-6" x-data="{ donationView: 'top', donateAmount: {{ $character->cash > 0 ? min($character->cash, 5000) : 500 }}, starAmount: 10 }">

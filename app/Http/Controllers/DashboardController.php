@@ -142,9 +142,9 @@ class DashboardController extends Controller
                 $activities->push([
                     'title' => "Je hebt de missie '{$m->mission->title}' voltooid!",
                     'badge' => '+ €'.number_format($m->mission->min_cash_reward, 0, ',', '.')."  ·  + {$m->mission->xp_reward} XP",
-                    'badge_color' => 'text-emerald-600',
+                    'badge_color' => 'text-emerald-600 dark:text-emerald-400',
                     'icon' => 'fa-check',
-                    'icon_bg' => 'bg-emerald-100 text-emerald-600',
+                    'icon_bg' => 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400',
                     'time' => $m->last_attempted_at ?: $m->created_at,
                 ]);
             }
@@ -160,9 +160,9 @@ class DashboardController extends Controller
             $activities->push([
                 'title' => "Je hebt {$t->energy_cost} energie verbruikt bij training van ".ucfirst($t->stat).'.',
                 'badge' => "+ {$t->stat_gain} ".ucfirst($t->stat).'  ·  - €'.number_format($t->cash_cost, 0, ',', '.'),
-                'badge_color' => 'text-purple-600',
+                'badge_color' => 'text-purple-600 dark:text-purple-400',
                 'icon' => 'fa-dumbbell',
-                'icon_bg' => 'bg-purple-100 text-purple-600',
+                'icon_bg' => 'bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400',
                 'time' => $t->created_at,
             ]);
         }
@@ -179,9 +179,9 @@ class DashboardController extends Controller
                 'badge' => $th->success
                     ? '+ €'.number_format($th->cash_stolen, 0, ',', '.')."  ·  + {$th->xp_gained} XP"
                     : 'Mislukt (0 buit)',
-                'badge_color' => $th->success ? 'text-amber-600' : 'text-rose-600',
+                'badge_color' => $th->success ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400',
                 'icon' => $th->success ? 'fa-mask' : 'fa-handcuffs',
-                'icon_bg' => $th->success ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600',
+                'icon_bg' => $th->success ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400',
                 'time' => $th->created_at,
             ]);
         }
@@ -196,9 +196,9 @@ class DashboardController extends Controller
             $activities->push([
                 'title' => $n->title,
                 'badge' => Str::limit($n->message, 80),
-                'badge_color' => 'text-indigo-600',
+                'badge_color' => 'text-indigo-600 dark:text-indigo-400',
                 'icon' => $n->icon ?: 'fa-trophy',
-                'icon_bg' => 'bg-indigo-100 text-indigo-600',
+                'icon_bg' => 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400',
                 'time' => $n->created_at,
             ]);
         }

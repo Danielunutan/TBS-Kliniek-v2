@@ -16,7 +16,7 @@ class TreatmentCaseCatalog
             'big' => 'BIG: 492.019.481',
             'quote' => 'Rust, structuur en absolute eerlijkheid over je delictverleden zijn vereist voor enige vorm van vrijheid.',
             'avatar_icon' => 'fa-user-doctor',
-            'badge_color' => 'bg-purple-100 text-purple-800 border-purple-200',
+            'badge_color' => 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70',
         ],
         1 => [
             'name' => 'Yvonne Meijer',
@@ -24,7 +24,7 @@ class TreatmentCaseCatalog
             'big' => 'BIG: 284.910.332',
             'quote' => 'Ik zie hoe je met je emoties omgaat op de zaal. Een modelhouding loont zich altijd in dit paviljoen.',
             'avatar_icon' => 'fa-user-nurse',
-            'badge_color' => 'bg-teal-100 text-teal-800 border-teal-200',
+            'badge_color' => 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border-teal-200/80 dark:border-teal-800/70',
         ],
         2 => [
             'name' => 'Dr. Robert Visser',
@@ -32,7 +32,7 @@ class TreatmentCaseCatalog
             'big' => 'BIG: 719.402.115',
             'quote' => 'Manipulatie en gladde praatjes prik ik direct door. Laat me zien dat je daadwerkelijk veranderd bent.',
             'avatar_icon' => 'fa-clipboard-user',
-            'badge_color' => 'bg-indigo-100 text-indigo-800 border-indigo-200',
+            'badge_color' => 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/70',
         ],
         3 => [
             'name' => 'Dr. Anouk Schipper',
@@ -40,7 +40,7 @@ class TreatmentCaseCatalog
             'big' => 'BIG: 583.190.442',
             'quote' => 'De handel in medicijnen en contrabande brengt de hele afdeling in gevaar. We controleren streng op compliance.',
             'avatar_icon' => 'fa-stethoscope',
-            'badge_color' => 'bg-rose-100 text-rose-800 border-rose-200',
+            'badge_color' => 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/70',
         ],
         4 => [
             'name' => 'Mark van Dam',
@@ -48,7 +48,7 @@ class TreatmentCaseCatalog
             'big' => 'BIG: 391.849.201',
             'quote' => 'Op de werkplaats en tijdens sportactiviteiten zien we wie er echt klaar is voor een stap naar buiten.',
             'avatar_icon' => 'fa-briefcase-medical',
-            'badge_color' => 'bg-amber-100 text-amber-800 border-amber-200',
+            'badge_color' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/70',
         ],
     ];
 

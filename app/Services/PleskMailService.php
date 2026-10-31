@@ -24,7 +24,7 @@ class PleskMailService
             'email' => 'beheer@tbs-kliniek.nl',
             'description' => 'Alle inkomende post van alle adressen',
             'icon' => 'fa-inbox',
-            'badge' => 'bg-purple-100 text-purple-800 border-purple-200',
+            'badge' => 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70',
         ],
         'vragen' => [
             'id' => 'vragen',
@@ -32,7 +32,7 @@ class PleskMailService
             'email' => 'vragen@tbs-kliniek.nl',
             'description' => 'Spelersvragen en gameplay ondersteuning',
             'icon' => 'fa-headset',
-            'badge' => 'bg-emerald-100 text-emerald-800 border-emerald-200',
+            'badge' => 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/70',
         ],
         'privacy' => [
             'id' => 'privacy',
@@ -40,7 +40,7 @@ class PleskMailService
             'email' => 'privacy@tbs-kliniek.nl',
             'description' => 'AVG / GDPR inzage en accountverwijdering',
             'icon' => 'fa-user-shield',
-            'badge' => 'bg-indigo-100 text-indigo-800 border-indigo-200',
+            'badge' => 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/70',
         ],
         'daniel' => [
             'id' => 'daniel',
@@ -48,7 +48,7 @@ class PleskMailService
             'email' => 'daniel@tbs-kliniek.nl',
             'description' => 'Officiële correspondentie van de eigenaar',
             'icon' => 'fa-crown',
-            'badge' => 'bg-amber-100 text-amber-800 border-amber-200',
+            'badge' => 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/70',
         ],
     ];
 

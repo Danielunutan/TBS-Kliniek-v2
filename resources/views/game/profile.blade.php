@@ -240,7 +240,7 @@
 
                 @if(Auth::user()->character->id === $profileCharacter->id)
                 <!-- Camera Button moved to bottom-left to avoid covering the frame ornament -->
-                <button @click="avatarModalOpen = true" type="button" class="absolute -bottom-2 -left-2 z-20 bg-slate-900 text-white p-2.5 rounded-xl hover:bg-indigo-600 transition shadow-md border-2 border-white dark:border-slate-800 flex items-center justify-center text-xs cursor-pointer" title="Kies een andere profielfoto">
+                <button @click="avatarModalOpen = true" type="button" class="absolute -bottom-2 -left-2 z-20 bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white p-2.5 rounded-xl transition-all duration-150 active:scale-95 shadow-md border-2 border-white dark:border-slate-800 flex items-center justify-center text-xs cursor-pointer" title="Kies een andere profielfoto">
                     <i class="fa-solid fa-camera"></i>
                 </button>
                 @endif

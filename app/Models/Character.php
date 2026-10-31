@@ -2804,9 +2804,9 @@ class Character extends Model
 
         if ($fights >= 35 || $level >= 20) {
             $threatLevel = 'Code Zwart';
-            $threatColor = 'bg-slate-900 dark:bg-slate-950 text-rose-400 border-rose-600/80 shadow-lg shadow-rose-950/30';
-            $threatBadgeColor = 'bg-rose-500/20 text-rose-300 border-rose-500/50';
-            $threatIcon = 'fa-solid fa-biohazard text-rose-400 animate-pulse';
+            $threatColor = 'bg-rose-100/90 dark:bg-slate-950 text-rose-950 dark:text-rose-300 border-rose-400 dark:border-rose-600/80 shadow-xs';
+            $threatBadgeColor = 'bg-rose-200/80 dark:bg-rose-500/20 text-rose-900 dark:text-rose-300 border-rose-400 dark:border-rose-500/50';
+            $threatIcon = 'fa-solid fa-biohazard text-rose-600 dark:text-rose-400 animate-pulse';
             $dangerDesc = 'EXTREEM GEVAARLIJK. Maximale penitentiaire isolatie. Verhoogd ontsnappings- en gijzelingsrisico.';
             $threatMeter = 100;
             $regime = 'EBI - Extra Beveiligde Inrichting';

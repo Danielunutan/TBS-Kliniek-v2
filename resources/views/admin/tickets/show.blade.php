@@ -193,7 +193,7 @@
                 <form action="{{ route('admin.tickets.status', $ticket) }}" method="POST" class="shrink-0">
                     @csrf
                     <input type="hidden" name="status" value="gesloten">
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-extrabold text-xs transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95">
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95">
                         <i class="fa-solid fa-lock text-[10px]"></i>
                         <span>Ticket Sluiten (Afgehandeld)</span>
                     </button>
