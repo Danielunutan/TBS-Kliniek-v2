@@ -153,11 +153,6 @@
         </section>
 
     </div>
-                Daarnaast kun je cookies altijd handmatig verwijderen via de instellingen van jouw webbrowser (zoals Chrome, Safari, Firefox of Edge).
-            </p>
-        </section>
-
-    </div>
 
 </div>
 @endsection

@@ -322,10 +322,6 @@
             </div>
         </div>
     </template>
-                </button>
-            </div>
-        </div>
-    </template>
 
 </div>
 

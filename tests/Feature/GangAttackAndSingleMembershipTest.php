@@ -260,4 +260,37 @@ class GangAttackAndSingleMembershipTest extends TestCase
         $response->assertSessionHas('error');
         $this->assertStringContainsString('actief verdedigingsschild', session('error'));
     }
+
+    public function test_gangs_page_renders_balanced_divs_inside_main_container(): void
+    {
+        $user = User::factory()->create();
+        Character::create([
+            'user_id' => $user->id,
+            'name' => 'LayoutPatient',
+            'gender' => 'male',
+            'level' => 10,
+        ]);
+
+        $this->actingAs($user);
+
+        foreach ([
+            route('gangs.index', ['tab' => 'alle_bendes']),
+            route('training.index'),
+            route('daycare.index'),
+            route('droppings.index'),
+            route('true_crime.index'),
+        ] as $url) {
+            $response = $this->get($url);
+            $response->assertOk();
+
+            $html = $response->getContent();
+            $this->assertNotFalse(preg_match('/<main id="tbs-main-container"[^>]*>(.*?)<\/main>/s', $html, $matches));
+
+            $mainInnerHtml = $matches[1];
+            $openDivs = preg_match_all('/<div\b/i', $mainInnerHtml);
+            $closeDivs = preg_match_all('/<\/div>/i', $mainInnerHtml);
+
+            $this->assertSame($openDivs, $closeDivs, "Unbalanced divs on {$url}");
+        }
+    }
 }

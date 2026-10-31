@@ -194,41 +194,6 @@
             </div>
         @endif
     </div>
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-            <div class="flex items-center gap-2.5">
-                <i class="fa-solid fa-boxes-stacked text-emerald-500"></i>
-                <h3 class="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-white">Jouw Smokkelrapportage</h3>
-            </div>
-            <div class="flex items-center gap-4 text-xs font-bold">
-                <span class="text-slate-500">Succesvolle drops: <strong class="text-slate-900 dark:text-white">{{ $totalIntercepted }}</strong></span>
-                <span class="text-slate-500">Opbrengst: <strong class="text-emerald-600">€{{ number_format($totalCashMade, 0, ',', '.') }}</strong></span>
-            </div>
-        </div>
-
-        @if($recentDroppings->isEmpty())
-            <div class="py-8 text-center text-slate-400 text-xs">
-                <i class="fa-solid fa-box-open text-3xl mb-2 text-slate-300 dark:text-slate-700 block"></i>
-                Je hebt nog geen tennisballen of drones binnengehaald. Tijd om het luchtruim af te speuren!
-            </div>
-        @else
-            <div class="divide-y divide-slate-100 dark:divide-slate-800">
-                @foreach($recentDroppings as $drop)
-                    <div class="py-3 flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold {{ $drop->type === 'tennisball' ? 'bg-lime-50 text-lime-700 dark:bg-lime-950/60 dark:text-lime-300 border border-lime-200 dark:border-lime-800' : 'bg-teal-50 text-teal-700 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-200 dark:border-teal-800' }}">
-                                <i class="fa-solid {{ $drop->type === 'tennisball' ? 'fa-baseball' : 'fa-helicopter' }}"></i>
-                            </span>
-                            <div>
-                                <span class="font-extrabold text-slate-900 dark:text-white capitalize">{{ $drop->type === 'tennisball' ? 'Tennisbal over hek' : 'Drone dropping' }}</span>
-                                <p class="text-[11px] {{ $drop->caught ? 'text-rose-500 font-bold' : 'text-slate-500 dark:text-slate-400' }}">{{ $drop->loot_summary }}</p>
-                            </div>
-                        </div>
-                        <span class="text-slate-400 text-[10px]">{{ $drop->created_at->diffForHumans() }}</span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </div>
 
 </div>
 @endsection

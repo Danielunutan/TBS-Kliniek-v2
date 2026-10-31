@@ -266,47 +266,6 @@
             @endforelse
         </div>
     </div>
-        <div class="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
-            <template x-for="log in liveLogs" :key="log.id">
-                <div class="py-2.5 flex items-center justify-between animate-fade-in">
-                    <div>
-                        <span class="font-bold text-slate-800 dark:text-slate-200" x-text="log.stat_name"></span>
-                        <template x-if="log.stat_gain > 0">
-                            <span>
-                                verhoogd met <span class="font-bold text-purple-600 dark:text-purple-400" x-text="'+' + log.stat_gain"></span>
-                            </span>
-                        </template>
-                        <template x-if="log.stat_gain === 0">
-                            <span>
-                                getraind op <span class="font-bold text-amber-600 dark:text-amber-400" x-text="'+' + log.xp_gain + ' XP (Level Focus)'"></span>
-                            </span>
-                        </template>
-                        door workout met <span class="italic text-slate-600 dark:text-slate-400" x-text="log.trainer"></span>.
-                    </div>
-                    <div class="text-[11px] text-slate-400 font-mono">Zojuist</div>
-                </div>
-            </template>
-
-            @forelse($recentLogs as $log)
-            <div class="py-2.5 flex items-center justify-between">
-                <div>
-                    <span class="font-bold text-slate-800 dark:text-slate-200">{{ $stats[$log->stat]['name'] ?? $log->stat }}</span>
-                    @if($log->stat_gain > 0)
-                        verhoogd met <span class="font-bold text-purple-600 dark:text-purple-400">+{{ $log->stat_gain }}</span>
-                    @else
-                        getraind op <span class="font-bold text-amber-600 dark:text-amber-400">Level Focus (XP)</span>
-                    @endif
-                    door workout met <span class="italic text-slate-600 dark:text-slate-400">{{ $log->trainer }}</span>.
-                </div>
-                <div class="text-[11px] text-slate-400">
-                    {{ $log->created_at->diffForHumans() }}
-                </div>
-            </div>
-            @empty
-            <p class="text-slate-500 py-2">Nog geen trainingen gelogd. Tijd om die halters op te pakken!</p>
-            @endforelse
-        </div>
-    </div>
 </div>
 
 <script>

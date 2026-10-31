@@ -178,19 +178,6 @@
                     Wordt automatisch uitgereikt bij 5/5!
                 </div>
             </div>
-                    <p class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-snug">
-                        Claim alle 5 overlevingstaken en ontvang direct:
-                    </p>
-                    <ul class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 space-y-0.5">
-                        <li class="flex items-center gap-1.5"><i class="fa-solid fa-coins text-amber-500"></i> €5.000 contant startkapitaal</li>
-                        <li class="flex items-center gap-1.5"><i class="fa-solid fa-star text-purple-500"></i> +50 Bonus XP</li>
-                        <li class="flex items-center gap-1.5"><i class="fa-solid fa-certificate text-rose-500"></i> Exclusieve titel: "Kliniek Overlever"</li>
-                    </ul>
-                </div>
-                <div class="text-[10px] font-black text-purple-700 dark:text-purple-300">
-                    Wordt automatisch uitgereikt bij 5/5!
-                </div>
-            </div>
         </div>
     </div>
 
