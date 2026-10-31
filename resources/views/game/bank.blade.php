@@ -363,8 +363,8 @@
                     <span class="w-6 h-6 rounded-lg bg-slate-950 text-[#ffcc00] flex items-center justify-center text-xs font-black shadow-xs">
                         <i class="fa-solid fa-vault"></i>
                     </span>
-                    <span class="text-xs font-black tracking-widest text-slate-950 uppercase font-mono">
-                        geld<span class="text-amber-900">maat</span>
+                    <span class="text-xs font-black tracking-widest text-black uppercase font-mono">
+                        geld<span class="text-[#78350f]">maat</span>
                     </span>
                 </div>
 
@@ -378,7 +378,7 @@
                         <i class="fa-solid" :class="cardInserted ? 'fa-eject text-amber-400' : 'fa-arrow-down text-white'"></i>
                         <span x-text="cardInserted ? 'Pas In (Eject)' : 'Steek Pas In'"></span>
                     </button>
-                    <div class="flex items-center gap-1 bg-slate-950/15 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold text-slate-950">
+                    <div class="flex items-center gap-1 bg-slate-950/15 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold text-black">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-ping"></span>
                         <span>CAM</span>
                     </div>

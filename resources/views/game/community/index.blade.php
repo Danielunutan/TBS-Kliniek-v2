@@ -98,7 +98,7 @@
                                 H
                             </div>
                         @else
-                            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-xs shrink-0 {{ ($p['color'] ?? '') === '#000000' ? 'dark:!text-white' : '' }}" style="color: {{ $p['color'] }};">
+                            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-xs shrink-0 {{ in_array($p['color'] ?? '', ['#000000', '#0f172a'], true) ? 'dark:!text-white' : '' }}" style="color: {{ $p['color'] }};">
                                 <i class="{{ $p['icon'] }}"></i>
                             </div>
                         @endif
@@ -195,8 +195,8 @@
             </div>
         </div>
 
-        <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-950 font-black text-xs transition shrink-0 flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
-            <i class="fa-brands fa-discord text-white dark:text-indigo-600"></i>
+        <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-600 dark:hover:bg-purple-500 dark:text-white font-black text-xs transition shrink-0 flex items-center gap-2 shadow-xs cursor-pointer active:scale-95">
+            <i class="fa-brands fa-discord text-white"></i>
             <span>Praat Mee op Discord</span>
         </a>
     </div>

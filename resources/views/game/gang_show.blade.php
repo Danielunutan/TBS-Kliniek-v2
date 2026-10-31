@@ -286,7 +286,7 @@
                                 @click="onlyOnline = !onlyOnline" 
                                 :class="onlyOnline ? 'bg-emerald-600 text-white font-extrabold shadow-2xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
                                 class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full" :class="onlyOnline ? 'bg-white' : 'bg-emerald-500 animate-pulse'"></span>
+                            <span class="w-2 h-2 rounded-full" :class="onlyOnline ? 'bg-emerald-100' : 'bg-emerald-500 animate-pulse'"></span>
                             <span>Online ({{ $onlineMembersCount }})</span>
                         </button>
                         <div class="relative w-44">
