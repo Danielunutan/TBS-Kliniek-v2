@@ -1,7 +1,7 @@
 import * as Turbo from '@hotwired/turbo';
 import 'alpine-turbo-drive-adapter';
 import Alpine from 'alpinejs';
-import collapse from '@alpinejs/collapse';
+import collapse from './plugins/collapse';
 
 // Cache clearing bridge for Turbo
 const clearTurboCache = () => {
