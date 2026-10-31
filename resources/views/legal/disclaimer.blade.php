@@ -16,6 +16,29 @@
         </p>
     </div>
 
+    <!-- Prominent Non-Profit & Hobby Disclaimer Box -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-50 via-slate-50 to-indigo-50 dark:from-purple-950/40 dark:via-slate-900/60 dark:to-indigo-950/40 border border-purple-200/90 dark:border-purple-800/60 shadow-xs flex items-start gap-3.5">
+        <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/70 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0 text-base font-black shadow-2xs mt-0.5">
+            <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+        <div class="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="font-black uppercase tracking-wider text-purple-900 dark:text-purple-200 text-xs">
+                    Particulier Hobbyproject &bull; Geen KvK &bull; Vrijwillige Donaties
+                </span>
+                <span class="px-2 py-0.5 rounded-full bg-purple-200/80 dark:bg-purple-900/80 text-purple-800 dark:text-purple-200 text-[10px] font-mono font-bold">
+                    werkenmetdaniel.nl
+                </span>
+            </div>
+            <p>
+                <strong>TBS Kliniek is een 100% hobbymatig en educatief browsergame</strong>. Wij zijn g&eacute;&eacute;n commercieel bedrijf en hebben <strong>geen inschrijving bij de Kamer van Koophandel (geen KvK-nummer)</strong>.
+            </p>
+            <p>
+                Alle financi&euml;le bijdragen (waaronder VIP-lidmaatschappen, Gouden Sterren, Koffers en Bakkie Koffie via Buy Me a Coffee) vallen volledig onder <strong>vrijwillige supportersdonaties</strong> ter dekking van directe server-, licentie- en hostingkosten. Het betreft g&eacute;&eacute;n commerci&euml;le aankoop van goederen of diensten.
+            </p>
+        </div>
+    </div>
+
     <!-- Main Content Body -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
 
@@ -26,7 +49,7 @@
                 <div class="space-y-1 text-xs">
                     <strong class="font-black uppercase tracking-wider text-amber-900 dark:text-amber-300">Belangrijke Mededeling</strong>
                     <p class="text-amber-800 dark:text-amber-200/90 leading-relaxed">
-                        <strong>TBS Kliniek is een 100% fictief online browsergame (RPG / satire)</strong>. Alle situaties, karakters, misdrijven, instellingen, namen van behandelaars en gebeurtenissen in dit spel zijn verzonnen en uitsluitend bedoeld voor recreatieve en amusementsdoeleinden.
+                        <strong>TBS Kliniek is een 100% fictief online browsergame (RPG / satire)</strong>. Het betreft een particulier hobbymatig initiatief zonder commercieel oogmerk en <strong>zonder inschrijving bij de Kamer van Koophandel (geen KvK-nummer)</strong>. Alle optionele bijdragen (zoals VIP-lidmaatschappen, Gouden Sterren en Bakkie Koffie via Buy Me a Coffee) zijn 100% vrijwillige donaties ter dekking van server- en hostingkosten. Alle situaties, karakters, misdrijven, instellingen, namen van behandelaars en gebeurtenissen in dit spel zijn verzonnen en uitsluitend bedoeld voor recreatieve en amusementsdoeleinden.
                     </p>
                 </div>
             </div>
@@ -53,7 +76,9 @@
             </h2>
             <div class="p-4 bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl space-y-2 text-xs text-slate-700 dark:text-slate-300">
                 <p><strong>Website</strong> tbs-kliniek.nl</p>
-                <p><strong>Status</strong> Particulier hobbymatig & non-profit project (géén onderneming, geen commerciële verkoop)</p>
+                <p><strong>Status</strong> Particulier hobbymatig &amp; non-profit project (géén onderneming, geen commerciële verkoop)</p>
+                <p><strong>Kamer van Koophandel (KvK)</strong> Geen. TBS Kliniek is een particulier hobbyproject zonder winstoogmerk en geen onderneming in de zin van de Handelsregisterwet. Wij hebben dan ook géén KvK-nummer.</p>
+                <p><strong>Donaties &amp; Financiële Steun</strong> Alle verkrijgbare opties via Buy Me a Coffee (waaronder VIP-lidmaatschappen, Gouden Sterren, XXL Koffers en Bakkie Koffie) vallen 100% onder een vrijwillige supportersdonatie ter dekking van reële server- en hostingkosten. Dit is géén commerciële koop of aankoop van goederen of diensten.</p>
                 <p><strong>Beheer / Portfolio</strong> <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a></p>
                 <p><strong>E-mail voor algemene zaken</strong> <em>contact@tbs-kliniek.nl</em></p>
                 <p><strong>E-mail voor privacy & AVG</strong> <em>privacy@tbs-kliniek.nl</em></p>

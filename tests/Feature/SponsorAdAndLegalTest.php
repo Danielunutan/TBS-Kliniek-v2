@@ -50,6 +50,24 @@ class SponsorAdAndLegalTest extends TestCase
         $this->get(route('legal.disclaimer'))->assertStatus(200)->assertSee('Disclaimer & Colofon');
     }
 
+    public function test_legal_pages_state_hobby_project_no_kvk_and_voluntary_donations(): void
+    {
+        $routes = [
+            route('legal.terms'),
+            route('legal.privacy'),
+            route('legal.cookies'),
+            route('legal.disclaimer'),
+        ];
+
+        foreach ($routes as $url) {
+            $res = $this->get($url);
+            $res->assertStatus(200);
+            $res->assertSee('KvK');
+            $res->assertSee('donatie', false);
+            $res->assertSee('hobby', false);
+        }
+    }
+
     public function test_sponsorkamer_index_shows_for_authenticated_character(): void
     {
         $user = User::factory()->create();

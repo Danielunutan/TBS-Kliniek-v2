@@ -16,6 +16,29 @@
         </p>
     </div>
 
+    <!-- Prominent Non-Profit & Hobby Disclaimer Box -->
+    <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-50 via-slate-50 to-indigo-50 dark:from-purple-950/40 dark:via-slate-900/60 dark:to-indigo-950/40 border border-purple-200/90 dark:border-purple-800/60 shadow-xs flex items-start gap-3.5">
+        <div class="w-9 h-9 rounded-xl bg-purple-100 dark:bg-purple-900/70 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0 text-base font-black shadow-2xs mt-0.5">
+            <i class="fa-solid fa-cookie-bite"></i>
+        </div>
+        <div class="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="font-black uppercase tracking-wider text-purple-900 dark:text-purple-200 text-xs">
+                    Particulier Hobbyproject &bull; Geen KvK &bull; Vrijwillige Donaties
+                </span>
+                <span class="px-2 py-0.5 rounded-full bg-purple-200/80 dark:bg-purple-900/80 text-purple-800 dark:text-purple-200 text-[10px] font-mono font-bold">
+                    werkenmetdaniel.nl
+                </span>
+            </div>
+            <p>
+                <strong>TBS Kliniek is een particulier hobbymatig browsergame</strong>. Wij zijn g&eacute;&eacute;n commercieel bedrijf en hebben <strong>geen inschrijving bij de Kamer van Koophandel (geen KvK-nummer)</strong>.
+            </p>
+            <p>
+                Alle financi&euml;le bijdragen (zoals VIP-lidmaatschappen, Gouden Sterren en Bakkie Koffie) vallen onder <strong>vrijwillige supportersdonaties</strong> om server-, domein- en licentiekosten te dekken. Wij gebruiken enkel veilige functionele cookies om jouw inlogsessie en spelinstellingen te onthouden.
+            </p>
+        </div>
+    </div>
+
     <!-- Main Content Body -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
 
@@ -26,7 +49,7 @@
                 Wat zijn Cookies?
             </h2>
             <p>
-                Cookies zijn kleine tekstbestanden die door een website op jouw computer, tablet of mobiele telefoon worden geplaatst wanneer je de website bezoekt. Hierin wordt informatie opgeslagen om jouw bezoek prettiger te maken (zoals ingelogd blijven) en om de website goed te laten functioneren.
+                Cookies zijn kleine tekstbestanden die door een website op jouw computer, tablet of mobiele telefoon worden geplaatst wanneer je de website bezoekt. Hierin wordt informatie opgeslagen om jouw bezoek prettiger te maken (zoals ingelogd blijven) en om de website goed te laten functioneren. Omdat TBS Kliniek een non-profit hobbyproject is zonder commerciële verkoop, plaatsen wij geen onnodige tracking-cookies.
             </p>
         </section>
 

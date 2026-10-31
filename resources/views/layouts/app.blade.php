@@ -2579,7 +2579,12 @@
 
                     <!-- Col 4: Juridisch & Privacy (NL / EU) -->
                     <div class="space-y-2.5">
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Juridisch & Privacy</h4>
+                        <div class="space-y-0.5">
+                            <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Juridisch & Privacy</h4>
+                            <p class="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
+                                Hobbyproject &bull; Geen KvK &bull; Alles is een donatie
+                            </p>
+                        </div>
                         <ul class="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
                             <li><a href="{{ route('legal.terms') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Algemene Voorwaarden</a></li>
                             <li><a href="{{ route('legal.privacy') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition">Privacybeleid (AVG / GDPR)</a></li>
@@ -2598,8 +2603,13 @@
                 <!-- Satire / Fictief Verklaring Bar -->
                 <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed flex items-start gap-3">
                     <i class="fa-solid fa-circle-info text-purple-600 dark:text-purple-400 text-sm mt-0.5 shrink-0"></i>
-                    <div>
-                        <strong class="text-slate-800 dark:text-slate-200 font-bold">Fictief Rollenspel Verklaring:</strong> TBS Kliniek is een 100% fictief online browsergame (RPG / satire) ter recreatief vermaak. Deze website is op geen enkele wijze gelieerd aan het Ministerie van Justitie en Veiligheid, de Dienst Justitiële Inrichtingen (DJI) of bestaande forensische psychiatrische centra. In-game valuta en items hebben geen reële economische waarde.
+                    <div class="space-y-1">
+                        <div>
+                            <strong class="text-slate-800 dark:text-slate-200 font-bold">Particulier Hobbyproject &amp; Fictief Rollenspel:</strong> TBS Kliniek is een 100% fictief online browsergame (RPG / satire) ter recreatief vermaak. Dit is een particulier hobbymatig initiatief zonder commercieel winstoogmerk en <strong>zonder inschrijving bij de Kamer van Koophandel (geen KvK-nummer)</strong>.
+                        </div>
+                        <div>
+                            Alle verkrijgbare extra's (zoals VIP-lidmaatschappen, Gouden Sterren, Koffers en Bakkie Koffie via Buy Me a Coffee) vallen uitdrukkelijk onder een <strong>vrijwillige donatie</strong> ter dekking van directe server- en hostingkosten. Het betreft g&eacute;&eacute;n commerci&euml;le koop of aankoop van goederen of diensten. Deze website is op geen enkele wijze gelieerd aan het Ministerie van Justitie en Veiligheid, de Dienst Justiti&euml;le Inrichtingen (DJI) of bestaande forensische psychiatrische centra. In-game valuta en items hebben geen re&euml;le economische waarde.
+                        </div>
                     </div>
                 </div>
 

@@ -24,17 +24,17 @@
         <div class="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
             <div class="flex flex-wrap items-center gap-2">
                 <span class="font-black uppercase tracking-wider text-purple-900 dark:text-purple-200 text-xs">
-                    Belangrijk Particulier & Hobbymatig Initiatief (Geen Onderneming)
+                    Belangrijk Particulier &amp; Hobbymatig Initiatief (Geen Onderneming &bull; Geen KvK)
                 </span>
                 <span class="px-2 py-0.5 rounded-full bg-purple-200/80 dark:bg-purple-900/80 text-purple-800 dark:text-purple-200 text-[10px] font-mono font-bold">
                     werkenmetdaniel.nl
                 </span>
             </div>
             <p>
-                <strong>TBS Kliniek (tbs-kliniek.nl) is géén commercieel bedrijf of onderneming</strong>, maar een puur hobbymatig non-profit project, opgezet en beheerd door Daniël via <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900 dark:hover:text-purple-300">werkenmetdaniel.nl</a>.
+                <strong>TBS Kliniek (tbs-kliniek.nl) is een particulier hobbyproject en g&eacute;&eacute;n commercieel bedrijf of onderneming</strong>. Wij beschikken niet over een inschrijving bij de Kamer van Koophandel (geen KvK-nummer). Het project is opgezet en wordt hobbymatig beheerd door Dani&euml;l via <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900 dark:hover:text-purple-300">werkenmetdaniel.nl</a>.
             </p>
             <p>
-                <strong>Vrijwillige ondersteuning</strong> Er zijn geen verplichte betaalde producten of commerciële abonnementen. Vrijwillige supportersdonaties via het onafhankelijke platform Buy Me a Coffee (<a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900 dark:hover:text-purple-300">buymeacoffee.com/tbskliniek</a>) worden <strong>100% en uitsluitend gebruikt om de directe hosting-, server- en onderhoudskosten te dekken</strong>. Er is uitdrukkelijk <strong>geen winstoogmerk</strong> en er zijn geen commerciële belangen.
+                <strong>Alles is een vrijwillige donatie</strong> Er zijn geen verplichte betaalde producten of commerciële abonnementen. Alle verkrijgbare privileges (waaronder VIP-lidmaatschappen, Gouden Sterren, Koffers en Bakkie Koffie) via Buy Me a Coffee (<a href="https://buymeacoffee.com/tbskliniek" target="_blank" rel="noopener noreferrer" class="text-purple-700 dark:text-purple-400 font-bold underline hover:text-purple-900 dark:hover:text-purple-300">buymeacoffee.com/tbskliniek</a>) zijn <strong>100% vrijwillige supportersdonaties</strong> die uitsluitend worden gebruikt om de directe hosting-, server- en onderhoudskosten te dekken. Er is uitdrukkelijk <strong>geen winstoogmerk</strong> en er is geen sprake van commerciële verkoop van goederen of diensten.
             </p>
         </div>
     </div>
@@ -66,11 +66,11 @@
         <section class="space-y-2.5">
             <h2 class="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <span class="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-black">2</span>
-                Juridische Status Particulier Hobbymatig Project & Geen Onderneming
+                Juridische Status: Particulier Hobbyproject, Geen Onderneming &amp; Geen KvK
             </h2>
             <div class="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 space-y-2 text-xs">
                 <p>
-                    2.1. <strong>Geen onderneming</strong> TBS Kliniek is geen commerciële onderneming, eenmanszaak, maatschap of vennootschap in de zin van het Handelsregister of het Burgerlijk Wetboek. Het platform is een particulier en educatief hobbyproject beheerd vanuit het persoonlijke portfolio en webinitiatief <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a>.
+                    2.1. <strong>Geen onderneming &amp; Geen KvK</strong> TBS Kliniek is een particulier en educatief hobbyproject en g&eacute;&eacute;n commerci&euml;le onderneming, eenmanszaak, maatschap of vennootschap in de zin van het Handelsregister of het Burgerlijk Wetboek. Wij hebben dan ook <strong>geen inschrijving bij de Kamer van Koophandel (geen KvK-nummer)</strong>. Het platform is een niet-commercieel initiatief beheerd vanuit het persoonlijke portfolio en webproject <a href="https://werkenmetdaniel.nl" target="_blank" rel="noopener" class="text-purple-600 dark:text-purple-400 font-bold underline">werkenmetdaniel.nl</a>.
                 </p>
                 <p>
                     2.2. <strong>Gratis toegankelijk</strong> Iedere speler heeft kosteloos en gelijkwaardig toegang tot alle spelonderdelen door actief deel te nemen aan het spel.

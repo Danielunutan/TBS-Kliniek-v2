@@ -208,7 +208,7 @@
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Kliniek Shop</h1>
                 <p class="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl leading-relaxed">
-                    Scoor exclusieve bundels, kluiscodes, maskers en koffers met je verdiende Sterren of koop handige benodigdheden in de kantine met contante Euro's!
+                    Scoor exclusieve bundels, VIP-voordelen, kluiscodes en koffers als bedankje bij een vrijwillige supportersdonatie of met verdiende Sterren, en haal handige kantinesnacks met fictief in-game speelgeld!
                 </p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
@@ -347,7 +347,7 @@
                         <i class="fa-solid fa-utensils text-emerald-600 dark:text-emerald-400 w-4 text-center"></i>
                         <span>Kantine Items</span>
                     </span>
-                    <span class="text-[10px] text-slate-400">Euro (€)</span>
+                    <span class="text-[10px] text-slate-400">Speelgeld (€)</span>
                 </button>
 
                 <!-- Mijn Inventaris Tab -->
