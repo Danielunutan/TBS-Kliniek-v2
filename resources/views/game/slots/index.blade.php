@@ -22,7 +22,7 @@
     },
     
     async spin() {
-        if (this.isSpinning || this.cash < this.bet || {{ $character->isImprisoned() ? 'true' : 'false' }}) return;
+        if (this.isSpinning || this.cash < this.bet || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }}) return;
         
         this.isSpinning = true;
         this.lastResult = null;
@@ -239,9 +239,9 @@
 
             <!-- Big Spin Button in TBS Purple Brand Theme -->
             <button type="button" @click="spin()"
-                    :disabled="isSpinning || cash < bet || {{ $character->isImprisoned() ? 'true' : 'false' }}"
+                    :disabled="isSpinning || cash < bet || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }}"
                     class="w-full py-3.5 px-6 rounded-xl font-black text-base transition-all duration-150 shadow-xs cursor-pointer flex items-center justify-center gap-2 active:scale-95"
-                    :class="isSpinning || cash < bet ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none active:scale-100' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white shadow-xs'">
+                    :class="isSpinning || cash < bet || {{ $character->isImprisoned() || $character->isComatose() ? 'true' : 'false' }} ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed shadow-none active:scale-100' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white shadow-xs'">
                 <i class="fa-solid fa-rotate-right text-base" :class="isSpinning ? 'animate-spin' : ''"></i>
                 <span x-text="isSpinning ? 'Rollen Draaien...' : 'Draai Rollen (Spin!)'"></span>
             </button>

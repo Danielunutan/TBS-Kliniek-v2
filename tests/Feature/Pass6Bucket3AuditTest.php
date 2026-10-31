@@ -2,31 +2,65 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\Character;
+use App\Models\CharacterConnectFourStat;
+use App\Models\User;
+use App\Services\CooldownService;
 use App\Services\LoanService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class Pass6Bucket3AuditTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_bucket_3_models_and_services_load_successfully(): void
+    public function test_cooldown_service_skip_with_stars_rechecks_cooldown_inside_transaction(): void
     {
-        $user = User::factory()->create();
-        $character = Character::factory()->create(['user_id' => $user->id]);
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'stars' => 50,
+        ]);
 
-        $this->assertNotNull($character);
-        $this->assertEquals($user->id, $character->user_id);
+        $service = app(CooldownService::class);
+        $service->setCooldown($character, 'hustle', 60);
+
+        $first = $service->skipWithStars($character, 'hustle');
+        $this->assertTrue($first['success']);
+        $this->assertSame(38, $character->fresh()->stars);
+
+        $second = $service->skipWithStars($character, 'hustle');
+        $this->assertFalse($second['success']);
+        $this->assertSame(38, $character->fresh()->stars);
     }
 
-    public function test_loan_service_locking_and_request(): void
+    public function test_connect_four_stat_returns_integer_cooldown_seconds(): void
     {
-        $user = User::factory()->create();
-        $character = Character::factory()->create(['user_id' => $user->id, 'cash' => 10000]);
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create(['user_id' => $user->id]);
+
+        $stat = CharacterConnectFourStat::create([
+            'character_id' => $character->id,
+            'cooldown_until' => now()->addSeconds(45),
+        ]);
+
+        $remaining = $stat->getCooldownSecondsRemaining();
+        $this->assertGreaterThan(0, $remaining);
+        $this->assertLessThanOrEqual(45, $remaining);
+    }
+
+    public function test_loan_service_requests_and_repays_loan_correctly(): void
+    {
+        $user = User::factory()->create(['is_onboarded' => true]);
+        $character = Character::factory()->create([
+            'user_id' => $user->id,
+            'level' => 5,
+            'cash' => 10000,
+        ]);
 
         $loanService = app(LoanService::class);
-        $this->assertNotNull($loanService);
+        $res = $loanService->requestLoan($character, 10000, 'cash');
+        $this->assertTrue($res['success']);
+        $this->assertSame(20000, $character->fresh()->cash);
     }
 }

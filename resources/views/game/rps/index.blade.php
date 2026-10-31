@@ -24,7 +24,7 @@
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center mb-3">Maak je keuze</label>
                 <div class="grid grid-cols-3 gap-3">
                     <label class="cursor-pointer">
-                        <input type="radio" name="choice" value="steen" class="peer sr-only" required>
+                        <input type="radio" name="choice" value="steen" class="peer sr-only" required checked>
                         <div class="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border-2 border-slate-200/80 dark:border-slate-700/70 peer-checked:border-purple-600 dark:peer-checked:border-purple-500 peer-checked:bg-purple-50/70 dark:peer-checked:bg-purple-950/60 text-center hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150 shadow-xs flex flex-col items-center gap-2">
                             <span class="h-10 flex items-center justify-center text-slate-700 dark:text-slate-300"><i class="fa-solid fa-hand-back-fist text-3xl"></i></span>
                             <span class="text-xs font-extrabold text-slate-800 dark:text-white uppercase">Steen</span>
@@ -69,8 +69,8 @@
             </div>
 
             <button type="submit"
-                    {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
-                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm transition-all duration-150 shadow-xs flex items-center justify-center gap-2 {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white active:scale-95 cursor-pointer' }}">
+                    {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'disabled' : '' }}
+                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm transition-all duration-150 shadow-xs flex items-center justify-center gap-2 {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white active:scale-95 cursor-pointer' }}">
                 <i class="fa-solid fa-gamepad mr-2"></i> Spelen
             </button>
         </form>

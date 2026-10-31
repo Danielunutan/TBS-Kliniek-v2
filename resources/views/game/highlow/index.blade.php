@@ -62,7 +62,7 @@
             <!-- Choice Buttons with Multipliers -->
             <div class="grid grid-cols-2 gap-3">
                 <button type="submit" name="choice" value="lager"
-                        {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
+                        {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'disabled' : '' }}
                         class="p-4 rounded-xl border-2 border-rose-300 dark:border-rose-800 hover:border-rose-500 dark:hover:border-rose-600 bg-rose-50/50 dark:bg-rose-950/40 hover:bg-rose-100/60 dark:hover:bg-rose-900/60 transition-all duration-150 font-black text-sm text-rose-700 dark:text-rose-300 flex flex-col items-center gap-1 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95">
                     <i class="fa-solid fa-arrow-down text-2xl"></i>
                     <span>LAGER</span>
@@ -71,7 +71,7 @@
                     </span>
                 </button>
                 <button type="submit" name="choice" value="hoger"
-                        {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
+                        {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'disabled' : '' }}
                         class="p-4 rounded-xl border-2 border-emerald-300 dark:border-emerald-800 hover:border-emerald-500 dark:hover:border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/40 hover:bg-emerald-100/60 dark:hover:bg-emerald-900/60 transition-all duration-150 font-black text-sm text-emerald-700 dark:text-emerald-300 flex flex-col items-center gap-1 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95">
                     <i class="fa-solid fa-arrow-up text-2xl"></i>
                     <span>HOGER</span>

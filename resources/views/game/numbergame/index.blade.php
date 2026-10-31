@@ -54,8 +54,8 @@
             </div>
 
             <button type="submit"
-                    {{ $character->isImprisoned() || $character->cash < 50 ? 'disabled' : '' }}
-                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm transition-all duration-150 shadow-xs cursor-pointer active:scale-95 {{ $character->isImprisoned() || $character->cash < 50 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed active:scale-100' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white' }}">
+                    {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'disabled' : '' }}
+                    class="w-full py-3.5 px-6 rounded-xl font-black text-sm transition-all duration-150 shadow-xs cursor-pointer active:scale-95 {{ $character->isImprisoned() || $character->isComatose() || $character->cash < 50 ? 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/60 cursor-not-allowed active:scale-100' : 'bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white' }}">
                 <i class="fa-solid fa-dice mr-2"></i> Draaien & Inzetten
             </button>
         </form>

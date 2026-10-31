@@ -128,19 +128,19 @@ Route::get('/kennisbank', [FaqController::class, 'index'])->name('faq');
 Route::get('/sponsorkamer/redirect', [SponsorAdController::class, 'redirect'])->name('sponsor.redirect');
 
 // CPAlead Publisher Postback Callback (Server-to-Server GET)
-Route::get('/api/cpalead/postback', [CpaleadPostbackController::class, 'handle'])->name('cpalead.postback');
+Route::get('/api/cpalead/postback', [CpaleadPostbackController::class, 'handle'])->middleware('throttle:60,1')->name('cpalead.postback');
 
 // Buy Me a Coffee Webhook (Server-to-Server POST)
-Route::post('/webhooks/buymeacoffee', [BuyMeACoffeeWebhookController::class, 'handle'])->name('webhooks.buymeacoffee');
-Route::post('/api/webhooks/buymeacoffee', [BuyMeACoffeeWebhookController::class, 'handle']);
+Route::post('/webhooks/buymeacoffee', [BuyMeACoffeeWebhookController::class, 'handle'])->middleware('throttle:60,1')->name('webhooks.buymeacoffee');
+Route::post('/api/webhooks/buymeacoffee', [BuyMeACoffeeWebhookController::class, 'handle'])->middleware('throttle:60,1');
 
 // Discord Shield Verificatie & Spelers Account Koppeling
 Route::get('/discord/verifieer', [DiscordShieldController::class, 'show'])->name('discord.verify');
 Route::get('/discord/login', [DiscordShieldController::class, 'redirect'])->name('discord.redirect');
 Route::get('/discord/callback', [DiscordShieldController::class, 'callback'])->name('discord.callback');
-Route::post('/discord/verifieer/submit', [DiscordShieldController::class, 'process'])->name('discord.process');
-Route::match(['GET', 'POST'], '/discord/koppel', [DiscordShieldController::class, 'linkGameAccount'])->name('discord.link');
-Route::match(['GET', 'POST'], '/discord/sync-roles', [DiscordShieldController::class, 'syncRoles'])->name('discord.sync_roles');
+Route::post('/discord/verifieer/submit', [DiscordShieldController::class, 'process'])->middleware('throttle:20,1')->name('discord.process');
+Route::match(['GET', 'POST'], '/discord/koppel', [DiscordShieldController::class, 'linkGameAccount'])->middleware('throttle:20,1')->name('discord.link');
+Route::match(['GET', 'POST'], '/discord/sync-roles', [DiscordShieldController::class, 'syncRoles'])->middleware('throttle:20,1')->name('discord.sync_roles');
 Route::get('/discord/widget-data', [DiscordShieldController::class, 'widgetData'])->name('discord.widget_data');
 
 // Community Hub & Social Follow Rewards
@@ -586,18 +586,18 @@ Route::middleware(['auth', SerializeCharacterActions::class])->group(function ()
 
     // Account & Beveiliging (2FA, Wachtwoord, Username, Remote Sessions)
     Route::get('/instellingen/account', [AccountSettingsController::class, 'index'])->name('settings.account');
-    Route::post('/instellingen/wachtwoord', [AccountSettingsController::class, 'updatePassword'])->name('settings.password.update');
-    Route::post('/instellingen/gebruikersnaam', [AccountSettingsController::class, 'updateUsername'])->name('settings.username.update');
-    Route::post('/instellingen/avatar', [AccountSettingsController::class, 'updateAvatar'])->name('settings.avatar.update');
-    Route::post('/instellingen/2fa', [AccountSettingsController::class, 'toggleTwoFactor'])->name('settings.2fa.toggle');
-    Route::post('/instellingen/sessies/uitloggen', [AccountSettingsController::class, 'logoutOtherDevices'])->name('settings.sessions.logout-others');
+    Route::post('/instellingen/wachtwoord', [AccountSettingsController::class, 'updatePassword'])->middleware('throttle:10,1')->name('settings.password.update');
+    Route::post('/instellingen/gebruikersnaam', [AccountSettingsController::class, 'updateUsername'])->middleware('throttle:10,1')->name('settings.username.update');
+    Route::post('/instellingen/avatar', [AccountSettingsController::class, 'updateAvatar'])->middleware('throttle:10,1')->name('settings.avatar.update');
+    Route::post('/instellingen/2fa', [AccountSettingsController::class, 'toggleTwoFactor'])->middleware('throttle:10,1')->name('settings.2fa.toggle');
+    Route::post('/instellingen/sessies/uitloggen', [AccountSettingsController::class, 'logoutOtherDevices'])->middleware('throttle:10,1')->name('settings.sessions.logout-others');
 
     // Web Push Notificaties (Desktop & WebApp Native Push)
     Route::get('/push/key', [PushSubscriptionController::class, 'key'])->name('push.key');
     Route::get('/push/status', [PushSubscriptionController::class, 'status'])->name('push.status');
     Route::post('/push/subscribe', [PushSubscriptionController::class, 'subscribe'])->name('push.subscribe');
     Route::post('/push/unsubscribe', [PushSubscriptionController::class, 'unsubscribe'])->name('push.unsubscribe');
-    Route::post('/push/test', [PushSubscriptionController::class, 'test'])->name('push.test');
+    Route::post('/push/test', [PushSubscriptionController::class, 'test'])->middleware('throttle:5,1')->name('push.test');
 
     // Kliniek Nieuws & Mededelingen
     Route::get('/nieuws', [NewsController::class, 'index'])->name('news.index');

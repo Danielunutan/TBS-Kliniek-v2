@@ -2,62 +2,49 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Character;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class Pass6Bucket10AuditTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_bucket10_views_and_legal_pages_render_correctly(): void
+    public function test_bucket_10_legal_pages_and_throttled_security_routes(): void
     {
-        $response = $this->get(route('legal.terms'));
-        $response->assertStatus(200);
+        $this->get(route('legal.terms'))->assertOk();
+        $this->get(route('legal.privacy'))->assertOk();
+        $this->get(route('legal.cookies'))->assertOk();
+        $this->get(route('legal.disclaimer'))->assertOk();
 
-        $response = $this->get(route('legal.privacy'));
-        $response->assertStatus(200);
+        $passwordRoute = Route::getRoutes()->getByName('settings.password.update');
+        $this->assertNotNull($passwordRoute);
+        $this->assertContains('throttle:10,1', $passwordRoute->gatherMiddleware());
 
-        $response = $this->get(route('legal.cookies'));
-        $response->assertStatus(200);
+        $twoFactorRoute = Route::getRoutes()->getByName('settings.2fa.toggle');
+        $this->assertNotNull($twoFactorRoute);
+        $this->assertContains('throttle:10,1', $twoFactorRoute->gatherMiddleware());
 
-        $response = $this->get(route('legal.disclaimer'));
-        $response->assertStatus(200);
-    }
-
-    public function test_maintenance_page_renders_with_bypass(): void
-    {
-        $response = $this->get('/?bypass=daniel');
-        $response->assertStatus(200);
+        $webhookRoute = Route::getRoutes()->getByName('webhooks.buymeacoffee');
+        $this->assertNotNull($webhookRoute);
+        $this->assertContains('throttle:60,1', $webhookRoute->gatherMiddleware());
     }
 
     public function test_authenticated_user_can_access_dashboard_and_realtime_stats(): void
     {
-        $user = User::factory()->create([
-            'is_onboarded' => true,
-        ]);
-        $character = new Character([
+        $user = User::factory()->create(['is_onboarded' => true]);
+        Character::factory()->create([
             'user_id' => $user->id,
-            'name' => 'Test Patient',
-            'username' => 'testpatient',
+            'name' => 'TestPatient10',
             'cash' => 50000,
             'bank' => 100000,
-            'energy' => 100,
-            'max_energy' => 100,
-            'health' => 100,
-            'max_health' => 100,
-            'respect' => 50,
-            'level' => 1,
-            'profile_color' => 'purple',
         ]);
-        $character->save();
 
-        $response = $this->actingAs($user)->get(route('dashboard'));
-        $response->assertStatus(200);
-
-        $responseStats = $this->actingAs($user)->getJson(route('character.realtime-stats'));
-        $responseStats->assertStatus(200);
-        $responseStats->assertJsonStructure(['cash', 'bank', 'energy', 'health']);
+        $this->actingAs($user)->get(route('dashboard'))->assertOk();
+        $this->actingAs($user)->getJson(route('character.realtime-stats'))
+            ->assertOk()
+            ->assertJsonStructure(['cash', 'bank', 'energy', 'health']);
     }
 }

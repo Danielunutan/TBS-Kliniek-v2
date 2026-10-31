@@ -198,12 +198,20 @@ body.dark .board-socket:hover,
                     </p>
                 </div>
 
-                <!-- AD SKIP BUTTON (INSTANT REVANCHE VIA AD) -->
+                <!-- COOLDOWN SKIP BUTTON (STARS OR SPONSOR AD) -->
                 <div class="p-5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 max-w-md mx-auto space-y-3">
                     <div class="flex items-center justify-center gap-2 text-xs font-extrabold text-amber-800 dark:text-amber-300">
                         <i class="fa-solid fa-bolt text-amber-500 animate-bounce"></i>
                         <span>Geen zin om 10 minuten te wachten?</span>
                     </div>
+                    <form action="{{ route('connect_four.skip_cooldown_stars') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-star"></i>
+                            <span>Overslaan met 10 Sterren ⭐ (Direct Revanche)</span>
+                        </button>
+                    </form>
+                    @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
                     <form action="{{ route('connect_four.skip_cooldown_ad') }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 active:scale-95 text-white font-black text-xs transition-all duration-150 cursor-pointer shadow-xs flex items-center justify-center gap-2">
@@ -211,7 +219,8 @@ body.dark .board-socket:hover,
                             <span>Overslaan via Sponsor-Ad (Direct Revanche)</span>
                         </button>
                     </form>
-                    <p class="text-[10px] text-slate-400">Bekijk een korte sponsor-boodschap en start onmiddellijk weer een nieuwe serie van 5 potjes!</p>
+                    @endif
+                    <p class="text-[10px] text-slate-400">Sla de wachttijd direct over en start onmiddellijk weer een nieuwe serie van 5 potjes!</p>
                 </div>
             </div>
 
@@ -505,6 +514,15 @@ body.dark .board-socket:hover,
                 Eindstand: 0 - 0 (Gelijk: 0)
             </div>
 
+            <form action="{{ route('connect_four.skip_cooldown_stars') }}" method="POST">
+                @csrf
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Direct Revanche voor 10 Sterren ⭐</span>
+                </button>
+            </form>
+
+            @if(\App\Http\Controllers\SponsorAdController::areAdsEnabled())
             <form action="{{ route('connect_four.skip_cooldown_ad') }}" method="POST">
                 @csrf
                 <button type="submit" class="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer shadow-xs flex items-center justify-center gap-2">
@@ -512,6 +530,7 @@ body.dark .board-socket:hover,
                     <span>Direct Revanche via Sponsor-Ad</span>
                 </button>
             </form>
+            @endif
 
             <button type="button" onclick="closeTournamentModal()" class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-xs transition-all duration-150 active:scale-95 cursor-pointer">
                 Sluiten & Cooldown Afwachten
