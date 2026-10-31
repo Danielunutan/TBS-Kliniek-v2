@@ -42,11 +42,11 @@ html.dark, html.dark body {
 }
 
 html.dark .bg-white:not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]):not(.theme-toggle-knob) {
-    background-color: #111827 !important;
+    background-color: #0f172a !important;
 }
 
 html.dark :is(.bg-slate-50, .bg-gray-50):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
-    background-color: #0f172a !important;
+    background-color: #162032 !important;
 }
 
 html.dark :is(.bg-slate-100, .bg-slate-200, .bg-gray-100, .bg-gray-200):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
@@ -66,7 +66,7 @@ html.dark :is(
     [class^="bg-white/8"], [class*=" bg-white/8"],
     [class^="bg-white/9"], [class*=" bg-white/9"]
 ):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
-    background-color: rgba(17, 24, 39, 0.85) !important;
+    background-color: rgba(15, 23, 42, 0.88) !important;
 }
 
 html.dark :is(
@@ -75,7 +75,7 @@ html.dark :is(
     [class^="bg-gray-50/"], [class*=" bg-gray-50/"],
     [class^="bg-gray-100/"], [class*=" bg-gray-100/"]
 ):not([class*="dark:bg-"]):not([class*="peer-checked:bg-"]) {
-    background-color: rgba(15, 23, 42, 0.65) !important;
+    background-color: rgba(30, 41, 59, 0.55) !important;
 }
 
 html.dark :is(
@@ -507,13 +507,32 @@ html.dark :is(
     border-color: rgba(244, 63, 94, 0.32) !important;
 }
 
-/* Form Controls in Dark Mode */
+/* Form Controls in Light & Dark Mode */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+select:focus,
+textarea:focus {
+    border-color: #9333ea;
+    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.14);
+}
+
 html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html.dark select,
 html.dark textarea {
-    background-color: #111827 !important;
-    border-color: #1f2937 !important;
+    background-color: #0f172a !important;
     color: #f8fafc !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(:focus),
+html.dark select:not(:focus),
+html.dark textarea:not(:focus) {
+    border-color: #334155 !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+html.dark select:focus,
+html.dark textarea:focus {
+    border-color: #a855f7 !important;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.22) !important;
 }
 
 html.dark input::placeholder,
@@ -524,8 +543,8 @@ html.dark textarea::placeholder {
 /* Modal Dialog Surfaces in Dark Mode (excludes full-screen fixed backdrop wrappers) */
 html.dark [role="dialog"]:not(.fixed):not(.inset-0),
 html.dark .modal-content {
-    background-color: #111827 !important;
-    border-color: #1f2937 !important;
+    background-color: #0f172a !important;
+    border-color: #1e293b !important;
     color: #f8fafc !important;
 }
 
@@ -575,14 +594,14 @@ html.dark :is([class*="hover:bg-blue-50"], [class*="hover:bg-blue-100"], [class*
     background-color: rgba(14, 165, 233, 0.22) !important;
 }
 
-/* Vibrant Action Buttons in Dark Mode (Eliminates dead colorless slate-900 buttons while respecting explicit dark:bg-*) */
-html.dark a.bg-slate-900:not([href*="tiktok"]):not([class*="dark:bg-"]),
-html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]) {
+/* Vibrant Action Buttons in Dark Mode (Eliminates dead colorless slate-900 buttons while respecting explicit dark:bg-* and hardware keys) */
+html.dark a.bg-slate-900:not([href*="tiktok"]):not([class*="dark:bg-"]):not([class*="font-mono"]),
+html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]):not([class*="font-mono"]) {
     background-color: #9333ea !important;
     color: #ffffff !important;
 }
-html.dark a.bg-slate-900:hover:not([href*="tiktok"]):not([class*="dark:bg-"]),
-html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]):hover {
+html.dark a.bg-slate-900:hover:not([href*="tiktok"]):not([class*="dark:bg-"]):not([class*="font-mono"]),
+html.dark button[class*="bg-slate-900"]:not([class*="dark:bg-"]):not([class*="font-mono"]):hover {
     background-color: #7e22ce !important;
     color: #ffffff !important;
 }

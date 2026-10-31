@@ -75,13 +75,13 @@
 }">
 
     <!-- Top Hero Banner (Rich Purple TBS Aesthetics) -->
-    <div class="rounded-3xl shadow-xl p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-gradient-to-br from-white via-purple-50/40 to-white dark:from-[#110726] dark:via-[#190a36] dark:to-[#0f0521] border border-purple-200/80 dark:border-purple-900/60">
+    <div class="rounded-2xl shadow-xs p-6 sm:p-8 text-slate-800 dark:text-slate-100 relative overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800">
         <div class="absolute -right-16 -top-16 w-64 h-64 bg-purple-500/10 dark:bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-amber-500/10 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="space-y-2">
-                <div class="inline-flex items-center gap-2 bg-purple-100/80 dark:bg-purple-950/80 text-purple-800 dark:text-purple-200 text-xs font-black px-3.5 py-1.5 rounded-full border border-purple-200 dark:border-purple-800/80 shadow-2xs">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-black px-3.5 py-1.5 rounded-full border border-purple-200/80 dark:border-purple-800/70 shadow-2xs">
                     <i class="fa-solid fa-crown text-amber-500"></i>
                     <span>Officiële VIP Club & Donateurs Hub</span>
                 </div>
@@ -97,7 +97,7 @@
                     <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Jouw koppelcode voor Buy Me a Coffee:</span>
                     <button type="button" 
                             onclick="navigator.clipboard.writeText('TBS-{{ $character->id }}'); alert('Koppelcode TBS-{{ $character->id }} gekopieerd naar klembord!');"
-                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-purple-600 text-white font-mono text-xs font-black hover:bg-purple-700 transition cursor-pointer shadow-xs">
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-mono text-xs font-black shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                         <i class="fa-regular fa-copy text-[11px]"></i>
                         <span>TBS-{{ $character->id }}</span>
                         <span class="text-[10px] opacity-80">({{ $character->name }})</span>
@@ -106,12 +106,12 @@
             </div>
             
             <!-- VIP Status Card -->
-            <div class="shrink-0 bg-white/80 dark:bg-purple-950/50 backdrop-blur-md rounded-2xl p-5 border border-purple-200/80 dark:border-purple-800/60 shadow-lg flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl {{ $character->isVip() ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white ring-4 ring-amber-400/30' : 'bg-slate-100 dark:bg-purple-900/40 text-slate-400 border border-slate-200 dark:border-purple-800' }} flex items-center justify-center text-2xl font-black shadow-md">
+            <div class="shrink-0 bg-slate-50/90 dark:bg-slate-800/60 rounded-xl p-5 border border-slate-200/80 dark:border-slate-700/70 shadow-xs flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl {{ $character->isVip() ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white ring-4 ring-amber-400/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700' }} flex items-center justify-center text-2xl font-black shadow-md">
                     <i class="fa-solid fa-crown"></i>
                 </div>
                 <div class="space-y-1">
-                    <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-purple-300">Jouw Status</div>
+                    <div class="text-[10px] uppercase font-black tracking-wider text-slate-400 dark:text-slate-400">Jouw Status</div>
                     <div class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                         @if($character->isVip())
                             <span class="text-amber-500 font-extrabold flex items-center gap-1">
@@ -122,7 +122,7 @@
                             <span class="text-slate-500 dark:text-slate-400 text-sm">Reguliere Patiënt</span>
                         @endif
                     </div>
-                    <div class="text-[11px] font-bold text-slate-500 dark:text-purple-300/80 flex items-center gap-2">
+                    <div class="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-2">
                         <span class="text-amber-600 dark:text-amber-400 font-black">{{ number_format($character->vip_points ?? 0, 0, ',', '.') }} VIP Punten</span>
                         <span>•</span>
                         <span class="text-purple-600 dark:text-purple-400 font-black">{{ $character->stars ?? 0 }} Sterren</span>
@@ -142,10 +142,10 @@
         
         <!-- Left Navigation Sidebar -->
         <div class="lg:col-span-4 space-y-4">
-            <div class="bg-white dark:bg-[#110726] border border-slate-200 dark:border-purple-900/60 rounded-2xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs p-2 space-y-1 text-xs font-bold">
                 <!-- Tab 1: Pakketten & Lidmaatschappen -->
                 <button type="button" @click="setTab('pakketten')" 
-                        :class="activeTab === 'pakketten' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-950/60'"
+                        :class="activeTab === 'pakketten' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                         class="w-full flex items-center justify-between p-3.5 rounded-xl transition cursor-pointer">
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-crown text-amber-400 text-sm"></i>
@@ -156,31 +156,31 @@
 
                 <!-- Tab 2: Bakkie Koffie (Vrije Donaties) -->
                 <button type="button" @click="setTab('koffie')" 
-                        :class="activeTab === 'koffie' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-950/60'"
+                        :class="activeTab === 'koffie' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                         class="w-full flex items-center justify-between p-3.5 rounded-xl transition cursor-pointer">
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-mug-hot text-amber-500 text-sm"></i>
                         <span>Bakkie Koffie (Steun de Server)</span>
                     </span>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-300 font-extrabold">+Sterren</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 font-extrabold">+Sterren</span>
                 </button>
 
                 <!-- Tab 3: VIP Styling -->
                 <button type="button" @click="setTab('styling')" 
-                        :class="activeTab === 'styling' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-950/60'"
+                        :class="activeTab === 'styling' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                         class="w-full flex items-center justify-between p-3.5 rounded-xl transition cursor-pointer">
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-wand-magic-sparkles text-pink-500 text-sm"></i>
                         <span>Naamkleur & Glitter Sparkle</span>
                     </span>
                     @if($character->canCustomizeNameColor() || $character->canUseSparkleEffect())
-                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold">Beschikbaar</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70 font-extrabold">Beschikbaar</span>
                     @endif
                 </button>
 
                 <!-- Tab 4: VIP Punten Inwisselen -->
                 <button type="button" @click="setTab('uitgeven')" 
-                        :class="activeTab === 'uitgeven' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-purple-950/60'"
+                        :class="activeTab === 'uitgeven' ? 'bg-purple-600 text-white shadow-xs font-black' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'"
                         class="w-full flex items-center justify-between p-3.5 rounded-xl transition cursor-pointer">
                     <span class="flex items-center gap-3">
                         <i class="fa-solid fa-gift text-purple-400 text-sm"></i>
@@ -191,7 +191,7 @@
             </div>
 
             <!-- Discord Quick Box -->
-            <div class="bg-gradient-to-br from-[#5865F2]/10 via-[#5865F2]/5 to-transparent border border-[#5865F2]/30 dark:border-[#5865F2]/40 rounded-2xl p-5 shadow-xs text-center space-y-3 bg-white dark:bg-[#110726]">
+            <div class="border border-[#5865F2]/30 dark:border-[#5865F2]/40 rounded-2xl p-5 shadow-xs text-center space-y-3 bg-white dark:bg-slate-900">
                 <div class="w-11 h-11 mx-auto rounded-full bg-[#5865F2] text-white flex items-center justify-center text-xl shadow-sm">
                     <i class="fa-brands fa-discord"></i>
                 </div>
@@ -205,17 +205,17 @@
                 <div class="space-y-2 pt-1">
                     @if(empty($hasDiscordReward))
                         <a href="{{ route('discord.verify') }}" 
-                           class="block w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]">
+                           class="block w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                             <i class="fa-solid fa-link mr-1.5"></i> Koppel Discord (+3 Dagen VIP)
                         </a>
                     @else
-                        <div class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 py-1.5 px-3 rounded-lg border border-emerald-200 dark:border-emerald-800/50">
+                        <div class="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 py-1.5 px-3 rounded-xl border border-emerald-200/80 dark:border-emerald-800/70">
                             <i class="fa-solid fa-circle-check mr-1"></i> Discord Bonus Geclaimd
                         </div>
                     @endif
 
                     <a href="https://discord.gg/tbs" target="_blank" rel="noopener noreferrer" 
-                       class="block w-full py-2 px-4 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-white font-extrabold text-xs shadow-xs transition active:scale-[0.99]">
+                       class="block w-full py-2 px-4 rounded-xl bg-[#5865F2] hover:bg-[#4752c4] text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer">
                         <i class="fa-brands fa-discord mr-1.5"></i> Praat mee op Discord
                     </a>
                 </div>

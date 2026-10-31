@@ -149,7 +149,7 @@ class ReferralService
             'needed' => $needed,
             'username' => $refCode,
             'has_username' => $hasCustomUsername,
-            'link' => url('/?ref='.$refCode),
+            'link' => rtrim(url('/'), '/').'/?ref='.$refCode,
         ];
     }
 }

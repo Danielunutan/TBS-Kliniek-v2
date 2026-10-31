@@ -4,15 +4,15 @@
 <div class="space-y-4 sm:space-y-6" x-data="{ searchQuery: '' }">
 
     <!-- Combat Mode App Tab Switcher -->
-    <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
-        <a href="{{ route('fight.index') }}" class="py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 font-black text-xs text-center shadow-xs flex items-center justify-center gap-2 border border-purple-200 dark:border-purple-800">
+    <div class="grid grid-cols-2 gap-2 bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70">
+        <a href="{{ route('fight.index') }}" class="py-2.5 px-3 rounded-xl bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 font-black text-xs text-center shadow-xs flex items-center justify-center gap-2 border border-purple-200/80 dark:border-purple-800/70">
             <i class="fa-solid fa-sack-dollar text-emerald-600"></i>
             <span>Geld Stelen (Luchtplaats)</span>
         </a>
         <a href="{{ route('hitman.index') }}" class="py-2.5 px-3 rounded-xl hover:bg-white/60 dark:hover:bg-slate-900/60 text-slate-600 dark:text-slate-300 font-extrabold text-xs text-center transition flex items-center justify-center gap-1.5">
             <i class="fa-solid fa-crosshairs text-rose-600"></i>
             <span>Liquidatie & Kogels</span>
-            <span class="text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-black px-1.5 py-0.5 rounded-full">NIEUW</span>
+            <span class="text-[9px] bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/70 font-black px-1.5 py-0.5 rounded-full">NIEUW</span>
         </a>
     </div>
 
@@ -23,7 +23,7 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div>
-                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800 mb-1.5">
+                <div class="inline-flex items-center gap-2 bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/70 mb-1.5">
                     <i class="fa-solid fa-sack-dollar text-emerald-600"></i> De Luchtplaats • Geld Stelen & Beroven
                 </div>
                 <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Geld Stelen op de Luchtplaats</h1>
@@ -32,13 +32,13 @@
                 </p>
             </div>
             <div class="grid grid-cols-3 sm:flex items-center gap-2 shrink-0">
-                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] sm:text-xs font-bold text-emerald-800 dark:text-emerald-300 flex items-center justify-center gap-1.5 shadow-xs">
+                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/70 text-[11px] sm:text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center justify-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-bolt text-emerald-600"></i> {{ $character->energy }}⚡
                 </span>
-                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-[11px] sm:text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center justify-center gap-1.5 shadow-xs">
+                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200/80 dark:border-purple-800/70 text-[11px] sm:text-xs font-bold text-purple-700 dark:text-purple-300 flex items-center justify-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-fire text-purple-600"></i> {{ number_format($character->respect, 0, ',', '.') }}
                 </span>
-                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 shadow-xs">
+                <span class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-[11px] sm:text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-bomb text-rose-500"></i> {{ number_format($character->bullets ?? 0, 0, ',', '.') }} 💣
                 </span>
             </div>
@@ -46,23 +46,23 @@
     </div>
 
     @if($character->isImprisoned())
-    <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+    <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-800/70 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-2.5">
             <i class="fa-solid fa-lock text-rose-500 text-base"></i>
             <span>Je zit momenteel in de isoleercel! Vanuit de cel kun je niemand beroven op de luchtplaats.</span>
         </div>
-        <a href="{{ route('prison') }}" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider shrink-0 transition">
+        <a href="{{ route('prison') }}" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shrink-0 transition-all duration-150 active:scale-95 cursor-pointer shadow-xs">
             Naar Isoleercel &raquo;
         </a>
     </div>
     @elseif($character->energy < 20)
-    <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+    <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/70 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-2.5">
             <i class="fa-solid fa-bolt text-amber-500 text-base"></i>
             <span>Je hebt minimaal <strong>20⚡ Energie</strong> nodig om een patiënt te beroven (je hebt nu {{ $character->energy }}⚡).</span>
         </div>
         <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
-            <a href="{{ route('shop.index') }}" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center gap-1.5">
+            <a href="{{ route('shop.index') }}" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs">
                 <i class="fa-solid fa-star text-[10px]"></i>
                 <span>Energie Herstellen in Shop &raquo;</span>
             </a>
@@ -71,7 +71,7 @@
     @endif
 
     <!-- Beginner Combat Microtip -->
-    <div class="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-900 border border-purple-200 dark:border-purple-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+    <div class="p-3.5 rounded-2xl bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-900 border border-purple-200/80 dark:border-purple-800/70 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-xs">
         <div class="flex items-center gap-2.5">
             <span class="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 flex items-center justify-center text-xs font-black shrink-0">
                 <i class="fa-solid fa-lightbulb text-amber-500"></i>
@@ -80,7 +80,7 @@
                 <strong>Hoe werkt de Luchtplaats:</strong> Kies tegenstanders met <em>veel contant geld</em> en een lager level dan jij. Jouw <strong>Kracht</strong> bepaalt je winstkans, de <strong>Verdediging</strong> van het doelwit bepaalt hoeveel schade je incasseert.
             </div>
         </div>
-        <a href="{{ route('training.index') }}" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-[11px] transition shrink-0 flex items-center gap-1 shadow-2xs self-start sm:self-center">
+        <a href="{{ route('training.index') }}" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-500 text-white font-black text-[11px] transition-all duration-150 active:scale-95 cursor-pointer shrink-0 flex items-center gap-1 shadow-xs self-start sm:self-center">
             <i class="fa-solid fa-dumbbell text-[10px]"></i>
             <span>Train Kracht</span>
         </a>
@@ -91,18 +91,18 @@
 
         <!-- Left Column: Respectlijst Sidebar Card (Desktop sidebar / Mobile bottom) -->
         <div class="order-last lg:order-first lg:col-span-3 space-y-4">
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
                 <!-- Respectlijst Header Tab -->
-                <div class="bg-slate-50 dark:bg-slate-800/80 px-4 py-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+                <div class="bg-slate-50/90 dark:bg-slate-800/60 px-4 py-3 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800">
                     <span class="text-xs font-extrabold tracking-wider uppercase text-slate-900 dark:text-white flex items-center gap-2">
                         <i class="fa-solid fa-list text-purple-600 dark:text-purple-400 text-xs"></i> Respectlijst
                     </span>
-                    <span class="text-xs font-bold text-slate-400">Patiënten</span>
+                    <span class="text-xs font-bold text-slate-400 dark:text-slate-500">Patiënten</span>
                 </div>
 
                 <div class="p-4 space-y-3">
                     <!-- Online Status Counter -->
-                    <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-50/90 dark:bg-slate-800/60 px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-700/70">
                         <span>Online ({{ \App\Models\Character::getOnlineCount() }})</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     </div>
@@ -110,20 +110,20 @@
                     <!-- Search Input -->
                     <div class="relative">
                         <input type="text" x-model="searchQuery" placeholder="Zoeken..." 
-                                class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:border-purple-600 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-600">
-                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 text-xs"></i>
+                                class="w-full bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-purple-500 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 dark:text-slate-500 text-xs"></i>
                     </div>
                 </div>
             </div>
 
             <!-- Dagelijkse Aanvallen Limiet & Cooldown Info -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs space-y-3">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs space-y-3">
                 <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Dagelijkse Aanvallen & Berovingen</span>
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dagelijkse Aanvallen & Berovingen</span>
                     <span class="text-xs font-extrabold text-slate-900 dark:text-white font-mono">{{ $attacksToday }} / {{ $maxDailyAttacks }}</span>
                 </div>
                 <!-- Progress bar -->
-                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-200/80 dark:border-slate-700">
                     <div class="bg-purple-600 h-full rounded-full transition-all duration-300" 
                          style="width: {{ min(100, round(($attacksToday / max(1, $maxDailyAttacks)) * 100)) }}%"></div>
                 </div>
@@ -134,8 +134,8 @@
             </div>
 
             <!-- Your Slay & Respect Info -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs space-y-2.5">
-                <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800 pb-2">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 shadow-xs space-y-2.5">
+                <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 pb-2">
                     Jouw Status
                 </div>
                 <div class="flex items-center justify-between text-xs">
@@ -158,7 +158,7 @@
         </div>
 
         <!-- Right Column: Luchtplaats Patiënten Table Card -->
-        <div class="lg:col-span-9 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-6 shadow-xs space-y-4"
+        <div class="lg:col-span-9 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs space-y-4"
              x-data="{ 
                  globalCd: {{ $cooldownSeconds }}
              }"

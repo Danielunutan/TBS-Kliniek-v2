@@ -42,7 +42,7 @@
 }">
 
     <!-- Top Hero Banner (Rich TBS Kliniek Style - Hidden on Mijn Gang since it has full profile banner) -->
-    <div x-show="activeGangTab !== 'mijn_gang'" class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
+    <div x-show="activeGangTab !== 'mijn_gang'" class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xs relative overflow-hidden">
         @if($myGang)
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
             <div class="flex items-center gap-3.5 sm:gap-4">
@@ -155,7 +155,7 @@
     <!-- ========================================================================================= -->
     <!-- 🔥 BENDE COMMAND CENTER: HORIZONTALE COMMAND BAR (DESKTOP & MOBIEL FULL-WIDTH)              -->
     <!-- ========================================================================================= -->
-    <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
         <!-- Bovenste Status & Quick Action Balk -->
         <div class="px-4 py-3 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
@@ -397,7 +397,7 @@
     <!-- Banners voor Spelers Zonder Bende -->
     @if(!$character->gang_id)
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between gap-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between gap-4">
             <div class="space-y-1">
                 <span class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                     <i class="fa-solid fa-crown text-amber-500"></i> Bende Oprichten
@@ -448,7 +448,7 @@
             }">
 
                 <!-- Top Hero Banner Card (High-Contrast, Readable in Both Light and Dark Mode) -->
-                <div class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
                     <div class="min-h-[220px] sm:min-h-[240px] md:h-64 w-full overflow-hidden relative bg-purple-950 flex flex-col justify-between p-4 sm:p-6">
                         <img src="{{ $myGang->banner_url }}" alt="{{ $myGang->name }} Banner" class="absolute inset-0 w-full h-full object-cover">
                         <!-- Dark gradient overlay ensuring text on banner is ALWAYS 100% crystal clear in both light and dark modes -->

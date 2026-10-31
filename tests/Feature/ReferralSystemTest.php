@@ -54,7 +54,7 @@ class ReferralSystemTest extends TestCase
         $stats = $referralService->getStats($char);
 
         // Neat link falls back to character ID when no ascii alphanumeric characters exist
-        $this->assertEquals(url('/?ref='.$char->id), $stats['link']);
+        $this->assertEquals(rtrim(url('/'), '/').'/?ref='.$char->id, $stats['link']);
 
         // Registration using the numeric ID correctly credits the referrer
         $friendUser = User::factory()->create();
