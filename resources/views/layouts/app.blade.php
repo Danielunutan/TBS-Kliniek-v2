@@ -2654,7 +2654,7 @@
 
         @if(isset($character))
         <!-- NATIVE MOBILE APP BOTTOM DOCK -->
-        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 z-30 flex items-center justify-around py-1.5 px-2 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 z-30 flex items-center justify-around py-1.5 px-1.5 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
             
             <!-- 1. Home / Dashboard -->
             <a href="{{ route('dashboard') }}" class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold {{ request()->routeIs('dashboard') ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200' }} active:scale-90 transition">
@@ -2672,10 +2672,10 @@
             <div class="flex-1 flex flex-col items-center justify-center -mt-5">
                 <button type="button" 
                         @click="mobileQuickSheetOpen = !mobileQuickSheetOpen; if(window.tbsVibrate) window.tbsVibrate(15);"
-                        class="relative w-13 h-13 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-3 border-white dark:border-slate-900 group"
+                        class="relative w-12 h-12 rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-purple-600/40 active:scale-90 transition-transform cursor-pointer border-3 border-white dark:border-slate-900 group"
                         aria-label="Snelmenu Acties">
                     <span class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping"></span>
-                    <i class="fa-solid fa-bolt text-lg group-hover:scale-110 transition-transform"></i>
+                    <i class="fa-solid fa-bolt text-base group-hover:scale-110 transition-transform"></i>
                 </button>
                 <span class="text-[9px] font-black text-purple-600 dark:text-purple-400 mt-0.5 tracking-tight">Acties</span>
             </div>
@@ -2696,6 +2696,16 @@
                 </div>
                 <span>Chat</span>
             </a>
+
+            <!-- 6. Volledig Menu (Grote Menu Drawer) -->
+            <button type="button"
+                    @click="mobileQuickSheetOpen = false; mobileMenuOpen = !mobileMenuOpen; if(window.tbsVibrate) window.tbsVibrate(10);"
+                    class="flex-1 flex flex-col items-center gap-0.5 py-1 text-[10px] font-bold cursor-pointer active:scale-90 transition"
+                    :class="mobileMenuOpen ? 'text-purple-600 dark:text-purple-400 font-black' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
+                    aria-label="Open volledig menu">
+                <i class="fa-solid fa-bars text-base"></i>
+                <span>Menu</span>
+            </button>
         </nav>
 
         <!-- NATIVE SLIDE-UP QUICK ACTIONS BOTTOM SHEET -->
@@ -2724,7 +2734,7 @@
                  x-transition:leave="transition ease-in duration-200 transform-gpu"
                  x-transition:leave-start="translate-y-0"
                  x-transition:leave-end="translate-y-full"
-                 class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl border-t border-slate-200/90 dark:border-slate-800 max-h-[85vh] overflow-y-auto p-4 z-10 flex flex-col gap-4 text-slate-800 dark:text-slate-100"
+                 class="relative bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl border-t border-slate-200/90 dark:border-slate-800 max-h-[88vh] overflow-y-auto p-4 z-10 flex flex-col gap-3.5 text-slate-800 dark:text-slate-100"
                  style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom));">
                 
                 <!-- Pull Bar Handle (Tap or Swipe Down to Dismiss) -->
@@ -2738,19 +2748,32 @@
 
                 <!-- Header / Player Summary -->
                 <div class="flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800 pb-3">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-10 h-10 rounded-full p-0.5 bg-purple-100 dark:bg-purple-950 ring-2 ring-purple-500/30 overflow-hidden">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-10 h-10 rounded-full p-0.5 bg-purple-100 dark:bg-purple-950 ring-2 ring-purple-500/30 overflow-hidden shrink-0">
                             <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
                         </div>
-                        <div>
-                            <div class="font-black text-sm text-slate-900 dark:text-white leading-tight">{{ $character->name }}</div>
-                            <div class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold">LVL {{ $character->level }} &bull; {{ $character->formatted_respect }} Respect</div>
+                        <div class="min-w-0">
+                            <div class="font-black text-sm text-slate-900 dark:text-white leading-tight truncate">{{ $character->name }}</div>
+                            <div class="text-[10px] text-purple-600 dark:text-purple-400 font-extrabold truncate">LVL {{ $character->level }} &bull; {{ $character->formatted_respect }} Respect &bull; <span x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span> ⭐</div>
                         </div>
                     </div>
-                    <button @click="mobileQuickSheetOpen = false" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-sm transition-all duration-150 cursor-pointer">
+                    <button @click="mobileQuickSheetOpen = false" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white flex items-center justify-center text-sm transition-all duration-150 cursor-pointer shrink-0">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
+
+                <!-- Prominent Full Menu Trigger ("Het Grote Menu") -->
+                <button type="button"
+                        @click="mobileQuickSheetOpen = false; mobileMenuOpen = true; if(window.tbsVibrate) window.tbsVibrate(10);"
+                        class="w-full py-2.5 px-3.5 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs flex items-center justify-between shadow-sm active:scale-[0.98] transition cursor-pointer">
+                    <span class="flex items-center gap-2.5">
+                        <span class="w-7 h-7 rounded-xl bg-white/15 flex items-center justify-center text-sm shrink-0">
+                            <i class="fa-solid fa-bars"></i>
+                        </span>
+                        <span>Open Volledig Menu (Alle Functies & Pagina's)</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-80"></i>
+                </button>
 
                 <!-- Stats Overview Grid (Cards) -->
                 <div class="grid grid-cols-2 gap-2 text-xs">
@@ -2823,6 +2846,67 @@
                     </div>
                 </div>
 
+                <!-- 🍔 Rugzak & Snel Eten (Direct Herstellen op Mobiel) -->
+                <div class="rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 p-2.5">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-black uppercase text-slate-700 dark:text-slate-200 tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-utensils text-emerald-500"></i> Rugzak &bull; Snel Eten
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <span id="mobile-quick-eat-header-badge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
+                                {{ $foodTotalQty }} stuks
+                            </span>
+                            <a href="{{ route('shop.index', ['tab' => 'inventaris']) }}" class="text-[10px] font-black text-purple-600 dark:text-purple-400 hover:underline">Rugzak &raquo;</a>
+                        </div>
+                    </div>
+
+                    <div id="mobile-quick-eat-items-list" class="max-h-40 overflow-y-auto space-y-1.5 divide-y divide-slate-200/60 dark:divide-slate-700/60 {{ $quickFoodItems->isEmpty() ? 'hidden' : '' }}">
+                        @foreach($quickFoodItems as $ci)
+                            @php $item = $ci->item; @endphp
+                            @if($item)
+                            <div data-quick-item-id="{{ $ci->id }}" class="pt-1.5 first:pt-0 flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs {{ $item->energy_restore > 0 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300' }}">
+                                        <i class="fa-solid {{ $item->icon ?? 'fa-utensils' }}"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-black text-xs text-slate-900 dark:text-white truncate">{{ $item->name }}</span>
+                                            <span data-item-qty class="bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 text-[9px] font-black px-1.5 py-0.5 leading-none rounded shrink-0">x{{ $ci->quantity }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 text-[9px] mt-0.5">
+                                            @if($item->energy_restore > 0)
+                                                <span class="text-emerald-600 dark:text-emerald-400 font-bold"><i class="fa-solid fa-bolt text-[8px]"></i>+{{ $item->energy_restore }}</span>
+                                            @endif
+                                            @if($item->health_restore > 0)
+                                                <span class="text-rose-600 dark:text-rose-400 font-bold"><i class="fa-solid fa-heart text-[8px]"></i>+{{ $item->health_restore }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <form action="{{ route('shop.consume', $ci->id) }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                        @csrf
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] cursor-pointer active:scale-95 transition">1x Eten</button>
+                                    </form>
+                                    <form action="{{ route('shop.consume', $ci->id) }}" method="POST" onsubmit="window.tbsQuickConsume(event, this)">
+                                        @csrf
+                                        <input type="hidden" name="fill_max" value="1">
+                                        <button type="submit" class="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 font-bold text-[10px] cursor-pointer active:scale-95 transition">Max ⚡</button>
+                                    </form>
+                                </div>
+                            </div>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <div id="mobile-quick-eat-empty-state" class="py-2 text-center text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between gap-2 {{ $quickFoodItems->isEmpty() ? '' : 'hidden' }}">
+                        <span>Geen snacks of maaltijden in je rugzak.</span>
+                        <a href="{{ route('shop.index') }}" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] shrink-0">Naar Kantine</a>
+                    </div>
+                </div>
+
                 <!-- 🚀 Snelle Acties Grid (Large Touch Buttons) -->
                 <div>
                     <span class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-2 block">Direct Naar</span>
@@ -2834,11 +2918,18 @@
                             <span class="text-[9px] truncate w-full">Hosselen</span>
                         </a>
 
+                        <a href="{{ route('theft.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-blue-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-briefcase"></i>
+                            </div>
+                            <span class="text-[9px] truncate w-full">Diefstal</span>
+                        </a>
+
                         <a href="{{ route('fight.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-hand-fist"></i>
                             </div>
-                            <span class="text-[9px] truncate w-full">Stelen</span>
+                            <span class="text-[9px] truncate w-full">Luchtplaats</span>
                         </a>
 
                         <a href="{{ route('hitman.index') }}" class="p-2 rounded-2xl bg-rose-50/90 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
@@ -2848,32 +2939,53 @@
                             <span class="text-[9px] truncate w-full text-rose-700 dark:text-rose-300 font-black">Liquidatie</span>
                         </a>
 
+                        <a href="{{ route('smuggle.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-teal-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-teal-600/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-capsules"></i>
+                            </div>
+                            <span class="text-[9px] truncate w-full">Dealen</span>
+                        </a>
+
+                        <a href="{{ route('heists.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-rose-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-rose-600/10 text-rose-600 dark:text-rose-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-masks-theater"></i>
+                            </div>
+                            <span class="text-[9px] truncate w-full">Grote Heists</span>
+                        </a>
+
                         <a href="{{ route('packages.index') }}" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-briefcase"></i>
+                                <i class="fa-solid fa-box-open"></i>
                             </div>
                             <span class="text-[9px] truncate w-full text-amber-800 dark:text-amber-300 font-black">Koffers</span>
                         </a>
 
                         <a href="{{ route('vault.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-amber-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-600/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-key"></i>
+                                <i class="fa-solid fa-vault"></i>
                             </div>
                             <span class="text-[9px] truncate w-full">Kluis</span>
+                        </a>
+
+                        <a href="{{ route('bank.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-emerald-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </div>
+                            <span class="text-[9px] truncate w-full">De Bank</span>
                         </a>
 
                         <a href="{{ route('marketplace.index') }}" class="p-2 rounded-2xl bg-slate-50/90 hover:bg-purple-50/60 dark:bg-slate-800/60 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm">
                                 <i class="fa-solid fa-store"></i>
                             </div>
-                            <span class="text-[9px] truncate w-full">Markt</span>
+                            <span class="text-[9px] truncate w-full">Marktplaats</span>
                         </a>
 
                         <a href="{{ route('shop.index') }}" class="p-2 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/60 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800/70 flex flex-col items-center gap-1 transition-all duration-150 active:scale-95">
                             <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-sm">
-                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-cart-shopping"></i>
                             </div>
-                            <span class="text-[9px] truncate w-full text-amber-800 dark:text-amber-300 font-black">Sterren Shop</span>
+                            <span class="text-[9px] truncate w-full text-amber-800 dark:text-amber-300 font-black">Winkel</span>
                         </a>
 
                         <button type="button" 

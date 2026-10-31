@@ -19,54 +19,83 @@
          x-transition:leave="transition ease-in duration-150 transform-gpu"
          x-transition:leave-start="translate-x-0"
          x-transition:leave-end="translate-x-full"
-         x-data="window.tbsSidebarController('{{ $activeCategory ?? '' }}')"
-         class="relative w-[86vw] max-w-sm bg-white dark:bg-slate-900 border-l border-slate-200/90 dark:border-slate-800 h-full shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100">
+         x-data="window.tbsSidebarController('{{ $activeCategory ?? '' }}', true)"
+         class="relative w-[88vw] max-w-sm bg-white dark:bg-slate-900 border-l border-slate-200/90 dark:border-slate-800 h-full shadow-2xl flex flex-col z-10 overflow-hidden text-slate-800 dark:text-slate-100">
         
-        <!-- Drawer Header with Player Summary -->
-        <div class="p-4 bg-white dark:bg-slate-900 text-slate-900 dark:text-white flex items-center justify-between border-b border-slate-200/90 dark:border-slate-800 shrink-0">
+        <!-- Drawer Header with Player Summary & Currencies -->
+        <div class="p-3.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b border-slate-200/90 dark:border-slate-800 shrink-0 space-y-2.5">
             @php
                 $drawerBorder = $character ? $character->getEquippedBorderInfo() : null;
+                $unreadChatCount = $character ? $character->unreadDirectMessagesCount() : 0;
             @endphp
-            <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 min-w-0 group">
-                <div class="relative shrink-0 flex items-center justify-center">
-                    <div class="w-11 h-11 rounded-full p-[2px] flex items-center justify-center overflow-hidden {{ $drawerBorder ? str_replace('ring-4', 'ring-2', $drawerBorder['ring']) : 'ring-2 ring-indigo-500/30' }}">
-                        <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+            <div class="flex items-center justify-between gap-2">
+                <a href="{{ route('profile.me') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="flex items-center gap-3 min-w-0 group">
+                    <div class="relative shrink-0 flex items-center justify-center">
+                        <div class="w-11 h-11 rounded-full p-[2px] flex items-center justify-center overflow-hidden {{ $drawerBorder ? str_replace('ring-4', 'ring-2', $drawerBorder['ring']) : 'ring-2 ring-purple-500/30' }}">
+                            <img src="{{ $character->avatar_url }}" alt="{{ $character->name }}" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        @if($drawerBorder)
+                            <span class="absolute -bottom-1 -right-1 text-xs select-none drop-shadow leading-none">
+                                {{ $drawerBorder['emoji'] }}
+                            </span>
+                        @endif
                     </div>
-                    @if($drawerBorder)
-                        <span class="absolute -bottom-1 -right-1 text-xs select-none drop-shadow leading-none">
-                            {{ $drawerBorder['emoji'] }}
-                        </span>
-                    @endif
-                </div>
-                <div class="min-w-0">
-                    <div class="font-black text-sm leading-tight truncate px-1 -mx-1 {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</div>
-                    <div class="flex items-center gap-1.5 mt-0.5">
-                        <span class="text-[10px] bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-extrabold px-1.5 py-0.5 rounded-lg border border-purple-200/80 dark:border-purple-800/70 uppercase">LVL {{ $character->level }}</span>
-                        <span class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $character->title ?? 'Patiënt' }}</span>
+                    <div class="min-w-0">
+                        <div class="font-black text-sm leading-tight truncate px-1 -mx-1 {{ $character->getNameCssClasses() }}" style="{{ $character->getNameInlineStyle() }}">{{ $character->name }}</div>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <span class="text-[10px] bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-extrabold px-1.5 py-0.5 rounded-lg border border-purple-200/80 dark:border-purple-800/70 uppercase">LVL {{ $character->level }}</span>
+                            <span class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ $character->title ?? 'Patiënt' }}</span>
+                        </div>
                     </div>
+                </a>
+                <button @click="mobileMenuOpen = false" class="w-9 h-9 rounded-xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center transition cursor-pointer shrink-0" aria-label="Sluit menu">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Compact Currencies & Vitals Summary Strip -->
+            <div class="grid grid-cols-4 gap-1 text-[10px]">
+                <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 flex flex-col min-w-0">
+                    <span class="text-[8px] font-extrabold uppercase text-slate-400 dark:text-slate-500 leading-none">Contant</span>
+                    <span class="font-mono font-black text-emerald-600 dark:text-emerald-400 truncate mt-0.5" x-text="stats.cashFormatted">€{{ number_format($character->cash, 0, ',', '.') }}</span>
+                </a>
+                <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 flex flex-col min-w-0">
+                    <span class="text-[8px] font-extrabold uppercase text-slate-400 dark:text-slate-500 leading-none">Bank</span>
+                    <span class="font-mono font-black text-purple-600 dark:text-purple-400 truncate mt-0.5" x-text="stats.bankFormatted">€{{ number_format($character->bank, 0, ',', '.') }}</span>
+                </a>
+                <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 flex flex-col min-w-0">
+                    <span class="text-[8px] font-extrabold uppercase text-slate-400 dark:text-slate-500 leading-none">Sterren</span>
+                    <span class="font-mono font-black text-amber-600 dark:text-amber-400 truncate mt-0.5"><i class="fa-solid fa-star text-[8px]"></i> <span x-text="stats.starsFormatted">{{ number_format($character->stars ?? 0, 0, ',', '.') }}</span></span>
+                </a>
+                <div class="px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 flex flex-col min-w-0">
+                    <span class="text-[8px] font-extrabold uppercase text-slate-400 dark:text-slate-500 leading-none">Respect</span>
+                    <span class="font-mono font-black text-indigo-600 dark:text-indigo-400 truncate mt-0.5" x-text="stats.respect">{{ $character->formatted_respect }}</span>
                 </div>
-            </a>
-            <button @click="mobileMenuOpen = false" class="w-9 h-9 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition cursor-pointer shrink-0" aria-label="Sluit menu">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
+            </div>
         </div>
 
         <!-- Scrollable Navigation Area -->
         <div class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs font-semibold scrollbar-none">
             
-            <!-- ⚡ WEBAPP NAVIGATIE ACTIEBALK (Terug & Vernieuwen) -->
-            <div class="grid grid-cols-2 gap-2">
+            <!-- ⚡ WEBAPP NAVIGATIE ACTIEBALK (Terug, Vernieuwen & Thema) -->
+            <div class="grid grid-cols-3 gap-1.5">
                 <button type="button" 
                         onclick="window.tbsGoBack()" 
-                        class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition-all duration-150 cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95 shadow-2xs">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Pagina Terug</span>
+                        class="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-[11px] transition-all duration-150 cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95 shadow-2xs">
+                    <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                    <span>Terug</span>
                 </button>
                 <button type="button" 
                         onclick="window.tbsReloadPage(this)" 
-                        class="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-xs transition-all duration-150 cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95 shadow-2xs">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span>Vernieuwen</span>
+                        class="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-[11px] transition-all duration-150 cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95 shadow-2xs">
+                    <i class="fa-solid fa-rotate-right text-[10px]"></i>
+                    <span>Refresh</span>
+                </button>
+                <button type="button" 
+                        onclick="window.tbsToggleTheme()" 
+                        class="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-extrabold text-[11px] transition-all duration-150 cursor-pointer border border-slate-200/80 dark:border-slate-700 active:scale-95 shadow-2xs">
+                    <i class="fa-solid fa-circle-half-stroke text-[10px] text-purple-600 dark:text-purple-400"></i>
+                    <span>Thema</span>
                 </button>
             </div>
 
@@ -84,18 +113,18 @@
             </div>
 
             <!-- ⭐ SNELLE TOEGANG (Favorieten Grid + Alles Openen) -->
-            <div class="p-2.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70" data-favorites-grid>
+            <div class="p-2.5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70" data-favorites-grid="1">
                 <div class="flex items-center justify-between px-1 mb-2 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     <span class="flex items-center gap-1.5" title="Klik op het sterretje (☆) achter een menu-item om toe te voegen!">
                         <i class="fa-solid fa-star text-amber-400 text-xs"></i> Snelle Toegang
                     </span>
                     <button type="button" @click="expandAll()" class="text-[9px] font-extrabold text-purple-600 dark:text-purple-400 hover:underline cursor-pointer">
-                        <span x-text="openCategories.length >= allCats.length ? 'Sluit menu\'s' : 'Alles openen'">Alles openen</span>
+                        <span x-text="openCategories.length >= allCats.length ? 'Sluit menu\'s' : 'Alles openen'">Sluit menu's</span>
                     </button>
                 </div>
                 <div class="grid grid-cols-3 gap-1.5">
                     <template x-for="fav in favorites" :key="fav.url">
-                        <a :href="fav.url" @click="mobileMenuOpen = false" data-no-fav
+                        <a :href="fav.url" @click="mobileMenuOpen = false" data-no-fav="1"
                            class="flex flex-col items-center justify-center p-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-purple-50/60 dark:hover:bg-purple-950/40 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700/80 transition-all duration-150 text-center group relative shadow-2xs">
                             <i :class="fav.icon" class="group-hover:scale-110 transition-transform text-sm mb-1"></i>
                             <span class="text-[10px] font-bold truncate w-full" x-text="fav.label"></span>
@@ -104,27 +133,31 @@
                 </div>
             </div>
 
-            <!-- Quick Top Row (Dashboard, Live Chat, Cinema) -->
-            <div class="grid grid-cols-3 gap-1.5 pb-1">
-                <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 border {{ request()->routeIs('dashboard') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70 font-black' : 'border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-bold' }}">
+            <!-- Quick Top Row (Dashboard, Live Chat, Postvak, Cinema) -->
+            <div class="grid grid-cols-4 gap-1.5 pb-1">
+                <a href="{{ route('dashboard') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 border {{ request()->routeIs('dashboard') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70 font-black' : 'border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-bold' }}">
                     <i class="fa-solid fa-gauge text-purple-600 dark:text-purple-400 mb-0.5 text-sm"></i>
                     <span class="text-[10px] truncate w-full">Overzicht</span>
                 </a>
-                <a href="{{ route('chat.index') }}" @click="mobileMenuOpen = false" class="relative flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 border {{ request()->routeIs('chat.*') ? 'bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/70 font-black' : 'border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-bold' }}">
+                <a href="{{ route('chat.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="relative flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 border {{ request()->routeIs('chat.*') ? 'bg-emerald-50/90 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/70 font-black' : 'border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-bold' }}">
                     <i class="fa-solid fa-comments text-emerald-500 dark:text-emerald-400 mb-0.5 text-sm"></i>
                     <span class="text-[10px] truncate w-full">Live Chat</span>
                     @if($unreadChatCount > 0)
                         <span class="absolute top-1 right-1 bg-emerald-500 text-white text-[9px] font-extrabold px-1 rounded-full animate-pulse">{{ $unreadChatCount }}</span>
                     @endif
                 </a>
-                <a href="{{ route('cinema.index') }}" @click="mobileMenuOpen = false" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 border {{ request()->routeIs('cinema.*') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70 font-black' : 'border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-bold' }}">
+                <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 border {{ request()->routeIs('messages.*') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70 font-black' : 'border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-bold' }}">
+                    <i class="fa-solid fa-envelope text-sky-500 dark:text-sky-400 mb-0.5 text-sm"></i>
+                    <span class="text-[10px] truncate w-full">Postvak</span>
+                </a>
+                <a href="{{ route('cinema.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all duration-150 border {{ request()->routeIs('cinema.*') ? 'bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/70 font-black' : 'border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/60 font-bold' }}">
                     <i class="fa-solid fa-film text-purple-500 dark:text-purple-400 mb-0.5 text-sm"></i>
                     <span class="text-[10px] truncate w-full">Cinema 🍿</span>
                 </a>
             </div>
 
             <!-- VIP Shop Feature Banner -->
-            <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-200/80 dark:border-amber-800/70 font-bold transition-all duration-150 hover:bg-amber-100/60 active:scale-95">
+            <a href="{{ route('vip.index') }}" @click="mobileMenuOpen = false" data-no-fav="1" class="flex items-center justify-between p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border border-amber-200/80 dark:border-amber-800/70 font-bold transition-all duration-150 hover:bg-amber-100/60 active:scale-95">
                 <span class="flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> VIP Shop & Punten</span>
                 <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 bg-amber-200/80 dark:bg-amber-900/60 px-2 py-0.5 rounded-md border border-amber-300/80 dark:border-amber-700/60">Exclusief</span>
             </a>
@@ -142,10 +175,10 @@
                         <span class="text-[9px] font-bold text-amber-500 flex items-center gap-0.5">
                             <i class="fa-solid fa-seedling text-[9px]"></i> {{ number_format($character->pumpkin_seeds ?? 0, 0, ',', '.') }}
                         </span>
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('event') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'event') style="transform: rotate(180deg);" @endif></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('event') ? 'rotate-180' : ''"></i>
                     </div>
                 </button>
-                <div x-show="isOpen('event')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'event') style="display: none;" @endif class="space-y-0.5 px-2 pb-2">
+                <div x-show="isOpen('event')" class="space-y-0.5 px-2 pb-2">
                     <a href="{{ route('halloween.quests') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('halloween.quests*') ? 'bg-orange-500/20 text-orange-700 dark:text-orange-300 font-bold' : 'text-slate-700 dark:text-slate-300 hover:bg-orange-500/10' }}">
                         <span class="flex items-center gap-2.5"><i class="fa-solid fa-scroll text-orange-500 w-4"></i> Quests</span>
                         <span class="text-[9px] bg-orange-500 text-white font-black px-1.5 py-0.5 rounded uppercase">Quests</span>
@@ -166,9 +199,9 @@
                         <span class="w-5 h-5 rounded-md bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-shield-halved"></i></span>
                         <span>Algemeen & Info</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('algemeen') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'algemeen') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('algemeen') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('algemeen')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'algemeen') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('algemeen')" class="space-y-0.5 pl-1">
                     <a href="{{ route('news.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('news.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-newspaper w-4 text-center text-purple-600 dark:text-purple-400"></i>
                         <span>Kliniek Nieuws</span>
@@ -190,6 +223,10 @@
                         <i class="fa-solid fa-bullhorn w-4 text-center text-sky-500 dark:text-sky-400"></i>
                         <span>Tijdlijn (Feed)</span>
                     </a>
+                    <a href="{{ route('messages.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('messages.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-envelope w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
+                        <span>Postvak / Berichten</span>
+                    </a>
                     <a href="{{ route('friends.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('friends.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-user-group w-4 text-center text-pink-500 dark:text-pink-400"></i>
                         <span>Vrienden & BFF</span>
@@ -208,13 +245,26 @@
                         <i class="fa-solid fa-trophy w-4 text-center text-amber-500 dark:text-amber-400"></i>
                         <span>Ranglijsten</span>
                     </a>
-                    <a href="{{ route('battle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('battle.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-bolt w-4 text-center text-purple-600 dark:text-purple-400"></i>
-                        <span>24 Uur Battle</span>
+                    <a href="{{ route('battle.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battle.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-bolt w-4 text-center text-purple-600 dark:text-purple-400"></i>
+                            <span>24 Uur Battle</span>
+                        </div>
+                        <span class="inline-flex items-center gap-1 text-[9px] font-black uppercase text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200/60 dark:border-purple-800">
+                            Battle
+                        </span>
                     </a>
                     <a href="{{ route('prison') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('prison') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-dungeon w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Isoleercel</span>
+                    </a>
+                    <a href="{{ route('community.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('community.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-gift w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
+                        <span>Community Beloningen</span>
+                    </a>
+                    <a href="{{ route('sponsor.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('sponsor.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-handshake w-4 text-center text-amber-500 dark:text-amber-400"></i>
+                        <span>Sponsorkamer</span>
                     </a>
                     <a href="{{ route('roadmap.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('roadmap.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-compass w-4 text-center text-amber-500 dark:text-amber-400"></i>
@@ -238,10 +288,10 @@
                                 [{{ $character->gang->tag }}]
                             </span>
                         @endif
-                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('bende') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bende') style="transform: rotate(180deg);" @endif></i>
+                        <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('bende') ? 'rotate-180' : ''"></i>
                     </div>
                 </button>
-                <div x-show="isOpen('bende')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bende') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('bende')" class="space-y-0.5 pl-1">
                     @if($character && $character->gang)
                         <a href="{{ route('gangs.index', ['tab' => 'mijn_gang']) }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('gangs.*') && (!request('tab') || request('tab') === 'mijn_gang') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                             <div class="flex items-center gap-3">
@@ -320,9 +370,9 @@
                         <span class="w-5 h-5 rounded-md bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-chart-line"></i></span>
                         <span>Voortgang & Gezondheid</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('voortgang') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'voortgang') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('voortgang') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('voortgang')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'voortgang') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('voortgang')" class="space-y-0.5 pl-1">
                     <a href="{{ route('battlepass.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('battlepass.*') ? 'nav-item-active bg-amber-500/15 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 font-black border border-amber-500/40' : 'text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50/50 dark:hover:bg-amber-950/20' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-trophy w-4 text-center text-amber-500 animate-pulse"></i>
@@ -339,6 +389,10 @@
                             </span>
                         @endif
                     </a>
+                    <a href="{{ route('depot.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('depot.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-boxes-stacked w-4 text-center text-purple-500 dark:text-purple-400"></i>
+                        <span>Depot (Inventaris)</span>
+                    </a>
                     <a href="{{ route('missions.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('missions.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-list-check w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Missies & Opdrachten</span>
@@ -347,9 +401,20 @@
                         <i class="fa-solid fa-dumbbell w-4 text-center text-purple-500 dark:text-purple-400"></i>
                         <span>Krachttraining</span>
                     </a>
-                    <a href="{{ route('treatment.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('treatment.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
-                        <i class="fa-solid fa-brain w-4 text-center text-rose-500 dark:text-rose-400"></i>
-                        <span>Behandelaarsgesprek</span>
+                    <a href="{{ route('treatment.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('treatment.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-brain w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                            <span>Behandelaarsgesprek</span>
+                        </div>
+                        @if($character && $character->isOnLeave())
+                        <span class="bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide animate-pulse">
+                            Verlof!
+                        </span>
+                        @elseif($character && $character->isSedated())
+                        <span class="bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-300 text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wide">
+                            Sedatie
+                        </span>
+                        @endif
                     </a>
                     <a href="{{ route('infirmary.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('infirmary.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-hospital-user w-4 text-center text-teal-500 dark:text-teal-400"></i>
@@ -357,7 +422,7 @@
                     </a>
                     <a href="{{ route('daycare.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('daycare.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-person-digging w-4 text-center text-amber-500 dark:text-amber-400"></i>
-                        <span>Dagbesteding</span>
+                        <span>Dagbesteding & Werk</span>
                     </a>
                 </div>
             </div>
@@ -371,9 +436,9 @@
                         <span class="w-5 h-5 rounded-md bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-handcuffs"></i></span>
                         <span>Illegale Acties</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('misdaad') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'misdaad') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('misdaad') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('misdaad')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'misdaad') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('misdaad')" class="space-y-0.5 pl-1">
                     <a href="{{ route('hustle.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hustle.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-hand-holding-dollar w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>Hosselen</span>
@@ -419,9 +484,9 @@
                         <span class="w-5 h-5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-gift"></i></span>
                         <span>Bonus & Kluizen</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('bonus') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'bonus') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('bonus') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('bonus')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'bonus') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('bonus')" class="space-y-0.5 pl-1">
                     <a href="{{ route('daily.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('daily.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-dharmachakra w-4 text-center text-amber-500 dark:text-amber-400"></i>
@@ -468,9 +533,9 @@
                         <span class="w-5 h-5 rounded-md bg-fuchsia-100 dark:bg-fuchsia-950/60 text-fuchsia-600 dark:text-fuchsia-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-gamepad"></i></span>
                         <span>Minigames & Specials</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('specials') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'specials') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('specials') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('specials')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'specials') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('specials')" class="space-y-0.5 pl-1">
                     <a href="{{ route('connect_four.index') }}" @click="mobileMenuOpen = false" class="flex items-center justify-between px-3 py-2 rounded-lg transition {{ request()->routeIs('connect_four.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-chess-board w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
@@ -507,9 +572,9 @@
                         <span class="w-5 h-5 rounded-md bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-fire"></i></span>
                         <span>Geweld & Strijd</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('geweld') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'geweld') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('geweld') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('geweld')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'geweld') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('geweld')" class="space-y-0.5 pl-1">
                     <a href="{{ route('fight.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('fight.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-skull w-4 text-center text-rose-500 dark:text-rose-400"></i>
                         <span>Respectlijst</span>
@@ -529,6 +594,10 @@
                     <a href="{{ route('hitman.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('hitman.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-crosshairs w-4 text-center text-rose-600 dark:text-rose-400"></i>
                         <span>Liquidatie</span>
+                    </a>
+                    <a href="{{ route('murder_stats.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('murder_stats.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-chart-pie w-4 text-center text-rose-500 dark:text-rose-400"></i>
+                        <span>Geweldsstatistieken</span>
                     </a>
                     <a href="{{ route('bounties.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bounties.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-skull-crossbones w-4 text-center text-rose-500 dark:text-rose-400"></i>
@@ -581,9 +650,9 @@
                         <span class="w-5 h-5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-coins"></i></span>
                         <span>Economie & Gokken</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('economie') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'economie') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('economie') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('economie')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'economie') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('economie')" class="space-y-0.5 pl-1">
                     <a href="{{ route('bank.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('bank.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-building-columns w-4 text-center text-emerald-500 dark:text-emerald-400"></i>
                         <span>De Bank</span>
@@ -636,9 +705,9 @@
                         <span class="w-5 h-5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] group-hover:scale-105 transition-transform"><i class="fa-solid fa-user-gear"></i></span>
                         <span>Helptool & Profiel</span>
                     </span>
-                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('account') ? 'rotate-180' : ''" @if(($activeCategory ?? '') === 'account') style="transform: rotate(180deg);" @endif></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="isOpen('account') ? 'rotate-180' : ''"></i>
                 </button>
-                <div x-show="isOpen('account')" x-collapse x-cloak @if(($activeCategory ?? '') !== 'account') style="display: none;" @endif class="space-y-0.5 pl-1">
+                <div x-show="isOpen('account')" class="space-y-0.5 pl-1">
                     <a href="{{ route('faq.index') }}" @click="mobileMenuOpen = false" class="flex items-center gap-3 px-3 py-2 rounded-lg transition {{ request()->routeIs('faq.*') ? 'nav-item-active bg-purple-50/90 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/60' }}">
                         <i class="fa-solid fa-headset w-4 text-center text-indigo-500 dark:text-indigo-400"></i>
                         <span>Helptool & FAQ</span>

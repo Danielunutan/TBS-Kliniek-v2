@@ -1,7 +1,398 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="tbsDashboardCustomizer()" 
+<!-- Alpine Dashboard Customizer Script (Defined before x-data so initial & Turbo renders always succeed) -->
+<script>
+window.tbsDashboardCustomizer = function() {
+    return {
+        showCustomizer: false,
+        activeCustomizerTab: 'themes',
+        theme: 'clinical',
+
+        weather: @js($clinicWeather),
+        isLocating: false,
+        showCityModal: false,
+        citySearchQuery: '',
+        unlockingKey: null,
+        unlockedWidgets: @js(array_values($unlockedWidgets ?? [])),
+        widgetPrices: @js($widgetPrices),
+        userStars: {{ (int) ($character->stars ?? 0) }},
+
+        playStation(stId) {
+            if (window.tbsRadio) {
+                window.tbsRadio.changeStation(stId, true);
+            } else {
+                window.dispatchEvent(new CustomEvent('tbs-play-station', { detail: { id: stId } }));
+            }
+        },
+
+        widgets: {
+            betaNotice: true,
+            roadmap: true,
+            quickToolbar: true,
+            weather: true,
+            radio: true,
+            nunl: true,
+            lottery: true,
+            referral: true,
+            loginBonus: true,
+            attributes: true,
+            activities: true,
+            clinicNews: true,
+            gang: true,
+            missions: true,
+            tunnel: true,
+            treatment: true,
+            packages: true,
+        },
+
+        widgetList: [
+            { key: 'quickToolbar', title: 'Snelle Bajes Actiebalk', desc: 'Directe snelknoppen naar jouw favoriete locaties', icon: 'fa-bolt', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
+            { key: 'weather', title: 'Kliniek Weerstation & Buienradar', desc: 'Actueel GPS weer en neerslag buienradar', icon: 'fa-cloud-sun-rain', bg: 'bg-sky-100 text-sky-700', isPremium: true, cost: 15 },
+            { key: 'nunl', title: 'Algemeen Buitenwereld Nieuws', desc: 'Actuele krantenkoppen en Teletekst updates', icon: 'fa-newspaper', bg: 'bg-indigo-100 text-indigo-700', isPremium: true, cost: 15 },
+            { key: 'radio', title: 'MIXXR Radio Deck', desc: 'In-dashboard speler voor MIXXR Radio & live AutoDJ verzoekjes', icon: 'fa-radio', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
+            { key: 'tunnel', title: 'Geheime Ontsnappingstunnel', desc: 'Graafvoortgang, zandsokken legen en uitbraakroute', icon: 'fa-person-digging', bg: 'bg-amber-100 text-amber-700', isPremium: true, cost: 20 },
+            { key: 'treatment', title: 'Behandeling & Verloftraject', desc: 'Dossier van Dr. Van Beek, behandelscore en verlof', icon: 'fa-user-doctor', bg: 'bg-teal-100 text-teal-700', isPremium: true, cost: 20 },
+            { key: 'packages', title: 'Smokkelkoffers & Postkamer', desc: 'Onderschepte tassen, XXL koffers en kluistokens', icon: 'fa-box-open', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
+            { key: 'lottery', title: 'Afdelingsloterij Jackpot', desc: 'De 14-daagse jackpot en trekkingsklok', icon: 'fa-ticket', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
+            { key: 'referral', title: 'Gratis VIP & Referral Kaart', desc: 'Vrienden uitnodigen voor gratis VIP lidmaatschap', icon: 'fa-crown', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'loginBonus', title: 'Avond Inlog Bonus (22:00)', desc: '7-daagse streak beloning en gratis kluiscodes', icon: 'fa-gift', bg: 'bg-emerald-100 text-emerald-700', isPremium: false, cost: 0 },
+            { key: 'attributes', title: 'Karakter Eigenschappen & Stats', desc: 'Kracht, conditie, intelligentie en discipline', icon: 'fa-dumbbell', bg: 'bg-indigo-100 text-indigo-700', isPremium: false, cost: 0 },
+            { key: 'activities', title: 'Recente Activiteiten Feed', desc: 'Log van recente overvallen, missies en winsten', icon: 'fa-clock-rotate-left', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 },
+            { key: 'clinicNews', title: 'TBS Kliniek Berichten', desc: 'Officiële aankondigingen van de inrichting', icon: 'fa-bullhorn', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'gang', title: 'Mijn Bende Kaart', desc: 'Overzicht van je factie, kas en leden', icon: 'fa-users', bg: 'bg-slate-200 text-slate-800', isPremium: false, cost: 0 },
+            { key: 'missions', title: 'Snelle Missies Lijst', desc: 'Overzicht van beschikbare missies voor cash & XP', icon: 'fa-list-check', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'betaNotice', title: 'Open Beta Melding', desc: 'Informatie over de testfase van het spel', icon: 'fa-flask-vial', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
+            { key: 'roadmap', title: 'Roadmap & Toekomst Kaart', desc: 'Stemmen op nieuwe kliniek features', icon: 'fa-compass', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 }
+        ],
+
+        quickActions: ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'],
+
+        availableActions: [
+            { id: 'crimes', label: 'Zakkenrollen', icon: 'fa-mask', url: '{{ route("pickpocket.index") }}', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60' },
+            { id: 'arena', label: 'Luchtplaats', icon: 'fa-hand-fist', url: '{{ route("fight.index") }}', color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/60' },
+            { id: 'marketplace', label: 'Marktplaats', icon: 'fa-store', url: '{{ route("marketplace.index") }}', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60' },
+            { id: 'packages', label: 'Koffers', icon: 'fa-box-open', url: '{{ route("packages.index") }}', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60' },
+            { id: 'lockers', label: 'Kluisjes Kraken', icon: 'fa-lock-open', url: '{{ route("lockers.index") }}', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60' },
+            { id: 'bank', label: 'Bank & Lening', icon: 'fa-building-columns', url: '{{ route("bank.index") }}', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60' },
+            { id: 'casino', label: 'Casino', icon: 'fa-dice', url: '{{ route("casino.index") }}', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/60' },
+            { id: 'radio', label: 'Afdelingsradio', icon: 'fa-radio', url: '{{ route("radio.index") }}', color: 'text-pink-600 bg-pink-50 dark:bg-pink-950/60' },
+            { id: 'daily', label: 'Rad van Fortuin', icon: 'fa-dharmachakra', url: '{{ route("daily.index") }}', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60' },
+            { id: 'gang', label: 'Mijn Bende', icon: 'fa-users', url: '{{ route("gangs.index") }}', color: 'text-violet-600 bg-violet-50 dark:bg-violet-950/60' }
+        ],
+
+        init() {
+            const savedTheme = localStorage.getItem('tbs_dashboard_theme');
+            if (savedTheme) this.theme = savedTheme;
+
+            const savedWidgets = localStorage.getItem('tbs_dashboard_widgets');
+            if (savedWidgets) {
+                try {
+                    this.widgets = Object.assign({}, this.widgets, JSON.parse(savedWidgets));
+                } catch(e) {}
+            }
+
+            const savedActions = localStorage.getItem('tbs_dashboard_actions');
+            if (savedActions) {
+                try {
+                    this.quickActions = JSON.parse(savedActions);
+                } catch(e) {}
+            }
+
+            const savedWeather = localStorage.getItem('tbs_weather_data');
+            if (savedWeather && (!this.weather || !this.weather.is_gps)) {
+                try {
+                    const parsed = JSON.parse(savedWeather);
+                    if (parsed && parsed.location) {
+                        this.weather = parsed;
+                    }
+                } catch(e) {}
+            }
+        },
+
+        isUnlocked(key) {
+            const freeWidgets = ['quickToolbar', 'attributes', 'activities', 'lottery', 'referral', 'loginBonus', 'gang', 'missions', 'clinicNews', 'betaNotice', 'roadmap'];
+            if (freeWidgets.includes(key)) return true;
+            return Array.isArray(this.unlockedWidgets) && this.unlockedWidgets.includes(key);
+        },
+
+        async unlockWidgetSubmit(event, key, cost) {
+            if (this.unlockingKey) return;
+            cost = cost || (this.widgetPrices && this.widgetPrices[key]) || 15;
+            if (this.userStars < cost) {
+                const msg = 'Je hebt ' + this.userStars + ' sterren, maar deze widget kost ' + cost + ' sterren. Koop of verdien eerst meer sterren!';
+                if (window.tbsToast) window.tbsToast(msg, 'error'); else alert(msg);
+                return;
+            }
+
+            this.unlockingKey = key;
+            const form = event ? (event.target && event.target.tagName === 'FORM' ? event.target : event.target.closest('form')) : null;
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+                const unlockUrl = '{{ route("dashboard.widgets.unlock", [], false) }}';
+
+                const formData = form ? new FormData(form) : new FormData();
+                formData.set('widget_key', key);
+                formData.set('_token', csrfToken);
+
+                const resp = await fetch(unlockUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                let data = null;
+                try {
+                    data = await resp.json();
+                } catch(e) {}
+
+                if (resp.ok && data && data.success) {
+                    if (Array.isArray(data.unlocked_widgets)) {
+                        this.unlockedWidgets = [...new Set([...(this.unlockedWidgets || []), ...data.unlocked_widgets])];
+                    } else if (Array.isArray(this.unlockedWidgets) && !this.unlockedWidgets.includes(key)) {
+                        this.unlockedWidgets.push(key);
+                    }
+                    this.userStars = data.stars;
+                    this.widgets[key] = true;
+                    localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
+                    window.dispatchEvent(new CustomEvent('character-stats-updated', { detail: { stars: data.stars } }));
+
+                    const contentEl = document.getElementById('widget-content-' + key);
+                    if (contentEl) {
+                        contentEl.style.display = '';
+                    }
+
+                    const succMsg = data.message || '🎉 Widget succesvol ontgrendeld!';
+                    if (window.tbsToast) window.tbsToast(succMsg, 'success'); else alert(succMsg);
+                } else {
+                    if (form) {
+                        form.submit();
+                        return;
+                    }
+                    const errMsg = (data && (data.error || data.message)) || 'Er is een fout opgetreden bij het ontgrendelen.';
+                    if (window.tbsToast) window.tbsToast(errMsg, 'error'); else alert(errMsg);
+                }
+            } catch (e) {
+                if (form) {
+                    form.submit();
+                    return;
+                }
+                if (window.tbsToast) window.tbsToast('Netwerkfout: ' + (e.message || 'Probeer opnieuw.'), 'error'); else alert('Netwerkfout bij het ontgrendelen.');
+            } finally {
+                this.unlockingKey = null;
+            }
+        },
+
+        unlockWidget(key) {
+            return this.unlockWidgetSubmit(null, key);
+        },
+
+        async fetchUserLocation() {
+            this.isLocating = true;
+
+            const tryIpFallback = async (reason) => {
+                try {
+                    const ipRes = await fetch('https://freeipapi.com/api/json');
+                    if (ipRes.ok) {
+                        const ipData = await ipRes.json();
+                        if (ipData && ipData.latitude && ipData.longitude) {
+                            await this.fetchCoordsWeather(ipData.latitude, ipData.longitude, ipData.cityName || ipData.regionName);
+                            if (window.tbsToast) {
+                                window.tbsToast('📍 Locatie bepaald via IP: ' + (ipData.cityName || 'Nederland'), 'success');
+                            }
+                            return true;
+                        }
+                    }
+                } catch(e) {}
+
+                try {
+                    const ipRes2 = await fetch('https://ipapi.co/json/');
+                    if (ipRes2.ok) {
+                        const ipData2 = await ipRes2.json();
+                        if (ipData2 && ipData2.latitude && ipData2.longitude) {
+                            await this.fetchCoordsWeather(ipData2.latitude, ipData2.longitude, ipData2.city || ipData2.region);
+                            if (window.tbsToast) {
+                                window.tbsToast('📍 Locatie bepaald via IP: ' + (ipData2.city || 'Nederland'), 'success');
+                            }
+                            return true;
+                        }
+                    }
+                } catch(e) {}
+
+                this.showCityModal = true;
+                if (window.tbsToast) {
+                    window.tbsToast(reason || 'Kies je woonplaats uit de lijst.', 'info');
+                }
+                return false;
+            };
+
+            if (!navigator.geolocation) {
+                await tryIpFallback('Geolocatie wordt niet ondersteund door je browser.');
+                this.isLocating = false;
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    await this.fetchCoordsWeather(lat, lon);
+                    this.isLocating = false;
+                },
+                async (error) => {
+                    let reason = 'GPS niet beschikbaar';
+                    if (error.code === 1) reason = 'GPS toestemming geweigerd';
+                    await tryIpFallback(reason);
+                    this.isLocating = false;
+                },
+                { timeout: 7000, enableHighAccuracy: false }
+            );
+        },
+
+        async fetchCoordsWeather(lat, lon, locationName) {
+            try {
+                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
+                const url = `${weatherUrl}?lat=${lat}&lon=${lon}` + (locationName ? `&location=${encodeURIComponent(locationName)}` : '');
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success && data.weather) {
+                    this.weather = data.weather;
+                    localStorage.setItem('tbs_weather_data', JSON.stringify(data.weather));
+                    localStorage.setItem('tbs_weather_lat', lat);
+                    localStorage.setItem('tbs_weather_lon', lon);
+                    if (data.weather.location) {
+                        localStorage.setItem('tbs_weather_location', data.weather.location);
+                    }
+                    if (window.tbsToast) window.tbsToast('🌤️ Weerstation bijgewerkt naar ' + data.weather.location, 'success');
+                }
+            } catch (err) {
+                console.error(err);
+                if (window.tbsToast) window.tbsToast('Kon weerdata niet ophalen.', 'error');
+            }
+        },
+
+        async fetchCityWeather(city) {
+            this.isLocating = true;
+            this.showCityModal = false;
+            try {
+                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
+                const res = await fetch(`${weatherUrl}?city=` + encodeURIComponent(city));
+                const data = await res.json();
+                if (data.success && data.weather) {
+                    this.weather = data.weather;
+                    localStorage.setItem('tbs_weather_data', JSON.stringify(data.weather));
+                    localStorage.setItem('tbs_weather_city', city);
+                    if (data.weather.location) {
+                        localStorage.setItem('tbs_weather_location', data.weather.location);
+                    }
+                    if (window.tbsToast) window.tbsToast('🌤️ Weerstation ingesteld op ' + data.weather.location + '!', 'success');
+                }
+            } catch(e) {
+                if (window.tbsToast) window.tbsToast('Kon weer niet ophalen voor ' + city, 'error'); else alert('Kon weer niet ophalen voor ' + city);
+            } finally {
+                this.isLocating = false;
+            }
+        },
+
+        async resetToVught() {
+            this.isLocating = true;
+            try {
+                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
+                const res = await fetch(`${weatherUrl}?reset=1`);
+                const data = await res.json();
+                if (data.success && data.weather) {
+                    this.weather = data.weather;
+                    localStorage.removeItem('tbs_weather_data');
+                    localStorage.removeItem('tbs_weather_lat');
+                    localStorage.removeItem('tbs_weather_lon');
+                    localStorage.removeItem('tbs_weather_city');
+                    localStorage.removeItem('tbs_weather_location');
+                    if (window.tbsToast) window.tbsToast('TBS Kliniek Vught weer hersteld.', 'info');
+                }
+            } catch (e) {
+                // ignore
+            } finally {
+                this.isLocating = false;
+            }
+        },
+
+        currentThemeName() {
+            switch(this.theme) {
+                case 'ebi': return 'EBI Vleugel';
+                case 'vip': return 'Directiekantoor';
+                case 'cyber': return 'Smokkeltunnel';
+                case 'orange': return 'Bajes Oranje';
+                default: return 'Kliniek Standaard';
+            }
+        },
+
+        setTheme(t) {
+            this.theme = t;
+            localStorage.setItem('tbs_dashboard_theme', t);
+        },
+
+        toggleWidget(key) {
+            this.widgets[key] = !this.widgets[key];
+            localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
+        },
+
+        toggleAction(id) {
+            if (this.quickActions.includes(id)) {
+                if (this.quickActions.length > 2) {
+                    this.quickActions = this.quickActions.filter(x => x !== id);
+                }
+            } else {
+                if (this.quickActions.length < 8) {
+                    this.quickActions.push(id);
+                }
+            }
+            localStorage.setItem('tbs_dashboard_actions', JSON.stringify(this.quickActions));
+        },
+
+        activeActionItems() {
+            return this.availableActions.filter(a => this.quickActions.includes(a.id));
+        },
+
+        resetDefaults() {
+            localStorage.removeItem('tbs_dashboard_theme');
+            localStorage.removeItem('tbs_dashboard_widgets');
+            localStorage.removeItem('tbs_dashboard_actions');
+            this.theme = 'clinical';
+            this.widgets = {
+                betaNotice: true,
+                roadmap: true,
+                quickToolbar: true,
+                weather: true,
+                radio: true,
+                nunl: true,
+                lottery: true,
+                referral: true,
+                loginBonus: true,
+                attributes: true,
+                activities: true,
+                clinicNews: true,
+                gang: true,
+                missions: true,
+                tunnel: true,
+                treatment: true,
+                packages: true,
+            };
+            this.quickActions = ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'];
+        }
+    };
+};
+function tbsDashboardCustomizer() {
+    return window.tbsDashboardCustomizer();
+}
+</script>
+
+<div x-data="window.tbsDashboardCustomizer()" 
      x-init="init()"
      class="space-y-6"
      :class="{
@@ -14,9 +405,9 @@
     <!-- Top Dashboard Header with Customizer Trigger -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-1">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-xs"
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-base shadow-xs bg-purple-600 text-white"
                  :class="{
-                     'bg-purple-600 text-white': theme === 'clinical',
+                     'bg-purple-600 text-white': !theme || theme === 'clinical',
                      'bg-rose-600 text-white shadow-rose-500/20': theme === 'ebi',
                      'bg-amber-500 text-slate-950 shadow-amber-500/20': theme === 'vip',
                      'bg-cyan-500 text-white shadow-cyan-500/20': theme === 'cyber',
@@ -25,17 +416,17 @@
                 <i class="fa-solid fa-gauge-high"></i>
             </div>
             <div>
-                <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <h1 class="text-xl font-black text-slate-900 dark:text-white tracking-tight flex flex-wrap items-center gap-2">
                     <span>Mijn Dashboard</span>
-                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border"
+                    <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800"
                           :class="{
-                              'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800': theme === 'clinical',
+                              'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800': !theme || theme === 'clinical',
                               'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800': theme === 'ebi',
                               'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800': theme === 'vip',
                               'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800': theme === 'cyber',
                               'bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950/60 dark:text-orange-300 dark:border-orange-800': theme === 'orange'
                           }"
-                          x-text="currentThemeName()"></span>
+                          x-text="currentThemeName()">Kliniek Standaard</span>
                 </h1>
                 <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Beheer jouw patiëntencel, dagtaken, buit en kliniekactiviteiten.</p>
             </div>
@@ -1905,392 +2296,4 @@
     @include('partials.intake_tour_modal')
 
 </div>
-
-<!-- Alpine Dashboard Customizer Script -->
-<script>
-function tbsDashboardCustomizer() {
-    return {
-        showCustomizer: false,
-        activeCustomizerTab: 'themes',
-        theme: 'clinical',
-
-        weather: @js($clinicWeather),
-        isLocating: false,
-        showCityModal: false,
-        citySearchQuery: '',
-        unlockingKey: null,
-        unlockedWidgets: @js(array_values($unlockedWidgets ?? [])),
-        widgetPrices: @js($widgetPrices),
-        userStars: {{ (int) ($character->stars ?? 0) }},
-
-        playStation(stId) {
-            if (window.tbsRadio) {
-                window.tbsRadio.changeStation(stId, true);
-            } else {
-                window.dispatchEvent(new CustomEvent('tbs-play-station', { detail: { id: stId } }));
-            }
-        },
-
-        widgets: {
-            betaNotice: true,
-            roadmap: true,
-            quickToolbar: true,
-            weather: true,
-            radio: true,
-            nunl: true,
-            lottery: true,
-            referral: true,
-            loginBonus: true,
-            attributes: true,
-            activities: true,
-            clinicNews: true,
-            gang: true,
-            missions: true,
-            tunnel: true,
-            treatment: true,
-            packages: true,
-        },
-
-        widgetList: [
-            { key: 'quickToolbar', title: 'Snelle Bajes Actiebalk', desc: 'Directe snelknoppen naar jouw favoriete locaties', icon: 'fa-bolt', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
-            { key: 'weather', title: 'Kliniek Weerstation & Buienradar', desc: 'Actueel GPS weer en neerslag buienradar', icon: 'fa-cloud-sun-rain', bg: 'bg-sky-100 text-sky-700', isPremium: true, cost: 15 },
-            { key: 'nunl', title: 'Algemeen Buitenwereld Nieuws', desc: 'Actuele krantenkoppen en Teletekst updates', icon: 'fa-newspaper', bg: 'bg-indigo-100 text-indigo-700', isPremium: true, cost: 15 },
-            { key: 'radio', title: 'MIXXR Radio Deck', desc: 'In-dashboard speler voor MIXXR Radio & live AutoDJ verzoekjes', icon: 'fa-radio', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
-            { key: 'tunnel', title: 'Geheime Ontsnappingstunnel', desc: 'Graafvoortgang, zandsokken legen en uitbraakroute', icon: 'fa-person-digging', bg: 'bg-amber-100 text-amber-700', isPremium: true, cost: 20 },
-            { key: 'treatment', title: 'Behandeling & Verloftraject', desc: 'Dossier van Dr. Van Beek, behandelscore en verlof', icon: 'fa-user-doctor', bg: 'bg-teal-100 text-teal-700', isPremium: true, cost: 20 },
-            { key: 'packages', title: 'Smokkelkoffers & Postkamer', desc: 'Onderschepte tassen, XXL koffers en kluistokens', icon: 'fa-box-open', bg: 'bg-purple-100 text-purple-700', isPremium: true, cost: 20 },
-            { key: 'lottery', title: 'Afdelingsloterij Jackpot', desc: 'De 14-daagse jackpot en trekkingsklok', icon: 'fa-ticket', bg: 'bg-amber-100 text-amber-700', isPremium: false, cost: 0 },
-            { key: 'referral', title: 'Gratis VIP & Referral Kaart', desc: 'Vrienden uitnodigen voor gratis VIP lidmaatschap', icon: 'fa-crown', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
-            { key: 'loginBonus', title: 'Avond Inlog Bonus (22:00)', desc: '7-daagse streak beloning en gratis kluiscodes', icon: 'fa-gift', bg: 'bg-emerald-100 text-emerald-700', isPremium: false, cost: 0 },
-            { key: 'attributes', title: 'Karakter Eigenschappen & Stats', desc: 'Kracht, conditie, intelligentie en discipline', icon: 'fa-dumbbell', bg: 'bg-indigo-100 text-indigo-700', isPremium: false, cost: 0 },
-            { key: 'activities', title: 'Recente Activiteiten Feed', desc: 'Log van recente overvallen, missies en winsten', icon: 'fa-clock-rotate-left', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 },
-            { key: 'clinicNews', title: 'TBS Kliniek Berichten', desc: 'Officiële aankondigingen van de inrichting', icon: 'fa-bullhorn', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
-            { key: 'gang', title: 'Mijn Bende Kaart', desc: 'Overzicht van je factie, kas en leden', icon: 'fa-users', bg: 'bg-slate-200 text-slate-800', isPremium: false, cost: 0 },
-            { key: 'missions', title: 'Snelle Missies Lijst', desc: 'Overzicht van beschikbare missies voor cash & XP', icon: 'fa-list-check', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
-            { key: 'betaNotice', title: 'Open Beta Melding', desc: 'Informatie over de testfase van het spel', icon: 'fa-flask-vial', bg: 'bg-purple-100 text-purple-700', isPremium: false, cost: 0 },
-            { key: 'roadmap', title: 'Roadmap & Toekomst Kaart', desc: 'Stemmen op nieuwe kliniek features', icon: 'fa-compass', bg: 'bg-slate-200 text-slate-700', isPremium: false, cost: 0 }
-        ],
-
-        quickActions: ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'],
-
-        availableActions: [
-            { id: 'crimes', label: 'Zakkenrollen', icon: 'fa-mask', url: '{{ route("pickpocket.index") }}', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950/60' },
-            { id: 'arena', label: 'Luchtplaats', icon: 'fa-hand-fist', url: '{{ route("fight.index") }}', color: 'text-rose-600 bg-rose-50 dark:bg-rose-950/60' },
-            { id: 'marketplace', label: 'Marktplaats', icon: 'fa-store', url: '{{ route("marketplace.index") }}', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60' },
-            { id: 'packages', label: 'Koffers', icon: 'fa-box-open', url: '{{ route("packages.index") }}', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60' },
-            { id: 'lockers', label: 'Kluisjes Kraken', icon: 'fa-lock-open', url: '{{ route("lockers.index") }}', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950/60' },
-            { id: 'bank', label: 'Bank & Lening', icon: 'fa-building-columns', url: '{{ route("bank.index") }}', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60' },
-            { id: 'casino', label: 'Casino', icon: 'fa-dice', url: '{{ route("casino.index") }}', color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/60' },
-            { id: 'radio', label: 'Afdelingsradio', icon: 'fa-radio', url: '{{ route("radio.index") }}', color: 'text-pink-600 bg-pink-50 dark:bg-pink-950/60' },
-            { id: 'daily', label: 'Rad van Fortuin', icon: 'fa-dharmachakra', url: '{{ route("daily.index") }}', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950/60' },
-            { id: 'gang', label: 'Mijn Bende', icon: 'fa-users', url: '{{ route("gangs.index") }}', color: 'text-violet-600 bg-violet-50 dark:bg-violet-950/60' }
-        ],
-
-        init() {
-            const savedTheme = localStorage.getItem('tbs_dashboard_theme');
-            if (savedTheme) this.theme = savedTheme;
-
-            const savedWidgets = localStorage.getItem('tbs_dashboard_widgets');
-            if (savedWidgets) {
-                try {
-                    this.widgets = Object.assign({}, this.widgets, JSON.parse(savedWidgets));
-                } catch(e) {}
-            }
-
-            const savedActions = localStorage.getItem('tbs_dashboard_actions');
-            if (savedActions) {
-                try {
-                    this.quickActions = JSON.parse(savedActions);
-                } catch(e) {}
-            }
-
-            const savedWeather = localStorage.getItem('tbs_weather_data');
-            if (savedWeather && (!this.weather || !this.weather.is_gps)) {
-                try {
-                    const parsed = JSON.parse(savedWeather);
-                    if (parsed && parsed.location) {
-                        this.weather = parsed;
-                    }
-                } catch(e) {}
-            }
-        },
-
-        isUnlocked(key) {
-            const freeWidgets = ['quickToolbar', 'attributes', 'activities', 'lottery', 'referral', 'loginBonus', 'gang', 'missions', 'clinicNews', 'betaNotice', 'roadmap'];
-            if (freeWidgets.includes(key)) return true;
-            return Array.isArray(this.unlockedWidgets) && this.unlockedWidgets.includes(key);
-        },
-
-        async unlockWidgetSubmit(event, key, cost) {
-            if (this.unlockingKey) return;
-            cost = cost || (this.widgetPrices && this.widgetPrices[key]) || 15;
-            if (this.userStars < cost) {
-                const msg = 'Je hebt ' + this.userStars + ' sterren, maar deze widget kost ' + cost + ' sterren. Koop of verdien eerst meer sterren!';
-                if (window.tbsToast) window.tbsToast(msg, 'error'); else alert(msg);
-                return;
-            }
-
-            this.unlockingKey = key;
-            const form = event ? (event.target && event.target.tagName === 'FORM' ? event.target : event.target.closest('form')) : null;
-
-            try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
-                const unlockUrl = '{{ route("dashboard.widgets.unlock", [], false) }}';
-
-                const formData = form ? new FormData(form) : new FormData();
-                formData.set('widget_key', key);
-                formData.set('_token', csrfToken);
-
-                const resp = await fetch(unlockUrl, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: formData
-                });
-
-                let data = null;
-                try {
-                    data = await resp.json();
-                } catch(e) {}
-
-                if (resp.ok && data && data.success) {
-                    if (Array.isArray(data.unlocked_widgets)) {
-                        this.unlockedWidgets = [...new Set([...(this.unlockedWidgets || []), ...data.unlocked_widgets])];
-                    } else if (Array.isArray(this.unlockedWidgets) && !this.unlockedWidgets.includes(key)) {
-                        this.unlockedWidgets.push(key);
-                    }
-                    this.userStars = data.stars;
-                    this.widgets[key] = true;
-                    localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
-                    window.dispatchEvent(new CustomEvent('character-stats-updated', { detail: { stars: data.stars } }));
-
-                    const contentEl = document.getElementById('widget-content-' + key);
-                    if (contentEl) {
-                        contentEl.style.display = '';
-                    }
-
-                    const succMsg = data.message || '🎉 Widget succesvol ontgrendeld!';
-                    if (window.tbsToast) window.tbsToast(succMsg, 'success'); else alert(succMsg);
-                } else {
-                    if (form) {
-                        form.submit();
-                        return;
-                    }
-                    const errMsg = (data && (data.error || data.message)) || 'Er is een fout opgetreden bij het ontgrendelen.';
-                    if (window.tbsToast) window.tbsToast(errMsg, 'error'); else alert(errMsg);
-                }
-            } catch (e) {
-                if (form) {
-                    form.submit();
-                    return;
-                }
-                if (window.tbsToast) window.tbsToast('Netwerkfout: ' + (e.message || 'Probeer opnieuw.'), 'error'); else alert('Netwerkfout bij het ontgrendelen.');
-            } finally {
-                this.unlockingKey = null;
-            }
-        },
-
-        unlockWidget(key) {
-            return this.unlockWidgetSubmit(null, key);
-        },
-
-        async fetchUserLocation() {
-            this.isLocating = true;
-
-            const tryIpFallback = async (reason) => {
-                try {
-                    const ipRes = await fetch('https://freeipapi.com/api/json');
-                    if (ipRes.ok) {
-                        const ipData = await ipRes.json();
-                        if (ipData && ipData.latitude && ipData.longitude) {
-                            await this.fetchCoordsWeather(ipData.latitude, ipData.longitude, ipData.cityName || ipData.regionName);
-                            if (window.tbsToast) {
-                                window.tbsToast('📍 Locatie bepaald via IP: ' + (ipData.cityName || 'Nederland'), 'success');
-                            }
-                            return true;
-                        }
-                    }
-                } catch(e) {}
-
-                try {
-                    const ipRes2 = await fetch('https://ipapi.co/json/');
-                    if (ipRes2.ok) {
-                        const ipData2 = await ipRes2.json();
-                        if (ipData2 && ipData2.latitude && ipData2.longitude) {
-                            await this.fetchCoordsWeather(ipData2.latitude, ipData2.longitude, ipData2.city || ipData2.region);
-                            if (window.tbsToast) {
-                                window.tbsToast('📍 Locatie bepaald via IP: ' + (ipData2.city || 'Nederland'), 'success');
-                            }
-                            return true;
-                        }
-                    }
-                } catch(e) {}
-
-                this.showCityModal = true;
-                if (window.tbsToast) {
-                    window.tbsToast(reason || 'Kies je woonplaats uit de lijst.', 'info');
-                }
-                return false;
-            };
-
-            if (!navigator.geolocation) {
-                await tryIpFallback('Geolocatie wordt niet ondersteund door je browser.');
-                this.isLocating = false;
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    await this.fetchCoordsWeather(lat, lon);
-                    this.isLocating = false;
-                },
-                async (error) => {
-                    let reason = 'GPS niet beschikbaar';
-                    if (error.code === 1) reason = 'GPS toestemming geweigerd';
-                    await tryIpFallback(reason);
-                    this.isLocating = false;
-                },
-                { timeout: 7000, enableHighAccuracy: false }
-            );
-        },
-
-        async fetchCoordsWeather(lat, lon, locationName) {
-            try {
-                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
-                const url = `${weatherUrl}?lat=${lat}&lon=${lon}` + (locationName ? `&location=${encodeURIComponent(locationName)}` : '');
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data.success && data.weather) {
-                    this.weather = data.weather;
-                    localStorage.setItem('tbs_weather_data', JSON.stringify(data.weather));
-                    localStorage.setItem('tbs_weather_lat', lat);
-                    localStorage.setItem('tbs_weather_lon', lon);
-                    if (data.weather.location) {
-                        localStorage.setItem('tbs_weather_location', data.weather.location);
-                    }
-                    if (window.tbsToast) window.tbsToast('🌤️ Weerstation bijgewerkt naar ' + data.weather.location, 'success');
-                }
-            } catch (err) {
-                console.error(err);
-                if (window.tbsToast) window.tbsToast('Kon weerdata niet ophalen.', 'error');
-            }
-        },
-
-        async fetchCityWeather(city) {
-            this.isLocating = true;
-            this.showCityModal = false;
-            try {
-                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
-                const res = await fetch(`${weatherUrl}?city=` + encodeURIComponent(city));
-                const data = await res.json();
-                if (data.success && data.weather) {
-                    this.weather = data.weather;
-                    localStorage.setItem('tbs_weather_data', JSON.stringify(data.weather));
-                    localStorage.setItem('tbs_weather_city', city);
-                    if (data.weather.location) {
-                        localStorage.setItem('tbs_weather_location', data.weather.location);
-                    }
-                    if (window.tbsToast) window.tbsToast('🌤️ Weerstation ingesteld op ' + data.weather.location + '!', 'success');
-                }
-            } catch(e) {
-                if (window.tbsToast) window.tbsToast('Kon weer niet ophalen voor ' + city, 'error'); else alert('Kon weer niet ophalen voor ' + city);
-            } finally {
-                this.isLocating = false;
-            }
-        },
-
-        async resetToVught() {
-            this.isLocating = true;
-            try {
-                const weatherUrl = '{{ route("dashboard.weather.coords", [], false) }}';
-                const res = await fetch(`${weatherUrl}?reset=1`);
-                const data = await res.json();
-                if (data.success && data.weather) {
-                    this.weather = data.weather;
-                    localStorage.removeItem('tbs_weather_data');
-                    localStorage.removeItem('tbs_weather_lat');
-                    localStorage.removeItem('tbs_weather_lon');
-                    localStorage.removeItem('tbs_weather_city');
-                    localStorage.removeItem('tbs_weather_location');
-                    if (window.tbsToast) window.tbsToast('TBS Kliniek Vught weer hersteld.', 'info');
-                }
-            } catch (e) {
-                // ignore
-            } finally {
-                this.isLocating = false;
-            }
-        },
-
-        currentThemeName() {
-            switch(this.theme) {
-                case 'ebi': return 'EBI Vleugel';
-                case 'vip': return 'Directiekantoor';
-                case 'cyber': return 'Smokkeltunnel';
-                case 'orange': return 'Bajes Oranje';
-                default: return 'Kliniek Standaard';
-            }
-        },
-
-        setTheme(t) {
-            this.theme = t;
-            localStorage.setItem('tbs_dashboard_theme', t);
-        },
-
-        toggleWidget(key) {
-            this.widgets[key] = !this.widgets[key];
-            localStorage.setItem('tbs_dashboard_widgets', JSON.stringify(this.widgets));
-        },
-
-        toggleAction(id) {
-            if (this.quickActions.includes(id)) {
-                if (this.quickActions.length > 2) {
-                    this.quickActions = this.quickActions.filter(x => x !== id);
-                }
-            } else {
-                if (this.quickActions.length < 8) {
-                    this.quickActions.push(id);
-                }
-            }
-            localStorage.setItem('tbs_dashboard_actions', JSON.stringify(this.quickActions));
-        },
-
-        activeActionItems() {
-            return this.availableActions.filter(a => this.quickActions.includes(a.id));
-        },
-
-        resetDefaults() {
-            localStorage.removeItem('tbs_dashboard_theme');
-            localStorage.removeItem('tbs_dashboard_widgets');
-            localStorage.removeItem('tbs_dashboard_actions');
-            this.theme = 'clinical';
-            this.widgets = {
-                betaNotice: true,
-                roadmap: true,
-                quickToolbar: true,
-                weather: true,
-                radio: true,
-                nunl: true,
-                lottery: true,
-                referral: true,
-                loginBonus: true,
-                attributes: true,
-                activities: true,
-                clinicNews: true,
-                gang: true,
-                missions: true,
-                tunnel: true,
-                treatment: true,
-                packages: true,
-            };
-            this.quickActions = ['crimes', 'arena', 'marketplace', 'radio', 'bank', 'daily'];
-        }
-    };
-}
-</script>
 @endsection
