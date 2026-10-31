@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\GameMessage;
 use App\Models\GameNotification;
 use App\Models\TheftRecord;
+use Illuminate\Support\Facades\DB;
 
 class TheftService
 {
@@ -340,8 +341,22 @@ class TheftService
         }
 
         if ($cashStolen > 0) {
-            $victim->cash -= $cashStolen;
-            $victim->save();
+            // Take the cash from the victim under a row lock and cap it by the fresh balance.
+            // Two thieves who hit the same victim at once can then never take more than the victim owns.
+            $cashStolen = DB::transaction(function () use ($victim, $cashStolen): int {
+                /** @var Character $lockedVictim */
+                $lockedVictim = Character::where('id', $victim->id)->lockForUpdate()->first();
+                $available = max(0, (int) $lockedVictim->cash);
+                $taken = min($cashStolen, $available);
+
+                if ($taken > 0) {
+                    $lockedVictim->cash -= $taken;
+                    $lockedVictim->save();
+                    $victim->cash = $lockedVictim->cash;
+                }
+
+                return $taken;
+            });
         }
 
         $this->economyService->addCash($character, $cashStolen);

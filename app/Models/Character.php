@@ -166,6 +166,7 @@ class Character extends Model
         'weather_lat' => 'decimal:4',
         'weather_lon' => 'decimal:4',
         'last_hack_at' => 'datetime',
+        'last_friends_mass_message_at' => 'datetime',
         'hacks_completed_total' => 'integer',
     ];
 

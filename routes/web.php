@@ -90,6 +90,7 @@ use App\Http\Controllers\VipController;
 use App\Http\Controllers\WarningController;
 use App\Http\Middleware\EnsureUserIsOwner;
 use App\Http\Middleware\EnsureUserIsStaff;
+use App\Http\Middleware\SerializeCharacterActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -146,7 +147,7 @@ Route::get('/discord/widget-data', [DiscordShieldController::class, 'widgetData'
 Route::get('/community', [CommunityController::class, 'index'])->name('community.index');
 
 // Authenticated Game Routes
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', SerializeCharacterActions::class])->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Community Follow Reward Claim

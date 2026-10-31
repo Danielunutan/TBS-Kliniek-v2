@@ -198,8 +198,9 @@ class PrisonIsolationTest extends TestCase
 
         $succeeded = false;
         for ($i = 0; $i < 50; $i++) {
-            $rescuer->update(['is_in_prison' => false, 'prison_until' => null, 'prison_reason' => null, 'energy' => 100]);
-            $inmate->update(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
+            // Write straight to the database: every request loads a fresh character, so a stale model must not decide what is saved.
+            Character::where('id', $rescuer->id)->update(['is_in_prison' => false, 'prison_until' => null, 'prison_reason' => null, 'energy' => 100]);
+            Character::where('id', $inmate->id)->update(['is_in_prison' => true, 'prison_until' => now()->addMinutes(10)]);
 
             $response = $this->post(route('prison.breakout', $inmate->id));
             $this->assertNotEquals(500, $response->getStatusCode());
