@@ -758,7 +758,6 @@ class HitmanController extends Controller
             // 1. BACKFIRE CHECK (Target's Backfire Vest ricochets the attack back onto the shooter!)
             $backfireChance = $hasVest ? $defender->getVestBackfireChance() : 12;
             if ($attackerPower < $defenderDefense && rand(1, 100) <= $backfireChance) {
-                $attacker->respect = max(0, $attacker->respect - 25);
                 $attacker->deaths_count = ($attacker->deaths_count ?? 0) + 1;
                 $attacker->incrementDailyDeaths();
                 $attackerStreak = $attacker->incrementLiquidationStreakDeaths();
@@ -840,8 +839,6 @@ class HitmanController extends Controller
                     EventCashHuntService::record($attacker, $totalStolen, 'hitman_loot');
                 }
 
-                $lostRespect = max(15, (int) round($defender->respect * 0.08));
-                $defender->respect = max(0, $defender->respect - $lostRespect);
                 $defender->deaths_count = ($defender->deaths_count ?? 0) + 1;
                 $defender->incrementDailyDeaths();
 

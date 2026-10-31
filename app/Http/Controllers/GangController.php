@@ -1286,17 +1286,13 @@ class GangController extends Controller
             $lockedGang->treasury -= $amount;
             $lockedGang->save();
 
-            // Donations give 1 respect per €2.000. Withdrawing costs the same rate, so donating and withdrawing again is not a free respect loop.
-            $respectPenalty = (int) ceil($amount / 2000);
-
             $lockedCharacter->cash += $amount;
-            $lockedCharacter->respect = max(0, $lockedCharacter->respect - $respectPenalty);
             $lockedCharacter->save();
 
             return back()
                 ->with('active_gang_tab', 'beheer')
                 ->with('beheer_tab', 'instellingen')
-                ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' opgenomen uit de bende kas! (-'.number_format($respectPenalty, 0, ',', '.').' respect)');
+                ->with('success', 'Je hebt €'.number_format($amount, 0, ',', '.').' opgenomen uit de bende kas!');
         });
     }
 

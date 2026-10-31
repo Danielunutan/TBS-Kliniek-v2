@@ -156,7 +156,6 @@ class PrisonService
                 'is_in_prison' => true,
                 'prison_until' => $newUntil,
                 'prison_escape_attempted' => true,
-                'respect' => max(0, (int) $locked->respect - 1),
             ]);
             $character->refresh();
 

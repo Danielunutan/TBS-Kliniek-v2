@@ -183,4 +183,43 @@ class DashboardWidgetAndWeatherTest extends TestCase
         ]);
         $response->assertJsonPath('weather.location', 'Rotterdam');
     }
+
+    public function test_dashboard_renders_code_blauw_banner_without_reload_loop(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'perks' => ['liquidation_streak_deaths' => 10],
+            'coma_until' => null,
+        ]);
+
+        $this->assertTrue($character->needsReviveSerum());
+        $this->assertSame(0, $character->getComaRemainingSeconds());
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Code Blauw • 10/10 Geliquideerd');
+        $response->assertSee(Character::REVIVE_SERUM_NAME.' Vereist!');
+        $response->assertDontSee('getComaRemainingSeconds');
+        // Ensure Code Blauw banner has no auto-reload timer x-data
+        $content = $response->getContent();
+        $this->assertStringNotContainsString('sec: 1', $content);
+        $this->assertStringNotContainsString('if (this.sec <= 0) { window.location.reload(); }', $content);
+    }
+
+    public function test_dashboard_does_not_render_prison_banner_when_seconds_zero(): void
+    {
+        $user = User::factory()->create();
+        $character = $this->createCharacter($user, [
+            'is_in_prison' => true,
+            'prison_until' => now()->subMinute(),
+        ]);
+
+        $this->assertSame(0, $character->remainingPrisonSeconds());
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertDontSee('Vast in de isoleercel');
+    }
 }

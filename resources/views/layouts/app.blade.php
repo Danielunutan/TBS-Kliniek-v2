@@ -882,25 +882,6 @@
                 window.location.href = '/';
             }
         };
-
-        window.tbsReloadPage = function(btn) {
-            if (btn) {
-                const icon = (btn instanceof HTMLElement) ? btn.querySelector('i') : null;
-                if (icon) icon.classList.add('fa-spin');
-            }
-            if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                if (typeof window.Turbo.clearCache === 'function') {
-                    window.Turbo.clearCache();
-                } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
-                    window.Turbo.cache.clear();
-                } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
-                    window.Turbo.session.clearCache();
-                }
-                window.Turbo.visit(window.location.href, { action: 'replace' });
-            } else {
-                window.location.reload();
-            }
-        };
     </script>
     @endif
 </head>
@@ -2310,28 +2291,7 @@
 
             <!-- Active Code Blauw (10/10 Liquidations / Intensive Care) Alert Banner -->
             @if(isset($character) && $character->needsReviveSerum())
-            <div x-data="{ 
-                    sec: {{ max(1, $character->getComaRemainingSeconds()) }},
-                    formatTime(s) {
-                        if (s <= 0) return '00:00';
-                        const h = Math.floor(s / 3600);
-                        const m = Math.floor((s % 3600) / 60);
-                        const remainder = s % 60;
-                        return (h > 0 ? h + 'u ' : '') + (m < 10 ? '0' : '') + m + 'm ' + (remainder < 10 ? '0' : '') + remainder + 's';
-                    },
-                    init() {
-                        if (this.sec > 0) {
-                            const timer = setInterval(() => {
-                                this.sec--;
-                                if (this.sec <= 0) {
-                                    clearInterval(timer);
-                                    window.location.reload();
-                                }
-                            }, 1000);
-                        }
-                    }
-                 }" 
-                 class="mb-6 bg-white dark:bg-slate-900 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 relative z-20">
+            <div class="mb-6 bg-white dark:bg-slate-900 border-2 border-rose-500 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 relative z-20">
                 <div class="flex items-start sm:items-center gap-3.5">
                     <div class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-xl shadow-xs shrink-0 animate-pulse">
                         <i class="fa-solid fa-syringe"></i>
@@ -2370,7 +2330,7 @@
             @endif
 
             <!-- Active Prison / Isoleercel Alert Banner with Live Seconds Ticker & Star Buyout -->
-            @if(isset($character) && $character->isImprisoned() && !request()->routeIs('prison'))
+            @if(isset($character) && $character->isImprisoned() && $character->remainingPrisonSeconds() > 0 && !request()->routeIs('prison'))
             @php
                 $topReqPrisonAds = $character->getRequiredPrisonAds();
                 $topCurrPrisonAds = (int) ($character->ad_prison_progress ?? 0);
@@ -2388,7 +2348,11 @@
                         if (this.reloaded) return;
                         this.reloaded = true;
                         this.sec = 0;
-                        if (window.Turbo) {
+                        const lastReload = parseInt(sessionStorage.getItem('tbs_last_prison_reload') || '0', 10);
+                        const now = Date.now();
+                        if (now - lastReload < 8000) return;
+                        sessionStorage.setItem('tbs_last_prison_reload', String(now));
+                        if (window.Turbo && typeof window.Turbo.visit === 'function') {
                             if (typeof window.Turbo.clearCache === 'function') {
                                 window.Turbo.clearCache();
                             } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
@@ -2402,17 +2366,15 @@
                         }
                     },
                     init() {
-                        if (this.sec <= 0) {
-                            this.reloadSite();
-                            return;
+                        if (this.sec > 0) {
+                            const timer = setInterval(() => {
+                                this.sec--;
+                                if (this.sec <= 0) {
+                                    clearInterval(timer);
+                                    this.reloadSite();
+                                }
+                            }, 1000);
                         }
-                        const timer = setInterval(() => {
-                            this.sec--;
-                            if (this.sec <= 0) {
-                                clearInterval(timer);
-                                this.reloadSite();
-                            }
-                        }, 1000);
                     }
                  }" 
                  x-show="sec > 0"
@@ -3544,10 +3506,19 @@
             }
         };
 
-        // When navigating back/forward via browser history (bfcache), ensure fresh state & styles
+        // When navigating back/forward via browser history (bfcache), ensure fresh state & styles without infinite reload loops
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
-                window.location.reload();
+                const now = Date.now();
+                const last = parseInt(sessionStorage.getItem('tbs_last_pageshow_reload') || '0', 10);
+                if (now - last > 8000) {
+                    sessionStorage.setItem('tbs_last_pageshow_reload', String(now));
+                    if (window.Turbo && typeof window.Turbo.visit === 'function') {
+                        window.Turbo.visit(window.location.href, { action: 'replace' });
+                    } else {
+                        window.location.reload();
+                    }
+                }
             }
         });
     </script>

@@ -177,7 +177,7 @@ class Pass6Bucket3AuditTest extends TestCase
 
         if (! $res['success']) {
             $this->assertTrue((bool) $character->prison_escape_attempted);
-            $this->assertSame(9, $character->respect);
+            $this->assertSame(10, $character->respect);
         } else {
             $this->assertFalse((bool) $character->is_in_prison);
             $this->assertSame(25, $character->respect);

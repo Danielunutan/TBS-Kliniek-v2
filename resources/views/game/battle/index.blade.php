@@ -29,7 +29,7 @@
                 this.loadingScores = false;
             });
     }
-}" x-init="if (secReset > 0) { setInterval(() => { secReset--; if (secReset <= 0) window.location.reload(); }, 1000); }">
+}" x-init="if (secReset > 0) { const _t = setInterval(() => { secReset--; if (secReset <= 0) { clearInterval(_t); window.location.reload(); } }, 1000); }">
 
     <!-- Top Hero Banner (Clean TBS White Style) -->
     <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">

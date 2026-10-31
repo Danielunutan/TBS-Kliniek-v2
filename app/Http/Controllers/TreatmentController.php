@@ -160,7 +160,7 @@ class TreatmentController extends Controller
                     'text' => 'Ik distantieer me volledig van criminele bendes. Ik focus me 100% op mijn eigen herstel.',
                     'score' => 25,
                     'note' => 'Afstand nemend van criminele subculturen en negatieve invloeden.',
-                    'respect' => -1,
+                    'respect' => 0,
                 ],
                 'b' => [
                     'text' => 'Ik praat met iedereen op de afdeling om de vrede te bewaren, maar ik kies geen partij.',
@@ -360,8 +360,6 @@ class TreatmentController extends Controller
         // Apply respect modifications
         if ($totalRespect > 0) {
             $character->addRespect($totalRespect);
-        } elseif ($totalRespect < 0) {
-            $character->respect = max(0, (int) round(($character->respect ?? 0) + $totalRespect));
         }
 
         // Outcome branch based on performance

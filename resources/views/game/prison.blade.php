@@ -43,6 +43,10 @@
                 if (this.reloaded) return;
                 this.reloaded = true;
                 this.sec = 0;
+                const lastReload = parseInt(sessionStorage.getItem('tbs_last_prison_reload') || '0', 10);
+                const now = Date.now();
+                if (now - lastReload < 8000) return;
+                sessionStorage.setItem('tbs_last_prison_reload', String(now));
                 if (window.Turbo) {
                     if (typeof window.Turbo.clearCache === 'function') {
                         window.Turbo.clearCache();
@@ -97,17 +101,15 @@
                 }
             },
             init() {
-                if (this.sec <= 0) {
-                    this.reloadSite();
-                    return;
+                if (this.sec > 0) {
+                    const timer = setInterval(() => {
+                        this.sec--;
+                        if (this.sec <= 0) {
+                            clearInterval(timer);
+                            this.reloadSite();
+                        }
+                    }, 1000);
                 }
-                const timer = setInterval(() => {
-                    this.sec--;
-                    if (this.sec <= 0) {
-                        clearInterval(timer);
-                        this.reloadSite();
-                    }
-                }, 1000);
             }
          }" 
          x-show="sec > 0"
