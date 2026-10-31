@@ -175,4 +175,49 @@ class AuditBatch8SecurityAndLogicTest extends TestCase
         $this->actingAs($user)->get(route('vault.index'))->assertStatus(200);
         $this->actingAs($user)->get(route('tunnel.index'))->assertStatus(200);
     }
+
+    /**
+     * Test that shop, profile, gangs, and admin moderation views whitelist tab query parameters against Alpine x-data XSS and select a valid default bundle.
+     */
+    public function test_shop_profile_gangs_and_moderation_views_whitelist_tab_query_parameters_and_default_bundle(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'is_staff' => true]);
+        $character = $this->createCharacter($admin, ['name' => 'TabGuardPlayer']);
+
+        $payload = "',alert(1),'";
+
+        // 1. Shop view whitelists tab and defaults selectedBundleId to afdelingsbaas_deal
+        $shopRes = $this->actingAs($admin)->get(route('shop.index', ['tab' => $payload]));
+        $shopRes->assertStatus(200);
+        $shopRes->assertSee("shopTab: 'pakketten'", false);
+        $shopRes->assertSee("selectedBundleId: 'afdelingsbaas_deal'", false);
+        $shopRes->assertDontSee('alert(1)', false);
+
+        // 2. Profile view whitelists tab and custom_tab
+        $profileRes = $this->actingAs($admin)->get(route('profile.show', [
+            'name' => $character->name,
+            'tab' => $payload,
+            'custom_tab' => $payload,
+        ]));
+        $profileRes->assertStatus(200);
+        $profileRes->assertSee("activeTab: 'overzicht'", false);
+        $profileRes->assertSee("activeCustomTab: 'sticker'", false);
+        $profileRes->assertDontSee('alert(1)', false);
+
+        // 3. Gangs view whitelists tab and beheer_tab
+        $gangsRes = $this->actingAs($admin)->get(route('gangs.index', [
+            'tab' => $payload,
+            'beheer_tab' => $payload,
+        ]));
+        $gangsRes->assertStatus(200);
+        $gangsRes->assertSee("activeGangTab: 'alle_bendes'", false);
+        $gangsRes->assertSee("beheerTab: 'leden'", false);
+        $gangsRes->assertDontSee('alert(1)', false);
+
+        // 4. Admin moderation view whitelists tab
+        $modRes = $this->actingAs($admin)->get(route('admin.moderation.index', ['tab' => $payload]));
+        $modRes->assertStatus(200);
+        $modRes->assertSee("activeTab: 'bans'", false);
+        $modRes->assertDontSee('alert(1)', false);
+    }
 }

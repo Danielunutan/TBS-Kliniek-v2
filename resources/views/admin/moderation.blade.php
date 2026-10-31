@@ -1,8 +1,13 @@
 @extends('admin.layout')
 
 @section('admin-content')
+@php
+    $allowedModTabs = ['bans', 'warnings', 'reports'];
+    $rawModTab = (string) request('tab', 'bans');
+    $safeModTab = in_array($rawModTab, $allowedModTabs, true) ? $rawModTab : 'bans';
+@endphp
 <div class="space-y-6" x-data="{ 
-    activeTab: '{{ request('tab', 'bans') }}', 
+    activeTab: '{{ $safeModTab }}', 
     showQuickAction: false, 
     quickMode: 'warn', 
     selectedUserId: '', 

@@ -1,9 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $allowedGangTabs = ['mijn_gang', 'leden', 'oorlog', 'depot', 'doneren', 'winkel', 'beheer', 'instellingen', 'alle_bendes', 'ranglijst', 'logboek', 'oprichten'];
+    $defaultGangTab = $myGang ? 'mijn_gang' : 'alle_bendes';
+    $rawGangTab = (string) ($activeTab ?? session('active_gang_tab', request('tab', $defaultGangTab)));
+    $safeGangTab = in_array($rawGangTab, $allowedGangTabs, true) ? $rawGangTab : $defaultGangTab;
+    $hasExplicitGangTab = !empty($activeTab) || session()->has('active_gang_tab') || in_array((string) request('tab'), $allowedGangTabs, true);
+    $safeNoGangFallbackTab = in_array((string) request('tab'), ['alle_bendes', 'oprichten', 'ranglijst'], true) ? (string) request('tab') : 'alle_bendes';
+
+    $allowedBeheerTabs = ['leden', 'verzoeken', 'massa_bericht', 'bondgenoten', 'donaties', 'verwijderen'];
+    $rawBeheerTab = (string) session('beheer_tab', request('beheer_tab', 'leden'));
+    $safeBeheerTab = in_array($rawBeheerTab, $allowedBeheerTabs, true) ? $rawBeheerTab : 'leden';
+    $hasExplicitBeheerTab = session()->has('beheer_tab') || in_array((string) request('beheer_tab'), $allowedBeheerTabs, true);
+@endphp
 <div class="space-y-6" x-data="{ 
-    activeGangTab: '{{ $activeTab ?? session('active_gang_tab', request('tab', ($myGang ? 'mijn_gang' : 'alle_bendes'))) }}',
-    beheerTab: '{{ session('beheer_tab', request('beheer_tab', 'leden')) }}',
+    activeGangTab: '{{ $safeGangTab }}',
+    beheerTab: '{{ $safeBeheerTab }}',
     showCreateModal: false,
     attackCooldown: {{ (int) ($myGang ? $myGang->attackCooldownRemaining() : 0) }},
     formatTime(s) {
@@ -13,15 +26,15 @@
         return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
     },
     init() {
-        if (!'{{ session('active_gang_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_active_gang_tab')) {
+        if ({{ $hasExplicitGangTab ? 'false' : 'true' }} && sessionStorage.getItem('tbs_active_gang_tab')) {
             this.activeGangTab = sessionStorage.getItem('tbs_active_gang_tab');
         }
         @if(!$myGang)
             if (this.activeGangTab === 'mijn_gang') {
-                this.activeGangTab = '{{ request('tab', 'alle_bendes') }}';
+                this.activeGangTab = '{{ $safeNoGangFallbackTab }}';
             }
         @endif
-        if (!'{{ session('beheer_tab') }}' && !'{{ request('beheer_tab') }}' && sessionStorage.getItem('tbs_gang_beheer_tab')) {
+        if ({{ $hasExplicitBeheerTab ? 'false' : 'true' }} && sessionStorage.getItem('tbs_gang_beheer_tab')) {
             this.beheerTab = sessionStorage.getItem('tbs_gang_beheer_tab');
         }
         if (this.attackCooldown > 0) {

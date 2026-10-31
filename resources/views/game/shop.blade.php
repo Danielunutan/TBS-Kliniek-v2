@@ -70,13 +70,18 @@
 
         return ['cat' => $cat, 'icon' => $icon, 'badgeClass' => $badgeClass];
     };
+
+    $allowedShopTabs = ['pakketten', 'items', 'sterren', 'inventaris', 'donaties'];
+    $rawShopTab = (string) session('shop_tab', request('tab', 'pakketten'));
+    $safeShopTab = in_array($rawShopTab, $allowedShopTabs, true) ? $rawShopTab : 'pakketten';
+    $hasExplicitShopTab = session()->has('shop_tab') || in_array((string) request('tab'), $allowedShopTabs, true);
 @endphp
 
 <div class="space-y-6" x-data="{ 
-    shopTab: '{{ session('shop_tab', request('tab', 'pakketten')) }}',
+    shopTab: '{{ $safeShopTab }}',
     bundleFilter: 'all',
     itemFilter: 'all',
-    selectedBundleId: 'big_bucks',
+    selectedBundleId: 'afdelingsbaas_deal',
     bundleQty: 1,
     recipientId: '',
     bundles: {{ json_encode($bundles) }},
@@ -97,7 +102,7 @@
     itemBuying: {},
     itemToast: {},
     init() {
-        if (!'{{ session('shop_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_shop_tab')) {
+        if ({{ $hasExplicitShopTab ? 'false' : 'true' }} && sessionStorage.getItem('tbs_shop_tab')) {
             this.shopTab = sessionStorage.getItem('tbs_shop_tab');
         }
     },
@@ -491,7 +496,7 @@
 
                 <!-- Active Bundle Showcase Card -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-5"
-                     x-data="{ currentBundle() { return bundles[selectedBundleId] || bundles['big_bucks']; } }">
+                     x-data="{ currentBundle() { return bundles[selectedBundleId] || bundles['afdelingsbaas_deal'] || Object.values(bundles)[0]; } }">
                     
                     <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">

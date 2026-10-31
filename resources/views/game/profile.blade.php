@@ -5,16 +5,25 @@
     $nameColorCatalog = \App\Models\Character::nameColorCatalog();
     $nameGradientCatalog = \App\Models\Character::nameGradientCatalog();
     $nameGlowCatalog = \App\Models\Character::nameGlowCatalog();
+
+    $allowedProfileTabs = ['overzicht', 'psychiatrisch', 'medailles', 'vrienden', 'gastenboek'];
+    $rawProfileTab = (string) session('profile_tab', request('tab', 'overzicht'));
+    $safeProfileTab = in_array($rawProfileTab, $allowedProfileTabs, true) ? $rawProfileTab : 'overzicht';
+    $hasExplicitProfileTab = session()->has('profile_tab') || in_array((string) request('tab'), $allowedProfileTabs, true);
+
+    $allowedCustomTabs = ['sticker', 'name_style', 'frame', 'theme', 'title', 'bio'];
+    $rawCustomTab = (string) request('custom_tab', 'sticker');
+    $safeCustomTab = in_array($rawCustomTab, $allowedCustomTabs, true) ? $rawCustomTab : 'sticker';
 @endphp
 <div class="space-y-6" x-data="{ 
     avatarModalOpen: false, 
     bioModalOpen: false, 
     titleModalOpen: false,
     customizeModalOpen: false,
-    activeCustomTab: '{{ request('custom_tab', 'sticker') }}',
+    activeCustomTab: '{{ $safeCustomTab }}',
     staffWarnModalOpen: false,
     staffBanModalOpen: false,
-    activeTab: '{{ session('profile_tab', request('tab', 'overzicht')) }}',
+    activeTab: '{{ $safeProfileTab }}',
     selectedSticker: '{{ $profileCharacter->profile_sticker ?? 'none' }}',
     selectedTheme: '{{ $profileCharacter->profile_bg_theme ?? 'default' }}',
     selectedColor: '{{ $profileCharacter->profile_color ?: 'purple' }}',
@@ -27,7 +36,7 @@
     gradientMap: {{ Js::from(collect($nameGradientCatalog)->map(fn($g) => ['css' => $g['css'], 'glow' => $g['glow']])) }},
     colorGlowMap: {{ Js::from(collect($nameColorCatalog)->map(fn($c) => $c['glow'])) }},
     init() {
-        if (!'{{ session('profile_tab') }}' && !'{{ request('tab') }}' && sessionStorage.getItem('tbs_profile_tab')) {
+        if ({{ $hasExplicitProfileTab ? 'false' : 'true' }} && sessionStorage.getItem('tbs_profile_tab')) {
             this.activeTab = sessionStorage.getItem('tbs_profile_tab');
         }
     },
