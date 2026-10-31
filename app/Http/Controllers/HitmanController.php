@@ -522,6 +522,12 @@ class HitmanController extends Controller
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je geen liquidatieopdrachten uitvoeren!');
         }
 
+        if ($character->hasIsolationProtection()) {
+            $remaining = $character->protection_until->diffForHumans(null, true);
+
+            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt geen contracten uitzetten zolang je cel op slot zit.");
+        }
+
         if ($character->needsReviveSerum()) {
             return back()->with('error', 'Je verkeert in Code Blauw (Hartstilstand)! Dien eerst een '.Character::REVIVE_SERUM_NAME.' toe.');
         }
@@ -628,6 +634,12 @@ class HitmanController extends Controller
 
         if ($attacker->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand liquideren!');
+        }
+
+        if ($attacker->hasIsolationProtection()) {
+            $remaining = $attacker->protection_until->diffForHumans(null, true);
+
+            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt geen liquidaties uitvoeren zolang je cel op slot zit.");
         }
 
         if ($attacker->needsReviveSerum()) {

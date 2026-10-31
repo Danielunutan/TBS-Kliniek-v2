@@ -141,6 +141,19 @@ class TheftService
             ];
         }
 
+        if ($character->hasIsolationProtection()) {
+            $remaining = $character->protection_until->diffForHumans(null, true);
+
+            return [
+                'success' => false,
+                'message' => "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt niet op pad om te stelen zolang je cel op slot zit.",
+                'cash_stolen' => 0,
+                'xp_gained' => 0,
+                'jailed' => false,
+                'jail_minutes' => 0,
+            ];
+        }
+
         if ($victim) {
             if ($victim->id === $character->id) {
                 return [

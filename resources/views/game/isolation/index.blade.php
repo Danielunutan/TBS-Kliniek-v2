@@ -92,7 +92,7 @@
                 </div>
                 <p class="text-xs leading-relaxed"
                    :class="sec > 0 && sec <= 1800 ? 'text-amber-900 dark:text-amber-300' : (sec <= 0 ? 'text-rose-900 dark:text-rose-300' : 'text-emerald-800 dark:text-emerald-300')">
-                    Je cel is vergrendeld tot <span class="font-extrabold">{{ $character->protection_until->format('d-m-Y \o\m H:i') }} uur</span> (nog ~{{ $remainingHours }} uur / {{ $remainingMinutes }} min). Andere patiënten kunnen je niet aanvallen of liquideren. Verleng je beveiliging hieronder op tijd!
+                    Je cel is vergrendeld tot <span class="font-extrabold">{{ $character->protection_until->format('d-m-Y \o\m H:i') }} uur</span> (nog ~{{ $remainingHours }} uur / {{ $remainingMinutes }} min). Andere patiënten kunnen je niet aanvallen of liquideren. Zolang je cel op slot zit, kun je zelf ook niet vechten op de luchtplaats zodat je betaalde beveiliging altijd 100% gegarandeerd actief blijft!
                 </p>
                 <p x-show="sec > 0 && sec <= 1800" x-cloak class="text-xs font-extrabold text-amber-800 dark:text-amber-300 flex items-center gap-1.5 pt-0.5">
                     <i class="fa-solid fa-triangle-exclamation"></i>

@@ -191,7 +191,7 @@ class FightController extends Controller
         if ($battle['won']) {
             $defenderCash = max(0, (int) $defender->cash);
             $stolenCash = (int) ($battle['stolen_cash'] ?? 0);
-            if ($defender->hasCashProtection()) {
+            if ($defender->isProtected()) {
                 $stolenCash = 0;
             } elseif ($stolenCash > $defenderCash) {
                 $stolenCash = $defenderCash;
@@ -336,6 +336,12 @@ class FightController extends Controller
 
         if ($attacker->isImprisoned()) {
             return redirect()->route('prison')->with('error', 'Vanuit de isoleercel kun je niemand beroven!');
+        }
+
+        if ($attacker->hasIsolationProtection()) {
+            $remaining = $attacker->protection_until->diffForHumans(null, true);
+
+            return back()->with('error', "🔒 Je cel is vergrendeld in Vrijwillige Isolatie (nog {$remaining})! Je kunt niet vechten op de luchtplaats zolang je cel op slot zit.");
         }
 
         if ($attacker->isComatose()) {
