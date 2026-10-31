@@ -44,7 +44,13 @@
                 this.reloaded = true;
                 this.sec = 0;
                 if (window.Turbo) {
-                    window.Turbo.clearCache();
+                    if (typeof window.Turbo.clearCache === 'function') {
+                        window.Turbo.clearCache();
+                    } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
+                        window.Turbo.cache.clear();
+                    } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
+                        window.Turbo.session.clearCache();
+                    }
                     window.Turbo.visit(window.location.href, { action: 'replace' });
                 } else {
                     window.location.reload();

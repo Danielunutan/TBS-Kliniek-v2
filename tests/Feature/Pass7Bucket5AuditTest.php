@@ -1,0 +1,22 @@
+<?php
+
+namespace Tests\Feature;
+
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+use App\Models\User;
+use App\Models\Player;
+
+class Pass7Bucket5AuditTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_bucket_5_views_and_admin_referrals(): void
+    {
+        $adminUser = User::factory()->create(['role' => 'admin']);
+        $adminPlayer = Player::factory()->create(['user_id' => $adminUser->id]);
+
+        $response = $this->actingAs($adminUser)->get(route('admin.referrals'));
+        $response->assertStatus(200);
+    }
+}

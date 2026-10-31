@@ -1,15 +1,28 @@
 import * as Turbo from '@hotwired/turbo';
 import 'alpine-turbo-drive-adapter';
 import Alpine from 'alpinejs';
+import collapse from '@alpinejs/collapse';
 
-window.Turbo = Turbo;
+// Cache clearing bridge for Turbo
+const clearTurboCache = () => {
+    if (Turbo.cache && typeof Turbo.cache.clear === 'function') {
+        Turbo.cache.clear();
+    } else if (Turbo.session && typeof Turbo.session.clearCache === 'function') {
+        Turbo.session.clearCache();
+    }
+};
+
+window.Turbo = Object.create(Turbo);
+window.Turbo.clearCache = clearTurboCache;
+
+// Register Alpine plugins before Alpine.start()
+Alpine.plugin(collapse);
 window.Alpine = Alpine;
 
 // Disable Turbo automatic form submission interception so our in-app AJAX action interceptor handles all game forms
 if (Turbo.config && Turbo.config.forms) {
     Turbo.config.forms.mode = 'off';
-}
-if (typeof Turbo.setFormMode === 'function') {
+} else if (typeof Turbo.setFormMode === 'function') {
     Turbo.setFormMode('off');
 }
 

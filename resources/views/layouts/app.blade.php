@@ -506,7 +506,13 @@
                 window.tbsRefreshStats();
             }
             if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                window.Turbo.clearCache();
+                if (typeof window.Turbo.clearCache === 'function') {
+                    window.Turbo.clearCache();
+                } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
+                    window.Turbo.cache.clear();
+                } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
+                    window.Turbo.session.clearCache();
+                }
                 window.Turbo.visit(window.location.href, { action: 'replace' });
             } else {
                 window.location.reload();
@@ -880,7 +886,13 @@
                 if (icon) icon.classList.add('fa-spin');
             }
             if (window.Turbo && typeof window.Turbo.visit === 'function') {
-                window.Turbo.clearCache();
+                if (typeof window.Turbo.clearCache === 'function') {
+                    window.Turbo.clearCache();
+                } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
+                    window.Turbo.cache.clear();
+                } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
+                    window.Turbo.session.clearCache();
+                }
                 window.Turbo.visit(window.location.href, { action: 'replace' });
             } else {
                 window.location.reload();
@@ -2374,7 +2386,13 @@
                         this.reloaded = true;
                         this.sec = 0;
                         if (window.Turbo) {
-                            window.Turbo.clearCache();
+                            if (typeof window.Turbo.clearCache === 'function') {
+                                window.Turbo.clearCache();
+                            } else if (window.Turbo.cache && typeof window.Turbo.cache.clear === 'function') {
+                                window.Turbo.cache.clear();
+                            } else if (window.Turbo.session && typeof window.Turbo.session.clearCache === 'function') {
+                                window.Turbo.session.clearCache();
+                            }
                             window.Turbo.visit(window.location.href, { action: 'replace' });
                         } else {
                             window.location.reload();
@@ -3474,7 +3492,7 @@
         }
     </style>
     <div id="bmc-permanent-holder" data-turbo-permanent></div>
-    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="tbskliniek" data-description="Support me on Buy me a coffee!" data-message="" data-color="#7c3aed" data-position="Right" data-x_margin="24" data-y_margin="74"></script>
+    <script data-name="BMC-Widget" data-cfasync="false" src="{{ asset('assets/js/bmc-widget.js') }}" data-id="tbskliniek" data-description="Support me on Buy me a coffee!" data-message="" data-color="#7c3aed" data-position="Right" data-x_margin="24" data-y_margin="74"></script>
     <script>
         (function() {
             function adoptBmcElements() {
