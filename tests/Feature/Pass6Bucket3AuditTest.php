@@ -6,10 +6,12 @@ use App\Models\Character;
 use App\Models\CharacterConnectFourStat;
 use App\Models\CharacterMemoryStat;
 use App\Models\CharacterTrueCrimeState;
+use App\Models\Gang;
 use App\Models\User;
 use App\Services\CooldownService;
 use App\Services\LoanService;
 use App\Services\RookieService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -98,5 +100,19 @@ class Pass6Bucket3AuditTest extends TestCase
         $character->refresh();
         $this->assertSame(15, $character->respect);
         $this->assertSame(5.0, (float) $character->today_respect);
+
+        Carbon::setTestNow(Carbon::parse('2026-10-31 10:00:00.400'));
+
+        try {
+            $gang = Gang::factory()->create([
+                'leader_character_id' => $character->id,
+                'shield_until' => Carbon::parse('2026-10-31 10:00:01'),
+                'last_attack_at' => Carbon::parse('2026-10-31 09:50:01'),
+            ]);
+            $this->assertSame(1, $gang->shieldSecondsRemaining());
+            $this->assertSame(1, $gang->attackCooldownRemaining());
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 }

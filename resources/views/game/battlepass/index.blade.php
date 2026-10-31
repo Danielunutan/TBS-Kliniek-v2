@@ -380,7 +380,7 @@
             </div>
 
             <!-- Rechts: Claim Alles + Confetti Box -->
-            <div class="bg-purple-950/85 border-2 border-purple-400/40 rounded-2xl p-4 sm:p-5 shrink-0 flex flex-col justify-between space-y-3 min-w-[265px] shadow-lg">
+            <div class="bg-purple-950/85 border-2 border-purple-400/40 rounded-2xl p-4 sm:p-5 shrink-0 flex flex-col justify-between space-y-3 w-full lg:w-auto lg:min-w-[265px] shadow-lg">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-purple-300 block">Klaar in je Kluis</span>

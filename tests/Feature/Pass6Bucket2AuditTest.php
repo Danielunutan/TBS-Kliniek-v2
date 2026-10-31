@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Character;
 use App\Models\TimelinePost;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -84,5 +85,40 @@ class Pass6Bucket2AuditTest extends TestCase
         $character->refresh();
         $this->assertSame('paviljoen_a', $character->current_location);
         $this->assertSame(0, $character->xp);
+    }
+
+    public function test_character_remaining_seconds_helpers_use_ceil_and_preserve_prison_state(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-31 10:00:00.400'));
+
+        try {
+            $until = Carbon::parse('2026-10-31 10:00:01');
+            $user = User::factory()->create(['is_onboarded' => true]);
+            $character = Character::factory()->create([
+                'user_id' => $user->id,
+                'is_in_prison' => true,
+                'prison_until' => $until,
+                'leave_until' => $until,
+                'sedated_until' => $until,
+                'protection_until' => $until,
+                'cash_protection_until' => $until,
+                'vest_until' => $until,
+                'health' => 0,
+                'coma_until' => $until,
+            ]);
+
+            $this->assertSame(1, $character->remainingPrisonSeconds());
+            $this->assertTrue((bool) $character->fresh()->is_in_prison);
+            $character->is_in_prison = false;
+            $character->prison_until = null;
+            $this->assertSame(1, $character->getLeaveRemainingSeconds());
+            $this->assertSame(1, $character->getSedatedRemainingSeconds());
+            $this->assertSame(1, $character->getIsolationProtectionRemainingSeconds());
+            $this->assertSame(1, $character->getCashProtectionRemainingSeconds());
+            $this->assertSame(1, $character->getComaRemainingSeconds());
+            $this->assertSame(1, $character->getVestRemainingSeconds());
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 }

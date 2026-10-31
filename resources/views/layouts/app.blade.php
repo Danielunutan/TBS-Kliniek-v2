@@ -2672,7 +2672,7 @@
 
         @if(isset($character))
         <!-- NATIVE MOBILE APP BOTTOM DOCK (5 Symmetrical Columns with Center FAB) -->
-        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 z-60 grid grid-cols-5 items-center py-1.5 px-1 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 z-45 grid grid-cols-5 items-center py-1.5 px-1 shadow-2xl select-none" style="padding-bottom: max(0.375rem, env(safe-area-inset-bottom));">
             
             <!-- 1. Home / Dashboard -->
             <a href="{{ route('dashboard') }}" 
@@ -2729,7 +2729,7 @@
         <!-- NATIVE SLIDE-UP QUICK ACTIONS BOTTOM SHEET -->
         <div x-show="mobileQuickSheetOpen" 
              x-cloak 
-             class="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+             class="lg:hidden fixed inset-0 z-42 flex flex-col justify-end">
             
             <!-- Backdrop -->
             <div x-show="mobileQuickSheetOpen"
@@ -3094,7 +3094,7 @@
     x-show="isOpen"
     x-cloak
     style="display: none;"
-    class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    class="fixed inset-0 z-[100] flex items-center justify-center p-4 pb-24 lg:pb-4">
         
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-slate-950/80 transition-opacity" 
@@ -3108,7 +3108,7 @@
              @click="cancel()"></div>
 
         <!-- Modal Dialog (Clean Light/Dark TBS Kliniek Styling) -->
-        <div class="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transform-gpu will-change-transform transition-all z-10"
+        <div class="relative w-full max-w-md max-h-[85dvh] overflow-y-auto bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transform-gpu will-change-transform transition-all z-10"
              x-show="isOpen"
              x-transition:enter="ease-out duration-150"
              x-transition:enter-start="opacity-0 scale-95 translate-y-2"
@@ -3623,7 +3623,7 @@
                  x-transition:leave="transition ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                  x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
-                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl min-w-[300px] sm:min-w-[380px] max-w-md w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white transition-all select-none border-slate-200/90 dark:border-slate-800">
+                 class="pointer-events-auto relative overflow-hidden flex flex-col rounded-2xl border shadow-2xl min-w-[280px] sm:min-w-[380px] max-w-full w-full sm:max-w-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white transition-all select-none border-slate-200/90 dark:border-slate-800">
                 
                 <div class="flex items-center gap-3 p-3.5 sm:p-4">
                     <!-- Icon Badge -->

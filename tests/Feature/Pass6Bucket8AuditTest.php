@@ -14,7 +14,7 @@ class Pass6Bucket8AuditTest extends TestCase
     public function test_bucket_8_casino_views_disable_play_when_comatose_and_default_rps_choice(): void
     {
         $user = User::factory()->create(['is_onboarded' => true]);
-        Character::factory()->create([
+        $character = Character::factory()->create([
             'user_id' => $user->id,
             'cash' => 10000,
             'health' => 0,
@@ -43,5 +43,8 @@ class Pass6Bucket8AuditTest extends TestCase
         $perks = $this->get(route('perks.index'));
         $perks->assertOk();
         $perks->assertSee('disabled', false);
+
+        $profile = $this->get(route('profile', $character->name));
+        $profile->assertOk();
     }
 }

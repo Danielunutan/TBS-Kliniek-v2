@@ -118,7 +118,7 @@ class GangProperty extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->production_ends_at, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->production_ends_at, false)));
     }
 
     /**

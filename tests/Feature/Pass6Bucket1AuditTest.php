@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Character;
 use App\Models\CharacterConnectFourStat;
 use App\Models\Friend;
+use App\Models\SmuggleDropping;
 use App\Models\User;
 use App\Services\CooldownService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -103,5 +104,7 @@ class Pass6Bucket1AuditTest extends TestCase
         $character->refresh();
         $this->assertSame(35, $character->energy);
         $this->assertTrue(app(CooldownService::class)->isOnCooldown($character, 'dropping_tennisball'));
+        $dropping = SmuggleDropping::where('character_id', $character->id)->latest('id')->firstOrFail();
+        $this->assertSame($dropping->xp_gained, $character->xp);
     }
 }

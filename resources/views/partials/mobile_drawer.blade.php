@@ -1,5 +1,5 @@
 <!-- MOBILE FULL SLIDE-OVER NAVIGATION DRAWER (Modern Desktop-Matching Categorized Experience) -->
-<div x-show="mobileMenuOpen" x-cloak class="lg:hidden fixed inset-0 z-50 flex justify-end">
+<div x-show="mobileMenuOpen" x-cloak class="lg:hidden fixed inset-0 z-70 flex justify-end">
     <div x-show="mobileMenuOpen" 
          x-transition:enter="transition-opacity ease-linear duration-200"
          x-transition:enter-start="opacity-0"

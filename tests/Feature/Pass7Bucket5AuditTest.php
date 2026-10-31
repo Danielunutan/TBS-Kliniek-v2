@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Character;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Player;
 
 class Pass7Bucket5AuditTest extends TestCase
 {
@@ -13,8 +13,8 @@ class Pass7Bucket5AuditTest extends TestCase
 
     public function test_bucket_5_views_and_admin_referrals(): void
     {
-        $adminUser = User::factory()->create(['role' => 'admin']);
-        $adminPlayer = Player::factory()->create(['user_id' => $adminUser->id]);
+        $adminUser = User::factory()->create(['role' => 'admin', 'is_staff' => true, 'is_onboarded' => true]);
+        Character::factory()->create(['user_id' => $adminUser->id]);
 
         $response = $this->actingAs($adminUser)->get(route('admin.referrals'));
         $response->assertStatus(200);

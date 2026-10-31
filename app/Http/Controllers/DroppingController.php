@@ -88,6 +88,7 @@ class DroppingController extends Controller
         // 10% kans dat de bewaarder je pakt
         $caught = mt_rand(1, 100) <= 10;
         if ($caught) {
+            $this->level->addXp($character, 5);
             $this->prisonService->jail($character, 5, 'Betrapt bij het oprapen van een met tape verzwaarde tennisbal bij het buitenhek.');
 
             SmuggleDropping::create([
@@ -207,6 +208,8 @@ class DroppingController extends Controller
         // 12% kans dat zoeklichten de drone onderscheppen
         $caught = mt_rand(1, 100) <= 12;
         if ($caught) {
+            $this->level->addXp($character, 10);
+
             SmuggleDropping::create([
                 'character_id' => $character->id,
                 'type' => 'drone',

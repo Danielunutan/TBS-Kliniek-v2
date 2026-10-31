@@ -540,7 +540,7 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->leave_until, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->leave_until, false)));
     }
 
     /**
@@ -560,7 +560,7 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->sedated_until, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->sedated_until, false)));
     }
 
     /**
@@ -631,7 +631,7 @@ class Character extends Model
             $nextStart = $startToday;
         }
 
-        return max(0, (int) $now->diffInSeconds($nextStart, false));
+        return max(0, (int) ceil($now->diffInSeconds($nextStart, false)));
     }
 
     /**
@@ -648,7 +648,7 @@ class Character extends Model
         $today = $now->toDateString();
         $end = Carbon::parse("{$today} 22:30:00", $tz);
 
-        return max(0, (int) $now->diffInSeconds($end, false));
+        return max(0, (int) ceil($now->diffInSeconds($end, false)));
     }
 
     /**
@@ -1743,7 +1743,7 @@ class Character extends Model
             return 1;
         }
 
-        $sec = max(0, (int) now()->diffInSeconds($this->prison_until, false))
+        $sec = max(0, (int) ceil(now()->diffInSeconds($this->prison_until, false)))
             + ((int) ($this->ad_prison_progress ?? 0) * 180);
 
         if ($sec <= 90) {
@@ -1783,7 +1783,7 @@ class Character extends Model
             return 0;
         }
 
-        $secs = (int) now()->diffInSeconds($until, false);
+        $secs = (int) ceil(now()->diffInSeconds($until, false));
         if ($secs <= 0) {
             if ($this->is_in_prison) {
                 $this->update([
@@ -1836,7 +1836,7 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->protection_until, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->protection_until, false)));
     }
 
     /**
@@ -1848,7 +1848,7 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->cash_protection_until, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->cash_protection_until, false)));
     }
 
     /**
@@ -2957,7 +2957,7 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->coma_until, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->coma_until, false)));
     }
 
     /**
@@ -2977,7 +2977,7 @@ class Character extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->vest_until, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->vest_until, false)));
     }
 
     public const REVIVE_SERUM_NAME = 'Forensisch Reanimatie-Serum (Epinefrine-Ampul)';

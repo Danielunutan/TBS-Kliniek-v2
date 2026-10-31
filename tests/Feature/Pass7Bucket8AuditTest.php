@@ -24,10 +24,10 @@ class Pass7Bucket8AuditTest extends TestCase
 
     public function test_settings_account_index_renders_correctly(): void
     {
-        $user = User::factory()->create();
-        $character = Character::factory()->create(['user_id' => $user->id]);
+        $user = User::factory()->create(['is_onboarded' => true]);
+        Character::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->get(route('settings.account.index'));
+        $response = $this->actingAs($user)->get(route('settings.account'));
 
         $response->assertStatus(200);
         $response->assertSee('Account & Beveiliging');

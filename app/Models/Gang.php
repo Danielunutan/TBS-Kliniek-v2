@@ -205,7 +205,7 @@ class Gang extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($this->shield_until, false));
+        return max(0, (int) ceil(now()->diffInSeconds($this->shield_until, false)));
     }
 
     public function attackCooldownRemaining(): int
@@ -219,7 +219,7 @@ class Gang extends Model
             return 0;
         }
 
-        return max(0, (int) now()->diffInSeconds($cooldownEnds, false));
+        return max(0, (int) ceil(now()->diffInSeconds($cooldownEnds, false)));
     }
 
     /**

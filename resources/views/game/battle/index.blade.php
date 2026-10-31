@@ -48,7 +48,7 @@
             </div>
 
             <!-- Countdown Timer Card -->
-            <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-5 text-center shrink-0 shadow-xs min-w-[210px]">
+            <div class="bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl p-5 text-center shrink-0 shadow-xs w-full md:w-auto md:min-w-[210px]">
                 <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 block mb-1">
                     Volgende Reset & Uitbetaling
                 </span>
@@ -191,9 +191,9 @@
     <!-- MODAL FOR FULL CATEGORY LEADERBOARD -->
     <div x-show="modalOpen" 
          x-cloak 
-         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 pb-24 lg:pb-4"
          @click.self="modalOpen = false">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 text-slate-900 dark:text-white shadow-xl space-y-4 relative max-h-[85vh] flex flex-col">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 text-slate-900 dark:text-white shadow-xl space-y-4 relative max-h-[85dvh] flex flex-col">
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div class="flex items-center gap-2 font-extrabold text-slate-900 dark:text-white text-sm uppercase tracking-wider">
