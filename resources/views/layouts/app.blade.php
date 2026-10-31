@@ -2582,7 +2582,7 @@
                         <div class="space-y-0.5">
                             <h4 class="font-extrabold text-xs uppercase tracking-wider text-slate-900 dark:text-white">Juridisch & Privacy</h4>
                             <p class="text-[10px] text-amber-700 dark:text-amber-400 font-extrabold">
-                                Hobbyproject &bull; Geen KvK &bull; Alles is een donatie
+                                Hobbyproject &bull; Volledig gratis &bull; Vrijblijvend doneren voor extra voordelen
                             </p>
                         </div>
                         <ul class="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">

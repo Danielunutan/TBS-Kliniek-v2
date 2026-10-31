@@ -68,11 +68,11 @@
                 </div>
                 <div class="space-y-1">
                     <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70 text-[9px] font-black uppercase tracking-wider">
-                        Hobbyproject &bull; Geen KvK &bull; Alles is Donatie
+                        Hobbyproject &bull; Volledig gratis &bull; Vrijblijvend doneren voor extra voordelen
                     </div>
                     <h4 class="text-sm font-black text-slate-900 dark:text-white tracking-tight">Wij respecteren jouw privacy &amp; cookies</h4>
                     <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                        TBS Kliniek is een particulier non-profit hobbyproject zonder KvK-inschrijving. Wij gebruiken veilige functionele cookies voor inloggen en sessiebeheer. Alle serversteun (zoals VIP en Sterren) valt onder vrijwillige donaties.
+                        TBS Kliniek is een particulier hobbyproject en voor iedereen gratis toegankelijk. Wij gebruiken veilige functionele cookies voor inloggen en sessiebeheer. Vrijwillig doneren voor extra voordelen mag altijd om het project te steunen.
                     </p>
                 </div>
             </div>
@@ -113,13 +113,13 @@
                     </button>
                 </div>
 
-                <!-- Hobby Project / Geen KvK / Donatie Callout -->
+                <!-- Hobby Project / Donatie Callout -->
                 <div class="p-3 bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/70 rounded-xl text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed space-y-0.5">
                     <div class="font-extrabold uppercase tracking-wider text-[10px] text-amber-800 dark:text-amber-300">
-                        Particulier Hobbyproject &bull; Geen KvK
+                        Hobbyproject &bull; Volledig gratis &bull; Vrijblijvend doneren voor extra voordelen
                     </div>
                     <p>
-                        TBS Kliniek is een hobbymatig non-profit project zonder commerciële onderneming of KvK-inschrijving. Alle optionele bijdragen (zoals VIP, Sterren en koffie) zijn 100% vrijwillige donaties ter dekking van server- en hostingkosten.
+                        TBS Kliniek is een hobbymatig project en voor iedereen gratis toegankelijk. Alle optionele bijdragen (zoals VIP, Sterren en koffie) zijn vrijwillige donaties ter dekking van server- en hostingkosten en bieden leuke extra voordelen.
                     </p>
                 </div>
 
