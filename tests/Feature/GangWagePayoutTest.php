@@ -119,6 +119,9 @@ class GangWagePayoutTest extends TestCase
             'leader_character_id' => $character->id,
         ]);
 
+        // Freeze the clock mid-hour: wages count whole clock hours, so the result must not depend on the minute the suite runs.
+        Carbon::setTestNow(Carbon::create(2026, 1, 15, 12, 30, 0));
+
         $character->gang_id = $gang->id;
         $character->cash = 2000;
         $character->bank = 3000;

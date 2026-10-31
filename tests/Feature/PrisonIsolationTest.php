@@ -54,6 +54,27 @@ class PrisonIsolationTest extends TestCase
         $this->assertStringContainsString('sec vast in isolatie', $errorMessage);
     }
 
+    public function test_breakout_of_free_inmate_costs_no_energy_and_no_attempt(): void
+    {
+        $user = User::where('email', 'demo@tbskliniek.nl')->first();
+        $char = $user->character;
+        $char->update([
+            'is_in_prison' => false,
+            'energy' => 80,
+            'breakout_attempts' => 0,
+        ]);
+
+        $freeInmate = Character::where('id', '!=', $char->id)->first();
+        $freeInmate->update(['is_in_prison' => false, 'prison_until' => null]);
+
+        $response = $this->actingAs($user)->post(route('prison.breakout', $freeInmate->id));
+
+        $response->assertSessionHas('info');
+        $char->refresh();
+        $this->assertSame(80, (int) $char->energy);
+        $this->assertSame(0, (int) $char->breakout_attempts);
+    }
+
     public function test_buyout_with_stars_frees_imprisoned_character(): void
     {
         $user = User::where('email', 'demo@tbskliniek.nl')->first();

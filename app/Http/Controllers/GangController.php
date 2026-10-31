@@ -1792,35 +1792,88 @@ class GangController extends Controller
             return back()->with('error', "Bende {$targetGang->name} heeft nog een actief verdedigingsschild na een eerdere overval (".gmdate('i:s', $shieldSec).').');
         }
 
-        // Actual attack power & protection points calculation
-        $attackerPower = max(500, (int) ($myGang->attack_power ?? 500));
-        $targetDefense = max(500, (int) ($targetGang->protection_points ?? 1000));
+        return DB::transaction(function () use ($myGang, $targetGang, $character): RedirectResponse {
+            // Lock both gangs in id order (prevents deadlocks) and re-check the limits, so parallel attacks cannot loot the same treasury twice.
+            $lockedGangs = Gang::whereIn('id', [$myGang->id, $targetGang->id])->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $myGang = $lockedGangs->get($myGang->id);
+            $targetGang = $lockedGangs->get($targetGang->id);
 
-        // Randomized battle rolls (+/- 15% variance)
-        $attackRoll = (int) round($attackerPower * (mt_rand(85, 115) / 100));
-        $defenseRoll = (int) round($targetDefense * (mt_rand(85, 115) / 100));
+            $remainingCooldown = $myGang->attackCooldownRemaining();
+            if ($remainingCooldown > 0) {
+                return back()->with('error', 'Jouw bende moet nog '.gmdate('i:s', $remainingCooldown).' wachten voor een nieuwe aanval.');
+            }
 
-        if ($attackRoll > $defenseRoll) {
-            // Victory: Loot cash, reduce defender's protection points, earn respect
-            $stolenCash = $targetGang->treasury > 0
-                ? (int) round($targetGang->treasury * (mt_rand(8, 16) / 100))
-                : 0;
-            $defenseDamage = max(250, (int) round($targetDefense * (mt_rand(10, 20) / 100)));
-            $respectGain = round(mt_rand(25, 60) / 10, 2); // 2.5 - 6.0 respect
+            if ($targetGang->isUnderShield()) {
+                return back()->with('error', "Bende {$targetGang->name} heeft nog een actief verdedigingsschild na een eerdere overval (".gmdate('i:s', $targetGang->shieldSecondsRemaining()).').');
+            }
 
-            $targetGang->treasury = max(0, $targetGang->treasury - $stolenCash);
-            $targetGang->protection_points = max(250, $targetGang->protection_points - $defenseDamage);
-            $targetGang->shield_until = now()->addMinutes(15);
-            $targetGang->save();
+            // Actual attack power & protection points calculation
+            $attackerPower = max(500, (int) ($myGang->attack_power ?? 500));
+            $targetDefense = max(500, (int) ($targetGang->protection_points ?? 1000));
 
-            $myGang->treasury += $stolenCash;
+            // Randomized battle rolls (+/- 15% variance)
+            $attackRoll = (int) round($attackerPower * (mt_rand(85, 115) / 100));
+            $defenseRoll = (int) round($targetDefense * (mt_rand(85, 115) / 100));
+
+            if ($attackRoll > $defenseRoll) {
+                // Victory: Loot cash, reduce defender's protection points, earn respect
+                $stolenCash = $targetGang->treasury > 0
+                    ? (int) round($targetGang->treasury * (mt_rand(8, 16) / 100))
+                    : 0;
+                $defenseDamage = max(250, (int) round($targetDefense * (mt_rand(10, 20) / 100)));
+                $respectGain = round(mt_rand(25, 60) / 10, 2); // 2.5 - 6.0 respect
+
+                $targetGang->treasury = max(0, $targetGang->treasury - $stolenCash);
+                $targetGang->protection_points = max(250, $targetGang->protection_points - $defenseDamage);
+                $targetGang->shield_until = now()->addMinutes(15);
+                $targetGang->save();
+
+                $myGang->treasury += $stolenCash;
+                $myGang->last_attack_at = now();
+                $myGang->save();
+
+                $character->respect += $respectGain;
+                $character->save();
+
+                $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! (Power: {$attackerPower} vs Bescherming: {$targetDefense}). Buit: €".number_format($stolenCash, 0, ',', '.')." geplunderd, verdediging van tegenstander -{$defenseDamage} punten, +{$respectGain} respect!";
+
+                GangAttack::create([
+                    'attacker_gang_id' => $myGang->id,
+                    'target_gang_id' => $targetGang->id,
+                    'character_id' => $character->id,
+                    'attacker_power' => $attackerPower,
+                    'target_defense' => $targetDefense,
+                    'won' => true,
+                    'stolen_cash' => $stolenCash,
+                    'defense_damage' => $defenseDamage,
+                    'power_damage' => 0,
+                    'respect_gain' => $respectGain,
+                    'summary' => $summary,
+                ]);
+
+                if ($targetGang->leader) {
+                    GameMessage::create([
+                        'recipient_id' => $targetGang->leader->id,
+                        'sender_id' => $character->id,
+                        'sender_name' => "{$character->name} [{$myGang->name}]",
+                        'subject' => "🚨 [Bende Oorlog] Bende {$myGang->name} heeft jullie aangevallen!",
+                        'content' => "Patiënt {$targetGang->leader->name},\n\nJullie bende '{$targetGang->name}' is zojuist aangevallen door '{$myGang->name}' onder leiding van {$character->name}.\nHun power ({$attackerPower}) brak door jullie verdediging ({$targetDefense}) heen!\nZe hebben €".number_format($stolenCash, 0, ',', '.')." uit de kas geplunderd en jullie verdediging met {$defenseDamage} punten verlaagd.\nJullie bende geniet nu 15 minuten schildbescherming.",
+                        'type' => 'gang',
+                    ]);
+                }
+
+                return back()
+                    ->with('active_gang_tab', 'oorlog')
+                    ->with('success', $summary);
+            }
+
+            // Defeat: Target defense held, attacker loses some attack power
+            $powerDamage = max(150, (int) round($attackerPower * (mt_rand(5, 12) / 100)));
+            $myGang->attack_power = max(250, $myGang->attack_power - $powerDamage);
             $myGang->last_attack_at = now();
             $myGang->save();
 
-            $character->respect += $respectGain;
-            $character->save();
-
-            $summary = "⚔️ OVERWINNING! {$myGang->name} heeft {$targetGang->name} succesvol overvallen! (Power: {$attackerPower} vs Bescherming: {$targetDefense}). Buit: €".number_format($stolenCash, 0, ',', '.')." geplunderd, verdediging van tegenstander -{$defenseDamage} punten, +{$respectGain} respect!";
+            $summary = "🛡️ AANVAL AFGESLAGEN! Bende {$targetGang->name} verdedigde zich met succes tegen {$myGang->name}! (Power: {$attackerPower} vs Bescherming: {$targetDefense}). Jullie leden verliezen (-{$powerDamage} power).";
 
             GangAttack::create([
                 'attacker_gang_id' => $myGang->id,
@@ -1828,69 +1881,32 @@ class GangController extends Controller
                 'character_id' => $character->id,
                 'attacker_power' => $attackerPower,
                 'target_defense' => $targetDefense,
-                'won' => true,
-                'stolen_cash' => $stolenCash,
-                'defense_damage' => $defenseDamage,
-                'power_damage' => 0,
-                'respect_gain' => $respectGain,
+                'won' => false,
+                'stolen_cash' => 0,
+                'defense_damage' => 0,
+                'power_damage' => $powerDamage,
+                'respect_gain' => 0.00,
                 'summary' => $summary,
             ]);
 
             if ($targetGang->leader) {
+                $targetGang->leader->respect += 2.0;
+                $targetGang->leader->save();
+
                 GameMessage::create([
                     'recipient_id' => $targetGang->leader->id,
                     'sender_id' => $character->id,
                     'sender_name' => "{$character->name} [{$myGang->name}]",
-                    'subject' => "🚨 [Bende Oorlog] Bende {$myGang->name} heeft jullie aangevallen!",
-                    'content' => "Patiënt {$targetGang->leader->name},\n\nJullie bende '{$targetGang->name}' is zojuist aangevallen door '{$myGang->name}' onder leiding van {$character->name}.\nHun power ({$attackerPower}) brak door jullie verdediging ({$targetDefense}) heen!\nZe hebben €".number_format($stolenCash, 0, ',', '.')." uit de kas geplunderd en jullie verdediging met {$defenseDamage} punten verlaagd.\nJullie bende geniet nu 15 minuten schildbescherming.",
+                    'subject' => "🛡️ [Bende Oorlog] Aanval van {$myGang->name} afgeslagen!",
+                    'content' => "Patiënt {$targetGang->leader->name},\n\nBende '{$myGang->name}' probeerde jullie bende aan te vallen, maar jullie verdediging ({$targetDefense} punten) hield stand!\nDe vijand verloor {$powerDamage} aanvalskracht. Je hebt +2.0 respect verdiend voor de verdediging.",
                     'type' => 'gang',
                 ]);
             }
 
             return back()
                 ->with('active_gang_tab', 'oorlog')
-                ->with('success', $summary);
-        }
-
-        // Defeat: Target defense held, attacker loses some attack power
-        $powerDamage = max(150, (int) round($attackerPower * (mt_rand(5, 12) / 100)));
-        $myGang->attack_power = max(250, $myGang->attack_power - $powerDamage);
-        $myGang->last_attack_at = now();
-        $myGang->save();
-
-        $summary = "🛡️ AANVAL AFGESLAGEN! Bende {$targetGang->name} verdedigde zich met succes tegen {$myGang->name}! (Power: {$attackerPower} vs Bescherming: {$targetDefense}). Jullie leden verliezen (-{$powerDamage} power).";
-
-        GangAttack::create([
-            'attacker_gang_id' => $myGang->id,
-            'target_gang_id' => $targetGang->id,
-            'character_id' => $character->id,
-            'attacker_power' => $attackerPower,
-            'target_defense' => $targetDefense,
-            'won' => false,
-            'stolen_cash' => 0,
-            'defense_damage' => 0,
-            'power_damage' => $powerDamage,
-            'respect_gain' => 0.00,
-            'summary' => $summary,
-        ]);
-
-        if ($targetGang->leader) {
-            $targetGang->leader->respect += 2.0;
-            $targetGang->leader->save();
-
-            GameMessage::create([
-                'recipient_id' => $targetGang->leader->id,
-                'sender_id' => $character->id,
-                'sender_name' => "{$character->name} [{$myGang->name}]",
-                'subject' => "🛡️ [Bende Oorlog] Aanval van {$myGang->name} afgeslagen!",
-                'content' => "Patiënt {$targetGang->leader->name},\n\nBende '{$myGang->name}' probeerde jullie bende aan te vallen, maar jullie verdediging ({$targetDefense} punten) hield stand!\nDe vijand verloor {$powerDamage} aanvalskracht. Je hebt +2.0 respect verdiend voor de verdediging.",
-                'type' => 'gang',
-            ]);
-        }
-
-        return back()
-            ->with('active_gang_tab', 'oorlog')
-            ->with('error', $summary);
+                ->with('error', $summary);
+        });
     }
 
     /**

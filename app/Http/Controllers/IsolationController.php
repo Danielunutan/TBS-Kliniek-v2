@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\GameNotification;
 use App\Services\EconomyService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class IsolationController extends Controller
@@ -76,38 +78,51 @@ class IsolationController extends Controller
         $costCash = $hours * self::RATE_CASH_PER_HOUR;
         $costStars = $hours * self::RATE_STARS_PER_HOUR;
 
-        if ($currency === 'stars') {
-            if (($character->stars ?? 0) < $costStars) {
-                return back()->with('error', "Onvoldoende sterren! Je hebt {$costStars} Sterren ⭐ nodig voor {$hours} uur isolatie (25 sterren per uur).");
-            }
+        // Pay and extend under one row lock so parallel requests cannot spend the same balance twice.
+        $errorMessage = DB::transaction(function () use ($character, $currency, $hours, $costCash, $costStars): ?string {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            $this->economyService->deductStars($character, $costStars);
-            $paidLabel = "{$costStars} Sterren ⭐";
-        } else {
-            // Check cash or combined cash + bank
-            $totalFunds = $character->cash + $character->bank;
-            if ($totalFunds < $costCash) {
-                return back()->with('error', 'Onvoldoende geld! Je hebt €'.number_format($costCash, 0, ',', '.')." nodig voor {$hours} uur isolatie (€50.000 per uur).");
-            }
+            if ($currency === 'stars') {
+                if (($locked->stars ?? 0) < $costStars) {
+                    return "Onvoldoende sterren! Je hebt {$costStars} Sterren ⭐ nodig voor {$hours} uur isolatie (25 sterren per uur).";
+                }
 
-            if ($character->cash >= $costCash) {
-                $character->cash -= $costCash;
+                $locked->stars -= $costStars;
             } else {
-                $remainder = $costCash - $character->cash;
-                $character->cash = 0;
-                $character->bank -= $remainder;
+                // Check cash or combined cash + bank
+                if (($locked->cash + $locked->bank) < $costCash) {
+                    return 'Onvoldoende geld! Je hebt €'.number_format($costCash, 0, ',', '.')." nodig voor {$hours} uur isolatie (€50.000 per uur).";
+                }
+
+                if ($locked->cash >= $costCash) {
+                    $locked->cash -= $costCash;
+                } else {
+                    $remainder = $costCash - $locked->cash;
+                    $locked->cash = 0;
+                    $locked->bank -= $remainder;
+                }
             }
-            $character->save();
-            $paidLabel = '€'.number_format($costCash, 0, ',', '.');
+
+            // Extend if already active, or start fresh
+            if ($locked->protection_until && Carbon::now()->lt($locked->protection_until)) {
+                $locked->protection_until = $locked->protection_until->copy()->addHours($hours);
+            } else {
+                $locked->protection_until = Carbon::now()->addHours($hours);
+            }
+            $locked->save();
+
+            return null;
+        });
+
+        if ($errorMessage !== null) {
+            return back()->with('error', $errorMessage);
         }
 
-        // Extend if already active, or start fresh
-        if ($character->protection_until && Carbon::now()->lt($character->protection_until)) {
-            $character->protection_until = $character->protection_until->addHours($hours);
-        } else {
-            $character->protection_until = Carbon::now()->addHours($hours);
-        }
-        $character->save();
+        $character->refresh();
+        $paidLabel = $currency === 'stars'
+            ? "{$costStars} Sterren ⭐"
+            : '€'.number_format($costCash, 0, ',', '.');
 
         GameNotification::create([
             'character_id' => $character->id,

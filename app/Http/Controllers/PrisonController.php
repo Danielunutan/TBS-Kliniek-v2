@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PrisonController extends Controller
@@ -193,16 +194,28 @@ class PrisonController extends Controller
         }
 
         $cost = 25;
-        if (($character->stars ?? 0) < $cost) {
+
+        $bought = DB::transaction(function () use ($character, $cost): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if (! $locked->isImprisoned() || ($locked->stars ?? 0) < $cost) {
+                return false;
+            }
+
+            $locked->stars -= $cost;
+            $locked->is_in_prison = false;
+            $locked->prison_until = null;
+            $locked->prison_reason = null;
+            $locked->prison_escape_attempted = false;
+            $locked->save();
+
+            return true;
+        });
+
+        if (! $bought) {
             return back()->with('error', "Je hebt minimaal {$cost} Sterren ⭐ nodig om jezelf vrij te kopen.");
         }
-
-        $character->stars -= $cost;
-        $character->is_in_prison = false;
-        $character->prison_until = null;
-        $character->prison_reason = null;
-        $character->prison_escape_attempted = false;
-        $character->save();
 
         return back()->with('success', 'Je hebt jezelf succesvol vrijgekocht met Sterren ⭐! Je bent weer op vrije voeten.');
     }
@@ -220,14 +233,7 @@ class PrisonController extends Controller
             return back()->with('error', 'Je zit zelf in de isoleercel!');
         }
 
-        $energyCost = 15;
-        if (! $this->energyService->consume($character, $energyCost)) {
-            return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor een uitbraakpoging!");
-        }
-
-        $character->breakout_attempts = ($character->breakout_attempts ?? 0) + 1;
-        $character->save();
-
+        // Validate the target before energy is spent so an invalid attempt costs nothing.
         $targetInmate = is_numeric($id) ? Character::find($id) : null;
         $targetName = $targetInmate ? $targetInmate->name : 'deze patiënt';
 
@@ -238,6 +244,14 @@ class PrisonController extends Controller
         if ($targetInmate && $targetInmate->id === $character->id) {
             return back()->with('error', 'Je kunt jezelf niet op deze manier uitbreken, gebruik de ontsnappingsknop!');
         }
+
+        $energyCost = 15;
+        if (! $this->energyService->consume($character, $energyCost)) {
+            return back()->with('error', "Je hebt minimaal {$energyCost} energie nodig voor een uitbraakpoging!");
+        }
+
+        $character->breakout_attempts = ($character->breakout_attempts ?? 0) + 1;
+        $character->save();
 
         // Breakout chance based on effective stats (including gear)
         $chanceBonus = (int) floor(($character->getEffectiveIntelligence() + $character->getEffectiveStrength()) / 20);
@@ -292,6 +306,6 @@ class PrisonController extends Controller
         $jailSeconds = random_int(120, 180);
         $this->prisonService->jailSeconds($character, $jailSeconds, "Betrapt bij uitbraakpoging van {$targetName} in de isoleercel.");
 
-        return redirect()->route('prison')->with('error', "Poging mislukt! Je zit {$jailSeconds} sec vast in isolatie (betrapt door cipiers). Betaal borg (€250) of gebruik 2 Sterren om direct vrij te komen!");
+        return redirect()->route('prison')->with('error', "Poging mislukt! Je zit {$jailSeconds} sec vast in isolatie (betrapt door cipiers). Gebruik Sterren ⭐ om direct vrij te komen!");
     }
 }

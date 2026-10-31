@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BattlePassController extends Controller
@@ -543,21 +544,37 @@ class BattlePassController extends Controller
             return $this->respondBp($request, false, 'Voor deze pas heb je minimaal Kliniek Baas V.I.P. (VIP 3) status nodig.');
         }
 
-        $perks = $character->perks ?? [];
-        $claims = $perks['battle_pass_claims'] ?? [];
         $claimKey = "lvl_{$lvl}_{$track}";
+        $claims = [];
 
-        if (in_array($claimKey, $claims, true)) {
+        // Record the claim and grant rewards under a row lock so parallel requests cannot collect a reward twice.
+        $alreadyClaimed = DB::transaction(function () use ($character, $claimKey, $trackData, &$claims): bool {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            $perks = $locked->perks ?? [];
+            $claims = $perks['battle_pass_claims'] ?? [];
+
+            if (in_array($claimKey, $claims, true)) {
+                return true;
+            }
+
+            // Record claim first, then grant rewards (including XP level-ups)
+            $claims[] = $claimKey;
+            $perks['battle_pass_claims'] = $claims;
+            $locked->perks = $perks;
+
+            $this->applyRewards($locked, $trackData['rewards']);
+            $locked->save();
+
+            return false;
+        });
+
+        if ($alreadyClaimed) {
             return $this->respondBp($request, false, 'Je hebt deze beloning al geclaimd.', 'info', $claims);
         }
 
-        // Record claim first, then grant rewards (including XP level-ups)
-        $claims[] = $claimKey;
-        $perks['battle_pass_claims'] = $claims;
-        $character->perks = $perks;
-
-        $this->applyRewards($character, $trackData['rewards']);
-        $character->save();
+        $character->refresh();
 
         GameNotification::create([
             'character_id' => $character->id,
@@ -580,55 +597,69 @@ class BattlePassController extends Controller
         $character = Auth::user()->character;
         $config = self::getPassConfig();
 
-        $perks = $character->perks ?? [];
-        $claims = $perks['battle_pass_claims'] ?? [];
-        $claimLookup = array_flip($claims);
         $supporterTier = $character->getSupporterTier();
         $isVip = $character->isVip();
 
         $claimedCount = 0;
         $aggregatedRewards = [];
+        $claims = [];
 
-        foreach ($config as $lvlNum => $data) {
-            if ($character->level < $data['req_level']) {
-                continue;
-            }
+        // Collect and grant all open rewards under a row lock so parallel requests cannot collect them twice.
+        DB::transaction(function () use ($character, $config, $supporterTier, $isVip, &$claimedCount, &$aggregatedRewards, &$claims): void {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-            $tracksToCheck = ['free'];
-            if ($isVip && $supporterTier >= 1) {
-                $tracksToCheck[] = 'vip1';
-            }
-            if ($isVip && $supporterTier >= 2) {
-                $tracksToCheck[] = 'vip2';
-            }
-            if ($isVip && $supporterTier >= 3) {
-                $tracksToCheck[] = 'vip3';
-            }
+            $perks = $locked->perks ?? [];
+            $claims = $perks['battle_pass_claims'] ?? [];
+            $claimLookup = array_flip($claims);
 
-            foreach ($tracksToCheck as $track) {
-                $claimKey = "lvl_{$lvlNum}_{$track}";
-                if (! isset($claimLookup[$claimKey])) {
-                    $rewards = $data['tracks'][$track]['rewards'];
-                    foreach ($rewards as $key => $amount) {
-                        $aggregatedRewards[$key] = ($aggregatedRewards[$key] ?? 0) + $amount;
+            foreach ($config as $lvlNum => $data) {
+                if ($locked->level < $data['req_level']) {
+                    continue;
+                }
+
+                $tracksToCheck = ['free'];
+                if ($isVip && $supporterTier >= 1) {
+                    $tracksToCheck[] = 'vip1';
+                }
+                if ($isVip && $supporterTier >= 2) {
+                    $tracksToCheck[] = 'vip2';
+                }
+                if ($isVip && $supporterTier >= 3) {
+                    $tracksToCheck[] = 'vip3';
+                }
+
+                foreach ($tracksToCheck as $track) {
+                    $claimKey = "lvl_{$lvlNum}_{$track}";
+                    if (! isset($claimLookup[$claimKey])) {
+                        $rewards = $data['tracks'][$track]['rewards'];
+                        foreach ($rewards as $key => $amount) {
+                            $aggregatedRewards[$key] = ($aggregatedRewards[$key] ?? 0) + $amount;
+                        }
+
+                        $claims[] = $claimKey;
+                        $claimLookup[$claimKey] = true;
+                        $claimedCount++;
                     }
-
-                    $claims[] = $claimKey;
-                    $claimLookup[$claimKey] = true;
-                    $claimedCount++;
                 }
             }
-        }
+
+            if ($claimedCount === 0) {
+                return;
+            }
+
+            $perks['battle_pass_claims'] = $claims;
+            $locked->perks = $perks;
+
+            $this->applyRewards($locked, $aggregatedRewards);
+            $locked->save();
+        });
 
         if ($claimedCount === 0) {
             return $this->respondBp($request, false, 'Er zijn op dit moment geen ongeclaimde beloningen die voor jou ontgrendeld zijn.', 'info', $claims);
         }
 
-        $perks['battle_pass_claims'] = $claims;
-        $character->perks = $perks;
-
-        $this->applyRewards($character, $aggregatedRewards);
-        $character->save();
+        $character->refresh();
 
         GameNotification::create([
             'character_id' => $character->id,

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Character;
 use App\Models\SocialRewardClaim;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class CommunityController extends Controller
@@ -174,23 +177,43 @@ class CommunityController extends Controller
 
         $reward = $platformData['reward'];
 
-        // Grant reward to character
-        $character->cash += $reward['cash'];
-        $character->respect += $reward['respect'];
-        $character->energy = min($character->max_energy, $character->energy + $reward['energy']);
-        $character->save();
+        // Record the claim first. The unique (user_id, platform) index rejects a parallel duplicate,
+        // and the transaction rolls the reward back with it.
+        try {
+            DB::transaction(function () use ($user, $character, $platform, $reward, $request): void {
+                SocialRewardClaim::create([
+                    'user_id' => $user->id,
+                    'character_id' => $character->id,
+                    'platform' => $platform,
+                    'reward_cash' => $reward['cash'],
+                    'reward_respect' => $reward['respect'],
+                    'reward_energy' => $reward['energy'],
+                    'ip_address' => $request->ip(),
+                    'claimed_at' => now(),
+                ]);
 
-        // Record claim
-        SocialRewardClaim::create([
-            'user_id' => $user->id,
-            'character_id' => $character->id,
-            'platform' => $platform,
-            'reward_cash' => $reward['cash'],
-            'reward_respect' => $reward['respect'],
-            'reward_energy' => $reward['energy'],
-            'ip_address' => $request->ip(),
-            'claimed_at' => now(),
-        ]);
+                /** @var Character $locked */
+                $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+                $locked->cash += $reward['cash'];
+                $locked->respect += $reward['respect'];
+                $locked->energy = min($locked->max_energy, $locked->energy + $reward['energy']);
+                $locked->save();
+            });
+        } catch (UniqueConstraintViolationException) {
+            $duplicateMessage = 'Je hebt de beloning voor '.$platformData['name'].' al geclaimd.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $duplicateMessage,
+                    'url' => $platformData['url'],
+                ]);
+            }
+
+            return redirect()->route('community.index')->with('error', $duplicateMessage);
+        }
+
+        $character->refresh();
 
         $successMessage = '🎉 Bedankt voor het volgen van ons '.$platformData['name'].'! Je hebt € '.number_format($reward['cash'], 0, ',', '.').' cash, '.$reward['respect'].' respect en '.$reward['energy'].' energie ontvangen!';
 

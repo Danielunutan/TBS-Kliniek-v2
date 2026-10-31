@@ -194,8 +194,12 @@ class FightController extends Controller
             }
 
             if ($stolenCash > 0) {
-                $this->economy->deductCash($defender, $stolenCash);
-                $this->economy->addCash($attacker, $stolenCash);
+                // Only credit the attacker when the defender really paid, so cash is never created from nothing.
+                if ($this->economy->deductCash($defender, $stolenCash)) {
+                    $this->economy->addCash($attacker, $stolenCash);
+                } else {
+                    $stolenCash = 0;
+                }
             }
 
             $attacker->thefts_succeeded = ($attacker->thefts_succeeded ?? 0) + 1;

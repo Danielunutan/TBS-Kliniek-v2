@@ -23,13 +23,14 @@ class BuyMeACoffeeWebhookController extends Controller
         $secret = config('services.buymeacoffee.webhook_secret');
         $signature = $request->header('x-signature-sha256') ?? $request->header('X-Signature-Sha256');
 
-        if (! empty($secret) && ! empty($signature)) {
+        // Fail closed: when a secret is configured, a missing or wrong signature must never pass.
+        if (! empty($secret)) {
             $rawContent = (string) $request->getContent();
             $expected = hash_hmac('sha256', $rawContent, (string) $secret);
-            if (! hash_equals($expected, (string) $signature)) {
-                Log::warning('BuyMeACoffee Webhook: Signature mismatch', [
-                    'received' => $signature,
-                    'expected' => $expected,
+            if (empty($signature) || ! hash_equals($expected, (string) $signature)) {
+                Log::warning('BuyMeACoffee Webhook: Missing or invalid signature', [
+                    'has_signature' => ! empty($signature),
+                    'ip' => $request->ip(),
                 ]);
 
                 return response()->json([
@@ -37,6 +38,8 @@ class BuyMeACoffeeWebhookController extends Controller
                     'message' => 'Invalid signature',
                 ], 403);
             }
+        } else {
+            Log::warning('BuyMeACoffee Webhook: BUYMEACOFFEE_WEBHOOK_SECRET is not configured, so the request cannot be verified.');
         }
 
         $payload = $request->all();

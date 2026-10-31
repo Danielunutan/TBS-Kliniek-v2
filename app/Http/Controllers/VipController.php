@@ -8,6 +8,7 @@ use App\Services\EnergyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class VipController extends Controller
@@ -40,19 +41,35 @@ class VipController extends Controller
                 $earnedPoints = 5 * $hours;
                 $earnedCash = $hourlyCashBonus * $hours;
 
-                $character->vip_points = ($character->vip_points ?? 0) + $earnedPoints;
-                $character->bank = ($character->bank ?? 0) + $earnedCash;
-                $character->last_vip_reward_at = now();
-                $character->save();
+                // Re-check the timestamp under lock so parallel page loads cannot pay the hourly bonus twice.
+                $rewardPaid = DB::transaction(function () use ($character, $earnedPoints, $earnedCash): bool {
+                    /** @var Character $locked */
+                    $locked = Character::where('id', $character->id)->lockForUpdate()->first();
 
-                GameNotification::create([
-                    'character_id' => $character->id,
-                    'type' => 'vip',
-                    'icon' => 'fa-crown',
-                    'title' => 'VIP Uurbeloning ontvangen!',
-                    'message' => "Je hebt +{$earnedPoints} VIP Punten en €".number_format($earnedCash, 0, ',', '.').' uurbonus op je bank ontvangen!',
-                    'is_read' => false,
-                ]);
+                    if ($locked->last_vip_reward_at && $locked->last_vip_reward_at->diffInHours(now()) < 1) {
+                        return false;
+                    }
+
+                    $locked->vip_points = ($locked->vip_points ?? 0) + $earnedPoints;
+                    $locked->bank = ($locked->bank ?? 0) + $earnedCash;
+                    $locked->last_vip_reward_at = now();
+                    $locked->save();
+
+                    return true;
+                });
+
+                if ($rewardPaid) {
+                    $character->refresh();
+
+                    GameNotification::create([
+                        'character_id' => $character->id,
+                        'type' => 'vip',
+                        'icon' => 'fa-crown',
+                        'title' => 'VIP Uurbeloning ontvangen!',
+                        'message' => "Je hebt +{$earnedPoints} VIP Punten en €".number_format($earnedCash, 0, ',', '.').' uurbonus op je bank ontvangen!',
+                        'is_read' => false,
+                    ]);
+                }
             }
         }
 
@@ -117,49 +134,64 @@ class VipController extends Controller
         $reward = $rewards[$validated['reward_type']];
         $cost = $reward['cost'];
         $currency = $reward['currency'] ?? 'vip_points';
+        $rewardType = $validated['reward_type'];
 
-        if ($currency === 'stars') {
-            if (($character->stars ?? 0) < $cost) {
-                return back()->with('error', "Niet genoeg Gouden Sterren! Je hebt {$character->stars} sterren, maar {$cost} sterren zijn vereist.");
+        // Check the balance, charge it, and grant the reward under one row lock so parallel requests cannot redeem twice.
+        $errorMessage = DB::transaction(function () use ($character, $currency, $cost, $rewardType): ?string {
+            /** @var Character $locked */
+            $locked = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            if ($currency === 'stars') {
+                if (($locked->stars ?? 0) < $cost) {
+                    return "Niet genoeg Gouden Sterren! Je hebt {$locked->stars} sterren, maar {$cost} sterren zijn vereist.";
+                }
+                $locked->stars -= $cost;
+            } else {
+                if (($locked->vip_points ?? 0) < $cost) {
+                    return "Niet genoeg VIP Punten! Je hebt {$locked->vip_points} punten, maar {$cost} punten zijn vereist.";
+                }
+                $locked->vip_points -= $cost;
             }
-            $character->stars -= $cost;
-        } else {
-            if (($character->vip_points ?? 0) < $cost) {
-                return back()->with('error', "Niet genoeg VIP Punten! Je hebt {$character->vip_points} punten, maar {$cost} punten zijn vereist.");
+
+            switch ($rewardType) {
+                case 'cash_protection':
+                    $curCashProt = ($locked->cash_protection_until && $locked->cash_protection_until->isFuture())
+                        ? $locked->cash_protection_until
+                        : now();
+                    $locked->cash_protection_until = $curCashProt->copy()->addHours(24);
+                    break;
+                case 'energy_restore':
+                    $locked->energy = $locked->max_energy;
+                    $locked->health = $locked->max_health;
+                    break;
+                case 'respect_boost':
+                    $locked->respect += 50;
+                    break;
+                case 'week_vip_stars':
+                    $locked->is_vip = true;
+                    $locked->vip_expires_at = ($locked->vip_expires_at && $locked->vip_expires_at->isFuture())
+                        ? $locked->vip_expires_at->copy()->addDays(7)
+                        : now()->addDays(7);
+                    break;
+                case 'vip_lootbag':
+                    $locked->xxl_cases = ($locked->xxl_cases ?? 0) + 2;
+                    $locked->cash += 500000;
+                    break;
+                case 'stars_pack':
+                    $locked->stars = ($locked->stars ?? 0) + 100;
+                    break;
             }
-            $character->vip_points -= $cost;
+
+            $locked->save();
+
+            return null;
+        });
+
+        if ($errorMessage !== null) {
+            return back()->with('error', $errorMessage);
         }
 
-        switch ($validated['reward_type']) {
-            case 'cash_protection':
-                $curCashProt = ($character->cash_protection_until && $character->cash_protection_until->isFuture())
-                    ? $character->cash_protection_until
-                    : now();
-                $character->cash_protection_until = $curCashProt->copy()->addHours(24);
-                break;
-            case 'energy_restore':
-                $character->energy = $character->max_energy;
-                $character->health = $character->max_health;
-                break;
-            case 'respect_boost':
-                $character->respect += 50;
-                break;
-            case 'week_vip_stars':
-                $character->is_vip = true;
-                $character->vip_expires_at = ($character->vip_expires_at && $character->vip_expires_at->isFuture())
-                    ? $character->vip_expires_at->addDays(7)
-                    : now()->addDays(7);
-                break;
-            case 'vip_lootbag':
-                $character->xxl_cases += 2;
-                $character->cash += 500000;
-                break;
-            case 'stars_pack':
-                $character->stars += 100;
-                break;
-        }
-
-        $character->save();
+        $character->refresh();
 
         $currencyLabel = $currency === 'stars' ? 'Gouden Sterren ⭐' : 'VIP Punten';
 

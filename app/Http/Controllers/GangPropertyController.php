@@ -247,8 +247,20 @@ class GangPropertyController extends Controller
             return back()->with('error', "Niet genoeg geld in de bendekas! Je komt nog €{$shortage} tekort.");
         }
 
-        DB::transaction(function () use ($gang, $propertyKey, $catalogProp, $price): void {
+        $errorMessage = DB::transaction(function () use ($gang, $propertyKey, $catalogProp, $price): ?string {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+
+            // Re-check under the gang lock so parallel requests cannot overspend the treasury or buy the same property twice.
+            if ($lockedGang->properties()->where('property_key', $propertyKey)->exists()) {
+                return 'Jouw bende bezit dit pand al!';
+            }
+
+            if ($lockedGang->treasury < $price) {
+                $shortage = number_format($price - $lockedGang->treasury, 0, ',', '.');
+
+                return "Niet genoeg geld in de bendekas! Je komt nog €{$shortage} tekort.";
+            }
+
             $lockedGang->treasury -= $price;
             $lockedGang->save();
 
@@ -266,7 +278,13 @@ class GangPropertyController extends Controller
                 'production_reward_respect' => $catalogProp['production_reward_respect'] ?? 0,
                 'production_status' => 'idle',
             ]);
+
+            return null;
         });
+
+        if ($errorMessage !== null) {
+            return back()->with('error', $errorMessage);
+        }
 
         return back()->with('success', "🎉 Gefeliciteerd! Jouw bende is nu de trotse eigenaar van '{$catalogProp['name']}'!");
     }
@@ -330,7 +348,13 @@ class GangPropertyController extends Controller
         $cash = $property->effective_reward_cash;
         $respect = $property->effective_reward_respect;
 
-        DB::transaction(function () use ($gang, $character, $property, $cash, $respect): void {
+        $claimed = DB::transaction(function () use ($gang, $character, $property, $cash, $respect): bool {
+            // Lock the property first so parallel claims cannot pay the same cycle twice.
+            $lockedProperty = GangProperty::where('id', $property->id)->lockForUpdate()->first();
+            if (! $lockedProperty || ! $lockedProperty->isProductionReady()) {
+                return false;
+            }
+
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
             $lockedGang->treasury += $cash;
             if (Schema::hasColumn('gangs', 'respect')) {
@@ -342,12 +366,18 @@ class GangPropertyController extends Controller
                 $character->increment('respect', $respect);
             }
 
-            $property->update([
+            $lockedProperty->update([
                 'production_status' => 'idle',
                 'production_started_at' => null,
                 'production_ends_at' => null,
             ]);
+
+            return true;
         });
+
+        if (! $claimed) {
+            return back()->with('error', 'De productiecyclus is nog niet afgerond of is al geclaimd.');
+        }
 
         $formattedCash = number_format($cash, 0, ',', '.');
 
@@ -387,8 +417,18 @@ class GangPropertyController extends Controller
             return back()->with('error', "Niet genoeg geld in de bendekas! Je komt nog €{$shortage} tekort voor dit NPC bendelid.");
         }
 
-        DB::transaction(function () use ($gang, $npcKey, $npcData, $cost): void {
+        $errorMessage = DB::transaction(function () use ($gang, $npcKey, $npcData, $cost): ?string {
             $lockedGang = Gang::where('id', $gang->id)->lockForUpdate()->first();
+
+            // Re-check capacity and treasury under the gang lock so parallel hires cannot exceed either limit.
+            if ($lockedGang->npcs()->count() >= $lockedGang->total_npc_capacity) {
+                return 'Geen vrije woonruimte meer! Koop eerst een Luxe Penthouse of Bende Villa om de NPC-capaciteit van de bende te verhogen.';
+            }
+
+            if ($lockedGang->treasury < $cost) {
+                return 'Niet genoeg geld in de bendekas voor dit NPC bendelid.';
+            }
+
             $lockedGang->treasury -= $cost;
             $lockedGang->save();
 
@@ -401,7 +441,13 @@ class GangPropertyController extends Controller
                 'bonus_value' => $npcData['bonus_value'],
                 'hired_at' => now(),
             ]);
+
+            return null;
         });
+
+        if ($errorMessage !== null) {
+            return back()->with('error', $errorMessage);
+        }
 
         return back()->with('success', "🤝 {$npcData['name']} ({$npcData['role_title']}) is succesvol toegetreden tot de bende!");
     }

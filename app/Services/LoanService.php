@@ -42,10 +42,15 @@ class LoanService
             $loanNumber = '#'.rand(1000, 9999);
         }
 
-        /** @var Loan $loan */
-        $loan = DB::transaction(function () use ($character, $amount, $interestRate, $interestAmount, $totalDue, $loanNumber, $depositTo): Loan {
+        /** @var Loan|null $loan */
+        $loan = DB::transaction(function () use ($character, $amount, $interestRate, $interestAmount, $totalDue, $loanNumber, $depositTo): ?Loan {
             /** @var Character $lockedChar */
             $lockedChar = Character::where('id', $character->id)->lockForUpdate()->first();
+
+            // Re-check the capacity under the character lock so parallel requests cannot exceed the limit.
+            if ($amount > Loan::getBeschikbareLening($lockedChar)) {
+                return null;
+            }
 
             $loan = Loan::create([
                 'character_id' => $lockedChar->id,

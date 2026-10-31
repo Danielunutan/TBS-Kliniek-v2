@@ -72,11 +72,16 @@ class CombatTrainingController extends Controller
             return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
         }
 
-        if (! $this->energy->consume($character, $session['energy'])) {
-            return back()->with('error', "Je hebt minimaal {$session['energy']} energie nodig voor deze trainingssessie!");
+        // Pay atomically first so parallel requests cannot train twice for one payment.
+        if (! $this->economy->deductCash($character, $session['cost'])) {
+            return back()->with('error', 'Je hebt €'.number_format($session['cost'], 0, ',', '.').' nodig voor deze training. Je hebt onvoldoende contant geld.');
         }
 
-        $character->cash -= $session['cost'];
+        if (! $this->energy->consume($character, $session['energy'])) {
+            $character->increment('cash', $session['cost']);
+
+            return back()->with('error', "Je hebt minimaal {$session['energy']} energie nodig voor deze trainingssessie!");
+        }
 
         if ($mode === 'level') {
             $gain = 0;

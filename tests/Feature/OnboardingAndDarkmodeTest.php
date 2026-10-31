@@ -122,4 +122,32 @@ class OnboardingAndDarkmodeTest extends TestCase
         $this->assertEquals('rose', $character->profile_color);
         $this->assertTrue((bool) $character->is_onboarded);
     }
+
+    public function test_finished_onboarding_cannot_be_submitted_again_for_repeat_bonus(): void
+    {
+        $user = User::factory()->notOnboarded()->create();
+
+        $payload = [
+            'username' => 'hosselaar_01',
+            'display_name' => 'Hosselaar Henk',
+            'birthdate' => now()->subYears(20)->format('Y-m-d'),
+            'avatar' => 'assets/characters/avatar_male_1.jpg',
+            'gender' => 'male',
+            'specialty' => 'hossel',
+            'profile_color' => 'purple',
+        ];
+
+        $this->actingAs($user)->post(route('onboarding.complete'), $payload)->assertRedirect(route('dashboard'));
+
+        $cashAfterFirstSubmit = (int) $user->refresh()->character->cash;
+
+        $payload['display_name'] = 'Gratis Hernoemd';
+        $this->actingAs($user)->post(route('onboarding.complete'), $payload)
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('info');
+
+        $character = $user->refresh()->character;
+        $this->assertSame($cashAfterFirstSubmit, (int) $character->cash);
+        $this->assertSame('Hosselaar Henk', $character->display_name);
+    }
 }

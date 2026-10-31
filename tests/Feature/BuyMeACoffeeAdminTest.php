@@ -125,4 +125,63 @@ class BuyMeACoffeeAdminTest extends TestCase
             'membership_status' => 'cancelled',
         ]);
     }
+
+    public function test_webhook_with_configured_secret_rejects_request_without_signature(): void
+    {
+        config(['services.buymeacoffee.webhook_secret' => 'unit-test-signing-secret']);
+
+        $response = $this->postJson(route('webhooks.buymeacoffee'), [
+            'event' => 'membership.started',
+            'data' => [
+                'subscription_id' => 'sub_forged_1',
+                'supporter_name' => 'Demo Speler',
+                'membership_tier_name' => 'VIP Lifetime',
+            ],
+        ]);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('buymeacoffee_orders', ['external_id' => 'sub_forged_1']);
+    }
+
+    public function test_webhook_with_configured_secret_rejects_wrong_signature(): void
+    {
+        config(['services.buymeacoffee.webhook_secret' => 'unit-test-signing-secret']);
+
+        $response = $this->postJson(route('webhooks.buymeacoffee'), [
+            'event' => 'membership.started',
+            'data' => ['subscription_id' => 'sub_forged_2'],
+        ], ['X-Signature-Sha256' => 'deadbeef']);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('buymeacoffee_orders', ['external_id' => 'sub_forged_2']);
+    }
+
+    public function test_webhook_with_configured_secret_accepts_valid_signature(): void
+    {
+        $secret = 'unit-test-signing-secret';
+        config(['services.buymeacoffee.webhook_secret' => $secret]);
+
+        $payload = [
+            'event' => 'membership.started',
+            'data' => [
+                'subscription_id' => 'sub_signed_1',
+                'supporter_name' => 'Anonieme Donateur',
+                'membership_tier_name' => 'TBS Gangster Elite',
+            ],
+        ];
+        $signature = hash_hmac('sha256', json_encode($payload), $secret);
+
+        $response = $this->call(
+            'POST',
+            route('webhooks.buymeacoffee'),
+            [],
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json', 'HTTP_X_SIGNATURE_SHA256' => $signature, 'HTTP_ACCEPT' => 'application/json'],
+            json_encode($payload)
+        );
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('buymeacoffee_orders', ['external_id' => 'sub_signed_1']);
+    }
 }

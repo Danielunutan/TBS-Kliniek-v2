@@ -164,6 +164,12 @@ class OnboardingController extends Controller
         }
 
         $character = $user->character;
+
+        // A finished dossier must not be submitted again: it would repeat the specialty cash bonus and allow free renames.
+        if ($user->is_onboarded && $character?->is_onboarded) {
+            return redirect()->route('dashboard')->with('info', 'Je patiëntendossier is al compleet.');
+        }
+
         if (! $character) {
             $character = Character::create([
                 'user_id' => $user->id,
@@ -214,7 +220,7 @@ class OnboardingController extends Controller
         $character->name = $displayName; // maintain compatibility
         $character->birthdate = $validated['birthdate'];
         $character->profile_color = $validated['profile_color'];
-        $character->bio = $validated['bio'] ?: 'Nieuwe patiënt binnengebracht op afdeling TBS.';
+        $character->bio = ($validated['bio'] ?? null) ?: 'Nieuwe patiënt binnengebracht op afdeling TBS.';
         $character->avatar = $validated['avatar'];
         $character->is_onboarded = true;
 

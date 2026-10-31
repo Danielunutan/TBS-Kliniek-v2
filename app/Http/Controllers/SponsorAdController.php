@@ -282,12 +282,34 @@ class SponsorAdController extends Controller
 
     /**
      * Claim the reward after timer completion.
+     *
+     * A per-character lock rejects parallel claims, so one ad view can never pay out twice.
      */
     public function claim(Request $request): JsonResponse
     {
         /** @var Character $character */
         $character = Auth::user()->character;
 
+        $claimLock = Cache::lock("tbs_ad_claim_{$character->id}", 15);
+        if (! $claimLock->get()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Je vorige advertentie-claim wordt nog verwerkt. Probeer het over enkele seconden opnieuw.',
+            ], 429);
+        }
+
+        try {
+            return $this->processClaim($request, $character);
+        } finally {
+            $claimLock->release();
+        }
+    }
+
+    /**
+     * Verify the ad session and grant the reward for one finished advertisement.
+     */
+    protected function processClaim(Request $request, Character $character): JsonResponse
+    {
         $requestToken = $request->input('token') ?: $request->input('robin_token');
 
         // Resolve ad session: 1) from Cache by token, 2) from Cache by character id, 3) from Session
